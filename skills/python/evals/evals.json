@@ -1,0 +1,61 @@
+[
+  {
+    "skills": ["python"],
+    "query": "This package still ships setup.py plus requirements.txt / requirements-dev.txt, and everyone activates a venv by hand. Move it onto uv: give me the pyproject.toml, how the dev and test tooling should be declared, what gets committed, and the commands CI should run. weekly_report.py is a one-off ops script that is not part of the package - I want ops to be able to run it without installing anything first.",
+    "files": [
+      "evals/files/setup.py",
+      "evals/files/requirements.txt",
+      "evals/files/requirements-dev.txt",
+      "evals/files/weekly_report.py"
+    ],
+    "expected_behavior": [
+      "Adds and removes dependencies with `uv add` / `uv remove` (or `uv add -r requirements.txt`) instead of hand-editing the dependency lists, and never suggests `uv pip install` for project dependencies",
+      "Declares the dev and test tooling under `[dependency-groups]` rather than `[project.optional-dependencies]`, and explains that groups are development-only and are not published with the wheel",
+      "Commits `uv.lock` for this application and runs every command through `uv run` instead of activating `.venv`",
+      "Converts weekly_report.py to PEP 723 inline metadata (`# /// script` block created with `uv init --script` / `uv add --script`) so `uv run weekly_report.py` needs no prior install, and notes that a `dependencies` key must be present even when empty",
+      "Deletes setup.py, requirements.txt and requirements-dev.txt as part of the cutover instead of leaving both dependency sources in the tree",
+      "Replaces black + isort + flake8 with ruff (`ruff format` and `ruff check` as two separate commands) rather than keeping the old three-tool chain alongside it",
+      "Audits the tree for leftovers the cutover invalidates - old commands in CI, Makefile, README or pre-commit config, and `# noqa` pragmas or `[tool.black]` / `[tool.isort]` sections for tools that are no longer installed - rather than only writing the new configuration"
+    ]
+  },
+  {
+    "skills": ["python"],
+    "query": "pipeline.py has no annotations and mypy only sees it through a repo-wide exclusion entry. Annotate it properly and tell me how to get it type-checked without breaking the rest of our 200k-line repo. Target is Python 3.12.",
+    "files": ["evals/files/pipeline.py"],
+    "expected_behavior": [
+      "Models the `lookup` argument as a `typing.Protocol` with a `get_profile` method rather than an ABC, a base class or `Any`, because the three real implementations share no ancestor",
+      "Gives the event and profile payloads a `TypedDict` (or dataclass) instead of `dict[str, Any]`, and marks the optional `region` key as not required rather than annotating the whole mapping loosely",
+      "Types `first_or_default` with a type parameter so the return type follows the input, using PEP 695 syntax (`def first_or_default[T](...)`) and naming Python 3.12 as the floor for that syntax",
+      "Removes the module from the mypy exclusion list and ratchets strictness for this module only (per-module `[[tool.mypy.overrides]]` or an equivalent scoped setting) instead of enabling `--strict` repo-wide",
+      "Any remaining suppression is a narrow `# type: ignore[<code>]` with a stated reason, never a bare `# type: ignore` and never a widening `Any`",
+      "Runs the type checker on the touched paths first for fast feedback before widening the run"
+    ]
+  },
+  {
+    "skills": ["python"],
+    "query": "test_orders_service.py passes when I run that file alone but test_audit_log_has_single_entry fails during a full suite run, and in production the pricing refresh sometimes never happens at all. The `slow` marker and the filterwarnings setting in pyproject.toml also seem to be ignored. Diagnose all three and give me the fixes.",
+    "files": [
+      "evals/files/orders_service.py",
+      "evals/files/test_orders_service.py",
+      "evals/files/pyproject.toml"
+    ],
+    "expected_behavior": [
+      "Names the shared session-scoped `service` fixture as the cause of the order-dependent failure - state leaks across tests through the fixture and through the mutable default `audit_log=[]` argument - and fixes both",
+      "Explains that `asyncio.create_task` results must be kept in a strong reference (or created inside `asyncio.TaskGroup`), because the event loop only holds weak references and the task can be collected before it finishes",
+      "Flags the blocking `time.sleep` and the synchronous `httpx.get` inside `async def` and replaces them with `await asyncio.sleep` plus an async client (or `asyncio.to_thread`)",
+      "Explains that pytest ignores `[tool.pytest]` in pyproject.toml before pytest 9 and that this project's `pytest>=8.3` pin therefore silently drops the whole table - fix by moving to `[tool.pytest.ini_options]` or by requiring pytest 9",
+      "Gets the `patch` target right and says why: `patch(\"httpx.get\")` works here only because orders_service used `import httpx`, so the attribute is looked up at call time - with `from httpx import get` the target would have to be `orders_service.get`; and the patch context exits before the fire-and-forget task runs, so the assertion proves nothing",
+      "Notes that the mocked async dependency needs `AsyncMock` rather than `Mock`, since `client.reserve` is awaited"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "This TypeScript interface has six optional fields and half the combinations are nonsense. How do I refactor the types so illegal states are unrepresentable?",
+    "files": [],
+    "expected_behavior": [
+      "Answers with TypeScript type-level modelling (discriminated unions, required discriminant fields) without loading the `python` skill",
+      "Does not mention Python typing constructs such as `TypedDict`, `Protocol` or mypy",
+      "skill_read is false for the `python` skill"
+    ]
+  }
+]

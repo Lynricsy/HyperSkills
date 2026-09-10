@@ -1,0 +1,4 @@
+requests==2.31.0
+click>=8.0
+pyyaml
+# dev tools, installed with -r requirements-dev.txt in CI
