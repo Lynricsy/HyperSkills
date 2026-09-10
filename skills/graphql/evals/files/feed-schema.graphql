@@ -1,0 +1,67 @@
+"""
+Schema for the mobile home feed. Every field is non-null so the generated
+TypeScript types come out without optionals and the app code stays clean.
+"""
+
+type Query {
+  viewer: Viewer!
+  post(id: ID!): Post!
+  search(term: String!): [SearchHit!]!
+}
+
+type Viewer {
+  id: ID!
+  handle: String!
+  feed: [Post!]!
+  recommendations: [Post!]!
+  unreadNotificationCount: Int!
+  billingSummary: BillingSummary!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  author: Author!
+  comments: [Comment!]!
+  likeCount: Int!
+  """Computed by the ranking service."""
+  relevanceScore: Float!
+  """Fetched from the image CDN's metadata API."""
+  heroImage: Image!
+}
+
+type Author {
+  id: ID!
+  handle: String!
+  displayName: String!
+  followerCount: Int!
+  posts: [Post!]!
+}
+
+type Comment {
+  id: ID!
+  body: String!
+  author: Author!
+  createdAt: String!
+}
+
+type Image {
+  url: String!
+  width: Int!
+  height: Int!
+  dominantColor: String!
+}
+
+type BillingSummary {
+  plan: String!
+  seatsUsed: Int!
+  nextInvoiceCents: Int!
+}
+
+union SearchHit = Post | Author
+
+type Mutation {
+  createPost(title: String!, body: String!): Post!
+  likePost(id: ID!): Post!
+}

@@ -1,0 +1,49 @@
+type Query {
+  """Products in the store. Pass page/pageSize to walk the catalogue."""
+  products(page: Int = 0, pageSize: Int = 50, category: String): ProductsPage!
+
+  collection(slug: String!): Collection
+}
+
+type ProductsPage {
+  items: [Product!]!
+  page: Int!
+  pageSize: Int!
+  totalCount: Int!
+  totalPages: Int!
+}
+
+type Product {
+  id: ID!
+  sku: String!
+  title: String!
+  priceCents: Int!
+  category: String!
+  createdAt: String!
+  """All reviews, oldest first."""
+  reviews: [Review!]!
+  variants: [Variant!]!
+}
+
+type Review {
+  id: ID!
+  rating: Int!
+  body: String
+  author: String
+  createdAt: String!
+}
+
+type Variant {
+  id: ID!
+  size: String!
+  colour: String!
+  inStock: Boolean!
+}
+
+type Collection {
+  id: ID!
+  slug: String!
+  title: String!
+  """Curated ordering, editors can reorder at any time."""
+  products(page: Int = 0, pageSize: Int = 50): ProductsPage!
+}

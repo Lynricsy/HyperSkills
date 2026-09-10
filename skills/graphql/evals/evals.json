@@ -1,0 +1,71 @@
+[
+  {
+    "skills": ["graphql"],
+    "query": "Our iOS app renders a completely blank home screen whenever the ranking service or the image CDN has a wobble - not a degraded feed, nothing at all, and the client logs just say `data` was null. The rest of the backend is healthy at the time. Read feed-schema.graphql and tell me why this happens and exactly what to change.",
+    "files": ["evals/files/feed-schema.graphql"],
+    "expected_behavior": [
+      "Names the mechanism: an execution error on a Non-Null position propagates to the parent response position, and because every position from `Query.viewer` down to `Post.relevanceScore` / `Image` is non-null, the error keeps bubbling until the whole `data` entry is null",
+      "States that GraphQL fields are nullable by default deliberately, so that a single failing or unauthorised field degrades to null instead of failing the request, and that `!` is a promise the server has to keep - not a convenience for the client's generated types",
+      "Fixes it by making the positions that can fail independently nullable - `relevanceScore`, `heroImage`, `billingSummary`, and the `viewer` / `post` root fields - rather than by adding try/catch or fallback values in every resolver",
+      "Points out that `[Post!]!` means one bad element nulls the entire list (and then the non-null list nulls its parent), so the item non-null inside a fallible list is the risky part, not the list non-null",
+      "Rejects the premise that non-null everywhere is good for the generated client types, and says the client should handle nullable fields (optional chaining / no force-unwrap) instead",
+      "Does not recommend `@experimental_disableErrorPropagation` or a `null`-bubbling opt-out as the primary fix, or if it mentions such an option, flags it as non-standard and implementation-specific"
+    ]
+  },
+  {
+    "skills": ["graphql"],
+    "query": "Reviewers keep complaining that our catalogue paging is wrong: shoppers see duplicated and skipped products while stock updates land, and `page: 9000` times out. Rework the pagination in catalog-schema.graphql and give me the SDL plus the resolver rules.",
+    "files": ["evals/files/catalog-schema.graphql"],
+    "expected_behavior": [
+      "Replaces page/pageSize with a cursor Connection: `products(first: Int, after: String, last: Int, before: String): ProductConnection!` plus `edges { node cursor }` and `pageInfo { hasNextPage hasPreviousPage startCursor endCursor }`",
+      "Explains why offset paging produces duplicates and gaps - the offset is recomputed against a list that shifted between requests - and that large offsets force the database to count and discard rows",
+      "Says the cursor must be opaque to the client (base64-encoded, documented as unstable) and must encode the sort key plus a tiebreaker such as the id, so the underlying query becomes a keyset/seek predicate rather than an offset",
+      "Requires a default page size and a server-enforced maximum, and says an out-of-range `first` should be a request error rather than silently clamped or unbounded",
+      "Keeps `totalCount` nullable or off the connection, or calls out that an exact count is a separate expensive query, instead of leaving `totalCount: Int!` on every page",
+      "Notes that `reviews` and `variants` are unbounded lists that need the same treatment (or an explicit justification that they are bounded)",
+      "Mentions that the Connection shape comes from the Relay cursor connections specification rather than from the GraphQL specification itself"
+    ]
+  },
+  {
+    "skills": ["graphql"],
+    "query": "A single home-feed request fires several hundred SQL statements and one HTTP call to the ranking service per post. Go through feed-resolvers.js and give me the corrected version.",
+    "files": [
+      "evals/files/feed-resolvers.js",
+      "evals/files/feed-schema.graphql"
+    ],
+    "expected_behavior": [
+      "Flags the module-level `authorLoader` as the most serious bug: a loader shared across requests caches rows for the lifetime of the process, so it serves stale data and leaks one user's authorised rows into another user's request - loaders must be constructed per request and put on the context",
+      "Points out that the existing batch function is broken even as a batch function, because it returns whatever order Postgres gave back and drops missing ids, while DataLoader requires an array of exactly `keys.length` results in the same order as `keys` (with `null` or an `Error` for misses)",
+      "Adds loaders for the remaining per-row resolvers - `Post.comments`, `Post.likeCount`, `Author.followerCount`, `Author.posts` - noting that list-valued relationships batch to one grouped query keyed by the parent id",
+      "Batches `relevanceScore` into a single ranking-service call for the whole feed rather than one call per post",
+      "Says `Post.likeCount` and `Author.followerCount` should be aggregated in one grouped `count(*) ... GROUP BY` query (or a counter column), not counted per row",
+      "Recommends a verification step that counts the statements a real feed query issues, rather than asserting the fix works",
+      "Adds demand control - depth, breadth/alias and complexity limits, and pagination on `Viewer.feed`, `Post.comments` and `Author.posts` - because `Post.author.posts.author...` is cyclical and batching alone does not bound it"
+    ]
+  },
+  {
+    "skills": ["graphql"],
+    "query": "Product wants four changes to checkout-schema.graphql: `shippingCountry` should become an ISO country code enum, `placeOrder` should stop throwing on bad coupons and report them properly, `orders` needs a `status` filter, and `PENDING` should be renamed to `AWAITING_PAYMENT`. Two partner integrations cannot be upgraded on our schedule. Tell me how to land each one and what the rollout looks like.",
+    "files": ["evals/files/checkout-schema.graphql"],
+    "expected_behavior": [
+      "Classifies each change as breaking or additive instead of treating them uniformly: changing a field's type and renaming an enum value are breaking, adding an optional argument is safe, and reworking the mutation result is breaking unless done as a new field",
+      "Handles the country change additively - add a new `shippingCountryCode: CountryCode` field alongside the old one and mark the old field `@deprecated(reason: ...)` - rather than retyping the existing field",
+      "Says a new enum value is safe to add for output positions but that removing or renaming one is breaking, and handles `PENDING` by adding `AWAITING_PAYMENT`, deprecating `PENDING`, and keeping the old value served until traffic on it is zero",
+      "Warns that adding an enum value is a breaking change for input positions and for clients that switch exhaustively, and tells clients to keep a default branch and to query `__typename` on unions/interfaces",
+      "Moves the coupon and stock failures out of thrown top-level errors into errors-as-data - a `placeOrderV2`-style payload with the order plus a typed `userErrors` list (or a result union) - and keeps genuine infrastructure failures in the top-level `errors` array",
+      "Points out that adding a required argument or a non-null input field is breaking, so the `status` filter must be an optional argument with no new required input fields",
+      "Bases removal on measured per-field usage over a deprecation window rather than on a fixed number of releases, and names a mechanised breaking-change check (schema diff in CI, e.g. `graphql-inspector diff`, or the federation equivalent) as the gate",
+      "Does not propose a URL/header API version such as `/graphql/v2` as the primary strategy"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Design the pagination and the error response format for this REST endpoint and write the result up as an OpenAPI 3.1 document. The 500 on a bad coupon and the 200 on create are both wrong.",
+    "files": ["evals/files/orders-routes.ts"],
+    "expected_behavior": [
+      "Answers as REST/HTTP contract design: correct status codes (201 with `Location` on create, 4xx for client faults), a documented pagination scheme with links or cursors, and an RFC 9457 `application/problem+json` error body, written as an OpenAPI 3.1 document",
+      "Does not propose a GraphQL schema, Connection/edges/pageInfo shapes, resolvers or a `userErrors` payload for what is an HTTP endpoint",
+      "skill_read is false for the `graphql` skill"
+    ]
+  }
+]

@@ -1,0 +1,52 @@
+# Public checkout schema, v1. Served to three first-party apps (web, iOS,
+# Android) plus two partner integrations we cannot force to upgrade.
+
+type Query {
+  order(id: ID!): Order
+  orders(customerId: ID!): [Order!]!
+}
+
+type Order {
+  id: ID!
+  status: OrderStatus!
+  """Free-text country name, e.g. "United Kingdom"."""
+  shippingCountry: String!
+  totalCents: Int!
+  currency: String!
+  lineItems: [LineItem!]!
+  """Set once the carrier accepts the parcel."""
+  trackingNumber: String
+  placedAt: String!
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+type LineItem {
+  id: ID!
+  sku: String!
+  quantity: Int!
+  unitPriceCents: Int!
+}
+
+input PlaceOrderInput {
+  customerId: ID!
+  lineItems: [PlaceOrderLineItemInput!]!
+  shippingCountry: String!
+  couponCode: String
+}
+
+input PlaceOrderLineItemInput {
+  sku: String!
+  quantity: Int!
+}
+
+type Mutation {
+  """Throws if the coupon is invalid, the SKU is unknown or stock is short."""
+  placeOrder(input: PlaceOrderInput!): Order!
+  cancelOrder(id: ID!): Order!
+}
