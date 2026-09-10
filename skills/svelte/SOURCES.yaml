@@ -1,0 +1,151 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin svelte
+skill: svelte
+version: "2026.09.11"
+upstreams:
+  - id: svelte-ai-tools
+    kind: repo
+    repo: sveltejs/ai-tools
+    url: https://github.com/sveltejs/ai-tools
+    paths:
+      - packages/opencode/skills/svelte-core-bestpractices
+      - packages/opencode/skills/svelte-code-writer
+    ref: main
+    commit: e7d93fcc168b5f4b3fec57c22f49a36d57e8ee1a
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The official house style and the rules that decide the Core rules: only mark a value $state when something reactive reads it, $state.raw for objects that are replaced rather than mutated, $derived instead of an assigning $effect, effects as an escape hatch that never runs on the server (so no if (browser) guard inside one), props treated as changing values so anything computed from them is $derived, event attributes and <svelte:window> instead of onMount listeners, snippets and {@render}, keyed each blocks, CSS custom properties for cross-component styling, createContext over setContext, the legacy-feature replacement list ({@attach} over use:, class arrays over class:, classes with $state fields over stores, <DynamicComponent> over <svelte:component>), the createSubscriber pattern for external event sources, $inspect.trace as the reactivity debugger, and the await-expressions experimental status. Its svelte-code-writer skill supplied the verification loop this skill's gates use: fetch the current documentation with the @sveltejs/mcp CLI instead of recalling APIs, then run svelte-autofixer over every touched file."
+    notes: "Upstream ships the same two skills four times (packages/opencode, plugins/claude, plugins/cursor, and generated copies); only the packages/opencode tree is tracked to avoid counting one source four ways. The repository was renamed from sveltejs/mcp. Upstream frontmatter is agent-specific prose ('MUST be used whenever…', 'should be executed within the svelte-file-editor agent') and was rewritten; no agent-binding fields were carried over."
+  - id: svelte-core
+    kind: repo
+    repo: sveltejs/svelte
+    url: https://github.com/sveltejs/svelte
+    paths:
+      - documentation/docs
+    ref: main
+    commit: ce89035ecbf88ee131838527d29584b968d450fb
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative basis for every Svelte-side statement: runes mode versus legacy mode and the ban on mixing them, $state proxy semantics, $state.raw immutability, $state.snapshot, $state.eager, $derived laziness and reassignment, $effect lifecycle plus $effect.pre / .root / .tracking / .pending, untrack, the dependency-tracking rules that make optional chaining and post-await reads silently non-reactive, the pass-by-value rule for state passed into functions, $props fallbacks and non-reactive fallbacks, $bindable, $props.id(), the .svelte.js export restriction on reassigned state, createContext (5.40+) and the getter needed to keep reactivity across context, snippet and {@render} semantics, {@attach} (5.29+) and attachment factories, keyed each blocks, function bindings (5.9+), clsx-style class attributes (5.16+), <svelte:boundary> (5.3+) and what it does not catch, scoped CSS and :global, the svelte/reactivity exports, the Vitest setup and the .svelte.test filename rule with $effect.root plus flushSync, and the complete Svelte 4-to-5 migration guide including the svelte/legacy escape hatches and the runes-mode behaviour changes."
+  - id: sveltekit-core
+    kind: repo
+    repo: sveltejs/kit
+    url: https://github.com/sveltejs/kit
+    paths:
+      - documentation/docs
+      - packages/kit/CHANGELOG.md
+    ref: main
+    commit: 228baee9f2d9434b0dde543059b7f5a7b848dbd6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative basis for every SvelteKit statement: route file conventions and ./$types, universal versus server load and their execution environments, devalue serialization (Date, Map, Set, BigInt, RegExp, cyclical references) and the transport hook for custom types, PageProps from 2.16, $app/state from 2.12 versus deprecated $app/stores, await parent() concurrency and the fact that a layout guard is not a guard, streaming promises, the invalidation rules including a server load never tracking its own fetches, page options (prerender / 'auto' / ssr / csr and their consequences), server-only modules and the $env modules, form actions with fail / error / redirect(303), the mandatory cookie path, use:enhance default behaviour plus applyAction and deserialize, remote functions and their experimental opt-in, the hooks surface (handle, resolve options, handleFetch, handleError, handleValidationError, init, reroute, transport), adapters, and the SvelteKit 1-to-2 migration list."
+    notes: "The main branch is SvelteKit 3 prerelease (3.0.0-next.*) while svelte.dev documents the stable 2.70.x line, and the two disagree on load-bearing details (adapter and experimental config in svelte.config.js versus vite.config.js, $env/* versus $app/env/*, $lib versus #lib, invalidateAll versus refreshAll, adapter-bun). Every stable statement in this skill was taken from the documentation at the @sveltejs/kit@2.70.3 tag and cross-checked against the published site; the packages/kit/CHANGELOG.md breaking-change list on main is the source of the SvelteKit 3 table, which is labelled prerelease. See research/svelte.md ruling 1."
+  - id: sv-cli
+    kind: repo
+    repo: sveltejs/cli
+    url: https://github.com/sveltejs/cli
+    paths:
+      - documentation/docs/20-commands
+      - documentation/docs/30-add-ons/55-vitest.md
+      - documentation/docs/30-add-ons/30-playwright.md
+      - packages/sv/src/cli/tests/snapshots/create-with-all-addons/src/lib/vitest-examples
+    ref: main
+    commit: 03fc69b9a811b8e2213b4e9b0070766952408c99
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The toolchain half of every workflow gate: sv check (svelte-check, unused CSS and accessibility hints, --threshold for CI), sv add vitest and sv add playwright as the way to get the test setup rather than hand-rolling it, sv migrate svelte-5 as a legacy migration and sv migrate sveltekit-3 as a task-based one with prerequisite tasks and @migration-task markers, the requirement to commit before migrating, and the one-task-per-commit review discipline."
+  - id: svelte-evals
+    kind: repo
+    repo: sveltejs/svelte-evals
+    url: https://github.com/sveltejs/svelte-evals
+    paths:
+      - assets/default-project/vite.config.ts
+      - assets/default-project/src/routes/page.svelte.spec.ts
+      - assets/default-project/playwright.config.ts
+    ref: main
+    commit: 4c6fd5e0b1cc132bc89de6ab8fd02262eac3cc74
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The exact shape of the current official test rig, reproduced in references/testing.md: two Vitest projects sharing one Vite config, a client project running *.svelte.{test,spec} in Vitest browser mode through the Playwright provider, a server project running everything else in Node, expect.requireAssertions, and the vitest-browser-svelte render plus page.getByRole plus await expect.element pattern."
+    notes: "Last pushed 2026-03-03, outside the six-month freshness window, and kept only because it is the Svelte team's own harness and its configuration still matches what sv add vitest generates today (verified against sveltejs/cli's create-with-all-addons snapshot)."
+  - id: spences10-svelte
+    kind: repo
+    repo: spences10/svelte-claude-skills
+    url: https://github.com/spences10/svelte-claude-skills
+    paths:
+      - .claude/skills/svelte-runes
+      - .claude/skills/sveltekit-data-flow
+      - .claude/skills/sveltekit-structure
+      - .claude/skills/sveltekit-remote-functions
+      - .claude/skills/svelte-deployment
+    ref: main
+    commit: 0152f42ed6e9756a8c1d2304258af8696d4da2ae
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The failure catalogue that shaped the tracking-trap and migration sections: optional chaining short-circuiting a dependency so an effect stops re-running, runes used inside a plain function, the infinite loop from writing state an effect reads, deep reactivity mistaken for broken reactivity when $state.raw is the actual answer, mixing Svelte 4 and 5 syntax in one component, forgetting {@render} for children, binding without $bindable, the server-versus-universal load decision matrix, the class-instance and non-serializable load return failures, and invalidateAll after a client-side auth change."
+    notes: "No licence file (the GitHub API reports license: null); used under the repository's permissive-attribution policy, no text copied verbatim. It supersedes the same author's spences10/skills and spences10/svelte-skills-kit, which carry older copies of the same skills. Two of its claims were overruled against the official documentation and are written the other way here: 'ALWAYS throw redirect()/error()' is SvelteKit 1 syntax, and 'load return values must be JSON-serializable' understates devalue. Its examples still use Svelte 4 `export let data` in +page.svelte. See research/svelte.md rulings 2 and 3."
+  - id: ejirocodes-svelte5
+    kind: repo
+    repo: ejirocodes/agent-skills
+    url: https://github.com/ejirocodes/agent-skills
+    paths:
+      - svelte/skills/svelte5-best-practices
+    ref: main
+    commit: 6e805e4cc8a4378444c791d4a08e304347152bd0
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The security framing of the load split — a secret read in +page.js ships to the browser, which is why the boundary is a rule about the file and not about discipline — plus the callback-props replacement for createEventDispatcher and the SSR state-isolation angle on shared modules."
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - instructions/svelte.instructions.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Independent confirmation from GitHub's own instruction set that Svelte 5 plus SvelteKit 2 is the current target, that attachments are preferred over actions from 5.29, and that await expressions and remote functions must be presented as flag-gated experimental features rather than defaults."
+    notes: "The instructions/*.instructions.md frontmatter field applyTo is an agent-specific glob and was stripped. The file is broad best-practice prose; only the version-gating and the attachments-over-actions position were taken from it."
+  - id: fubits1-svelte
+    kind: repo
+    repo: fubits1/svelte-skills
+    url: https://github.com/fubits1/svelte-skills
+    paths:
+      - plugins/svelte-5/skills/testing-svelte
+    ref: main
+    commit: 2fcf54e0a5f96aa606b149055ed6e95508c504f0
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The testing discipline in references/testing.md: a render-only test proves nothing about an interactive component, so the test must act and assert the consequence; assert preconditions instead of skipping an interaction when they fail; query through locators rather than containers; narrow a strict-mode locator instead of reaching for .first(); and mock at the boundary that crosses the wire rather than inside the component."
+    notes: "Upstream frontmatter carries the agent-specific field user-invocable, which was stripped. Its cross-skill references (svelte-5:msw, svelte-5:storybook-vitest) point at sibling skills in that repository and were removed; Storybook and MSW are out of this skill's scope."
+  - id: svelte-dev-docs
+    kind: docs
+    url: https://svelte.dev/docs
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The published documentation is what decides which version this skill treats as current. It serves the stable release line — adapter and experimental options in svelte.config.js, $env/static/private, $lib, invalidateAll — and it is the surface a reader will check, so every stable claim here matches it."
+    notes: "Licence checked at source rather than assumed: the site is rendered from documentation/docs in sveltejs/svelte, sveltejs/kit and sveltejs/cli, all three MIT, so the documentation content is merged. The site repository sveltejs/svelte.dev itself reports license: null through the API and carries no LICENSE file; none of its own content (layout, blog, tutorial prose) was used. Only technical facts were taken; all wording here is original."
+  - id: full-stack-skills-svelte
+    kind: repo
+    repo: full-stack-skills/svelte-skills
+    url: https://github.com/full-stack-skills/svelte-skills
+    paths:
+      - skills
+    ref: main
+    commit: 7dcf77304371ad22e6c45e67bcf24836fd95747e
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage check only: its sixteen skills partition the official documentation (runes, template syntax, styling, special elements, lifecycle, legacy APIs, runtime, CLI, and the SvelteKit overview / data / config / advanced split), which was used to confirm this skill's topic router leaves no documented area unrouted."
+    notes: "The README claims Apache-2.0 but the repository's LICENSE file is a third-party attribution notice for unrelated Python packages, not a licence grant; only one sub-directory (skills/svelte-awesome) carries a real Apache-2.0 LICENSE.txt. With no grant covering the repository, it is treated as unlicensed and reference-only. The content is machine-generated from svelte.dev section by section and written in Chinese, so nothing was merged; see research/svelte.md."

@@ -1,0 +1,74 @@
+[
+  {
+    "skills": ["svelte"],
+    "query": "LegacyDashboard.svelte and filterStore.js in this directory are Svelte 4 code. Port them to Svelte 5 and tell me exactly which construct maps to which, including anything I should not translate one-for-one.",
+    "files": [
+      "evals/files/LegacyDashboard.svelte",
+      "evals/files/filterStore.js"
+    ],
+    "expected_behavior": [
+      "Maps `export let rows/pageSize` to a single `let { rows, pageSize = 25 } = $props()` destructuring, and `export let selected` to `let { selected = $bindable(null) } = $props()` because the parent binds it",
+      "Converts the `$: matching`, `$: sorted` and `$: visible` assignments to `$derived` (or `$derived.by` for the multi-statement ones) and explicitly says the `$: { liveTotal = ... }` block must also become `$derived`, not `$effect`, because writing state from an effect adds a render pass and can loop",
+      "Keeps `$: if (query.length > 2) dispatch(...)` out of `$effect`: replaces `createEventDispatcher` with callback props (`onsearch`, `onselect`) called from the event handler or from an input handler, and notes `createEventDispatcher` is deprecated in Svelte 5",
+      "Replaces `on:click` with `onclick`, `on:submit`/`<svelte:window on:keydown>` with `onkeydown`, and says event modifiers such as `|preventDefault` no longer exist so the handler must call `event.preventDefault()` itself",
+      "Replaces `<slot name=\"toolbar\" />` and `<slot />` with `toolbar` and `children` snippet props rendered via `{@render toolbar?.()}` and `{@render children()}`, and shows the caller using `{#snippet toolbar()}`",
+      "Says `rows` is replaced wholesale by the poller, so `$state.raw` avoids paying for a deep proxy on every tick, rather than treating deep reactivity as broken",
+      "Replaces the `writable` store in filterStore.js with a `.svelte.js` module or class exposing `$state` fields, dropping the `$filters` auto-subscription, and warns that module-level mutable state is shared between users during SSR — so the state belongs in context (`createContext`, Svelte 5.40+) or a per-request scope",
+      "Replaces `use:drawSparkline` with an `{@attach ...}` attachment, explaining that attachments re-run when the state they read changes while actions do not",
+      "Replaces the `onMount`/`onDestroy` interval pair with a single `$effect` returning its teardown, and does not wrap the effect body in a browser check because effects never run on the server",
+      "Adds a keyed `{#each visible as row (row.id)}` instead of the unkeyed each block",
+      "Names a mechanical starting point (`npx sv migrate svelte-5`) and a verification step on the result (`npx @sveltejs/mcp svelte-autofixer <file>`, `npx sv check`) instead of only hand-editing"
+    ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "These three files (+page.server.ts, +page.ts, +page.svelte) are one SvelteKit route. Loading it fails and I do not understand the server/universal split. Review all three, say what breaks and why, and give me the corrected versions.",
+    "files": [
+      "evals/files/dataflow/+page.server.ts",
+      "evals/files/dataflow/+page.ts",
+      "evals/files/dataflow/+page.svelte"
+    ],
+    "expected_behavior": [
+      "Says importing `$lib/server/database` from `+page.ts` is the hard failure: universal load runs in the browser too, so server-only modules are refused at build time, and the audit query must move to `+page.server.ts`",
+      "Says a server load return value is serialized with devalue, not JSON, so `Date` (and `Map`, `Set`, `BigInt`, `RegExp`, cyclical references) cross the boundary intact — it does not tell me to stringify the dates",
+      "Says the `Invoice` class instances are what actually cannot be serialized, and gives the two real fixes: return plain data and compute `total` on the client, or register a `transport` transporter with `encode`/`decode` in `hooks.ts`",
+      "Flags `let cachedRates` at module scope in `+page.server.ts` as state shared across every user of a long-lived server, and replaces it with a per-request read or an explicit cache keyed outside the request path",
+      "Flags reading `process.env.AUDIT_TOKEN` in a value returned to the page: the secret is serialized into the HTML payload, and env access should go through `$env/static/private` or `$env/dynamic/private` and stay on the server",
+      "Says `localStorage` in universal load throws during SSR, and gates it on `browser` from `$app/environment` (or moves it out of load entirely)",
+      "Rewrites `export let data` as `let { data }: PageProps = $props()` (or `let { data } = $props()`), because runes-mode components do not use `export let`",
+      "Replaces `$page` from `$app/stores` with the `page` object from `$app/state`, dropping the `$` prefix",
+      "Explains that `invalidate('/api/exchange-rates')` only works because the universal load `fetch`ed that URL, that a server load never registers a fetched URL as a dependency, and that an explicit `depends('app:rates')` plus `invalidate('app:rates')` is the reliable way to target the rerun",
+      "Points out that `await parent()` is awaited before the independent `fetch`, creating a needless waterfall, and starts both before awaiting"
+    ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "Review the +page.server.ts and +page.svelte in this directory. This is a SvelteKit 2 login route. Validation errors show up as a full error page instead of inline messages, and the sign-out button does nothing. Fix both files.",
+    "files": [
+      "evals/files/forms/+page.server.ts",
+      "evals/files/forms/+page.svelte"
+    ],
+    "expected_behavior": [
+      "Says `error(400, ...)` is the wrong tool for invalid input and replaces it with `fail(400, { email, missing: true })`, returning the submitted email so the field can be repopulated, while `error()` stays for genuine failures",
+      "Says that in SvelteKit 2 `redirect()` and `error()` throw by themselves, so `throw redirect(...)` / `throw error(...)` must lose the `throw`",
+      "Uses status 303 (not 302) for the post-login redirect so the browser issues a GET",
+      "Says `cookies.set` and `cookies.delete` require an explicit `path` (normally `path: '/'`) in SvelteKit 2, otherwise the cookie is scoped to the parent of the current path",
+      "Flags `let lastEmail` at module scope as state shared by every visitor of a long-lived server and removes it",
+      "Replaces the hand-rolled `fetch('?/login')` submit handler with a real `<form method=\"POST\" action=\"?/login\" use:enhance>` and reads the result from the `form` prop (`let { data, form } = $props()`), so the route works without JavaScript and errors render inline",
+      "Explains that the sign-out form is broken because `use:enhance` requires `method=\"POST\"`; `method=\"GET\"` will not reach the action at all",
+      "Adds the missing `import { enhance } from '$app/forms'`, since `use:enhance` is not a global",
+      "Rewrites the component in runes mode: `let { data, form } = $props()` instead of `export let data`, and `onsubmit` instead of `on:submit` if a handler is kept at all",
+      "If it recommends remote functions (`form` from `$app/server`) as the alternative, states that they are still experimental and need `experimental.remoteFunctions` plus `compilerOptions.experimental.async` opted in, rather than presenting them as the stable default"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "In InvoiceFilters.vue in this directory the list stops updating after reload() runs. Why?",
+    "files": ["evals/files/negative/InvoiceFilters.vue"],
+    "expected_behavior": [
+      "Does not read the svelte skill: skill_read is false",
+      "Answers as Vue 3 work: reassigning the `state` variable replaces the reactive proxy that the template and `computed` were tracking, so it must mutate the existing object (or use `ref` and assign to `.value`)",
+      "Gives no Svelte, runes or SvelteKit advice"
+    ]
+  }
+]
