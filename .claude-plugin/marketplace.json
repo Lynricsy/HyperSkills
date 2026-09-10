@@ -18,6 +18,15 @@
       ]
     },
     {
+      "name": "api-design",
+      "description": "Designs and reviews HTTP API contracts independently of any framework: resource modelling and URI structure, HTTP method semantics and idempotency, status-code selection, pagination (offset, keyset, o",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/api-design"
+      ]
+    },
+    {
       "name": "apple",
       "description": "Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS 26+), Swift 6.x strict concurrency and actor isolation",
       "source": "./",
@@ -117,12 +126,30 @@
       ]
     },
     {
+      "name": "graphql",
+      "description": "Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and field naming, interfaces, unions, input objects and",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/graphql"
+      ]
+    },
+    {
       "name": "java-spring",
       "description": "Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts, declarative HTTP service clients, Spring Data JPA (entity m",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/java-spring"
+      ]
+    },
+    {
+      "name": "laravel",
+      "description": "Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts, strictness), migrations and indexes, routing and contr",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/laravel"
       ]
     },
     {
@@ -141,6 +168,15 @@
       "strict": false,
       "skills": [
         "./skills/office"
+      ]
+    },
+    {
+      "name": "postgres",
+      "description": "Guides self-managed PostgreSQL work: schema and type selection, constraints, index choice and composite column order, reading EXPLAIN (ANALYZE, BUFFERS) and rewriting the query behind it, transactions",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/postgres"
       ]
     },
     {
@@ -177,6 +213,15 @@
       "strict": false,
       "skills": [
         "./skills/skill-authoring"
+      ]
+    },
+    {
+      "name": "supabase",
+      "description": "Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr cookie flows, getClaims versus getUser versus getSession",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/supabase"
       ]
     },
     {
@@ -231,6 +276,7 @@
       "strict": false,
       "skills": [
         "./skills/android",
+        "./skills/api-design",
         "./skills/apple",
         "./skills/astro",
         "./skills/chrome-extension",
@@ -242,13 +288,17 @@
         "./skills/frontend-design",
         "./skills/github",
         "./skills/go",
+        "./skills/graphql",
         "./skills/java-spring",
+        "./skills/laravel",
         "./skills/nodejs-backend",
         "./skills/office",
+        "./skills/postgres",
         "./skills/python",
         "./skills/react",
         "./skills/react-native",
         "./skills/skill-authoring",
+        "./skills/supabase",
         "./skills/svelte",
         "./skills/tauri",
         "./skills/test-driven-development",

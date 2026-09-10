@@ -28,6 +28,7 @@
 | Skill | 类别 | 说明 | 版本 | 上游数 |
 |---|---|---|---|---|
 | [`android`](skills/android/) | 平台 | Guides native Android work end to end: Kotlin with coroutines and Flow, Jetpack Compose (state, side effects, stability, recomposition and scroll… | 2026.09.11 | 11 |
+| [`api-design`](skills/api-design/) | 任务 | Designs and reviews HTTP API contracts independently of any framework: resource modelling and URI structure, HTTP method semantics and idempotency… | 2026.09.11 | 19 |
 | [`apple`](skills/apple/) | 平台 | Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS… | 2026.09.10 | 15 |
 | [`astro`](skills/astro/) | 框架 | Engineers Astro 7 sites: project and route structure including dynamic routes and getStaticPaths, island boundaries and the client:* hydration… | 2026.09.11 | 6 |
 | [`chrome-extension`](skills/chrome-extension/) | 平台 | Guides Chrome and Chromium browser extension work end to end: Manifest V3 manifests, the permissions and host-permissions model, activeTab and… | 2026.09.11 | 10 |
@@ -39,13 +40,17 @@
 | [`frontend-design`](skills/frontend-design/) | 任务 | Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking… | 2026.09.10 | 12 |
 | [`github`](skills/github/) | 平台 | Guides work that needs GitHub the platform | 2026.09.11 | 15 |
 | [`go`](skills/go/) | 框架 | Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation… | 2026.09.11 | 12 |
+| [`graphql`](skills/graphql/) | 框架 | Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and… | 2026.09.11 | 12 |
 | [`java-spring`](skills/java-spring/) | 框架 | Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts… | 2026.09.11 | 8 |
+| [`laravel`](skills/laravel/) | 框架 | Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts… | 2026.09.11 | 9 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error… | 2026.09.11 | 13 |
 | [`office`](skills/office/) | 任务 | Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides… | 2026.09.10 | 19 |
+| [`postgres`](skills/postgres/) | 框架 | Guides self-managed PostgreSQL work: schema and type selection, constraints, index choice and composite column order, reading EXPLAIN (ANALYZE… | 2026.09.11 | 12 |
 | [`python`](skills/python/) | 框架 | Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml… | 2026.09.11 | 17 |
 | [`react`](skills/react/) | 框架 | Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle /… | 2026.09.10 | 8 |
 | [`react-native`](skills/react-native/) | 平台 | Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop… | 2026.09.11 | 7 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/ | 2026.09.10 | 14 |
+| [`supabase`](skills/supabase/) | 框架 | Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr… | 2026.09.11 | 12 |
 | [`svelte`](skills/svelte/) | 框架 | Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets… | 2026.09.11 | 11 |
 | [`tauri`](skills/tauri/) | 平台 | Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and… | 2026.09.11 | 6 |
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
