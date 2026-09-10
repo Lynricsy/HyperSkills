@@ -1,0 +1,147 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin android
+skill: android
+version: "2026.09.11"
+upstreams:
+  - id: android-official
+    kind: repo
+    repo: android/skills
+    url: https://github.com/android/skills
+    paths:
+      - jetpack-compose
+      - navigation
+      - build-system/agp
+      - testing/testing-setup
+      - performance/r8-analyzer
+      - profilers/android-profiler
+      - system/edge-to-edge
+      - security/android-intent-security
+    ref: main
+    commit: bac232fd02b0855df9275281a2a7a47643768719
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "AGP 9 migration sequence (built-in Kotlin, kapt to KSP or legacy-kapt, BuildConfig, new DSL and variant API, default-flag flips), testing strategy and source-set placement, R8 keep-rule discipline, edge-to-edge and window insets, Intent and exported-component security, Navigation 3 and type-safe destinations, incremental XML-to-Compose migration, adaptive layout, Perfetto triage order."
+    notes: "Every SKILL.md here declares `license: Complete terms in LICENSE.txt`. The repository tree contains exactly one licence file, the root LICENSE.txt, which is the full Apache License 2.0; each referenced directory was checked and none carries its own licence, so all of them are merged under Apache-2.0. Upstream frontmatter fields metadata.last-updated and metadata.keywords were stripped."
+  - id: skydoves-compose-perf
+    kind: repo
+    repo: skydoves/compose-performance-skills
+    url: https://github.com/skydoves/compose-performance-skills
+    paths:
+      - recomposition
+      - stability
+      - lists
+      - modifiers
+      - side-effects
+      - measurement
+      - build
+      - audit
+    ref: main
+    commit: 1b32f81724c0d71fe9ef093ca44697f559fdab6e
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Three-phase model and deferring state reads into lambda modifiers, stability inference and what strong skipping actually changed, compiler-report reading, lazy-layout key and contentType rules, modifier-order semantics, derivedStateOf versus snapshotFlow, release-only measurement, Baseline Profile plus Macrobenchmark workflow, Compose-specific R8 configuration."
+    notes: "The hot-reload and IDE-plugin directories were deliberately not used: they are tool surfaces rather than platform rules."
+  - id: aldefy-compose
+    kind: repo
+    repo: aldefy/compose-skill
+    url: https://github.com/aldefy/compose-skill
+    paths: [skills/compose-expert]
+    ref: master
+    commit: 954ef54ea32288fbc90745f012d09d7b791f0d8a
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Side-effect API selection table and effect-key discipline, CompositionLocal boundaries, View-to-Compose and Compose-to-View interop rules, the catalogue of superseded Compose patterns, composable API naming and slot design."
+    notes: "The GitHub API reports NOASSERTION; the LICENSE file is MIT, with an appended note that references/source-code/ excerpts are Apache-2.0 material from androidx/androidx. No source excerpts were used. Its styles-experimental.md was not adopted because the Compose Styles API is still alpha."
+  - id: silvermoon-android
+    kind: repo
+    repo: new-silvermoon/awesome-android-agent-skills
+    url: https://github.com/new-silvermoon/awesome-android-agent-skills
+    paths: [.github/skills]
+    ref: main
+    commit: 82900eacc8dbe13de93c6310af27b9df4b2bd2f6
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Layered architecture and data-layer single-source-of-truth rules, UI-state modelling and explicit backing fields, coroutine scope, dispatcher-injection and lifecycle-aware collection rules, RxJava-to-coroutines mapping, Gradle build-speed checklist, accessibility checks."
+    notes: "Its android-viewmodel skill recommends SharedFlow for one-off ViewModel events; that was overruled by developer.android.com's UI-events guidance, which requires such actions to become UI state. See research/android.md ruling 1."
+  - id: drjacky-ninja
+    kind: repo
+    repo: Drjacky/claude-android-ninja
+    url: https://github.com/Drjacky/claude-android-ninja
+    paths: [references, assets/convention]
+    ref: master
+    commit: baa6e883e9355945838a51ae628e3747dbe6c764
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "build-logic convention-plugin layout and one-concern-per-plugin structure, version-catalog organisation with bundles and BOMs, multi-module layout, and the brownfield-first rule of reading settings.gradle.kts plus the version catalog before changing a build."
+    notes: "Only the structure was taken. The version pins inside assets/libs.versions.toml.template were deliberately not copied, since pinned versions rot."
+  - id: jetbrains-kotlin
+    kind: repo
+    repo: Kotlin/kotlin-agent-skills
+    url: https://github.com/Kotlin/kotlin-agent-skills
+    paths:
+      - skills/kotlin-tooling-agp9-migration
+      - skills/kotlin-tooling-java-to-kotlin
+      - skills/kotlin-tooling-cocoapods-spm-migration
+    ref: main
+    commit: 08d7ad0d74a9a5a548287b2bd4926180fab56cac
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Kotlin Multiplatform branch of AGP 9 migration (com.android.kotlin.multiplatform.library, splitting the Android application into its own subproject, no kapt), and Java-to-Kotlin conversion discipline including preserving file history across the rename."
+    notes: "kotlin-backend-jpa-entity-mapping is server-side Kotlin and falls outside this skill's scope; the CocoaPods-to-SPM skill was read only to keep the KMP section from straying into Xcode integration."
+  - id: mmiani-kmp
+    kind: repo
+    repo: mmiani/kotlin-kmp-claude-agent-skills
+    url: https://github.com/mmiani/kotlin-kmp-claude-agent-skills
+    paths: [skills]
+    ref: main
+    commit: 939786cb13b49daacea7d5fb0a10877b6005e6be
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The source-set placement ladder (highest valid source set, then intermediate source sets, then injected interfaces, and only then expect/actual), rules against leaking platform types into shared logic, and the Compose Multiplatform versus Android-only AndroidX boundary."
+    notes: "The GitHub API reports NOASSERTION; the LICENSE file is the full Apache License 2.0 text with a modified header. The upstream frontmatter field allowed-tools was stripped."
+  - id: meetmiyani-compose
+    kind: repo
+    repo: Meet-Miyani/compose-skill
+    url: https://github.com/Meet-Miyani/compose-skill
+    paths: [SKILL.md, references/cross-platform.md, references/anti-patterns.md]
+    ref: main
+    commit: 982c240e47718b3b0525c5bbe85bf19ff0bb7bec
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two cross-cutting rules: adapt to a project's existing conventions instead of forcing a migration, and verify that an AndroidX artifact actually publishes multiplatform variants before adding it to commonMain."
+    notes: "Its library-specific references (Ktor, Paging, DataStore) were out of scope. Its description requires explicit user invocation, an agent-binding pattern this repository forbids, so it was not used as a model for triggering."
+  - id: maxrave-footguns
+    kind: repo
+    repo: maxrave-dev/kotlin-footguns
+    url: https://github.com/maxrave-dev/kotlin-footguns
+    paths: [CATALOG.md]
+    ref: main
+    commit: 01d9e37ed966c901636f1483b504ad31bfdb0f87
+    license: GPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage self-check only: its ~280-entry topic catalogue was compared against this skill's sections to find gaps."
+    notes: "GPL-3.0, so it cannot be merged under this repository's licence policy. No text, script or data file was copied; only the topic list was read, and its Android-relevant topics were already covered by the merged upstreams."
+  - id: android-docs
+    kind: docs
+    url: https://developer.android.com/topic/architecture
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative ruling that ViewModel-originated UI actions must become UI state, the definition of the architecture layers, AGP 9 behaviour changes and the compatibility matrix, testing fundamentals, and the performance and Baseline Profile guidance every rule here was checked against."
+    notes: "developer.android.com prose is CC BY 4.0. All wording here is original; only the technical facts are taken."
+  - id: kotlin-docs
+    kind: docs
+    url: https://kotlinlang.org/docs/multiplatform-hierarchy.html
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Language-feature stability levels (explicit backing fields are experimental in Kotlin 2.3 and stable in 2.4), coroutine and Flow semantics, and the default Kotlin Multiplatform source-set hierarchy template."

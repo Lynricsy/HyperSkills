@@ -1,0 +1,53 @@
+[
+  {
+    "skills": ["android"],
+    "query": "Review NewsScreen.kt in this directory. The list stutters while scrolling and the read counter sometimes does not update on screen. Tell me exactly what is wrong and show the fixes.",
+    "files": ["evals/files/NewsScreen.kt"],
+    "expected_behavior": [
+      "Flags that @Immutable Article holds a var and a MutableList, so the annotation is a broken contract that causes silently missed recompositions, and fixes it with val plus an immutable/persistent collection rather than only calling it a performance problem",
+      "Explains that under strong skipping (Kotlin 2.0.20+) an unstable List<Article> parameter is compared with === so a freshly allocated list still defeats skipping, instead of claiming stability no longer matters",
+      "Replaces items(articles) with a keyed overload (key = { it.id }) and explains that index identity discards composition state and scroll restoration on insert/remove",
+      "Replaces collectAsState with collectAsStateWithLifecycle for the ViewModel StateFlow, and says the Flow<String> parameter on BannerBar must not be passed into a composable at all",
+      "Replaces the direct listState.firstVisibleItemIndex read with derivedStateOf (or snapshotFlow) and explains the input-changes-far-more-often-than-output rule",
+      "Replaces Modifier.offset(y = dp) with the lambda overload Modifier.offset { IntOffset(...) } (or graphicsLayer) and explains that the lambda defers the state read from Composition to the Layout or Draw phase",
+      "Flags that .clickable before .padding makes the padding area tappable and that .background after .padding paints only the inner bounds, and gives the corrected chain order"
+    ]
+  },
+  {
+    "skills": ["android"],
+    "query": "We want to move this module to Android Gradle Plugin 9. Read app-build.gradle.kts and libs.versions.toml in this directory and give me the concrete migration steps for this build script.",
+    "files": ["evals/files/app-build.gradle.kts", "evals/files/libs.versions.toml"],
+    "expected_behavior": [
+      "States that AGP 9 enables built-in Kotlin by default and that the org.jetbrains.kotlin.android plugin must be removed from the plugins block, not just upgraded",
+      "States that the org.jetbrains.kotlin.kapt plugin is incompatible with built-in Kotlin: migrate Room and Hilt to KSP, and apply com.android.legacy-kapt only for processors that have no KSP support",
+      "Says the legacy variant API android.applicationVariants is gone with the new DSL and must be rewritten with androidComponents.onVariants",
+      "Says custom BuildConfig fields require buildFeatures { buildConfig = true } and that a String BuildConfigField value must carry its own escaped quotation marks",
+      "Says getDefaultProguardFile(\"proguard-android.txt\") is no longer supported and must become proguard-android-optimize.txt, because proguard-android.txt carries -dontoptimize",
+      "Mentions at least one other AGP 9 default flip that affects this file, such as targetSdk defaulting to compileSdk when unset, AndroidJUnitRunner replacing the deprecated InstrumentationTestRunner, or strict full-mode keep rules no longer implying the default constructor",
+      "Names the minimum Gradle and JDK versions AGP 9 requires (Gradle 9.1, JDK 17) and gives a verification step such as a Gradle sync plus ./gradlew build --dry-run"
+    ]
+  },
+  {
+    "skills": ["android"],
+    "query": "BookmarksViewModel.kt in this directory has no tests. Plan the test coverage for it: which tests to write, which source set each one lives in, and which frameworks to add.",
+    "files": ["evals/files/BookmarksViewModel.kt"],
+    "expected_behavior": [
+      "Warns that uiState uses stateIn with SharingStarted.WhileSubscribed, so the upstream flow never runs unless the test collects it, and shows starting collection (for example backgroundScope.launch { uiState.collect {} } or Turbine) before asserting",
+      "Puts the DAO test in androidTest as an instrumented test against an in-memory Room database, because the local SQLite engine differs from the one on device",
+      "Uses fakes for the repository or DAO boundary by default and only reaches for a mocking library when a fake is genuinely impossible",
+      "Sets a test dispatcher for viewModelScope (Dispatchers.setMain with a TestDispatcher, or an equivalent JUnit rule) and uses runTest",
+      "Says Compose or Espresso behaviour tests can live in the test source set and run on Robolectric, with androidTest reserved for cases that need a real device",
+      "Does not propose unit tests for the Activity, the composable layout, or the dependency-injection wiring"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "ProductList.tsx in this directory scrolls badly on low-end Android phones in our app. What should I change?",
+    "files": ["evals/files/ProductList.tsx"],
+    "expected_behavior": [
+      "Does not read the android skill: skill_read is false",
+      "Treats the file as React Native and gives React Native fixes (memoised renderItem, keyExtractor, hoisted styles, hoisted Intl.NumberFormat, FlashList sizing props) instead of Jetpack Compose, Kotlin or Gradle advice",
+      "Does not recommend Android-native tooling such as Compose compiler stability reports, Baseline Profiles from Macrobenchmark, or R8 keep rules as the fix"
+    ]
+  }
+]
