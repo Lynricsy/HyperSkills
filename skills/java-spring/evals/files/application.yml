@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: shop
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shop
+    username: shop
+    password: shop
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    parser:
+      allow-comments: true
+    default-property-inclusion: non_null
+  test:
+    database:
+      replace: any
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

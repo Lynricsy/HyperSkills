@@ -1,0 +1,73 @@
+[
+  {
+    "skills": ["java-spring"],
+    "query": "Review Order.java, OrderRepository.java and OrderService.java in this directory. Submitting a batch of orders sends confirmation e-mails even when the batch later fails, and the open-orders endpoint is slow on production data. Tell me exactly what is wrong and show the fixes.",
+    "files": [
+      "evals/files/Order.java",
+      "evals/files/OrderRepository.java",
+      "evals/files/OrderService.java"
+    ],
+    "expected_behavior": [
+      "Flags that submitBatch calls this.submitOne(id), so the call never crosses the Spring proxy and Propagation.REQUIRES_NEW is silently ignored; fixes it by moving submitOne onto a separate bean (or an injected self-reference) rather than only changing the propagation value",
+      "Flags that emailSender.sendConfirmation runs inside the transaction and moves it to a @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT) (or an equivalent after-commit callback), explaining that a rollback cannot unsend an e-mail",
+      "Identifies the N+1 in listOpenOrders (findAll plus per-order access to getItems() and getCustomer()) and fixes it with a filtered query plus a fetch join, @EntityGraph, or a DTO/interface projection instead of loading every order",
+      "Says @Transactional on the private method recalculate does nothing because the proxy cannot intercept it",
+      "Flags @Enumerated(EnumType.ORDINAL) and requires EnumType.STRING, explaining that inserting or reordering an enum constant silently corrupts stored rows",
+      "Flags the primitive `long version` and requires the nullable wrapper Long, because Spring Data uses a null version to detect a new entity and JPA treats 0 as an already-persisted version",
+      "Flags @Data on the JPA entity (generated setters plus equals/hashCode/toString over associations, which triggers lazy loads and recursion) and replaces it with targeted accessors",
+      "Flags fetch = FetchType.EAGER on the @OneToMany and requires LAZY, and marks listOpenOrders and rename as read paths that should carry @Transactional(readOnly = true) where they only read"
+    ]
+  },
+  {
+    "skills": ["java-spring"],
+    "query": "We are on Spring Boot 3.5 and want to move to Spring Boot 4. Read pom.xml, SecurityConfig.java and application.yml in this directory and give me the concrete migration steps for these files.",
+    "files": [
+      "evals/files/pom.xml",
+      "evals/files/SecurityConfig.java",
+      "evals/files/application.yml"
+    ],
+    "expected_behavior": [
+      "Says spring-boot-starter-web is renamed to spring-boot-starter-webmvc and spring-boot-starter-oauth2-resource-server is renamed to spring-boot-starter-security-oauth2-resource-server",
+      "Says Undertow support is removed entirely in Spring Boot 4 (Servlet 6.1 baseline) so spring-boot-starter-undertow must go and the app must run on Tomcat or Jetty",
+      "Says the bare flywaydb:flyway-core dependency must be replaced by spring-boot-starter-flyway, because Boot 4 ships a dedicated starter per technology",
+      "Says Jackson 3 is the default: the group ID and packages move from com.fasterxml.jackson to tools.jackson (jackson-annotations excepted), and mentions either the spring-boot-jackson2 stop-gap module or spring.jackson.use-jackson2-defaults for a staged migration",
+      "Says org.springframework.retry:spring-retry is no longer needed because retry moved into core Spring Framework, and names @Retryable with @EnableResilientMethods from org.springframework.resilience.annotation",
+      "Rewrites SecurityConfig as a SecurityFilterChain @Bean instead of extending WebSecurityConfigurerAdapter, using the lambda DSL only, because and()/authorizeRequests()/antMatchers() no longer exist in Spring Security 7",
+      "Replaces antMatchers with requestMatchers (PathPatternRequestMatcher) and @EnableGlobalMethodSecurity with @EnableMethodSecurity",
+      "Says new DaoAuthenticationProvider() plus setUserDetailsService(...) no longer compiles and the UserDetailsService must be passed to the constructor",
+      "Says spring-boot-starter-test should be replaced by the technology-specific test starters (for example spring-boot-starter-webmvc-test, spring-boot-starter-data-jpa-test, spring-boot-starter-security-test), noting @WithMockUser now needs the security test starter",
+      "Says the spring-boot-maven-plugin CLASSIC loaderImplementation and the executable launch-script configuration are removed and must be deleted",
+      "Recommends adding spring-boot-properties-migrator temporarily to find renamed properties (such as spring.jackson.parser.* moving under spring.jackson.json.read) and removing it before release",
+      "States the baseline requirements: Spring Framework 7, Jakarta EE 11 / Servlet 6.1, Java 17 minimum, and upgrading to the latest 3.5.x with all deprecation warnings cleared first"
+    ]
+  },
+  {
+    "skills": ["java-spring"],
+    "query": "ShopApplicationTests.java in this directory is our whole test suite for a Spring Boot 4 service and it takes four minutes. Restructure the test coverage: which tests to write, which slice each one belongs in, and what to add to the build.",
+    "files": [
+      "evals/files/ShopApplicationTests.java",
+      "evals/files/OrderRepository.java",
+      "evals/files/application.yml"
+    ],
+    "expected_behavior": [
+      "Says @MockBean and @SpyBean were removed in Spring Boot 4 and must become @MockitoBean and @MockitoSpyBean from org.springframework.test.context.bean.override.mockito",
+      "Says a @SpringBootTest no longer auto-configures MockMvc, so @AutoConfigureMockMvc is required, and that autowiring both MockMvc and TestRestTemplate in one RANDOM_PORT test is incoherent",
+      "Splits the controller tests into a @WebMvcTest slice with @MockitoBean collaborators, and puts the repository test in a @DataJpaTest slice",
+      "Rejects the in-memory H2 default for the repository slice and uses Testcontainers with @ServiceConnection (with @AutoConfigureTestDatabase(replace = NONE)) so the test runs against the real PostgreSQL engine",
+      "Requires flush() and clear() on TestEntityManager between persisting the fixture and asserting through the repository, because otherwise the assertion is served from the Hibernate first-level cache and the query never reaches the database",
+      "Recommends RestTestClient with @AutoConfigureRestTestClient instead of TestRestTemplate for the remaining end-to-end test",
+      "Explains that a shared context configuration keeps the Spring context cache warm and that varying properties or @MockitoBean sets per test class multiplies contexts, which is the real cost of the four-minute suite",
+      "Notes the settings in application.yml that break tests or production behaviour (spring.jpa.hibernate.ddl-auto=update, open-in-view=true, management exposure of all actuator endpoints) rather than only reorganising the test classes"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "OrdersViewModel.kt in this directory is from our Android app. Is the coroutine scope usage here correct?",
+    "files": ["evals/files/OrdersViewModel.kt"],
+    "expected_behavior": [
+      "Does not read the java-spring skill: skill_read is false",
+      "Answers as Android/Kotlin work: replaces GlobalScope and the hand-rolled CoroutineScope(Dispatchers.IO) with viewModelScope so the work is cancelled when the ViewModel clears",
+      "Gives no Spring, Spring Boot, JPA or servlet advice"
+    ]
+  }
+]
