@@ -78,6 +78,9 @@ gh api repos/<owner>/<repo> \
    逐条记录哪些 `expected_behavior` 未达成——这就是 skill 要填补的缺口，写进
    「基线缺口」节。**若基线全部达成，说明评测没有区分度，改写评测直到出现缺口。**
 
+   评测模型固定为 **Claude Opus 5、medium 思考**（`tools/run_evals.py` 的默认值）；
+   基线与「有 skill」都用它，两次运行才可比。
+
 ---
 
 ## Phase C 重写
@@ -114,14 +117,13 @@ npx skills@latest add /root/Projects/Ling/HyperSkills --skill <name> \
 ### D2 行为评测
 
 ```bash
-uv run tools/run_evals.py <name>                  # 默认模型，有 skill
-uv run tools/run_evals.py <name> --model @smol    # 第二模型，有 skill
+uv run tools/run_evals.py <name>                  # Claude Opus 5 medium，有 skill
 ```
 
-基线已在 Phase B 用 `--baseline` 跑过。逐条对照 `expected_behavior` 人工判定达成 / 未达成，
-负例场景确认 `skill_read == false`。
+基线已在 Phase B 用 `--baseline` 跑过，模型相同。逐条对照 `expected_behavior` 人工判定
+达成 / 未达成，负例场景确认 `skill_read == false`。
 
-**通过标准**：至少一条基线未达成的行为在有 skill 时达成（两种模型都要看）。否则回到
+**通过标准**：至少一条基线未达成的行为在有 skill 时达成。否则回到
 Phase C 修改——缺口未被填补 = skill 无效。
 
 结果写入 `research/<skill>.md`「评测结果」节：

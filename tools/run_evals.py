@@ -10,8 +10,8 @@ Runs each scenario in `skills/<name>/evals/evals.json` through a non-interactive
 answer, so Phase B baselines and Phase D with-skill runs are directly comparable.
 
     uv run tools/run_evals.py apple --baseline        # no skills loaded (the gap)
-    uv run tools/run_evals.py apple                   # default model, with skill
-    uv run tools/run_evals.py apple --model @smol     # second model, with skill
+    uv run tools/run_evals.py apple                   # with skill
+    uv run tools/run_evals.py apple --thinking high   # 换思考档
     uv run tools/run_evals.py apple --only 2          # one scenario
 
 Judging is manual on purpose: `expected_behavior` entries are prose, and a
@@ -45,6 +45,14 @@ RESULT_FILE = "result.json"
 # Outside the repo: eval runs are throwaway artifacts, never committed.
 DEFAULT_OUT_ROOT = Path("/tmp/hs-evals")
 OVERLAY_FILE = "overlay.yml"
+# Evals are fixed to one model so runs stay comparable across skills and
+# batches: Claude Opus 5 is the strong model this repo's users actually work
+# with, so a gap measured here is a gap they would really hit.
+DEFAULT_MODEL = "anthropic/claude-opus-5"
+# `medium` is the default reasoning level of that model; evaluating anywhere
+# else would measure the thinking budget rather than the skill.
+DEFAULT_THINKING = "medium"
+THINKING_LEVELS = ("off", "minimal", "low", "medium", "high", "xhigh", "max", "auto")
 
 
 def write_overlay(out_root: Path, skills_dir: Path) -> Path:
@@ -103,7 +111,8 @@ def run_scenario(
     skill_path: Path,
     out_dir: Path,
     overlay: Path,
-    model: str | None,
+    model: str,
+    thinking: str,
     baseline: bool,
 ) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -127,8 +136,7 @@ def run_scenario(
         str(overlay),
     ]
     cmd += ["--no-skills"] if baseline else ["--skills", skill]
-    if model:
-        cmd += ["--model", model]
+    cmd += ["--model", model, "--thinking", thinking]
 
     started = time.monotonic()
     try:
@@ -144,7 +152,8 @@ def run_scenario(
         return {
             "skill": skill,
             "index": index,
-            "model": model or "default",
+            "model": model,
+            "thinking": thinking,
             "baseline": baseline,
             "status": "timeout",
             "skill_read": False,
@@ -189,7 +198,8 @@ def run_scenario(
     return {
         "skill": skill,
         "index": index,
-        "model": model or "default",
+        "model": model,
+        "thinking": thinking,
         "baseline": baseline,
         "status": "ok",
         "skill_read": detect_skill_read(raw, skill, skill_path.parent),
@@ -204,7 +214,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("skills", nargs="+", help="skill names or paths")
     parser.add_argument(
-        "--model", help="model or role to use, e.g. '@smol' (default: session default)"
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"model selector (default: {DEFAULT_MODEL})",
+    )
+    parser.add_argument(
+        "--thinking",
+        default=DEFAULT_THINKING,
+        choices=THINKING_LEVELS,
+        help=f"reasoning level (default: {DEFAULT_THINKING})",
     )
     parser.add_argument(
         "--baseline", action="store_true", help="run with --no-skills to measure the gap"
@@ -223,7 +241,9 @@ def main() -> int:
 
     overlay = write_overlay(args.out, skills_dir)
     mode = "baseline" if args.baseline else "skill"
-    model_tag = (args.model or "default").lstrip("@").replace("/", "-").replace(":", "-")
+    model_tag = (
+        f"{args.model.lstrip('@').replace('/', '-').replace(':', '-')}-{args.thinking}"
+    )
 
     results: list[dict[str, Any]] = []
     for skill_path in targets:
@@ -244,7 +264,10 @@ def main() -> int:
             out_dir = args.out / skill.name / model_tag / mode / str(i)
             if out_dir.exists():
                 shutil.rmtree(out_dir)
-            print(f"running {skill.name} eval {i} ({mode}, {args.model or 'default'}) ...")
+            print(
+                f"running {skill.name} eval {i} "
+                f"({mode}, {args.model}, thinking={args.thinking}) ..."
+            )
             result = run_scenario(
                 skill=skill.name,
                 index=i,
@@ -253,6 +276,7 @@ def main() -> int:
                 out_dir=out_dir,
                 overlay=overlay,
                 model=args.model,
+                thinking=args.thinking,
                 baseline=args.baseline,
             )
             (out_dir / RESULT_FILE).write_text(
@@ -260,11 +284,11 @@ def main() -> int:
             )
             results.append(result)
 
-    print("\n| skill | # | model | mode | skill_read | status | secs | answer |")
-    print("|---|---|---|---|---|---|---|---|")
+    print("\n| skill | # | model | thinking | mode | skill_read | status | secs | answer |")
+    print("|---|---|---|---|---|---|---|---|---|")
     for r in results:
         print(
-            f"| {r['skill']} | {r['index']} | {r['model']} | "
+            f"| {r['skill']} | {r['index']} | {r['model']} | {r['thinking']} | "
             f"{'baseline' if r['baseline'] else 'skill'} | {r['skill_read']} | "
             f"{r['status']} | {r['duration_s']} | {r['answer_path'] or '-'} |"
         )
