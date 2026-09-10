@@ -276,9 +276,26 @@ def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
         return result
 
     result["ahead_by"] = rng["total_commits"]
+    state = rng["state"]
+    if state == "identical":
+        result["status"] = "up_to_date"
+        return result
+
+    # Divergence must be settled BEFORE any path judgement. `base...head` is a
+    # three-dot compare, so `files` is the merge-base->head diff: work that the
+    # pin carried on the abandoned line is absent from it. Reading "the tracked
+    # path is not in this diff" as "the tracked path did not change" would then
+    # silently bless upstream content that no longer exists on the ref.
+    if state in ("diverged", "behind"):
+        result["status"] = "diverged"
+        result["reason"] = (
+            "the pin is no longer an ancestor of the ref; what we merged may have "
+            "been dropped, so re-review rather than diffing paths"
+        )
+        return result
+
     if rng["total_commits"] == 0:
-        # Same tree, or the ref moved backwards behind the pin.
-        result["status"] = "up_to_date" if rng["state"] == "identical" else "diverged"
+        result["status"] = "up_to_date"
         return result
 
     if not paths:
@@ -332,9 +349,11 @@ def print_result(skill_name: str, res: dict[str, Any]) -> None:
         )
     elif status == "diverged":
         print(
-            f"  !!  {tag}: '{res['ref']}' no longer contains the pin "
+            f" FAIL {tag}: '{res['ref']}' no longer contains the pin "
             f"({res['pinned'][:7]} vs {res['head'][:7]})"
         )
+        if res.get("reason"):
+            print(f"        note: {res['reason']}")
         print(f"        {res['compare']}")
     else:
         ahead = res.get("ahead_by")

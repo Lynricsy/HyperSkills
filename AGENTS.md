@@ -23,6 +23,15 @@
    skill 发现都是一级扁平扫描。
 8. `NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json` 与 README 的
    目录表区块**由 `tools/build_catalog.py` 生成，禁止手工编辑**。
+9. **查 GitHub 数据一律用已登录的 `gh`**（`gh api ...`，5000 次/小时），
+   禁止匿名 HTTP（60 次/小时，一个 skill 的候选复核就能打满），
+   更禁止去读仓库网页猜 stars 与推送时间。
+   Phase A 的候选复核：
+   ```bash
+   gh api repos/<owner>/<repo> --jq '{stars:.stargazers_count, pushed:.pushed_at, license:.license.spdx_id}'
+   ```
+   `tools/check_upstream.py` 已内置同样的优先级（`gh api` → `GITHUB_TOKEN` → 匿名 →
+   `git ls-remote`），无需手工传 token。
 
 ## 许可策略
 

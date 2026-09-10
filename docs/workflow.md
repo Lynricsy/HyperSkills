@@ -28,11 +28,14 @@ flowchart LR
 每个候选必须用 GitHub API 核对 stars / `pushed_at` / license：
 
 ```bash
-curl -s https://api.github.com/repos/<owner>/<repo> \
-  | jq '{stars: .stargazers_count, pushed: .pushed_at, license: .license.spdx_id}'
+gh api repos/<owner>/<repo> \
+  --jq '{stars: .stargazers_count, pushed: .pushed_at, license: .license.spdx_id}'
 ```
 
-API 限流时设置 `GITHUB_TOKEN` 环境变量；仍不可用则读仓库 HTML 并在表中标 `unverified`。
+**用已登录的 `gh`，不要用匿名 `curl`。** 匿名 API 只有 60 次/小时，一个 skill 的候选
+复核就能打满；打满之后退化成读仓库网页猜数字，候选表就只能标 `unverified`。
+`gh` 带用户自己的 5000 次/小时配额，无需手工传 token。`gh` 不可用时才退回
+`curl` + `GITHUB_TOKEN`，两者都没有再读 HTML 并在表中标 `unverified`。
 必须读原始 `SKILL.md` 再评分。
 
 候选表列：
