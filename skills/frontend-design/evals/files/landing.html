@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Acme — Elevate Your Workflow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --radius: 1rem; }
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: var(--radius);
+      padding: 4rem;
+      max-width: 640px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.1), 0 20px 40px rgba(0,0,0,.1);
+      animation: floatUp 900ms ease-out both;
+    }
+    @keyframes floatUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .32em;
+      font-size: .75rem;
+      color: #a855f7;
+    }
+    h1 { font-size: 3.5rem; margin: .5rem 0; }
+    h1 .accent { color: #8b5cf6; font-style: italic; }
+    .meta { color: #6b7280; font-size: .875rem; }
+    .cta {
+      margin-top: 2rem;
+      border-radius: var(--radius);
+      padding: 1.25rem 2.5rem;
+      border: 0;
+      color: #fff;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      transition: all .3s ease;
+      cursor: pointer;
+    }
+    .cta:hover { transform: scale(1.06); box-shadow: 0 16px 32px rgba(99,102,241,.45); }
+    .cta:focus { outline: none; }
+    .icon-btn { border-radius: var(--radius); padding: .75rem; border: 0; background: #f3f4f6; }
+    .icon-btn:focus { outline: none; }
+    .stat { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+    .stat b { font-size: 2rem; }
+    .quote { margin-top: 2rem; color: #111; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">Introducing Acme</p>
+    <h1>Elevate your workflow — <span class="accent">seamlessly</span></h1>
+    <p class="meta">Product · Pricing · Changelog</p>
+    <img src="/hero.png" alt="Dashboard preview" />
+    <div class="stat">
+      <div><b>99.99%</b><br />Uptime</div>
+      <div><b>50%</b><br />Faster</div>
+      <div><b>1234567</b><br />Events</div>
+    </div>
+    <button class="cta">Get started →</button>
+    <button class="icon-btn"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="7" /></svg></button>
+    <div class="quote" onclick="openTestimonial()">
+      <p>"Acme changed everything for our team."</p>
+      <p class="meta">John Doe, VP of Engineering</p>
+    </div>
+    <p id="status">Loading...</p>
+    <p class="meta">Launched 03/04/2026</p>
+  </main>
+  <script>
+    function openTestimonial() { document.getElementById('status').textContent = 'Loading...'; }
+  </script>
+</body>
+</html>

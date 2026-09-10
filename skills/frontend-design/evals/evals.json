@@ -1,0 +1,51 @@
+[
+  {
+    "skills": ["frontend-design"],
+    "query": "Review landing.html and tell me what's wrong with it. Be specific about locations.",
+    "files": ["evals/files/landing.html"],
+    "expected_behavior": [
+      "Findings are reported as landing.html:<line> locations, grouped under the file, with no preamble essay",
+      "Names the generated-look tells concretely: the indigo/violet gradient background, the stacked triple box-shadow, one border-radius reused on every element, the tracked ALL-CAPS eyebrow, the 'A · B · C' middot meta string, the '→' appended to the button label, the italic single-word accent in the headline, and the em dash in visible copy",
+      "Flags the removed focus ring (`outline: none` on .cta:focus and .icon-btn:focus) and prescribes `:focus-visible` with a visible indicator rather than `:focus`",
+      "Flags that the entrance animation and the hover transform have no `prefers-reduced-motion` reduced variant",
+      "Flags `transition: all` and requires listing `transform, opacity` (compositor-only) explicitly",
+      "Flags the `<img>` with no width/height as a CLS risk, the icon-only `<button>` with no `aria-label`, and the `<div onclick>` that should be a `<button>`",
+      "Flags `maximum-scale=1, user-scalable=no` as a zoom-blocking anti-pattern",
+      "Flags 'Loading...' (should be 'Loading…'), the hardcoded 03/04/2026 date (should use `Intl.DateTimeFormat`), and the placeholder content tells ('Acme', 'John Doe', 99.99%/50%/1234567 fake-perfect numbers, 'Elevate'/'seamlessly' filler verbs)",
+      "Gives a concrete replacement for each finding rather than only naming the problem"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "I need a landing page for a small independent bike-frame builder who hand-brazes steel touring frames in Bristol. Before you write any code, give me the visual direction.",
+    "expected_behavior": [
+      "States a one-line design read (page kind, audience, visual language) before proposing anything",
+      "Proposes a design plan with 4-6 named colors given as hex values, not vague color words",
+      "Names the typefaces and the role of each (display vs body), and does not default to Inter",
+      "Includes at least one ASCII wireframe of the page structure with alignment stated",
+      "Explicitly checks the plan against the generated-design clusters it must avoid (cream+serif+terracotta, near-black+acid accent, purple/indigo gradient, uniform rounded card grid, ALL-CAPS eyebrows) and says what was changed after that check",
+      "Grounds the choices in the subject matter (steel, brazing, touring, Bristol) rather than generic SaaS language",
+      "Withholds implementation code until the direction is agreed, or clearly separates the plan from any code"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Our design system wants one number for minimum interactive target size on the web. What does WCAG actually require at AA, and where does 44x44 come from?",
+    "expected_behavior": [
+      "States that WCAG 2.2 SC 2.5.8 Target Size (Minimum) is Level AA and requires at least 24 by 24 CSS pixels",
+      "Attributes 44 by 44 CSS pixels to WCAG 2.2 SC 2.5.5 Target Size (Enhanced), which is Level AAA, and/or to Apple HIG's 44pt and Material's 48dp platform guidance rather than to WCAG AA",
+      "Mentions the SC 2.5.8 exceptions (spacing via a 24 CSS px diameter circle test, equivalent control, inline targets, user-agent default, essential)",
+      "Does not present 44x44 as the WCAG AA minimum"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Read slow_orders_query.sql. It takes about 14 seconds on PostgreSQL 16. Explain from the SQL text alone why it is slow and what to change. Do not install, start or query any database, and do not write any files - answer in chat only.",
+    "files": ["evals/files/slow_orders_query.sql"],
+    "expected_behavior": [
+      "Does not read the frontend-design skill (skill_read is false); nothing about typography, color tokens, WCAG or Core Web Vitals appears",
+      "Answers as a SQL/database question: the LOWER(c.email) LIKE predicate defeating the index, the NOT IN subquery, the LEFT JOIN made inner by the WHERE clause on o.placed_at, and the item-level fan-out inflating SUM",
+      "Recommends EXPLAIN (ANALYZE, BUFFERS) and concrete index or rewrite options"
+    ]
+  }
+]
