@@ -27,15 +27,20 @@
 
 | Skill | 类别 | 说明 | 版本 | 上游数 |
 |---|---|---|---|---|
+| [`android`](skills/android/) | 平台 | Guides native Android work end to end: Kotlin with coroutines and Flow, Jetpack Compose (state, side effects, stability, recomposition and scroll… | 2026.09.11 | 11 |
 | [`apple`](skills/apple/) | 平台 | Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS… | 2026.09.10 | 15 |
 | [`code-review`](skills/code-review/) | 任务 | Reviews code in both directions | 2026.09.10 | 9 |
 | [`debugging`](skills/debugging/) | 任务 | Diagnoses broken behaviour and fixes it at the root cause: builds a red-capable feedback loop before theorising, reproduces and minimises, localises… | 2026.09.10 | 4 |
 | [`flutter`](skills/flutter/) | 平台 | Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM)… | 2026.09.10 | 7 |
 | [`frontend-design`](skills/frontend-design/) | 任务 | Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking… | 2026.09.10 | 12 |
+| [`go`](skills/go/) | 框架 | Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation… | 2026.09.11 | 12 |
 | [`office`](skills/office/) | 任务 | Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides… | 2026.09.10 | 19 |
+| [`python`](skills/python/) | 框架 | Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml… | 2026.09.11 | 17 |
 | [`react`](skills/react/) | 框架 | Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle /… | 2026.09.10 | 8 |
+| [`react-native`](skills/react-native/) | 平台 | Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop… | 2026.09.11 | 7 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/ | 2026.09.10 | 14 |
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
+| [`typescript`](skills/typescript/) | 框架 | Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types… | 2026.09.11 | 9 |
 
 <!-- catalog:end -->
 

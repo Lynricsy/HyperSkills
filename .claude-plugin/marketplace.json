@@ -5,9 +5,18 @@
   },
   "metadata": {
     "description": "HyperSkills — curated, consolidated agent skills",
-    "version": "2026.09.10"
+    "version": "2026.09.11"
   },
   "plugins": [
+    {
+      "name": "android",
+      "description": "Guides native Android work end to end: Kotlin with coroutines and Flow, Jetpack Compose (state, side effects, stability, recomposition and scroll performance, Baseline Profiles), the legacy View syste",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/android"
+      ]
+    },
     {
       "name": "apple",
       "description": "Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS 26+), Swift 6.x strict concurrency and actor isolation",
@@ -54,6 +63,15 @@
       ]
     },
     {
+      "name": "go",
+      "description": "Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation, channels and sync primitives, errgroup, the race detecto",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/go"
+      ]
+    },
+    {
       "name": "office",
       "description": "Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides, spreadsheets, financial models, forms, tracked changes and co",
       "source": "./",
@@ -63,12 +81,30 @@
       ]
     },
     {
+      "name": "python",
+      "description": "Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml, dependency groups, build backends and PyPI publishing; pytes",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/python"
+      ]
+    },
+    {
       "name": "react",
       "description": "Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle / async performance rules carrying stable rule ids, Re",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/react"
+      ]
+    },
+    {
+      "name": "react-native",
+      "description": "Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop layer), Hermes and startup/TTI, list and scroll perfo",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/react-native"
       ]
     },
     {
@@ -90,20 +126,34 @@
       ]
     },
     {
+      "name": "typescript",
+      "description": "Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types, exhaustive switches, errors as data), designing de",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/typescript"
+      ]
+    },
+    {
       "name": "all",
       "description": "Every HyperSkills skill",
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/android",
         "./skills/apple",
         "./skills/code-review",
         "./skills/debugging",
         "./skills/flutter",
         "./skills/frontend-design",
+        "./skills/go",
         "./skills/office",
+        "./skills/python",
         "./skills/react",
+        "./skills/react-native",
         "./skills/skill-authoring",
-        "./skills/test-driven-development"
+        "./skills/test-driven-development",
+        "./skills/typescript"
       ]
     }
   ]
