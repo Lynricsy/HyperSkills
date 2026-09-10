@@ -24,6 +24,19 @@
 ## 目录
 
 <!-- catalog:start -->
+
+| Skill | 类别 | 说明 | 版本 | 上游数 |
+|---|---|---|---|---|
+| [`apple`](skills/apple/) | 平台 | Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS… | 2026.09.10 | 15 |
+| [`code-review`](skills/code-review/) | 任务 | Reviews code in both directions | 2026.09.10 | 9 |
+| [`debugging`](skills/debugging/) | 任务 | Diagnoses broken behaviour and fixes it at the root cause: builds a red-capable feedback loop before theorising, reproduces and minimises, localises… | 2026.09.10 | 4 |
+| [`flutter`](skills/flutter/) | 平台 | Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM)… | 2026.09.10 | 7 |
+| [`frontend-design`](skills/frontend-design/) | 任务 | Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking… | 2026.09.10 | 12 |
+| [`office`](skills/office/) | 任务 | Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides… | 2026.09.10 | 19 |
+| [`react`](skills/react/) | 框架 | Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle /… | 2026.09.10 | 8 |
+| [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/ | 2026.09.10 | 14 |
+| [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
+
 <!-- catalog:end -->
 
 ## 安装

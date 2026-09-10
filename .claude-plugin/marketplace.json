@@ -1,0 +1,110 @@
+{
+  "name": "hyperskills",
+  "owner": {
+    "name": "Lynricsy"
+  },
+  "metadata": {
+    "description": "HyperSkills — curated, consolidated agent skills",
+    "version": "2026.09.10"
+  },
+  "plugins": [
+    {
+      "name": "apple",
+      "description": "Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS 26+), Swift 6.x strict concurrency and actor isolation",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/apple"
+      ]
+    },
+    {
+      "name": "code-review",
+      "description": "Reviews code in both directions. Reviewing a diff, PR or branch: pin the base ref, review the tests first, gather Standards and Spec findings on separate axes, apply the five quality lenses and the Fo",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/code-review"
+      ]
+    },
+    {
+      "name": "debugging",
+      "description": "Diagnoses broken behaviour and fixes it at the root cause: builds a red-capable feedback loop before theorising, reproduces and minimises, localises across component boundaries, bisects regressions, r",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/debugging"
+      ]
+    },
+    {
+      "name": "flutter",
+      "description": "Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM), go_router navigation and platform deep links, unit/widg",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/flutter"
+      ]
+    },
+    {
+      "name": "frontend-design",
+      "description": "Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking interfaces, UI code review against interface guidelines ",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/frontend-design"
+      ]
+    },
+    {
+      "name": "office",
+      "description": "Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides, spreadsheets, financial models, forms, tracked changes and co",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/office"
+      ]
+    },
+    {
+      "name": "react",
+      "description": "Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle / async performance rules carrying stable rule ids, Re",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/react"
+      ]
+    },
+    {
+      "name": "skill-authoring",
+      "description": "Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/. Covers scoping a skill to one coherent job, writing a descrip",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/skill-authoring"
+      ]
+    },
+    {
+      "name": "test-driven-development",
+      "description": "Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything, agrees the seam under test, then runs one red-green-r",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/test-driven-development"
+      ]
+    },
+    {
+      "name": "all",
+      "description": "Every HyperSkills skill",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/apple",
+        "./skills/code-review",
+        "./skills/debugging",
+        "./skills/flutter",
+        "./skills/frontend-design",
+        "./skills/office",
+        "./skills/react",
+        "./skills/skill-authoring",
+        "./skills/test-driven-development"
+      ]
+    }
+  ]
+}

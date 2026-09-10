@@ -34,6 +34,9 @@ CATALOG_START = "<!-- catalog:start -->"
 CATALOG_END = "<!-- catalog:end -->"
 # Claude Code's marketplace UI truncates long descriptions; keep entries scannable.
 MARKETPLACE_DESC_LIMIT = 200
+# The README table must stay scannable. Descriptions that open with a colon
+# instead of a period have no early sentence break, so cap the cell as well.
+CATALOG_BLURB_LIMIT = 150
 
 CATEGORY_LABELS = {
     "platform": "平台",
@@ -43,13 +46,19 @@ CATEGORY_LABELS = {
 }
 
 
-def first_sentence(text: str) -> str:
-    """First sentence of a description, for the compact catalog table."""
-    for sep in (". ", "; "):
-        idx = text.find(sep)
+def catalog_blurb(text: str) -> str:
+    """Short, bounded description for the compact catalog table."""
+    blurb = text.strip()
+    for sep in (". ", "; ", ": ", " — "):
+        idx = blurb.find(sep)
         if idx != -1:
-            return text[:idx].strip()
-    return text.strip().rstrip(".")
+            blurb = blurb[:idx]
+            break
+    blurb = blurb.strip().rstrip(".")
+    if len(blurb) > CATALOG_BLURB_LIMIT:
+        cut = blurb.rfind(" ", 0, CATALOG_BLURB_LIMIT)
+        blurb = blurb[: cut if cut > 0 else CATALOG_BLURB_LIMIT].rstrip(",;") + "…"
+    return blurb
 
 
 def render_third_party(skills: list[Skill]) -> str:
@@ -116,7 +125,7 @@ def render_catalog_table(skills: list[Skill]) -> str:
     for s in skills:
         label = CATEGORY_LABELS.get(s.category, s.category)
         rows.append(
-            f"| [`{s.name}`](skills/{s.name}/) | {label} | {first_sentence(s.description)} "
+            f"| [`{s.name}`](skills/{s.name}/) | {label} | {catalog_blurb(s.description)} "
             f"| {s.version} | {len(s.upstreams)} |"
         )
     return "\n".join(rows)
