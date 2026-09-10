@@ -1,0 +1,68 @@
+[
+  {
+    "skills": ["test-driven-development"],
+    "query": "This is the @acme/money package. splitEvenly in money.js is not implemented yet — its contract is in the JSDoc above it. Implement it test-first, then tell me exactly what you did.",
+    "files": [
+      "evals/files/money/package.json",
+      "evals/files/money/Makefile",
+      "evals/files/money/CONTRIBUTING.md",
+      "evals/files/money/money.js",
+      "evals/files/money/money.test.js"
+    ],
+    "expected_behavior": [
+      "Discovers this repository's own test command before writing anything (make test / make test-one FILE=money.test.js, documented in CONTRIBUTING.md and the Makefile) and never relies on `npm test`, which fails here with a missing-script error",
+      "Writes the failing test for splitEvenly into money.test.js BEFORE touching the splitEvenly body in money.js",
+      "Actually executes the repository's test command with the new test in place and reports the real failing output (RED) before writing the implementation",
+      "Writes a minimal implementation, runs the test command again, and reports the real passing output (GREEN) including the pass/fail counts",
+      "The final report quotes both actual command outputs rather than asserting that it should now pass",
+      "The new test's expected values are hand-derived literals (for example [34, 33, 33] for 100 cents across 3 people) and are not recomputed with the same arithmetic the implementation uses",
+      "Works one behaviour at a time rather than bulk-writing a batch of tests for every case up front"
+    ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Bug report: toSlug('  Deploy -- v2! ') returns 'deploy----v2-' but it should return 'deploy-v2'. Fix it in the @acme/slug package.",
+    "files": [
+      "evals/files/slug/package.json",
+      "evals/files/slug/Makefile",
+      "evals/files/slug/CONTRIBUTING.md",
+      "evals/files/slug/slug.js",
+      "evals/files/slug/slug.test.js"
+    ],
+    "expected_behavior": [
+      "Writes a reproduction test that fails against the unchanged slug.js and runs it, showing the real failing output, before editing slug.js",
+      "Uses the repository's own test command discovered from CONTRIBUTING.md or the Makefile (make test / make test-one), not `npm test`",
+      "Fixes the root cause in the transformation (collapsing runs of non-alphanumeric characters and trimming edge hyphens) instead of special-casing the reported string or post-processing only that input",
+      "Proves the regression test is real: after it passes, reverts only the fix, re-runs the test to see it fail again, restores the fix and re-runs to green, and reports the output of those runs",
+      "Runs the full suite at the end and reports its actual output, confirming the two pre-existing toSlug tests still pass",
+      "Makes no completion claim that is not backed by a quoted command output"
+    ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Review checkout.test.ts. For each test tell me whether it earns its place and what to do with it. Give me file:line for every finding.",
+    "files": ["evals/files/review/checkout.test.ts"],
+    "expected_behavior": [
+      "Gives a per-test verdict with checkout.test.ts:<line> references rather than general prose advice",
+      "Flags the 'works' test because the expected total is recomputed with the same reduce the implementation uses, and requires a hand-derived literal (2448) instead",
+      "Flags 'calculateTotal is stable' as comparing the function to itself, so it passes by construction and can never disagree with the code",
+      "Flags 'charges the payment gateway' as asserting only on the mock: it passes because the mock is present and says nothing about checkout's observable outcome",
+      "Flags expect(MAX_RETRIES).toBe(5) as a change detector on a decision, and says to test the behaviour that depends on it (a failing call is retried 5 times and the 6th attempt never happens)",
+      "Flags 'createUser saves to the database' as verifying through a database side channel instead of the module's own interface, and proposes reading the user back through the public API",
+      "Flags the 'sidebar-mock' assertion as asserting the mock's existence rather than the real component's behaviour",
+      "Flags 'handles errors' as an assertion that can only fail on a crash (not.toThrow around an async callback never observes the rejection anyway)",
+      "Flags the sleep-based cart-expiry test as timing-dependent and order-coupled through shared module state, and proposes controlling the clock or waiting on the condition",
+      "Names, for each finding, the production change that would have to break for the test to fail — and recommends deleting or rewriting the tests that cannot name one, instead of re-pinning them"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our CI reinstalls every dependency from scratch on each run. Add pnpm store caching to ci.yml so installs are faster, and tell me what speed-up to expect.",
+    "files": ["evals/files/ci/ci.yml"],
+    "expected_behavior": [
+      "Does not read skills/test-driven-development/SKILL.md",
+      "Answers as a CI configuration change: adds an actions/cache step (or setup-node cache) keyed on the pnpm lockfile hash and points the pnpm store path at it",
+      "Does not impose a red-green-refactor loop, a failing-test-first requirement, or test-quality review on a workflow-configuration request"
+    ]
+  }
+]

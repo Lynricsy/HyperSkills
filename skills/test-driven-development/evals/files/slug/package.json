@@ -1,0 +1,9 @@
+{
+  "name": "@acme/slug",
+  "version": "0.4.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check slug.js"
+  }
+}

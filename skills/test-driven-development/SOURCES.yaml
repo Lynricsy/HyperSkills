@@ -1,0 +1,66 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by:
+#   uv run tools/check_upstream.py --pin test-driven-development
+skill: test-driven-development
+version: "2026.09.10"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: obra-tdd
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths: [skills/test-driven-development]
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The Iron Law and the mandatory watch-it-fail step, the rationalization and red-flag tables, the when-stuck table, the delete-code-written-first rule, and writing-good-tests.md: the name-the-break and exercise-the-real-thing gates, independent expected values, the change-detector and mock-assertion bans, and the mutation check."
+    notes: "The upstream Graphviz cycle diagram is dropped (it renders as nothing) and replaced with ASCII. Hardcoded npm test commands are replaced with the repository's own commands, and the delete-code-written-first rule is scoped to code written this session for the behaviour under test."
+  - id: obra-verification
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths: [skills/verification-before-completion]
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The evidence-before-claim completion gate and the red-green procedure that proves a regression test is real: write, pass, revert the fix, confirm it fails, restore, pass again."
+    notes: "Only the completion gate and the regression-proof procedure are merged; the rest of the upstream skill is a separate concern. The gate wording is shared verbatim with the debugging and code-review skills so the three do not disagree."
+  - id: mattpocock-tdd
+    kind: repo
+    repo: mattpocock/skills
+    url: https://github.com/mattpocock/skills
+    paths: [skills/engineering/tdd]
+    ref: main
+    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The seam vocabulary and the agree-the-seam-first step, vertical slices and tracer bullets against horizontal slicing, the tautological-test definition, and the verify-through-the-interface-not-a-side-channel example."
+    notes: "Repo-specific coupling is removed: CONTEXT.md, ADRs, the codebase-design skill call and the setup command become a generic reference to project context docs if present. Its position that refactoring is outside the loop is adjudicated: cleanup refactors stay in the loop, structural refactors go to review."
+  - id: mattpocock-grilling
+    kind: repo
+    repo: mattpocock/skills
+    url: https://github.com/mattpocock/skills
+    paths: [skills/productivity/grilling]
+    ref: main
+    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The one-round question format used when a seam is genuinely ambiguous: ask every open question at once, numbered, each with a recommended answer, and look facts up rather than asking for them."
+    notes: "Only the question format is merged, not the design-tree interview loop. The same format is shared verbatim with the debugging and code-review skills."
+  - id: addy-tdd
+    kind: repo
+    repo: addyosmani/agent-skills
+    url: https://github.com/addyosmani/agent-skills
+    paths: [skills/test-driven-development]
+    ref: main
+    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Discover-the-stack-first (find this repository's real focused and full-suite commands before RED), the prove-it bug-fix flow, the pyramid and the Small/Medium/Large resource model, DAMP over DRY, the real > fake > stub > mock ladder, arrange-act-assert, and the anti-pattern table."
+    notes: "The coverage-has-not-decreased checklist item is deliberately dropped: it rewards padding, which the test-quality rules forbid. The upstream link to a repo-level references/testing-patterns.md is dropped because a per-skill install does not copy it, and its browser-verification section becomes a routing note instead of merged content."

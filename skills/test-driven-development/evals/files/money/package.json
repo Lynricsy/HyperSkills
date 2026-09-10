@@ -1,0 +1,9 @@
+{
+  "name": "@acme/money",
+  "version": "0.4.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check money.js"
+  }
+}
