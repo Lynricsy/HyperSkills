@@ -1,0 +1,59 @@
+[
+  {
+    "skills": [
+      "apple"
+    ],
+    "query": "Review Row.swift for iOS 26.",
+    "files": [
+      "evals/files/Row.swift"
+    ],
+    "expected_behavior": [
+      "Flags that `@State var item: Item` receives a value passed in by the parent, so the property ignores parent updates, and changes it to a plain `let`/`var` input (with `@Binding` only if the child must write back)",
+      "Flags `ForEach(model.items.indices, id: \\.self)` as position-derived identity and replaces it with element identity such as `ForEach(model.items)` over an `Identifiable` element",
+      "Reports each finding as a file plus line reference with a short before/after code pair rather than prose only",
+      "Flags the `private var header` / `private var footer` computed properties as sharing `LibraryView`'s invalidation boundary and requires extracting them into separate `View` structs with narrow inputs — treating it as an update-cost defect, not a readability preference",
+      "Flags the `Binding(get:set:)` built inside `body` and replaces it with `@Bindable`/`$model.filterText` plus `onChange`, rather than accepting the closure pair"
+    ]
+  },
+  {
+    "skills": [
+      "apple"
+    ],
+    "query": "Review GlassPanel.swift — we are adopting Liquid Glass for our iOS 26 release.",
+    "files": [
+      "evals/files/GlassPanel.swift"
+    ],
+    "expected_behavior": [
+      "Flags that the adjacent glass surfaces must share one `GlassEffectContainer`, because glass cannot sample other glass",
+      "Flags `.opacity(isDimmed ? 0.6 : 1)` on a glass view as silently collapsing the refraction, and does not merely call it a style preference",
+      "Flags the `.if` conditional-modifier helper as destroying structural identity, and replaces it with a ternary inside the modifier or a `ViewModifier`",
+      "Flags at least one of: the missing `#available(iOS 26.0, ...)` gate with a Material fallback, `.allowsHitTesting(false)` not suppressing glass (use `.disabled(true)`), or the flat black background giving the glass nothing to refract"
+    ]
+  },
+  {
+    "skills": [
+      "apple"
+    ],
+    "query": "We are migrating this app to Swift 6 strict concurrency. Review FeedLoader.swift and tell me what to fix.",
+    "files": [
+      "evals/files/FeedLoader.swift"
+    ],
+    "expected_behavior": [
+      "Flags the actor `check-then-act across await` reentrancy bug in `StoryCache.story(for:)`, including the force unwrap of `cached[id]` that can crash",
+      "Flags the per-item `Task.detached` loop and replaces it with a task group so cancellation and errors propagate",
+      "Flags `@unchecked Sendable` on `FeedLoader` as hiding a real race over `inFlight`/`model` rather than accepting it as the fix",
+      "Flags at least one of: the `@Observable final class FeedModel` missing `@MainActor`, `DispatchQueue.main.async` instead of a main-actor hop, or `Task.sleep(nanoseconds:)` instead of `Task.sleep(for:)`"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Review product_card.dart for best practices.",
+    "files": [
+      "evals/files/product_card.dart"
+    ],
+    "expected_behavior": [
+      "Does not read skills/apple/SKILL.md or any of its references",
+      "Answers about Flutter/Dart widget practices from general knowledge, without applying SwiftUI or Apple-platform rules"
+    ]
+  }
+]

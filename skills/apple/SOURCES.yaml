@@ -1,0 +1,186 @@
+skill: apple
+version: "2026.09.10"
+upstreams:
+  - id: twostraws-swiftui
+    kind: repo
+    repo: twostraws/SwiftUI-Agent-Skill
+    url: https://github.com/twostraws/SwiftUI-Agent-Skill
+    paths: [swiftui-pro]
+    ref: main
+    commit: be297ff80dddec529af1f9b1f1f114aab6c9d11c
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Nine-step review order, core instructions (iOS 26 default target, Swift 6.2+, no unsolicited third-party frameworks, one type per file), the review output format with worked examples, and rules for views, data flow, navigation, design, accessibility, performance, Swift style and hygiene."
+
+  - id: avdlee-swiftui
+    kind: repo
+    repo: AvdLee/SwiftUI-Agent-Skill
+    url: https://github.com/AvdLee/SwiftUI-Agent-Skill
+    paths: [skills/swiftui-expert-skill]
+    ref: main
+    commit: 4c6a97d15aa5e023538c3cb06b5192f241dd451d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Correctness checklist of always-a-bug invariants, the topic-router pattern, the read-first deprecated-API index, localization and scroll/focus/animation guidance, and the Instruments record-and-analyse workflow with its trace interpretation rules."
+
+  - id: avdlee-update-apis
+    kind: repo
+    repo: AvdLee/SwiftUI-Agent-Skill
+    url: https://github.com/AvdLee/SwiftUI-Agent-Skill/tree/main/.agents/skills/update-swiftui-apis
+    paths: [.agents/skills/update-swiftui-apis]
+    ref: main
+    commit: 4c6a97d15aa5e023538c3cb06b5192f241dd451d
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Method for re-scanning Apple documentation to refresh the deprecated-API index after an SDK release; informed how latest-apis.md is structured for resync, no content copied."
+
+  - id: yordi-liquid-glass
+    kind: repo
+    repo: YordiLorenzo/liquid-glass-skills
+    url: https://github.com/YordiLorenzo/liquid-glass-skills
+    paths: [liquid-glass, liquid-glass-motion, apple-motion-feel]
+    ref: main
+    commit: a6bac94c5a7a65ac42207452e3e63bb4eb7518e8
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Liquid Glass hard rules with per-symbol availability floors and confidence tags, the corrected availability table, the fabricated-API list, glass migration hygiene, morph preconditions, Reduce Motion gating, and Metal shader constraints."
+    notes: "Its scripts/ is a derivative of AvdLee's Instruments parser. This skill keeps one parser lineage (AvdLee) and credits both authors rather than vendoring the derivative."
+
+  - id: apple-xcode27
+    kind: repo
+    repo: superagents-lab/xcode27-skills
+    url: https://github.com/superagents-lab/xcode27-skills
+    paths:
+      - swiftui-specialist
+      - swiftui-whats-new-27
+      - uikit-app-modernization
+      - test-modernizer
+    ref: master
+    commit: 6f9ff8d5ad6000491cb0f483a776b7062e41cd97
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Apple-authored guidance used as the correctness oracle: view structure and invalidation boundaries, data-flow granularity, environment comparison, ForEach identity, conditional-modifier ban, soft-deprecation behaviour rules, iOS 27 SDK breakages, and UIKit scene-lifecycle modernization."
+    notes: "No license grant; included under fair-use with attribution per project policy. Underlying guidance is Apple's, redistributed by the upstream repository."
+
+  - id: avdlee-concurrency
+    kind: repo
+    repo: AvdLee/Swift-Concurrency-Agent-Skill
+    url: https://github.com/AvdLee/Swift-Concurrency-Agent-Skill
+    paths: [skills/swift-concurrency]
+    ref: main
+    commit: 45fa49e4e0b2af4d43b1cb458903f8030ac993bd
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Build-settings intake table, task entry isolation against the synchronous prefix, the smallest-safe-fix ladder, the concurrency tool-selection table, and the Swift 6 migration validation loop."
+
+  - id: twostraws-concurrency
+    kind: repo
+    repo: twostraws/Swift-Concurrency-Agent-Skill
+    url: https://github.com/twostraws/Swift-Concurrency-Agent-Skill
+    paths: [swift-concurrency-pro]
+    ref: main
+    commit: bee3f69ba17142da148d3c5406f148ed62592b69
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Concurrency grep targets, the failure-mode catalogue (actor reentrancy, continuation misuse, swallowed errors, unbounded streams), the strict-concurrency diagnostic-to-fix mapping, and Swift 6.2 behaviour changes."
+
+  - id: twostraws-swiftdata
+    kind: repo
+    repo: twostraws/SwiftData-Agent-Skill
+    url: https://github.com/twostraws/SwiftData-Agent-Skill
+    paths: [swiftdata-pro]
+    ref: main
+    commit: 922d989473a9914210b41529a1ac5636aff4b8c1
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "SwiftData model and relationship rules, temporary persistent identifiers, the predicate subset including the compile-clean patterns that crash at runtime, indexing, CloudKit constraints, and iOS 26 model inheritance."
+
+  - id: twostraws-testing
+    kind: repo
+    repo: twostraws/Swift-Testing-Agent-Skill
+    url: https://github.com/twostraws/Swift-Testing-Agent-Skill
+    paths: [swift-testing-pro]
+    ref: main
+    commit: 2d6bba14a3c8bf3694f218b92fffe617c41ae43e
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Swift Testing conventions (structs over classes, no redundant @Suite, init over setUp), the expectation rules including why a leading bang defeats macro expansion, parameterised-test pitfalls, withKnownIssue semantics, and the XCTest mapping table."
+
+  - id: avdlee-testing
+    kind: repo
+    repo: AvdLee/Swift-Testing-Agent-Skill
+    url: https://github.com/AvdLee/Swift-Testing-Agent-Skill
+    paths: [swift-testing-expert]
+    ref: main
+    commit: 798e9b1a2bcac164d4f0c781908199e754f0bab6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Async testing and waiting patterns, parallelization and isolation constraints, traits and tags usage, and the boundary where XCTest remains required for UI tests."
+
+  - id: dadederk-a11y
+    kind: repo
+    repo: dadederk/iOS-Accessibility-Agent-Skill
+    url: https://github.com/dadederk/iOS-Accessibility-Agent-Skill
+    paths: [ios-accessibility]
+    ref: main
+    commit: dcc3a36ce1d0099341d545c1af4eb5a8c989bf66
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Topic checklist for assistive technologies beyond VoiceOver — Voice Control input labels, Switch Control scan cost, Full Keyboard Access focus order — plus the non-determinism framing; used to decide coverage, with prose written from Apple documentation."
+    notes: "Last pushed 2026-03-09, marginally outside the six-month freshness bar, so it is reference-only rather than merged. Accessibility API surface is stable and its topic list remains accurate."
+
+  - id: dimillian-skills
+    kind: repo
+    repo: Dimillian/Skills
+    url: https://github.com/Dimillian/Skills
+    paths: [swiftui-performance-audit, swiftui-ui-patterns, swift-concurrency-expert]
+    ref: main
+    commit: 05ba982bfeb0d77d3c97d4542b0ee15034d05f84
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Shipping-app perspective on SwiftUI performance triage and profiling intake; used to sanity-check the prioritisation order in the performance reference."
+
+  - id: dpearson-swift
+    kind: repo
+    repo: dpearson2699/swift-ios-skills
+    url: https://github.com/dpearson2699/swift-ios-skills
+    paths: [skills]
+    ref: main
+    commit: 8d90fd121a263355a4fb44fd082af1416a5c1c2a
+    license: NOASSERTION
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Coverage map of niche Apple frameworks, used only to check this skill's scope statement for topic gaps. No content read into the prose."
+
+  - id: rshankras-apple
+    kind: repo
+    repo: rshankras/claude-code-apple-skills
+    url: https://github.com/rshankras/claude-code-apple-skills
+    paths: [skills, scripts]
+    ref: main
+    commit: 9ffb83138209057875698dd11c1720c657c47a92
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Freshness-CI approach for detecting stale API guidance; confirmed the decision to keep App Store and ASO topics out of this skill's scope."
+
+  - id: apple-docs
+    kind: docs
+    url: https://developer.apple.com/documentation/
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Correctness oracle for every version floor, API spelling, and accessibility figure in this skill, including the iOS/iPadOS release notes used to fix the default deployment target at iOS 26 with iOS 27 at RC."
+    notes: "Apple developer documentation carries no open licence; facts are used and all prose is original."
