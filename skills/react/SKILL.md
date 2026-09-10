@@ -22,13 +22,16 @@ Not covered — do not answer from this skill:
 
 - Visual and UX design decisions (palette, type scale, spacing, motion,
   accessibility audits). Those belong to the `frontend-design` skill.
-- Vue, Svelte, Solid, Astro islands.
+- Vue, Svelte, Solid, Astro islands. Use the `vue`, `svelte` or `astro` skill.
 - The React Native and Expo runtime — Hermes, the New Architecture, FlashList,
   navigation, EAS. Use the `react-native` skill.
 - Pages Router feature work. Only the v16 `middleware.ts` → `proxy.ts` rename
   is covered, because it breaks App Router projects too.
 - Test-runner mechanics, CI, container and cloud configuration beyond the three
   self-hosting facts in `references/nextjs-ops-and-debug.md`.
+- Server-side Node frameworks — Fastify, NestJS, Hono, and the process,
+  logging, shutdown and streams concerns around them. Use the
+  `nodejs-backend` skill.
 - Component API details of shadcn/ui. Those are fetched at task time from the
   CLI, never recalled from memory — see rule 16.
 

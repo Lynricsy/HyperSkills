@@ -18,8 +18,9 @@ metadata, dependency groups, build backend and packaging; pytest for tests;
 static typing with mypy or pyright; asyncio; and the runtime traps that a type
 checker and a linter both miss.
 
-Not covered: web frameworks — Django and FastAPI request handling, ORM models,
-migrations and dependency injection are the framework's own concern; data
+Not covered: web frameworks — FastAPI request handling, dependency injection and
+response models are the `fastapi` skill's job; Django request handling, ORM
+models and migrations are the framework's own concern. Also not covered: data
 analysis and notebooks (pandas, numpy, Jupyter); model training and fine-tuning.
 For the discipline of driving code with tests rather than the pytest API, use the
 `test-driven-development` skill. For diagnosing a specific observed failure, use
