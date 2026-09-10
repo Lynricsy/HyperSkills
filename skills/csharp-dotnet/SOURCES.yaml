@@ -1,0 +1,190 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin csharp-dotnet
+skill: csharp-dotnet
+version: "2026.09.11"
+upstreams:
+  - id: dotnet-official
+    kind: repo
+    repo: dotnet/skills
+    url: https://github.com/dotnet/skills
+    paths:
+      - plugins/dotnet-msbuild/skills/directory-build-organization
+      - plugins/dotnet-msbuild/skills/property-patterns
+      - plugins/dotnet-msbuild/skills/msbuild-antipatterns
+      - plugins/dotnet-msbuild/skills/incremental-build
+      - plugins/dotnet-msbuild/skills/binlog-failure-analysis
+      - plugins/dotnet-nuget/skills/convert-to-cpm
+      - plugins/dotnet-aspnetcore/skills/dotnet-webapi
+      - plugins/dotnet-aspnetcore/skills/configuring-opentelemetry-dotnet
+      - plugins/dotnet-blazor/skills/create-blazor-project
+      - plugins/dotnet-blazor/skills/author-component
+      - plugins/dotnet-blazor/skills/support-prerendering
+      - plugins/dotnet-blazor/skills/use-js-interop
+      - plugins/dotnet-maui/skills/maui-app-lifecycle
+      - plugins/dotnet-maui/skills/maui-data-binding
+      - plugins/dotnet-maui/skills/maui-shell-navigation
+      - plugins/dotnet-maui/skills/maui-collectionview
+      - plugins/dotnet-maui/skills/maui-dependency-injection
+      - plugins/dotnet-test/skills/run-tests
+      - plugins/dotnet-test/skills/test-anti-patterns
+      - plugins/dotnet-test/skills/detect-static-dependencies
+      - plugins/dotnet-test/skills/platform-detection
+      - plugins/dotnet-upgrade/skills/migrate-dotnet9-to-dotnet10
+      - plugins/dotnet-upgrade/skills/migrate-dotnet10-to-dotnet11
+      - plugins/dotnet-upgrade/skills/migrate-nullable-references
+      - plugins/dotnet-upgrade/skills/dotnet-aot-compat
+      - plugins/dotnet-diag/skills/analyzing-dotnet-performance
+      - plugins/dotnet-diag/skills/dotnet-trace-collect
+      - plugins/dotnet-diag/skills/dump-collect
+      - plugins/dotnet-diag/skills/microbenchmarking
+      - plugins/dotnet-data/skills/optimizing-ef-core-queries
+      - plugins/dotnet-advanced/skills/vectorization
+    ref: main
+    commit: 9beca0b0be339affea6420c2a2721293f2e9dcdb
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "MSBuild evaluation order and the property/item/target anti-pattern catalogue, the silent failure of $(TargetFramework) conditions in .props, Central Package Management conversion and NU1008, incremental-build causes and binlog attribution, Web API and minimal API structure, Blazor component contract, prerendering with [PersistentState] and JS interop lifetime, MAUI lifecycle/compiled bindings/Shell/CollectionView/DI lifetimes, test anti-patterns and dotnet test command shapes, the .NET 9 to 10 to 11 migration sequence with its breaking changes, nullable and AOT/trim migration, diagnostic tool selection with dump and trace collection, EF Core query pitfalls, and SIMD guardrails."
+    notes: "The repository has over 100 skills; only the 31 directories above are used. Whole-repo tracking would report this skill behind on every unrelated template-engine or skill-authoring commit. Upstream frontmatter fields metadata.portability, metadata.binding and metadata.binding-revision were stripped, as were the repository-overlay and bundled-path loading conventions, which are that repository's own distribution mechanism."
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - skills/csharp-async
+      - skills/csharp-xunit
+      - skills/csharp-nunit
+      - skills/csharp-mstest
+      - skills/csharp-tunit
+      - skills/dotnet-best-practices
+      - skills/dotnet-design-pattern-review
+      - skills/dotnet-upgrade
+      - skills/aspnet-minimal-api-openapi
+      - skills/nuget-manager
+      - skills/ef-core
+      - instructions/csharp.instructions.md
+      - instructions/blazor.instructions.md
+      - instructions/dotnet-maui.instructions.md
+      - instructions/dotnet-architecture-good-practices.instructions.md
+      - instructions/aspnet-rest-apis.instructions.md
+      - instructions/dotnet-upgrade.instructions.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The minimal API shape combining MapGroup, TypedResults and Results<T1,T2> unions with OpenAPI document and schema transformers; the test-framework comparison matrix across xUnit v3, NUnit, MSTest and TUnit; layering and DDD review checkpoints; and the current language-version baseline."
+    notes: "Its editor-formatting preferences and single-team conventions (Semantic Kernel, ResourceManager localisation, a fixed MSTest+Moq+FluentAssertions stack) were deliberately not adopted. Where it overlaps dotnet/skills on CPM, upgrades or Blazor it is the shallower source and lost every conflict."
+  - id: aaronontheweb
+    kind: repo
+    repo: Aaronontheweb/dotnet-skills
+    url: https://github.com/Aaronontheweb/dotnet-skills
+    paths:
+      - skills/csharp-nullable-reference-types
+      - skills/csharp-concurrency-patterns
+      - skills/csharp-type-design-performance
+      - skills/csharp-api-design
+      - skills/csharp-coding-standards
+      - skills/package-management
+      - skills/project-structure
+      - skills/microsoft-extensions-dependency-injection
+      - skills/microsoft-extensions-configuration
+      - skills/serialization
+      - skills/aot-trimming
+    ref: master
+    commit: f4d0d393b431ed0d7130d1b3711d5dfc6b1744cf
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The nullability attribute catalogue and the ordering that puts control-flow narrowing before the null-forgiving operator; the concurrency escalation ladder from async/await through Parallel.ForEachAsync and Channel<T> to locks; organising registrations as Add{Feature} extension methods that tests reuse; shared version properties for a package family under CPM; and the public-API and AOT/trim constraints."
+    notes: "Its Akka.NET, Aspire and MJML directories are its own stack and were not used, including the four Akka.NET branches of its concurrency decision tree. Its rule that package versions must only ever be changed through the dotnet CLI was overruled: see research/csharp-dotnet.md ruling 1."
+  - id: kevintsengtw-testing
+    kind: repo
+    repo: kevintsengtw/dotnet-testing-agent-skills
+    url: https://github.com/kevintsengtw/dotnet-testing-agent-skills
+    paths:
+      - skills/dotnet-testing-unit-test-fundamentals
+      - skills/dotnet-testing-test-naming-conventions
+      - skills/dotnet-testing-datetime-testing-timeprovider
+      - skills/dotnet-testing-filesystem-testing-abstractions
+      - skills/dotnet-testing-advanced-webapi-integration-testing
+      - skills/dotnet-testing-advanced-aspnet-integration-testing
+      - skills/dotnet-testing-advanced-xunit-upgrade-guide
+      - skills/dotnet-testing-test-data-builder-pattern
+    ref: main
+    commit: 4e34a9776431f3f189ae8ec72840a415bfaad0e0
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Replacing ambient state with injectable abstractions (TimeProvider for time, System.IO.Abstractions for the file system), the boundary of what an integration test may replace under WebApplicationFactory, and test naming plus arrange-act-assert structure."
+    notes: "Upstream prose is Traditional Chinese; only the semantics were taken and everything here is original English. Its broad library menu (AutoFixture, Bogus, NSubstitute, AwesomeAssertions) was narrowed to one default plus one escape hatch per this repository's writing rules, and its `/skill <name>` loading directives were stripped."
+  - id: soltes-perf
+    kind: repo
+    repo: wieslawsoltes/Performance-Skill
+    url: https://github.com/wieslawsoltes/Performance-Skill
+    paths:
+      - SKILL.md
+      - references/core
+      - references/memory
+      - references/latency
+      - references/production
+      - references/command-reference.md
+    ref: main
+    commit: cef013dc2cadc48f29457172c6f5a5daf6cd0791
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The evidence discipline for performance work: optimised build in the real deployment form, recorded environment and commands, a deterministic reproduction before any change, separating cold start from steady state, never inferring managed retention from RSS, and requiring equivalent before/after runs with spread before claiming a fix. Also the structure of a diagnosis report."
+    notes: "Its GPU, WebGPU and shader references are outside this skill's scope and were not used."
+  - id: csharpguidelines
+    kind: repo
+    repo: dennisdoomen/CSharpGuidelines
+    url: https://github.com/dennisdoomen/CSharpGuidelines
+    paths:
+      - Skills/csharp-guidelines
+    ref: main
+    commit: 697a0244cf890f935e93264a8242189b084d609c
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Structure and checklist semantics only: its rule categories (class design, member design, exceptions and events, maintainability, testability, naming, performance, framework usage, layout) were used as a coverage self-check, which surfaced two gaps that were then written from official documentation — exception design and the IDisposable/finalizer contract."
+    notes: "The GitHub API reports NOASSERTION; the LICENSE.md file is the full CC BY-SA 4.0 text. Under this repository's licence policy only the structure and checklist semantics were taken; no sentence, example or rule text was copied."
+  - id: rider-skills
+    kind: repo
+    repo: JetBrains/rider-skills
+    url: https://github.com/JetBrains/rider-skills
+    paths:
+      - skills/debugging-code
+      - skills/finding-tests
+      - skills/refactoring-code
+    ref: master
+    commit: 638e23b1aefce73476682176b70a689325c0614f
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage self-check only: confirmed that its debugger-first triage criteria belong to the debugging skill rather than here, so this skill's diagnostics section stays on runtime evidence from counters, traces and dumps."
+    notes: "Apache-2.0 would permit merging, but every skill there is bound to the Rider MCP tooling through an allowed-tools frontmatter field and an execute_tool indirection, an agent binding this repository forbids. Nothing was copied."
+  - id: dotnet-docs
+    kind: docs
+    url: https://learn.microsoft.com/dotnet
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative rulings this skill is built on: dependency-injection guidelines and their anti-patterns (container-captured transient disposables, deadlocking async factories, scope validation), IDisposable ownership rules, the Microsoft.Testing.Platform model and its support matrix, C# language version being bound to the target framework, ConfigureAwait semantics and the ConfigureAwaitOptions overload, and the diagnostic tool set."
+    notes: "Source repository dotnet/docs; its LICENSE was read directly and is the full Creative Commons Attribution 4.0 text, so this is merged rather than reference. Attribution: (c) Microsoft, CC BY 4.0. All wording here is original; only technical facts were taken."
+  - id: aspnetcore-docs
+    kind: docs
+    url: https://learn.microsoft.com/aspnet/core
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Service lifetimes and why constructor injection of a scoped service into conventional middleware throws, the Add{GROUP} registration convention, keyed services, and the Blazor render-mode table with prerendering enabled by default for interactive modes plus RendererInfo and AssignedRenderMode."
+    notes: "Source repository dotnet/AspNetCore.Docs; its LICENSE was read directly and is the full Creative Commons Attribution 4.0 text. Attribution: (c) Microsoft, CC BY 4.0. All wording here is original."
+  - id: dotnet-releases
+    kind: docs
+    url: https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The support-state table: which channel is the current LTS, which is the next STS, and which are in maintenance. Read before writing any version-specific guidance so the default target is the one actually supported."
+    notes: "Machine-readable release index in dotnet/core (MIT). Re-read it on every sync; support phases move and this skill's default target depends on it."

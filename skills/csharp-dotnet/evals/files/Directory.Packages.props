@@ -1,0 +1,21 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <PropertyGroup Label="SharedVersions">
+    <SerilogVersion>4.4.0</SerilogVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="$(SerilogVersion)" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="$(SerilogVersion)" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0" />
+    <PackageVersion Include="xunit.v3" Version="3.1.0" />
+  </ItemGroup>
+
+</Project>
