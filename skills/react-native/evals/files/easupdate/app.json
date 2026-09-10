@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Acme",
+    "slug": "acme",
+    "version": "5.2.1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8c1f0a2e-1d44-4c6f-9f0a-3b2c7d5e1a90"
+    },
+    "ios": {
+      "bundleIdentifier": "com.acme.app",
+      "buildNumber": "482"
+    },
+    "android": {
+      "package": "com.acme.app",
+      "versionCode": 482
+    },
+    "plugins": ["expo-router", "expo-updates"]
+  }
+}

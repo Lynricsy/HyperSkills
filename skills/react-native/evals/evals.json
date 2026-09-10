@@ -1,0 +1,64 @@
+[
+  {
+    "skills": ["react-native"],
+    "query": "We are on React Native 0.87 (see package.json) and our own DeviceInfo module is still a legacy bridge module. Tell me exactly what to change on the JavaScript and codegen side of DeviceInfo.ts to turn it into a Turbo Native Module, and what stays the same.",
+    "files": ["evals/files/newarch/package.json", "evals/files/newarch/DeviceInfo.ts"],
+    "expected_behavior": [
+      "Writes a codegen spec file whose name carries the Native prefix (for example specs/NativeDeviceInfo.ts), declaring `interface Spec extends TurboModule` and exporting it through TurboModuleRegistry, and states that the JS module name must match the native module registration",
+      "Adds a codegenConfig block to package.json with name, type: \"modules\" and jsSrcsDir (plus android.javaPackageName), and names how codegen actually runs (pod install on iOS, the generateCodegenArtifactsFromSchema Gradle task / an Android build)",
+      "Distinguishes TurboModuleRegistry.getEnforcing (throws when the module is absent) from get (returns null) and picks one deliberately instead of using both interchangeably",
+      "Flags isLowPowerMode as a synchronous method that blocks the JS thread and readDeviceReport (~400ms) as work that must stay a Promise, and warns against calling the sync method from a render path",
+      "States that the New Architecture is the only runtime from React Native 0.82 onward, so there is no newArchEnabled opt-out to fall back on, and explains that the untouched legacy module keeps working through the interop layer - the migration buys codegen type safety and lazy loading rather than fixing a crash",
+      "Does not rewrite or invent the Objective-C implementation body; it stays on the spec, registration and codegen contract"
+    ]
+  },
+  {
+    "skills": ["react-native"],
+    "query": "FeedScreen.tsx scrolls at about 20fps with a 2000-item feed on a mid-range Android device. Rewrite it so scrolling is smooth, and tell me how to prove the fix.",
+    "files": ["evals/files/lists/package.json", "evals/files/lists/FeedScreen.tsx"],
+    "expected_behavior": [
+      "Replaces the ScrollView + rows.map() with the already-installed FlashList, passing data, renderItem and keyExtractor, and explains that mapping mounts every row up front",
+      "Reads the installed FlashList major version (2.x) and does NOT add estimatedItemSize / estimatedListSize / estimatedFirstItemOffset, saying they are removed or no-ops in FlashList v2 which measures items itself",
+      "Uses getItemType (or an equivalent per-kind hint) for the post/ad/divider mix so recycling does not swap between incompatible row layouts",
+      "Moves the per-row `new Intl.DateTimeFormat(...)` construction out of the row render into a module-level constant",
+      "Stops using the array index as the key/id and hoists or memoizes renderItem and the onPress callback so every row does not get a fresh function identity on each render",
+      "Names a concrete before/after measurement (React Native DevTools profiler, FPS capture, or an equivalent) instead of asserting the fix worked"
+    ]
+  },
+  {
+    "skills": ["react-native"],
+    "query": "This is a bare (non-Expo) React Native app on 0.79.7 and we want to get to the latest release. Give me the upgrade procedure and the breaking changes that will actually hit this project.",
+    "files": ["evals/files/upgrade/package.json", "evals/files/upgrade/Badge.tsx"],
+    "expected_behavior": [
+      "Drives the native side from the official version-pair diff (React Native Upgrade Helper or the rn-diff-purge raw diff for the exact from..to pair) rather than hand-listing native edits, treats the RnDiffApp path/name as a placeholder to remap, and merges the diff instead of overwriting project files",
+      "Derives the Node floor from the target release's own engines field rather than a release note (0.87 requires ^22.13.0 || ^24.3.0 || >= 26.0.0) and flags that package.json still declares node >= 18",
+      "Flags that Badge.tsx imports from react-native/Libraries/... and must move to root `react-native` imports because the Strict TypeScript API is the default from 0.87, naming either the @react-native/no-deep-imports ESLint autofix or the react-native-legacy-deep-imports customConditions escape hatch",
+      "Mentions Hermes V1 becoming the default engine in 0.84 and that opting out is a hermes-compiler override / hermesV1Enabled=false plus building from source, not an app-code setting",
+      "States that the New Architecture is the only runtime from 0.82, so any newArchEnabled=false opt-out disappears and legacy-only native dependencies must be checked before the bump",
+      "Ends on a build gate: one dependency install pass with the repo's package manager (yarn 4 here), pod install, then both an iOS and an Android build plus typecheck/lint before calling the upgrade done"
+    ]
+  },
+  {
+    "skills": ["react-native"],
+    "query": "I published with `eas update --branch production` but my TestFlight build still shows the old screen. The same commit also added react-native-mmkv. What is wrong?",
+    "files": ["evals/files/easupdate/eas.json", "evals/files/easupdate/app.json"],
+    "expected_behavior": [
+      "Identifies that adding react-native-mmkv is a native change that can never be delivered over the air, so this commit needs a new build regardless of the update",
+      "Notices that the production build profile embeds the channel production-v5, and explains that publishing to a branch named production does not reach that build unless the production-v5 channel points at that branch",
+      "Explains the matching rule an installed build applies - platform plus runtime version plus channel-to-branch mapping - and connects it to the appVersion runtime-version policy in app.json",
+      "Says a release build normally launches the cached/embedded update while downloading in the background, so manual QA needs up to two full cold launches (terminate, not background)",
+      "Does not propose raising fallbackToCacheTimeout or otherwise blocking startup as the fix",
+      "Gives a concrete inspection step for the channel-to-branch mapping (for example eas channel:view / eas branch:view) rather than only guessing"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "In our Next.js App Router project, SearchPanel.tsx re-renders the whole panel on every keystroke and typing feels laggy. How do I fix it?",
+    "files": ["evals/files/nextjs/SearchPanel.tsx"],
+    "expected_behavior": [
+      "Does not read the react-native skill: skill_read is false",
+      "Treats the file as React DOM code and never suggests React Native, Expo, FlashList or a native list component",
+      "Fixes it the React way - pushing the query state down into a small input+results leaf, or keeping the expensive siblings out of the state's render subtree, and/or useDeferredValue for the filtering"
+    ]
+  }
+]

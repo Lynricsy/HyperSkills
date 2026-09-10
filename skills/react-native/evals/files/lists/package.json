@@ -1,0 +1,17 @@
+{
+  "name": "acme-feed",
+  "version": "1.9.2",
+  "private": true,
+  "dependencies": {
+    "@shopify/flash-list": "^2.3.2",
+    "expo": "~54.0.0",
+    "expo-image": "~3.0.0",
+    "expo-router": "~6.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.6",
+    "react-native-reanimated": "~4.1.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2"
+  }
+}
