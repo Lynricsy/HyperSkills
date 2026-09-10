@@ -1,0 +1,50 @@
+{
+  "$schema": "./gen/schemas/desktop-schema.json",
+  "productName": "Notely",
+  "version": "1.4.0",
+  "identifier": "com.example.notely",
+  "build": {
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Notely",
+        "width": 1280,
+        "height": 800,
+        "decorations": true
+      },
+      {
+        "label": "quicknote",
+        "title": "Quick note",
+        "width": 420,
+        "height": 260,
+        "alwaysOnTop": true
+      }
+    ],
+    "security": {
+      "csp": null,
+      "capabilities": []
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/32x32.png", "icons/icon.icns", "icons/icon.ico"],
+    "externalBin": ["binaries/notely-indexer"],
+    "resources": ["templates/", "dictionaries/"]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "keys/notely.pub",
+      "endpoints": ["http://releases.notely.example.com/{{target}}/{{current_version}}"],
+      "windows": {
+        "installMode": "quiet"
+      }
+    }
+  }
+}

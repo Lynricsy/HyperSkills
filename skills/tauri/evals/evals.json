@@ -1,0 +1,59 @@
+[
+  {
+    "skills": ["tauri"],
+    "query": "Our Tauri v2 desktop app is broken in the packaged build. Calling exportReport() from the renderer gives \"Command export_report not found\", loadProject() resolves but the recent list stays empty, and the folder picker throws about permissions. Read lib.rs, default.json and projects.ts in this directory and tell me exactly what is wrong and how to fix each one.",
+    "files": [
+      "evals/files/lib.rs",
+      "evals/files/default.json",
+      "evals/files/projects.ts"
+    ],
+    "expected_behavior": [
+      "Identifies that the second .invoke_handler(...) call overwrites the first, so only export_report is registered — and says all commands must be listed in a single tauri::generate_handler![...] call",
+      "Explains that the dialog and fs plugin calls fail because the capability only grants core:default: plugin permissions such as dialog:allow-open and a scoped fs read permission must be added to the capability, and that this is not the cause for the app's own #[tauri::command] functions, which are allowed for every window by default unless AppManifest::commands in build.rs restricts them",
+      "Flags that invoke('load_project', { project_path: picked }) uses the wrong argument casing: command arguments are passed as camelCase keys (projectPath) unless the command declares rename_all",
+      "Flags that state is managed as Arc<Mutex<AppState>> while the commands ask for State<AppState>, that the mismatch is a runtime panic rather than a compile error, and that Arc is redundant because State already shares ownership",
+      "Points out that load_project mutates a clone (state.recent.clone()) so nothing is ever stored, and that mutating managed state requires locking the Mutex and taking State<'_, Mutex<AppState>>",
+      "Warns that export_report is a synchronous command, so its multi-second blocking file write runs on the main thread and freezes the UI, and fixes it with an async command or #[tauri::command(async)]",
+      "Replaces windows: [\"*\"] with the specific window labels that need the permissions, or explains why least-privilege capabilities should be split per window"
+    ]
+  },
+  {
+    "skills": ["tauri"],
+    "query": "Review commands.rs in this directory before I ship it. Two of these commands do not compile, the settings dialog freezes the whole window while it validates, and exporting a large archive is much slower than reading the same files from Rust. What do I change?",
+    "files": ["evals/files/commands.rs"],
+    "expected_behavior": [
+      "Explains that validate_endpoint and warm_cache are synchronous commands and therefore execute on the main thread, which is why the window freezes, and fixes them by making them async or annotating #[tauri::command(async)]",
+      "Identifies that search_notes cannot compile: an async command may not take borrowed arguments, so query: &str must become String, and an async command injecting State<'_, Mutex<Db>> must return a Result",
+      "Warns that holding a std::sync::Mutex guard across an await point in an async command is wrong, and points to either scoping the lock before awaiting or using an async mutex",
+      "Says export_archive should return tauri::ipc::Response (or stream via tauri::ipc::Channel) instead of Vec<u8>, because a Serialize return value is JSON-encoded across the IPC boundary and that is what makes large payloads slow",
+      "Says current_cache asks for State<Cache> while the cache is managed as Mutex<Cache>, and that a State type mismatch panics at runtime instead of failing to compile",
+      "Recommends replacing the String error type with a custom error enum (thiserror plus a manual serde::Serialize impl, optionally a tagged ErrorKind) so the frontend receives a structured, matchable error",
+      "Flags that read_note takes a caller-supplied path and must be validated in Rust — canonicalised and constrained to an app-owned directory — because the webview is not the trust boundary"
+    ]
+  },
+  {
+    "skills": ["tauri"],
+    "query": "We are about to cut the first auto-updating release of this Tauri v2 app. Read tauri.conf.json and tauri.macos.conf.json in this directory and tell me what will not work: updates, packaging, security config, sidecar, anything.",
+    "files": ["evals/files/tauri.conf.json", "evals/files/tauri.macos.conf.json"],
+    "expected_behavior": [
+      "Says bundle.createUpdaterArtifacts must be set (true for a v2-only history, \"v1Compatible\" only when migrating already-distributed v1 apps), otherwise the build produces no update bundle and no .sig at all",
+      "Says plugins.updater.pubkey must be the public key content, not a file path like keys/notely.pub, and that the key pair comes from tauri signer generate with the private key supplied through TAURI_SIGNING_PRIVATE_KEY (a .env file is not read)",
+      "Flags the http:// updater endpoint: TLS is enforced in production, and that only dangerousInsecureTransportProtocol would relax it, which should not be used for a release",
+      "Flags app.security.csp: null as disabling CSP entirely and gives a starting policy that keeps invoke working, including ipc: http://ipc.localhost in connect-src",
+      "Explains that the empty app.security.capabilities array or the absence of capability files means the frontend gets no plugin or core permissions, and that listing capabilities in tauri.conf.json disables the automatic use of every file in src-tauri/capabilities/",
+      "Warns that the macOS override replaces arrays rather than merging them: bundle.resources loses templates/ and dictionaries/, and app.windows loses the quicknote window while main loses width, height and title because omitted fields fall back to defaults, so every value to keep must be repeated",
+      "Says the externalBin sidecar must exist on disk with a -$TARGET_TRIPLE suffix per platform (rustc --print host-tuple for the host) and needs a shell:allow-execute or shell:allow-spawn permission entry with sidecar: true to be callable from the frontend",
+      "Notes that installMode \"quiet\" cannot elevate for a machine-wide install and recommends \"passive\" for the default release path"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "OrderTable.tsx in this directory feels laggy once we pass a few thousand orders — typing in the filter box stutters. Should I add virtual scrolling, and what else would you change?",
+    "files": ["evals/files/OrderTable.tsx"],
+    "expected_behavior": [
+      "Does not read the tauri skill: skill_read is false",
+      "Answers in React terms — memoising the filter/sort work, hoisting the Intl.NumberFormat instance out of the row, the effect with no dependency array running on every render, and windowing the list — rather than discussing Tauri IPC, capabilities or Rust commands",
+      "Does not propose Tauri-specific changes such as moving the work into a #[tauri::command], tauri.conf.json settings, or capability files"
+    ]
+  }
+]

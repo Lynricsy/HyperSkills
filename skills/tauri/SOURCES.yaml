@@ -1,0 +1,73 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin tauri
+skill: tauri
+version: "2026.09.11"
+upstreams:
+  - id: tauri-docs
+    kind: docs
+    url: https://v2.tauri.app
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authority behind every rule here: command and IPC semantics including the main-thread execution of non-async commands, the two supported forms for async commands with borrowed arguments, custom error serialisation, channels and raw requests, managed-state typing and the runtime panic on mismatch, the capabilities/permissions/scope model and the runtime authority, the fact that app-registered commands are allowed for all windows until build.rs declares a command manifest, CSP and devCsp behaviour, HTTP headers, asset-protocol scope and its leading-dot globbing, the isolation pattern, JSON Merge Patch semantics for platform-specific config, sidecar naming and shell permissions, the updater's signing requirements and manifest rules, macOS notarisation and Windows signing, mock-based frontend tests, and the complete Tauri 1 to 2 migration table."
+    notes: "Sourced from tauri-apps/tauri-docs (branch v2, src/content/docs/en), whose LICENSE and README are both MIT covering the software 'and associated documentation files', so the documentation text is safe to merge. All wording here is original; only technical facts were taken."
+  - id: hairyf-tauri
+    kind: repo
+    repo: hairyf/skills
+    url: https://github.com/hairyf/skills
+    paths: [skills/tauri]
+    ref: main
+    commit: 4f463c746d271df0a3c7ab0f9821a04c756178ed
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The topic layering and reference grouping this skill's router is built on, plus command-registration details that are easy to miss in the official prose: commands declared in lib.rs cannot be pub, only the last invoke_handler call survives, large binary returns belong in tauri::ipc::Response, the capability directory is fully enabled until app.security.capabilities is set, and the build.rs command allowlist."
+    notes: "Its GENERATION.md declares the content is generated from tauri-apps/tauri-docs at SHA 9bcbf1078f171ca6558c72df03c1e1f152205f42 (2026-01-30) using antfu/skills scripts, and every reference ends with a Source references comment pointing back at the official page; three files were spot-checked against v2.tauri.app with no discrepancies. Its upstream metadata.source frontmatter field was stripped. It omits the official rule that non-async commands run on the main thread; that was added from the official docs."
+  - id: nodnarbnitram-tauri-v2
+    kind: repo
+    repo: nodnarbnitram/claude-code-extensions
+    url: https://github.com/nodnarbnitram/claude-code-extensions
+    paths: [.claude/skills/tauri-v2]
+    ref: main
+    commit: 35e7f7deae689e12b94f9c242b8f59efe0f66476
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The symptom-to-root-cause triage table that became this skill's fix-runtime-failure workflow and the debugging symptom table, the main.rs/lib.rs split with its mobile rationale and the [lib] crate-type block, the serde boundary rules (camelCase argument keys, Option for optional arguments, error types needing Serialize too), and the observation that a State type mismatch panics at runtime rather than failing to compile."
+    notes: "Its capabilities reference claims nothing is allowed by default; overruled by v2.tauri.app/security/capabilities, which states that commands registered through invoke_handler are allowed for all windows unless AppManifest::commands restricts them. See research/tauri.md ruling 1. Its self-promotional metrics table (token savings, setup-time comparison) and its version: 1.0.1 frontmatter field were not carried over, and plugins/cce-tauri/skills/tauri-v2 is a duplicate of the same content."
+  - id: pinkpixel-tauri
+    kind: repo
+    repo: pinkpixel-dev/tauri-skills
+    url: https://github.com/pinkpixel-dev/tauri-skills
+    paths: [skills/tauri-app-builder]
+    ref: main
+    commit: 99697aa3006bec7d65bb2a8f8be0d294407186da
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The four-boundary threat model that orders this skill's security rules, the command-surface principle of exposing product operations rather than primitives (with the run_shell/read_any_file/write_any_file counter-examples), the Rust-side validation checklist, the capability convergence rules (no windows wildcard, split per privilege level, permissions merge across matching capabilities), and starting a CSP from a minimal policy instead of loosening it to silence errors."
+    notes: "Its secrets and child-process sections reach beyond Tauri into general application security; only the parts bearing on the IPC boundary were used. Its agents/openai.yaml is an agent-binding file and was ignored, and its scripts/audit_tauri_project.py was deliberately not adopted (see research/tauri.md)."
+  - id: full-stack-skills-tauri
+    kind: repo
+    repo: full-stack-skills/tauri-skills
+    url: https://github.com/full-stack-skills/tauri-skills
+    paths: [skills]
+    ref: main
+    commit: 17c73560753f0a12aef78b7f625955c52d549438
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Coverage inventory only: its 52-topic taxonomy was mapped against this skill's sections and closed two gaps, the mandatory pairing of the single-instance and deep-link plugins for argv delivery on desktop, and persisted scope for dialog-granted paths surviving a restart."
+    notes: "The GitHub API reports NOASSERTION because the root LICENSE file holds misplaced third-party notices for unrelated Python packages. The README declares Apache 2.0 and every skill directory carries its own LICENSE.txt with the complete, unmodified Apache License 2.0 text (tauri-app-develop and tauri-ipc were read), so this is merged under Apache-2.0. No prose was taken: all 52 skills share a machine-generated gotchas and workflow template with no Tauri-specific content."
+  - id: epicenter-tauri
+    kind: repo
+    repo: EpicenterHQ/epicenter
+    url: https://github.com/EpicenterHQ/epicenter
+    paths: [.agents/skills/tauri]
+    ref: main
+    commit: ecba0242f6fadec4a69e0be0ff66a245b117cdb7
+    license: AGPL-3.0-or-later
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage self-check and independent cross-validation from a production Tauri app: that devCsp replaces rather than extends csp under tauri dev, that a hashed production bundle does not need unsafe-inline in script-src, that Rust rather than the webview must own filesystem boundaries, and that tauri-specta cannot generate bindings for commands returning tauri::ipc::Response."
+    notes: "The GitHub API reports NOASSERTION; the LICENSE file states that every package under packages/ and apps/ is AGPL-3.0-or-later, so this cannot be merged under this repository's licence policy. No text, code or data file was copied; the overlapping facts were re-derived from v2.tauri.app/security/csp and /develop/calling-rust."
