@@ -143,16 +143,26 @@ def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
         result["status"] = "up_to_date"
         return result
 
-    result["status"] = "behind"
     result["compare"] = f"https://github.com/{repo}/compare/{pinned}...{ref}"
     commits: dict[str, list[dict[str, str]]] = {}
-    if source == "api":
-        for p in up.get("paths") or []:
+    paths = up.get("paths") or []
+    checked_paths = False
+    if source == "api" and paths:
+        checked_paths = True
+        for p in paths:
             try:
                 commits[p] = path_commits(repo, ref, p, pinned)
             except (RateLimited, NotFound):
+                # Unknown rather than empty: do not claim the path is unchanged.
+                checked_paths = False
                 commits[p] = []
     result["commits"] = commits
+    # The repo moved, but nothing under the paths this skill actually consulted.
+    # That is the whole point of tracking `paths`: it filters monorepo noise.
+    if checked_paths and not any(commits.values()):
+        result["status"] = "paths_unchanged"
+    else:
+        result["status"] = "behind"
     return result
 
 
@@ -167,6 +177,11 @@ def print_result(skill_name: str, res: dict[str, Any]) -> None:
         print(f" FAIL {tag}: MISSING (repo moved/deleted?)")
     elif status == "no_head":
         print(f" FAIL {tag}: could not resolve HEAD of ref '{res['ref']}'")
+    elif status == "paths_unchanged":
+        print(
+            f"  OK  {tag}: repo moved, tracked paths unchanged "
+            f"({res['pinned'][:7]} -> {res['head'][:7]})"
+        )
     else:
         print(f"  !!  {tag}: behind — {res['pinned'][:7]} -> {res['head'][:7]}")
         print(f"        {res['compare']}")

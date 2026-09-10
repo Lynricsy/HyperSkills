@@ -156,9 +156,20 @@ skills:
 uv run tools/check_upstream.py [<skill>...]
 ```
 
-输出每个上游自 pinned commit 以来触及 `paths` 的提交列表与 compare 链接。
+输出每个上游自 pinned commit 以来触及 `paths` 的提交列表与 compare 链接。状态含义：
 
-有变更时：
+| 状态 | 含义 | 要做什么 |
+|---|---|---|
+| `up to date` | HEAD == pinned commit | 无 |
+| `repo moved, tracked paths unchanged` | 仓库有新提交，但 `paths` 下没有 | 无。大型 monorepo（`vercel/next.js`、`nexu-io/open-design`）每天都在动，`paths` 的作用就是滤掉这些噪声 |
+| `behind` | `paths` 下有新提交，**或**因 API 限流无法确认 | 读变更文件；限流时先 `export GITHUB_TOKEN=...` 再跑一次 |
+| `MISSING` | 仓库 404 | 上游被删或改名，按 Phase B 重新裁决 |
+| `manual check` | `kind: docs` | 人工打开链接比对 |
+
+限流回退用 `git ls-remote` 只能取到 HEAD、取不到按路径的历史，此时一律报 `behind`——
+**不知道是否变更**不能说成**未变更**。
+
+`paths` 下确有变更时：
 
 1. 重读变更文件，按 Phase B 的裁决规则更新内容。
 2. `uv run tools/check_upstream.py --pin <skill>` 更新 `commit` / `synced_at`。
