@@ -36,9 +36,10 @@ Not covered — do not answer from this skill:
 - Working a reproducible local failure down to a root cause. Use the
   `debugging` skill; come back here for the Node-specific suspects.
 - REST contract and OpenAPI design (resource modelling, URI and status-code
-  choice, pagination style, versioning), GraphQL schema design, and container,
-  Kubernetes or cloud deployment configuration. None of these has a skill in
-  this library yet; say so rather than improvising one.
+  choice, pagination style, versioning). Use the `api-design` skill.
+- GraphQL schema design and operations. Use the `graphql` skill.
+- Container, Kubernetes or cloud deployment configuration. No skill in this
+  library covers those yet; say so rather than improvising one.
 
 ## Core rules
 

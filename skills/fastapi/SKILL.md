@@ -32,9 +32,11 @@ Not covered:
 - Reviewing a diff for general correctness and style — use the `code-review` skill; come
   back here for the FastAPI-specific rules a reviewer applies.
 - REST contract and OpenAPI specification design (resource modelling, URI and versioning
-  policy, pagination strategy, the error schema itself), database schema design and query
-  tuning, ORM and migration tooling, containers and cloud deployment, GraphQL. None of
-  these has a skill in this library yet; say so rather than improvising one.
+  policy, pagination strategy, the error schema itself). Use the `api-design` skill.
+- Database schema design and query tuning. Use the `postgres` skill for PostgreSQL.
+- GraphQL schema and operations. Use the `graphql` skill.
+- ORM and migration tooling, containers and cloud deployment. Neither has a skill in this
+  library yet; say so rather than improvising one.
 
 Paths below are relative to this skill's directory.
 

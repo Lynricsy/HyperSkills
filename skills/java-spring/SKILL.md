@@ -31,9 +31,12 @@ Not covered:
 - Working a reproducible local failure down to a root cause — use the `debugging` skill.
 - Test-first methodology and what deserves a test at all — use the
   `test-driven-development` skill; this skill covers which Spring slice a test belongs in.
+- REST contract and OpenAPI specification design. Use the `api-design` skill.
+  GraphQL schema and operations: use the `graphql` skill. PostgreSQL schema, indexing and
+  query tuning behind JPA: use the `postgres` skill.
 - Cloud hosting and infrastructure (AWS, Azure, GCP, Kubernetes manifests, managed databases),
-  REST contract and OpenAPI specification design, GraphQL, Spring Cloud Gateway, Spring Batch and
-  Spring AI. None of these has a skill in this library yet; say so rather than improvising.
+  Spring Cloud Gateway, Spring Batch and Spring AI. None of these has a skill in this library
+  yet; say so rather than improvising.
 
 Paths below are relative to this skill's directory.
 

@@ -26,6 +26,10 @@ The mechanics of moving a review through GitHub — creating the pull request, w
 description, fetching review threads, posting replies, merging — are the `github` skill's job.
 This skill supplies the opinion; that one supplies the plumbing.
 
+Reviewing a REST contract or an OpenAPI document as a design — resource modelling, status
+codes, pagination style, the error schema, what counts as a breaking change — is the
+`api-design` skill's job. This skill reviews the diff that implements it.
+
 Writing the change itself is not review work: use the `test-driven-development` skill for that,
 and the `debugging` skill when a review finding turns out to need a diagnosis rather than a fix.
 
