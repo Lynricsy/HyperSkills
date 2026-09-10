@@ -1,0 +1,156 @@
+skill: go
+version: "2026.09.11"
+upstreams:
+  - id: samber-golang
+    kind: repo
+    repo: samber/cc-skills-golang
+    url: https://github.com/samber/cc-skills-golang
+    paths:
+      - skills/golang-concurrency
+      - skills/golang-context
+      - skills/golang-error-handling
+      - skills/golang-testing
+      - skills/golang-benchmark
+      - skills/golang-performance
+      - skills/golang-lint
+      - skills/golang-code-style
+      - skills/golang-naming
+      - skills/golang-documentation
+      - skills/golang-structs-interfaces
+      - skills/golang-data-structures
+      - skills/golang-dependency-management
+      - skills/golang-project-layout
+      - skills/golang-safety
+      - skills/golang-troubleshooting
+    ref: main
+    commit: 19a0626ae8565d27a7b7bdf59d8d99d94d7e284c
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The breadth of the coverage: the channel/mutex/atomic selection matrix and the WaitGroup-versus-errgroup table, the pre-spawn goroutine checklist, the single-handling rule for errors and the sentinel/typed/opaque taxonomy, the testing matrix (table-driven subtests, build-tagged integration tests, goleak, synctest, the testify assert-scope trap), the golangci-lint adoption order and suppression discipline, go.sum/govulncheck/go mod tidy dependency hygiene, the measure-then-change profiling cycle with benchstat, and the per-topic Common Mistakes tables that this skill's own mistake tables are modelled on."
+    notes: "Frontmatter carried user-invocable, allowed-tools, paths and metadata.openclaw fields, and every body opened with Persona / Thinking mode / Orchestration mode / Community default blocks plus samber/cc-skills-golang@... cross-references; all of that was stripped per docs/skill-standard.md sections 1.2 and 1.3. The 46 skill directories include per-library manuals (golang-samber-*, golang-spf13-*, golang-stretchr-testify, golang-uber-dig/fx, golang-google-wire, golang-grpc, golang-graphql, golang-swagger, golang-database, golang-popular-libraries, golang-pkg-go-dev) which are product packaging rather than language capability, and golang-cli / golang-continuous-integration / golang-observability / golang-dependency-injection / golang-design-patterns which fall outside this skill's boundary; none of those were read for content. Two rules were overruled against official documentation: 'slices and maps must never be nil' (Go Wiki prefers var t []T) and 'always send copies, not pointers, on channels' (restated as ownership transfer)."
+
+  - id: spf13-go
+    kind: repo
+    repo: spf13/go-skills
+    url: https://github.com/spf13/go-skills
+    paths: [go]
+    ref: main
+    commit: e67851cfcca008592c7c4965b8220c7cb37e2f1c
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The modernisation spine: which standard-library package replaces which older habit (slices, maps, cmp, iter, math/rand/v2, typed atomics, omitzero, any, //go:build, the tool directive), domain-named one-level package layout with the explicit rejection of Clean Architecture layer packages, net/http server discipline (ServeMux routing since 1.22, the four timeouts, graceful shutdown, middleware as a function), when generics help and when they are inheritance in disguise, functional options, and the rule that the Go toolchain is never the bug with its four ranked explanations."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Authored by a former Go team lead (Cobra, Viper, Hugo), which is why it wins the project-layout and testing-library conflicts against the community skills recorded in research/go.md."
+
+  - id: cxuu-golang
+    kind: repo
+    repo: cxuu/golang-skills
+    url: https://github.com/cxuu/golang-skills
+    paths:
+      - skills/go-concurrency
+      - skills/go-interfaces
+      - skills/go-error-handling
+      - skills/go-performance
+      - skills/go-defensive
+    ref: main
+    commit: 91f0c2eef559a3168f9d3c38f5f99936d472b508
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Three goroutine-lifetime rules stated more sharply than elsewhere — the caller must be able to wait for it, no goroutines started from init() or a constructor, keep the synchronisation inside one function — plus the phrasing of the sync-primitive selection guidance, distilled from the Google and Uber Go style guides."
+
+  - id: ashwin-go
+    kind: repo
+    repo: ashwingopalsamy/golangskills.com
+    url: https://github.com/ashwingopalsamy/golangskills.com
+    paths:
+      - skills/go-language-engineering
+      - skills/go-testing-and-verification
+      - skills/go-performance-and-diagnostics
+      - skills/go-project-and-api-design
+    ref: main
+    commit: 30852a9ab612db44401ce871da06a08d01693c47
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The 'state the local contract first' opening step of the implement workflow (inputs, zero-value behaviour, aliasing, mutation, error identity, concurrency exposure, exported compatibility), and the invariant-driven way of choosing between a value and a pointer and of deciding when nil versus empty is worth preserving."
+    notes: "Its distributed-systems and fintech collections (message delivery semantics, reconciliation, ledgers) are outside this skill's boundary and were not read for content. Its prose is judgement-style with almost no code; only the decision structure was taken."
+
+  - id: awesome-copilot-go
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths: [instructions/go.instructions.md]
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The practice of gating advice on the go directive in go.mod rather than assuming the newest toolchain, and the rule that an HTTP client wrapper stays stateless — configuration and dependencies only, a fresh *http.Request per call, never one cached on the struct."
+    notes: "Most of the file is general advice a capable model already has (keep interfaces small, left-align the happy path) plus a section instructing agents not to emit duplicate package declarations; neither was merged."
+
+  - id: go-effective-go
+    kind: docs
+    url: https://go.dev/doc/effective_go
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Official phrasing for useful zero values, implicit interface satisfaction and composition, and 'share memory by communicating' as an ownership statement rather than a rule about pointers."
+
+  - id: go-wiki-codereview
+    kind: docs
+    url: https://go.dev/wiki/CodeReviewComments
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Declaring empty slices as var t []T, context as the first parameter and never a struct field, lowercase unpunctuated error strings, never discarding errors with _, in-band error values, receiver consistency, import grouping, crypto/rand for anything security-relevant, and the goroutine-lifetime statement this skill's rule 2 restates."
+
+  - id: go-wiki-testcomments
+    kind: docs
+    url: https://go.dev/wiki/TestComments
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The f(input) = got, want want failure-message convention and the rule that assertions target observable behaviour rather than implementation detail."
+
+  - id: go-doc-diagnostics
+    kind: docs
+    url: https://go.dev/doc/diagnostics
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The official taxonomy of profiling, tracing, the race detector and debugging, and the endpoints and flags used to collect each profile type."
+
+  - id: go-release-notes
+    kind: docs
+    url: https://go.dev/doc/devel/release
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Every (Go 1.x+) availability marker in this skill: per-iteration loop variables and ServeMux routing (1.22), iterators (1.23), b.Loop, t.Context, omitzero and the tool directive (1.24), synctest, WaitGroup.Go and container-aware GOMAXPROCS (1.25), errors.AsType (1.26), and the generally available goroutineleak profile plus the stdversion vet check (1.27)."
+    notes: "Verified against a local go1.26.6 toolchain for everything up to 1.26; the 1.27 items were taken from the Go 1.27 release notes."
+
+  - id: douglas-pprof
+    kind: repo
+    repo: douglassantosreis/golang-profiling-analyzer
+    url: https://github.com/douglassantosreis/golang-profiling-analyzer
+    paths: [references, SKILL.md]
+    ref: main
+    commit: 45573dd6e132587e059405ac7939e34a679c42fd
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read for alignment on how to sequence a profiling investigation — which profile answers which symptom, reading cumulative before flat, and treating runtime.mallocgc / growslice / mapassign at the top of a profile as a symptom of allocation in user code. No content copied; every command and claim in references/performance-profiling.md was re-derived from go.dev/doc/diagnostics and go tool pprof's own documentation."
+
+  - id: uber-go-guide
+    kind: repo
+    repo: uber-go/guide
+    url: https://github.com/uber-go/guide
+    paths: [style.md]
+    ref: master
+    commit: 1d60a91aa5e87d443002e23c21903c49489dbde5
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-check that cxuu/golang-skills distilled the Uber style guide faithfully; goroutine lifetime, the ban on goroutines in init(), and mutable-global avoidance were spot-checked against the original. Not an agent skill and no content copied."

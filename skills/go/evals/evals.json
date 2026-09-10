@@ -1,0 +1,49 @@
+[
+  {
+    "skills": ["go"],
+    "query": "Review fetcher.go in this directory. It is the download path of a service we are about to ship. Tell me what is wrong and show the corrected code.",
+    "files": ["evals/files/fetcher.go"],
+    "expected_behavior": [
+      "Flags the concurrent writes to the package-level cache map (and the append to results from a second goroutine) as data races, and names go test -race / go build -race as the check that proves it",
+      "Flags that the out channel is never closed, so the collector goroutine blocks forever and leaks, and that time.Sleep is being used as synchronization instead of a real handoff",
+      "Replaces the hand-rolled pool with golang.org/x/sync/errgroup, named explicitly: errgroup.WithContext plus g.SetLimit(workers), with context.Context as the function's first parameter",
+      "If any sync.WaitGroup survives in the rewrite, it uses wg.Go(func(){...}) rather than the Add/Done pair, and the answer says this needs Go 1.25 or newer",
+      "Names a regression guard for the leak that outlives this review: go.uber.org/goleak in the package's tests, or the runtime/pprof goroutineleak profile (Go 1.27+)",
+      "Flags that http.Get uses http.DefaultClient, which has no timeout, and switches to http.NewRequestWithContext with a client that sets one"
+    ]
+  },
+  {
+    "skills": ["go"],
+    "query": "Go over store.go in this directory and fix the error handling.",
+    "files": ["evals/files/store.go"],
+    "expected_behavior": [
+      "Replaces err == sql.ErrNoRows and err == ErrNotFound with errors.Is, explaining that direct comparison stops matching the moment the error is wrapped anywhere in the chain",
+      "Fixes the bare err.(*ValidationError) type assertion in Save, which never succeeds because validate wraps the error, and reaches for errors.AsType[*ValidationError](err) (Go 1.26+) or errors.As(err, &ve) on older toolchains",
+      "Changes fmt.Errorf(\"scan failed: %v\", err) to %w so callers can still inspect the cause, and keeps the ErrNotFound identity by wrapping it rather than replacing it with a fresh fmt.Errorf string",
+      "Flags the log.Printf immediately followed by return as double handling: an error is either logged or returned, not both",
+      "Flags the discarded Exec error (_, _ =) in Rename, and also flags that Rename never persists u after mutating it",
+      "Fixes the sentinel text \"Not found.\" to a lowercase, unpunctuated error string",
+      "Points out that validate reports only the first bad field and offers errors.Join so both validation failures surface at once"
+    ]
+  },
+  {
+    "skills": ["go"],
+    "query": "cache_test.go in this directory is slow and fails intermittently in CI. Diagnose it and give me the fixed file.",
+    "files": ["evals/files/cache_test.go"],
+    "expected_behavior": [
+      "Explains that the parent test function returns before its t.Parallel() subtests run, so defer os.RemoveAll(dir) deletes the directory first, and replaces it with t.TempDir() or t.Cleanup",
+      "Flags that the parallel subtests share one cache value and mutate it, so either t.Parallel() goes or each subtest gets its own instance, and names go test -race as the check",
+      "Replaces the time.Sleep-based expiry test with testing/synctest (naming synctest.Test and its fake clock) rather than lengthening the sleep or polling with a deadline",
+      "Rewrites the benchmark as for b.Loop() instead of for i := 0; i < b.N; i++, and does not fall back to b.ResetTimer as the fix",
+      "Replaces t.Errorf(\"bad\") with a message that prints got and want"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "我要写个并发抓取脚本，Python 里用 asyncio 还是线程池更合适？给个大概的骨架。",
+    "expected_behavior": [
+      "Does not read the go skill: skill_read is false",
+      "Answers about Python concurrency (asyncio vs ThreadPoolExecutor) and does not propose goroutines, channels, errgroup or any Go code"
+    ]
+  }
+]
