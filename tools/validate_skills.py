@@ -165,6 +165,22 @@ def check_frontmatter(skill: Skill, rep: Report) -> None:
         )
 
 
+def check_no_nested_skill_md(skill: Skill, rep: Report) -> None:
+    """Only the skill root may hold a SKILL.md.
+
+    Recursive discoverers (Cursor, and `npx skills` beyond its shallow shadowing
+    rule) treat any directory containing a SKILL.md as a skill. A fixture named
+    SKILL.md under evals/files/ therefore registers a second, broken skill.
+    """
+    for nested in sorted(skill.path.rglob("SKILL.md")):
+        if nested != skill.path / "SKILL.md":
+            rel = nested.relative_to(skill.path).as_posix()
+            rep.error(
+                f"{rel} would register as a second skill in recursive scanners. "
+                "Rename the fixture, e.g. widget-builder-SKILL.md"
+            )
+
+
 def check_body(skill: Skill, rep: Report) -> None:
     """Checks 6, 7, 15."""
     lines = skill.body.splitlines()
@@ -425,6 +441,7 @@ def validate(path: Path) -> Report:
 
     check_frontmatter(skill, rep)
     check_body(skill, rep)
+    check_no_nested_skill_md(skill, rep)
     check_banned(skill.body, "SKILL.md", rep)
     check_sources(skill, rep)
     check_references(skill, rep)

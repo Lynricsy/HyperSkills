@@ -164,6 +164,9 @@ Phase B 结束、Phase C 动笔之前先写 ≥3 个评测场景：
 - 至少 1 个场景是「近似但不应触发本 skill」的**负例**（`skills: []`，
   `expected_behavior` 写明不应读取本 skill）。
 - 夹具文件放 `evals/files/`，小文件，≤50 KB。
+- **skill 目录下只有根目录可以有 `SKILL.md`。** 夹具即使内容是一个 skill，也必须换名
+  （如 `widget-builder-SKILL.md`）——Cursor 等递归发现器把「含 SKILL.md 的目录」直接
+  当作一个 skill，`evals/files/SKILL.md` 会注册出第二个坏 skill。
 - Phase D 用两种模型（会话默认模型与 `smol` 角色模型）各跑一遍「有 skill」与
   「无 skill（基线）」，结果记入 `research/<skill>.md`。
 

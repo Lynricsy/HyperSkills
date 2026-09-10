@@ -1,0 +1,149 @@
+skill: skill-authoring
+version: "2026.09.10"
+upstreams:
+  - id: anthropic-skill-creator
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/skill-creator, template/SKILL.md]
+    ref: main
+    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Description triggering strategy for capability skills, the 20-query trigger set with near-miss negatives and the 60/40 held-out split, the baseline-and-with-skill evaluation loop, grading and benchmark field names, organising references by variant, the transcript signal that justifies bundling a script, and the lack-of-surprise safety rule."
+    notes: "Licence is per skill directory, not per repository: skills/skill-creator/LICENSE.txt read on 2026-09-10 is Apache-2.0, unlike the proprietary docx/pptx/xlsx/pdf skills in the same repo. Re-check that file on every sync; if it becomes proprietary this entry must drop to relation: reference. None of the Claude-specific machinery (subagent graders, CLI description optimiser, HTML eval viewer) was ported."
+  - id: anthropic-best-practices
+    kind: docs
+    url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Core authoring principles, the three degrees of freedom, the three progressive-disclosure patterns and the partial-read reason for one-level references, workflow checklists and validation loops, template / examples / conditional-workflow patterns, evaluation-driven development and the evals.json shape, the two-agent iteration loop and the four navigation signals, script rules (solve rather than defer, no voodoo constants, explicit dependencies), the anti-pattern list, and the pre-release checklist."
+    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. All wording independently rewritten."
+  - id: obra-writing-skills
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths: [skills/writing-skills]
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Baseline-first discipline for authoring, the rule that a workflow skill's description carries triggering conditions only, load-frequency token budgets, verb-first naming, the ban on path syntaxes that force-load a file, the match-the-form-to-the-failure table with its head-to-head wording evidence, rationalisation tables and red-flag lists, and micro-testing wording against a no-guidance control."
+    notes: "Two defects corrected on merge: its own frontmatter example shows a capitalised hyphenated name, which the specification forbids, and its cross-references use a plugin namespace prefix plus relative links into sibling skills, which break when a skill is installed alone. Graphviz diagrams dropped."
+  - id: agentskills-spec
+    kind: docs
+    url: https://agentskills.io/specification
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The normative frontmatter field table with exact limits, the five name construction rules and the directory-match requirement, the optional directory conventions, the three progressive-disclosure tiers and their budgets, the file-reference rules, and the reference validator command."
+    notes: "Licence taken from the agentskills/agentskills repository that publishes the reference implementation."
+  - id: vercel-skills-cli
+    kind: repo
+    repo: vercel-labs/skills
+    url: https://github.com/vercel-labs/skills
+    paths: [README.md]
+    ref: main
+    commit: 80feb48868972d518436f26711509bc78595b5cb
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Installer source formats, subcommands and flags, the download and extraction limits, the container-directory list with its three-level walk and shallow-shadows-deep rule, plugin manifest discovery, the single reserved metadata key, project versus user install scope, symlink versus copy, and the per-host capability matrix."
+  - id: claude-code-skills-docs
+    kind: docs
+    url: https://code.claude.com/docs/en/skills
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The full table of that host's non-standard frontmatter fields, its 1536-character listing truncation, its inverted enterprise-over-personal-over-project precedence, its reserved directory name, and its own warning that only specification fields may be used elsewhere."
+    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. Every field is labelled non-standard in the reference file."
+  - id: cursor-skills-docs
+    kind: docs
+    url: https://cursor.com/docs/skills
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "That host's path-scoping field and its legacy name, its invocation-control, icon and colour fields, and its recursive discovery with automatic scoping of skills in nested project directories."
+    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy."
+  - id: codex-skills-docs
+    kind: docs
+    url: https://learn.chatgpt.com/docs/build-skills
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The initial-listing budget of 2% of the context window or 8000 characters with descriptions shortened first, which is the evidence for front-loading the key use case; the sibling agents/openai.yaml interface, policy and dependency schema; and the repository, user, admin and system discovery scopes."
+    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy."
+  - id: grafana-skill-authoring
+    kind: repo
+    repo: grafana/skills
+    url: https://github.com/grafana/skills
+    paths: [skills/grafana-core/skill-authoring]
+    ref: main
+    commit: 51d33e71e191b409bbd25fc7be2684c610d18166
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The four review dimensions (conciseness, actionability, workflow clarity, progressive disclosure) as review semantics, the observation that a model grading quality swings widely between runs so a threshold must hold across consecutive runs, and the rule that a deliberately routing body must stay independently executable rather than being inlined back."
+    notes: "Repository-specific machinery not merged: the commercial review CLI, the CI score gate, the plugin folder taxonomy and the three marketplace manifests. Its anti-pattern reference restates the Anthropic documentation and was not merged twice."
+  - id: getsentry-skill-writer
+    kind: repo
+    repo: getsentry/skills
+    url: https://github.com/getsentry/skills
+    paths: [skills/skill-writer]
+    ref: main
+    commit: c2f99a5b04b4cd992ec3022d7c2c3e23e938d241
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The one-reason-per-row open-when routing table as the shape of a router body, the discipline of naming which existing rule or section is narrowed or removed before adding new guidance, and a four-part output contract of summary, changes, validation results and open gaps."
+    notes: "Its separate SPEC.md maintenance-contract file was deliberately not adopted; this repository already carries that role in SOURCES.yaml and research notes, and a third convention would fragment it."
+  - id: mgechev-skill-creator
+    kind: repo
+    repo: mgechev/skills-best-practices
+    url: https://github.com/mgechev/skills-best-practices
+    paths: [skill]
+    ref: main
+    commit: a0bfa56bbcd676383f6ca57bb7e344d0856bc38e
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Scanning a finished draft for the points where it forces the agent to guess, the rule that a skill directory contains nothing written for human readers, and designing a bundled validator so its error output drives a self-correcting loop."
+    notes: "No license grant; included under fair-use with attribution per project policy."
+  - id: hyperskills-self
+    kind: repo
+    repo: Lynricsy/HyperSkills
+    url: https://github.com/Lynricsy/HyperSkills
+    paths: [docs/skill-standard.md, docs/workflow.md, tools]
+    ref: main
+    commit: 7aa1586ce7a3b9b269241a79f01e492f1294bb98
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The provenance record schema and generated attribution format, the mechanically checkable validation list used in continuous integration, and the evaluation-runner shape of scenario file plus measured no-skill baseline that the publishing and evaluation references describe."
+    notes: "This repository is itself the working example the publishing reference generalises from."
+  - id: openai-aspnet-core
+    kind: repo
+    repo: openai/skills
+    url: https://github.com/openai/skills
+    paths: [skills/.curated/aspnet-core/references/_sections.md]
+    ref: main
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Read only, for the convention of indexing a large reference set: ordered start-here reading paths for the common task types, primary and cross-cutting open-when tables, then a reading strategy. No text copied."
+    notes: "Parent repository is self-declared deprecated, so it is not tracked as a merged upstream; only the structural convention was observed."
+  - id: ronifue-skill-authoring
+    kind: repo
+    repo: Ronifue/skill-authoring
+    url: https://github.com/Ronifue/skill-authoring
+    paths: [SKILL.md]
+    ref: main
+    commit: 9be5e4c56f046b921ffc4fb2b0c45cd8f23fb70b
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Read only, as a cross-check on task routing, drift over long sessions and auditing a skill before installing it. No text copied; its quoted-trigger description style was rejected in favour of the specification's third-person what-and-when form."
