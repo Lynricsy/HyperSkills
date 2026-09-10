@@ -176,3 +176,13 @@ frontmatter 内用 `//` 注释标注原始路径，并**重跑了全部基线**�
   尚不存在的 i18n 主题与 `frontend-design`。本 skill 在 `## Scope` 直述不覆盖。
 - 不写 `scripts/`：Astro 的批量操作已由 `astro add` / `@astrojs/upgrade` / `astro sync` 覆盖，
   自造脚本只会与官方 CLI 争夺同一职责。
+
+**主代理抽查复跑（2026-09-11）**
+`uv run tools/run_evals.py astro --only 3`（claude-opus-5:medium，有 skill）：`skill_read=true`。
+四条基线缺口里三条稳定复现——`astro/zod` + `z.email()`（且未误用已弃用的 `astro:schema`）、
+`vite.environments.client.build.rollupOptions.output` 的迁移位置、Zod 4 写法更新。
+**「每个 action 都是 `/_actions/<name>` 公开端点、handler 必须自己鉴权」这一条本次未复现**
+（子代理那一轮复现了）。判定为运行间不稳定而非缺失：规则本身在
+`references/actions-middleware-and-env.md` 里写得明确，但场景 3 的任务重心是 Zod 4 迁移与
+Vite 配置搬迁，鉴权只是顺带项。下次同步本 skill 时应给它单独一个以授权为重心的场景，
+而不是继续挂在这个夹具上。
