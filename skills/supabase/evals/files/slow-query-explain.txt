@@ -1,0 +1,33 @@
+-- 31,400,912 rows in public.events, PostgreSQL 17.
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT tenant_id, event_type, count(*)
+FROM events
+WHERE occurred_at >= now() - interval '7 days'
+  AND event_type = 'checkout_completed'
+GROUP BY tenant_id, event_type;
+
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=2891044.11..2891233.62 rows=1482 width=48)
+                          (actual time=7911.402..8043.117 rows=1471 loops=1)
+   Group Key: tenant_id, event_type
+   Buffers: shared hit=2914 read=1188402
+   ->  Gather Merge  (cost=2891044.11..2891204.98 rows=1234 width=48)
+                     (actual time=7911.331..8039.887 rows=4402 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Sort  (cost=2890044.09..2890047.17 rows=617 width=48)
+                   (actual time=7894.006..7894.221 rows=1467 loops=3)
+               Sort Key: tenant_id
+               Sort Method: quicksort  Memory: 143kB
+               ->  Partial HashAggregate  (cost=2890030.22..2890039.47 rows=617 width=48)
+                                          (actual time=7890.118..7891.402 rows=1467 loops=3)
+                     ->  Parallel Seq Scan on events
+                             (cost=0.00..2879118.40 rows=1090182 width=40)
+                             (actual time=0.412..7602.884 rows=884113 loops=3)
+                           Filter: ((occurred_at >= (now() - '7 days'::interval))
+                                    AND (event_type = 'checkout_completed'::text))
+                           Rows Removed by Filter: 9582858
+                           Buffers: shared hit=2914 read=1188402
+ Planning Time: 0.221 ms
+ Execution Time: 8051.663 ms

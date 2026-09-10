@@ -1,0 +1,76 @@
+[
+  {
+    "skills": ["supabase"],
+    "query": "In our Supabase project the RLS policies we wrote with auth.uid() never return data when the client SDK calls them, but the exact same select works fine in the SQL editor. rls-policies.sql and supabase-server-client.ts are what we have. How do we work out what is wrong?",
+    "files": [
+      "evals/files/rls-policies.sql",
+      "evals/files/supabase-server-client.ts"
+    ],
+    "expected_behavior": [
+      "Explains that the SQL editor is not a control: it runs as a superuser-ish role (`postgres`) that has BYPASSRLS, so a query succeeding there says nothing about whether a policy passes for `anon` or `authenticated`",
+      "Explains that `auth.uid()` is derived from the JWT attached to the request and returns null when no user session reached Postgres, so an owner-equality policy matches zero rows instead of erroring",
+      "Distinguishes the publishable/anon key from the secret/service_role key, says the secret key bypasses RLS entirely and must never be shipped to a browser or used to 'fix' this, and does not propose swapping the key as the solution",
+      "Gives an ordered way to check whether the session actually arrives on the server: run `select auth.uid()` (or `auth.jwt()`) through the same client, and/or curl the REST endpoint with and without an `Authorization: Bearer <access token>` header, before touching the policy SQL",
+      "Identifies the concrete SSR defect in supabase-server-client.ts: the deprecated per-cookie `get`/`set`/`remove` adapter instead of `getAll`/`setAll`, and the absence of any proxy/middleware that refreshes the token and writes cookies back, so the server client never sees a session",
+      "Points out that `getSession()` is the wrong server-side guard because it is read from storage without revalidation, and names `getClaims()` (or `getUser()`) as what to use to verify identity",
+      "Notes that a missing table grant to `anon`/`authenticated` produces a 42501 permission error rather than an empty result, so an empty result points at the policy or the missing JWT, not at grants"
+    ]
+  },
+  {
+    "skills": ["supabase"],
+    "query": "Our send-invoice Edge Function works when we curl it but the browser call from our React app fails before the function runs, and we are not sure the Stripe webhook secret is even reaching production. Review edge-function-index.ts and edge-config.toml and tell me what to change.",
+    "files": [
+      "evals/files/edge-function-index.ts",
+      "evals/files/edge-config.toml"
+    ],
+    "expected_behavior": [
+      "Diagnoses the browser failure as an unhandled CORS preflight: the function never answers `OPTIONS` and never sends `Access-Control-Allow-*`, and gives a concrete fix (the `withSupabase` wrapper, which handles preflight, or explicit CORS headers covering `authorization`, `apikey`, `x-client-info`, `content-type`)",
+      "Says the function's secrets must be set on the project with `supabase secrets set` (or `--env-file`) for production and via `supabase/functions/.env` or `supabase functions serve --env-file` locally, rather than assuming a local `.env` reaches the deployed function",
+      "Flags that reading `SUPABASE_SERVICE_ROLE_KEY` is the legacy path and that the current runtime injects `SUPABASE_SECRET_KEYS` as a JSON dictionary of named keys (or that `withSupabase` hands back a privileged client on `ctx` so no key appears in the code)",
+      "Notes that the function both consumes `req.json()` and then `req.text()`, so the body is already consumed and signature verification cannot work",
+      "Notes that Stripe's synchronous `constructEvent` cannot verify a signature on Deno and that the async form with a SubtleCrypto provider is required",
+      "Addresses `verify_jwt` explicitly for this endpoint - a webhook or service-to-service caller sends no user JWT, so `verify_jwt = false` belongs under `[functions.send-invoice]` and the handler must then authenticate the caller itself",
+      "Mentions the Edge Function runtime limits that bound this design (per-request CPU time of about 2s, a wall-clock ceiling, 256MB memory) or otherwise flags long third-party calls as a risk"
+    ]
+  },
+  {
+    "skills": ["supabase"],
+    "query": "Uploads into our private receipts bucket work, but replacing an existing file silently does nothing, the URL we hand back 400s, and listing a user's folder always comes back empty. storage-policies.sql and storage-usage.ts are the whole implementation. What is wrong? Also: what expiry should the URL we hand back use, and if one of those URLs leaks can we revoke it?",
+    "files": [
+      "evals/files/storage-policies.sql",
+      "evals/files/storage-usage.ts"
+    ],
+    "expected_behavior": [
+      "Explains that Storage authorises through RLS policies on `storage.objects` and that `upsert: true` needs INSERT plus SELECT plus UPDATE, so an INSERT-only policy makes file replacement fail without an error",
+      "Explains that the empty `list()` result is the missing SELECT policy, not a client bug",
+      "Says `getPublicUrl` only produces a working URL for a public bucket and that a private bucket needs `createSignedUrl` with an expiry (signed server-side), and gives the corrected call",
+      "Writes the additional policies concretely, keeping the same `bucket_id` plus `(storage.foldername(name))[1]` owner check so a user cannot reach another user's folder",
+      "Does not propose making the bucket public or using the secret/service_role key from the browser as the fix",
+      "Answers the revocation question correctly: a signed URL is signed with a dedicated internal key per project, separate from the Auth JWT signing key, so rotating or revoking Auth keys (or moving from HS256 to asymmetric signing) does not invalidate outstanding signed URLs - they stay valid until they expire and early revocation needs Supabase support",
+      "Turns that into expiry advice rather than a number pulled from nowhere: the expiry is the whole blast radius of a leak, so keep it short and re-sign on demand instead of minting long-lived URLs"
+    ]
+  },
+  {
+    "skills": ["supabase"],
+    "query": "I added a discount_pct column to subscriptions in the Supabase Studio table editor, but supabase db diff says 'No schema changes found' so I have nothing to commit, and now I am nervous about what happens on db push to production. Our schema lives in schemas-billing.sql. Walk me through the correct workflow.",
+    "files": ["evals/files/schemas-billing.sql"],
+    "expected_behavior": [
+      "Identifies that this project uses declarative schemas, so `supabase/schemas/*.sql` is the source of truth and `db diff` compares those files against the migrations rather than reading the live database - which is exactly why a change made in Studio is invisible and gets silently dropped",
+      "Gives the correct sequence: edit the schema file, `supabase db diff -f <name>` to generate the migration, review the generated SQL, then `supabase migration up` (or `db reset`) locally before `supabase db push`",
+      "Says to append the new column at the end of the table rather than in the middle, because views and enums depend on column order and reordering produces a noisy or broken diff",
+      "Warns that the diff engine does not capture everything - DML/seed data, `security_invoker` on views, some grants and policy alterations - so the generated migration must be read, and anything untracked hand-written into a versioned migration",
+      "Handles rollback honestly: reset the local database to a previous version while iterating, but for something already deployed revert the schema file and generate a forward migration instead of rewriting history, and review destructive statements before pushing",
+      "Mentions regenerating TypeScript types (`supabase gen types typescript`) after the schema change"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "This aggregate takes 8 seconds on a 31 million row table. slow-query-explain.txt has the EXPLAIN (ANALYZE, BUFFERS) output. What index should I create?",
+    "files": ["evals/files/slow-query-explain.txt"],
+    "expected_behavior": [
+      "Answers as a Postgres query-tuning question: reads the parallel sequential scan, the rows removed by filter and the read buffers, and proposes a concrete index on the filtered columns (for example `event_type, occurred_at` or a partial index) with a reason for the column order",
+      "Does not load the `supabase` skill and does not turn a plain SQL tuning question into RLS, API keys, Edge Functions or CLI workflow advice",
+      "skill_read is false for the `supabase` skill"
+    ]
+  }
+]

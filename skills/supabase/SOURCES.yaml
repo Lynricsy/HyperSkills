@@ -1,0 +1,137 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin supabase
+skill: supabase
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: supabase-official-skill
+    kind: repo
+    repo: supabase/agent-skills
+    url: https://github.com/supabase/agent-skills
+    paths: [skills/supabase]
+    ref: main
+    commit: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Supabase-specific security checklist: user_metadata is user-editable and unsafe for authorization, deleting a user does not invalidate issued tokens, views bypass RLS without security_invoker, an UPDATE needs a SELECT policy or it silently affects zero rows, auth.role() is deprecated and breaks once anonymous sign-ins exist, TO authenticated alone is BOLA, SECURITY DEFINER bypasses RLS and is callable by PUBLIC when it lives in public, Storage upsert needs three privileges. Also the Data-API-exposure-versus-RLS layering, the declarative-versus-imperative schema decision, and db advisors as the pre-commit gate."
+    notes: "Official skill, frontmatter carried only name/description/metadata so nothing agent-specific needed stripping. Two of its claims were overruled: its CLI version floors (db query 2.79+, db advisors 2.81.3+) are dead weight at CLI 2.117 and are omitted per the no-time-sensitive-wording rule, and its 'UPDATE without WITH CHECK lets a user reassign user_id' is factually wrong on any supported Postgres (research/supabase.md ruling 11)."
+  - id: supabase-docs
+    kind: docs
+    url: https://supabase.com/docs
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Every version-sensitive fact in this skill: the publishable/secret key system and how to recognise the legacy eyJ-prefixed pair, grants evaluated before RLS with 42501 versus an empty result, the getClaims/getUser/getSession split, the getAll/setAll cookie adapter and the cache headers setAll must write, the withSupabase entry point with its auth modes and ctx clients, SUPABASE_SECRET_KEYS as an injected dictionary, the four Edge Function limits, Realtime channel authorization on realtime.messages plus the Postgres-Changes-versus-Broadcast thresholds, realtime.broadcast_changes, the declarative-diff blind-spot list, private-bucket signed URLs and their independent signing key, custom claims through the access-token hook, and gen types."
+    notes: "Licence verified by reading the source repository: the docs content lives in supabase/supabase under apps/docs, that repository's root LICENSE is Apache-2.0 and apps/docs carries no separate LICENSE, so this is merged rather than reference. Pages were read as plain text by appending .md to each docs path."
+  - id: magnus-agent-skills
+    kind: repo
+    repo: magnus919/agent-skills
+    url: https://github.com/magnus919/agent-skills
+    paths: [supabase]
+    ref: main
+    commit: d0edebbeab276acc6e237e2111030ce25527e455
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The discipline of identifying the target environment (hosted project versus CLI local stack) before choosing a command, the local stack being development-only with default credentials and no TLS, and the verification-evidence judgements this skill turns into gates: an HTTP 200 is not authorization proof, and a service-role key succeeding is never evidence that a policy works."
+    notes: "Its self-hosting material (Compose stack, Kong and Supavisor ports, pgsodium key volume) is outside this skill's scope and was not merged."
+  - id: tushar-skills
+    kind: repo
+    repo: tushaarmehtaa/tushar-skills
+    url: https://github.com/tushaarmehtaa/tushar-skills
+    paths: [supabase]
+    ref: main
+    commit: 7371efd3c6d0043f0af96621b9db9f81c41f849d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The refusal to add user_id plus four CRUD policies to every table mechanically, the third-party-auth boundary (writing an RLS expression against a provider's sub does not configure token verification), and the pre-deploy sequence migration list then db push --dry-run then db push with db reset --linked and db push --include-seed ruled out against production."
+  - id: rls-audit
+    kind: repo
+    repo: braindesmond5-boop/supabase-rls-audit
+    url: https://github.com/braindesmond5-boop/supabase-rls-audit
+    paths: [skills/rls-audit]
+    ref: main
+    commit: 0dab8487cb486db6df24e28db05cd55ace436b76
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The audit gate: prove a policy by issuing real requests with the publishable key rather than reading policy files, read 200-with-rows as exposed but 200-with-empty-array as inconclusive because an empty table and a locked table are indistinguishable from outside, and build the table list by grepping the application for .from() calls unioned with create table in the migrations, because the PostgREST OpenAPI root now answers only to service_role."
+    notes: "SKILL.md frontmatter omits a license field; the repository root carries an MIT LICENSE file, so MIT applies."
+  - id: supabase-security-audit
+    kind: repo
+    repo: anymikey/supabase-security-audit
+    url: https://github.com/anymikey/supabase-security-audit
+    paths: [SKILL.md]
+    ref: main
+    commit: 34bfae078eb67768d1bc751a4caad4d6b2241b17
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The division of labour with the built-in advisors: run them first, reduce anything they already report to a one-line pointer, and spend the audit on what they structurally cannot see - paid content readable without a subscription check, a multi-tenant table missing its tenant predicate, a policy that scopes reads but leaves writes open."
+    notes: "SKILL.md frontmatter omits a license field; the repository root carries an MIT LICENSE file, so MIT applies."
+  - id: lovable-migration
+    kind: repo
+    repo: CarolMonroe22/lovable-cloud-to-supabase-migration
+    url: https://github.com/CarolMonroe22/lovable-cloud-to-supabase-migration
+    paths: [SKILL.md]
+    ref: main
+    commit: e1def49424a1e587d6756295eaafbd8277ac4f08
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The full surface of a project move - schema and data, auth.users and identities, Storage objects and their bucket policies, Edge Functions and their secrets, pg_cron jobs, and project settings - together with the rule that password hashes are not portable unless proven otherwise, so a password-reset flow is the default plan."
+    notes: "Only the vendor-neutral migration checklist was taken; the Lovable Cloud-specific export and MCP steps were not."
+  - id: postgres-docs
+    kind: docs
+    url: https://www.postgresql.org/docs/current/sql-createpolicy.html
+    license: PostgreSQL
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative RLS semantics used to overrule an upstream claim: for ALL and UPDATE policies, when no WITH CHECK expression is defined the USING expression is used both to decide which rows are visible and which new rows may be written."
+    notes: "Consulted because the official Supabase skill states the opposite; Postgres is the authority for Postgres semantics (research/supabase.md ruling 11)."
+  - id: supabase-server-sdk
+    kind: repo
+    repo: supabase/server
+    url: https://github.com/supabase/server
+    paths: [docs]
+    ref: main
+    commit: 0be895115af510e6b3d53ebd0e6706106be32d72
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to confirm the withSupabase auth mode values, the fields exposed on ctx, and the names of the environment variables the runtime injects; the facts themselves are cited from supabase.com/docs."
+  - id: supabase-postgres-best-practices
+    kind: repo
+    repo: supabase/agent-skills
+    url: https://github.com/supabase/agent-skills
+    paths: [skills/supabase-postgres-best-practices]
+    ref: main
+    commit: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to draw the boundary with the postgres skill: index selection, EXPLAIN, locking, connection pooling and RLS performance are all covered there, so this skill deliberately writes none of it."
+  - id: quinto-realtime
+    kind: repo
+    repo: 0xquinto/supabase-realtime-skill
+    url: https://github.com/0xquinto/supabase-realtime-skill
+    paths: [SKILL.md]
+    ref: main
+    commit: 5c750a6ac52fd80dbc29a964a0788b7f3abe04cb
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to cross-check Realtime topic coverage and the point that broadcast is fire-and-forget, so an offline receiver needs a durable queue instead."
+    notes: "No content merged: it treats 150s as the universal Edge Function wall-clock limit, which is the free-plan value only (400s on paid plans, with a separate 2s CPU-time limit), so every fact was re-derived from supabase.com/docs."
+  - id: supabase-setup-mcp
+    kind: repo
+    repo: mathruffian-dot/supabase-connect-skill
+    url: https://github.com/mathruffian-dot/supabase-connect-skill
+    paths: [skills/supabase-setup]
+    ref: main
+    commit: 362a77980eb8bea63494580d13bee2a4b5a5f097
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to cross-check coverage of the enable-RLS-and-verify-it rule; its onboarding flow is written for end users who have never used a database and was not merged."

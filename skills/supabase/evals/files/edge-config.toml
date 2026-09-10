@@ -1,0 +1,14 @@
+# supabase/config.toml (excerpt)
+project_id = "acme-billing"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+
+[functions.send-invoice]
+# nothing set here
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
