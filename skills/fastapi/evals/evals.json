@@ -1,0 +1,57 @@
+[
+  {
+    "skills": ["fastapi"],
+    "query": "Our reports API used to answer in 40ms and now takes up to 9 seconds under any real load, and the archive endpoint keeps losing jobs when we redeploy. Go through reports_router.py and tell me exactly what to change and why.",
+    "files": ["evals/files/reports_router.py"],
+    "expected_behavior": [
+      "Identifies that the blocking calls (`requests.get`, `time.sleep`, the synchronous SQLAlchemy connection) sit inside `async def` path operations and therefore stall the whole event loop, not just the current request",
+      "Gives the two correct fixes and says when each applies: declare the path operation as plain `def` so FastAPI runs it in the threadpool, or keep `async def` and push the blocking call out with `run_in_threadpool` / `asyncify` / an async client - rather than only suggesting `await asyncio.sleep` or 'add more workers'",
+      "Warns that the threadpool is capped (40 threads by default) so moving every blocking endpoint to `def` has its own ceiling, and shows raising `anyio.to_thread.current_default_thread_limiter().total_tokens` in lifespan if that cap is the constraint",
+      "Says the multi-minute `build_pdf_archive` does not belong in `BackgroundTasks`, because tasks run in the same worker process after the response and are lost with no retry when the worker dies - route it to an external task queue and return 202 with a job id",
+      "Replaces the deprecated `@app.on_event(\"startup\")` hook with an `asynccontextmanager` `lifespan=` function, and prefers yielding lifespan state read via `request.state` over writing to `app.state`",
+      "Moves the router's `prefix` and `tags` onto the `APIRouter(...)` constructor instead of passing them to `include_router()`",
+      "Notes that `refresh_report` is a state-changing operation declared as GET"
+    ]
+  },
+  {
+    "skills": ["fastapi"],
+    "query": "test_orders_api.py talks to our real identity provider and our real Postgres, so CI is slow and flaky and we are paying per test run. The async test also errors out and test_pricing_cache_is_warm raises AttributeError. Rewrite the test setup properly.",
+    "files": [
+      "evals/files/orders_deps.py",
+      "evals/files/test_orders_api.py"
+    ],
+    "expected_behavior": [
+      "Replaces the identity-provider call by putting a fake into `app.dependency_overrides[get_current_user]` and explains that `monkeypatch.setattr` on the module attribute cannot work, because FastAPI resolved and stored the dependency callable when the route was declared",
+      "Clears the overrides again after the test (fixture teardown or `app.dependency_overrides.clear()`) so they do not leak into the rest of the suite",
+      "Overrides `get_db` the same way to supply a test session, rather than pointing `SessionLocal` at production",
+      "Explains that `test_pricing_cache_is_warm` fails because a bare `TestClient(app)` never runs the lifespan, and fixes it with `with TestClient(app) as client:`",
+      "Fixes the async test to build the client with an explicit ASGI transport (`AsyncClient(transport=ASGITransport(app=app), base_url=...)`), since passing `app=` to `AsyncClient` is no longer supported",
+      "Uses `pytest.mark.anyio` with an `anyio_backend` fixture, or states that `pytest.mark.asyncio` requires pytest-asyncio to be installed and configured - rather than leaving the marker unregistered",
+      "Says which client to use where: `TestClient` for synchronous tests, `httpx.AsyncClient` only when the test body itself has to await application code"
+    ]
+  },
+  {
+    "skills": ["fastapi"],
+    "query": "Review users_schemas.py. It was ported from Pydantic v1, the /users response is leaking password_hash, and clients complain that the request schema and the response schema for a user do not line up. Give me the corrected version.",
+    "files": ["evals/files/users_schemas.py"],
+    "expected_behavior": [
+      "Fixes the leak structurally - a separate public response model that simply does not declare `password_hash` or `internal_notes` - instead of relying on `response_model_exclude` or deleting fields before returning",
+      "Migrates the Pydantic v1 leftovers: `class Config` / `orm_mode` / `allow_population_by_field_name` become `model_config = ConfigDict(from_attributes=True, populate_by_name=True)`, and `@validator` becomes `@field_validator` with `@classmethod`",
+      "Replaces the `assert \"@\" in v` inside the validator with a raised `ValueError`, because assertions are stripped under `python -O` and a `ValueError` in a body model is what FastAPI turns into a 422",
+      "Drops the `Field(...)` ellipsis defaults, which are unnecessary noise for required fields",
+      "Replaces the `RootModel` wrapper with a plain `list[User]` return type or response model",
+      "Points out that serialisation follows the declared type, so returning an `Admin` where `User` is declared silently drops `permissions` - use a discriminated union if both shapes must be representable",
+      "Explains that FastAPI validates the response a second time after the path operation returns, so returning an already-constructed model does not skip validation - and that Pydantic v2 emits separate `User-Input` and `User-Output` OpenAPI schemas for a model used on both sides"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Set this pure Python library up with uv and ruff, and migrate legacy_setup.py over to pyproject.toml. Tell me what should be committed and what CI should run.",
+    "files": ["evals/files/legacy_setup.py"],
+    "expected_behavior": [
+      "Answers with general Python packaging and tooling guidance (uv project layout, `[dependency-groups]`, ruff replacing black/flake8/isort) without loading the `fastapi` skill",
+      "Does not introduce FastAPI, an ASGI server, routers or Pydantic models into a library that has nothing to do with HTTP",
+      "skill_read is false for the `fastapi` skill"
+    ]
+  }
+]

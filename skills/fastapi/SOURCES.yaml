@@ -1,0 +1,126 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin fastapi
+skill: fastapi
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: fastapi-official-skill
+    kind: repo
+    repo: fastapi/fastapi
+    url: https://github.com/fastapi/fastapi
+    paths: [fastapi/.agents/skills/fastapi]
+    ref: master
+    commit: 50113da16fec53b66b80d75e80a89296de4fa5a5
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Core FastAPI conventions: Annotated parameters and dependencies, reusable dependency type aliases, router-level prefix/tags/dependencies, return type before response_model, the bans on ellipsis defaults, RootModel and ORJSONResponse, async def versus def, yield-dependency exit scope, SSE and streaming shapes, and the fastapi CLI entrypoint."
+    notes: "Official skill maintained in the framework repository; frontmatter carried only name and description, so no agent-specific fields needed stripping."
+  - id: fastapi-docs
+    kind: docs
+    url: https://fastapi.tiangolo.com
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Everything the official skill omits: yield-dependency exception propagation and the must-re-raise rule, dependency_overrides, ASGITransport async tests, lifespan and its absence under a bare TestClient, Starlette-versus-FastAPI HTTPException handler registration, RequestValidationError, separate input/output OpenAPI schemas, background task semantics, and the 0.122 move from 403 to 401 in the security utilities."
+    notes: "Licence verified: the documentation lives in fastapi/fastapi under docs/en/docs and the repository LICENSE is MIT, so this is merged rather than reference."
+  - id: pydantic-official-skill
+    kind: repo
+    repo: pydantic/pydantic
+    url: https://github.com/pydantic/pydantic
+    paths: [.agents/skills/pydantic]
+    ref: main
+    commit: 6312eb1578d89242b63a27f37ff5ba54bf016085
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Model-authoring rules: serialisation follows the declared type so subclass fields are dropped silently, discriminated unions as the fix, built-in constraints before custom validators, after-validators in the annotated form, the split between assignment-form and Annotated-form field metadata, and forward-reference and recursive-alias handling."
+  - id: pydantic-docs
+    kind: docs
+    url: https://docs.pydantic.dev
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "ConfigDict fields used at the HTTP boundary (from_attributes, populate_by_name), validation and serialisation aliases, the field_validator classmethod requirement, and the Pydantic v1 to v2 mapping table."
+    notes: "Licence verified via `gh api repos/pydantic/pydantic/license` -> MIT; docs are built from that repository."
+  - id: zhanymkanov-best-practices
+    kind: repo
+    repo: zhanymkanov/fastapi-best-practices
+    url: https://github.com/zhanymkanov/fastapi-best-practices
+    paths: [README.md]
+    ref: master
+    commit: 5e00aa6095521f0d00e4eec2ef0afa44cd566af4
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Per-request dependency caching as a reason to decompose dependencies, the cost of FastAPI validating a response a second time, run_in_threadpool for unavoidable synchronous SDKs, the BackgroundTasks versus task-queue decision table, and ValueError in a body model becoming a 422."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its 'prefer async dependencies' guidance was overruled by the official skill's body-decides rule (research/fastapi.md ruling 1)."
+  - id: kludex-fastapi-tips
+    kind: repo
+    repo: Kludex/fastapi-tips
+    url: https://github.com/Kludex/fastapi-tips
+    paths: [README.md]
+    ref: main
+    commit: 837851630d0e72c8e8133bf0d08dffe8dda96b5e
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The 40-token AnyIO thread limiter and how to raise it in lifespan, def dependencies also consuming threadpool slots, lifespan state read from request.state instead of app.state, pure ASGI middleware over BaseHTTPMiddleware, and pytest.mark.anyio for async tests."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its AsyncClient(app=app) example is obsolete and was replaced with the official ASGITransport form (research/fastapi.md ruling 3)."
+  - id: starlette-docs
+    kind: docs
+    url: https://starlette.dev
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "TestClient lifespan semantics and the httpx-to-httpx2 migration, run_in_threadpool, BackgroundTask versus BackgroundTasks, StreamingResponse subclassing, and the pure ASGI middleware shape."
+  - id: ruff-fast-rules
+    kind: docs
+    url: https://docs.astral.sh/ruff/rules/#fastapi-fast
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The FastAPI-specific lint group that is off by default: FAST001 redundant response_model, FAST002 non-Annotated dependency with an autofix, FAST003 unused path parameter."
+  - id: microsoft-skills-py
+    kind: repo
+    repo: microsoft/skills
+    url: https://github.com/microsoft/skills
+    paths:
+      - .github/plugins/azure-sdk-python/skills/fastapi-router-py
+      - .github/plugins/azure-sdk-python/skills/pydantic-models-py
+    ref: main
+    commit: cf77b1efbf3117501f4727c476894751311ee885
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Per-operation status-code conventions (201 on create, 204 with no body), the split between lifespan-managed long-lived resources and per-request Depends resources, and the Create/Update/Response model layering."
+    notes: "Azure and frontend context stripped, along with the {{Placeholder}} template mechanics and the metadata.author/version frontmatter fields. Its Field(..., alias=...) ellipsis style and 403 authentication error were overruled by the official skill and docs (research/fastapi.md rulings 2 and 4)."
+  - id: wshobson-fastapi-templates
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths: [plugins/api-scaffolding/skills/fastapi-templates]
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to cross-check topic coverage (layered layout, conftest fixtures, middleware, rate limiting)."
+    notes: "No content merged: its examples use the removed AsyncClient(app=...) argument and the event_loop fixture that pytest-asyncio dropped, so every fact would have needed re-deriving anyway."
+  - id: fastapi-full-stack-template
+    kind: repo
+    repo: fastapi/full-stack-fastapi-template
+    url: https://github.com/fastapi/full-stack-fastapi-template
+    paths: [backend/app]
+    ref: master
+    commit: cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to check the layout the framework's own template uses before deciding this skill would not mandate a directory tree."
+  - id: sqlmodel-docs
+    kind: docs
+    url: https://sqlmodel.tiangolo.com
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to confirm the conditions under which the official skill's SQLModel-over-SQLAlchemy recommendation applies; ORM and database work is out of this skill's scope."

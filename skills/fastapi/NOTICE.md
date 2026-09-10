@@ -1,0 +1,19 @@
+# NOTICE — fastapi
+
+This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
+
+- fastapi/fastapi (MIT) — https://github.com/fastapi/fastapi @ 50113da16fec53b66b80d75e80a89296de4fa5a5 — paths: fastapi/.agents/skills/fastapi — Core FastAPI conventions: Annotated parameters and dependencies, reusable dependency type aliases, router-level prefix/tags/dependencies, return type before response_model, the bans on ellipsis defaults, RootModel and ORJSONResponse, async def versus def, yield-dependency exit scope, SSE and streaming shapes, and the fastapi CLI entrypoint.
+- https://fastapi.tiangolo.com (MIT) — https://fastapi.tiangolo.com — Everything the official skill omits: yield-dependency exception propagation and the must-re-raise rule, dependency_overrides, ASGITransport async tests, lifespan and its absence under a bare TestClient, Starlette-versus-FastAPI HTTPException handler registration, RequestValidationError, separate input/output OpenAPI schemas, background task semantics, and the 0.122 move from 403 to 401 in the security utilities.
+- pydantic/pydantic (MIT) — https://github.com/pydantic/pydantic @ 6312eb1578d89242b63a27f37ff5ba54bf016085 — paths: .agents/skills/pydantic — Model-authoring rules: serialisation follows the declared type so subclass fields are dropped silently, discriminated unions as the fix, built-in constraints before custom validators, after-validators in the annotated form, the split between assignment-form and Annotated-form field metadata, and forward-reference and recursive-alias handling.
+- https://docs.pydantic.dev (MIT) — https://docs.pydantic.dev — ConfigDict fields used at the HTTP boundary (from_attributes, populate_by_name), validation and serialisation aliases, the field_validator classmethod requirement, and the Pydantic v1 to v2 mapping table.
+- zhanymkanov/fastapi-best-practices (NONE) — https://github.com/zhanymkanov/fastapi-best-practices @ 5e00aa6095521f0d00e4eec2ef0afa44cd566af4 — paths: README.md — Per-request dependency caching as a reason to decompose dependencies, the cost of FastAPI validating a response a second time, run_in_threadpool for unavoidable synchronous SDKs, the BackgroundTasks versus task-queue decision table, and ValueError in a body model becoming a 422.
+- Kludex/fastapi-tips (NONE) — https://github.com/Kludex/fastapi-tips @ 837851630d0e72c8e8133bf0d08dffe8dda96b5e — paths: README.md — The 40-token AnyIO thread limiter and how to raise it in lifespan, def dependencies also consuming threadpool slots, lifespan state read from request.state instead of app.state, pure ASGI middleware over BaseHTTPMiddleware, and pytest.mark.anyio for async tests.
+- https://starlette.dev (BSD-3-Clause) — https://starlette.dev — TestClient lifespan semantics and the httpx-to-httpx2 migration, run_in_threadpool, BackgroundTask versus BackgroundTasks, StreamingResponse subclassing, and the pure ASGI middleware shape.
+- https://docs.astral.sh/ruff/rules/#fastapi-fast (MIT) — https://docs.astral.sh/ruff/rules/#fastapi-fast — The FastAPI-specific lint group that is off by default: FAST001 redundant response_model, FAST002 non-Annotated dependency with an autofix, FAST003 unused path parameter.
+- microsoft/skills (MIT) — https://github.com/microsoft/skills @ cf77b1efbf3117501f4727c476894751311ee885 — paths: .github/plugins/azure-sdk-python/skills/fastapi-router-py, .github/plugins/azure-sdk-python/skills/pydantic-models-py — Per-operation status-code conventions (201 on create, 204 with no body), the split between lifespan-managed long-lived resources and per-request Depends resources, and the Create/Update/Response model layering.
+
+Reference-only sources (no content copied):
+
+- wshobson/agents (MIT) — https://github.com/wshobson/agents
+- fastapi/full-stack-fastapi-template (MIT) — https://github.com/fastapi/full-stack-fastapi-template
+- https://sqlmodel.tiangolo.com (MIT) — https://sqlmodel.tiangolo.com
