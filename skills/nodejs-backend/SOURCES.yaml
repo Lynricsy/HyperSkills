@@ -1,0 +1,155 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin nodejs-backend
+skill: nodejs-backend
+version: "2026.09.11"
+upstreams:
+  - id: mcollina-skills
+    kind: repo
+    repo: mcollina/skills
+    url: https://github.com/mcollina/skills
+    paths:
+      - skills/node
+      - skills/fastify
+    ref: main
+    commit: 856efd268ae85482d882f3d0bed869fd020b5c06
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The trunk. General layer from skills/node: error classification with stable codes and cause chains, the graceful-shutdown ordering (stop accepting, drain, close in reverse order of creation, bounded timeout), pipeline() plus async-generator transforms and explicit drain-based backpressure, native --env-file / process.loadEnvFile and schema-validated configuration with one variable per concern, the profiling entry points (--cpu-prof, heap snapshots), the diagnostic routes for a process that will not exit and for flaky tests, and the type-stripping constraints. Fastify branch from skills/fastify: plugin encapsulation and where fastify-plugin belongs, hook order and hook scoping, the three decorator surfaces and when per-request state must be initialised in a hook, inject()-based testing, and @fastify/autoload."
+    notes: "Upstream SKILL.md files are indexes; the substance is in rules/*.md. Its metadata.tags frontmatter field and the tile.json display files are upstream-specific and were stripped. skills/nodejs-core (contributing to nodejs/node itself) and skills/oauth (OAuth 2.1 flow implementation) are out of this skill's scope and are not in paths, as are skills/node/rules/node-modules-exploration.md and skills/fastify/rules/{websockets,http-proxy}.md. Two departures from upstream: its rules/hooks.md commits a database transaction in the onResponse hook, which runs after the response is sent, so this skill keeps the commit inside the handler (research/nodejs-backend.md ruling 3); and its three named helper libraries (close-with-grace, @fastify/create-error, async-cache-dedupe) are presented here as one default implementation of an invariant rather than as requirements. This repository is also an upstream of the typescript skill, which tracks skills/typescript-magician; the paths here do not overlap it."
+  - id: kadajett-nestjs
+    kind: repo
+    repo: Kadajett/agent-nestjs-skills
+    url: https://github.com/Kadajett/agent-nestjs-skills
+    paths:
+      - skills/nestjs-best-practices
+    ref: main
+    commit: 3986e0cede33958e000f959031cbee0cd83c2941
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The NestJS branch trunk: the three provider scopes and how a mutable field on a default-scoped singleton leaks state across concurrent requests, the ladder from that mistake to AsyncLocalStorage-backed context, an unawaited connect() in onModuleInit reporting the module ready before the resource is usable, app.enableShutdownHooks() as the precondition for onModuleDestroy, the exception-filter layering from domain exception to specific filter to @Catch() fallback, DTO serialisation versus pipe responsibilities, injection tokens for interface-based providers, and Test.createTestingModule with overrideProvider."
+    notes: "No licence file and the GitHub API reports license: null, so license: NONE; used under the repository's permissive-attribution policy, no text copied verbatim. Each rule file carries upstream-specific title/impact/impactDescription/tags frontmatter, all stripped. The 163 KB AGENTS.md at the repository root is a compiled aggregate of the same rules and is not in paths. Its microservices, queue and rate-limiting rules fall outside this skill's scope and were not used."
+  - id: myatminlu-nestjs
+    kind: repo
+    repo: myatminlu/vector-skills
+    url: https://github.com/myatminlu/vector-skills
+    paths:
+      - skills/nestjs-dev-guidelines/references/09-validation.md
+      - skills/nestjs-dev-guidelines/references/10-error-handling.md
+      - skills/nestjs-dev-guidelines/references/11-security.md
+    ref: main
+    commit: 8ade0581652f31f34958d07816b3c189dded5027
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The two non-obvious requirements on a global NestJS exception filter: it must branch on host.getType() because @Catch() also runs for queue workers, gateways and microservice transports where there is no HTTP response to write, and it must skip writing when the response has already started. Also the three-audience split of an error (HTTP status for proxies, a stable code for client branching, a correlation id for operators) and the fact that the @nestjs/common Logger does not accept a structured-metadata argument and stringifies the object into the message."
+    notes: "Its pagination, filtering and standard-response-envelope references are REST contract design, which this skill does not cover, and are not in paths. Upstream binds specific packages (nestjs-pino, class-validator); those appear here as one default implementation rather than as requirements."
+  - id: amirtaherkhani-nestjs
+    kind: repo
+    repo: amirtaherkhani/nestjs-agent-skills
+    url: https://github.com/amirtaherkhani/nestjs-agent-skills
+    paths:
+      - skills/nestjs-architecture-principles
+    ref: main
+    commit: 449522236105ca1d244af8caa7510fd8434cdfd6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The evidence-first opening of the NestJS branch: read package.json, nest-cli.json, the bootstrap file and the module import graph before advising, state the current architecture in one sentence, and never infer Clean Architecture or DDD from directory names. Also module boundaries drawn by business capability rather than technical layer, a module's exports as its public surface, and treating a circular module dependency as a design signal rather than a forwardRef problem."
+    notes: "Every upstream SKILL.md opens with a long pre-execution conflict guard that coordinates ownership between the author's own sibling skills; that entire apparatus was stripped as agent-specific. Its architecture-ladder, CQRS and service-extraction material is architecture consulting beyond this skill's scope and was not used."
+  - id: thecodepace-fastify
+    kind: repo
+    repo: TheCodePace/fastify-skills
+    url: https://github.com/TheCodePace/fastify-skills
+    paths:
+      - skills/fastify-best-practise/rules/schema-validation-zod.md
+      - skills/fastify-best-practise/rules/serialization-zod.md
+    ref: main
+    commit: 809baf47f39e682404b973928eaa384811b0ad3e
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "How a Zod-first project should connect Zod to Fastify: register fastify-type-provider-zod as the validator and serializer compiler and declare schemas in the route options, rather than parsing inside the handler, which otherwise loses the framework's error shaping, the inferred request types and the compiled response serializer."
+    notes: "No licence file and the GitHub API reports license: null, so license: NONE; used under the repository's permissive-attribution policy, no text copied verbatim. The rest of the repository duplicates mcollina/skills' Fastify coverage and is not in paths. Upstream pins exact package versions in its command lines; this skill states no pinned versions."
+  - id: secondsky-hono
+    kind: repo
+    repo: secondsky/claude-skills
+    url: https://github.com/secondsky/claude-skills
+    paths:
+      - plugins/hono-routing/skills/hono-routing
+    ref: main
+    commit: 00d6097723b88504637a3979d7810e82cab60694
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The problem set for the Hono branch: middleware that never calls await next() silently making every route below it unreachable, reading request data with c.req.valid() rather than reparsing with c.req.json(), declaring Variables and Bindings on the Hono generic so c.get is typed, HTTPException as the way an intended status leaves any layer, sub-app composition with app.route(), and the RPC client needing the chained routes value exported as a type."
+    notes: "Two upstream errors were corrected against the official documentation before merging (research/nodejs-backend.md rulings 1 and 2): it states that validation hooks are deprecated, but zValidator(target, schema, hook) is the documented customisation point in honojs/middleware; and its example marked correct is a non-async arrow function containing await next(), which does not parse. Its frontmatter carries upstream-specific package_version, last_verified, errors_prevented, templates_included, references_included and keywords fields, all stripped, along with its emoji status badges and pinned install commands."
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - instructions/nestjs.instructions.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The NestJS file-naming convention (*.controller.ts, *.service.ts, *.module.ts, *.dto.ts, *.entity.ts, *.guard.ts, *.interceptor.ts, *.pipe.ts, *.filter.ts) and the common/ plus per-feature module directory shape that the other NestJS upstreams leave unstated."
+    notes: "The applyTo frontmatter field is an agent-specific glob and was stripped. The rest of the file is tutorial-level NestJS material and treats TypeORM as the only ORM; it was not used. instructions/nodejs-javascript-vitest.instructions.md was read and rejected: it is a personal style list whose rules (never use null, prefer functions over classes, use Vitest) conflict with the trunk upstream without supporting evidence."
+  - id: nodejs-docs
+    kind: docs
+    url: https://nodejs.org/docs/latest-v24.x/api/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative basis for every runtime statement: the release schedule that fixes the LTS baseline, --unhandled-rejections defaulting to throw since v15 so an unhandled rejection is fatal by design, AsyncLocalStorage semantics including why run() is preferred over enterWith() and how withScope() behaves, the documented causes of context loss, stream and pipeline error propagation, manual backpressure through write() and drain, --env-file / --env-file-if-exists / process.loadEnvFile availability, monitorEventLoopDelay, and the node:test runner with mock.fn and mock.timers."
+    notes: "The GitHub API reports NOASSERTION for nodejs/node; its LICENSE file opens with the full MIT permission text (the sections that follow cover bundled dependencies), so the real SPDX id is MIT and the documentation is merged rather than reference-only. Only technical facts were taken; all wording here is original."
+  - id: fastify-docs
+    kind: docs
+    url: https://fastify.dev/docs/latest/Reference/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Fastify authority: that the default error handler forwards error.message and error.code verbatim on every status including 500 and that Fastify does not distinguish development from production; that a route response schema replaces the built-in error serializer; FST_ERR_DEC_REFERENCE_TYPE blocking a reference-typed request decorator and the two correct alternatives; the six-step close() lifecycle with return503OnClosing (default true) and forceCloseConnections (default \"idle\"); handlerTimeout being cooperative and requiring request.signal to actually stop work; the Ajv defaults per request part; fast-json-stringify dropping properties absent from the response schema; and that schemas compile through new Function() so a schema built from user input is remote code execution."
+    notes: "Source lives in fastify/fastify under docs/Reference; that repository is MIT, so the documentation is merged. Written against the 5.x line (current stable 5.12.x); the v6 alpha was deliberately not used as a baseline."
+  - id: nestjs-docs
+    kind: docs
+    url: https://docs.nestjs.com
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "NestJS authority: that REQUEST scope bubbles up the injection chain so a request-scoped common provider converts its consumers including the controller, the measured performance consequence, durable providers as the multi-tenant answer, and the places request scope is forbidden (WebSocket gateways, Passport strategies, cron controllers); the lifecycle-event order in both directions; that shutdown hooks are disabled by default and need app.enableShutdownHooks(), with the listener-cost reason; that app.close() runs the hooks but does not terminate the process; the ValidationPipe options; and the platform-agnosticism split between the Express and Fastify adapters."
+    notes: "Source lives in nestjs/docs.nestjs.com under content/; that repository is MIT, so the documentation is merged. Note the file is content/fundamentals/provider-scopes.md, not injection-scopes.md, when re-checking on sync."
+  - id: hono-docs
+    kind: docs
+    url: https://hono.dev/docs/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Hono authority: validator() and zValidator with the hook as the documented customisation point; that json and form validation require a matching content-type header or the callback receives an empty object, which is what breaks tests written with app.request(); that header targets must use lowercase keys; the streaming helpers (stream, streamText, streamSSE), their backpressure through awaited writes, onAbort, and the fact that onError is not invoked for an error thrown inside a stream callback; contextStorage() being AsyncLocalStorage with the nodejs_als flag requirement on Workers; app.mount() taking a fetch-style handler; and the @hono/node-server adapter plus its Node version floor."
+    notes: "Source lives in honojs/website under docs/; that repository is MIT, so the documentation is merged. The zValidator hook and validationFunction API were verified against honojs/middleware packages/zod-validator, which the website does not document."
+  - id: express-docs
+    kind: docs
+    url: https://expressjs.com/en/guide/migrating-5/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Express 4 to 5 change set used by references/express-migration.md: the path-matching syntax changes (named wildcards, braces for optional segments, no regex characters), req.params gaining a null prototype with array wildcard captures and omitted unmatched parameters, req.body becoming undefined when unparsed, req.query becoming a getter with the simple parser as default, express.urlencoded defaulting to extended: false, express.static defaulting dotfiles to ignore and applying the check to hidden directories, the removed response signatures, res.status range validation, app.listen passing listen errors to the callback, and rejected promises from async handlers now reaching the error handler."
+    notes: "Source lives in expressjs/expressjs.com, which is MIT (its Express 5 codemod recipe is referenced by name only). Express appears in this skill solely as a migration source, not as a supported target; the reason is recorded in research/nodejs-backend.md ruling 9."
+  - id: giuseppe-developer-kit
+    kind: repo
+    repo: giuseppe-trisciuoglio/developer-kit-claude-code
+    url: https://github.com/giuseppe-trisciuoglio/developer-kit-claude-code
+    paths:
+      - plugins/developer-kit-typescript/skills/nestjs-best-practices
+      - plugins/developer-kit-typescript/rules/nestjs-architecture.md
+      - plugins/developer-kit-typescript/rules/nestjs-testing.md
+    ref: main
+    commit: fe73fb33a09ee6562eeec7415a3f9a3bcf795177
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage and agreement check only: read to confirm that its layering, module-boundary and testing recommendations match kadajett-nestjs, myatminlu-nestjs and the official documentation. No content was copied; it added nothing the merged NestJS upstreams do not already state."
+    notes: "The repository is organised around agent personas (agents/*.md) plus shared rule files rather than as a rule catalogue, so it is orchestration material rather than a source of invariants."

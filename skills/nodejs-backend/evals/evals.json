@@ -1,0 +1,62 @@
+[
+  {
+    "skills": ["nodejs-backend"],
+    "query": "Review package.json and server.ts in this directory before we put this service in front of real traffic. Tell me exactly what is wrong and show the fixes.",
+    "files": ["evals/files/package.json", "evals/files/server.ts"],
+    "expected_behavior": [
+      "Flags fastify.decorateRequest('ctx', { ... }) with an object literal: Fastify 5 rejects reference-type request decorators at startup (FST_ERR_DEC_REFERENCE_TYPE) because one object would be shared by every request, and fixes it by declaring the decorator without a value (or with null) and assigning a fresh object in the onRequest hook",
+      "Flags that the error handler serialises error.message, error.code and error.stack to the client on 5xx, so an internal failure leaks the stack trace and the tenant/database detail, and fixes it by returning a generic body for errors the code did not raise deliberately while logging the real error server-side",
+      "Flags readFileSync in the /orders/import handler as blocking the event loop for the whole file and buffering it in memory, and replaces it with a stream pipeline (node:stream/promises pipeline plus an async generator or readline) so backpressure is respected",
+      "Flags that the SIGTERM handler calls process.exit(0) immediately, cutting in-flight requests, and replaces it with awaiting app.close() (which drains connections and runs onClose hooks) followed by closing the pg Pool, with a bounded timeout as a last resort",
+      "Notes that the pg Pool is never closed on shutdown, so the process leaks its connections or refuses to exit",
+      "Flags the absence of a JSON Schema on the routes: neither the :id param nor the response is validated or serialised through a schema, so `select *` returns whatever columns the table has straight to the client",
+      "Flags that request.log.error(error.message) logs only the message and loses the stack; the error object itself should be passed so the serialiser records err.stack"
+    ]
+  },
+  {
+    "skills": ["nodejs-backend"],
+    "query": "Our NestJS API writes the wrong user id into the audit log when traffic is high, and rolling deploys drop outbox events. Read audit.service.ts, audit.interceptor.ts, outbox.service.ts and main.ts in this directory and tell me what is broken and how to fix it.",
+    "files": [
+      "evals/files/audit.service.ts",
+      "evals/files/audit.interceptor.ts",
+      "evals/files/outbox.service.ts",
+      "evals/files/main.ts"
+    ],
+    "expected_behavior": [
+      "Identifies that AuditService is a default-scoped (singleton) provider, so currentUserId and currentRequestId are shared by every concurrent request and each interceptor call overwrites the previous request's values",
+      "Fixes the request context with AsyncLocalStorage (directly, or via nestjs-cls) entered once per request, rather than by mutating singleton fields, and explains that this keeps the service a singleton",
+      "If it proposes Scope.REQUEST at all, states that request scope bubbles up the injection chain so every consumer including the controller is re-instantiated per request, and treats it as the more expensive option",
+      "Says onModuleDestroy never runs on SIGTERM because main.ts does not call app.enableShutdownHooks(), which is why the outbox loses events on a rolling deploy",
+      "Flags that onModuleInit calls this.pool.connect() without awaiting it, so the module reports ready before the pool is usable, and makes the hook async and awaited",
+      "Flags that setInterval(() => this.flush(), 1000) swallows the rejection of an async flush: an unhandled rejection is fatal by default in current Node, and overlapping ticks can double-publish; fixes it with an awaited loop or explicit catch plus a re-entrancy guard",
+      "Flags new ValidationPipe() without whitelist (and forbidNonWhitelisted / transform), because unknown properties in the body reach the handler"
+    ]
+  },
+  {
+    "skills": ["nodejs-backend"],
+    "query": "export.route.ts in this directory is a Hono service running on Node. Large exports kill the container with an out-of-memory error, and the requestId never appears in any log line. Fix both.",
+    "files": ["evals/files/export.route.ts"],
+    "expected_behavior": [
+      "Identifies that the '*' middleware never calls await next() (and is not async), so the middleware chain stops there and the route handlers are unreachable, which is why nothing downstream ever sees the requestId",
+      "Fixes the middleware to `async (c, next) => { ...; await next() }`",
+      "Identifies that /exports buffers the whole result set and the whole CSV string in memory before responding, and rewrites it to stream rows to the client (Hono's streaming helper or a ReadableStream) so memory stays bounded and backpressure is honoured",
+      "Identifies the same problem in /exports/:id/download, where readFile loads the entire file, and replaces it with a streamed response",
+      "Flags that body.table comes straight from c.req.json() with no validation and reaches db.selectAll, and requires a validator middleware (for example @hono/zod-validator) read back through c.req.valid('json') with an allow-list of table names",
+      "Flags the path traversal in /exports/:id/download, where c.req.param('id') is interpolated into a filesystem path",
+      "Notes that onError returning String(err) leaks the internal error text to the client, and that HTTPException is the way to return an intended status"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "这个 Next.js App Router 的 server action 提交后页面没刷新，怎么回事？",
+    "files": [
+      "evals/files/product-actions.ts",
+      "evals/files/ProductsPage.tsx"
+    ],
+    "expected_behavior": [
+      "Does not read the nodejs-backend skill: skill_read is false",
+      "Answers as Next.js App Router work: the server action mutates the database but never invalidates the Router Cache, so the page re-renders from cached data; the fix is revalidatePath / revalidateTag (or redirect) at the end of createProduct",
+      "Gives no Fastify, NestJS, Hono, plugin-encapsulation or graceful-shutdown advice"
+    ]
+  }
+]

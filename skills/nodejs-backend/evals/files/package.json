@@ -1,0 +1,18 @@
+{
+  "name": "orders-api",
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/server.ts",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "fastify": "^5.12.2",
+    "pg": "^8.13.1",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.0",
+    "typescript": "^5.9.2"
+  }
+}
