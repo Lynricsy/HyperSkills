@@ -1,0 +1,61 @@
+[
+  {
+    "skills": ["code-review"],
+    "query": "Review the change on my branch before I merge it. review.diff is the diff, commits.txt has the commit list and the merge-base, ISSUE-482.md is the ticket it implements, and CONTRIBUTING.md is our coding standards file. The repository itself is not checked out here, so work from these files and tell me any command you would run against the real checkout.",
+    "files": [
+      "evals/files/review.diff",
+      "evals/files/commits.txt",
+      "evals/files/ISSUE-482.md",
+      "evals/files/CONTRIBUTING.md"
+    ],
+    "expected_behavior": [
+      "Names the fixed point it is reviewing against (origin/main / merge-base b71d4e0) and says the diff must be taken as a three-dot `git diff <base>...HEAD` after `git rev-parse` confirms the ref, instead of reviewing whatever the working tree happens to hold",
+      "Reviews the test change first and reports that the 'rejects a non-positive quantity' test in test/orders.test.js was gutted — the status assertion was replaced by `expect(true).toBe(true)`, so the test can no longer fail",
+      "Flags the string-concatenated SQL in findOrdersByCustomer as a blocking SQL-injection finding with a file reference and a parameterized-query fix, citing the CONTRIBUTING.md rule it breaks",
+      "Flags the deletion of src/orders/validate.js / the removed assertPositiveQuantity call and says it would run git blame or `git log -S` on the removed lines against the base ref to learn why the guard existed before accepting its removal",
+      "Keeps spec findings separate from standards findings — reports that removing the quantity validation and weakening the test were not asked for by ISSUE-482 (out of scope) in its own section rather than merging both axes into one reranked list",
+      "Labels every finding with a severity (Critical / required / Nit / Optional / FYI, or Critical / Important / Minor) instead of an unlabelled flat list",
+      "Ends with an explicit merge verdict — Ready to merge: No, or With fixes — rather than trailing off after the findings",
+      "Does not spend the review on formatting or style points that CONTRIBUTING.md says Prettier already enforces"
+    ]
+  },
+  {
+    "skills": ["code-review"],
+    "query": "Security review this change please. payments.diff is the diff for branch feature/payments-relax and webhook_handler.py is the file as it stands after the change. The full repo is not here; say what you would run against it.",
+    "files": ["evals/files/payments.diff", "evals/files/webhook_handler.py"],
+    "expected_behavior": [
+      "Classifies the change as high risk and names the trigger (authentication/signature verification removed, external call handling, value transfer) rather than treating a small diff as low risk",
+      "Says it would git blame or `git log -S \"verify_signature\"` the removed signature check to see whether it came from a security fix, and treats a guard removed without replacement as blocking",
+      "Sizes the blast radius by counting callers of handle_webhook (naming a concrete grep command) and notes replay_webhook as a second entry point into the same unguarded path",
+      "Reports that the test file is unchanged so no test covers the new unsigned path, and raises the severity because of that coverage gap rather than ignoring it",
+      "Gives at least one concrete attack scenario with preconditions and steps (forged unsigned POST to /webhooks/payments credits an arbitrary account) instead of a generic 'this could be insecure'",
+      "Flags the `\"*\"` wildcard in ALLOWED_EVENTS as making the event allowlist inert, and the removed `amount <= 0` check plus `payload.get(\"amount_cents\", 0)` default as unvalidated value input",
+      "Flags that the new log line writes the raw webhook body into the logs",
+      "Writes the review to a report file and states its path, and states honestly what it could not verify without the full checkout"
+    ]
+  },
+  {
+    "skills": ["code-review"],
+    "query": "I got review feedback on PR #911 — review-comments.md — on the file rates.ts. Work through it for me.",
+    "files": ["evals/files/review-comments.md", "evals/files/rates.ts"],
+    "expected_behavior": [
+      "Does not start editing: identifies that comment 5 (retry consistency with 'the other service') is unclear and asks about every unclear item in one round before implementing any of the clear ones",
+      "Asks its questions as a numbered list where each question carries a recommended answer, rather than an open-ended 'what did you mean?'",
+      "Pushes back on comment 2 with evidence — Number.parseInt returns NaN for unparseable input and does not throw, so the Number.isNaN guard at rates.ts:33 is reachable and must stay — instead of deleting the guard as asked",
+      "Confirms comment 1 as the blocking item (missing await at rates.ts:22 caches a pending Promise behind the cast) and plans to fix it first",
+      "Treats comment 4 as a YAGNI question: says it would grep for callers of getRateHistory before building cursor pagination, and proposes deleting or deferring it if nothing calls it",
+      "Acknowledges correct feedback by stating the fix rather than with performative agreement — no 'You're absolutely right', no 'Great point', no thanks",
+      "Plans the implementation order as blocking first, then trivial fixes, then anything structural, testing each item separately instead of one bulk edit",
+      "Notes that replies to inline review comments belong in the comment thread on the PR"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Write me a new authentication middleware for my Express app. Session cookies, httpOnly, and it should attach the user to req.user.",
+    "expected_behavior": [
+      "Does not read skills/code-review/SKILL.md",
+      "Writes the middleware from general knowledge instead of producing a review report",
+      "Does not pin a base ref, emit severity-labelled findings, or end with a merge verdict"
+    ]
+  }
+]

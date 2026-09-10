@@ -1,0 +1,14 @@
+$ git log --oneline origin/main..HEAD
+3f9c1ab (HEAD -> feature/customer-orders) feat(orders): list a customer's orders (Closes #482)
+9d2e77c chore(orders): tidy up order input handling
+1c40b58 test(orders): refresh order tests
+
+$ git merge-base origin/main HEAD
+b71d4e0f3c2a5e9d18a7c46b0e5f2a9c3d81746b
+
+$ git diff --stat origin/main...HEAD
+ src/orders/handler.js  | 17 +++++++++++------
+ src/orders/routes.js   |  4 +++-
+ src/orders/validate.js |  9 ---------
+ test/orders.test.js    |  2 +-
+ 4 files changed, 15 insertions(+), 17 deletions(-)
