@@ -10,9 +10,10 @@
     uv run tools/check_upstream.py apple --pin    # write current HEADs back
     uv run tools/check_upstream.py --json
 
-Set GITHUB_TOKEN to avoid the 60 req/h anonymous rate limit. When the API is
-unavailable the script falls back to `git ls-remote`, which needs no auth but
-cannot list per-path commits.
+Transport, in order of preference: the authenticated `gh api` (5000 req/h, no
+token plumbing), then `GITHUB_TOKEN` over plain HTTP, then anonymous HTTP
+(60 req/h). If none can answer, `git ls-remote` still resolves HEAD without
+quota, but cannot attribute changes to paths.
 """
 
 from __future__ import annotations
@@ -20,6 +21,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import urllib.error
@@ -33,9 +36,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _common import SkillLoadError, load_skill, resolve_targets  # noqa: E402
 
-API_ROOT = "https://api.github.com"
+# Override for GitHub Enterprise, or to point the tool at a local fixture server.
+API_ROOT = os.environ.get("HYPERSKILLS_GITHUB_API", "https://api.github.com")
 # GitHub caps `per_page` at 100; one page of path history is plenty to show drift.
 COMMIT_PAGE_SIZE = 100
+# The compare endpoint returns at most 250 commits and 300 files. Past either
+# cap the answer is partial, and a partial answer must never read as "unchanged".
+COMPARE_MAX_COMMITS = 250
+COMPARE_MAX_FILES = 300
 HTTP_TIMEOUT = 30  # seconds; generous for a single small JSON response
 RATE_LIMITED_EXIT = 2
 
@@ -48,7 +56,65 @@ class NotFound(Exception):
     """Repository or ref does not exist."""
 
 
+class TransportUnavailable(Exception):
+    """The transport itself failed; try the next one rather than reporting drift."""
+
+
+# `gh: Not Found (HTTP 404)` — gh reports the status code in its stderr message.
+GH_STATUS_RE = re.compile(r"\(HTTP (\d{3})\)")
+
+
+def gh_available() -> bool:
+    """Whether an authenticated `gh` can be used as the transport.
+
+    Cached on the function so the auth check costs one subprocess per run.
+    """
+    cached = getattr(gh_available, "_cached", None)
+    if cached is not None:
+        return cached
+    ok = False
+    if shutil.which("gh"):
+        try:
+            proc = subprocess.run(
+                ["gh", "auth", "status"], capture_output=True, text=True, timeout=HTTP_TIMEOUT
+            )
+            ok = proc.returncode == 0
+        except (OSError, subprocess.TimeoutExpired):
+            ok = False
+    gh_available._cached = ok  # type: ignore[attr-defined]
+    return ok
+
+
+def gh_api(path: str) -> Any:
+    """GET through `gh api`, which carries the user's own 5000 req/h quota."""
+    try:
+        proc = subprocess.run(
+            ["gh", "api", path], capture_output=True, text=True, timeout=HTTP_TIMEOUT
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise TransportUnavailable(str(exc)) from exc
+    if proc.returncode == 0:
+        return json.loads(proc.stdout)
+    match = GH_STATUS_RE.search(proc.stderr or "")
+    code = int(match.group(1)) if match else 0
+    if code == 404:
+        raise NotFound(path)
+    if code in (403, 429):
+        raise RateLimited(f"gh api rate limited: {(proc.stderr or '').strip()[:200]}")
+    raise TransportUnavailable((proc.stderr or "gh api failed").strip()[:200])
+
+
 def api_get(path: str) -> Any:
+    """GET a GitHub API path, preferring the transport with the largest quota."""
+    if API_ROOT == "https://api.github.com" and gh_available():
+        try:
+            return gh_api(path)
+        except TransportUnavailable:
+            pass  # fall through to plain HTTP
+    return http_get(path)
+
+
+def http_get(path: str) -> Any:
     req = urllib.request.Request(f"{API_ROOT}{path}")
     req.add_header("Accept", "application/vnd.github+json")
     req.add_header("User-Agent", "hyperskills-check-upstream")
@@ -98,16 +164,24 @@ def head_commit(repo: str, ref: str) -> tuple[str | None, str]:
         return sha, "ls-remote"
 
 
-def path_commits(repo: str, ref: str, path: str, until_sha: str) -> list[dict[str, str]]:
-    """Commits touching `path` on `ref`, newest first, stopping at `until_sha`."""
+def path_commits(
+    repo: str, ref: str, path: str, in_range: set[str]
+) -> list[dict[str, str]]:
+    """Commits touching `path` that lie inside an already-computed commit range.
+
+    Membership, not a sentinel. The pinned sha is the repository HEAD at sync
+    time and usually does not touch `path`, so it never appears in this
+    path-filtered listing — stopping at it would report the path's entire
+    history as new.
+    """
     data = api_get(
         f"/repos/{repo}/commits?sha={ref}&path={urllib.parse.quote(path)}"
         f"&per_page={COMMIT_PAGE_SIZE}"
     )
     out: list[dict[str, str]] = []
     for entry in data if isinstance(data, list) else []:
-        if entry["sha"] == until_sha:
-            break
+        if entry["sha"] not in in_range:
+            continue
         out.append(
             {
                 "sha7": entry["sha"][:7],
@@ -116,6 +190,43 @@ def path_commits(repo: str, ref: str, path: str, until_sha: str) -> list[dict[st
             }
         )
     return out
+
+
+def compare_range(repo: str, base: str, head: str) -> dict[str, Any]:
+    """The commit set and changed files between `base` and `head`.
+
+    This is what makes path attribution correct: the range is established
+    first, and paths are matched against the files that range actually
+    touched, rather than inferred from a path-filtered history walk.
+    """
+    data = api_get(
+        f"/repos/{repo}/compare/{urllib.parse.quote(base)}...{urllib.parse.quote(head)}"
+    )
+    commits = data.get("commits") or []
+    files = data.get("files")
+    total = int(data.get("total_commits") or len(commits))
+    names: list[str] = []
+    for entry in files or []:
+        names.append(entry["filename"])
+        # A rename out of a tracked path is a change to that path.
+        if entry.get("previous_filename"):
+            names.append(entry["previous_filename"])
+    return {
+        "state": data.get("status"),
+        "total_commits": total,
+        "shas": {c["sha"] for c in commits},
+        "commits_truncated": total > len(commits) or total > COMPARE_MAX_COMMITS,
+        "files": names,
+        # `files` is omitted entirely for very large diffs, and capped at 300.
+        "files_truncated": files is None or len(files) >= COMPARE_MAX_FILES,
+    }
+
+
+def path_touched(path: str, filenames: list[str]) -> bool:
+    """Whether a tracked path (file or directory) appears in a changed-file list."""
+    exact = path.rstrip("/")
+    prefix = exact + "/"
+    return any(name == exact or name.startswith(prefix) for name in filenames)
 
 
 def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
@@ -145,24 +256,56 @@ def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
 
     result["compare"] = f"https://github.com/{repo}/compare/{pinned}...{ref}"
     commits: dict[str, list[dict[str, str]]] = {}
-    paths = up.get("paths") or []
-    checked_paths = False
-    if source == "api" and paths:
-        checked_paths = True
-        for p in paths:
-            try:
-                commits[p] = path_commits(repo, ref, p, pinned)
-            except (RateLimited, NotFound):
-                # Unknown rather than empty: do not claim the path is unchanged.
-                checked_paths = False
-                commits[p] = []
     result["commits"] = commits
-    # The repo moved, but nothing under the paths this skill actually consulted.
-    # That is the whole point of tracking `paths`: it filters monorepo noise.
-    if checked_paths and not any(commits.values()):
-        result["status"] = "paths_unchanged"
-    else:
+    paths = up.get("paths") or []
+
+    if source != "api":
         result["status"] = "behind"
+        result["reason"] = "HEAD via git ls-remote; path history unavailable"
+        return result
+
+    try:
+        rng = compare_range(repo, pinned, ref)
+    except NotFound:
+        # The pinned sha is not reachable: the branch was rewritten or force-pushed.
+        result["status"] = "unknown_base"
+        return result
+    except (RateLimited, TransportUnavailable) as exc:
+        result["status"] = "behind"
+        result["reason"] = f"range not resolved ({exc})"
+        return result
+
+    result["ahead_by"] = rng["total_commits"]
+    if rng["total_commits"] == 0:
+        # Same tree, or the ref moved backwards behind the pin.
+        result["status"] = "up_to_date" if rng["state"] == "identical" else "diverged"
+        return result
+
+    if not paths:
+        result["status"] = "behind"
+        result["reason"] = "no paths tracked; the whole repository counts"
+        return result
+
+    if rng["files_truncated"]:
+        result["status"] = "behind"
+        result["reason"] = "diff too large to attribute to paths"
+        return result
+
+    changed = [p for p in paths if path_touched(p, rng["files"])]
+    if not changed:
+        # The repo moved, but nothing under the paths this skill consulted.
+        # Filtering that noise out is the entire point of tracking `paths`.
+        result["status"] = "paths_unchanged"
+        return result
+
+    result["status"] = "behind"
+    if rng["commits_truncated"]:
+        result["reason"] = "range exceeds the compare cap; per-path list may be partial"
+    for p in changed:
+        try:
+            commits[p] = path_commits(repo, ref, p, rng["shas"])
+        except (RateLimited, NotFound, TransportUnavailable):
+            commits[p] = []
     return result
 
 
@@ -179,11 +322,26 @@ def print_result(skill_name: str, res: dict[str, Any]) -> None:
         print(f" FAIL {tag}: could not resolve HEAD of ref '{res['ref']}'")
     elif status == "paths_unchanged":
         print(
-            f"  OK  {tag}: repo moved, tracked paths unchanged "
-            f"({res['pinned'][:7]} -> {res['head'][:7]})"
+            f"  OK  {tag}: repo moved ({res['ahead_by']} commits), "
+            f"tracked paths unchanged ({res['pinned'][:7]} -> {res['head'][:7]})"
         )
+    elif status == "unknown_base":
+        print(
+            f" FAIL {tag}: pinned commit {res['pinned'][:7]} is unreachable on "
+            f"'{res['ref']}' (force-push or rewritten history) — re-review and re-pin"
+        )
+    elif status == "diverged":
+        print(
+            f"  !!  {tag}: '{res['ref']}' no longer contains the pin "
+            f"({res['pinned'][:7]} vs {res['head'][:7]})"
+        )
+        print(f"        {res['compare']}")
     else:
-        print(f"  !!  {tag}: behind — {res['pinned'][:7]} -> {res['head'][:7]}")
+        ahead = res.get("ahead_by")
+        span = f" ({ahead} commits)" if ahead else ""
+        print(f"  !!  {tag}: behind{span} — {res['pinned'][:7]} -> {res['head'][:7]}")
+        if res.get("reason"):
+            print(f"        note: {res['reason']}")
         print(f"        {res['compare']}")
         for path, commits in (res.get("commits") or {}).items():
             if not commits:

@@ -156,18 +156,29 @@ skills:
 uv run tools/check_upstream.py [<skill>...]
 ```
 
-输出每个上游自 pinned commit 以来触及 `paths` 的提交列表与 compare 链接。状态含义：
+先用 GitHub 的 compare 端点确定 `pinned..HEAD` 这个提交集合，再看该区间改了哪些文件，
+最后才把文件归到 `paths` 上。**顺序不能反**：pinned 是同步时的仓库 HEAD，它通常并不修改
+目标路径，所以按路径过滤的历史里根本不会出现它——以它为哨兵去截断，会把该路径 pin 之前的
+全部历史都当成新增。
+
+状态含义：
 
 | 状态 | 含义 | 要做什么 |
 |---|---|---|
 | `up to date` | HEAD == pinned commit | 无 |
-| `repo moved, tracked paths unchanged` | 仓库有新提交，但 `paths` 下没有 | 无。大型 monorepo（`vercel/next.js`、`nexu-io/open-design`）每天都在动，`paths` 的作用就是滤掉这些噪声 |
-| `behind` | `paths` 下有新提交，**或**因 API 限流无法确认 | 读变更文件；限流时先 `export GITHUB_TOKEN=...` 再跑一次 |
+| `repo moved, tracked paths unchanged` | 区间内有提交，但没碰 `paths` | 无。大型 monorepo（`vercel/next.js`、`nexu-io/open-design`）每天都在动，`paths` 的作用就是滤掉这些噪声 |
+| `behind` | `paths` 下确有新提交，**或**无法确认（限流 / diff 超过 compare 上限 / 未声明 paths） | 看 `note:` 那行说明是哪种；确有变更就读变更文件 |
+| `diverged` | `ref` 已不再包含 pin | 上游改了分支策略，按 Phase B 重新裁决 |
+| `pinned commit is unreachable` | pin 在 `ref` 上找不到 | 上游 force-push 或重写了历史，重新审阅并重新 pin |
 | `MISSING` | 仓库 404 | 上游被删或改名，按 Phase B 重新裁决 |
 | `manual check` | `kind: docs` | 人工打开链接比对 |
 
-限流回退用 `git ls-remote` 只能取到 HEAD、取不到按路径的历史，此时一律报 `behind`——
-**不知道是否变更**不能说成**未变更**。
+传输按配额优先级自动选择：已登录的 `gh api`（5000 次/小时）→ `GITHUB_TOKEN` → 匿名
+（60 次/小时）。都不可用时 `git ls-remote` 仍能取到 HEAD，但**取不到按路径的历史**，
+此时一律报 `behind`——**不知道是否变更**不能说成**未变更**。同理，compare 的
+文件列表上限 300、提交列表上限 250，超出即视为无法归因，也报 `behind`。
+
+`HYPERSKILLS_GITHUB_API` 可覆盖 API 根地址（GitHub Enterprise，或指向本地夹具服务）。
 
 `paths` 下确有变更时：
 

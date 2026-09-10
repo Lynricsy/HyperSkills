@@ -112,6 +112,17 @@ at all:
 - If nothing is found in the standard locations, a recursive search runs as a
   fallback — convenient, and not something to rely on.
 
+Only the skill root may contain a `SKILL.md`. Shadowing protects the installer,
+but it does not protect every host: Cursor scans recursively and treats any
+directory holding a `SKILL.md` as a skill in its own right. A test fixture at
+`evals/files/SKILL.md` therefore ships a second, broken skill named `files`,
+carrying whatever `name` the fixture declares. Name such fixtures for what they
+are — `widget-builder-SKILL.md` — and assert the count after installing:
+
+```bash
+find .agents/skills -name SKILL.md | wc -l   # must equal the number of skills
+```
+
 ## Plugin manifests
 
 A `.claude-plugin/marketplace.json` (or `plugin.json`) declares skills
