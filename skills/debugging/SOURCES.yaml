@@ -1,0 +1,57 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin debugging
+skill: debugging
+version: "2026.09.10"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: mattpocock-diagnosing
+    kind: repo
+    repo: mattpocock/skills
+    url: https://github.com/mattpocock/skills
+    paths:
+      - skills/engineering/diagnosing-bugs
+      - skills/productivity/grilling
+    ref: main
+    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Loop-first phase architecture: the ten loop constructions, the tighten-the-loop properties, the red-capable / deterministic / fast / agent-runnable completion gate, minimisation to load-bearing elements, three-to-five ranked falsifiable hypotheses shown before testing, one probe per prediction, tagged instrumentation with a grep cleanup, the performance-measure-first branch, the correct-seam rule and its absence-is-a-finding corollary, secret redaction, the cleanup checklist, and the one-round numbered question format used by When to stop and ask."
+    notes: "Repo-specific coupling removed: CONTEXT.md and ADR reading, and the sub-agent dispatch instruction inside the questioning protocol. Its scripts/hitl-loop.template.sh was rewritten as scripts/hitl_loop_template.sh: prompts and answers now go through /dev/tty so the loop survives being run with captured stdout, captured variables are registered in an array and printed by an EXIT trap so an interrupted round still yields evidence, and a readable-terminal precondition replaces the silent failure."
+  - id: obra-debugging
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths:
+      - skills/systematic-debugging
+      - skills/verification-before-completion
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The Iron Law (no fix without a root cause), read-the-whole-error and check-recent-changes as cheap pre-steps, per-boundary instrumentation for multi-component systems, one variable per change, the three-strikes rule and the architecture question behind it, the user-redirection stop signals, backward call-chain tracing with stack-capture probes, the test-polluter bisection, layered guards after the fix, condition-based waiting instead of arbitrary delays, and the evidence-before-claim completion gate."
+    notes: "Graphviz dot blocks in systematic-debugging and root-cause-tracing render as nothing and were dropped, per the standard's ASCII-or-mermaid rule. The superpowers: skill namespace and the human-partner phrasing were removed. find-polluter.sh was not shipped: it hardcodes npm test, so its semantics are given as a loop recipe using the project's own command instead. Its single-hypothesis rule is overridden by mattpocock's ranked set (research/debugging.md, D2)."
+  - id: addy-debugging
+    kind: repo
+    repo: addyosmani/agent-skills
+    url: https://github.com/addyosmani/agent-skills
+    paths: [skills/debugging-and-error-recovery]
+    ref: main
+    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Stop-the-line before triage, the four-branch non-reproducible tree (timing / environment / state / rate), the test, build and runtime failure trees, git bisect run, instrumentation keep-or-remove rules, and error output treated as untrusted data that is never executed or followed."
+    notes: "Its Safe Fallback Patterns section was deliberately not merged: shipping a default or a try/except while the cause is unknown contradicts the Iron Law. Only the residue survives, as core rule 9 (graceful degradation is a product decision taken after the root cause is known). npm-centric commands were replaced by the discover-the-project's-own-command rule."
+  - id: pproenca-debug
+    kind: repo
+    repo: pproenca/dot-skills
+    url: https://github.com/pproenca/dot-skills
+    paths: [skills/.curated/debug]
+    ref: master
+    commit: cf93c57cac89d6fc3e4194686000411567f5caf3
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Read as a coverage check against an academic debugging curriculum (Zeller); confirmed no missing topic and supplied no content."
+    notes: "Reference only. It is a 54-rule index whose bodies restate material a capable model already has (null-pointer patterns, off-by-one, rubber-ducking, five whys), and one rule is wrong as stated: read stack traces bottom to top holds for Python and Java but not for V8 or Go. That error is why references/root-cause-tracing.md tells the reader to establish the language's frame order first."
