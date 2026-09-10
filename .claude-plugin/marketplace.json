@@ -27,6 +27,15 @@
       ]
     },
     {
+      "name": "astro",
+      "description": "Engineers Astro 7 sites: project and route structure including dynamic routes and getStaticPaths, island boundaries and the client:* hydration directives, server islands with server:defer, content col",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/astro"
+      ]
+    },
+    {
       "name": "chrome-extension",
       "description": "Guides Chrome and Chromium browser extension work end to end: Manifest V3 manifests, the permissions and host-permissions model, activeTab and optional permissions, service worker lifecycle and event-",
       "source": "./",
@@ -60,6 +69,15 @@
       "strict": false,
       "skills": [
         "./skills/debugging"
+      ]
+    },
+    {
+      "name": "fastapi",
+      "description": "Guides FastAPI service work: APIRouter organisation, Annotated dependency injection including yield-dependency lifetime and exit scope, Pydantic v2 request and response models, response_model filterin",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/fastapi"
       ]
     },
     {
@@ -108,6 +126,15 @@
       ]
     },
     {
+      "name": "nodejs-backend",
+      "description": "Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error taxonomy and what a 5xx body may reveal, structure",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/nodejs-backend"
+      ]
+    },
+    {
       "name": "office",
       "description": "Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides, spreadsheets, financial models, forms, tracked changes and co",
       "source": "./",
@@ -153,6 +180,15 @@
       ]
     },
     {
+      "name": "svelte",
+      "description": "Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets and {@render}, props and $bindable, attachments, rou",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/svelte"
+      ]
+    },
+    {
       "name": "tauri",
       "description": "Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and permissions model with command scopes and the runtime autho",
       "source": "./",
@@ -180,6 +216,15 @@
       ]
     },
     {
+      "name": "vue",
+      "description": "Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive destructuring, reassigned proxies, missing `.value`, prop",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/vue"
+      ]
+    },
+    {
       "name": "all",
       "description": "Every HyperSkills skill",
       "source": "./",
@@ -187,23 +232,28 @@
       "skills": [
         "./skills/android",
         "./skills/apple",
+        "./skills/astro",
         "./skills/chrome-extension",
         "./skills/code-review",
         "./skills/csharp-dotnet",
         "./skills/debugging",
+        "./skills/fastapi",
         "./skills/flutter",
         "./skills/frontend-design",
         "./skills/github",
         "./skills/go",
         "./skills/java-spring",
+        "./skills/nodejs-backend",
         "./skills/office",
         "./skills/python",
         "./skills/react",
         "./skills/react-native",
         "./skills/skill-authoring",
+        "./skills/svelte",
         "./skills/tauri",
         "./skills/test-driven-development",
-        "./skills/typescript"
+        "./skills/typescript",
+        "./skills/vue"
       ]
     }
   ]
