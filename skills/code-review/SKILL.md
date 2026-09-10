@@ -18,8 +18,13 @@ human, by another agent, or by you.
 
 Not covered: auditing a whole codebase for vulnerabilities (this skill reviews a delta against
 its base), redesigning an architecture, and language- or framework-specific correctness, which
-belongs to the ecosystem skill for that stack. Team process — review SLAs, round cadence,
-approval bureaucracy — is out of scope by design.
+belongs to the ecosystem skill for that stack — `android`, `apple`, `csharp-dotnet`, `flutter`,
+`go`, `java-spring`, `python`, `react`, `react-native`, `typescript` and the rest. Team process
+— review SLAs, round cadence, approval bureaucracy — is out of scope by design.
+
+The mechanics of moving a review through GitHub — creating the pull request, writing its
+description, fetching review threads, posting replies, merging — are the `github` skill's job.
+This skill supplies the opinion; that one supplies the plumbing.
 
 Writing the change itself is not review work: use the `test-driven-development` skill for that,
 and the `debugging` skill when a review finding turns out to need a diagnosis rather than a fix.
