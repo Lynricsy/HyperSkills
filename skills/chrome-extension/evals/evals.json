@@ -1,0 +1,62 @@
+[
+  {
+    "skills": ["chrome-extension"],
+    "query": "tab-time-service-worker.js in this directory is the background service worker of our MV3 extension. Users report the badge goes blank and the tracked totals reset for no reason. Tell me exactly what is wrong and how to fix each problem.",
+    "files": ["evals/files/tab-time-service-worker.js"],
+    "expected_behavior": [
+      "Names the 30-second idle termination concretely rather than saying 'workers can be killed', and states that receiving an event or calling an extension API resets that idle timer",
+      "Flags that buildReport()'s fetch is bounded by the 30-second response ceiling that kills the worker, and bounds the request (for example AbortSignal.timeout) instead of assuming it will complete",
+      "Flags localStorage as unavailable in an extension service worker at all (the Web Storage API does not exist there), not merely as a bad practice, and replaces it with chrome.storage",
+      "Moves secondsPerHost, activeTabId and activeSince out of module globals into chrome.storage (session for in-memory-only state, local for data that must survive a browser restart), reading and writing inside each event handler",
+      "Flags that the tabs.onActivated and idle.onStateChanged listeners are registered inside the async boot() function after an await, and that the setInterval is registered inside runtime.onInstalled, so after a restart those listeners are not registered when the event arrives; requires listener registration at the top level of the worker synchronously",
+      "Replaces setInterval/setTimeout with chrome.alarms and states that periodInMinutes: 0.1 is below the 30-second (0.5 minute) floor, so Chrome refuses it with a warning instead of honouring it",
+      "Deletes the setInterval keep-alive ping and explains that artificially keeping the worker alive is the wrong fix, not a valid workaround",
+      "Fixes the runtime.onMessage listener so the async GET_REPORT reply works: return a literal true (a truthy value is not enough) so the message channel stays open, and notes the sender's sendMessage promise otherwise resolves with undefined"
+    ]
+  },
+  {
+    "skills": ["chrome-extension"],
+    "query": "Review coupon-finder-manifest.json and coupon-finder-popup.html in this directory before we submit this extension to the Chrome Web Store. What will fail, what will get us rejected, and what should we change?",
+    "files": [
+      "evals/files/coupon-finder-manifest.json",
+      "evals/files/coupon-finder-popup.html"
+    ],
+    "expected_behavior": [
+      "Says webRequestBlocking is not available to MV3 extensions and the request-blocking work must move to declarativeNetRequest with a static ruleset, and that plain webRequest without blocking should be dropped if only observation is left",
+      "Says the extension_pages content security policy cannot be relaxed past the minimum script-src 'self' 'wasm-unsafe-eval'; object-src 'self', so both 'unsafe-eval' and the cdn.jsdelivr.net source make Chrome reject the extension at install time with an 'Insecure CSP value' error",
+      "Identifies the cdn.jsdelivr.net <script> tag in popup.html as remotely hosted code, which Manifest V3 forbids and the store rejects, and requires bundling the library into the extension package instead",
+      "Flags the inline onclick handlers and the inline <script> block in popup.html as blocked by the extension CSP, and moves them to an external file with addEventListener",
+      "Flags eval() (and the localStorage-sourced rule string it executes) as both CSP-blocked and a store violation, and does not suggest relaxing the CSP to allow it",
+      "Narrows host_permissions and the content-script matches away from <all_urls>, and explains that broad host patterns plus sensitive permissions (tabs, cookies, history) lengthen review and require a specific plain-language justification per permission in the dashboard",
+      "Replaces web_accessible_resources [\"*\"] with an explicit list of files, because exposing the whole package lets any page read extension resources and fingerprint the extension",
+      "Notes that declaring side_panel does not make it openable, so a trigger is required (chrome.sidePanel.open() from a user gesture, or sidePanel.setPanelBehavior with openPanelOnActionClick, which conflicts with the declared default_popup)",
+      "Notes that panel.html cannot rely on activeTab: opening a side panel is not one of the gestures that grant it, and a grant made by a toolbar click stays bound to the tab that was active then while the panel keeps running across tab switches, so the panel needs the tabs permission plus host permissions (or an optional-host-permission request) rather than activeTab",
+      "Notes at least one further store-facing problem: the vague description that reviewers reject, the single icon.png reused instead of real 16/48/128 files, or that obfuscation is disallowed while minification is allowed"
+    ]
+  },
+  {
+    "skills": ["chrome-extension"],
+    "query": "price-watcher-content.js in this directory is our content script. product.variants throws 'Cannot read properties of undefined', the watched badge never appears, and bridge.js never loads. Explain each failure and give me the corrected approach.",
+    "files": ["evals/files/price-watcher-content.js"],
+    "expected_behavior": [
+      "Explains that a content script runs in an isolated world, so window.__PRODUCT_STATE__ set by the page's own JavaScript is not visible, and that the DOM is the only shared surface",
+      "Gives a concrete way to reach the page value: either declare the script with world: MAIN (and note that a MAIN-world script loses access to chrome.* APIs, so it must relay through the DOM or window.postMessage), or inject a small page-world bridge and post the value back to the isolated content script",
+      "Explains that run_at: document_start runs before the document body exists, so document.querySelector('#add-to-cart') and observer.observe(document.body, ...) are null at that point; moves the DOM work to document_idle or defers it until the node exists",
+      "Says chrome.storage.session is not exposed to content scripts by default and either calls chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' }) from the service worker or reads the value through a message to the worker",
+      "Says bridge.js must be listed in web_accessible_resources and loaded via chrome.runtime.getURL('bridge.js'), because a bare relative src resolves against the page's origin, not the extension's",
+      "Flags the top-level await in a classic content script (content scripts are not modules unless bundled as one) or otherwise wraps the async work in a function",
+      "Flags the unfiltered window.addEventListener('message') handler as accepting messages from any frame or script on the page and requires validating event.source, event.origin and a message shape before forwarding it to the extension",
+      "Notes that the MutationObserver fires on the extension's own DOM insertion and on every subtree/characterData change, so it needs a guard or debounce to avoid a message storm, and that an orphaned content script after an extension reload must check chrome.runtime?.id before messaging"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "marketing-login.html in this directory is the sign-in page of our marketing site. Write me a Playwright end-to-end test for the login flow, including the failed-login case.",
+    "files": ["evals/files/marketing-login.html"],
+    "expected_behavior": [
+      "Does not read the chrome-extension skill: skill_read is false",
+      "Produces a Playwright test for an ordinary web page: page.goto, locators such as getByLabel('Work email') or the submit-login test id, fill, click, and assertions on the error alert and the post-login state",
+      "Does not bring in extension concepts such as loading an unpacked extension, --disable-extensions-except, manifest.json, service workers, content scripts or chrome.* API mocking"
+    ]
+  }
+]
