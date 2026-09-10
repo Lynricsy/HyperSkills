@@ -1,0 +1,59 @@
+[
+  {
+    "skills": ["vue"],
+    "query": "ProductFilters.vue in this directory is a Vue 3.5 component. Changing the category prop or clicking Reset stops updating the list, and the search box sometimes shows results for an older query. Tell me exactly what is broken and show the fixes.",
+    "files": ["evals/files/ProductFilters.vue"],
+    "expected_behavior": [
+      "Flags `const { category } = props` after `const props = defineProps(...)` as the reactivity loss: Reactive Props Destructure only applies to destructuring the `defineProps()` call itself, so this copies the value once; fixes it by destructuring the macro call directly or reading `props.category`",
+      "Flags `watch(category, ...)` as watching a plain value and requires a getter — `watch(() => props.category, ...)` (or `watch(() => category, ...)` when destructured from the macro) — because `watch` needs a reactive source, not a snapshot",
+      "Flags `let filters = reactive(...)` being reassigned in resetFilters: replacing the proxy leaves every existing binding pointing at the old object; fixes it by mutating the existing object (assign the fields or use `Object.assign`) and declaring it `const`",
+      "Flags `requestCount = 0` in resetFilters as a missing `.value` on a ref (an assignment to the ref variable itself, which either throws on a const binding or destroys reactivity)",
+      "Flags the write to `requestCount` inside the `total` computed getter as a side effect in a computed, and moves it into a watcher or the fetch path",
+      "Flags `props.category = 'all'` in select() as mutating a prop, and replaces it with an emitted event (or `defineModel`) so the parent owns the value",
+      "Flags the un-cancelled async work in both watchers as the stale-result race and fixes it with the watcher cleanup callback plus an AbortController — `onWatcherCleanup(() => controller.abort())` or the third `onCleanup` argument — rather than a debounce or a manual sequence counter",
+      "Flags `v-if` on the same element as `v-for` and moves the predicate into a `computed` (or a wrapping `<template v-for>`), because `v-if` is evaluated first and cannot see the loop variable",
+      "Moves the `.filter(...).slice(...)` expression out of the template into a `computed` so it is cached instead of re-running on every render"
+    ]
+  },
+  {
+    "skills": ["vue"],
+    "query": "In this directory useCartStore.ts, CartSummary.vue and cart-summary.spec.ts are our Pinia cart. Subtotal never updates in the UI, DevTools does not show the whole store, and the tests are useless. Fix the store, the component and the tests.",
+    "files": [
+      "evals/files/useCartStore.ts",
+      "evals/files/CartSummary.vue",
+      "evals/files/cart-summary.spec.ts"
+    ],
+    "expected_behavior": [
+      "Says a setup store must return every state ref, and that keeping `lastSyncedAt` and `pendingRequests` out of the returned object breaks SSR hydration, DevTools and Pinia plugins; returns them (an underscore-prefixed name is the way to signal internal use)",
+      "Flags `lines: readonly(lines)` as breaking the same three things — Pinia cannot treat a readonly ref as state — and returns the raw ref instead",
+      "Flags `const { subtotal, isEmpty, lines } = cart` in CartSummary.vue as the reason the UI freezes, and replaces it with `storeToRefs(cart)` for state and getters while noting actions can be destructured directly because they are bound to the store",
+      "Uses `createTestingPinia` as a mount plugin (`global: { plugins: [createTestingPinia({ createSpy: vi.fn })] }`) for the component test, and `setActivePinia(createPinia())` in `beforeEach` for the pure store test, instead of mounting with no Pinia installed",
+      "Deletes or replaces the snapshot-only test and the `wrapper.vm` internal-state assertion with assertions on observable output — rendered subtotal, rendered lines, or an action spy",
+      "Notes that `createTestingPinia` stubs actions by default, so a test that needs `loadFromServer` to actually run must pass `stubActions: false`, and one that only checks it was called should assert on the spy"
+    ]
+  },
+  {
+    "skills": ["vue"],
+    "query": "This is a Nuxt 4 app: dashboard.vue is app/pages/dashboard.vue and ProjectQuota.vue is app/components/ProjectQuota.vue. We get hydration mismatch warnings, /api/projects is requested twice per page load, and archiving a project does not update the list. Diagnose and fix.",
+    "files": ["evals/files/dashboard.vue", "evals/files/ProjectQuota.vue"],
+    "expected_behavior": [
+      "Explains that `useFetch` derives its cache key from the URL, the options and the call site, so the same URL called from two components produces two keys and two requests; fixes the duplication with one explicit shared `key` (or a `useAsyncData` wrapper with a fixed key, or `useNuxtData` in the second component)",
+      "Explains that `useAsyncData`/`useFetch` return `data` as a shallow ref because `deep` defaults to false, so mutating `projects.value[i].archived` triggers no render; fixes it by replacing `data.value` with a new array, passing `deep: true`, or refreshing",
+      "Flags the bare `await $fetch('/api/stats')` in setup as fetching once on the server and again during hydration because its result is not in the Nuxt payload, and replaces it with `useFetch`/`useAsyncData`",
+      "Flags `localStorage.getItem('theme')` in setup as server-side breakage and replaces it with `useCookie('theme', { default: () => 'light' })` (or defers it to onMounted / ClientOnly)",
+      "Flags `new Date()` in setup and in the template as a guaranteed hydration mismatch and replaces it with an SSR-stable source — `useState`, `<NuxtTime>`, `<ClientOnly>` with a fallback, or a value computed after mount",
+      "Flags `config.stripeSecretKey` and `config.maxProjects` being read in a component template: private runtime config is server-only and reads as undefined on the client, so only `runtimeConfig.public` values belong there — and a secret must never be sent to the browser",
+      "Keeps the loading and error surface: uses the returned `status`/`error` refs (or the `pending`/`error` branches) rather than assuming `data` is populated"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "page.tsx in this directory is slow to render. How do I speed up the data fetching in this server component?",
+    "files": ["evals/files/page.tsx"],
+    "expected_behavior": [
+      "Does not read the vue skill: skill_read is false",
+      "Answers as React Server Component work: the three sequential awaits are a request waterfall, and the independent ones should be started together with Promise.all (or by creating the promises first and awaiting later)",
+      "Gives no Vue, Nuxt, Pinia or useFetch advice"
+    ]
+  }
+]

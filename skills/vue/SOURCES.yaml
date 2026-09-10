@@ -1,0 +1,117 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin vue
+skill: vue
+version: "2026.09.11"
+upstreams:
+  - id: vuejs-ai-skills
+    kind: repo
+    repo: vuejs-ai/skills
+    url: https://github.com/vuejs-ai/skills
+    paths:
+      - skills/vue-best-practices
+      - skills/vue-debug-guides
+      - skills/vue-pinia-best-practices
+      - skills/vue-router-best-practices
+      - skills/vue-testing-best-practices
+    ref: main
+    commit: c9d355ff23f654309dd02006be671859df0a134c
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The trunk failure-mode inventory: each path by which reactivity detaches (destructured reactive, reassigned proxy, refs inside collections, proxy identity), object mutation through defineModel not emitting, defineExpose dropped after an await, deep watch handing back the same reference, lifecycle and provide registration having to be synchronous, Pinia setup stores having to return all state, a route param change not re-running the component, return-based navigation guards replacing next(), composables with lifecycle hooks needing a host component in tests, and snapshot-only tests proving nothing. Also the workflow ordering rule that performance is a separate pass after behaviour is correct."
+    notes: "Upstream frontmatter (metadata.version 18.0.0, author github.com/vuejs-ai, MUST/ALWAYS phrasing) and its Claude Code marketplace files were stripped. Its skills/vue-options-api-best-practices and skills/vue-jsx-best-practices trees were read and deliberately not merged: this skill documents one default authoring style. Its blanket rule 'always use shallowRef() instead of ref() for primitive values' contradicts the official documentation and was rejected (research/vue.md ruling 1). hyf0/vue-skills redirects to this repository and is not a separate upstream."
+  - id: onmax-nuxt-skills
+    kind: repo
+    repo: onmax/nuxt-skills
+    url: https://github.com/onmax/nuxt-skills
+    paths:
+      - skills/nuxt
+      - skills/vue
+    ref: main
+    commit: 50878f5d40687d7617d6b26e1469006c771176f4
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Nuxt data-primitive selection (useFetch versus useAsyncData versus $fetch versus callOnce) and the option-consistency contract for calls sharing a key; useState as request-isolated payload state; useRequestFetch and the header-forwarding boundary; the ownership-based way of writing a Scope section. On the Vue side: defineModel({ required: true }) to avoid the initialisation double-emit, useTemplateRef, useId, data-allow-mismatch and deferred Teleport."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its agent-specific 'Loading Files' checklists and cross-references to its own nuxt-ui / reka-ui / vueuse skills were stripped. Its skills/vue/references/gotchas.md is itself derived from vuejs-ai/skills; overlapping facts were re-verified against the official documentation before being written here."
+  - id: antfu-skills
+    kind: repo
+    repo: antfu/skills
+    url: https://github.com/antfu/skills
+    paths:
+      - skills/vue
+      - skills/nuxt
+    ref: main
+    commit: a74f281a27dadc02397bc1a174b0f2c97531b6ae
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The SSR and context failure catalogue: the four valid contexts for a Nuxt composable, module-level state leaking across server requests, Nuxt context being lost after an await in setup, browser-only libraries needing a dynamic import inside onMounted, and the error-message-to-cause table. On the Vue side: effectScope, watcher flush timing, the toValue / MaybeRefOrGetter composable input contract, and returning refs rather than a reactive object."
+    notes: "paths are deliberately narrowed to skills/vue and skills/nuxt: this repository is already an upstream of this library's frontend-design skill (skills/antfu-design), and its skills/pinia content is fully covered by vuejs-ai-skills plus the official Pinia documentation, which is the higher authority. Its skills/vue-best-practices, vue-router-best-practices and vue-testing-best-practices directories are synchronised copies of vuejs-ai/skills (each carries its own LICENSE.md and SYNC.md) and are attributed there instead. metadata.source and metadata.author were stripped. Its claims 'prefer shallowRef over ref', 'discourage Reactive Props Destructure' and 'avoid auto-generated useAsyncData keys' were each rejected against the official documentation (research/vue.md rulings 1, 2 and 4)."
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - instructions/vue.instructions.md
+      - skills/unit-test-vue-pinia
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The coverage checklist used to find this skill's gaps, which added defineSlots and defineOptions, customRef, scoped-style :deep() and v-bind(), and effectScope. And the testing decision table: createTestingPinia as a mount plugin with createSpy: vi.fn, stubActions: false only when an action's real behaviour is the subject, initialState for seeding, setActivePinia(createPinia()) for pure store tests, and wrapper.vm as an exception rather than a default."
+    notes: "The instructions/*.instructions.md frontmatter field applyTo is an agent-specific glob and was stripped. The instruction file is a breadth checklist rather than a trap list, so it was used for coverage rather than as a source of rules."
+  - id: awesome-skills-code-review
+    kind: repo
+    repo: awesome-skills/code-review-skill
+    url: https://github.com/awesome-skills/code-review-skill
+    paths:
+      - reference/vue.md
+    ref: main
+    commit: 4850184dfd7765ea7b3c5c4e9b6cf8e0815ee7cb
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The review-oriented topic grouping behind this skill's Output format, and the shallowRef plus triggerRef pairing for deliberate deep mutations of an opted-out ref."
+    notes: "Upstream reference is written in Chinese; only its structure and rule semantics were taken and everything here is written from scratch in English."
+  - id: vue-docs
+    kind: docs
+    url: https://vuejs.org/guide/introduction.html
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authority for every version-sensitive statement: what Reactive Props Destructure does and does not transform (3.5+) and why a destructured prop passed into a function needs a getter, shallowRef's actual purpose and the real magnitude of deep-reactivity overhead, watcher cleanup and flush timing, data-allow-mismatch, useId, useTemplateRef, v-memo and v-once semantics, hydration mismatch causes, and attribute fallthrough rules."
+    notes: "Sources live in vuejs/docs, whose LICENSE file is Creative Commons Attribution 4.0 International (images excepted); the GitHub API reports NOASSERTION. Attribution: Vue.js documentation, copyright 2019-present Yuxi (Evan) You and Vue documentation contributors, CC BY 4.0. Only technical facts were taken; all wording here is original. Current GA was confirmed as Vue 3.5.42 through the releases API, with 3.6.0-rc still a prerelease, so nothing 3.6-specific is stated."
+  - id: nuxt-docs
+    kind: docs
+    url: https://nuxt.com/docs
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Nuxt facts this skill turns into rules: useFetch keys including the call site, the must-match versus may-differ option lists for calls sharing a key, deep defaulting to false so data is a shallow ref, createUseFetch being a compiler macro that must be an exported declaration and useFetch being a reserved name, the independence of await and lazy, private runtimeConfig being server-only, the hydration-mismatch cause and fix table, componentIslands defaulting to auto, and the app/ directory layout."
+    notes: "Sources live in nuxt/nuxt under docs/, which carries that repository's MIT licence. Current GA was confirmed as Nuxt 4.5.2 through the releases API; the Nitro v3 and import-path changes documented for Nuxt 5 are deliberately not stated here."
+  - id: pinia-docs
+    kind: docs
+    url: https://pinia.vuejs.org/core-concepts/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "That a setup store must return all state properties and that making them readonly breaks SSR, devtools and plugins just as omitting them does; storeToRefs' exact behaviour including plugin-added properties and directly destructurable actions; that $reset exists only on option stores; store use outside components and inside router guards; $patch, $subscribe and $onAction; and that Pinia 4 is ESM-only with @vue/devtools-api as a required peer dependency."
+    notes: "Sources live in vuejs/pinia under packages/docs, which carries that repository's MIT licence. Current release confirmed as Pinia 4.0.3 through the releases API."
+  - id: router-docs
+    kind: docs
+    url: https://router.vuejs.org/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Navigation guard return-value semantics and which guard runs on a param change, reacting to param changes, the RouteRecordInfo and TypesConfig shape for typed routes including the raw-versus-normalised param types, RouteMeta augmentation, scrollBehavior, and that Vue Router 5 merges unplugin-vue-router into core with no breaking changes for v4 users apart from the IIFE build."
+    notes: "Sources live in vuejs/router under packages/docs, which carries that repository's MIT licence. Current release confirmed as Vue Router 5.3.1 through the releases API."
+  - id: vue-test-utils-docs
+    kind: docs
+    url: https://test-utils.vuejs.org/guide/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The exact shapes this skill's test examples rely on: the global.plugins mounting option, emitted() payload assertions, findComponent for driving child events, flushPromises versus nextTick, and the trade-off of shallow mounting."
+    notes: "Sources live in vuejs/test-utils, MIT. Vue Test Utils 2.5 is the current release."
