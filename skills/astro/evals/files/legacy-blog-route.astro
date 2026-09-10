@@ -1,0 +1,29 @@
+---
+// Original path in the project: src/pages/blog/[...slug].astro
+import { getCollection, getEntryBySlug } from "astro:content";
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await post.render();
+const author = await getEntryBySlug("authors", post.data.author.slug);
+const siblings = await Astro.glob("../../data/promos/*.json");
+---
+
+<BlogLayout title={post.data.title} site={Astro.site}>
+  <h1>{post.data.title}</h1>
+  <p>by {author.data.name} on {post.data.pubDate.toDateString()}</p>
+  {post.data.heroImage && <img src={post.data.heroImage} alt="" />}
+  <nav>
+    {headings.map((h) => <a href={`#${h.slug}`}>{h.text}</a>)}
+  </nav>
+  <Content />
+  <aside>{siblings.map((p) => <span>{p.title}</span>)}</aside>
+</BlogLayout>

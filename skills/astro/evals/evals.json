@@ -1,0 +1,65 @@
+[
+  {
+    "skills": ["astro"],
+    "query": "product-page.astro is our Astro 7 product page and it ships about 300 KB of JavaScript on first load even though most of the page never changes. Review the hydration in this file and tell me exactly which directives to change and why. Also: AddToCart reads useCart() from CartProvider and the cart count in SiteNav never updates - what is going on there?",
+    "files": ["evals/files/product-page.astro"],
+    "expected_behavior": [
+      "Removes the client:* directive entirely from the components that have no browser interactivity (SiteFooter, and RelatedGrid unless it is interactive), stating that an undirected framework component renders to static HTML with zero JavaScript",
+      "Moves the below-the-fold heavy components (ReviewList, RelatedGrid) to client:visible rather than client:load, and states that client:load is a high-priority directive that blocks nothing but downloads immediately",
+      "Says client:visible accepts only rootMargin as an option (e.g. client:visible={{ rootMargin: \"200px\" }}) and does not invent a threshold option",
+      "Recommends replacing the client:load navigation island with a plain <script> in the .astro component for a hamburger toggle instead of hydrating a framework component",
+      "Explains that each client:* directive creates a separate island root, so CartProvider cannot supply React context to AddToCart or SiteNav across island boundaries; recommends one island wrapping the interactive subtree, or a shared store / custom events / URL state instead of context",
+      "Identifies the per-request price and stock data as the case for a server island (server:defer with slot=\"fallback\") or an on-demand route, rather than fetching it in getStaticPaths-built static HTML"
+    ]
+  },
+  {
+    "skills": ["astro"],
+    "query": "We just upgraded this project to Astro 7 and the build fails on our content collections. legacy-content-config.ts is our src/content/config.ts and legacy-blog-route.astro is src/pages/blog/[...slug].astro. Fix both files for Astro 7 and list every API that changed.",
+    "files": [
+      "evals/files/legacy-content-config.ts",
+      "evals/files/legacy-blog-route.astro"
+    ],
+    "expected_behavior": [
+      "Moves the config from src/content/config.ts to src/content.config.ts and states that the legacy location is no longer recognised",
+      "Replaces type: 'content' / type: 'data' with a required loader, using glob({ pattern, base }) for the Markdown blog and file() or glob() for the authors data, and says collections without a loader now error",
+      "Changes the Zod import from astro:content to astro/zod, and updates the Zod 4 forms (z.email(), z.url(), z.coerce.date()) instead of z.string().email() / z.string().url()",
+      "Replaces entry.slug with entry.id in getStaticPaths params and in the reference lookup, and replaces getEntryBySlug() with getEntry()",
+      "Replaces post.render() with the standalone render(post) imported from astro:content",
+      "Replaces Astro.glob() with import.meta.glob() and notes that import.meta.glob() does not return a promise",
+      "Replaces Astro.site inside getStaticPaths-scoped or removed globals with import.meta.env.SITE, or otherwise flags that Astro is no longer available in getStaticPaths",
+      "Recommends running astro sync (or astro check) after the change to regenerate collection types"
+    ]
+  },
+  {
+    "skills": ["astro"],
+    "query": "astro.config.mjs, signup-page.astro (src/pages/signup.astro) and signup-action.ts (src/actions/index.ts) are from an Astro 7 app. `astro build` errors on the config and the signup form posts but the action never seems to run. Tell me what is wrong and give me the corrected files.",
+    "files": [
+      "evals/files/astro.config.mjs",
+      "evals/files/signup-page.astro",
+      "evals/files/signup-action.ts"
+    ],
+    "expected_behavior": [
+      "States that output: 'hybrid' no longer exists and that output only accepts 'static' or 'server'; recommends keeping the default 'static' and opting individual routes out with export const prerender = false (or 'server' plus export const prerender = true for the static pages)",
+      "Adds a server adapter (e.g. @astrojs/node, @astrojs/vercel, @astrojs/netlify, @astrojs/cloudflare) and states that no route renders on demand without one",
+      "Removes the experimental.actions and experimental.serverIslands flags because both features are stable and the flags no longer exist",
+      "Identifies that a form action requires the page to be rendered on demand, so src/pages/signup.astro needs export const prerender = false",
+      "Adds accept: 'form' to defineAction, since the action otherwise expects JSON and will not parse the form submission",
+      "Adds enctype=\"multipart/form-data\" to the <form> so the file input validates against z.instanceof(File)",
+      "Reads the submission result on the server with Astro.getActionResult(actions.signup) and handles error / redirect, rather than leaving the form with no feedback path",
+      "Changes the Zod import in the action from astro:content to astro/zod and uses z.email() plus z.coerce.boolean() for the checkbox",
+      "Notes that actions are reachable as public endpoints under /_actions/<name>, so the handler must do its own authorization",
+      "Moves vite.build.rollupOptions.output to vite.environments.client.build.rollupOptions.output for Vite's Environments API"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "search-panel.jsx keeps re-fetching in a loop - every response updates state and the effect fires again. How do I fix it?",
+    "files": ["evals/files/search-panel.jsx"],
+    "expected_behavior": [
+      "Does not read or load the astro skill (skill_read == false); this is a React hook dependency problem, not an Astro islands problem",
+      "Identifies that results and the freshly-created filters object are in the dependency array while the effect also sets both, so every run schedules another run",
+      "Fixes it by narrowing the dependencies to the primitive query inputs and not writing derived server data back into the dependency object (separate total into its own state, drop results from the array)",
+      "Mentions guarding against out-of-order or stale responses (AbortController or an ignore flag) as part of a correct effect"
+    ]
+  }
+]

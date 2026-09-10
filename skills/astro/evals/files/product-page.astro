@@ -1,0 +1,46 @@
+---
+// Original path in the project: src/pages/products/[id].astro
+import Layout from "../../layouts/Layout.astro";
+import SiteNav from "../../components/SiteNav.jsx";
+import PriceBadge from "../../components/PriceBadge.jsx";
+import AddToCart from "../../components/AddToCart.jsx";
+import ReviewList from "../../components/ReviewList.jsx";
+import RelatedGrid from "../../components/RelatedGrid.jsx";
+import SiteFooter from "../../components/SiteFooter.jsx";
+import { CartProvider } from "../../components/CartProvider.jsx";
+
+export async function getStaticPaths() {
+  const res = await fetch("https://shop.example.com/api/products");
+  const products = await res.json();
+  return products.map((p) => ({ params: { id: p.id }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+const stock = await fetch(`https://shop.example.com/api/stock/${product.id}`).then((r) =>
+  r.json(),
+);
+---
+
+<Layout title={product.name}>
+  <!-- nav only has a hamburger toggle -->
+  <SiteNav client:load links={product.breadcrumbs} />
+
+  <CartProvider client:load>
+    <h1>{product.name}</h1>
+    <img src={product.imageUrl} alt={product.name} />
+
+    <!-- price and stock go stale within minutes -->
+    <PriceBadge client:load price={product.price} stock={stock.count} />
+
+    <!-- AddToCart calls useCart() from CartProvider -->
+    <AddToCart client:load product={product} onAdded={() => console.log("added")} />
+
+    <p set:html={product.descriptionHtml} />
+
+    <!-- ~180 KB of chart + markdown deps, at the very bottom of the page -->
+    <ReviewList client:load reviews={product.reviews} />
+    <RelatedGrid client:load items={product.related} />
+  </CartProvider>
+
+  <SiteFooter client:load year={new Date().getFullYear()} />
+</Layout>

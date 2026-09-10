@@ -1,0 +1,98 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin astro
+skill: astro
+version: "2026.09.11"
+upstreams:
+  - id: withastro-docs
+    kind: docs
+    url: https://docs.astro.build/en/getting-started/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authoritative basis for every technical statement here: the client and server island model and the exact option set of each directive, prop serialisation limits, content collections and the content layer (glob/file loader options, Zod 4 schema forms, references, live collections), routing and getStaticPaths constraints, output modes and adapters, astro:actions and the HTML form contract, middleware and next(path) semantics, sessions and sessionDrivers, astro:env, view transitions and the script re-execution rules, images and the Fonts API, route caching, advanced routing, the CLI, and the complete Astro 5-to-6-to-7 removal and changed-default inventory."
+    notes: "Documentation source lives in withastro/docs, whose LICENSE file was read and is MIT, so the docs are merged rather than reference-only. Read as .mdx source from that repository rather than as rendered pages. All wording here is original; only the technical facts are taken. Every version-sensitive claim was cross-checked against packages/astro/CHANGELOG.md in withastro/astro and against the releases API (current GA astro@7.3.2, 2026-09-08)."
+  - id: withastro-astro-skills
+    kind: repo
+    repo: withastro/astro
+    url: https://github.com/withastro/astro
+    paths:
+      - .agents/skills/astro-developer
+      - .agents/skills/astro-code-review
+    ref: main
+    commit: 504333c2a0c7da3ca06e39ce37eee832192ba8ea
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The review posture of the audit workflow and Output format: report only findings worth acting on, never rewrite code that was not asked about, disclose what was dropped, and end with a verdict rather than a summary of the diff. Its testing section supplied the prefer-unit-tests-then-Container-API ordering, and its execution-context split (core / runtime-server / runtime-client) is why this skill states that getImage() is server-only and that anything browser-specific must be read after mount."
+    notes: "These two skills target contributors working inside the Astro monorepo, not application authors. Only the judgement criteria and the review contract were taken; none of its monorepo workflow, pipeline internals, virtual-module registry, pnpm commands or changeset process appears here. The GitHub API reports NOASSERTION for this repository; the LICENSE file was read and is MIT with an appended notice covering code originating from sveltejs/kit, which does not affect these paths. Its analyze-github-action-logs, astro-pr-writer, changeset, merge and triage skills are out of scope and are not in paths."
+  - id: awesome-copilot-astro
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - instructions/astro.instructions.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Independent confirmation that the current baseline is Astro 7.x plus Zod 4, and the specific pairings this skill keeps together: collections in src/content.config.ts with a loader and z from astro/zod, top-level Zod format validators, the astro sync requirement after a collection or config change, ClientRouter imported from astro:transitions, server:defer with a slot=\"fallback\" and an adapter, the strict-HTML consequence of the Rust compiler, and the compressHTML: 'jsx' whitespace caveat with the {\" \"} remedy."
+    notes: "The instructions/*.instructions.md frontmatter fields description and applyTo are Copilot-specific; applyTo is an agent glob and was stripped. This file is the only Astro material in the repository; its skills/ tree has no Astro entry."
+  - id: gigio-astro-dev
+    kind: repo
+    repo: gigio1023/astro-dev-skill
+    url: https://github.com/gigio1023/astro-dev-skill
+    paths:
+      - skills/astro-dev/SKILL.md
+      - skills/astro-dev/references/astro-core-patterns.md
+      - skills/astro-dev/references/content-collections.md
+      - skills/astro-dev/references/islands-and-hydration.md
+      - skills/astro-dev/references/actions-and-forms.md
+      - skills/astro-dev/references/view-transitions.md
+      - skills/astro-dev/references/server-features.md
+    ref: main
+    commit: c98d158bb7899a0ecedbc26fa2395dc10f914ef3
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The idea of a read-first removed-API index rather than a version-history narrative, and most of its inventory: Astro.glob(), entry.render(), legacy collection locations and types, output: 'hybrid', CommonJS config and <ViewTransitions />. Also the Sätteri-versus-unified decision for markdown.processor, the reserved src/fetch.ts filename, initialising client-side routing through astro:page-load with pre-paint work in astro:before-swap, and the rule that a route needing cookies, sessions, actions or POST must render on demand."
+    notes: "Its tailwind.md and blog-recipes.md are out of this skill's scope (visual design belongs to frontend-design) and are not in paths. Its doc-endpoints.md encodes one agent's documentation-search tool and was not used; this skill points at docs.astro.build instead. Every claim taken from it was re-verified against the Astro documentation source."
+  - id: delineas-astro-framework
+    kind: repo
+    repo: delineas/astro-framework-agents
+    url: https://github.com/delineas/astro-framework-agents
+    paths:
+      - skills/astro-framework/SKILL.md
+      - skills/astro-framework/references/client-directives.md
+      - skills/astro-framework/references/server-islands.md
+      - skills/astro-framework/references/content-collections.md
+      - skills/astro-framework/references/ssr-adapters.md
+      - skills/astro-framework/references/actions.md
+      - skills/astro-framework/references/middleware.md
+      - skills/astro-framework/references/routing.md
+      - skills/astro-framework/references/sessions.md
+      - skills/astro-framework/references/view-transitions.md
+      - skills/astro-framework/references/images.md
+    ref: main
+    commit: 3e32c91cc433424e162472b81afaa5e9324669bb
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage check only: its topic inventory (client directives, server islands, content layer, adapters, actions, middleware, sessions, view transitions, images, i18n) was used to confirm this skill leaves no Astro subject uncovered, and its decision-tree framing prompted the check that the documentation's own islands and server-islands pages state the same three-way choice."
+    notes: "Scored 0 for correctness on the review scale and therefore rejected as a content source: it presents output: 'hybrid' as a current mode, documents legacy type: 'content'/'data' collections and post.slug alongside the content layer, and invents a threshold option on client:visible. All three are wrong against the documentation (research/astro.md rulings 1-3), so no statement in this skill derives from it and it appears in no reference's sources footer. Recorded here because it was read in full and because a later sync should re-score it if the stale sections are fixed."
+  - id: incluud-astro-skills
+    kind: repo
+    repo: incluud/astro-agent-skills
+    url: https://github.com/incluud/astro-agent-skills
+    paths:
+      - skills/astro-best-practices/SKILL.md
+      - skills/content-collection/SKILL.md
+      - skills/add-integration/SKILL.md
+      - skills/migrate/SKILL.md
+    ref: main
+    commit: 4b4355ecea8ef4f68c9025f3de5a73c27df59310
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The .astro-first default and the instruction to keep islands small and leaf-like rather than hydrating layout regions, the build-time-versus-live decision framed as src/content.config.* against src/live.config.*, the schema-as-a-function form with the image() helper for validated cover images, and the explicit no type: 'content' / type: 'data' rule."
+    notes: "Its docs-lookup and create-component skills are thin wrappers around one agent's tooling and were not used. Its accessibility guidance belongs to the frontend-design skill and is not reproduced here."
