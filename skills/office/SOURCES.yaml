@@ -1,0 +1,183 @@
+skill: office
+version: "2026.09.10"
+upstreams:
+  - id: anthropic-docx
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/docx]
+    ref: main
+    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Topic coverage checklist for Word work: docx-js creation, OOXML editing, tracked changes, comments, render verification."
+    notes: "Proprietary no-derivatives licence (skills/docx/LICENSE.txt). Read for the list of subjects a Word skill must cover and as a quality bar. No prose, script, schema or data file copied; all content here is written from library documentation plus local reproduction."
+  - id: anthropic-pptx
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/pptx]
+    ref: main
+    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Topic coverage checklist for deck work: pptxgenjs pitfalls, template filling, deck design, required QA before delivery."
+    notes: "Proprietary no-derivatives licence. Nothing copied. Its colour claim was re-tested locally against pptxgenjs 4.0.1 and the rule here differs from it as a result."
+  - id: anthropic-xlsx
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/xlsx]
+    ref: main
+    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Topic coverage checklist for spreadsheets: formulas over values, mandatory recalculation, openpyxl pitfalls, financial model conventions."
+    notes: "Proprietary no-derivatives licence. Nothing copied, including its recalculation script and formula compatibility list; the tables here come from a local LibreOffice 26.2 test matrix and reach different conclusions."
+  - id: anthropic-pdf
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/pdf]
+    ref: main
+    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Topic coverage checklist for PDFs: forms, tables, OCR, merge and split, library routing."
+    notes: "Proprietary no-derivatives licence. Nothing copied, including its eight form scripts; pdf_form_fields.py was written from the pypdf API and local tests."
+  - id: openai-pdf
+    kind: repo
+    repo: openai/skills
+    url: https://github.com/openai/skills
+    paths: [skills/.curated/pdf]
+    ref: main
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The render-inspect-fix loop as the delivery gate, the reportlab/pdfplumber/pypdf split, and the rule that nothing ships until a page render shows zero defects."
+    notes: "Repository has no top-level licence; skills/.curated/pdf/LICENSE.txt is the Apache-2.0 text, verified on 2026-09-10. Repository is marked deprecated upstream, so treat it as frozen rather than tracked."
+  - id: copilot-md-to-docx
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths: [skills/md-to-docx]
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The zero-native-dependency Markdown to Word approach: docx plus marked, YAML front matter driving a title page, a generated contents list, and images sized from their file headers."
+    notes: "scripts/md_to_docx.mjs is a fresh implementation of the same approach with block quotes, nested and ordered lists, JPEG/GIF/BMP support, and an explicit ImageRun type."
+  - id: open-design-pptx
+    kind: repo
+    repo: nexu-io/open-design
+    url: https://github.com/nexu-io/open-design
+    paths: [skills/pptx]
+    ref: main
+    commit: 712b0db974e87867c996366aa689bf4aed604f94
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Audited as a possible permissive pptx source; contributed nothing."
+    notes: "Audit on 2026-09-10: the part is a 1,221-byte catalogue stub whose body points the reader at anthropics/skills/skills/pptx and carries no pptx technique, script or reference of its own. No paragraph overlaps anthropic-pptx, so it is not a laundering risk either - there is simply nothing to merge. Downgraded from merged to reference."
+  - id: slidespeak-design
+    kind: repo
+    repo: SlideSpeak/slide-design-skill
+    url: https://github.com/SlideSpeak/slide-design-skill
+    paths: [SKILL.md]
+    ref: main
+    commit: 5e87d8ae71f6306e0c88f4910e6c09114581d91b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Deck design stance taken into references/pptx-design.md: derive the visual style from the brief instead of picking a theme, and enforce readable type, no empty bands, no invented numbers as hard rules."
+    notes: "20 stars, pushed 2026-06-25. Its engine is an HTML slide renderer, which is out of scope here; only the design rules were used, rewritten for a pptx pipeline."
+  - id: ourarash-md-docx
+    kind: repo
+    repo: ourarash/markdown-docx-tool
+    url: https://github.com/ourarash/markdown-docx-tool
+    paths: [skills/markdown-to-docx]
+    ref: main
+    commit: 4456f8254482d11feb425bb7e2adc636be377d48
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The pandoc-with-reference-document path as the escape hatch for house templates, including named custom-style callouts and the rule that a missing style degrades silently."
+    notes: "0 stars, pushed 2026-06-22; included for the technique, not for authority. Its bundled reference.docx and wrapper scripts were not copied."
+  - id: docx-js-docs
+    kind: docs
+    url: https://docx.js.org/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "docx-js API surface for documents, sections, paragraphs, runs, tables, images and fields; the basis of references/docx.md."
+  - id: pptxgenjs-docs
+    kind: docs
+    url: https://gitbrent.github.io/PptxGenJS/docs/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "pptxgenjs API for masters, text, tables, charts, images and notes."
+  - id: openpyxl-docs
+    kind: docs
+    url: https://openpyxl.readthedocs.io/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "openpyxl behaviour for formulas, data_only loading, merged cells, number formats, charts, keep_vba and the read-only and write-only modes."
+  - id: python-openxml-docs
+    kind: docs
+    url: https://python-docx.readthedocs.io/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "python-docx and python-pptx object models, used for the library round-trip gate and for template filling."
+  - id: pypdf-docs
+    kind: docs
+    url: https://pypdf.readthedocs.io/
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "pypdf reader and writer semantics: append, clone_from, page transforms, metadata, encryption and AcroForm field updates."
+  - id: pdfplumber-docs
+    kind: docs
+    url: https://github.com/jsvine/pdfplumber
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Positional text extraction and the table-detection strategies, tolerances and explicit-line settings."
+  - id: reportlab-docs
+    kind: docs
+    url: https://docs.reportlab.com/
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "reportlab canvas and platypus: coordinate origin, paragraph markup, table styles, font registration and AcroForm creation."
+  - id: pandoc-docs
+    kind: docs
+    url: https://pandoc.org/MANUAL.html
+    license: GPL-2.0-or-later
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Reading docx, the track-changes modes, and the reference-document style mapping including custom-style divs."
+    notes: "Documentation consulted for behaviour only; no manual text reproduced."
+  - id: libreoffice-docs
+    kind: docs
+    url: https://help.libreoffice.org/
+    license: MPL-2.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Headless conversion, --convert-to filters, recalculation on load, and the private user-profile flag both bundled scripts rely on."
+  - id: ecma-376
+    kind: docs
+    url: https://ecma-international.org/publications-and-standards/standards/ecma-376/
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Normative OOXML markup semantics for w:ins, w:del, w:delText, paragraph-mark revisions, rPrChange, comment parts, content types and relationships."
+    notes: "Freely published standard with no explicit reuse grant; only element semantics are used, expressed in our own words and examples."

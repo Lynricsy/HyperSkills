@@ -1,0 +1,49 @@
+[
+  {
+    "skills": ["office"],
+    "query": "Build me an Excel file called projection.xlsx with a 3-year revenue projection: 2026 revenue of 1,200,000, a growth rate I can change in one place, and rows for revenue, COGS, gross profit and gross margin. COGS depends on region: put a rate table with EMEA 0.42, AMER 0.38, APAC 0.45 on a second sheet, have a cell where I pick the region, and look the rate up from that table so I can switch region and see everything update.",
+    "expected_behavior": [
+      "Writes live Excel formulas into the driven cells (for example =B4*(1+$B$1)) rather than computing the numbers in Python and writing literal values",
+      "For the region lookup, either writes the post-2007 function with its _xlfn. prefix (=_xlfn.XLOOKUP(...)) or picks INDEX/MATCH which needs no prefix, and does not leave a bare =XLOOKUP( in the file, which recalculates to a #NAME? error",
+      "Avoids or explicitly warns about dynamic-array functions (FILTER, UNIQUE, SORT, SEQUENCE): openpyxl writes no spill metadata, so only the anchor cell gets a value and the truncation is not an error a scan can catch",
+      "Recalculates the workbook (LibreOffice headless, or scripts/xlsx_recalc.py) and reports the error-cell scan result before calling the file finished"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "Create a 6-slide investor deck as deck.pptx with pptxgenjs: title slide, problem, solution, traction with a bar chart, team, and the ask. Dark navy and gold. Make it look professional.",
+    "expected_behavior": [
+      "The generating script passes every color as bare 6-digit hex (for example '1F3864') or a pptx.SchemeColor constant, with no 8-digit hex, no rgb() string and no CSS color name anywhere, since pptxgenjs replaces those with black on a stderr warning nothing surfaces",
+      "Renders the finished .pptx to page images (soffice --convert-to pdf followed by pdftoppm, or scripts/render_preview.py) and actually inspects those images before declaring the deck done",
+      "Picks a LibreOffice metric-compatible font such as Arial and does not use Aptos, so the rendered check reflects the text extents a reader will see"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "In agreement.docx, change the payment terms from net 60 to net 30 and drop the termination sentence. Legal reviews this in Word, so both edits have to show up as tracked changes they can accept or reject.",
+    "files": ["evals/files/agreement.docx"],
+    "expected_behavior": [
+      "Edits the existing package in place (unzip, modify word/document.xml, rezip) instead of regenerating the document from scratch, so unrelated content and parts survive",
+      "Marks the insertion with <w:ins> and the deletion with <w:del> whose runs carry <w:delText> instead of <w:t>, and gives each revision the required w:id, w:author and w:date attributes",
+      "Verifies by resolving the revisions both ways (accept must read net 30, reject must restore net 60 and the termination sentence) rather than by looking at a rendered page, which shows both versions superimposed"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Add a Status column to the Q3 Budget tab of my Google Sheets spreadsheet and fill it in from the Notes column.",
+    "expected_behavior": [
+      "Does not load the office skill: this is a Google Sheets task, not an .xlsx deliverable, so skill_read must be false",
+      "Answers in terms of Google Sheets access (Sheets API, a gws-style CLI, or Apps Script) rather than openpyxl or a local .xlsx workflow"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "intake-form.pdf is a fillable vendor form. Fill it in for vendor Acme Ltd, amount 42000, and tick the approved box. Save it as intake-filled.pdf.",
+    "files": ["evals/files/intake-form.pdf"],
+    "expected_behavior": [
+      "Inspects the AcroForm first (get_fields, or a field-listing script) to learn the real field names and types instead of guessing them",
+      "Sets the checkbox to the widget's on-state name read from /AP /N with the leading slash kept (for example '/Yes'); True, 'Yes', '1' and '/1' all leave the box at /Off with no error raised",
+      "Re-reads the written file and confirms each field, including the checkbox, actually holds the requested value rather than trusting that the write succeeded"
+    ]
+  }
+]

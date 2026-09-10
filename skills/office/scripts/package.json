@@ -1,0 +1,10 @@
+{
+  "name": "hyperskills-office-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Node dependencies for the office skill's Markdown-to-Word converter",
+  "dependencies": {
+    "docx": "^9.7.1",
+    "marked": "^18.0.12"
+  }
+}
