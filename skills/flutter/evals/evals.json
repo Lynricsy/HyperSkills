@@ -1,0 +1,47 @@
+[
+  {
+    "skills": ["flutter"],
+    "query": "Review todo_list.dart in this directory. It is a screen from our Riverpod app that we are about to ship. Point out what is wrong and show the corrected code.",
+    "files": ["evals/files/todo_list.dart"],
+    "expected_behavior": [
+      "States that StateNotifierProvider/StateNotifier and StateProvider are legacy in Riverpod 3 and must not be used in new code",
+      "Shows the replacement written as a Notifier subclass exposed through NotifierProvider (or the @riverpod code-generated equivalent), with the initial value returned from build()",
+      "Flags the missing const on the constant widgets (EdgeInsets.all(8), Icon, SizedBox, Text('Todos'), the TodoPage constructor) and explains that const stops needless rebuilds",
+      "Flags that the todo list is built as a Column of children rather than ListView.builder, and explains the cost of building every row eagerly",
+      "Flags the use of BuildContext (ScaffoldMessenger.of(context)) after an await without a context.mounted guard",
+      "Delivers the review as findings grouped per file with path/line locations and an explicit severity for each finding, closing with a one-line merge verdict"
+    ]
+  },
+  {
+    "skills": ["flutter"],
+    "query": "Our Flutter app uses go_router. I need https://shop.example.com/order/<id> links to open the app straight on the order screen on both Android and iOS. Walk me through everything I have to change.",
+    "expected_behavior": [
+      "Defines the route as a go_router GoRoute with a path parameter and reads it from state.pathParameters",
+      "Gives the Android side: an intent-filter with android:autoVerify=\"true\" plus a BROWSABLE/DEFAULT VIEW action and https scheme with the host in AndroidManifest.xml",
+      "Names the Android Digital Asset Links file /.well-known/assetlinks.json hosted on the domain, with the app's SHA-256 signing fingerprint",
+      "Gives the iOS side: an apple-app-site-association file at /.well-known/ on the domain plus the Associated Domains capability with applinks:shop.example.com",
+      "Gives a concrete command to test the link on a device or simulator (adb shell am start -a android.intent.action.VIEW ... or xcrun simctl openurl)"
+    ]
+  },
+  {
+    "skills": ["flutter"],
+    "query": "Add tests for weather_repository.dart in this directory. Cover the success path and the failure path.",
+    "files": ["evals/files/weather_repository.dart"],
+    "expected_behavior": [
+      "Stubs the HTTP boundary without code generation - mocktail, or the MockClient handler from package:http/testing - and does not pull in mockito plus build_runner; if mocktail's any() is used on a Uri, registers a fallback value in setUpAll",
+      "Asserts the request that was actually sent (the URI or its city query parameter), so the test fails when the request is built wrong rather than only replaying the stub",
+      "Asserts the failure path with expect(..., throwsA(isA<WeatherException>())) on a non-200 response instead of only testing the happy path",
+      "Names flutter test (or dart test) as the command that must pass, and flutter analyze as the second gate"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Review ProfileCard.swift in this directory and tell me what to fix.",
+    "files": ["evals/files/ProfileCard.swift"],
+    "expected_behavior": [
+      "Does not read the flutter skill: skill_read is false",
+      "Reviews the file as SwiftUI code and does not suggest Flutter, Dart or Riverpod changes",
+      "Flags that @State should not be seeded from a value passed into the view (profile should be a plain let, or the view should take a binding)"
+    ]
+  }
+]

@@ -1,0 +1,88 @@
+skill: flutter
+version: "2026.09.10"
+upstreams:
+  - id: flutter-official
+    kind: repo
+    repo: flutter/agent-plugins
+    url: https://github.com/flutter/agent-plugins
+    paths: [skills, rules]
+    ref: main
+    commit: 9b8106dbf09fcc1d0bda0010acc67914e6dab5e5
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Task-shaped workflows and checklists, layered architecture baseline, responsive layout and layout-error decoding, widget/integration testing, declarative routing with native deep-link configuration, localization, JSON serialization and http usage."
+    notes: "Vendor-maintained and generated from docs.flutter.dev; its localization skill still documents the deprecated synthetic-package option, which was corrected against the current official docs."
+  - id: dart-official
+    kind: repo
+    repo: dart-lang/skills
+    url: https://github.com/dart-lang/skills
+    paths: [skills]
+    ref: main
+    commit: c530d2c728b0e6c37a4cbbe032e65b824799b37d
+    license: BSD-3-Clause
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Dart 3 language surface (pattern matching, primary constructors), analyzer configuration and dart fix, runtime error triage, test mocks and coverage, ffigen and FFI asset setup."
+  - id: evanca-rules
+    kind: repo
+    repo: evanca/flutter-ai-rules
+    url: https://github.com/evanca/flutter-ai-rules
+    paths: [skills]
+    ref: main
+    commit: b75d63131c2a0423d90c7b80a0b3c45de3e41423
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "State-management backbone (Riverpod, Bloc, Provider/ChangeNotifier), feature-first folder policy, test validity rules, mocktail and patrol usage, common Flutter error catalogue."
+  - id: sgruhier-flutter
+    kind: repo
+    repo: sgruhier/superpowers-flutter
+    url: https://github.com/sgruhier/superpowers-flutter
+    paths:
+      - skills/riverpod
+      - skills/bloc
+      - skills/go-router
+      - skills/auto-route
+      - skills/flutter-widget-rules
+      - skills/flutter-analyze
+      - skills/flutter-clean-architecture
+      - skills/dart
+    ref: main
+    commit: 4c0034f267c4e79d2f5e04200c18d4adf9d347fc
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Riverpod 3 correctness (legacy provider list, provider selection table, autoDispose/family discipline), sealed state with value equality, go_router and auto_route patterns, numbered widget rules."
+    notes: "LICENSE file is MIT; the GitHub API reports NOASSERTION because of a trailing attribution note. Only the flutter/dart subset was used; the inherited generic workflow skills were not."
+  - id: jeffallan-flutter
+    kind: repo
+    repo: Jeffallan/claude-skills
+    url: https://github.com/Jeffallan/claude-skills
+    paths: [skills/flutter-expert/references/performance.md]
+    ref: main
+    commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Performance checklist seed: const widgets, selective watching, RepaintBoundary, image cache sizing, compute for heavy work, frame budget."
+    notes: "Only references/performance.md was used. Its Riverpod examples use StateNotifierProvider, which is legacy in Riverpod 3 and was deliberately not adopted."
+  - id: harish-flutter-tester
+    kind: repo
+    repo: Harishwarrior/flutter-claude-skills
+    url: https://github.com/Harishwarrior/flutter-claude-skills
+    paths: [flutter-tester/references]
+    ref: main
+    commit: 114379ad2864d024eb11369e0d28b57e55b2c066
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Layered testing patterns, Riverpod provider testing with fresh containers and dependency overrides, widget testing depth (keys, deterministic surface size, pump vs pumpAndSettle)."
+  - id: flutter-docs
+    kind: docs
+    url: https://docs.flutter.dev/platform-integration/platform-channels
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Platform channel architecture, standard codec type mapping, threading and background-isolate rules, Pigeon workflow; and the current internationalization setup that supersedes the synthetic-package pattern."
+    notes: "docs.flutter.dev prose is CC BY 4.0; all wording here is original, only the technical facts are taken."
