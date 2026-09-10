@@ -1,0 +1,68 @@
+openapi: 3.1.0
+info:
+  title: Shipments API
+  version: 1.4.0
+servers:
+  - url: https://api.acme.test/v1
+paths:
+  /shipments:
+    get:
+      operationId: listShipments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, booked, in_transit, delivered]
+      responses:
+        "200":
+          description: All shipments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Shipment" }
+    post:
+      operationId: createShipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ShipmentCreate" }
+      responses:
+        "200":
+          description: Created shipment.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Shipment" }
+  /shipments/{id}:
+    get:
+      operationId: getShipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: The shipment.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Shipment" }
+components:
+  schemas:
+    Shipment:
+      type: object
+      required: [id, status, weight_kg, carrier_ref]
+      properties:
+        id: { type: integer }
+        status: { type: string, enum: [draft, booked, in_transit, delivered] }
+        weight_kg: { type: number }
+        carrier_ref: { type: string, maxLength: 20 }
+        notes: { type: string }
+    ShipmentCreate:
+      type: object
+      required: [weight_kg]
+      properties:
+        weight_kg: { type: number }
+        notes: { type: string }

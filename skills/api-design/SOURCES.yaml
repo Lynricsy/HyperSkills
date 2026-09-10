@@ -1,0 +1,207 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin api-design
+skill: api-design
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: jeffallan-api-designer
+    kind: repo
+    repo: Jeffallan/claude-skills
+    url: https://github.com/Jeffallan/claude-skills
+    paths: [skills/api-designer]
+    ref: main
+    commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The design loop that ends in an executable check (lint the document, then mock it), the resource-model-before-endpoints ordering, and the two error rules this skill keeps: error bodies use application/problem+json, and the problem type must be a stable documented URI rather than a generic string."
+    notes: "Cites the obsoleted RFC 7807 throughout; every problem-details fact was re-derived from RFC 9457 (research/api-design.md ruling 1). Its GraphQL material is out of scope here. Stripped the metadata.domain/triggers/role/scope/output-format/related-skills frontmatter fields and the cross-skill references to the same repository's other skills."
+  - id: zalando-guidelines
+    kind: repo
+    repo: zalando/restful-api-guidelines
+    url: https://github.com/zalando/restful-api-guidelines
+    paths: [chapters]
+    ref: main
+    commit: 41b74fa65d9fbaaf5ad66b471563e92bd15477bb
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The safe/idempotent/cacheable method table, the three idempotency patterns (conditional key, secondary key, idempotency key) and their trade-offs, the 412-versus-304-versus-428 split for conditional requests, the mechanism by which offset pagination duplicates and skips rows, the cost argument against returning a total count, the Deprecation plus Sunset header pair with their two different date formats, and the rule that a top-level JSON payload must be an object so it stays extensible."
+    notes: "CC-BY-4.0: attribution to Zalando SE. The published HTML declares CC-BY-SA-4.0 in a meta tag while the repository LICENSE file and the GitHub API both say CC-BY-4.0; the LICENSE file governs. No text copied verbatim."
+  - id: google-aip
+    kind: repo
+    repo: aip-dev/google.aip.dev
+    url: https://github.com/aip-dev/google.aip.dev
+    paths: [aip/general/0158.md, aip/general/0180.md]
+    ref: master
+    commit: 23e176e7333ea3bc6b085f9950a5da03d2bbfc72
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Adding pagination to an existing collection is a breaking change even though it only adds fields; page tokens must be opaque and base64 is not obfuscation; an absent next-page token is the only end-of-collection signal; the three compatibility axes (source, wire, semantic); renaming equals remove-plus-add; default values, serialisation of defaults, a field's value format and even a documented string length bound cannot change within a version."
+    notes: "GitHub reports NOASSERTION; LICENSE.md read directly says prose is CC-BY-4.0 and code samples Apache-2.0, so this is mergeable with attribution to Google LLC. Conclusions restated in HTTP/JSON terms; no protobuf examples carried over."
+  - id: microsoft-azure-guidelines
+    kind: repo
+    repo: microsoft/api-guidelines
+    url: https://github.com/microsoft/api-guidelines
+    paths: [azure/Guidelines.md]
+    ref: vNext
+    commit: a7022a299442a8352431874e63ec4dff548a1b81
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The long-running-operation contract: when to make an operation asynchronous, 202 plus an Operation-Location header pointing at a status-monitor resource, never modelling PATCH as a long-running operation, and returning 409 when a client-supplied operation id collides with a different request. Also the date-based api-version query parameter as the alternative versioning scheme, and the rule that required request fields can only be introduced in an API's first version."
+    notes: "GitHub reports NOASSERTION; license.txt read directly is CC-BY-4.0, so mergeable with attribution to Microsoft. The repository-root Guidelines.md is now a deprecation notice only, so paths points at azure/Guidelines.md where the live guidance lives."
+  - id: orchestkit-api-design
+    kind: repo
+    repo: yonatangross/orchestkit
+    url: https://github.com/yonatangross/orchestkit
+    paths: [plugins/ork/skills/api-design]
+    ref: main
+    commit: b945f70d4eb04f87eeb8de51495ae99067dbdac7
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Concrete deprecation windows (announce at least one quarter ahead, sunset roughly two quarters after announcement, support the current version plus one, keep at most two or three alive) and the contract-level entries of its common-mistakes list."
+    notes: "The only community upstream that already cites RFC 9457 and RFC 8594/9745 correctly. Its FastAPI, Strawberry, gRPC, SSE and CMS material is out of scope. Stripped the context/agent/user-invocable/disable-model-invocation/complexity/persuasion-type/path_patterns/allowed-tools frontmatter fields."
+  - id: asyrafhussin-patterns
+    kind: repo
+    repo: AsyrafHussin/agent-skills
+    url: https://github.com/AsyrafHussin/agent-skills
+    paths: [skills/api-design-patterns]
+    ref: main
+    commit: 1aa0ff717c10309226c9e678f00873976450fd76
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Structure and checklist semantics only: its seven-category rule taxonomy used as a coverage self-check, which surfaced four topics this skill was missing — sparse fieldsets, sort syntax, non-CRUD actions as sub-resources, and a correlation identifier on error responses."
+    notes: "Its worked examples were rejected: a bespoke {error:{code,message,details}} envelope instead of problem+json (research/api-design.md ruling 1), X-RateLimit-* headers whose X- prefix has been deprecated since RFC 6648 (ruling 8), and a pagination envelope that treats total_count and total_pages as mandatory (ruling 3)."
+  - id: wshobson-openapi-spec-generation
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths:
+      - plugins/documentation-generation/skills/openapi-spec-generation
+      - plugins/backend-development/skills/api-design-principles
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The design-first versus code-first versus hybrid choice for producing an OpenAPI document and when each is right, the authoring discipline of $ref reuse plus examples plus complete error coverage, and a pitfall list used to check this skill's coverage (an API surface that mirrors the database schema, ignored HTTP semantics, inconsistent error formats)."
+    notes: "Its 'don't forget nullable' rule is a 3.0-ism: OpenAPI 3.1 removed nullable when the Schema Object was aligned with JSON Schema, so the body teaches type: [string, \"null\"] instead (research/api-design.md ruling 5)."
+  - id: openapi-spec
+    kind: docs
+    url: https://spec.openapis.org/oas/v3.1.1.html
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "What 3.1 changed by aligning the Schema Object with JSON Schema 2020-12 (nullable, example and the 3.0 discriminator keywords are gone), sibling keywords next to $ref, the webhooks entry point, and the release sequence that establishes 3.1.2 and 3.2.1 as the current patch levels."
+    notes: "Licence verified: OAI/OpenAPI-Specification is Apache-2.0 via `gh api repos/OAI/OpenAPI-Specification`. Version sequence verified against the releases endpoint rather than from memory (research/api-design.md ruling 4)."
+  - id: rfc9457
+    kind: docs
+    url: https://www.rfc-editor.org/rfc/rfc9457
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The problem-details object: the five members and their meaning, application/problem+json, an absent type meaning about:blank, consumers keying on type rather than on the human-readable strings, the rule that a member whose value has the wrong type must be ignored, returning only the most relevant problem instead of a batch, and the errors extension array shape for field-level failures."
+    notes: "IETF Standards Track document under BCP 78 and the IETF Trust Legal Provisions rather than an SPDX licence, hence NONE. Only normative facts were extracted and restated in our own words. Obsoletes RFC 7807, which several upstreams still cite."
+  - id: rfc9110-http
+    kind: docs
+    url: https://www.rfc-editor.org/rfc/rfc9110
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Normative method semantics (safe, idempotent, cacheable), status-code meanings including 201 with Location, 202, 204, 409, 412 and 422, conditional requests with ETag, If-Match and If-None-Match, and Retry-After as the backoff signal clients should rely on."
+    notes: "IETF Standards Track document under BCP 78; facts only, no text reused."
+  - id: rfc9111-caching
+    kind: docs
+    url: https://www.rfc-editor.org/rfc/rfc9111
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Cache-Control and Vary as the response-side cache contract, and why declaring cacheability per operation is part of the contract rather than a deployment detail."
+    notes: "IETF Standards Track document under BCP 78; facts only, no text reused."
+  - id: rfc9745-deprecation
+    kind: docs
+    url: https://www.rfc-editor.org/rfc/rfc9745
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Deprecation response header as a Structured Field Date (Deprecation: @1688169599), its registry status, the deprecation link relation for pointing at a migration document, and the constraint that a Sunset timestamp must not precede the Deprecation timestamp."
+    notes: "IETF Standards Track, March 2025; several upstreams still describe this as an unpublished draft (research/api-design.md ruling 7). Facts only, no text reused."
+  - id: rfc8594-sunset
+    kind: docs
+    url: https://www.rfc-editor.org/rfc/rfc8594
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Sunset response header and its HTTP-date format, which differs from the Deprecation header's format for historical reasons."
+    notes: "IETF document under BCP 78; facts only, no text reused."
+  - id: rfc7396-merge-patch
+    kind: docs
+    url: https://www.rfc-editor.org/rfc/rfc7396
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "JSON Merge Patch semantics and its media type, including null meaning delete and the consequence that a merge patch cannot address array elements — the reason a PATCH contract has to name its media type."
+    notes: "IETF document under BCP 78; facts only, no text reused."
+  - id: redocly-cli
+    kind: repo
+    repo: Redocly/redocly-cli
+    url: https://github.com/Redocly/redocly-cli
+    paths: [packages/core/src/rules]
+    ref: main
+    commit: 2586b317ae28b56f64f81c0f1aae3350ddfb7c6c
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to fix the exact wording of this skill's lint gate. Behaviour established by running it: version 2.52.0 exits 0 on a valid document even with warnings, exits 1 on a broken $ref, and validates a 3.2.0 document as well as a 3.1.0 one."
+    notes: "No content merged. Run log in research/api-design.md, section 'Verification gate run log'."
+  - id: prism-cli
+    kind: repo
+    repo: stoplightio/prism
+    url: https://github.com/stoplightio/prism
+    paths: [packages/http/src]
+    ref: main
+    commit: f1bfdfdf22fc4ed428d35d70f10f50c9dbadd56e
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to fix the exact wording of this skill's mock gate. Behaviour established by running it: version 5.16.0 enforces declared security and synthesises its own 401 when the document declares none, enforces required headers and schema constraints on requests, and answers with the documented error response that matches."
+    notes: "No content merged. Run log in research/api-design.md, section 'Verification gate run log'."
+  - id: bm629-rest-api-design
+    kind: repo
+    repo: bm629/agent-skills
+    url: https://github.com/bm629/agent-skills
+    paths: [skills/rest-api-design]
+    ref: main
+    commit: efbf5108d155e5275cba27f7a74ed635db903bcf
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as independent corroboration of this skill's boundary — contract design sitting above any web framework, producing decisions and a document rather than handler code."
+    notes: "One star and a single unreviewed author, so it carries no authority to merge from; nothing copied."
+  - id: lambdatest-api-skill
+    kind: repo
+    repo: LambdaTest/agent-skills
+    url: https://github.com/LambdaTest/agent-skills
+    paths: [api-skill]
+    ref: main
+    commit: 0491a3a29aa18558d2c3c64ff09367adb976c56f
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only for coverage comparison across its twelve API sub-skills, which confirmed that mocking and compliance checking belong inside the design loop rather than after it."
+    notes: "Nothing merged: it generates endpoint inventories rather than contract rules, hard-codes an /api/v1 prefix and an offset-only envelope, and embeds vendor steering plus an interactive question flow."
+  - id: borghei-api-design-reviewer
+    kind: repo
+    repo: borghei/Claude-Skills
+    url: https://github.com/borghei/Claude-Skills
+    paths: [engineering/api-design-reviewer]
+    ref: main
+    commit: ddca910e95580c63a236303fc1534054f0f14d4c
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only for how it organises a contract review into findings plus a scorecard."
+    notes: "GitHub reports NOASSERTION; the LICENSE file read directly is 'Commons Clause License Condition v1.0 + MIT', which forbids selling and is therefore not an open-source licence. Recorded as Proprietary and reference-only; no text, script or data copied."

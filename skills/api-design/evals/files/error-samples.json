@@ -1,0 +1,43 @@
+{
+  "note": "Every error body the billing API can currently return, collected from prod logs. Content-Type is application/json in all cases.",
+  "samples": [
+    {
+      "endpoint": "POST /v1/invoices",
+      "status": 200,
+      "body": { "ok": false, "msg": "customer has no payment method" }
+    },
+    {
+      "endpoint": "POST /v1/invoices",
+      "status": 400,
+      "body": { "error": "VALIDATION", "fields": { "amount": "too small" } }
+    },
+    {
+      "endpoint": "PATCH /v1/invoices/{id}",
+      "status": 409,
+      "body": "invoice already finalised"
+    },
+    {
+      "endpoint": "POST /v1/invoices/{id}/charge",
+      "status": 500,
+      "body": {
+        "error": "psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint \"idx_charges_idem\"",
+        "trace": "File \"/app/billing/charge.py\", line 214, in charge ..."
+      }
+    },
+    {
+      "endpoint": "GET /v1/invoices",
+      "status": 402,
+      "body": { "code": 402, "detail": "subscription past due", "balance_cents": -1899 }
+    },
+    {
+      "endpoint": "POST /v1/invoices/{id}/charge",
+      "status": 429,
+      "body": { "message": "slow down" }
+    }
+  ],
+  "clients": [
+    "iOS app, ships every 3 weeks, currently branches on the string in `msg`",
+    "Zapier-style partner integration, retries any non-2xx three times",
+    "internal reconciliation job, needs to tell 'retry later' from 'never going to work'"
+  ]
+}

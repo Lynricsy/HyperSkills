@@ -1,0 +1,68 @@
+[
+  {
+    "skills": ["api-design"],
+    "query": "Here is the endpoint list for our inventory service (legacy-endpoints.md). We are about to expose it to two more partners. Redesign it as a proper HTTP contract: resources, URIs, methods, status codes. Tell me exactly which of the current responses are wrong and what they should be.",
+    "files": ["evals/files/legacy-endpoints.md"],
+    "expected_behavior": [
+      "Replaces the verb-in-URI endpoints with noun collections plus methods (e.g. `GET /warehouses`, `POST /warehouses`, `GET /warehouses/{id}`), and does not leave any `/getX` / `/createX` style path in the proposal",
+      "Names the specific status-code errors instead of only saying 'use correct status codes': 200-with-error-body must become 404 for the unknown warehouse, 201 plus a `Location` header for creation, 404 for deleting something that does not exist, and 409 (not an overwrite) for the duplicate SKU",
+      "Flags that `/updateWarehouseName` is an upsert over POST and routes it to PUT (idempotent, may create) or PATCH (partial, must exist), reasoning from method semantics rather than taste",
+      "Treats `/exportInventoryCsv` as a long-running operation: 202 Accepted plus a status-monitor resource the client polls, rather than a request that holds the connection open",
+      "Handles `/reserveStock` and `/releaseReservation` as non-CRUD actions deliberately (sub-resource or action endpoint, with idempotency for the retry case) instead of pretending every operation is CRUD",
+      "Addresses the versioning split (unprefixed v1 plus a stray `/api/v2`) with a concrete scheme and a deprecation path for the clients that cannot be force-updated"
+    ]
+  },
+  {
+    "skills": ["api-design"],
+    "query": "Read activity-feed-listing.md. Support says users see duplicate activities and the nightly export misses rows, but we cannot reproduce it on staging. Is the pagination contract at fault, and what should it be instead?",
+    "files": ["evals/files/activity-feed-listing.md"],
+    "expected_behavior": [
+      "Explains the actual mechanism: with `ORDER BY created_at DESC ... OFFSET`, rows inserted or deleted between two page requests shift the window, so items are served twice or skipped — and says this is why a staging system with no write traffic cannot reproduce it",
+      "Recommends keyset/cursor pagination for the mobile feed and the export walker, replacing `page`/`per_page` with an opaque cursor",
+      "Points out that `created_at` alone is not a valid keyset because it is not unique, and requires a tiebreaker (e.g. `(created_at, id)`) in both the sort and the cursor",
+      "Says the cursor must be opaque to clients — not a parseable timestamp they can construct — and explains the consequence of a transparent cursor (implementation details become API surface)",
+      "Keeps offset/page-number for the admin screen or states the trade-off explicitly (jump-to-page is the one thing keyset cannot serve), rather than banning offset outright",
+      "Recommends dropping or making `total_count` opt-in, tying it to the reported p99 cost"
+    ]
+  },
+  {
+    "skills": ["api-design"],
+    "query": "error-samples.json has every error body our billing API returns today. Give me one error contract for all of them.",
+    "files": ["evals/files/error-samples.json"],
+    "expected_behavior": [
+      "Specifies RFC 9457 problem details with the `application/problem+json` media type, naming the standard members `type`, `title`, `status`, `detail`, `instance`",
+      "Requires `type` to be a stable documented URI per problem type, and notes that clients identify the problem by `type` rather than by the human-readable `title`/`detail` strings, which is what breaks the iOS app matching on `msg`",
+      "Fixes the 200-with-`ok:false` case by giving it a real 4xx status, and states that the HTTP status and the `status` member must agree",
+      "Puts field-level validation failures in an extension member (an `errors` array with a pointer/field plus message) rather than inventing a second envelope",
+      "Removes the leaked driver message and stack trace from the 500 and replaces them with an opaque problem plus a correlation identifier",
+      "Gives the reconciliation job a machine-readable way to tell retryable from terminal — `Retry-After` on 429/503 and/or a documented extension member — instead of leaving it to parse prose"
+    ]
+  },
+  {
+    "skills": ["api-design"],
+    "query": "shipments-openapi.yaml is our published contract and shipments-proposed-changes.md is what product wants in 1.5.0 on the same /v1 path. Which of these changes break existing clients, and how should the ones we keep be rolled out?",
+    "files": [
+      "evals/files/shipments-openapi.yaml",
+      "evals/files/shipments-proposed-changes.md"
+    ],
+    "expected_behavior": [
+      "Classifies each numbered change as breaking or compatible rather than giving general advice, and gets the non-obvious ones right: changing the collection response from a bare array to a paged object is breaking, and adding pagination to a previously unpaginated collection is breaking even if the shape were kept",
+      "Identifies adding a required request field (`carrier_code`), renaming a response field (`notes` → `internal_notes`), and changing a field's type (`id` integer → ULID string) as breaking, and says a rename must be add-then-deprecate rather than a swap",
+      "Calls the `weight_kg` unit reinterpretation the worst change on the list: the schema is unchanged so no tool will flag it, yet every client's arithmetic silently becomes wrong — it needs a new field name, not a new description",
+      "Reasons about the enum additions by direction: a new accepted request value (`cancelled` filter) is compatible, while a new response value (`returned`) can break clients that switch exhaustively on status, so it needs documenting as an open enum",
+      "Notes that relaxing `maxLength` 20 → 64 is a server-side relaxation that can still break clients sizing storage or fields on the documented bound",
+      "Rejects the 200 → 201 change and the 'announce removal in the changelog' plan, and prescribes a concrete deprecation mechanism: `deprecated: true` in the OpenAPI document plus `Deprecation` and `Sunset` response headers with agreed dates",
+      "Ends with a validation step on the revised document (e.g. `redocly lint`, or a mock server such as `prism mock` to exercise the new contract) instead of hand-waving that the spec is fine"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "In orders_router.py, how do I override these `Depends` providers in my pytest tests so the pricing client and the DB session are fakes?",
+    "files": ["evals/files/orders_router.py"],
+    "expected_behavior": [
+      "Answers with FastAPI's `app.dependency_overrides` mechanism and a `TestClient`/`ASGITransport` fixture",
+      "Does not read the api-design skill — this is framework test wiring, not HTTP contract design (`skill_read == false`)",
+      "Does not turn the answer into a REST contract review of the router's URIs, status codes or error format"
+    ]
+  }
+]
