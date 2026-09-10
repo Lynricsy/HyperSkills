@@ -1,0 +1,17 @@
+{
+  "name": "@acme/reporting",
+  "version": "3.2.0",
+  "description": "Reporting helpers consumed by our Node services and by the web app bundle",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^3.2.4",
+    "@types/node": "^22.13.0"
+  }
+}

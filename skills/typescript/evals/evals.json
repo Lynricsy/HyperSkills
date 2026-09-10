@@ -1,0 +1,69 @@
+[
+  {
+    "skills": ["typescript"],
+    "query": "order-state.ts is src/orders/order-state.ts in a TypeScript backend. Every few weeks we ship a bug where an order ends up in a state nobody expected, or a field we assumed was set is undefined. Redesign the types so those bugs stop compiling, and show me the resulting file.",
+    "files": ["evals/files/order-state.ts"],
+    "expected_behavior": [
+      "Replaces the five independent boolean flags with a discriminated union keyed on a single literal `status` (or equivalent kind) property, so the impossible combinations (isPaid && isCancelled, isShipped without isPaid, isDraft && isSubmitted) become unrepresentable",
+      "Moves each optional field onto the one variant that owns it — trackingNumber/shippedAt only on the shipped variant, paidAt/paymentIntentId only on the paid variant, cancellationReason on the cancelled variant — so the non-null assertions in describeOrder disappear",
+      "Rewrites describeOrder as a switch on the discriminant and adds an exhaustiveness guard that assigns the narrowed value to `never` in the default branch, explaining that adding a variant then fails to compile",
+      "Introduces branded/nominal id types (for example `string & { readonly __brand: 'OrderId' }` or a Brand<string, 'OrderId'> helper) for OrderId and CustomerId so transferOrder cannot be called with the two ids swapped, and shows how a value is created or validated into the branded type",
+      "Notes that markShipped must return the shipped variant (constructing the new state) rather than spreading a flag onto an arbitrary order, so an unpaid order cannot be marked shipped",
+      "Does not rely on `as`/non-null assertions to make the new code compile"
+    ]
+  },
+  {
+    "skills": ["typescript"],
+    "query": "We bumped the typescript devDependency and now `npm run build` fails with errors about options that have been removed, plus a pile of 'Cannot find name process' errors. tsconfig.json and package.json are attached. Fix the config and tell me what each change is for.",
+    "files": ["evals/files/tsconfig.json", "evals/files/package.json"],
+    "expected_behavior": [
+      "Identifies that the installed TypeScript is 7.x and that TypeScript 6.0 deprecations became hard errors in 7.0, rather than treating the failures as unrelated bugs",
+      "Removes `baseUrl` and rewrites the `paths` entries to be relative to the project root (for example `\"@app/*\": [\"./src/app/*\"]`), rather than keeping baseUrl or telling the user to downgrade",
+      "Replaces `\"moduleResolution\": \"node\"` with `nodenext` or `bundler` and explains the choice is decided by how the package is consumed",
+      "Replaces `\"target\": \"es5\"` with a modern target and removes `downlevelIteration`, saying both were removed",
+      "Explains that the 'Cannot find name process' errors come from `types` now defaulting to `[]` and adds an explicit `\"types\": [\"node\"]` (and a test-runner entry if globals are used)",
+      "Sets an explicit `\"rootDir\": \"./src\"` and explains that rootDir no longer gets inferred from the common source directory, so output would otherwise land in dist/src/",
+      "Removes or flags the now-meaningless `\"esModuleInterop\": true` / `\"allowSyntheticDefaultImports\": true` / redundant strict sub-flags rather than leaving dead configuration",
+      "Notes that `dom.iterable` is now folded into `dom`, or otherwise does not add it back"
+    ]
+  },
+  {
+    "skills": ["typescript"],
+    "query": "Review src/config/load-config.ts (attached) for type-safety problems and give me the corrected version. Our lint rule bans `any` but people keep working around it.",
+    "files": ["evals/files/load-config.ts"],
+    "expected_behavior": [
+      "Types the JSON.parse result as `unknown` and validates it into AppConfig with a type guard, assertion function or schema parse, instead of `raw: any` plus a cast",
+      "Replaces `catch (err: any)` and `let lastError: any` with `unknown` and narrows before touching `.code` or `.message`, noting that a thrown value is not guaranteed to be an Error",
+      "Removes the `config as AppConfig` cast in summarise and makes the function take a typed parameter or validate its input",
+      "Applies `satisfies AppConfig` (or an equivalent) to the DEFAULTS object so `logLevel` stays the `\"info\"` literal instead of widening to `string`, and points out that today `DEFAULTS as AppConfig` hides the mismatch",
+      "Points out that spreading unvalidated `raw` over DEFAULTS lets arbitrary keys and wrong types through, so the merge itself is the unsound step",
+      "Flags that `Object.keys` returns `string[]` rather than the key union, and handles the featureFlags iteration without an `as any` index",
+      "Mentions the compiler flags that would have caught this class of bug (noUncheckedIndexedAccess, useUnknownInCatchVariables via strict) rather than only editing the file"
+    ]
+  },
+  {
+    "skills": ["typescript"],
+    "query": "reporting-package.json is the package.json of a library we publish to npm. Consumers keep reporting two things: TypeScript gives them `any` for everything they import, and `import { formatCsv } from '@acme/reporting/formatters'` fails with ERR_PACKAGE_PATH_NOT_EXPORTED. Review the manifest and tell me how to make sure it is right before the next publish.",
+    "files": ["evals/files/reporting-package.json"],
+    "expected_behavior": [
+      "Flags that the `types` condition is listed after `import` and `require` and must come first inside each condition object, because conditions are matched in order",
+      "Says the `./formatters` subpath must be listed explicitly in `exports`, because `exports` is an allowlist and deep imports stop working once it exists",
+      "Says a single `dist/index.d.ts` cannot serve both the import and require conditions under nodenext resolution, and gives per-condition declarations (a `.d.cts` or a separate CJS declaration file) instead",
+      "Recommends exporting `./package.json` from the map",
+      "Prescribes `npx publint` and `npx @arethetypeswrong/cli --pack .` (attw) as the verification step, explaining that the repo's own tests never resolve through the exports map",
+      "Checks the tarball against the map, for example with `npm pack --dry-run`, and notes that `files` currently ships `src` as well",
+      "Raises the dual-package hazard (two copies of the module loaded, broken instanceof and split module state) and says ESM-only is the default unless a named consumer needs CommonJS",
+      "Flags that `test: vitest run` performs no type-checking, so a `tsc --noEmit` gate belongs in prepublishOnly"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "ProjectList.tsx recomputes the filtered and sorted list on every parent render. Should I wrap it in useMemo, and how should I structure this component?",
+    "files": ["evals/files/ProjectList.tsx"],
+    "expected_behavior": [
+      "Does not read skills/typescript/SKILL.md",
+      "Answers as a React rendering question (memoization, React Compiler, component structure) rather than a TypeScript type-system question",
+      "Does not turn the answer into advice about discriminated unions, tsconfig strictness or branded types"
+    ]
+  }
+]
