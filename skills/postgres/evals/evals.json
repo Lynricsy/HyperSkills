@@ -1,0 +1,56 @@
+[
+  {
+    "skills": ["postgres"],
+    "query": "Our reporting Postgres has three queries that keep getting slower. I pasted the schema, the current indexes and the EXPLAIN output into slow_events_query.sql. Tell me exactly which indexes to create or drop and why, and what to do about the pagination query.",
+    "files": ["evals/files/slow_events_query.sql"],
+    "expected_behavior": [
+      "Explains that `events_created_tenant (created_at DESC, tenant_id)` cannot serve `tenant_id = 999`, because the leading column is unconstrained and has very high cardinality, so the planner falls back to the parallel sequential scan visible in the plan - and that PostgreSQL 18's B-tree skip scan only rescues a *low*-cardinality leading column",
+      "Prescribes a composite index whose leading column is the equality predicate and whose trailing column is the ordering column, `events (tenant_id, created_at DESC)`, and says it serves both the `tenant_id =` filter and the `ORDER BY created_at DESC` with no sort node",
+      "Reads Query 2's plan as a `BitmapAnd` of two single-column indexes and explains why that is not equivalent to one composite index: each side materialises its whole bitmap (10000 and 25000 entries here) before the intersection, so a composite `events (tenant_id, status)` replaces 36 buffer accesses with a handful",
+      "Recommends a partial index `... WHERE status = 'failed'` (or explains when it beats the composite), on the grounds that it indexes only the ~5% of rows the failure feed ever looks at and is therefore a fraction of the size",
+      "Says `events_tenant (tenant_id)` becomes redundant once `(tenant_id, created_at DESC)` exists, because a composite index already serves queries on its leftmost prefix, and that every extra index is write amplification on a table taking 2M inserts a month",
+      "Identifies `LIMIT 20 OFFSET 40000` as the problem in Query 3 - the server still reads and discards 40000 rows - and replaces it with keyset/seek pagination on `(created_at, id)` using a row-comparison predicate, noting that `created_at` alone is not unique enough to page on",
+      "Bases the diagnosis on the buffer counts and `Rows Removed by Filter` in the supplied plans rather than on `cost=` estimates or generic advice"
+    ]
+  },
+  {
+    "skills": ["postgres"],
+    "query": "Review migrations/0031_billing_columns.sql before we ship it tonight. Which statements are dangerous on a 180M-row table under write load, and what is the safe rewrite?",
+    "files": ["evals/files/0031_billing_columns.sql"],
+    "expected_behavior": [
+      "Says the whole file being wrapped in one transaction is itself the top problem: every ACCESS EXCLUSIVE lock is held until COMMIT, so the slowest statement blocks all reads and writes for the duration of all of them - the migration must be split into separately committed steps",
+      "Distinguishes the two ADD COLUMN statements correctly: `DEFAULT now()` is fine because `now()` is STABLE and the default is only stored in the catalogue, while `DEFAULT gen_random_uuid()` is volatile and forces a full table and index rewrite",
+      "Flags the single-statement `UPDATE orders SET currency = 'USD'` over 180M rows: it rewrites every row in one transaction, generates enormous WAL, roughly doubles the table's on-disk size with dead tuples, and cannot be interrupted safely - it must be batched by primary key with a commit per batch, outside the migration transaction",
+      "Replaces the bare `ALTER COLUMN currency SET NOT NULL` (which scans the whole table under ACCESS EXCLUSIVE) with the non-blocking two-step form: on PostgreSQL 18 `ADD CONSTRAINT ... NOT NULL currency NOT VALID` followed by `VALIDATE CONSTRAINT`, or on 12-17 a `CHECK (currency IS NOT NULL) NOT VALID` that is validated first so the subsequent `SET NOT NULL` skips its scan",
+      "Warns that `ALTER COLUMN amount_cents TYPE bigint` rewrites the entire table and its indexes under ACCESS EXCLUSIVE, and gives the add-new-column, backfill, swap alternative",
+      "Says `CREATE INDEX` without `CONCURRENTLY` holds a SHARE lock that blocks every write for the whole build, and that `CREATE INDEX CONCURRENTLY` cannot run inside a transaction block at all, so this statement has to leave the `BEGIN`/`COMMIT` - plus the follow-up of checking `pg_index.indisvalid` and re-creating if the concurrent build failed",
+      "Splits the foreign key into `ADD CONSTRAINT ... NOT VALID` and a later `VALIDATE CONSTRAINT`, and mentions that adding it takes a lock on `customers` too, and that `customers(id)` is already indexed but `orders(customer_id)` also needs an index or deletes on the parent will scan the child table",
+      "Recommends a short `lock_timeout` (plus retry) rather than relying on `statement_timeout`, explaining that a DDL statement waiting for ACCESS EXCLUSIVE queues every subsequent query behind it even though the DDL itself is instant"
+    ]
+  },
+  {
+    "skills": ["postgres"],
+    "query": "Self-hosted Postgres, multi-tenant. tenant_policies.sql has our RLS setup plus the three things that went wrong: a dashboard query went from 30ms to 4s, someone moved a row into another tenant with a plain UPDATE, and the reporting role sees everything. Fix the policies.",
+    "files": ["evals/files/tenant_policies.sql"],
+    "expected_behavior": [
+      "Explains that `current_tenant()` written bare in the policy is re-evaluated once per row when the predicate lands in a Filter node - being declared STABLE does not make PostgreSQL cache it - and that wrapping it as `(SELECT current_tenant())` turns it into an InitPlan evaluated once, which is the 4-second regression",
+      "Adds an index on `documents (tenant_id)` so the policy predicate can become an index condition rather than a filter over 2M rows",
+      "Explains USING versus WITH CHECK precisely: USING selects which existing rows are visible to SELECT/UPDATE/DELETE, WITH CHECK validates the row being written by INSERT/UPDATE, and with `FOR ALL` and no WITH CHECK the USING expression is reused as the WITH CHECK",
+      "Identifies the cross-tenant UPDATE as a consequence of permissive policies being OR-ed together: `documents_editor` admits any row in a tenant the user is an editor of, so the new `tenant_id = 12345` passes the implied WITH CHECK - the fix is an explicit WITH CHECK pinning `tenant_id = (SELECT current_tenant())`, and/or a RESTRICTIVE policy, rather than editing only the permissive ones",
+      "Says the `reporting` role sees every row because it owns the table and RLS does not apply to a table's owner unless `ALTER TABLE documents FORCE ROW LEVEL SECURITY` is set, and separately that a role with BYPASSRLS such as `etl` ignores policies even with FORCE",
+      "Rewrites the correlated `EXISTS` membership check into a form the planner can execute once - a non-correlated `tenant_id IN (SELECT ...)` with the session parameter hoisted, or a SECURITY DEFINER helper in a non-exposed schema with `SET search_path = ''` and EXECUTE revoked from PUBLIC",
+      "Notes that `SET app.tenant_id` is session state that does not survive a transaction-mode connection pooler, and that `SET LOCAL` inside the request's transaction is the safe form"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "我们的 Supabase 项目里，用 auth.uid() 写的策略在客户端 SDK 调用时总是拿不到数据，但在 SQL editor 里正常——dashboard 要怎么查？",
+    "files": ["evals/files/useDocuments.ts"],
+    "expected_behavior": [
+      "Treats this as a Supabase auth-context and dashboard question: the SQL editor runs as a privileged role while the browser client runs as `anon` or `authenticated` with a JWT, so `auth.uid()` differs between the two",
+      "Points at the Supabase dashboard and CLI workflow for diagnosing it - checking the session/JWT the client actually sends, the Auth logs, and the policy view for the table - rather than at generic PostgreSQL catalogue queries",
+      "Does not turn the answer into general PostgreSQL index, EXPLAIN or vacuum tuning advice",
+      "skill_read is false for the `postgres` skill"
+    ]
+  }
+]

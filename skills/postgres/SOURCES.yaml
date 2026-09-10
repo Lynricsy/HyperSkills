@@ -1,0 +1,157 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin postgres
+skill: postgres
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: postgresql-docs
+    kind: docs
+    url: https://www.postgresql.org/docs/18/
+    license: PostgreSQL
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The final authority for every fact in this skill: ALTER TABLE lock levels and rewrite rules, the table-level lock conflict matrix, RLS semantics (USING versus WITH CHECK, permissive versus restrictive, FORCE and BYPASSRLS, security_invoker views), isolation levels and serialization failures, MVCC, autovacuum and wraparound, index access methods and operator classes, JSONB operators, text search configuration, MERGE, NULLS NOT DISTINCT, generated columns, identity columns, and the PostgreSQL 18 deltas (buffers by default in EXPLAIN ANALYZE, not-null constraints as catalogue objects, B-tree skip scan, uuidv7, VIRTUAL generated columns, autovacuum_vacuum_max_threshold)."
+    notes: "Licence verified by reading postgres/postgres COPYRIGHT: the PostgreSQL License, a permissive BSD-style licence, so this is merged rather than reference. Version currency verified against postgresql.org/support/versioning: 18 is the current major (18.6), 19 is in beta and is deliberately not covered."
+  - id: neon-postgres-skills
+    kind: repo
+    repo: neondatabase/postgres-skills
+    url: https://github.com/neondatabase/postgres-skills
+    paths: [skills/postgres-best-practices]
+    ref: main
+    commit: 27fe45e0f71ea89a6eaf9ea4d2e4068957c81c26
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The vendor-neutral backbone: the reference split by topic, the convention of tagging every version-sensitive rule, PgBouncer pool modes and what each breaks, pool sizing against database CPU count, protocol-level prepared statements with max_prepared_statements, the pg_stat_* diagnostic catalogue including pg_stat_io and the PG 18 vacuum-timing columns, per-table autovacuum tuning, the correlated foreign-key-without-index detection query, the partitioned-table concurrent index build via ON ONLY plus ATTACH PARTITION, isolation levels and the application-side retry contract, and bulk loading."
+    notes: "Deliberately vendor-neutral upstream maintained by Neon alongside their product skill; no Neon platform content needed stripping. Its default autovacuum scale factors (0.01/0.005) were preferred over supabase-postgres-bp's (0.05/0.02) as a starting point for hot tables; the actual PG 18 defaults were read from pg_settings instead of either."
+  - id: supabase-postgres-bp
+    kind: repo
+    repo: supabase/agent-skills
+    url: https://github.com/supabase/agent-skills
+    paths: [skills/supabase-postgres-best-practices]
+    ref: main
+    commit: 8331f910845103c08d51f6ca1d86ebb7d1f745e3
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The eight-category rule taxonomy that shaped this skill's chapters, plus composite, partial and covering index rules, missing-index and unused-index detection, the unindexed foreign key, N+1 collapsed into = ANY(...), batched inserts, keyset pagination with a row-comparison cursor, FOR UPDATE SKIP LOCKED queues, advisory lock variants, deadlock avoidance by deterministic lock ordering, short transactions, the RLS scalar-subquery performance wrap, the private-schema SECURITY DEFINER helper pattern, and the DO-block workaround for the missing ADD CONSTRAINT IF NOT EXISTS."
+    notes: "Supabase platform context stripped throughout: auth.uid() replaced by a session GUC, the anon/authenticated/service_role role names by app_user, the 5432/6543 port split by the abstract session/transaction pool-mode distinction, and the per-rule frontmatter fields (impact, impactDescription, tags) removed. Its unconditional '100x+ faster' claim for wrapping a policy function in a scalar subquery was narrowed to the Filter-node case after measurement (research/postgres.md ruling 4)."
+  - id: microsoft-postgres-skills
+    kind: repo
+    repo: microsoft/postgres-skills
+    url: https://github.com/microsoft/postgres-skills
+    paths:
+      - plugin/skills/postgresql-best-practices/references/postgresql-query-performance.md
+      - plugin/skills/postgresql-best-practices/references/postgresql-advanced-indexing.md
+      - plugin/skills/postgresql-best-practices/references/postgresql-connection-management.md
+      - plugin/skills/postgresql-best-practices/references/postgresql-row-level-security.md
+      - plugin/skills/postgresql-best-practices/references/postgresql-jsonb-patterns.md
+      - plugin/skills/postgresql-best-practices/references/postgresql-vector-search.md
+    ref: main
+    commit: 500708a3de7cd8796da92460923b50fada93194b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The gotcha-only corrections that the other upstreams get wrong or omit: node timings are per loop, INCLUDE columns do not eliminate heap access, BRIN needs verified physical correlation, text index and query collation must agree, a partial index is used only when its predicate is provably implied, hash_mem_multiplier, plan_cache_mode for parameter skew, JIT cost gating, per-backend memory at scale, server_reset_query state leakage, the complete RLS failure-mode set, missing-key versus JSON-null disambiguation, jsonb_set's intermediate-path limit, and the pgvector operator-class pairing and recall parameters."
+    notes: "Only the six vendor-neutral postgresql-* references were used. The azure-* references, the pg-graph sibling skill, the postgres_mcp_* tool contract and the az CLI execution policy in its SKILL.md are managed-service control plane and MCP agent binding, both outside this skill's scope."
+  - id: timescale-pg-aiguide
+    kind: repo
+    repo: timescale/pg-aiguide
+    url: https://github.com/timescale/pg-aiguide
+    paths:
+      - skills/postgres-database-migration
+      - skills/design-postgres-tables
+    ref: main
+    commit: 2bf9f11df6175d555e9a7f63325b226dca71c1b7
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The structure of the online-migration reference (lock and rewrite matrix, then a safe rewrite per operation, then backfills, then rollback and rehearsal), the two lock_timeout doctrines and the argument for doing retries in the deploy tool rather than a PL/pgSQL EXCEPTION block, LOCK TABLE ... NOWAIT as the zero-queue variant, CREATE UNIQUE INDEX CONCURRENTLY promoted with ADD CONSTRAINT ... USING INDEX, the do-not-use type list, TOAST storage strategies and toast_tuple_target, and fillfactor for HOT updates."
+    notes: "Three of its facts were wrong against PostgreSQL 18.6 and were rewritten from measurement (research/postgres.md rulings 1-3): DEFAULT now() does not rewrite the table because now() is STABLE; the PG 18 unvalidated not-null syntax is ADD CONSTRAINT <name> NOT NULL <column> NOT VALID, not SET NOT NULL NOT VALID; and ADD CONSTRAINT ... CHECK ... NOT VALID takes ACCESS EXCLUSIVE, not SHARE UPDATE EXCLUSIVE. Its claim that partitioned tables cannot have outgoing foreign keys is also stale. TimescaleDB, hypertable and PostGIS content is out of scope and was not used."
+  - id: pgvector
+    kind: repo
+    repo: pgvector/pgvector
+    url: https://github.com/pgvector/pgvector
+    paths: [README.md]
+    ref: master
+    commit: efa08fda9ec485d80292d0487a77939c087dedcc
+    license: PostgreSQL
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Distance operator to operator-class pairing and the silent index-ignored failure when they disagree, HNSW build parameters and their immutability, hnsw.ef_search as the recall knob, iterative scan for filtered searches, the 2000-dimension HNSW ceiling and the halfvec expression-index workaround, and HNSW over IVFFlat for new deployments."
+    notes: "The GitHub API reports license.spdx_id as NOASSERTION; the LICENSE file was read and is the PostgreSQL License (permissive, BSD-style), so this is merged. Behaviour verified against pgvector 0.8.6 on PostgreSQL 18.6."
+  - id: awesome-copilot-pg
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - skills/postgresql-optimization
+      - skills/postgresql-code-review
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Coverage enumeration for the PostgreSQL-specific surface: range types with EXCLUDE USING gist for non-overlap constraints, domains as reusable validated types, array versus JSONB versus relation as a storage decision, and the full-text search operator inventory."
+    notes: "The ${selection} harness variable and the emoji section headings were stripped as required by docs/skill-standard.md section 1.3. Several of its worked examples were rejected rather than merged: GIN on data->'status' for scalar equality, BIGSERIAL and SERIAL primary keys, CITEXT as the default for case-insensitive text, ENUM for evolving status columns, and the built-in geometric types."
+  - id: neon-agent-skills
+    kind: repo
+    repo: neondatabase/agent-skills
+    url: https://github.com/neondatabase/agent-skills
+    paths: [skills/neon-postgres]
+    ref: main
+    commit: 2e0da3a1653bcdd227565ac14bb3e9e453a8b854
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "One section only: the error signatures that a transaction-mode pooler produces without ever naming pooling - prepared statement \"s0\" already exists, a SET search_path that does not survive to the next query, and an inherited read-only transaction (SQLSTATE 25006) - together with the list of work that must use a direct rather than pooled connection (migrations, dumps, logical replication, LISTEN/NOTIFY)."
+    notes: "The rest of the skill is Neon platform surface (branching, autoscaling, scale-to-zero, the neon CLI and MCP inspect checks, EXPLAIN with PREFETCH and FILECACHE) and was not used; that is the managed-hosting control plane this skill excludes."
+  - id: drizzle-best-practices
+    kind: repo
+    repo: honra-io/drizzle-best-practices
+    url: https://github.com/honra-io/drizzle-best-practices
+    paths: [SKILL.md]
+    ref: main
+    commit: c1bc07273a843190f5f9ce6e12b957864d93ee8f
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The ORM-side effects that land on the database: named prepared statements from .prepare() colliding with transaction-mode pooling, relation loading degrading into per-row round trips, and schema-push tooling emitting unreviewed DDL straight at a live database."
+    notes: "Pushed 2026-05-25, inside the six-month freshness window but the least fresh upstream here; re-checked against the current Drizzle documentation and the three Postgres-side consequences still hold. Only those consequences were taken - no ORM API, schema-builder or migration-tool syntax, which belong to the framework skills."
+  - id: wshobson-table-design
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths: [plugins/database-design/skills/postgresql-table-design]
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to cross-check the type-selection and primary-key positions against a third independent source before writing schema-and-types.md."
+    notes: "No content merged: it overlaps neon-postgres-skills and timescale-pg-aiguide on every point and is shallower on each."
+  - id: prisma-skills
+    kind: repo
+    repo: prisma/skills
+    url: https://github.com/prisma/skills
+    paths:
+      - prisma-postgres
+      - prisma-database-setup/references/postgresql.md
+    ref: main
+    commit: 1123817e60d15ca0f3af91878923241dee7e3b09
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to confirm that a migration tool needs a second, direct connection URL alongside the pooled one, and that connection-string passwords must be percent-encoded."
+    notes: "No content merged: the skill is Prisma's hosted-database provisioning surface (Console, create-db CLI, Management API), not Postgres-side knowledge. Both facts taken from it are independently stated by neon-agent-skills and the PgBouncer documentation."
+  - id: google-cloud-sql
+    kind: repo
+    repo: google/skills
+    url: https://github.com/google/skills
+    paths: [skills/cloud/cloud-sql-basics]
+    ref: main
+    commit: fd2bd41f0106962cc1a89d64844773dbaaef1905
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to establish where the managed-hosting control plane begins, which is where this skill's scope ends."
+    notes: "No content merged: instance provisioning, gcloud commands, IAM and provider PITR are exactly the control-plane material this skill declares out of scope."
