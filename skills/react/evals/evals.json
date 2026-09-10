@@ -1,0 +1,61 @@
+[
+  {
+    "skills": ["react"],
+    "query": "These two files are a Next.js 16 App Router route: dashboard-page.tsx is app/dashboard/page.tsx and dashboard-summary.tsx is app/dashboard/summary.tsx. Review them for React Server Components and performance problems. Do not rewrite the whole thing — give me findings I can act on, grouped by file.",
+    "files": [
+      "evals/files/dashboard-page.tsx",
+      "evals/files/dashboard-summary.tsx"
+    ],
+    "expected_behavior": [
+      "Reports findings grouped by file with a file:line reference for each finding, not as prose paragraphs",
+      "Says the page-level 'use client' must be removed and the client boundary pushed down to the leaf components that actually need interactivity (the editor toggle button), keeping the page a Server Component",
+      "Says the useEffect + fetch('/api/user') / fetch('/api/orders') data loading should move to server-side fetching in the Server Component (or a Suspense-wrapped async child), not client fetch-on-mount",
+      "Flags dashboard-summary.tsx as an invalid async Client Component ('use client' plus async function) and says only Server Components may be async",
+      "Says the three sequential awaits in dashboard-summary.tsx are an avoidable waterfall and should run with Promise.all (or be chained per item), citing the async rule category",
+      "Recommends next/dynamic for the heavy MonacoEditor import and cites the rule id bundle-dynamic-imports",
+      "Flags the barrel imports from recharts / lucide-react and cites the rule id bundle-barrel-imports (or recommends optimizePackageImports)"
+    ]
+  },
+  {
+    "skills": ["react"],
+    "query": "Review project-list.tsx for re-render and correctness problems. It is a client component in a React 19 app. Give me a prioritized list with exact lines and the fix for each.",
+    "files": ["evals/files/project-list.tsx"],
+    "expected_behavior": [
+      "Cites specific Vercel react-best-practices rule ids for the findings (for example rerender-lazy-state-init, rerender-derived-state-no-effect, rerender-simple-expression-in-memo, js-tosorted-immutable, rerender-split-combined-hooks)",
+      "Flags useState(buildSearchIndex(projects)) as running the initializer on every render and gives the lazy form useState(() => ...)",
+      "Flags the useEffect that mirrors visible.length into matchCount as derived state that must be computed during render instead",
+      "Flags projects.sort(...) inside the useMemo as mutating the projects prop and requires .toSorted() (or a copy)",
+      "Flags the unused query dependency in the visible useMemo, or the fact that filtering and sorting should be split into separate memos with their own dependencies",
+      "Makes the manual-memoization advice conditional on whether React Compiler is enabled in this project, and says how to check for it, instead of assuming manual memo() and useMemo() are always required",
+      "Reports findings with file:line references and does not merely rewrite the file silently"
+    ]
+  },
+  {
+    "skills": ["react"],
+    "query": "This project uses shadcn/ui — see components.json. Fix settings-form.tsx so it follows the project's shadcn conventions, then tell me what you changed and what commands you would run.",
+    "files": [
+      "evals/files/components.json",
+      "evals/files/settings-form.tsx"
+    ],
+    "expected_behavior": [
+      "States that it would run `npx shadcn@latest info --json` first to read the real project context instead of assuming, and `npx shadcn@latest docs <component>` to get the current component APIs rather than guessing them",
+      "Replaces the hand-rolled label/div/space-y-4 form layout with FieldGroup + Field + FieldLabel",
+      "Uses data-invalid on Field plus aria-invalid on the control for the validation state instead of border-red-500 / text-red-600 classes",
+      "Replaces space-y-4 and space-x-2 with flex plus gap-*, and w-10 h-10 with size-10",
+      "Replaces the two-option Button loop with ToggleGroup + ToggleGroupItem",
+      "Replaces the absolutely positioned button inside the Input with InputGroup + InputGroupInput + InputGroupAddon, and removes the manual z-50",
+      "Notes that the icon import must come from the project's configured iconLibrary (tabler -> @tabler/icons-react, not lucide-react), and that icons in Button use data-icon with no sizing classes",
+      "Removes the color/typography overrides on Card (bg-blue-50 text-blue-900 font-bold) in favour of semantic tokens or variants"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Review UserCard.vue for correctness and performance problems and tell me how to improve it.",
+    "files": ["evals/files/UserCard.vue"],
+    "expected_behavior": [
+      "Does not read skills/react/SKILL.md",
+      "Reviews the file as Vue 3 composition-API code and does not apply React or Next.js rules to it",
+      "Answers from general knowledge without invoking the react skill"
+    ]
+  }
+]

@@ -1,0 +1,97 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin react
+skill: react
+version: "2026.09.10"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: vercel-react-bp
+    kind: repo
+    repo: vercel-labs/agent-skills
+    url: https://github.com/vercel-labs/agent-skills
+    paths: [skills/react-best-practices, skills/composition-patterns]
+    ref: main
+    commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Impact-ordered React performance rules with their stable ids, plus the composition and state-contract rules."
+    notes: "Repo declares no root license; the skill frontmatter declares MIT. Its rerender-memo-with-default-value rule is rewritten: a non-primitive default parameter does not break memo()'s own prop comparison (defaults apply after it), but it does destabilise downstream hook dependencies and memoized children."
+  - id: addy-frontend-ui
+    kind: repo
+    repo: addyosmani/agent-skills
+    url: https://github.com/addyosmani/agent-skills
+    paths: [skills/frontend-ui-engineering]
+    ref: main
+    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Colocated file layout, composition over configuration, container/presentation split, the state-location ladder, prop-drilling limit, and loading/empty/error state requirements."
+    notes: "Only the architecture and state sections are merged; the design and accessibility sections belong to the frontend-design skill. The upstream reference to a repo-level references/ directory is dropped because a per-skill install does not copy it."
+  - id: nextjs-cache-components
+    kind: repo
+    repo: vercel/next.js
+    url: https://github.com/vercel/next.js/tree/canary/skills
+    paths:
+      - skills/next-cache-components-optimizer
+      - skills/next-cache-components-adoption
+      - skills/next-partial-prefetching-adoption
+      - skills/next-dev-loop
+    ref: canary
+    commit: 1329212686c9558afc37589106618d7382542d24
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Cache Components adoption sequence and the instant-navigation loop: phases and gates, the blocking-shape fixes, the instant() guard, loading-UI reuse, and the post-optimization prefetching check."
+    notes: "Tracked on the canary branch, which is where these skills ship. Version floor Next.js 16.3+ is stated in the reference because none of its verdicts hold below it."
+  - id: openai-plugins-nextjs
+    kind: repo
+    repo: openai/plugins
+    url: https://github.com/openai/plugins
+    paths: [plugins/vercel/skills/nextjs]
+    ref: main
+    commit: d416fd5a43426019986b1e489506db3db66dee3d
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "App Router API semantics: file conventions, RSC boundary validity, async request APIs, runtime choice, directives, error handling, data-pattern selection, route handlers, metadata, image, font, scripts, hydration, suspense bailout, parallel routes, bundling, self-hosting and dev-server debugging."
+    notes: "No license grant; included under fair-use with attribution per project policy. Codex-specific frontmatter (metadata.priority, docs, sitemap, pathPatterns, bashPatterns, promptSignals) was stripped."
+  - id: shadcn-official
+    kind: repo
+    repo: shadcn-ui/ui
+    url: https://github.com/shadcn-ui/ui
+    paths: [skills/shadcn]
+    ref: main
+    commit: 3ba91b1cc83e1bbe4ab35a422ff2a694849c5048
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "The shadcn workflow (info, docs, search, add, review), the styling and Tailwind conventions, form and composition rules, icon rules, base-vs-radix API differences, registry rules and theming."
+    notes: "Claude-Code-specific frontmatter (user-invocable, allowed-tools) was stripped, and the upstream load-time command-injection block was rewritten as an explicit first step of the add-shadcn-component workflow."
+  - id: anthropic-web-artifacts
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/web-artifacts-builder]
+    ref: main
+    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    license: NOASSERTION
+    relation: reference
+    synced_at: "2026-09-10"
+    contributes: "Read for scaffolding conventions when starting a React project from scratch; no content was copied."
+    notes: "Per-skill LICENSE.txt. Reference only: its scaffolding is bound to the Claude artifact runtime, and the shadcn CLI covers the same ground portably."
+  - id: react-docs
+    kind: docs
+    url: https://react.dev/reference
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Correctness arbiter and version floors; the sole source for the Actions form-state section (useActionState, useFormStatus, useOptimistic)."
+    notes: "React 19.2 release notes fix the availability floor for Activity and useEffectEvent; npm reports react 19.3.0 as current."
+  - id: nextjs-docs
+    kind: docs
+    url: https://nextjs.org/docs
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-10"
+    contributes: "Arbiter for data-fetching and caching semantics, and for the cacheComponents and instant-navigation version facts."
+    notes: "Same repository and license as vercel/next.js; npm reports next 16.3.4 as current."
