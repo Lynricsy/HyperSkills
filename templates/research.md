@@ -11,7 +11,7 @@
   - <https://www.skills.sh>
   - VoltAgent/awesome-agent-skills、addyosmani/agent-skills
   - 领域官方组织仓库：
-- GitHub API 核对方式：`curl -s https://api.github.com/repos/<owner>/<repo>`（`stargazers_count` / `pushed_at` / `license.spdx_id`）
+- GitHub API 核对方式：`gh api repos/<owner>/<repo> --jq '{stars:.stargazers_count, pushed:.pushed_at, license:.license.spdx_id}'`
 
 ## 候选表
 
@@ -50,7 +50,7 @@
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 
-结论：<!-- 至少一条基线未达成的行为在有 skill 时达成？两种模型分别如何？ -->
+结论：<!-- 至少一条基线未达成的行为在有 skill 时达成？ -->
 
 ## 备注
 

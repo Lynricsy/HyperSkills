@@ -24,6 +24,11 @@ flowchart LR
 - <https://www.skills.sh> 搜索
 - VoltAgent/awesome-agent-skills、addyosmani/agent-skills
 - 领域官方组织仓库（`flutter/`、`dart-lang/`、`shadcn-ui/`、`vercel-labs/` 等）
+- `github/awesome-copilot`（GitHub 官方，418 个 `skills/*/SKILL.md` + 193 个
+  `instructions/*.instructions.md`；两者都可作 `paths`，后者按 Copilot instruction 文件读）
+- 领域官方组织补充：`dotnet/`、`android/`、`google/`、`microsoft/`、`awslabs/`、`cloudflare/`、
+  `hashicorp/`、`supabase/`、`redis/`、`mongodb/`、`elastic/`、`grafana/`、`getsentry/`、
+  `apollographql/`、`expo/`、`callstackincubator/`、`laravel/`、`Unity-Technologies/`、`EpicGames/`
 
 每个候选必须用 GitHub API 核对 stars / `pushed_at` / license：
 
@@ -34,8 +39,8 @@ gh api repos/<owner>/<repo> \
 
 **用已登录的 `gh`，不要用匿名 `curl`。** 匿名 API 只有 60 次/小时，一个 skill 的候选
 复核就能打满；打满之后退化成读仓库网页猜数字，候选表就只能标 `unverified`。
-`gh` 带用户自己的 5000 次/小时配额，无需手工传 token。`gh` 不可用时才退回
-`curl` + `GITHUB_TOKEN`，两者都没有再读 HTML 并在表中标 `unverified`。
+`gh` 带用户自己的 5000 次/小时配额，无需手工传 token。**`gh auth status` 失败或 `gh` 限流时
+停止该 skill 的 Phase A 并上报**——不得退回匿名 API 或读网页猜数字来填候选表。
 必须读原始 `SKILL.md` 再评分。
 
 候选表列：
