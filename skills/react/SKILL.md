@@ -22,7 +22,9 @@ Not covered — do not answer from this skill:
 
 - Visual and UX design decisions (palette, type scale, spacing, motion,
   accessibility audits). Those belong to the `frontend-design` skill.
-- Vue, Svelte, Solid, Astro islands, React Native, Expo.
+- Vue, Svelte, Solid, Astro islands.
+- The React Native and Expo runtime — Hermes, the New Architecture, FlashList,
+  navigation, EAS. Use the `react-native` skill.
 - Pages Router feature work. Only the v16 `middleware.ts` → `proxy.ts` rename
   is covered, because it breaks App Router projects too.
 - Test-runner mechanics, CI, container and cloud configuration beyond the three

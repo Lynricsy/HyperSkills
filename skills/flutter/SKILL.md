@@ -19,9 +19,11 @@ serialization, Dart 3 language features, analyzer/tooling hygiene, and the
 Dart↔native boundary (platform channels, Pigeon, FFI).
 
 Not covered: writing native iOS/Android UI or platform SDK code beyond the
-channel boundary, Flutter web hosting/CI/store release, Firebase and other
-vendor SDKs, and game engines (Flame). For visual/UX design decisions or web
-frontends, use the `frontend-design` skill instead.
+channel boundary — use the `apple` or `android` skill. Other cross-platform
+stacks: React Native and Expo belong to the `react-native` skill. Also out of
+scope: Flutter web hosting/CI/store release, Firebase and other vendor SDKs,
+and game engines (Flame). For visual/UX design decisions or web frontends, use
+the `frontend-design` skill instead.
 
 Paths below are relative to this skill's directory.
 

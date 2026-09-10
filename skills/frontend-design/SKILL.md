@@ -25,7 +25,7 @@ Covered, for any framework or none:
 Not covered, and do not improvise here:
 
 - React, Next.js, Vue or Svelte APIs, hooks, rendering models and bundling. That is the `react` skill or the framework's own docs.
-- Native mobile UI (UIKit, SwiftUI, Jetpack Compose, React Native). Platform target sizes and idioms differ; the `apple` skill covers Apple platforms.
+- Native mobile UI (UIKit, SwiftUI, Jetpack Compose, React Native). Platform target sizes and idioms differ; the `apple` skill covers Apple platforms, `android` and `react-native` cover theirs.
 - Print, poster and canvas design, and brand identity systems.
 - Backend, data modelling, and query performance.
 

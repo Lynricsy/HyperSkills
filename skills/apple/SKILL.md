@@ -20,7 +20,8 @@ Default deployment target for new apps is **iOS 26** and its coordinated release
 or later with strict concurrency. iOS 27 is the newer SDK and its APIs are marked as such.
 
 Not covered: server-side Swift, App Store submission, ASO, Core Data (SwiftData is the
-default; say so rather than improvising), and cross-platform frameworks.
+default; say so rather than improvising), and cross-platform frameworks (`flutter`,
+`react-native`).
 
 Architecture is not prescribed. Do not push MVVM, VIPER, or Clean Architecture onto a
 codebase. Encourage separating logic from views for testability without mandating how.
