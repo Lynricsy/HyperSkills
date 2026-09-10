@@ -1,0 +1,99 @@
+# HyperSkills
+
+整合型 Agent Skill 集合：**每个技术生态 / 每类常见任务 = 一个独立 skill**。
+每个 skill 都不是对某个上游仓库的搬运，而是把该领域多个高质量上游 skill **全部精编重写**
+合成的一份内容——去重、消歧、裁决冲突、补齐缺口，并在 `SOURCES.yaml` 中固定 commit
+记录全部上游，便于后续追踪上游更新。
+
+## 设计原则
+
+1. **扁平**。所有 skill 平铺在 `skills/<name>/`。所有主流 agent（Claude Code / Codex /
+   Cursor / OMP）的 skill 发现都是一级扫描，嵌套分类目录不会被发现；分类只用 frontmatter
+   的 `metadata.category` 与本页目录表表达。
+2. **一个生态一个 skill**。不做 `swiftui` / `swift-concurrency` / `swiftdata` 这种碎片化
+   切分——它们属于同一次任务，应当同时在场。
+3. **精编重写，不是聚合**。上游内容一律重写：统一术语、统一章节结构、删掉模型本来就会的
+   常识、只留下边缘情况与易错点。代码示例按需调整并在本机跑通。
+4. **上游可追溯**。`SOURCES.yaml` 记录每个上游的 repo、路径、分支、合入时的 commit、许可与
+   贡献内容；`tools/check_upstream.py` 可以列出自那次 commit 以来上游的全部变更。
+5. **只收活跃高质量上游**。知名、认可度高、6 个月内有推送；陈旧 / 低质 / 无人维护的一律不
+   合入，并在 `research/<skill>.md` 中留下 REJECT 记录与理由。
+6. **评测先行**。动笔前先写 ≥3 个评测场景（含 ≥1 负例）并跑无 skill 基线；skill 必须填补
+   基线暴露出的缺口，否则视为无效。
+
+## 目录
+
+<!-- catalog:start -->
+<!-- catalog:end -->
+
+## 安装
+
+### `npx skills`（任意 agent）
+
+```bash
+npx skills@latest add Lynricsy/HyperSkills --skill apple
+npx skills@latest add Lynricsy/HyperSkills --skill '*'     # 全部
+```
+
+### Claude Code 插件市场
+
+```
+/plugin marketplace add Lynricsy/HyperSkills
+/plugin install apple@hyperskills
+/plugin install all@hyperskills
+```
+
+### 手工安装
+
+```bash
+git clone https://github.com/Lynricsy/HyperSkills.git
+cp -r HyperSkills/skills/apple ~/.agents/skills/
+```
+
+## 仓库结构
+
+```
+HyperSkills/
+├── skills/<name>/          # 扁平的 skill 目录
+│   ├── SKILL.md            # frontmatter + 正文（英文）
+│   ├── SOURCES.yaml        # 上游溯源，手工维护
+│   ├── NOTICE.md           # 生成，勿改
+│   ├── references/*.md     # 按需加载的深度内容
+│   ├── evals/evals.json    # 行为评测场景
+│   ├── scripts/            # 可选，自包含
+│   └── assets/             # 可选
+├── docs/
+│   ├── skill-standard.md   # 结构 / 写作 / 溯源规范
+│   ├── workflow.md         # 新增与更新 skill 的五阶段流水线
+│   └── roadmap.md          # 后续批次主题路线图
+├── research/<name>.md      # 候选调研、冲突裁决、评测结果（中文）
+├── templates/              # 脚手架
+└── tools/                  # 校验 / 上游检查 / 目录生成 / 评测运行
+```
+
+## 维护
+
+新增或更新 skill 必须走 `docs/workflow.md` 的五个阶段。常用命令：
+
+```bash
+uv run tools/new_skill.py <name> --category platform   # 脚手架
+uv run tools/run_evals.py <name> --baseline            # 无 skill 基线
+uv run tools/validate_skills.py                        # 质量门
+uv run tools/check_upstream.py                         # 上游漂移
+uv run tools/check_upstream.py --pin <name>            # 固定 commit
+uv run tools/build_catalog.py                          # 生成目录与 NOTICE
+```
+
+提交前必须通过：
+
+```bash
+uv run tools/validate_skills.py && uv run tools/build_catalog.py --check
+```
+
+## 许可
+
+- 本仓库自有内容：[MIT](LICENSE)。
+- 上游材料的许可与署名：见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与各
+  `skills/<name>/NOTICE.md`。
+- 专有许可的上游（如 Anthropic 的 docx/pptx/xlsx/pdf skill）仅作为**参考基准**，
+  `relation: reference`，未复制任何文字、脚本或数据文件。

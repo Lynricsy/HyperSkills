@@ -1,0 +1,167 @@
+# 单个 skill 的五阶段流水线
+
+每个 skill（首批与后续批次相同）必须依次完成 Phase A–E。结构与写作细节见
+`docs/skill-standard.md`（下称「标准」）。
+
+```mermaid
+flowchart LR
+  A[Phase A 调研] --> B[Phase B 审查 + 评测先行]
+  B --> C[Phase C 重写]
+  C --> D[Phase D 校验]
+  D -->|缺口未填补| C
+  D --> E[Phase E 记录与提交]
+```
+
+---
+
+## Phase A 调研 → `research/<skill>.md`
+
+用 `templates/research.md` 生成（`uv run tools/new_skill.py` 会一并创建）。
+
+**候选数量下限 12**（多技能仓库内的单个 skill 也算一个候选）。检索途径：
+
+- `web_search`：`"<topic> skill SKILL.md github"`、`site:skills.sh <topic>`
+- <https://www.skills.sh> 搜索
+- VoltAgent/awesome-agent-skills、addyosmani/agent-skills
+- 领域官方组织仓库（`flutter/`、`dart-lang/`、`shadcn-ui/`、`vercel-labs/` 等）
+
+每个候选必须用 GitHub API 核对 stars / `pushed_at` / license：
+
+```bash
+curl -s https://api.github.com/repos/<owner>/<repo> \
+  | jq '{stars: .stargazers_count, pushed: .pushed_at, license: .license.spdx_id}'
+```
+
+API 限流时设置 `GITHUB_TOKEN` 环境变量；仍不可用则读仓库 HTML 并在表中标 `unverified`。
+必须读原始 `SKILL.md` 再评分。
+
+候选表列：
+
+```
+# | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由
+```
+
+**REJECT 的候选也必须留行并写理由**——避免后续批次反复讨论同一个候选。
+
+评分量表见标准第 9 节。
+
+---
+
+## Phase B 审查与挑选（含评测先行）
+
+1. 对总分前 5–8 名通读 `SKILL.md` + 浏览 `references/`。
+2. 写「深度审查」节：结构、frontmatter、质量、agent 绑定、与其他候选的重叠。
+3. 写「冲突与裁决」节：按「官方厂商 > 公认专家 > 社区」「更新 > 更旧」裁决，对照官方文档核实。
+4. 写「最终合入清单」：每个上游贡献什么、`relation` 是 `merged` 还是 `reference`。
+5. **生成骨架**：
+
+   ```bash
+   uv run tools/new_skill.py <name> --category <platform|framework|task|meta>
+   ```
+
+6. **评测先行**：写 `skills/<name>/evals/evals.json`（≥3 场景，含 ≥1 负例，见标准第 6 节）
+   与 `evals/files/` 夹具。
+7. **跑无 skill 基线**：
+
+   ```bash
+   uv run tools/run_evals.py <name> --baseline
+   ```
+
+   逐条记录哪些 `expected_behavior` 未达成——这就是 skill 要填补的缺口，写进
+   「基线缺口」节。**若基线全部达成，说明评测没有区分度，改写评测直到出现缺口。**
+
+---
+
+## Phase C 重写
+
+在 Phase B 生成的骨架上按标准写 `SKILL.md` 与 `references/`。
+
+- 脚本按需重写并**在本机跑通**（不能跑通的平台在正文注明，如「仅 macOS」）。
+- 填 `SOURCES.yaml`；commit 字段用工具自动取 HEAD 写入：
+
+  ```bash
+  uv run tools/check_upstream.py --pin <skill>
+  ```
+
+---
+
+## Phase D 校验
+
+### D1 静态
+
+```bash
+uv run tools/validate_skills.py skills/<name>
+```
+
+安装冒烟：
+
+```bash
+rm -rf /tmp/hs-smoke && mkdir /tmp/hs-smoke && cd /tmp/hs-smoke
+npx skills@latest add /root/Projects/Ling/HyperSkills --skill <name> \
+  --agent universal --copy --yes
+```
+
+确认 `/tmp/hs-smoke/.agents/skills/<name>/SKILL.md` 与 `references/` 完整。
+
+### D2 行为评测
+
+```bash
+uv run tools/run_evals.py <name>                  # 默认模型，有 skill
+uv run tools/run_evals.py <name> --model @smol    # 第二模型，有 skill
+```
+
+基线已在 Phase B 用 `--baseline` 跑过。逐条对照 `expected_behavior` 人工判定达成 / 未达成，
+负例场景确认 `skill_read == false`。
+
+**通过标准**：至少一条基线未达成的行为在有 skill 时达成（两种模型都要看）。否则回到
+Phase C 修改——缺口未被填补 = skill 无效。
+
+结果写入 `research/<skill>.md`「评测结果」节：
+
+```
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+```
+
+### 交互式开发（可选）
+
+在仓库根目录 `.omp/config.yml`（已 gitignore）写入：
+
+```yaml
+skills:
+  customDirectories: ["./skills"]
+```
+
+使本仓库 skill 在本目录会话中被发现。键名以 `omp config get skills.customDirectories` 为准。
+
+---
+
+## Phase E 记录与提交
+
+1. MCP `record-agent-log`：做了什么 + **为什么**（选了谁、拒了谁、冲突怎么裁）。
+2. 提交一次：
+
+   ```
+   feat(skills): ✨ 新增 <name> skill
+
+   Co-authored-by: Wine Fox <fox@ling.plus>
+   ```
+
+3. push。
+
+---
+
+## 更新流程
+
+```bash
+uv run tools/check_upstream.py [<skill>...]
+```
+
+输出每个上游自 pinned commit 以来触及 `paths` 的提交列表与 compare 链接。
+
+有变更时：
+
+1. 重读变更文件，按 Phase B 的裁决规则更新内容。
+2. `uv run tools/check_upstream.py --pin <skill>` 更新 `commit` / `synced_at`。
+3. 把 `SKILL.md` 的 `metadata.version` 与 `SOURCES.yaml` 的 `version` 改为当天。
+4. 重跑 Phase D。
+5. 提交 `chore(skills): ⬆️ 同步 <name> 上游 <id>`。

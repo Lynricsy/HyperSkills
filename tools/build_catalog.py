@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pyyaml>=6"]
+# ///
+"""Generate NOTICE.md, THIRD_PARTY_NOTICES.md, marketplace.json and the README catalog.
+
+    uv run tools/build_catalog.py           # write generated files
+    uv run tools/build_catalog.py --check   # exit 1 if any generated file is stale
+
+Every artifact here is derived from `skills/*/SKILL.md` frontmatter and
+`skills/*/SOURCES.yaml`. Never edit the generated files by hand.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _common import (  # noqa: E402
+    Skill,
+    SkillLoadError,
+    all_skill_dirs,
+    load_skill,
+    render_notice,
+    repo_root,
+)
+
+CATALOG_START = "<!-- catalog:start -->"
+CATALOG_END = "<!-- catalog:end -->"
+# Claude Code's marketplace UI truncates long descriptions; keep entries scannable.
+MARKETPLACE_DESC_LIMIT = 200
+
+CATEGORY_LABELS = {
+    "platform": "平台",
+    "framework": "框架",
+    "task": "任务",
+    "meta": "元技能",
+}
+
+
+def first_sentence(text: str) -> str:
+    """First sentence of a description, for the compact catalog table."""
+    for sep in (". ", "; "):
+        idx = text.find(sep)
+        if idx != -1:
+            return text[:idx].strip()
+    return text.strip().rstrip(".")
+
+
+def render_third_party(skills: list[Skill]) -> str:
+    lines = [
+        "# Third-party notices",
+        "",
+        "HyperSkills 的所有自有内容以 MIT 许可发布（见 `LICENSE`）。",
+        "每个 skill 都是对上游材料的精编重写，下列条目记录了各 skill 的上游来源、",
+        "许可与合入时固定的 commit。本文件由 `tools/build_catalog.py` 生成，请勿手工编辑。",
+        "",
+    ]
+    for skill in skills:
+        lines.append(render_notice(skill).rstrip("\n"))
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+    while lines and lines[-1] == "":
+        lines.pop()
+    if lines and lines[-1] == "---":
+        lines.pop()
+    while lines and lines[-1] == "":
+        lines.pop()
+    return "\n".join(lines) + "\n"
+
+
+def render_marketplace(skills: list[Skill]) -> str:
+    version = max((s.version for s in skills), default="0000.00.00")
+    plugins = [
+        {
+            "name": s.name,
+            "description": s.description[:MARKETPLACE_DESC_LIMIT],
+            "source": "./",
+            "strict": False,
+            "skills": [f"./skills/{s.name}"],
+        }
+        for s in skills
+    ]
+    plugins.append(
+        {
+            "name": "all",
+            "description": "Every HyperSkills skill",
+            "source": "./",
+            "strict": False,
+            "skills": [f"./skills/{s.name}" for s in skills],
+        }
+    )
+    doc = {
+        "name": "hyperskills",
+        "owner": {"name": "Lynricsy"},
+        "metadata": {
+            "description": "HyperSkills — curated, consolidated agent skills",
+            "version": version,
+        },
+        "plugins": plugins,
+    }
+    return json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
+
+
+def render_catalog_table(skills: list[Skill]) -> str:
+    rows = [
+        "| Skill | 类别 | 说明 | 版本 | 上游数 |",
+        "|---|---|---|---|---|",
+    ]
+    for s in skills:
+        label = CATEGORY_LABELS.get(s.category, s.category)
+        rows.append(
+            f"| [`{s.name}`](skills/{s.name}/) | {label} | {first_sentence(s.description)} "
+            f"| {s.version} | {len(s.upstreams)} |"
+        )
+    return "\n".join(rows)
+
+
+def splice_catalog(readme: str, table: str) -> str:
+    start = readme.find(CATALOG_START)
+    end = readme.find(CATALOG_END)
+    if start == -1 or end == -1:
+        raise SystemExit(
+            f"README.md must contain {CATALOG_START} and {CATALOG_END} markers"
+        )
+    return (
+        readme[: start + len(CATALOG_START)]
+        + "\n\n"
+        + table
+        + "\n\n"
+        + readme[end:]
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--check", action="store_true", help="verify generated files are current"
+    )
+    args = parser.parse_args()
+
+    root = repo_root()
+    try:
+        skills = [load_skill(p) for p in all_skill_dirs(root)]
+    except SkillLoadError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    if not skills:
+        print("no skills found under skills/ — nothing to generate")
+        return 0
+
+    planned: dict[Path, str] = {}
+    for skill in skills:
+        planned[skill.path / "NOTICE.md"] = render_notice(skill)
+    planned[root / "THIRD_PARTY_NOTICES.md"] = render_third_party(skills)
+    planned[root / ".claude-plugin" / "marketplace.json"] = render_marketplace(skills)
+
+    readme_path = root / "README.md"
+    if readme_path.is_file():
+        planned[readme_path] = splice_catalog(
+            readme_path.read_text(encoding="utf-8"), render_catalog_table(skills)
+        )
+
+    stale: list[Path] = []
+    for path, content in planned.items():
+        current = path.read_text(encoding="utf-8") if path.is_file() else None
+        if current == content:
+            continue
+        stale.append(path)
+        if not args.check:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+
+    if args.check:
+        if stale:
+            print("stale generated files (run: uv run tools/build_catalog.py):")
+            for path in stale:
+                print(f"  {path.relative_to(root)}")
+            return 1
+        print(f"catalog is current ({len(skills)} skill(s))")
+        return 0
+
+    if stale:
+        print(f"wrote {len(stale)} file(s):")
+        for path in stale:
+            print(f"  {path.relative_to(root)}")
+    else:
+        print(f"catalog already current ({len(skills)} skill(s))")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

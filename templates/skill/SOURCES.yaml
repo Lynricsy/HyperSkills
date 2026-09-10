@@ -1,0 +1,17 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin {{name}}
+skill: {{name}}
+version: "{{version}}"           # must equal SKILL.md metadata.version
+upstreams: []
+# - id: owner-topic              # ^[a-z0-9]+(-[a-z0-9]+)*$, unique within this skill
+#   kind: repo                   # repo | docs
+#   repo: owner/repo             # required when kind=repo
+#   url: https://github.com/owner/repo
+#   paths: [skills/topic]        # repo paths actually consulted; drives drift checks
+#   ref: main                    # required when kind=repo
+#   commit: 0000000000000000000000000000000000000000   # 40-hex; set by --pin
+#   license: MIT                 # SPDX id, or NONE (no license), or Proprietary
+#   relation: merged             # merged = rewritten into this skill | reference = read only
+#   synced_at: "{{today}}"
+#   contributes: "One English sentence: what this upstream contributed."
+#   notes: "Optional: licensing caveats or conflict rulings."

@@ -1,0 +1,279 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pyyaml>=6"]
+# ///
+"""Headless eval runner for HyperSkills skills.
+
+Runs each scenario in `skills/<name>/evals/evals.json` through a non-interactive
+`omp` session and records whether the skill was actually read plus the final
+answer, so Phase B baselines and Phase D with-skill runs are directly comparable.
+
+    uv run tools/run_evals.py apple --baseline        # no skills loaded (the gap)
+    uv run tools/run_evals.py apple                   # default model, with skill
+    uv run tools/run_evals.py apple --model @smol     # second model, with skill
+    uv run tools/run_evals.py apple --only 2          # one scenario
+
+Judging is manual on purpose: `expected_behavior` entries are prose, and a
+regex grader would reward wording rather than behaviour. Read `answer.md` and
+fill in the table in `research/<skill>.md`.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _common import SkillLoadError, load_skill, repo_root, resolve_targets  # noqa: E402
+
+# A single eval turn is usually 1-5 minutes; 900s leaves headroom for slow
+# models and tool-heavy scenarios without hanging a batch forever.
+SCENARIO_TIMEOUT = 900
+# Raw NDJSON event stream from `omp --mode json`, kept verbatim so a failed text
+# extraction can still be judged by hand.
+EVENTS_FILE = "events.jsonl"
+ANSWER_FILE = "answer.md"
+RESULT_FILE = "result.json"
+# Outside the repo: eval runs are throwaway artifacts, never committed.
+DEFAULT_OUT_ROOT = Path("/tmp/hs-evals")
+OVERLAY_FILE = "overlay.yml"
+
+
+def write_overlay(out_root: Path, skills_dir: Path) -> Path:
+    """Config overlay that makes this repo's skills discoverable from any cwd."""
+    out_root.mkdir(parents=True, exist_ok=True)
+    overlay = out_root / OVERLAY_FILE
+    overlay.write_text(
+        "skills:\n" f'  customDirectories: ["{skills_dir}"]\n', encoding="utf-8"
+    )
+    return overlay
+
+
+def extract_answer(events: list[dict[str, Any]]) -> str | None:
+    """Final assistant text from the event stream.
+
+    Prefers `agent_end` (authoritative full transcript), falls back to the last
+    `turn_end`, then to any trailing assistant `message_end`.
+    """
+
+    def text_of(message: dict[str, Any]) -> str:
+        parts = [
+            block.get("text", "")
+            for block in message.get("content", [])
+            if isinstance(block, dict) and block.get("type") == "text"
+        ]
+        return "\n".join(p for p in parts if p).strip()
+
+    for event in reversed(events):
+        if event.get("type") == "agent_end":
+            for message in reversed(event.get("messages", [])):
+                if message.get("role") == "assistant" and text_of(message):
+                    return text_of(message)
+    for event in reversed(events):
+        if event.get("type") in ("turn_end", "message_end"):
+            message = event.get("message", {})
+            if message.get("role") == "assistant" and text_of(message):
+                return text_of(message)
+    return None
+
+
+def detect_skill_read(raw: str, skill: str, skills_dir: Path) -> bool:
+    """Whether the transcript shows the skill being loaded or read."""
+    markers = (
+        f"skills/{skill}/SKILL.md",
+        f"skill://{skill}",
+        f"{skills_dir}/{skill}/",
+    )
+    return any(marker in raw for marker in markers)
+
+
+def run_scenario(
+    *,
+    skill: str,
+    index: int,
+    scenario: dict[str, Any],
+    skill_path: Path,
+    out_dir: Path,
+    overlay: Path,
+    model: str | None,
+    baseline: bool,
+) -> dict[str, Any]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for rel in scenario.get("files") or []:
+        src = skill_path / str(rel)
+        if not src.exists():
+            raise SystemExit(
+                f"error: {skill} eval {index} fixture not found: {rel}. "
+                f"Expected under {skill_path / 'evals' / 'files'}"
+            )
+        shutil.copy2(src, out_dir / src.name)
+
+    cmd = [
+        "omp",
+        "-p",
+        scenario["query"],
+        "--mode",
+        "json",
+        "--no-session",
+        "--config",
+        str(overlay),
+    ]
+    cmd += ["--no-skills"] if baseline else ["--skills", skill]
+    if model:
+        cmd += ["--model", model]
+
+    started = time.monotonic()
+    try:
+        proc = subprocess.run(
+            cmd, cwd=out_dir, capture_output=True, text=True, timeout=SCENARIO_TIMEOUT
+        )
+    except FileNotFoundError:
+        raise SystemExit(
+            "error: 'omp' not found on PATH. run_evals.py drives the omp CLI headlessly."
+        ) from None
+    except subprocess.TimeoutExpired:
+        (out_dir / EVENTS_FILE).write_text("", encoding="utf-8")
+        return {
+            "skill": skill,
+            "index": index,
+            "model": model or "default",
+            "baseline": baseline,
+            "status": "timeout",
+            "skill_read": False,
+            "query": scenario["query"],
+            "expected_behavior": scenario.get("expected_behavior", []),
+            "answer_path": None,
+            "duration_s": round(time.monotonic() - started, 1),
+        }
+    duration = round(time.monotonic() - started, 1)
+
+    raw = proc.stdout
+    (out_dir / EVENTS_FILE).write_text(raw, encoding="utf-8")
+    if proc.returncode != 0:
+        print(
+            f"error: omp exited {proc.returncode} for {skill} eval {index}:\n"
+            f"{(proc.stderr or '').strip()[:800]}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    events: list[dict[str, Any]] = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    answer = extract_answer(events)
+    answer_path: str | None = None
+    if answer is None:
+        print(
+            f"warn: could not extract final text for {skill} eval {index}; "
+            f"read {out_dir / EVENTS_FILE} by hand"
+        )
+    else:
+        (out_dir / ANSWER_FILE).write_text(answer + "\n", encoding="utf-8")
+        answer_path = str(out_dir / ANSWER_FILE)
+
+    return {
+        "skill": skill,
+        "index": index,
+        "model": model or "default",
+        "baseline": baseline,
+        "status": "ok",
+        "skill_read": detect_skill_read(raw, skill, skill_path.parent),
+        "query": scenario["query"],
+        "expected_behavior": scenario.get("expected_behavior", []),
+        "answer_path": answer_path,
+        "duration_s": duration,
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("skills", nargs="+", help="skill names or paths")
+    parser.add_argument(
+        "--model", help="model or role to use, e.g. '@smol' (default: session default)"
+    )
+    parser.add_argument(
+        "--baseline", action="store_true", help="run with --no-skills to measure the gap"
+    )
+    parser.add_argument("--only", type=int, help="run only scenario N (1-based)")
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT_ROOT, help="output root")
+    args = parser.parse_args()
+
+    root = repo_root()
+    skills_dir = root / "skills"
+    try:
+        targets = resolve_targets(args.skills, root)
+    except SkillLoadError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    overlay = write_overlay(args.out, skills_dir)
+    mode = "baseline" if args.baseline else "skill"
+    model_tag = (args.model or "default").lstrip("@").replace("/", "-").replace(":", "-")
+
+    results: list[dict[str, Any]] = []
+    for skill_path in targets:
+        try:
+            skill = load_skill(skill_path)
+        except SkillLoadError as exc:
+            print(f"error: {skill_path.name}: {exc}", file=sys.stderr)
+            return 1
+        evals_path = skill_path / "evals" / "evals.json"
+        if not evals_path.is_file():
+            print(f"error: {evals_path} not found", file=sys.stderr)
+            return 1
+        scenarios = json.loads(evals_path.read_text(encoding="utf-8"))
+
+        for i, scenario in enumerate(scenarios, start=1):
+            if args.only is not None and i != args.only:
+                continue
+            out_dir = args.out / skill.name / model_tag / mode / str(i)
+            if out_dir.exists():
+                shutil.rmtree(out_dir)
+            print(f"running {skill.name} eval {i} ({mode}, {args.model or 'default'}) ...")
+            result = run_scenario(
+                skill=skill.name,
+                index=i,
+                scenario=scenario,
+                skill_path=skill_path,
+                out_dir=out_dir,
+                overlay=overlay,
+                model=args.model,
+                baseline=args.baseline,
+            )
+            (out_dir / RESULT_FILE).write_text(
+                json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            results.append(result)
+
+    print("\n| skill | # | model | mode | skill_read | status | secs | answer |")
+    print("|---|---|---|---|---|---|---|---|")
+    for r in results:
+        print(
+            f"| {r['skill']} | {r['index']} | {r['model']} | "
+            f"{'baseline' if r['baseline'] else 'skill'} | {r['skill_read']} | "
+            f"{r['status']} | {r['duration_s']} | {r['answer_path'] or '-'} |"
+        )
+    print(
+        "\nJudge each expected_behavior by reading the answer files, then fill the "
+        "eval table in research/<skill>.md."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,30 @@
+[
+  {
+    "skills": ["{{name}}"],
+    "query": "TODO: a realistic request that should trigger this skill",
+    "files": [],
+    "expected_behavior": [
+      "TODO: observable behaviour 1",
+      "TODO: observable behaviour 2",
+      "TODO: observable behaviour 3"
+    ]
+  },
+  {
+    "skills": ["{{name}}"],
+    "query": "TODO: a second, differently shaped request in scope",
+    "files": [],
+    "expected_behavior": [
+      "TODO: observable behaviour 1",
+      "TODO: observable behaviour 2"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "TODO: a near-miss request that must NOT trigger this skill",
+    "files": [],
+    "expected_behavior": [
+      "Does not read skills/{{name}}/SKILL.md",
+      "Answers from general knowledge without invoking the skill"
+    ]
+  }
+]

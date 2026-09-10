@@ -1,0 +1,10 @@
+.agent-logs/
+.omp/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+
+# 全局 core.excludesFile 忽略了 AGENTS.md，但本仓库的 agent 约定必须入库
+!AGENTS.md
