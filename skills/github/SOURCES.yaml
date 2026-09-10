@@ -1,0 +1,213 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin github
+skill: github
+version: "2026.09.11"
+upstreams:
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - skills/github-actions-hardening
+      - skills/github-actions-efficiency
+      - skills/github-actions-runtime-upgrade-conventions
+      - skills/github-issues
+      - skills/dependabot
+      - skills/github-release
+      - skills/repo-standardizer
+      - skills/copilot-pr-autopilot/references/api-quirks.md
+      - instructions/github-actions-ci-cd-best-practices.instructions.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Backbone of the Actions half: the trigger trust matrix, the attacker-controllable context list and the env: safe pattern, least-privilege permissions recipes, third-party SHA pinning and action-version upgrade discipline, the measure-first efficiency audit with its five guardrails and six ranked fixes, cache and concurrency patterns. Issue operations (gh issue create has no --type, quoting -f 'labels[]=', issue types over equivalent labels). Dependabot ecosystems and the directory-vs-directories glob trap. The tags-not-gh-release-list rule and semantic tag sorting for releases. Repository governance audit commands and idempotent apply order. From copilot-pr-autopilot/references/api-quirks.md only: latestReviews is a stale projection, isOutdated is not isResolved, and gh api graphql -F coerces strings so String! variables need -f."
+    notes: "This repository is also an upstream of other skills in this batch; paths lists only the directories consulted for this skill. skills/git-flow-branch-creator, skills/pr-dashboard, skills/create-github-issue-feature-from-specification and skills/gen-specs-as-issues were read and rejected — the first is purely local git and therefore on the other side of this skill's boundary, the second is a harness-path-bound script wrapper, and the last two are specification-writing rather than GitHub platform knowledge. Upstream frontmatter carried only name and description; the applyTo field on the instructions file was stripped."
+  - id: getsentry-skills
+    kind: repo
+    repo: getsentry/skills
+    url: https://github.com/getsentry/skills
+    paths:
+      - skills/gha-security-review
+      - skills/pr-writer
+      - skills/iterate-pr
+      - skills/pr-link-issue
+      - skills/gh-review-requests
+    ref: main
+    commit: c2f99a5b04b4cd992ec3022d7c2c3e23e938d241
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The audit threat model — report only what an attacker without write access can reach — plus the five-element evidence requirement (entry point, payload, execution mechanism, impact, reproduction) and the safe-patterns list that must not be reported. The pull-request body contract: a reviewer-facing cover note, conventional title types, no default Summary/Changes/Test Plan scaffolding, no pasted validation output. The CI waiting rule that separates checks which can still change from human gates (approval, draft, REVIEW_REQUIRED, coverage reporters). Read the PR body before editing it so bot-maintained sections survive. The review-queue read path via gh api notifications plus requested_reviewers and team membership."
+    notes: "Also an upstream of other skills in this repository; paths lists only the five directories consulted here. The bundled uv scripts in skills/iterate-pr were not copied — they depend on Sentry's internal review-bot list; only their gh fallback commands and waiting criteria were used. The Linear-specific half of skills/pr-link-issue was dropped. Upstream frontmatter fields allowed-tools and disable-model-invocation were stripped."
+  - id: github-docs
+    kind: docs
+    url: https://docs.github.com
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Authoritative source for every fact where community upstreams were out of date or wrong: actions/checkout now refuses fork PR head refs under pull_request_target unless allow-unsafe-pr-checkout is set; pull_request_target runs get read-only cache access in the default branch scope; the checkout step is not itself the pwn request, the step that executes the code is; SHA pinning as the only immutable action reference plus the repository/organisation pinning policy and workflow execution protections; OIDC and the id-token: write requirement; secret redaction limits for transformed and structured secrets; closing keywords are interpreted only when the pull request targets the default branch; CODEOWNERS location, base-branch requirement, write-access requirement, last-match-wins ordering, co-owners on one line, and the unsupported gitignore constructs; rulesets aggregate with no priority so the most restrictive version of a rule wins, enforcement statuses, and per-rule behaviour including metadata restrictions blocking ref updates; immutable releases, release attestations and the draft-then-publish order."
+    notes: "Content of docs.github.com is licensed CC-BY-4.0 in its source repository github/docs (code samples are MIT); attribution: \"GitHub Docs\" by GitHub, Inc., used under CC BY 4.0. No text was copied verbatim. Pages consulted: actions/reference/security/secure-use, actions/reference/security/securely-using-pull_request_target, actions/concepts/security/script-injections, actions/concepts/security/github_token, repositories/.../managing-rulesets/about-rulesets, repositories/.../managing-rulesets/available-rules-for-rulesets, repositories/.../customizing-your-repository/about-code-owners, issues/.../linking-a-pull-request-to-an-issue, code-security/concepts/supply-chain-security/immutable-releases."
+  - id: zizmor
+    kind: repo
+    repo: zizmorcore/zizmor
+    url: https://github.com/zizmorcore/zizmor
+    paths:
+      - docs/usage.md
+      - docs/audits.md
+      - README.md
+    ref: main
+    commit: a7112ad562bafa07e9a2ca7504dd04fdbb3174e3
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The zizmor command surface that decides whether a CI gate behaves: exit codes 11-14 mean findings at informational/low/medium/high rather than an error while 1, 2 and 3 are real failures, --no-exit-codes and --format=sarif both suppress 11+, the regular/pedantic/auditor personas and the audits that only produce auditor-level results, offline-versus-online mode selection from GH_TOKEN, --collect input selection, --fix, and the 0-based row numbering of --format=json-v1."
+  - id: scrutineer
+    kind: repo
+    repo: alpha-omega-security/scrutineer
+    url: https://github.com/alpha-omega-security/scrutineer
+    paths:
+      - skills/zizmor
+    ref: main
+    commit: 82e9ecd23d9751e39a973de8c37d92508a87daef
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Discipline for turning scanner output into findings: preserve the tool's ids, severities and locations without merging or reclassifying them; reference material is review guidance, not evidence that the target is vulnerable; broad permissions, a mutable tag, pull_request_target, workflow_run, a self-hosted runner or interpolation alone are not exploitation unless the checked-in workflow establishes the untrusted path and a real impact; never invent cloud trust policies, repository settings or caller behaviour that is not visible in the repository."
+    notes: "Upstream frontmatter carried scrutineer.* orchestrator fields and a compatibility line describing its ./src and ./report.json workspace contract; all of it was stripped, and the bundled scripts/scan.py wrapper was not copied."
+  - id: coderabbit-skills
+    kind: repo
+    repo: coderabbitai/skills
+    url: https://github.com/coderabbitai/skills
+    paths:
+      - skills/autofix
+    ref: main
+    commit: aa49953c4cb2590e35480637b1b6a29cf4187cfa
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The cursor-paginated GraphQL reviewThreads query used to fetch unresolved inline review threads, and the field selection (id, isResolved, isOutdated, comment databaseId and path) that makes reply-and-resolve possible."
+    notes: "The CodeRabbit product loop around the query — bot-specific comment parsing and the autofix reporting format — was not used."
+  - id: oz-for-oss
+    kind: repo
+    repo: warpdotdev/oz-for-oss
+    url: https://github.com/warpdotdev/oz-for-oss
+    paths:
+      - .agents/skills/triage-issue
+      - .agents/skills/dedupe-issue
+      - .agents/skills/bootstrap-issue-config
+    ref: main
+    commit: a2bb45f231fd56ea28c1b381999d11b277a0b0e2
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Conservative issue-triage output: separate observed symptoms from inferred cause, state uncertainty instead of rounding it off, treat duplicate and needs-more-information as mutually exclusive verdicts, and close an issue only under a narrow, named condition. Issue forms as the mechanism that makes triage cheap, with a deliberately small required-field set."
+    notes: "The triage_result.json schema and the Warp support-escalation labels are product coupling and were not used."
+  - id: citadel
+    kind: repo
+    repo: SethGammon/Citadel
+    url: https://github.com/SethGammon/Citadel
+    paths:
+      - skills/triage
+      - skills/pr-watch
+    ref: main
+    commit: 3673927871c3f6506c86c3ab6807333f62ee2637
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The three-axis triage taxonomy (type, severity for bugs, status with a needs-info fallback) and the circuit breaker that stops a fix loop after the same check fails twice rather than pushing a third blind attempt."
+    notes: "Only the taxonomy and the loop-termination rule were used. The rest is coupled to the Citadel product — /marshal and /review cross-references, .planning/, .claude/harness.json, a hardcoded Windows gh.exe path, and its contextual-gate vocabulary — and was stripped. Upstream frontmatter fields user-invocable, auto-trigger, trigger_keywords, effort and last-updated were removed."
+  - id: octocat
+    kind: repo
+    repo: mcollina/skills
+    url: https://github.com/mcollina/skills
+    paths:
+      - skills/octocat
+    ref: main
+    commit: 856efd268ae85482d882f3d0bed869fd020b5c06
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Three operational rules: write the pull-request body to a file and pass --body-file because inline --body loses newlines to shell escaping, watch CI with gh pr checks --watch and fix failures rather than reporting them, and verify an unfamiliar gh subcommand with gh help before putting it in guidance."
+    notes: "About half of this skill is local git work — interactive rebase, submodules, bisect, branch cleanup, merge-conflict resolution — which falls on the other side of this skill's boundary and was deliberately excluded."
+  - id: openai-skills
+    kind: repo
+    repo: openai/skills
+    url: https://github.com/openai/skills
+    paths:
+      - skills/.curated/gh-address-comments
+      - skills/.curated/gh-fix-ci
+    ref: main
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two failure modes of driving CI from gh: the --json field set drifts between versions so a rejected field is retried with the fields gh names in its error, and a failing check whose details URL is not an Actions run belongs to another CI platform and is reported by URL rather than investigated."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim."
+  - id: gh-pr-reviews
+    kind: repo
+    repo: k1LoW/gh-pr-reviews
+    url: https://github.com/k1LoW/gh-pr-reviews
+    paths:
+      - skills/triage-pr-reviews
+    ref: main
+    commit: 57d92795fac93edfebb118f9ae6ede6023bf2f6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Cross-check for the inline reply path (POST repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies) and for bucketing each review thread into agree, partially agree or decline before touching code."
+    notes: "The skill's default path depends on the author's own gh pr-reviews CLI extension, which is not assumed here; only the plain gh api route was taken."
+  - id: gh-cli
+    kind: repo
+    repo: cli/cli
+    url: https://github.com/cli/cli
+    paths:
+      - pkg/cmd/pr
+      - pkg/cmd/issue
+      - pkg/cmd/run
+      - pkg/cmd/release
+    ref: trunk
+    commit: 7b2de63c49c0d6717930415d2100a56103360509
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Verification of every gh flag quoted in this skill, checked against the installed CLI's own help output (for example gh pr review accepts only --approve, --request-changes, --comment, --body and --body-file). No text taken."
+  - id: starter-workflows
+    kind: repo
+    repo: actions/starter-workflows
+    url: https://github.com/actions/starter-workflows
+    paths:
+      - ci
+    ref: main
+    commit: e3c451d60f119b71caebf13c98ac45da6e15b4b7
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-check on the default shape of an official scaffold workflow — permissions placement, setup-action caching, matrix style — against which the baseline workflow in this skill was compared."
+    notes: "The GitHub API reports NOASSERTION; the LICENSE file was read and is the MIT licence plus a clause withholding trademark rights, so the SPDX id is MIT. No template file was copied."
+  - id: scorecard
+    kind: repo
+    repo: ossf/scorecard
+    url: https://github.com/ossf/scorecard
+    paths:
+      - docs/checks.md
+    ref: main
+    commit: f92023a3f77879f96e0c9c1305f289d755be4bb6
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage self-check: the Dangerous-Workflow, Token-Permissions and Pinned-Dependencies check definitions that GitHub's own security-hardening guide points to were used to confirm this skill's audit workflow has no gaps. No text taken."
+  - id: secure-repo
+    kind: repo
+    repo: step-security/secure-repo
+    url: https://github.com/step-security/secure-repo
+    paths:
+      - remediation/workflow
+    ref: main
+    commit: 6214b1682c8d0b3085c58a14fac904b6b21732be
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Its remediation catalogue (SHA pinning, permissions restriction, runner hardening) was used only to check the breadth of this skill's hardening coverage."
+    notes: "AGPL-3.0, so reference only per this repository's licensing policy: no content merged, and every corresponding fact in this skill is sourced from docs.github.com instead."

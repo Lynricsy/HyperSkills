@@ -1,0 +1,16 @@
+# Default owners for the whole repository
+*                       @acme/platform
+
+# Frontend
+/src/ui/                @acme/web
+/src/ui/                @jsmith
+
+# Docs — anything under a docs folder, any casing
+[Dd]ocs/                @acme/docs-writers
+
+# Everything under src is owned by platform, except generated code
+/src/**                 @acme/platform
+!/src/**/generated/**
+
+# CI
+/.github/workflows/     @acme/release-eng

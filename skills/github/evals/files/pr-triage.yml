@@ -1,0 +1,61 @@
+name: PR triage and build
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install and test
+        run: |
+          npm ci
+          npm test
+
+      - name: Comment on the PR
+        run: |
+          echo "Build finished for: ${{ github.event.pull_request.title }}"
+          gh pr comment "$PR" --body "Build finished."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+
+  label-from-comment:
+    if: github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Route the request
+        run: |
+          echo "${{ github.event.issue.title }}"
+          if [[ "${{ github.event.comment.body }}" == *"/needs-docs"* ]]; then
+            gh issue edit "${{ github.event.issue.number }}" --add-label docs
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: Routed.
+
+  deploy-preview:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Push preview to S3
+        run: aws s3 sync ./dist s3://previews/${{ github.head_ref }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

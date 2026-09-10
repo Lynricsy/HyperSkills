@@ -1,0 +1,53 @@
+[
+  {
+    "skills": ["github"],
+    "query": "Review pr-triage.yml in this directory. It is one of our GitHub Actions workflows. Tell me exactly what is wrong with it and show the fixed YAML.",
+    "files": ["evals/files/pr-triage.yml"],
+    "expected_behavior": [
+      "Flags script injection: the ${{ github.event.issue.title }} and ${{ github.event.comment.body }} expressions are pasted into the run: shell before it executes, so an attacker-chosen title or comment body becomes commands",
+      "Fixes the injection by moving each untrusted expression into env: and referencing the quoted shell variable (for example TITLE: ${{ github.event.issue.title }} then echo \"$TITLE\"), not by escaping or sanitising the expression in place",
+      "Requires third-party actions to be pinned to a full 40-character commit SHA with a trailing version comment, and flags at least peter-evans/create-or-update-comment@v4 as a mutable tag",
+      "Requires an explicit least-privilege permissions: block, notes that a workflow with no permissions: inherits the repository default, and scopes write scopes to the individual jobs that need them",
+      "Identifies the pull_request_target job checking out ${{ github.event.pull_request.head.sha }} and then running npm ci && npm test as a pwn request: fork-controlled code and lifecycle scripts execute with a write token and the repository secrets",
+      "Recommends the privilege-separation fix for that job — run the untrusted code under the plain pull_request trigger and consume only its output from a privileged workflow_run or pull_request_target job — instead of merely adding permissions",
+      "Flags that AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are long-lived secrets reachable from this externally triggerable workflow and recommends OIDC with id-token: write instead"
+    ]
+  },
+  {
+    "skills": ["github"],
+    "query": "pr-notes.md in this directory is my draft description. I am on branch fix/cache-key, the base is our release/2.x branch, and this work closes issue #412. Walk me through opening the pull request with the gh CLI and then handling the review round.",
+    "files": ["evals/files/pr-notes.md"],
+    "expected_behavior": [
+      "Warns that closing keywords such as Closes #412 are ignored when the pull request does not target the repository default branch, so a PR onto release/2.x will not auto-close #412 and the issue must be linked another way",
+      "Passes the body through a file with gh pr create --body-file (and --base release/2.x) rather than an inline --body string, because the multi-line markdown body breaks under shell escaping",
+      "Rewrites the description as a reviewer-facing cover note: keeps the root cause (header casing normalised after hashing), the where-to-start pointer and the breaking-change note, and drops the file list, the pasted npm test output and the checklist",
+      "Reviews the whole branch against the base before writing the description (gh pr diff, or git diff base...HEAD) instead of trusting the draft notes",
+      "Replies to inline review comments on their own thread — POST repos/{owner}/{repo}/pulls/{number}/comments/{id}/replies, or the equivalent GraphQL thread reply — rather than posting a new top-level PR comment",
+      "Uses gh pr checks (with --watch) or gh run view --log-failed to get the actual CI failure before changing code"
+    ]
+  },
+  {
+    "skills": ["github"],
+    "query": "CODEOWNERS-draft in this directory is the CODEOWNERS file I am about to commit. I want code owners to actually gate merges on our main branch and I want direct pushes to main blocked. Check the file and tell me what to configure on the repository.",
+    "files": ["evals/files/CODEOWNERS-draft"],
+    "expected_behavior": [
+      "Flags that ! negation (!/src/**/generated/**) is not supported in CODEOWNERS even though it works in gitignore, and that the line is skipped rather than excluding anything",
+      "Flags that character-range patterns like [Dd]ocs/ are not supported in CODEOWNERS, so the docs rule never matches",
+      "Explains that the last matching pattern wins, so /src/** placed after /src/ui/ takes ownership of src/ui files back from @acme/web, and reorders general patterns before specific ones",
+      "Flags that repeating /src/ui/ on two lines silently keeps only the last owner (@jsmith) and that co-owners must be listed on one line",
+      "States that CODEOWNERS only gates merges when required reviews plus require review from Code Owners is enabled on the branch (ruleset or branch protection) — the file alone does nothing",
+      "Notes that the file must live on the base branch of the pull request (.github/, repo root or docs/) and that every listed user or team needs write access to the repository or the owner is silently dropped",
+      "Gives a concrete way to apply the branch rules, such as gh api repos/{owner}/{repo}/rulesets with a branch ruleset that requires a pull request and code-owner review and blocks direct pushes",
+      "Warns that any pre-existing branch protection rule on main keeps applying alongside the new ruleset, that rulesets have no priority and aggregate so the most restrictive version of a shared rule wins, and that the existing protection must therefore be read (for example gh api repos/{owner}/{repo}/branches/main/protection) before claiming what is enforced"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "I want to squash my last three commits into one and rewrite the commit message. What is the safest way to do that?",
+    "expected_behavior": [
+      "Does not read the github skill: skill_read is false",
+      "Answers with local git only (interactive rebase or git reset --soft, plus a safety branch or reflog escape hatch) and does not route the task through gh, pull requests or GitHub settings",
+      "Does not treat the request as a GitHub Actions, pull-request or repository-governance task"
+    ]
+  }
+]
