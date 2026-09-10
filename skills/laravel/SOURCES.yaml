@@ -1,0 +1,127 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin laravel
+skill: laravel
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: laravel-boost
+    kind: repo
+    repo: laravel/boost
+    url: https://github.com/laravel/boost
+    paths:
+      - .ai/laravel/skill/laravel-best-practices
+      - .ai/laravel/skill/testing-best-practices
+      - .ai/pennant/skill/pennant-development
+      - .ai/livewire/4/skill/livewire-development
+      - .ai/volt/skill/volt-development
+      - .ai/laravel/core.blade.php
+      - .ai/laravel/12/core.blade.php
+      - .ai/foundation.blade.php
+      - .ai/enforce-tests.blade.php
+      - .ai/php
+      - .ai/pest
+      - .ai/phpunit
+      - .ai/pint
+    ref: main
+    commit: 2ea83b8248597de9dfb7c7086e89e3a324312932
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The backbone of every reference: consistency-before-defaults, the Eloquent loading and strictness rules, correlated-subquery and conditional-aggregate patterns, chunk/cursor/lazy selection, migration staging and index discipline, mass assignment and the validated()-not-all() rule, form request after() hooks, resource-controller organisation, retry_after versus timeout, backoff, unique jobs, batches and the failed()-runs-on-a-new-instance rule, event/notification/mail after-commit behaviour, scheduling lock semantics, cache primitive selection, exception report/render precedence, the whole Pest test-design and review checklist, Livewire 4 component formats and directives, Volt, Pennant basics, and the PHP style and Pint rules."
+    notes: "Official first-party skills maintained by Laravel. Blade template files (.blade.php) were read as templates: the $assist->artisanCommand()/appPath() helpers, @scoped/@boostsnippet directives and metadata.author frontmatter were all stripped, and the `search-docs` MCP tool is referenced only as an optional capability. Its property-form queue settings ($tries/$backoff/$uniqueFor) were superseded by the Laravel 13 attribute form (research/laravel.md ruling 1) and its setRelation() advice by chaperone() (ruling 3)."
+  - id: laravel-docs
+    kind: docs
+    url: https://laravel.com/docs/13.x
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Everything version-specific and everything the official skills omit: the Laravel 13 support and PHP matrix, the whole 12-to-13 breaking-change table, queue attributes and Queue::route, ShouldBeUniqueUntilProcessing, DeleteWhenMissingModels, the #[Scope]/#[Table]/#[ObservedBy] model attributes, chaperone() and automaticallyEagerLoadRelationships, controller #[Middleware]/#[Authorize] attributes, contextual container attributes, PreventRequestForgery and its Sec-Fetch-Site check, Response::denyAsNotFound, Pennant storage semantics, purging, nullable scope, rich values and eager loading, Cache::touch and the failover driver, Concurrency::run, and the Octane container/request injection hazards."
+    notes: "Licence verified by reading laravel/docs LICENSE and license.md on the 13.x branch (MIT, Taylor Otwell), and `gh api repos/laravel/docs` reports spdx_id MIT, so this is merged rather than reference."
+  - id: laravel-framework
+    kind: repo
+    repo: laravel/framework
+    url: https://github.com/laravel/framework
+    paths:
+      - src/Illuminate/Queue/Queue.php
+      - src/Illuminate/Queue/Attributes
+      - src/Illuminate/Support/Traits/ReadsClassAttributes.php
+    ref: 13.x
+    commit: 41807417bb85908412b67ff7ec4132a026d603c7
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The precedence rule the documentation does not state: queue settings resolve the class attribute and the legacy public property, and a property whose value differs from its declared default wins over the attribute - so declaring both for one setting is order-dependent."
+    notes: "Read as source of truth for a fact no upstream skill or doc page covers; no code copied."
+  - id: laravel-agent-skills
+    kind: repo
+    repo: laravel/agent-skills
+    url: https://github.com/laravel/agent-skills
+    paths: [laravel/skills/starter-kit-upgrade]
+    ref: main
+    commit: 68ea9699bf1ffb6fd9ea2345f92c88e37c65b61d
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The upgrade safety contract, generalised from starter-kit syncing to any Laravel upgrade: refuse a dirty working tree without stashing for the user, work on a dedicated branch, one revertable change per commit, never auto-resolve a conflict in customised code or silently overwrite composer.json/package.json/lock files, and treat a previously-passing check that now fails as a regression."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its laravel-cloud/* and laravel-nightwatch/* plugins are product packaging for hosted services and are out of this skill's scope (research/laravel.md candidate rows 9-10)."
+  - id: johnlui-laravel-skills
+    kind: repo
+    repo: johnlui/laravel-skills
+    url: https://github.com/johnlui/laravel-skills
+    paths: [.agents/skills/laravel-ai-coding-safety]
+    ref: main
+    commit: 7aaf8b08a06624f098b5058a605a2e73f2dde88e
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The destructive-Artisan guardrail: migrate:fresh, migrate:refresh, migrate:reset, migrate:rollback, db:wipe, db:seed and any --seed flag are never run on the agent's own initiative, because nothing at the command line distinguishes a scratch database from production."
+    notes: "Its env-variable override mechanism (ALLOW_DB_DESTRUCTIVE_COMMANDS) was not adopted - this skill states the rule as agent behaviour rather than prescribing a project-side wrapper."
+  - id: leeovery-agentic-skills
+    kind: repo
+    repo: leeovery/agentic-skills
+    url: https://github.com/leeovery/agentic-skills
+    paths: [laravel/skills]
+    ref: main
+    commit: 7a11090cdfb88771f0959e7f0f9e43a3419dd1f5
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The dedicated Eloquent builder class registered with #[UseEloquentBuilder] as the escape hatch for a model with many query methods, and jobs as thin delegation layers over an action so domain logic stays testable outside the queue."
+    notes: "Its stronger claims - custom query builders instead of local scopes, and models that may never contain behaviour - were overruled by the official skill and docs, which make #[Scope] local scopes the default (research/laravel.md ruling 2). Supersedes leeovery/claude-laravel, which now only redirects here."
+  - id: asyrafhussin-agent-skills
+    kind: repo
+    repo: AsyrafHussin/agent-skills
+    url: https://github.com/AsyrafHussin/agent-skills
+    paths: [skills/laravel-best-practices]
+    ref: main
+    commit: 1aa0ff717c10309226c9e678f00873976450fd76
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a community cross-check on Laravel 13 topic coverage (queue routing, vector search, single-action controllers)."
+    notes: "No content merged: its rule index advertises Performance and API Design categories that contain no rule files, and everything it does cover is stated more precisely by the official skill."
+  - id: awesome-copilot-laravel
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - agents/laravel-expert-agent.agent.md
+      - instructions/php-symfony.instructions.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to check topic breadth against a large vendor-neutral catalogue and to cross-check the PHP-layer conventions from its Symfony instruction file."
+    notes: "No content merged: the Laravel entry is a persona file describing expertise rather than rules, and carries agent-specific frontmatter (model, tools); the php-symfony instructions are Symfony-specific."
+  - id: php-src
+    kind: repo
+    repo: php/php-src
+    url: https://github.com/php/php-src
+    paths: [UPGRADING]
+    ref: master
+    commit: ac53f14223b4cda3199675878113f82de4d1717a
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to verify which PHP version each syntax feature named in references/modern-php.md actually landed in (8.5: pipe operator, array_first/array_last, clone-with; 8.4: array_find family) and that 8.5 is the current stable series."
+    notes: "Version facts only; no text copied. Licence read directly: the LICENSE file is a three-clause BSD notice, matching the spdx_id the GitHub API reports."

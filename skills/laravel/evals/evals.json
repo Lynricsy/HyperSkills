@@ -1,0 +1,65 @@
+[
+  {
+    "skills": ["laravel"],
+    "query": "Our /posts index page issues hundreds of queries and got flagged in a security review. Go through PostController.php and Post.php and tell me exactly what to change and why.",
+    "files": [
+      "evals/files/PostController.php",
+      "evals/files/Post.php"
+    ],
+    "expected_behavior": [
+      "Fixes the N+1 by eager loading (`Post::with(['author.profile'])`) and replaces `$post->comments->count()` with `withCount('comments')` so comment rows are never hydrated",
+      "Recommends making the violation fail loudly instead of relying on review: `Model::preventLazyLoading(! app()->isProduction())` in `AppServiceProvider::boot()`, and names automatic eager loading (`Model::automaticallyEagerLoadRelationships()` / `withRelationshipAutoloading()`) as the alternative strategy rather than mixing both",
+      "Calls out `$guarded = []` as the mass-assignment hole and pairs it with `$request->validated()` / `safe()->only([...])` instead of `$request->all()`, noting `user_id` is currently settable by the client",
+      "Fixes the `search` method: the interpolated `$term` is SQL injection and the interpolated `$direction` cannot be fixed by a binding at all, so it must be mapped through an allow-list",
+      "Adds a `datetime` cast for `published_at` (and moves casts into a `casts()` method) rather than parsing the raw string in the controller or view",
+      "Points out that `scopeForCurrentTeam` reads `auth()->user()` inside the model, so the scope breaks in queue jobs, Artisan commands and tests where there is no authenticated user - the tenant should be passed in",
+      "Notes that `export()` loads every post and issues one UPDATE per row, and replaces it with chunked iteration keyed on the primary key (`chunkById` / `lazyById`) or a single bulk update"
+    ]
+  },
+  {
+    "skills": ["laravel"],
+    "query": "Warehouse sync duplicates shipments after a deploy, some orders get synced for a transaction we rolled back, and the failure log always says '0 attempts'. Here is the job, the service that dispatches it and the queue config. What is wrong?",
+    "files": [
+      "evals/files/SyncOrderToWarehouse.php",
+      "evals/files/CheckoutService.php",
+      "evals/files/queue-config.php"
+    ],
+    "expected_behavior": [
+      "Identifies the reservation race: the connection's `retry_after` (90s) is shorter than the job/worker timeout (300s), so a second worker reserves and re-runs a job that is still executing - `retry_after` must exceed the longest timeout, and the worker `--timeout` must stay below `retry_after`",
+      "Says the job must be made idempotent regardless of the timeout fix (an idempotency key on the outbound POST, or a check of `warehouse_reference` before posting), because a worker can die after the side effect and before acknowledging",
+      "Explains that `SyncOrderToWarehouse::dispatch($order)` inside `DB::transaction` can be picked up before the transaction commits, and fixes it with `afterCommit()` on the dispatch or `'after_commit' => true` on the connection - and applies the same reasoning to the event and the queued notification",
+      "Explains that `failed()` runs on a freshly deserialised job instance, so `$this->attemptLog` is always empty there; use `$this->attempts()` or the passed exception instead of state mutated during `handle()`",
+      "Notes that the outbound HTTP call has no explicit `connectTimeout`/`timeout` and does not check the response (`->throw()` or an explicit status check) before reading `reference` from the body",
+      "Recommends `ShouldBeUnique` with a `uniqueId` for dispatch-level deduplication while stating that it is a cache lock, not a substitute for idempotent processing",
+      "Uses the Laravel 13 attribute form (`#[Tries]`, `#[Backoff]`, `#[Timeout]`) or explicitly says the public `$tries`/`$timeout` properties remain supported, and does not declare both for the same setting"
+    ]
+  },
+  {
+    "skills": ["laravel"],
+    "query": "This Pest file is flaky on CI - the 'express-checkout' test fails about one run in three, and the first test passes even when checkout is broken. AppServiceProvider.php has the flag definition. Fix the tests and tell me what is actually wrong.",
+    "files": [
+      "evals/files/CheckoutFlagTest.php",
+      "evals/files/AppServiceProvider.php"
+    ],
+    "expected_behavior": [
+      "Identifies the real cause of the flag flakiness: Pennant stores the resolved value the first time a feature is checked for a scope, so a `Lottery` gives a per-user coin flip that the test cannot control - the test must re-define the feature (`Feature::define('express-checkout', true)`) or activate it for the scope under test",
+      "Says that editing the odds in the service provider does not change values already stored, so a rollout change needs `Feature::purge('express-checkout')` / `php artisan pennant:purge` in the deployment",
+      "Rewrites the first test into a real assertion: a name that states the result, plus assertions on the persisted state and dispatched side effects rather than `assertStatus(200)` followed by `expect(true)->toBeTrue()`",
+      "Moves the factory records out of `beforeEach()` into the tests that use them, so each test states its own data and can pick its own factory state",
+      "Replaces `Carbon::setTestNow()` with the framework helpers `freezeTime()` / `travelTo()`",
+      "Replaces the bare `Http::fake()` with `Http::preventStrayRequests()` plus a fake for the specific endpoint, and points out that `Event::fake()` with no class names both hides unexpected dispatches and suppresses model events used by factories",
+      "Uses named response assertions (`assertOk()`, `assertForbidden()`) instead of `assertStatus(...)`, and notes that a cross-tenant request usually should answer 404 rather than 403 so it does not confirm the record exists",
+      "Mentions test-suite hygiene that applies here: `LazilyRefreshDatabase` instead of `RefreshDatabase`, and low `BCRYPT_ROUNDS` in the testing environment"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "In this Spring Boot service the @Transactional on settle() has no effect when closeMonth() calls it - every invoice ends up in one big transaction. Why, and how should I restructure it?",
+    "files": ["evals/files/InvoiceService.java"],
+    "expected_behavior": [
+      "Explains Spring's proxy-based self-invocation problem and gives a Java/Spring fix (inject the bean into itself, extract a collaborator bean, or use AspectJ weaving) without loading the `laravel` skill",
+      "Does not answer with Laravel, PHP, Eloquent or `DB::transaction` advice",
+      "skill_read is false for the `laravel` skill"
+    ]
+  }
+]
