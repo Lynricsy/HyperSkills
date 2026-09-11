@@ -1,0 +1,175 @@
+skill: ai-engineering
+version: "2026.09.11"
+upstreams:
+  - id: vercel-ai-sdk
+    kind: repo
+    repo: vercel/ai
+    url: https://github.com/vercel/ai
+    paths: [skills/use-ai-sdk]
+    ref: main
+    commit: d5e30246540adcc334aab700e9262c038c4cce13
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Never write model-calling code from remembered API shapes or model ids; read the installed version's own docs and enumerate models at request time."
+    notes: "GitHub API reports NOASSERTION; the repository LICENSE file is verbatim Apache-2.0 with a Vercel copyright line. Product-specific AI Gateway and DevTools guidance was dropped as vendor packaging."
+  - id: langchain-skills
+    kind: repo
+    repo: langchain-ai/langchain-skills
+    url: https://github.com/langchain-ai/langchain-skills
+    paths:
+      - config/skills/eval-engineering
+      - config/skills/langchain-rag
+      - config/skills/langgraph-fundamentals
+      - config/skills/langgraph-persistence
+      - config/skills/langchain-middleware
+    ref: main
+    commit: b7a2a8fc363d1711456f83d24230535c9fff93eb
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Eval-engineering discipline: leakage and fairness rules, hidden truth kept out of the agent's workspace, verifier tested against wrong and shortcut answers, invalid-run classification, never write to production during an eval. RAG failure catalogue (chunk sizing, missing overlap, index/query embedding mismatch, dimension mismatch). Human-in-the-loop approve/edit/reject semantics and thread-id persistence pitfalls."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. LangChain/LangGraph/Harbor API surface was stripped; only cross-vendor engineering judgements kept."
+  - id: google-skills
+    kind: repo
+    repo: google/skills
+    url: https://github.com/google/skills
+    paths:
+      - skills/cloud/gemini-api
+      - skills/cloud/gemini-agents-api
+      - skills/cloud/agent-platform-eval-flywheel
+      - skills/cloud/agent-platform-rag-engine-management
+    ref: main
+    commit: 26bbc42092b645594dff53fe30beaf13f407b486
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Eval-flywheel sequencing (prepare data, run inference, always grade, analyse failures before optimising) and its list of shortcuts that waste time; confirmation tiers for destructive operations; cost confirmation before a scored model run."
+    notes: "Vertex/Agent Platform resource-management procedure is product packaging and was excluded."
+  - id: openai-agents-python
+    kind: repo
+    repo: openai/openai-agents-python
+    url: https://github.com/openai/openai-agents-python
+    paths:
+      - docs/running_agents.md
+      - docs/tools.md
+      - docs/guardrails.md
+      - docs/multi_agent.md
+    ref: main
+    commit: 1705dd62509ebfb3e85e26baedbe43e9f183580f
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Loop-termination semantics and the turn cap as an explicit exception; tool-failure routing (error function returns a message to the model, or re-raise separating model-behaviour errors from application bugs); the distinction that tool visibility controls dispatch and never replaces argument- or resource-level authorisation."
+  - id: anthropics-claude-api
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths: [skills/claude-api]
+    ref: main
+    commit: 34040c9c568585f6929bedeaad110ad08f079624
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Message-API structure facts used for the provider-comparison tables: system prompt as a top-level parameter rather than a message role, tool-result block pairing by id, prompt-cache breakpoint placement and invalidation."
+    notes: "Repository has no top-level LICENSE; skills/claude-api/LICENSE.txt was read directly and is Apache-2.0. Sibling directories in the same repository are proprietary and were not used."
+  - id: owasp-llm-top10
+    kind: repo
+    repo: OWASP/www-project-top-10-for-large-language-model-applications
+    url: https://github.com/OWASP/www-project-top-10-for-large-language-model-applications
+    paths:
+      - 2_0_vulns/LLM01_PromptInjection.md
+      - 2_0_vulns/LLM05_ImproperOutputHandling.md
+      - 2_0_vulns/LLM06_ExcessiveAgency.md
+      - 2_0_vulns/LLM08_VectorAndEmbeddingWeaknesses.md
+      - 2_0_vulns/LLM10_UnboundedConsumption.md
+    ref: main
+    commit: 99f4395589bdbd120ae961f9cd179e79d7f9b27f
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Direct versus indirect injection taxonomy and the explicit position that no prompt-level prevention is known; privilege control with the application holding its own credentials; excessive agency split into functionality, permissions and autonomy; embedding-store access and poisoning concerns; unbounded consumption as a cost failure."
+    notes: "CC-BY-SA-4.0: only the structure and checklist semantics were taken, fully rewritten; derived reference carries an adaptation notice."
+  - id: obra-superpowers
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths:
+      - skills/dispatching-parallel-agents
+      - skills/subagent-driven-development
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Child agents get a constructed brief rather than inherited history; one child per independent domain with batching of same-shape work; explicit model tier per role and the turn-count-beats-token-price correction; verify the child's diff rather than its report."
+    notes: "Graphviz decision diagrams removed per the repository's diagram rule."
+  - id: murat-context-engineering
+    kind: repo
+    repo: muratcankoylan/Agent-Skills-for-Context-Engineering
+    url: https://github.com/muratcankoylan/Agent-Skills-for-Context-Engineering
+    paths:
+      - skills/context-compression
+      - skills/context-degradation
+      - skills/tool-design
+      - skills/multi-agent-patterns
+    ref: main
+    commit: 6dbe1a1d868eab51a3bc9011b0f55e2891513e40
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Compaction summaries need mandatory sections and a trigger chosen in advance; usable context is smaller than advertised context; a single distractor costs disproportionately more than later ones; tool consolidation over near-duplicate tools; externalising state to the filesystem instead of growing the window."
+    notes: "Long-context degradation figures are the upstream's reading of published benchmarks, not measured here; carried as [community]."
+  - id: github-awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - skills/agentic-eval
+      - skills/ai-prompt-engineering-safety-review
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Iteration limits and convergence detection on self-critique loops; structured judge output instead of scraped prose; the review axes for a prompt (injection surface, data handling, output contract) that the injection review checklist is built from."
+    notes: "The generate/evaluate/refine code templates were not carried; they restate a loop the model already knows."
+  - id: promptfoo
+    kind: repo
+    repo: promptfoo/promptfoo
+    url: https://github.com/promptfoo/promptfoo
+    paths: [site/docs/configuration/expected-outputs]
+    ref: main
+    commit: c2b1a2ff26bfa267f0d09d3372ca4e900692ddce
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Deterministic trajectory assertions (tool used, tool arguments, tool sequence) paired with model-graded ones; context-recall, context-relevance and context-faithfulness as separate retrieval measurements; a judge transport or parse failure must report as a failure rather than passing."
+  - id: huggingface-skills
+    kind: repo
+    repo: huggingface/skills
+    url: https://github.com/huggingface/skills
+    paths: [skills/huggingface-community-evals]
+    ref: main
+    commit: f3186efbbc322121eb5d0f31e8a1d669ee961159
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to check coverage of offline benchmark harnesses; content decision was to exclude it — it is about selecting and running published benchmarks on local or hosted inference, which measures models rather than an application, and the weights side belongs to the ml-training skill."
+    notes: "Content ruling, not a licence ruling; the repository LICENSE was read and is Apache-2.0."
+  - id: anthropic-docs
+    kind: docs
+    url: https://platform.claude.com/docs
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Fact-checking the Messages API shapes, prompt-caching behaviour, token-counting endpoint and context-overflow error text quoted in the references."
+    notes: "Licence ruling: read Anthropic's Commercial Terms of Service; section F states the terms grant neither party rights to the other's content or intellectual property, and no open content licence is published for the documentation. Reference only, nothing copied."
+  - id: openai-docs
+    kind: docs
+    url: https://platform.openai.com/docs
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Fact-checking structured-output and JSON-mode guarantees, strict-schema constraints and rate-limit semantics quoted in the references."
+    notes: "Licence ruling: no content licence is declared on the documentation site or in the Terms of Use (JS-rendered, no licence grant found); treated as proprietary. Reference only; the same guidance was merged from the MIT-licensed openai/openai-agents-python repository instead."

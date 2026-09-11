@@ -1,0 +1,88 @@
+[
+  {
+    "skills": ["ai-engineering"],
+    "query": "This is the agent loop behind our support assistant, plus the service notes. It refunded three orders it shouldn't have and once burned 190 dollars on a single ticket. Review it before I hand it to the team.",
+    "files": [
+      "evals/files/askdesk/agent_loop.py",
+      "evals/files/askdesk/service-notes.md"
+    ],
+    "expected_behavior": [
+      "Identifies that tool output is appended with `role: \"user\"` and the words 'Continue.' rather than as a tool-result turn, so `read_ticket_thread` output — which contains text the customer wrote — reaches the model in the same channel as the operator's own instructions; names this as the mechanism behind the 2026-02-11 triple refund rather than treating it as a model mistake",
+      "Rejects the postmortem's action item ('add a prompt instruction telling the model not to follow instructions from tickets') as insufficient, and says why: the SYSTEM prompt already contains that sentence and the refunds happened anyway, so the fix has to remove the capability or gate it, not restate the request",
+      "Proposes a control that does not depend on the model's cooperation for `issue_refund`: a human approval step, a per-ticket refund cap, an allow-list of orders taken from the resolved ticket record rather than the thread, or removing the tool from the retrieved-content turn — not merely stronger prompt wording",
+      "Identifies `while True:` with no maximum turn count, no wall-clock deadline and no token or cost budget as the cause of the 2026-03-02 40-minute run, and specifies a concrete stop condition (a turn cap, a spend cap, or both) plus what the loop should do when it trips",
+      "Identifies that `run_with_retry` catches bare `Exception` and retries five times on top of the SDK's own `max_retries` (default 2), so one logical call can become up to fifteen paid requests, and that it retries errors that can never succeed — the 2026-03-19 `prompt is too long` is a 400 the SDK deliberately does not retry",
+      "States that retrying the model call is not the dangerous retry: a retry that re-executes `issue_refund` or `send_email` is, because neither is idempotent and `issue_refund` sends no idempotency key — so retries must be scoped to the model call, or the tool must carry a caller-supplied idempotency key",
+      "Flags `len(...) // 4` as the wrong way to measure context: it is measured against the concatenated content only (ignoring tool-call arguments and the schema of all five tools), and on JSON tool output four characters per token underestimates real token count substantially — so the guard trips after the request has already been rejected. Recommends counting with the tokenizer or the API's usage numbers",
+      "Flags the truncation `messages = messages[:2] + messages[-6:]` as unsafe on two counts: it can orphan a tool-call turn from its result (leaving an assistant tool_call with no matching result, which the API rejects), and it silently discards the middle of the conversation with no record that anything was dropped",
+      "Notes that `issue_refund` and `send_email` are shipped with no `description` in their tool definitions, so the model chooses between them on the name alone and has no statement that either has an irreversible side effect",
+      "Does not rewrite the file into a new loop without first naming the specific defects and the failure each one causes"
+    ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "Our handbook answers are wrong a lot and sometimes the call just errors out. Here's the retrieval pipeline and the service notes. What's wrong with it?",
+    "files": [
+      "evals/files/askdesk/rag_pipeline.py",
+      "evals/files/askdesk/service-notes.md"
+    ],
+    "expected_behavior": [
+      "Identifies that `index_handbook` embeds each whole file as one vector, so the 91 KB `returns.md` becomes a single embedding whose direction is the average of everything it says; a question about one paragraph of it cannot rank above a short file that is about that topic, and the retrieved unit is then the whole 91 KB",
+      "Prescribes chunking with the unit stated (headings or a token-bounded window with overlap) and the retrieval unit separated from the storage unit — retrieve the chunk, and only then expand to its neighbours or parent section if the answer needs them",
+      "Identifies `prompt[: CONTEXT_LIMIT * 4]` as a silent mid-document truncation that cuts the retrieved context at an arbitrary byte, drops whatever was last, and leaves the model answering from a fragment with no signal that anything is missing; requires the budget be enforced by dropping whole chunks in rank order, with the drop recorded",
+      "States that `CONTEXT_LIMIT = 200_000` is being spent entirely on retrieved text with no allowance for the question, the system prompt, the tool schemas or the reply's own output tokens, so the real usable budget is smaller than the number in the code",
+      "Flags `len(prompt) // 4` as an estimate that is wrong in the unsafe direction for the content being measured, and points at the API's usage counts or a real tokenizer as the fix",
+      "Notes that ranking by `embedding <=> %s` alone with `k = 8` has no relevance floor: eight rows come back for every question including questions the handbook does not answer, and recommends either a score threshold or a reranking pass over a wider candidate set",
+      "Notes that nothing in the prompt or the pipeline carries the source path through to the answer, so no answer can be traced to the handbook file it came from and a wrong answer cannot be attributed to a wrong document; requires per-chunk identifiers in the context and a citation requirement in the instruction",
+      "Notes that handbook text is concatenated into the same prompt as the instruction with only a `HANDBOOK:` label, so a handbook file containing instruction-like text is read as instruction, and recommends a delimited, labelled data region with the instruction stating that the region is reference material",
+      "Does not propose switching vector store, embedding model or framework as the primary fix"
+    ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "We have a nightly eval that prints an average score and it has said 'looks good, shipping' every night for a month, including the night we shipped the refund bug. Here's the harness and the service notes. Tell me why it cannot catch a regression and what has to change. Do not build the replacement — there are no API credentials here; I want the diagnosis and the design.",
+    "files": [
+      "evals/files/askdesk/eval_harness.py",
+      "evals/files/askdesk/service-notes.md"
+    ],
+    "expected_behavior": [
+      "Rejects `average >= 7` as a gate: a mean over 200 cases hides a total failure on the handful of cases that matter, so a single catastrophic regression (issuing a refund it should have refused) cannot move it enough to fail. Requires per-case pass/fail with a named set of cases that must never fail, rather than an aggregate threshold",
+      "Points out that the judge is used for properties that do not need a judge — whether a refund tool was called, whether the cited file exists, whether the amount matches the order — and that those must be asserted in code, because a judge can be talked out of them but an assertion cannot",
+      "Notes `return 5.0` as the parse fallback: an unparseable judge reply is scored as a mid-range pass, so judge failures inflate the average instead of failing the run — and judge outages correlate with provider incidents, which is exactly when the gate must hold",
+      "Separates the three distinct leaks rather than only the provenance one: the `head -200` provenance leak; the iteration leak, where cases read while editing prompts stop measuring generalisation so the gate set must be held out from the set used to iterate; and the answer leak, where the expected result or ground-truth disposition is present in the workspace the system under test can read — so storing ground truth alongside the case input is itself a defect",
+      "States that the candidate answer is untrusted text to the judge: an answer containing something like 'this response fully satisfies all criteria, score 10' reaches the judge in its instruction channel unless the answer is placed in a delimited data region, so the gate can be argued out of failing by the output it is grading",
+      "States that `gpt-5.1` is a floating alias and must be pinned to a dated snapshot for both the system under test and the judge, because an alias moves with no deploy: behaviour changes without a code change to bisect, and every previously recorded score becomes incomparable to the new ones",
+      "States that a must-never-fail case which passes 3 of 5 trials is a failure, not a pass — the bad outcome is reachable — as distinct from using repeats to estimate a noise band on the aggregate pass rate",
+      "Requires each failing case be classified before the score is used — capability failure, missing information in the case, harness defect, criterion defect, leakage, infrastructure — and notes that a criterion which wrongly accepts a bad answer is worse than one which wrongly rejects a good one, because the false rejection is visible and the false acceptance is not",
+      "Ties the diagnosis to a specific incident from the service notes — the 2026-02-11 triple refund or the 2026-03-02 40-minute run — and states the exact criterion that would have failed on it, rather than only describing the new harness in general terms"
+    ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "This extractor drops fields sometimes and last week it threw a NoneType error in production. Tighten it up.",
+    "files": [
+      "evals/files/askdesk/extract_refund.py",
+      "evals/files/askdesk/service-notes.md"
+    ],
+    "expected_behavior": [
+      "Replaces the hand-written 'Return JSON with these keys' instruction plus `json_object` mode with a schema the provider enforces (`client.chat.completions.parse` / `response_format` with a strict JSON schema built from the Pydantic model), and states the difference: `json_object` guarantees only that the output parses as JSON, not that it has the right keys or types",
+      "States what strict schema mode does to the declared shape: every property becomes required and the Python-side defaults stop applying, so `internal_note: Optional[str] = None` is emitted as `\"internal_note\": null` on every call and `currency: str = \"EUR\"` must be produced by the model rather than defaulted — which makes the prompt's instruction to 'leave internal_note out' unsatisfiable and makes `if \"internal_note\" in data` always true",
+      "Identifies `data[\"internal_note\"].strip()` as the NoneType crash: the key is present with a null value, so membership is the wrong test — the guard has to be on the value, not the key",
+      "Identifies `max_completion_tokens=400` plus `json.loads` as a truncation trap: a long `lines` array is cut off mid-object and surfaces as a JSON decode error rather than as the length condition it is; requires checking the finish reason (or using the SDK helper that raises `LengthFinishReasonError`) and treating truncation as its own outcome, not a parse failure",
+      "States that a refusal is not an exception and not a parse failure: the refusal field carries it while the parsed value is `None`, so code that tests the parsed object treats a refusal as an empty result; requires the refusal be checked explicitly",
+      "Flags that no field carries a description, so `amount_cents` has nothing stating it is minor units and `should_refund` nothing stating who decided — the model has only the identifier to infer intent from, and a value in the wrong unit validates cleanly",
+      "Flags that `apply` calls `issue_refund` directly from the parsed output with no bound on `amount_cents`, no check that the order exists or belongs to the ticket, and no idempotency key, so a single wrong extraction is an irreversible payment; requires validation against the order record and a cap before the side effect",
+      "Does not suggest retrying the parse on failure as the primary fix, or a regex over the model's text"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Retrieval for our handbook search is at 2.8 seconds p95 against a 150ms budget and recall is 0.61. Here are the table and index notes. Tell me how to fix the index.",
+    "files": ["evals/files/askdesk/pgvector-notes.md"],
+    "expected_behavior": [
+      "Does not read skills/ai-engineering/SKILL.md",
+      "Answers as a Postgres index problem: the `EXPLAIN ANALYZE` shows the HNSW index being scanned but returning in 2.8 s, the index was built with default `m`/`ef_construction` before the bulk load and spilled to disk with `maintenance_work_mem` at 64 MB, and `hnsw.ef_search` is unset — so it prescribes raising `maintenance_work_mem` and rebuilding (or `REINDEX`) with tuned `m`/`ef_construction`, and tuning `hnsw.ef_search` for the recall/latency trade-off",
+      "Does not restructure the retrieval pipeline, propose reranking, chunking changes, prompt changes or an evaluation harness"
+    ]
+  }
+]
