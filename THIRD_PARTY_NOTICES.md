@@ -436,6 +436,27 @@ Reference-only sources (no content copied):
 
 ---
 
+# NOTICE — godot
+
+This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
+
+- godotengine/godot (MIT) — https://github.com/godotengine/godot @ ed1daf0bf001b61586d9930840f2f1394092c079 — paths: doc/classes, modules/multiplayer/scene_rpc_interface.cpp, modules/multiplayer/scene_cache_interface.cpp, editor/editor_node.cpp, scene/gui/control.cpp, misc/extension_api_validation, CHANGELOG.md — First-class fact source, the machine-checkable form of the class reference. doc/classes/*.xml supplied every property default (mouse_filter STOP on Control but IGNORE on Label and PASS on TextureRect; collision_layer and collision_mask both 1; inference_on_variant at Error; rendering_method forward_plus with .web defaulting to gl_compatibility), every deprecated= marker (TileMap, ParallaxBackground), and the exact semantics of queue_free, _ready, add_child(force_readable_name) and set_multiplayer_authority(recursive). Engine source supplied three facts that exist in no prose: RPC dispatch is by the sorted position of the method name (scene_rpc_interface.cpp), the rpc checksum only prints and continues (scene_cache_interface.cpp:119), and new projects are written four non-default settings by EditorNode::get_initial_settings (editor_node.cpp:8346).
+- godotengine/godot-docs (CC-BY-3.0) — https://github.com/godotengine/godot-docs @ e1129cb5c3f27e0e3a12e816ae405ab5ce032e3f — paths: tutorials/rendering, tutorials/migrating, tutorials/export, tutorials/scripting, tutorials/ui, tutorials/physics, tutorials/networking, tutorials/performance, tutorials/best_practices — The Forward+ / Mobile / Compatibility feature matrix that drives renderer selection, including the counter-intuitive entries (web supports Compatibility only; SSAO works on Compatibility but not Mobile; CompositorEffects need a RenderingDevice renderer; only Forward+ has volumetric fog, SSR, SDFGI, VoxelGI, TAA and FSR2). The seven upgrading_to_godot_4.x guides supplied every version gate used in this skill, including the Godot 4.7 behaviour changes (AudioStreamPlayer.area_mask default 1 to 0, Jolt WorldBoundaryShape3D plane sign, mouse and keyboard device ids, CanvasItem line feather) and the Godot 4.6 .tscn format change.
+- gamedev-skills/awesome-gamedev-agent-skills (Apache-2.0) — https://github.com/gamedev-skills/awesome-gamedev-agent-skills @ b105e1cf617adf0b68ed98790a716bbb60993179 — paths: skills/godot — Backbone: the topic split that this skill's references follow, and the pitfalls-before-API shape. Concrete rules carried over include change_scene_to_file being deferred so the new scene's nodes are unreachable on the calling line, scene-unique %Name surviving renames where $Path does not, PhysicsRayQueryParameters exclude taking Array[RID] rather than nodes, force_raycast_update() after moving a ray within a tick, call_group silently skipping nodes that lack the method, RigidBody position assignment fighting the solver, and the Control rect_* to size/position/custom_minimum_size rename.
+- haxqer/godot-skill (MIT) — https://github.com/haxqer/godot-skill @ 8e0552b158861020d6a9a12059ce11c4ba8cd303 — paths: skill/godot — The only community upstream that states checkable Godot 4.7 assertions rather than restating tutorials. Supplied the := inference rule (inference_on_variant ships as an error, so inferring from a Dictionary read or an untyped call does not load at all), the hand-written .tscn trap where every node carrying parent="." loads with zero errors and stacks every Control at the origin, the TileMap to TileMapLayer and ParallaxBackground to Parallax2D node deprecations, the container-first layout doctrine as the fix for controls piling up at the origin, and that POT generation and lightmap, occluder and reflection-probe bakes are editor-only and cannot be driven headlessly.
+- wshobson/agents (MIT) — https://github.com/wshobson/agents @ a30778f8c4e6b0a87567941b7cca4f534bf642b6 — paths: plugins/game-development/skills/godot-gdscript-patterns — GDScript authoring conventions: the ordering of a node script (class_name, signals, exports, @onready, private underscore fields, lifecycle, public API), @export_group and @export_range for inspector organisation, and the shape of a state machine driven by signals.
+- abagames/headless-godot-skill-kit (MIT) — https://github.com/abagames/headless-godot-skill-kit @ d671685670957576474cd701892f35ea21cc675b — paths: .agents/skills/headless-godot — Headless and CI discipline: always pass --headless --path <project> so the run does not depend on the working directory, capture output to a log file because the interesting failures are on stderr, override XDG_DATA_HOME / XDG_CONFIG_HOME / XDG_CACHE_HOME to a project-local directory in sandboxes and containers where user:// writes fail, never edit .tscn as raw text but drive edits through --headless --script, and keep the boot smoke test separate from logic tests.
+- jame581/GodotPrompter (MIT) — https://github.com/jame581/GodotPrompter @ eae755a1f3719076d52f50ab76f21993ebb9682b — paths: skills/godot-testing, skills/godot-debugging, skills/godot-ui, skills/csharp-godot — An editorial boundary adopted verbatim in intent: describe node trees, Inspector property names and exported-variable wiring, but never menu paths, dock layouts or toolbar positions, because those move between Godot versions and are the most-hallucinated part of any answer. Also the division between unit tests that run inside the engine and automation that drives it from outside.
+
+Reference-only sources (no content copied):
+
+- zimo-xiao-zheng/godot-ui-integration (MIT) — https://github.com/zimo-xiao-zheng/godot-ui-integration
+- thedivergentai/GD-Agentic-Skills (LGPL-3.0) — https://github.com/thedivergentai/GD-Agentic-Skills
+- Randroids-Dojo/Godot-Claude-Skills (MIT) — https://github.com/Randroids-Dojo/Godot-Claude-Skills
+- akira399/dsh-godot-skill (MIT) — https://github.com/akira399/dsh-godot-skill
+
+---
+
 # NOTICE — graphql
 
 This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
@@ -981,6 +1002,43 @@ Reference-only sources (no content copied):
 
 ---
 
+# NOTICE — unity
+
+This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
+
+- gamedev-skills/awesome-gamedev-agent-skills (Apache-2.0) — https://github.com/gamedev-skills/awesome-gamedev-agent-skills @ b105e1cf617adf0b68ed98790a716bbb60993179 — paths: skills/unity — Backbone structure for scripting, physics and build: MonoBehaviour callback choice, the Update/FixedUpdate split, Inspector serialization traps, the trigger/layer pitfalls, IL2CPP and managed stripping with link.xml, the separate Addressables content build, and ScriptableObject-based decoupling.
+- Nice-Wolf-Studio/unity-claude-skills (MIT) — https://github.com/Nice-Wolf-Studio/unity-claude-skills @ fefd1141f973f97a9441af1d2c90a34b09ec7108 — paths: skills — Topic structure for the areas the gamedev-skills set does not cover: URP rendering and materials, uGUI/UI Toolkit/TextMeshPro, Addressables and texture memory, Editor tooling, the Unity Test Framework, and the coroutine-versus-Awaitable decision.
+- wshobson/agents (MIT) — https://github.com/wshobson/agents @ a30778f8c4e6b0a87567941b7cca4f534bf642b6 — paths: plugins/game-development/skills/unity-ecs-patterns — DOTS and ECS: ISystem versus SystemBase, EntityQuery and tag components, EntityCommandBuffer for structural change, baking, Jobs with native-collection disposal, chunk utilisation, and the 'most projects should not adopt DOTS' boundary.
+
+Reference-only sources (no content copied):
+
+- Unity-Technologies/skills (Proprietary) — https://github.com/Unity-Technologies/skills
+- https://docs.unity3d.com/Manual/index.html (CC-BY-NC-ND-4.0) — https://docs.unity3d.com/Manual/index.html
+- Unity-Technologies/UnityCsReference (Proprietary) — https://github.com/Unity-Technologies/UnityCsReference
+- Unity-Technologies/Graphics (Proprietary) — https://github.com/Unity-Technologies/Graphics
+
+---
+
+# NOTICE — unreal
+
+This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
+
+- gamedev-skills/awesome-gamedev-agent-skills (Apache-2.0) — https://github.com/gamedev-skills/awesome-gamedev-agent-skills @ b105e1cf617adf0b68ed98790a716bbb60993179 — paths: skills/unreal — Topic decomposition for UE5 C++ gameplay, Blueprints, Enhanced Input, Niagara, packaging and behaviour trees, plus the failure-first pitfall framing; every fact rewritten after re-verification against the UE 5.8 documentation.
+- EpicGames/unreal-engine-skills-for-claude-code-plugin (MIT) — https://github.com/EpicGames/unreal-engine-skills-for-claude-code-plugin @ d1b05809e4f089bd0ef174532c692fbcf1562eb7 — paths: skills/unreal-skill, skills/unreal-mcp, skills/create-toolset — Epic's own position on in-editor agent work: the sanctioned path for manipulating editor content is the official MCP server's toolsets, which is what references/unreal-build.md states an agent may and may not do with .uasset content.
+- kevinpbuckley/unreal-engine-skills (NONE) — https://github.com/kevinpbuckley/unreal-engine-skills @ 023eaa68d80897e6df64a22fcf471940a7b6848b — paths: skills/core — Coverage map for a whole-engine skill (48 topic skills) and the pointer-type/lifetime decision tables that this skill's scripting reference reorganizes; its citation discipline set the bar of naming an official page per claim.
+- UnrealXu/UnrealEngine5-Skills (MIT) — https://github.com/UnrealXu/UnrealEngine5-Skills @ c21bb876a128a7c06e2782769bda524a3301aa99 — paths: skills/ue5-cpp-gameplay, skills/ue5-architecture, skills/ue5-debug-validation — The symptom -> locate -> fix table shape used by the failure-symptom tables, and the module/Build.cs review emphasis.
+- maystudios/claude-skills (MIT) — https://github.com/maystudios/claude-skills @ 25145cf85b0709dcc2f7a40a7035c7527c137a6c — paths: unreal-best-practices, unreal-gas — Legacy-versus-current system framing (Enhanced Input, GAS, Niagara, Lumen, Nanite, World Partition) and the GAS structure that references/unreal-gas.md rewrites from the official pages.
+
+Reference-only sources (no content copied):
+
+- https://dev.epicgames.com/documentation/en-us/unreal-engine (Proprietary) — https://dev.epicgames.com/documentation/en-us/unreal-engine
+- quodsoler/unreal-engine-skills (MIT) — https://github.com/quodsoler/unreal-engine-skills
+- a5c-ai/babysitter (MIT) — https://github.com/a5c-ai/babysitter
+- benjaminasterA/antigravity-awesome-skills (MIT) — https://github.com/benjaminasterA/antigravity-awesome-skills
+- fjz13/UnrealSpecifiers (Proprietary) — https://github.com/fjz13/UnrealSpecifiers
+
+---
+
 # NOTICE — vue
 
 This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
@@ -1016,3 +1074,24 @@ Reference-only sources (no content copied):
 - anthropics/skills (Apache-2.0) — https://github.com/anthropics/skills
 - vercel-labs/agent-browser (Apache-2.0) — https://github.com/vercel-labs/agent-browser
 - wshobson/agents (MIT) — https://github.com/wshobson/agents
+
+---
+
+# NOTICE — wechat-miniprogram
+
+This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
+
+- wechat-miniprogram/api-typings (MIT) — https://github.com/wechat-miniprogram/api-typings @ 6092df9100c73b84e140c20b9a42a8e8799e0660 — paths: types/wx — Official TypeScript declarations for wx.*, Page, Component, Behavior; used as the machine-checkable source for API shapes, base-library version gates, setData/storage hard limits and deprecations.
+- wechat-miniprogram/glass-easel (MIT) — https://github.com/wechat-miniprogram/glass-easel @ 4aeef5fbfa6100b37f331417a7da7a602840471b — paths: glass-easel-skills/glass-easel, glass-easel/src — Official component-framework skill and runtime source: advanced data-update APIs, observer semantics, deep-copy options, wx:key sub-algorithms, slot modes, virtualHost.
+- wechat-miniprogram/skyline-skills (MIT) — https://github.com/wechat-miniprogram/skyline-skills @ 050bb071e091c2d0f7ac3e294f1e1514382b3978 — paths: skills/skyline-overview, skills/skyline-config, skills/skyline-components — Skyline renderer configuration triad, WebView-to-Skyline behavioural differences, local-scrolling layout pattern and progressive migration granularity.
+- wechat-miniprogram/miniprogram-simulate (MIT) — https://github.com/wechat-miniprogram/miniprogram-simulate @ f6044fd0ab3183eb170f4f64aebe1a9576ba76f2 — paths: docs, index.d.ts — Custom-component unit testing: load/render/attach flow and what the simulator does not emulate.
+- dcloudio/uni-app (Apache-2.0) — https://github.com/dcloudio/uni-app @ 8d4be0f32d23f4f142c53ed217d292c292e8372e — paths: docs/compiler/platform.md, docs/mp — uni-app conditional-compilation syntax and platform constants, the undefined-platform fallthrough rule, and the mp-weixin glass-easel switches.
+- NervJS/taro (MIT) — https://github.com/NervJS/taro @ d6d69e30f70d98e49aa9d0b6d4e149d7f4df2980 — paths: packages/taro-cli — Taro project layout, per-platform build targets and the pxtransform/designWidth contract; verified by scaffolding a project with taro 4.2.1.
+
+Reference-only sources (no content copied):
+
+- https://developers.weixin.qq.com/miniprogram/dev/framework/ (Proprietary) — https://developers.weixin.qq.com/miniprogram/dev/framework/
+- https://www.npmjs.com/package/miniprogram-ci (NONE) — https://www.npmjs.com/package/miniprogram-ci
+- wechat-miniprogram/ai-mode-skills (MIT) — https://github.com/wechat-miniprogram/ai-mode-skills
+- TencentCloudBase/CloudBase-AI-Toolkit (MIT) — https://github.com/TencentCloudBase/CloudBase-AI-Toolkit
+- sonofmagic/skills (MIT) — https://github.com/sonofmagic/skills

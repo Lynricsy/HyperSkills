@@ -399,6 +399,32 @@ gh api "repos/godotengine/godot/contents/doc/classes/<Class>.xml?ref=<branch>" \
   --jq .content | base64 -d
 ```
 
+#### 取证的两个坑：`doc/classes` 的 schema 本身变过
+
+**粗粒度 `grep -c 'deprecated='` 会给出错误答案。** 属性名在 4.3 改过一次，而且类级与方法级
+用的是同一个属性名，所以必须**同时匹配两种写法并区分层级**。实测 `TileMap.xml`：
+
+| 分支 | `deprecated=` 命中 | `is_deprecated` 命中 | 类级弃用？ | 方法级 |
+|---|---|---|---|---|
+| 4.1 | 0 | 0 | 无 | 无（`<class>` 标签上还带着 `version="4.1"`） |
+| 4.2 | **3** | **3** | **无** | `force_update` / `get_navigation_map` / `set_navigation_map`，全部写作 `is_deprecated="true"`，无说明文本 |
+| 4.3 | 4 | 0 | **有**：`deprecated="Use multiple [TileMapLayer] nodes instead. …"` | 同样那三个方法，改成带说明文本的 `deprecated="…"` |
+| 4.5 | 4 | 0 | 有 | 同上 |
+
+也就是说：在 4.2 的 `TileMap.xml` 上数 `deprecated=` 会得到 **3**，看起来像是「4.2 就弃用了」，
+但那 3 次全是**方法级**的旧式标记 `is_deprecated="true"`，类级一次都没有。取证必须锚在类标签上：
+
+```bash
+# 类级弃用（4.3 起的写法）
+grep -oE '<class name="TileMap"[^>]*deprecated="[^"]*"' TileMap.xml
+# 4.2 及更早的旧写法，且区分层级
+grep -oE '<(class|method|member) name="[^"]+"[^>]*is_deprecated="true"' TileMap.xml
+```
+
+本报告里那张表用的是 `re.search(r'<class name="X"[^>]*?deprecated="([^"]{0,60})')`，天然只看类标签，
+所以结果没受影响；但换成 `grep -c` 就会误判。第二个坑是 4.1 及更早的 `<class>` 标签带
+`version="4.x"` 属性而 4.2 起没有——任何跨 4.1/4.2 边界的差分脚本都要容忍这一点。
+
 对 4.2–4.7 六个分支各取一次，结果（`ABSENT` = 该分支上不存在）：
 
 | 断言 | 文件 | 4.2 | 4.3 | 4.4 | 4.5 | 4.6 | 4.7 | 定出的门 |
@@ -435,9 +461,13 @@ gh api "repos/godotengine/godot/contents/doc/classes/<Class>.xml?ref=<branch>" \
    在 4.6 上 `default="1"`、在 4.7 上 `default="0"`。照指南去 `AudioStreamPlayer` 上找这个
    属性会找不到。正文已按声明改写。
 
-另外一个副产物：`misc/extension_api_validation/<from>-stable/GH-<pr>.txt` 是**引擎自己维护
-的 extension API 破坏性变更台账**，等于预先 diff 好的 `extension_api.json`。例如
-`misc/extension_api_validation/4.6-stable/GH-112617.txt`（4.6→4.7 那一批）原文：
+#### 第三个事实源：`misc/extension_api_validation/`
+
+`misc/extension_api_validation/<from>-stable/GH-<pr>.txt` 是**引擎自己维护的 extension API
+破坏性变更台账**——每个文件对应一个打破 GDExtension ABI 的 PR，内容就是
+`validate_extension_api.sh` 针对 `extension_api.json` 跑出来的 diff。目录按**起始版本**命名，
+所以 4.6→4.7 那一批在 `misc/extension_api_validation/4.6-stable/` 下。例如
+`4.6-stable/GH-112617.txt` 原文：
 
 ```
 Validate extension JSON: API was removed: classes/RichTextLabel/enums/ImageUpdateMask/values/UPDATE_WIDTH_IN_PERCENT
@@ -445,7 +475,36 @@ Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/a
 Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/arguments/1': type changed value in new API, from "int" to "float".
 ```
 
-这比对散文文档强一个量级，已加入 `SOURCES.yaml` 的 `paths`，下次同步直接看这个目录。
+**相对跨分支 `doc/classes` diff 的优势**：
+
+1. **已经 diff 好了**，不用取两份文件再比，也不会踩上面那个 schema 变更的坑。
+2. **粒度到参数**：给出「第 10 个实参由 `bool` 变 `enum::RichTextLabel.ImageUnit`、默认值由
+   `false` 变 `0`」这种 `doc/classes` 里看不出来的细节（XML 里那个参数的 `type` 只写 `int`）。
+3. **自带归因**：文件名就是 PR 号，直接能查到原始讨论与迁移建议。
+4. **是引擎维护者自己写的且 CI 强制**，不是第三方整理，也不是散文：
+   `.github/workflows/linux_builds.yml:261` 调用 `./misc/scripts/validate_extension_api.sh`，
+   所以台账不会漏记它覆盖的那一类变更。
+
+**局限，必须同时用另外两个手段兜底**：
+
+1. **只覆盖「被 PR 记录下来的破坏性 API 形状变更」。** 静默的**行为**变化完全不在里面——本
+   skill 里 Jolt 的 `WorldBoundaryShape3D.plane.d` 符号反转、`SoftBody3D` 质量与
+   `linear_stiffness` 的重新解释、Glow 默认混合模式改成 Screen、`CanvasItem` 不再加抗锯齿
+   feather，签名一个都没动，所以台账里一条都没有。这类只能读迁移指南的 behavior changes 节。
+2. **不覆盖「新增」**。新增成员不破坏 ABI，所以 `@abstract`、`Control.offset_transform_*`、
+   `InputEvent.DEVICE_ID_MOUSE` 这些「某版本才有」的门，台账里查不到，只能靠跨分支 diff。
+3. **不覆盖非 ClassDB 的东西**：GDScript 注解、项目设置默认值、`.tscn` 文件格式、编辑器写入
+   的新建项目默认值，全都不在 `extension_api.json` 里。
+4. **目录命名容易读反**：`misc/extension_api_validation/README.md` 写的是「Add new entries to
+   the `{TAG}` folder」，`{TAG}` 是**当前开发所基于的那个 tag**，所以 `4.6-stable/` 装的是
+   4.6 之后（即 4.6→4.7）的变更，不是 4.5→4.6 的。同一个 README 也确认了内容语义：
+   「the expected output of `--validate-extension-api` when run against the
+   `extension_api.json`」，且只有以 `Validate extension JSON:` 开头的行有效，其余是给人看的
+   说明。
+
+所以三个手段是分工关系，不是替代关系：**跨分支 `doc/classes` diff 定「有/没有」与默认值，
+`extension_api_validation` 定「签名怎么变」，迁移指南的 behavior changes 定「签名没变但行为
+变了」**。已把该目录加入 `SOURCES.yaml` 的 `paths`。
 
 仍然只有 milestone 证据（分支 diff 不适用，因为不是 API 形状变更）的三条，列在此处以示区分：
 
@@ -573,9 +632,12 @@ Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/a
 1. **`godotengine/godot` 的 `ref: "4.7"`**（不是 `master`）。4.7.2 的 tag commit 与 master
    已 `diverged`（151 ahead / 2241 behind），pin master 会跟到没进任何已发布 4.7 的事实。
    4.7.3 出来时 `check_upstream.py` 会报 `behind`，那时重跑一遍跨分支 diff。
-2. **`misc/extension_api_validation/`**。已加入 `paths`。这是引擎自己维护的破坏性变更台账，
-   下一个大版本（4.8）出来时，`misc/extension_api_validation/4.7-stable/` 目录里的每个
-   `GH-*.txt` 就是需要复核的版本门清单，不用再读散文迁移指南猜。
+2. **`misc/extension_api_validation/`**。已加入 `paths`。4.8 出来时
+   `misc/extension_api_validation/4.7-stable/` 里的每个 `GH-*.txt` 就是需要复核的签名变更
+   清单。但**不能只看它**：它不记新增、不记非 ClassDB 的东西（GDScript 注解、项目设置默认
+   值、`.tscn` 格式、新建项目写入值）、也不记签名未变的行为变化。同步时三样一起跑：跨分支
+   `doc/classes` diff（注意 `deprecated=` / `is_deprecated=` 两种写法与类级/方法级之分）、
+   这个台账、迁移指南的 behavior changes 节。
 3. **`gamedev-skills/awesome-gamedev-agent-skills`** 推送很频繁（调研当日就有提交），
    但 `paths: skills/godot` 会过滤掉其他引擎目录的噪声。
 4. **`godotengine/godot-docs` 的 `tutorials/rendering/renderers.rst`**。三后端对比表是本
@@ -596,9 +658,14 @@ Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/a
 - **不写 GdUnit4 的深度用法。** 它是第三方 addon，本机未安装，只给了命令形状并标
   `[community]`；另外给了一个零依赖的 `extends SceneTree` 断言脚本作为默认方案。
 
-### 需要主代理处理的一件事
+### NOTICE.md 的一次往返（已闭环）
 
-`NOTICE.md` 在我 Phase D 之后被生成过一次，而我随后按主代理的取证要求修订了
-`SOURCES.yaml` 的三条 `notes`（`godot-engine` 加了跨分支取证方法与
-`misc/extension_api_validation` 路径、`godot-docs` 记了 `area_mask` 的文档纠正、
-`haxqer-godot` 改了 `ParallaxBackground` 的版本门）。**`NOTICE.md` 需要重新生成一次。**
+`NOTICE.md` 在 Phase D 之后被生成过一次，随后我按主代理的取证要求修订了 `SOURCES.yaml`
+的三条 `notes`（`godot-engine` 加了跨分支取证方法与 `misc/extension_api_validation` 路径、
+`godot-docs` 记了 `area_mask` 的文档纠正、`haxqer-godot` 改了 `ParallaxBackground` 的版本
+门），于是 `validate_skills.py` 报了 `NOTICE.md is stale`。主代理已重新生成，现在
+`uv run tools/validate_skills.py skills/godot` 是 **0 error 0 warning**。
+
+教训记一条：**改 `SOURCES.yaml` 的任何字段都会让 `NOTICE.md` 过期**，因为 NOTICE 是
+`contributes` 与 `notes` 的派生产物。后续同步时，先改完 `SOURCES.yaml` 再生成 NOTICE，
+不要反过来。

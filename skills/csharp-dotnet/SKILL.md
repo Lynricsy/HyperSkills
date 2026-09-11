@@ -22,9 +22,10 @@ Not covered: reviewing a diff for general correctness and risk — use the `code
 skill. Root-causing a reproducible local failure — use the `debugging` skill. Test-first
 methodology and what deserves a test at all — use the `test-driven-development` skill.
 Visual and layout design of a web UI — use the `frontend-design` skill. Unity C# and its
-engine APIs, and Azure resource orchestration (Bicep, azd, ARM, Azure SDK clients), have
-no skill here and are out of scope entirely; so are .NET Aspire orchestration, F# and
-Visual Basic, database schema design, and Windows Forms/WPF beyond the upgrade checklist.
+engine APIs — use the `unity` skill; Godot's C# bindings — use the `godot` skill. Azure
+resource orchestration (Bicep, azd, ARM, Azure SDK clients) — use the `azure` skill. Out
+of scope entirely: .NET Aspire orchestration, F# and Visual Basic, database schema
+design, and Windows Forms/WPF beyond the upgrade checklist.
 
 Paths below are relative to this skill's directory.
 

@@ -37,9 +37,10 @@ Not covered — do not answer from this skill:
 - Server-side Node frameworks — Fastify, NestJS, Hono. Use the
   `nodejs-backend` skill; Nitro server routes are covered here only as far as a
   Vue component consumes them.
-- WeChat mini-programs, uni-app and Taro. Not covered: their runtimes have
-  different rendering and lifecycle semantics, and no skill in this library
-  covers them yet — say so rather than transferring Vue rules to them.
+- WeChat mini-programs, uni-app and Taro — use the `wechat-miniprogram` skill.
+  Their runtimes have different rendering and lifecycle semantics; the Vue
+  authoring layer of a uni-app project is here, everything that compiles to
+  `mp-weixin` is there. Never transfer Vue rules onto the mini program runtime.
 - Options API and JSX/render-function authoring as a default style. Both appear
   only in the context of migrating to `<script setup>`.
 - Browser end-to-end testing mechanics, CI configuration, and deployment

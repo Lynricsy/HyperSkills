@@ -296,3 +296,50 @@ API `NOASSERTION` 实读为 MIT——又一例不能只信 `spdx_id`。
   与 serialization rules analyzer 也是新增面，下一个 LTS（6.7）会把它们变成默认基线。
 - Unity-Technologies/skills 的目录集合（只看目录名，不读正文）：新增目录意味着官方认为
   值得单独成篇的主题，是覆盖面漏洞的免费指示器。
+
+### 取证手法：用 `UnityCsReference` 的版本分支确定版本门（可复用，已转给 godot/unreal）
+
+`Unity-Technologies/UnityCsReference` 是 **Unity Reference-Only License**（`LICENSE.md`
+实读，全文一行指向该许可）。**它只能 `reference`：只读声明做事实核对，不复制任何源码文本，
+不作为 `merged` 上游。** 在这个前提下它是本 skill 最有价值的工具，因为它按 Unity 版本开
+分支存放 `UnityEngine` / `UnityEditor` 的 C# 声明，于是「某个 API 从哪个版本开始废弃」这类
+版本门可以被**机器核对**，而不是从散文文档或记忆里猜。
+
+完整配方（本次实测：三个 sparse 路径 + 四个分支 fetch 共 123 MB、10 秒；只取
+`Runtime/Export` 一个路径时 19 MB）：
+
+```bash
+# 1. 稀疏浅克隆，只取声明所在的目录
+git clone -q --depth 1 --filter=blob:none --sparse \
+  https://github.com/Unity-Technologies/UnityCsReference.git ucs
+cd ucs && git sparse-checkout set Runtime/Export Modules Editor/Mono
+
+# 2. 列出可用的版本分支（6000.N = Unity 6.N；master == 最新那个）
+git ls-remote --heads origin | sed 's#.*refs/heads/##' | sort -V | tail
+
+# 3. 对同一个文件逐版本比 [Obsolete]，二分出分界版本
+for b in 6000.3 6000.4 6000.5 6000.6; do
+  git fetch -q --depth 1 origin "$b"
+  printf '%s: ' "$b"
+  git show FETCH_HEAD:Runtime/Export/Scripting/UnityEngineObject.bindings.cs \
+    | grep -c 'FindObjectsSortMode has been deprecated'
+done
+```
+
+本次用它拿到的三个结论（都写进了 SKILL.md 的版本门）：
+
+1. `FindObjectsSortMode` / 带该参数的 `FindObjectsByType` 重载 / `FindFirstObjectByType`
+   在 `6000.3` 上干净、在 `6000.4` 上已全部 `[Obsolete]` → 分界是 **Unity 6.4**，
+   `[Obsolete]` 文本给出的理由是「InstanceID will be replaced in the future with EntityId」。
+2. `Rigidbody.velocity/drag/angularDrag` 带 `[Obsolete(... (UnityUpgradable) -> ...)]` 而非
+   被删除——推翻了 gamedev-skills 的「doesn't exist」。
+3. `SerializeField` 声明为 `[AttributeUsage(AttributeTargets.Field)]` → 放在属性上是
+   `CS0592` 编译失败而非静默无效，推翻了本 skill 初稿。
+
+适用条件：上游得把**声明或源码**按发布版本分支/标签公开。同理可用的还有
+`Unity-Technologies/Graphics`（URP/HDRP 包源码，Unity Companion License，同样只能
+`reference`）。波次 8 的 `harmonyos` 用 `openharmony/interface_sdk-js` 的 `.d.ts` 走的是同
+一条路——**声明源比散文源更可靠，且可机器核对**。反过来，`Manual/*.html` 只能靠取两个版本
+的同一页对照（本次用 `docs.unity3d.com/6000.3/Documentation/Manual/...` 与不带版本前缀的
+当前页确定了 `Dictionary` 序列化与 UI 推荐表两条），精度低于声明源，但对纯策略性内容
+（官方推荐哪个 UI 系统）是唯一来源。

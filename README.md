@@ -48,6 +48,7 @@
 | [`git-workflow`](skills/git-workflow/) | 任务 | Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice… | 2026.09.11 | 12 |
 | [`github`](skills/github/) | 平台 | Guides work that needs GitHub the platform | 2026.09.11 | 15 |
 | [`go`](skills/go/) | 框架 | Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation… | 2026.09.11 | 12 |
+| [`godot`](skills/godot/) | 平台 | Guides Godot 4 work in GDScript: the scene tree and node lifetime, queue_free versus free and when an instance really becomes invalid, _ready running… | 2026.09.11 | 11 |
 | [`graphql`](skills/graphql/) | 框架 | Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and… | 2026.09.11 | 12 |
 | [`harmonyos`](skills/harmonyos/) | 平台 | Guides HarmonyOS NEXT app work in ArkTS and ArkUI: the arkts-* language restrictions that make legal TypeScript fail to compile, build() purity… | 2026.09.11 | 12 |
 | [`java-spring`](skills/java-spring/) | 框架 | Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts… | 2026.09.11 | 8 |
@@ -74,8 +75,11 @@
 | [`terraform`](skills/terraform/) | 框架 | Guides Terraform and OpenTofu configuration work: HCL style and expressions, variable, output and local design, module interfaces and version… | 2026.09.11 | 11 |
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
 | [`typescript`](skills/typescript/) | 框架 | Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types… | 2026.09.11 | 9 |
+| [`unity`](skills/unity/) | 平台 | Guides Unity 6 game work in C#: MonoBehaviour lifecycle and execution order, what Unity's serializer stores and silently drops (Dictionary only from… | 2026.09.11 | 7 |
+| [`unreal`](skills/unreal/) | 平台 | Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCLASS/UPROPERTY/UFUNCTION reflection contract and what the garbage collector can and… | 2026.09.11 | 10 |
 | [`vue`](skills/vue/) | 框架 | Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive… | 2026.09.11 | 10 |
 | [`web-testing`](skills/web-testing/) | 任务 | Guides end-to-end testing of web applications in real browsers with Playwright: accessibility-first locators and strict mode, auto-waiting and why a… | 2026.09.11 | 11 |
+| [`wechat-miniprogram`](skills/wechat-miniprogram/) | 平台 | Guides WeChat Mini Program work: the two-thread runtime, exparser vs glass-easel frameworks, WebView vs Skyline renderers, the data-update cost model… | 2026.09.11 | 11 |
 
 <!-- catalog:end -->
 

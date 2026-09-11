@@ -198,6 +198,15 @@
       ]
     },
     {
+      "name": "godot",
+      "description": "Guides Godot 4 work in GDScript: the scene tree and node lifetime, queue_free versus free and when an instance really becomes invalid, _ready running at most once so pooled nodes need request_ready, @",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/godot"
+      ]
+    },
+    {
       "name": "graphql",
       "description": "Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and field naming, interfaces, unions, input objects and",
       "source": "./",
@@ -432,6 +441,24 @@
       ]
     },
     {
+      "name": "unity",
+      "description": "Guides Unity 6 game work in C#: MonoBehaviour lifecycle and execution order, what Unity's serializer stores and silently drops (Dictionary only from 6.6, [SerializeReference], [FormerlySerializedAs]),",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/unity"
+      ]
+    },
+    {
+      "name": "unreal",
+      "description": "Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCLASS/UPROPERTY/UFUNCTION reflection contract and what the garbage collector can and cannot see (TObjectPtr, TWeakObjectPtr::Pin, TStron",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/unreal"
+      ]
+    },
+    {
       "name": "vue",
       "description": "Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive destructuring, reassigned proxies, missing `.value`, prop",
       "source": "./",
@@ -447,6 +474,15 @@
       "strict": false,
       "skills": [
         "./skills/web-testing"
+      ]
+    },
+    {
+      "name": "wechat-miniprogram",
+      "description": "Guides WeChat Mini Program work: the two-thread runtime, exparser vs glass-easel frameworks, WebView vs Skyline renderers, the data-update cost model (the calling component's Shadow tree before payloa",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/wechat-miniprogram"
       ]
     },
     {
@@ -476,6 +512,7 @@
         "./skills/git-workflow",
         "./skills/github",
         "./skills/go",
+        "./skills/godot",
         "./skills/graphql",
         "./skills/harmonyos",
         "./skills/java-spring",
@@ -502,8 +539,11 @@
         "./skills/terraform",
         "./skills/test-driven-development",
         "./skills/typescript",
+        "./skills/unity",
+        "./skills/unreal",
         "./skills/vue",
-        "./skills/web-testing"
+        "./skills/web-testing",
+        "./skills/wechat-miniprogram"
       ]
     }
   ]
