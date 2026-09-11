@@ -1,0 +1,178 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin containers
+skill: containers
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: kubernetes-docs
+    kind: docs
+    url: https://kubernetes.io/docs/
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authority for every Kubernetes fact here: the removed-API table and each version's structural changes, probe semantics and the kubelet's behaviour on failure, QoS classes and eviction order, OOMKill and CFS throttling, the Pod Security Standards field lists and the restricted profile's requirements, PodDisruptionBudget eviction semantics, topology spread, NetworkPolicy's additive allow-only model, Service and Ingress shape, Job and CronJob fields, and the exact stability release of every gated field (sidecar containers 1.33, in-place resize 1.35, user namespaces 1.36, pod-level resources beta 1.34, preStop sleep 1.34)."
+    notes: "Source repository kubernetes/website, licence CC-BY-4.0 per the repository metadata. Attribution: portions of this skill are derived from the Kubernetes documentation by the Kubernetes Authors, used under CC-BY-4.0; no text is copied verbatim. Version gates were read from the feature-gate data files' own stages fields rather than from prose, and the removal table from content/en/docs/reference/using-api/deprecation-guide.md."
+  - id: docker-docs
+    kind: docs
+    url: https://docs.docker.com/
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Build cache invalidation rules (which instructions hash file metadata, that mtime is excluded, that one miss invalidates the rest), cache and secret mount syntax and behaviour, build-arg handling and the provenance attestation, multi-platform builds and the automatic platform args, registry cache export, and the statement that the Compose top-level `version` property is obsolete."
+    notes: "Licence verified by reading docker/docs LICENSE: Apache-2.0, so merged rather than reference. Docker has no official agent-skills repository (the full org repository list was checked), so the documentation is the primary vendor source for this skill."
+  - id: compose-spec
+    kind: repo
+    repo: compose-spec/compose-spec
+    url: https://github.com/compose-spec/compose-spec
+    paths:
+      - spec.md
+      - develop.md
+    ref: main
+    commit: fee041b381ffd4aad263410980bdce0cdf4beb7d
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The normative Compose semantics: the three `depends_on` conditions and what each actually waits for, `restart: true` in the long form, the five `develop.watch` actions (sync, restart, sync+restart, sync+exec, rebuild) and when Compose applies each, profiles, healthcheck fields, and merge behaviour across files."
+    notes: "Used to settle the difference between what the short and long `depends_on` forms guarantee, which the community upstreams state inconsistently."
+  - id: lukasniessen-k8s
+    kind: repo
+    repo: LukasNiessen/kubernetes-skill
+    url: https://github.com/LukasNiessen/kubernetes-skill
+    paths:
+      - SKILL.md
+      - references/api-drift.md
+      - references/fragile-rollouts.md
+      - references/resource-starvation.md
+      - references/insecure-workload-defaults.md
+      - references/privilege-sprawl.md
+      - references/network-exposure.md
+      - references/deployment-patterns.md
+      - references/helm-patterns.md
+      - references/kustomize-patterns.md
+      - references/validation-and-policy.md
+    ref: main
+    commit: f85547fb3a1ec909b2cbe4dc68f831590ac385ea
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The failure-mode framing this skill's review workflow is built on (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift), the causal argument for why a dependency check in a liveness probe turns one outage into a restart storm across every replica, the position that most workloads should carry a memory limit and no CPU limit because a CPU limit is enforced as a CFS quota, the probe-timing budget arithmetic, and the Helm and Kustomize anti-pattern lists."
+    notes: "Its `references/conditional/{eks,gke,aks,openshift}-patterns.md`, `gitops-controllers.md` and `observability-stacks.md` were deliberately not used - managed control planes, GitOps controllers and observability stacks are outside this skill's scope. Its writing conventions (全大写 ALWAYS/NEVER directives, a duplicated docs/ copy of every reference) were not adopted. Its recommendation of `kubectl apply --dry-run=server` is kept, but its `--dry-run=client` suggestion was corrected after measuring that the client dry run still requires a reachable API server."
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - instructions/devcontainers.instructions.md
+      - instructions/kubernetes-manifests.instructions.md
+      - instructions/kubernetes-deployment-best-practices.instructions.md
+      - instructions/containerization-docker-best-practices.instructions.md
+      - skills/multi-stage-dockerfile/SKILL.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The whole devcontainer chapter's spine: the image-metadata merge rule that makes a property's absence unprovable and therefore unreportable, the prebuild boundary that puts cacheable installs in onCreateCommand/updateContentCommand rather than postCreateCommand, the parallel execution of the object form, the two rules that must not be over-applied (localEnv references in remoteEnv, updateRemoteUserUID), and the deprecated-property list. Separately, the `app.kubernetes.io/*` recommended label set and the securityContext default list from instructions/kubernetes-manifests."
+    notes: "The `applyTo:` frontmatter key and the 'Your Mission / As GitHub Copilot' persona framing were stripped as agent-specific. The three broad instruction files were used only as a coverage checklist, not for wording; the multi-stage-dockerfile skill's claim that a multi-stage build avoids including build secrets was rejected as false and is contradicted in references/image-security.md with a measured counter-example."
+  - id: netresearch-docker
+    kind: repo
+    repo: netresearch/docker-development-skill
+    url: https://github.com/netresearch/docker-development-skill
+    paths:
+      - skills/docker-development/SKILL.md
+      - skills/docker-development/references/build-secret-leaks.md
+      - skills/docker-development/references/multi-stage-caching.md
+      - skills/docker-development/references/bind-mount-ownership.md
+      - skills/docker-development/references/registry-catalogue-and-pin-rot.md
+    ref: main
+    commit: da6be1a139a83dc654f8c4b7b034280534f741ff
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The single most valuable correction in this skill: that `docker history` is the wrong check for a build-credential leak because BuildKit records build arguments verbatim in the provenance attestation, the `docker buildx imagetools inspect --format '{{json .Provenance}}'` forensic command, the instruction to grep for the credential pattern rather than the argument name (the name matches the attestation's own embedded commit text and produces false positives), the pre-fix/post-fix count as the only proof that can fail, and bind-mount ownership and registry pin-rot as review items."
+    notes: "The GitHub API reports NOASSERTION because the repository ships two licence files. Its README splits them explicitly: code is MIT, content (skill definitions, documentation, references) is CC-BY-SA-4.0. Treated as CC-BY-SA: only the structure and the checklist semantics were taken and everything is rewritten in this skill's own words, with the provenance claim independently reproduced locally before being written down. The `allowed-tools` and `metadata.repository` frontmatter keys were stripped."
+  - id: google-skills
+    kind: repo
+    repo: google/skills
+    url: https://github.com/google/skills
+    paths:
+      - skills/cloud/gke-app-onboarding/SKILL.md
+      - skills/cloud/gke-app-onboarding/assets/deployment.yaml
+      - skills/cloud/gke-app-onboarding/assets/Dockerfile
+    ref: main
+    commit: fd2bd41f0106962cc1a89d64844773dbaaef1905
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The complete hardened-Deployment field set used as this skill's default manifest: automountServiceAccountToken false, runAsNonRoot with a numeric uid, seccompProfile RuntimeDefault, readOnlyRootFilesystem, capabilities drop ALL, an image referenced by digest, and separate /healthz and /readyz endpoints wired to liveness and readiness respectively."
+    notes: "GKE-specific material was stripped: Artifact Registry image paths, gcloud and `pack build` commands, Cloud Native Buildpacks as the default, Cloud Logging collection, Workload Identity, Autopilot constraints, and the MCP tool-name block (apply_k8s_manifest, get_k8s_resource, …). What remains holds on any conformant cluster. The non-standard `metadata.category: Containers` frontmatter key was stripped."
+  - id: azure-aks-skills
+    kind: repo
+    repo: Azure/AKS-Skills
+    url: https://github.com/Azure/AKS-Skills
+    paths:
+      - skills/aks-troubleshooting/SKILL.md
+      - skills/aks-troubleshooting/pod-failures.md
+      - skills/aks-troubleshooting/references/symptom-map.md
+    ref: main
+    commit: 20bf35201a79b324d2ca3e00e5c82020ff362024
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The troubleshooting contract - read-only until remediation is asked for, and evidence quoted before a root cause is named, because 'pod is Pending' and 'node is NotReady' are symptoms - and the symptom inventory that structures references/troubleshooting.md (Pending, CrashLoopBackOff, OOMKilled, ImagePullBackOff, NotReady, ingress 502/503, DNS)."
+    notes: "All Azure-specific material was stripped: every `az aks` command, the AppLens and Resource Health detectors, the Azure MCP capability-discovery section, Azure CNI and SNAT port exhaustion, AGIC, Entra Workload ID, and spot eviction / zone rebalance causes. Its 'gather platform-side state first, then cluster state' ordering was re-expressed as an in-cluster ordering (events and nodes, then pod and container) because the platform layer is out of this skill's scope."
+  - id: helm-docs
+    kind: docs
+    url: https://helm.sh/docs/
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Chart layout and the chart-version versus app-version distinction, values design and values.schema.json, capability guards for templated apiVersions, hook lifecycle and hook-delete policies, helm test, and the Helm 4 changes that affect authoring (server-side apply, kstatus-based waiting, post-renderers as plugins, reproducible chart archives) together with the Helm 3 support timeline."
+    notes: "Source repository helm/helm-www, MIT. Helm 4 currency verified against the release list (v4.3.0 current, v3.22.0 still published) and the 2025-11-17 release announcement; the local toolchain used for the validation gates is v4.2.2."
+  - id: kustomize
+    kind: repo
+    repo: kubernetes-sigs/kustomize
+    url: https://github.com/kubernetes-sigs/kustomize
+    paths: [site/content/en/docs]
+    ref: master
+    commit: 19002092f6df6a0bb602a5f241fba17bce74fe15
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Overlay and base structure, the typed transformers (images, replicas, namespace, namePrefix) as the preferred form over free-form patches, strategic-merge versus JSON-6902 patch semantics including merge keys on lists, the current single `patches:` field replacing patchesStrategicMerge/patchesJson6902, commonLabels reaching selectors, and the generator name hash that makes a config change roll the pods."
+    notes: "The kustomize CLI version embedded in kubectl lags the standalone binary; this skill states the behaviour of v5.7 as embedded in kubectl 1.34, which is what most users actually run."
+  - id: devcontainers-spec
+    kind: docs
+    url: https://containers.dev/implementors/json_reference/
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Cross-check for every devcontainer rule: the property reference's tagging of which properties can be stored in the devcontainer.metadata image label, the image-metadata merge order that makes devcontainer.json win, the lifecycle command order, and the current names for the deprecated top-level extensions, settings and devPort properties."
+    notes: "Source repository devcontainers/spec, CC-BY-4.0; attribution recorded here, no text copied verbatim. Last pushed 2026-03-20, outside the six-month freshness window used for community upstreams, but it is the normative specification and its content is unchanged in the areas used."
+  - id: impertio-docker
+    kind: repo
+    repo: Impertio-Studio/Docker-Claude-Skill-Package
+    url: https://github.com/Impertio-Studio/Docker-Claude-Skill-Package
+    paths:
+      - skills/source/docker-agents/docker-agents-review
+      - skills/source/docker-agents/docker-agents-generator
+    ref: main
+    commit: 993be7933ece050ff8c57002a6ff976549aebbe1
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The ordered review structure for container artefacts (Dockerfile, then Compose, then security, then production readiness, then anti-patterns) and the PASS/FAIL contrast form used to state each check, which is clearer for a review workflow than a prose checklist."
+    notes: "Its `compatibility: \"Designed for Claude Code\"` frontmatter and its agent-specific metadata were stripped. Content is entry-level (mutable tags, HEALTHCHECK, non-root) and overlaps netresearch-docker on every point where both speak; only the review structure was taken."
+  - id: bagelhole-devops
+    kind: repo
+    repo: BagelHole/DevOps-Security-Agent-Skills
+    url: https://github.com/BagelHole/DevOps-Security-Agent-Skills
+    paths:
+      - devops/containers
+      - devops/orchestration/helm-charts
+    ref: main
+    commit: 0365f57a079b1332f95cf26e31dd2d5332a8399f
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage check that no major container topic was missed (registries, Podman, Compose, Helm command surface)."
+    notes: "No content merged. Its material is command reference and tutorial prose ('Prerequisites: Docker Engine 20.10+', tables of docker CLI flags) that a capable model already knows, which is exactly the dead weight docs/skill-standard.md section 3 forbids."

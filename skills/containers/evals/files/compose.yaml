@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - cache
+    environment:
+      DATABASE_URL: postgres://app:app@db:5432/app
+      REDIS_URL: redis://cache:6379
+    command: npm run dev
+
+  migrate:
+    build: .
+    command: npm run migrate
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://app:app@db:5432/app
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: app
+      POSTGRES_USER: app
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+
+  cache:
+    image: redis
