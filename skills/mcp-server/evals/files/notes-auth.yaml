@@ -1,0 +1,45 @@
+# notes-mcp remote deployment — OAuth wiring for the Streamable HTTP endpoint.
+server:
+  name: notes
+  endpoint: https://notes-mcp.internal.example.com/mcp
+  bind: 0.0.0.0:8080
+  transport: sse            # legacy endpoint pair, kept for older clients
+  sse_endpoint: /sse
+  message_endpoint: /messages
+  session:
+    header: Mcp-Session-Id
+    store: memory
+    # session id is what we use to decide whether a caller may touch a note
+    authorize_by_session: true
+
+oauth:
+  issuer: https://login.example.com
+  # we accept anything login.example.com signed
+  verify:
+    signature: true
+    audience: null
+    issuer_allowlist: ["https://login.example.com"]
+  client_registration: dcr
+  registration_endpoint: https://notes-mcp.internal.example.com/register
+  static_client_id: notes-mcp-proxy
+  scopes_requested:
+    - notes.read
+    - notes.write
+    - notes.admin
+    - drive.readwrite.all
+    - mail.send
+    - offline_access
+  scopes_supported_note: >
+    We ask for the whole set on first connect so the user only ever sees one consent screen.
+
+upstream:
+  # the notes API and the drive API both live behind the same IdP
+  notes_api: https://api.example.com/notes
+  drive_api: https://api.example.com/drive
+  auth_mode: passthrough    # forward the caller's bearer token as-is
+  fallback_token: "Bearer REDACTED"
+
+logging:
+  level: debug
+  destination: stdout
+  include_authorization_header: true

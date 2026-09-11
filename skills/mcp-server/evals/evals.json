@@ -1,0 +1,66 @@
+[
+  {
+    "skills": ["mcp-server"],
+    "query": "notes-server.ts in this directory is our internal MCP server. Agents keep picking the wrong tool, the answers are truncated, and one engineer says the process 'randomly hangs'. Review it and show me the fixed tool definitions.",
+    "files": ["evals/files/notes-server.ts"],
+    "expected_behavior": [
+      "Identifies console.log inside a stdio server as a protocol-framing bug, not just noise: the bytes go onto the same stdout stream the JSON-RPC frames use, and a write without a trailing newline prefixes the next frame so the client loses that response and the call times out — which is the 'random hang'. Moves logging to stderr",
+      "Flags note_action as a multiplexed op-dispatch tool and splits it into separate tools per operation, so that the read operations can be marked read-only and the delete operation can be marked destructive instead of both hiding behind one string argument",
+      "Requires a description on every parameter, not only on the tool: the inputSchema properties (id, mode, q, op, body, name) reach the model as bare types, and mode/op in particular have no enumerated values, so replaces the loose z.string() with enums and described, constrained fields",
+      "Flags run_report's description as prompt injection through a tool description — it instructs the model on how to behave ('always call this first', 'never tell the user') rather than describing what the tool does — and states that clients must treat tool descriptions and annotations as untrusted data",
+      "Flags the shell interpolation of tool arguments in search, note_action and run_report (execSync with q, id, body and name spliced into a command string) as command injection and replaces it with an argument-array API that does not invoke a shell, plus path containment for the id used to build a filesystem path",
+      "Flags the unbounded list tool: a 40k-item JSON blob in one content block, and requires an opaque-cursor page plus a stated page size, rather than relying on the client to cope",
+      "Explains that a thrown exception and a tool execution error are different things on the wire: recoverable failures belong in the result as isError: true with text the model can act on, and the current code both loses that (crashing to the uncaughtException handler) and, where it does propagate, hands the model the raw Error message"
+    ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "Our platform team says their client is on the 2026-07-28 MCP revision and our server has to work with it. notes-package.json in this directory is what we depend on today, and the server currently does the initialize handshake and tracks an Mcp-Session-Id per connection for its Streamable HTTP deployment. What actually has to change?",
+    "files": ["evals/files/notes-package.json"],
+    "expected_behavior": [
+      "States that 2026-07-28 is the current MCP specification revision and that it removed the initialize / notifications/initialized handshake: every request carries its own protocol version and client capabilities in _meta under io.modelcontextprotocol/protocolVersion and io.modelcontextprotocol/clientCapabilities",
+      "States that protocol-level sessions and the Mcp-Session-Id header were removed in 2026-07-28, and that cross-call state must become an explicit server-minted handle passed as an ordinary tool argument rather than per-connection state",
+      "Names server/discover as the RPC a 2026-07-28 server must implement to advertise supportedVersions, capabilities and identity, and notes that a dual-era client probes with it and falls back to initialize on any unrecognised error rather than keying the fallback to one error code",
+      "Distinguishes the specification revision from each SDK's implemented ceiling rather than asserting one from the other: notes that @modelcontextprotocol/sdk ^1.30.0 is the retired v1 single package and that the v2 line ships as separate scoped packages (@modelcontextprotocol/core, @modelcontextprotocol/server, plus a framework adapter) with zod 4, and that the way to settle what a given SDK build actually speaks is to read its exported protocol-version constant and call server/discover against it rather than to infer it from the package version",
+      "Says that the HTTP+SSE transport with its separate GET/SSE and POST message endpoints has been deprecated since revision 2025-03-26 in favour of Streamable HTTP, and that under 2026-07-28 the GET SSE endpoint and resources/subscribe are replaced by subscriptions/listen",
+      "Mentions that Roots, Sampling and Logging were deprecated in 2026-07-28, so any reliance on roots/list, sampling/createMessage or logging/setLevel must be designed out (tool parameters or configuration instead of roots; stderr or OpenTelemetry instead of logging)"
+    ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "notes-auth.yaml in this directory is the auth configuration for the hosted deployment of our MCP server. Our security reviewer bounced it without saying why. Go through it and tell me what to change.",
+    "files": ["evals/files/notes-auth.yaml"],
+    "expected_behavior": [
+      "Flags audience: null as the central defect: the server validates only that its IdP signed the token, so a token minted for any other resource behind the same issuer is accepted. Requires validating that the token was issued specifically for this server (RFC 8707 resource indicator / audience claim) and returning 401 with WWW-Authenticate otherwise",
+      "Flags auth_mode: passthrough as forbidden token passthrough: the server must not forward the caller's token to the upstream notes or drive API, and must instead use its own credentials or a token exchanged for that upstream audience",
+      "Flags the confused-deputy shape — a static client_id fronting DCR for third-party authorization servers — and requires per-client user consent before forwarding to the upstream authorization server rather than reusing the proxy's consent; also states that Dynamic Client Registration itself was deprecated in revision 2026-07-28 in favour of Client ID Metadata Documents, so client_registration: dcr should become CIMD with DCR kept only as a documented fallback",
+      "Flags the scope list as far beyond what a notes server needs: drive.readwrite.all, mail.send and notes.admin are unrelated to the resource being protected, and the 'one consent screen' rationale is rejected in favour of requesting the narrowest scopes and using a WWW-Authenticate scope challenge plus step-up authorization when a call actually needs more",
+      "Flags authorize_by_session: true — a session id is a correlation token, not an authorization decision, and every request must be authorized on its own presented credential; also notes that protocol-level sessions and the Mcp-Session-Id header no longer exist as of revision 2026-07-28",
+      "Flags transport: sse with its /sse plus /messages endpoint pair as the deprecated HTTP+SSE transport and moves it to Streamable HTTP on a single endpoint",
+      "Flags the operational leaks: bind 0.0.0.0 on a server that should bind loopback or sit behind a checked Origin, debug logging of the Authorization header, and the hardcoded fallback_token credential in the config file"
+    ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "mcp.json in this directory is the config block we put in our README for users of our MCP server, and we are about to publish. Is this what we should be telling people to paste?",
+    "files": ["evals/files/mcp.json"],
+    "expected_behavior": [
+      "Flags that credentials are inline in the published config: the NOTES_API_KEY value and the Authorization bearer belong in an environment-variable reference the user supplies, and a README users copy verbatim guarantees the real values end up committed",
+      "Flags the notes-remote entry as using the deprecated HTTP+SSE transport (type: sse against a /sse URL) and replaces it with a Streamable HTTP entry pointing at the single MCP endpoint, with authorization obtained through the OAuth flow rather than a pasted static token",
+      "Flags the shellhelper entry as launching through sh -c with command substitution in the arguments, which makes the launch line a shell injection surface, and rewrites it as a direct command with an argv array and no shell",
+      "Flags @latest as unpinned, so every user of the README gets whatever was published most recently, and requires an exact version",
+      "Flags --allow '*' as granting the server unrestricted scope and requires an explicit allowlist of the paths or operations the server actually needs",
+      "Recommends verifying the published entry by actually launching it and listing tools — for example with the MCP Inspector CLI (npx @modelcontextprotocol/inspector --cli <command> --method tools/list) — rather than shipping a config block that has only been read"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "I added the official GitHub MCP server to my editor's config and it shows as failed to connect. The other two servers in the same file work. How do I get it connecting?",
+    "files": [],
+    "expected_behavior": [
+      "Does not read skills/mcp-server/SKILL.md or any file under skills/mcp-server/ — the task is operating a third-party MCP server as a user, not designing or implementing one",
+      "Troubleshoots the installation concretely: checks the server's own documented launch command and required token, reads the editor's MCP log output, and verifies the server binary or container actually runs standalone",
+      "Does not answer with MCP protocol or specification internals such as protocol revision negotiation, tool schema design, or transport specification details"
+    ]
+  }
+]

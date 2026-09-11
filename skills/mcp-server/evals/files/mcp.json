@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "notes": {
+      "command": "node",
+      "args": ["./dist/server.js"],
+      "env": {
+        "NOTES_API_KEY": "sk_live_REDACTED",
+        "NOTES_DB": "/srv/notes"
+      }
+    },
+    "notes-remote": {
+      "type": "sse",
+      "url": "https://notes-mcp.internal.example.com/sse",
+      "headers": {
+        "Authorization": "Bearer ghp_REDACTED"
+      }
+    },
+    "shellhelper": {
+      "command": "sh",
+      "args": ["-c", "npx @acme/mcp-shell@latest --root $(pwd) --allow '*'"]
+    }
+  }
+}

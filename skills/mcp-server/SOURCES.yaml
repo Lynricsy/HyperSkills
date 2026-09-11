@@ -1,0 +1,128 @@
+skill: mcp-server
+version: "2026.09.11"
+upstreams:
+  - id: mcp-spec
+    kind: repo
+    repo: modelcontextprotocol/modelcontextprotocol
+    url: https://github.com/modelcontextprotocol/modelcontextprotocol
+    paths:
+      - schema/2026-07-28
+      - docs/specification/2026-07-28
+    ref: main
+    commit: aa8ce049f089f92618340190d4ece141f663310d
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Normative 2026-07-28 facts: per-request _meta envelope, server/discover, resultType, transports, tool and resource rules, authorization, pagination, caching, and the deprecated-feature registry."
+    notes: "LICENSE read in full: the project is mid-transition from MIT to Apache-2.0 — new code and specification contributions are Apache-2.0, non-specification documentation is CC-BY-4.0, and un-relicensed older contributions stay MIT. All three are permissive; attribution to the Model Context Protocol project. No text copied verbatim."
+  - id: mcp-python-sdk
+    kind: repo
+    repo: modelcontextprotocol/python-sdk
+    url: https://github.com/modelcontextprotocol/python-sdk
+    paths:
+      - src/mcp/server
+      - src/mcp/types
+    ref: main
+    commit: 9972c21aa42054fb1450c5fc614761ed11847ec6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Observed Python behaviour at mcp 2.2.0: MCPServer replacing FastMCP, the stdio fd-diversion guard, required _meta envelope keys, and the modern/legacy era split."
+    notes: "LICENSE read in full; carries the same MIT-to-Apache-2.0 transition preamble as the other Model Context Protocol repositories."
+  - id: mcp-typescript-sdk
+    kind: repo
+    repo: modelcontextprotocol/typescript-sdk
+    url: https://github.com/modelcontextprotocol/typescript-sdk
+    paths:
+      - packages/core
+      - packages/server
+    ref: main
+    commit: 5ecc791d81a7221ebe15ae3ae3f36a8e978af820
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Observed TypeScript behaviour: the v1 single-package 1.30.0 line versus the v2 scoped packages at 2.0.0, their protocol ceilings, serveStdio's factory argument, and the required JSON Schema validator."
+    notes: "LICENSE read in full: same MIT-to-Apache-2.0 transition preamble as the specification repository. No text copied verbatim."
+  - id: anthropic-mcp-server-dev
+    kind: repo
+    repo: anthropics/claude-plugins-official
+    url: https://github.com/anthropics/claude-plugins-official
+    paths:
+      - plugins/mcp-server-dev/skills/build-mcp-server
+      - plugins/mcp-server-dev/skills/build-mcpb/references/local-security.md
+    ref: main
+    commit: 3b600518a637492d37c9877aeb49c2a55d939c04
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Deployment-shape decision, tool description and schema-tightening rules, the three auth tiers, and the 'a local server has no sandbox, so tool arguments are untrusted input' framing with path-containment checks."
+    notes: "plugins/mcp-server-dev/LICENSE read in full: Apache-2.0. Host-specific material (Anthropic Directory review criteria, claude.com callback URLs, clientInfo name checks) was deliberately generalised or dropped."
+  - id: anthropic-mcp-builder
+    kind: repo
+    repo: anthropics/skills
+    url: https://github.com/anthropics/skills
+    paths:
+      - skills/mcp-builder
+    ref: main
+    commit: 34040c9c568585f6929bedeaad110ad08f079624
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Response-size budgeting with an explicit truncation marker, the rule that doc comments are not extracted into tool descriptions, and the design principles for LLM-usability evaluations of a finished server."
+    notes: "The repository root carries no LICENSE; skills/mcp-builder/LICENSE.txt was read in full and is Apache-2.0 (Copyright 2026 Anthropic, PBC). Licensing in this repository is per-directory, so this conclusion covers skills/mcp-builder only. Its scripts/ directory was not copied."
+  - id: awesome-copilot-mcp
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - skills/typescript-mcp-server-generator
+      - skills/dotnet-mcp-builder
+      - skills/mcp-implementation-security-review
+      - skills/mcp-security-audit
+      - skills/mcp-release-qa
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "TypeScript SDK v1-to-v2 package split and codemod, the .NET stateless default, the security-review baseline with its false-positive filters and bind-address truth table, pre-release runtime QA discipline, and client-configuration hygiene."
+    notes: "The instructions/*-mcp-server files in the same repository were rejected: they contradict the newer skills/ entries on every SDK fact. Adjudicated newer-over-older, recorded in research/mcp-server.md."
+  - id: microsoft-mcp-builder
+    kind: repo
+    repo: microsoft/skills
+    url: https://github.com/microsoft/skills
+    paths:
+      - .github/skills/mcp-builder/reference/mcp_best_practices.md
+    ref: main
+    commit: cf77b1efbf3117501f4727c476894751311ee885
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Tool-annotation default table and the falsifiable acceptance bar for a tool description — it must win against sibling tools for its own intent and must not be selected for unrelated ones."
+    notes: "The orchestration SKILL.md and microsoft_mcp_patterns.md in the same directory were rejected: wrong .NET package name and Azure-internal engineering standards with low transfer."
+  - id: mcp-inspector
+    kind: repo
+    repo: modelcontextprotocol/inspector
+    url: https://github.com/modelcontextprotocol/inspector
+    paths:
+      - clients/cli
+    ref: main
+    commit: 795b1bb30ac845b7baa7cb3df8ec0b693882ca1d
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Headless verification path used in this skill's workflows; only the CLI behaviour observed by running it was recorded."
+    notes: "The repository has no LICENSE file; MIT is declared only in package.json, so this is reference-only and no text, script or data file was copied."
+  - id: cloudflare-agents-mcp
+    kind: repo
+    repo: cloudflare/skills
+    url: https://github.com/cloudflare/skills
+    paths:
+      - skills/agents-sdk/references/mcp.md
+    ref: main
+    commit: b052c32bab7dd493513260228a36c88294f343f1
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Platform note that Workers deployments use createMcpHandler rather than the deprecated McpAgent."
+    notes: "Permissively licensed but the file is a thirteen-line generated link table whose substance sits behind URLs, so it is reference-only: licence approval is not the same as content worth merging."
