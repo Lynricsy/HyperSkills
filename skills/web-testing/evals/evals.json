@@ -1,0 +1,85 @@
+[
+  {
+    "skills": [
+      "web-testing"
+    ],
+    "query": "Review legacy-checkout.spec.ts. It has been green on CI for months, but when I pass --fully-parallel four of the nine tests fail, and engineers say they do not trust it. Tell me what is actually wrong and what each fix should be.",
+    "files": [
+      "evals/files/legacy-checkout.spec.ts"
+    ],
+    "expected_behavior": [
+      "Explains that `page.waitForTimeout` is not merely slow but a lost race: the assertion runs at a fixed wall-clock offset, so it fails when the app is slower and hides regressions when the app is faster, and replaces each one with a web-first assertion (`expect(locator).toHaveText(...)` / `toBeVisible()`) rather than with a longer timeout or `waitForSelector`",
+      "Identifies the module-level `cartId` and `authToken` as inter-test coupling, and states the mechanism: by default Playwright runs tests within one file serially in one worker, so `--fully-parallel` gives each test its own worker and the shared variable is empty — the suite was passing because of a scheduling accident, not because the flow works",
+      "Flags `page.$` / `page.$$` as returning an ElementHandle snapshot with no auto-waiting or strictness (so `badge!` can be null and `rows.length` is whatever had rendered at that instant), and replaces them with a `Locator` plus `expect(...).toHaveCount(...)`",
+      "Flags the `if (await banner.isVisible())` branches in test 03 and the `if (first)` guard in test 05 as assertions that can never fail, and rewrites them to assert the one outcome the product actually specifies (or to use `expect(a.or(b))` / a role-based locator if both renderings are genuinely valid)",
+      "Flags the CSS descendant chains (`div.login-form > form > button.primary`, `#product-list > li:nth-child(3) > div.card > button`) as coupling the test to DOM shape, and replaces them with `getByRole` / `getByLabel` / `getByTestId`",
+      "Names `page.waitForLoadState('networkidle')` in test 05 as discouraged and explains why (an app with polling, analytics beacons or a websocket never reaches network idle), rather than presenting it as the correct fix for the hard waits",
+      "Flags the hand-rolled 10-iteration polling loop in test 04 as a re-implementation of the retrying assertion that already exists, and replaces it with one `expect(locator).toBeVisible({ timeout })`"
+    ]
+  },
+  {
+    "skills": [
+      "web-testing"
+    ],
+    "query": "Here is our playwright.config.ts. CI is green every week, engineers keep reporting failures we cannot reproduce, and the job takes 41 minutes. We were about to add --shard=1/4 through 4/4 to cut that down. Review the config.",
+    "files": [
+      "evals/files/playwright.config.ts"
+    ],
+    "expected_behavior": [
+      "States that `retries: 3` without `--fail-on-flaky-tests` makes the run exit 0 even when tests only passed on retry, so 'CI is green' is not evidence the suite is healthy, and tells them to surface the flaky count (CI exit code changes only with that flag)",
+      "States that `--shard` without `fullyParallel` splits by *file*, not by test, so shards can come back with wildly unequal counts — including a shard with zero tests — and the 41 minutes will not drop; enabling `fullyParallel: true` changes shard granularity to individual tests",
+      "States that `trace: 'off'` is the reason nobody can reproduce CI failures, and recommends `trace: 'on-first-retry'` (with the caveat that it produces nothing when `retries` is 0) or `retain-on-failure`, plus `screenshot: 'only-on-failure'`",
+      "Explains that the inflated `actionTimeout: 90_000`, `navigationTimeout: 120_000`, `expect.timeout: 60_000` and `timeout: 180_000` do not fix any race — they only convert a fast, legible failure into a slow one, and they multiply out into the 41-minute wall time; recommends leaving action/navigation timeouts unset (bounded by the test timeout) and keeping `expect.timeout` near its 5 s default",
+      "Flags `workers: 1` as the actual serialization, and does not recommend keeping it as a flakiness remedy — it hides inter-test coupling instead of fixing it",
+      "Questions running all four browser projects on every push (three engines x mobile multiplies the suite by four for little added signal) and proposes chromium on push with the rest on a schedule or pre-release"
+    ]
+  },
+  {
+    "skills": [
+      "web-testing"
+    ],
+    "query": "Our Playwright GitHub Actions job is in e2e-ci-workflow.yml. It takes 41 minutes, sometimes dies with \"browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1200\", and when one shard fails the report is useless. Fix the workflow.",
+    "files": [
+      "evals/files/e2e-ci-workflow.yml"
+    ],
+    "expected_behavior": [
+      "Diagnoses the 'Executable doesn't exist' error as a browser/library version mismatch caused by the cache key `playwright-browsers` having no version component: the cache restores browser binaries built for an older `@playwright/test`, and `npx playwright install` then treats the cache as a hit; fixes it by putting the resolved Playwright version in the cache key (or dropping the cache) and by installing the browsers matching the installed version",
+      "Recommends the version-pinned container image `mcr.microsoft.com/playwright:v<version>-<distro>` as the way to keep the browsers and the OS libraries in lockstep, and notes the image tag must be bumped together with the npm dependency",
+      "States that a sharded run cannot produce one HTML report: each shard must emit the `blob` reporter, upload its blob, and a dependent job must run `npx playwright merge-reports` over the downloaded blobs",
+      "Fixes the failure artifacts: upload on failure as well as success (`if: always()`), give each shard a distinct artifact name (four jobs uploading `playwright-report` collide), and include `test-results/` so traces and screenshots survive the runner",
+      "Replaces `npm run start &` plus `sleep 45` with Playwright's `webServer` option (`url` + `reuseExistingServer: !process.env.CI`), which polls until the app answers instead of guessing, and surfaces server startup failures",
+      "Flags the hardcoded `TEST_USER_PASSWORD` and `BILLING_API_KEY` literals in the workflow as credentials in version control that must move to repository secrets"
+    ]
+  },
+  {
+    "skills": [
+      "web-testing"
+    ],
+    "query": "Read auth-flow.md. Logging in through the UI in beforeEach is eating 6 of our 11 minutes and fails about one run in eight. Design the authentication setup for this suite.",
+    "files": [
+      "evals/files/auth-flow.md"
+    ],
+    "expected_behavior": [
+      "Designs a `setup` project matched by `testMatch: /.*\\.setup\\.ts/` that performs the login once and calls `page.context().storageState({ path })`, with the real test projects declaring `dependencies: ['setup']` and `use: { storageState: ... }`, so the login UI runs once per run rather than ~180 times",
+      "Warns that `storageState` serialises cookies and per-origin localStorage only — `sessionStorage` is not captured — so `shop.warehouse` will still be missing and the `/inventory` redirect will still fire; supplies a concrete workaround (seed `sessionStorage` via `context.addInitScript`, or restore it in a fixture) rather than assuming the saved state covers it",
+      "Separates the three roles into their own storage-state files and projects instead of sharing one admin account, and states the reason: a test authenticated as `admin` cannot prove that `viewer` is denied anything",
+      "Keeps the 6 org-mutating `admin` tests out of the parallel pool — `test.describe.configure({ mode: 'serial' })` or a dedicated single-worker project — because their writes are visible to every other test, and does not fix this by setting `workers: 1` for the whole suite",
+      "Recommends per-worker or per-test account isolation for the `editor` tests that mutate data (a worker-scoped fixture keyed on `testInfo.parallelIndex`, or API-created accounts) so more workers stop making them fail each other",
+      "Addresses the mandatory-2FA change by generating the TOTP code in the setup project from the seeded secret (a standard TOTP library, `GET /api/test/totp-secret`) rather than disabling 2FA on the test account, and notes the storage state expires with the 12-hour cookie so it must be regenerated per run, never committed"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "cart-reducer.test.ts has one failing case: the discount rounding test expects 292 but we return 293. Walk me through how to fix this properly.",
+    "files": [
+      "evals/files/cart-reducer.test.ts",
+      "evals/files/cart-reducer.ts"
+    ],
+    "expected_behavior": [
+      "Does not read or load the `web-testing` skill: this is a pure Vitest unit test of a reducer function with no browser, no page and no DOM",
+      "Locates the disagreement precisely — `round()` in cart-reducer.ts implements round-half-to-even, so a 32.5 tie becomes 32 and the total 293, while the test encodes finance's round-half-away-from-zero and therefore expects a discount of 33 and a total of 292",
+      "Decides which artefact is wrong before editing, and changes exactly one of them — here the implementation, since the test states the business rule — rather than adjusting the expected number to match the output",
+      "Discusses the rounding semantics themselves (half-away-from-zero versus banker's rounding, ties only arising in integer minor units, and where else `round()` is used) rather than anything about locators, waiting, browsers or CI browser installs"
+    ]
+  }
+]

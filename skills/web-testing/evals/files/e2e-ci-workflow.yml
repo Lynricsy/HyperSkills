@@ -1,0 +1,47 @@
+# .github/workflows/e2e.yml — extracted for review.
+# Symptoms: the job takes 41 min, occasionally fails with
+# "browserType.launch: Executable doesn't exist at /root/.cache/ms-playwright/chromium_headless_shell-1200/...",
+# and when a shard does fail nobody can tell why from the logs.
+name: e2e
+
+on: [push]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers
+
+      - run: npm ci
+      - run: npx playwright install --with-deps
+
+      - name: Start app
+        run: npm run start &
+
+      - name: Wait for app
+        run: sleep 45
+
+      - name: Run e2e
+        env:
+          BASE_URL: http://localhost:3000
+          TEST_USER_PASSWORD: hunter2-REDACTED
+          BILLING_API_KEY: sk_live_REDACTED
+        run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=html
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
