@@ -1,0 +1,57 @@
+[
+  {
+    "skills": ["terraform"],
+    "query": "legacy_network.tf is our whole network layer - three environments copy-pasted. Refactor it into one reusable module plus per-environment callers, and tell me exactly how to get there without Terraform destroying and recreating anything that already exists.",
+    "files": ["evals/files/legacy_network.tf"],
+    "expected_behavior": [
+      "Replaces `count = length(var.azs)` on the subnets with `for_each` over a keyed collection, and justifies it with resource identity rather than style: with `count` the address is the list index, so removing or reordering an availability zone renumbers every later instance and Terraform plans destroy/create for resources that did not change",
+      "Writes `moved` blocks for every address that changes - the root resources moving into `module.network`, and the `count` indices `[0]`/`[1]`/`[2]` moving to `for_each` keys such as `[\"eu-west-1a\"]` - and says the acceptance criterion is a plan with zero destroys and zero creates",
+      "Designs the module interface rather than just wrapping the resources: every variable gets `type` and `description`, the CIDR gets a `validation` block, outputs get descriptions, and the module exposes a stable subset instead of whole provider objects",
+      "Flags `variable \"db_password\"` with a plaintext default as a credential committed to version control, notes that `sensitive = true` would only mask it in CLI output while the value still lands in state in plaintext, and moves it to a secret manager, an ephemeral/write-only input, or out of Terraform entirely",
+      "Notes that the file pins nothing - no `required_version`, no `version` on the `aws` provider, no `.terraform.lock.hcl` mentioned - and adds `required_version` plus a provider version constraint so a provider major bump cannot arrive silently",
+      "Points out that one S3 state key holds dev, staging and prod together, so any apply has all three environments in its blast radius, and proposes splitting state per environment (separate keys or separate backends) with the module shared between them",
+      "Says the three environments should become three callers of one module - keeping identical per-environment `.tf` files is the same copy-paste problem one level up - and does not introduce a third-party orchestration wrapper to do it",
+      "Modernises `aws_subnet.prod_public.*.id` to a `for` expression or `values(...)`, since the splat produces a list whose order depends on the removed `count` indices"
+    ]
+  },
+  {
+    "skills": ["terraform"],
+    "query": "Read drift_backend.tf. Production was changed by hand in the console during an incident and now plan wants to undo it. Walk me through reconciling this safely - I do not want to lose the hotfix security group and I do not want to recreate the bastion we deliberately deleted.",
+    "files": ["evals/files/drift_backend.tf"],
+    "expected_behavior": [
+      "Refuses to let a plain `apply` run first, because this plan would revert the console change (12 -> 4 desired count) and recreate a machine that was deliberately destroyed - the configuration has to be reconciled with reality before anything is applied",
+      "Splits the three drifts by the right remedy: the desired_count change belongs in the configuration (or is genuinely unwanted and should be reverted deliberately), the hand-made security group must be adopted with an `import` block, and the bastion must leave the configuration and the state with a `removed` block rather than being recreated",
+      "Uses declarative `import` blocks (Terraform 1.5+) reviewed in a pull request with `plan -generate-config-out` for the initial HCL, rather than the imperative `terraform import` CLI, and explains that a `removed` block removes the resource from state without destroying the real object",
+      "Warns against reaching for `-target` to apply pieces of this: it skips part of the dependency graph and produces a plan that is knowingly incomplete, so it is a recovery tool, not a workflow",
+      "Identifies the missing lock file as a real risk - without a committed `.terraform.lock.hcl` and no `version` constraint on the `aws` provider, the CI run and the laptop run can resolve different provider versions and produce different plans",
+      "Diagnoses the simultaneous-apply conflict as missing state locking on the S3 backend and prescribes the native lock file (`use_lockfile = true`, generally available in Terraform 1.11; OpenTofu since 1.10) rather than sending them to set up a DynamoDB table",
+      "Prescribes the reconciliation order explicitly - inspect with `terraform plan -refresh-only` and `terraform state list`/`show` first, then change configuration, then re-plan to an empty diff - and treats an empty plan as the exit gate",
+      "Mentions that the S3 state object holds every attribute in plaintext, so bucket encryption, versioning and restricted access are part of the fix rather than an afterthought"
+    ]
+  },
+  {
+    "skills": ["terraform"],
+    "query": "artifact_bundle.tf is an internal module with no tests. Write a real test suite for it that runs in CI with no cloud credentials, and tell me what it can and cannot prove. We have consumers on both Terraform and OpenTofu.",
+    "files": ["evals/files/artifact_bundle.tf"],
+    "expected_behavior": [
+      "Writes `.tftest.hcl` files with `run` blocks, file-level and run-level `variables`, and `assert` blocks whose `condition` targets real addresses in this module such as `length(local_file.artifact)`, `local_file.artifact[\"...\"].content` and `output.checksum`",
+      "Uses `command = plan` for everything that is derived from inputs and explains the boundary: `command = apply` is required for values that are only known after apply, so a plan-mode assertion on a computed attribute is a test that cannot pass",
+      "Tests the negative path with `expect_failures` rather than by asserting an error string - for example `expect_failures = [var.checksum_algorithm]` once a `validation` block is added, or exercising `emit_manifest = false` and asserting `length(local_file.manifest) == 0`",
+      "Notes that this module needs no mock provider because `hashicorp/local` and `terraform_data` create nothing outside the working directory, and only introduces `mock_provider` where a real cloud provider would otherwise be contacted",
+      "States the version gates correctly and separately for the two runtimes: `terraform test` exists from Terraform 1.6 and OpenTofu 1.6, but mock providers arrived in Terraform 1.7 and only in OpenTofu 1.8, so a mocked suite is not portable below that",
+      "Gives a CI gate that is a command sequence, not a wish: `terraform fmt -check -recursive`, `terraform init -backend=false`, `terraform validate`, `terraform test`, with the non-zero exit code being what fails the job",
+      "Says plainly what the suite cannot prove - that the provider will accept the configuration against a real API, and that anything gated behind apply-time values is untested by plan-mode runs",
+      "Points out that `required_version = \">= 1.6\"` alone does not tell a consumer whether the module is exercised on OpenTofu, and recommends running the same test files under both binaries in CI since `.tftest.hcl` is accepted by both"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "这个 Dockerfile 构建出来 1.8 GB，怎么瘦身？",
+    "files": ["evals/files/Dockerfile"],
+    "expected_behavior": [
+      "Answers it as a container image question: multi-stage build, a slim or distroless runtime base, `COPY` only the built output, a `.dockerignore`, `npm ci --omit=dev`, and collapsing the apt layer with a cache cleanup",
+      "Does not bring in Terraform, HCL, modules, state or infrastructure-as-code framing at all",
+      "skill_read is false for the `terraform` skill"
+    ]
+  }
+]

@@ -1,0 +1,149 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin terraform
+skill: terraform
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: hashicorp-agent-skills
+    kind: repo
+    repo: hashicorp/agent-skills
+    url: https://github.com/hashicorp/agent-skills
+    paths:
+      - plugins/terraform/skills/terraform-style-guide
+      - plugins/terraform/skills/terraform-test
+      - plugins/terraform/skills/refactor-module
+      - plugins/terraform/skills/terraform-search-import
+      - plugins/terraform/skills/terraform-policy
+      - plugins/terraform/skills/provider-resources
+      - plugins/terraform/skills/provider-test-patterns
+      - plugins/terraform/skills/provider-configuration
+      - plugins/terraform/skills/new-terraform-provider
+      - plugins/terraform/skills/provider-framework-migration
+    ref: main
+    commit: c2d65dfe492f74d360d35b859b88932222470bd8
+    license: MPL-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The official-vendor backbone: file organisation and the terraform.tf/providers.tf/variables.tf/outputs.tf split, block and argument ordering with count/for_each first and lifecycle/depends_on last, resource naming rules, the complete .tftest.hcl surface (run, assert, expect_failures, plan_options, module, providers, state_key, parallel, mock_provider/mock_resource/mock_data, override_*, teardown order, the CLI flags), the six-step monolith-to-module refactor and its moved-block-versus-state-mv comparison, state inspection through state list and show -json rather than the raw file, the 1.14+ list blocks / .tfquery.hcl / terraform query / -generate-config-out discovery workflow and identity-form import blocks, the policy-engine selection layer, and the provider-development entry point (Plugin Framework over SDKv2, muxing detection via go.mod, the Read/Delete/Update/Create correctness rules, plan modifiers, resource-versus-attribute modelling, acceptance tests with ConfigStateChecks and ImportStateVerify, sweepers, tfplugindocs)."
+    notes: "MPL-2.0. Every reference substantially derived from this upstream carries the required first-line attribution comment: references/hcl-style.md, references/modules.md, references/refactoring.md, references/testing.md and references/provider-development.md each begin with `<!-- Adapted from hashicorp/agent-skills (MPL-2.0); see NOTICE.md -->`. references/state.md, references/policy-and-security.md and references/opentofu-differences.md are not derived from it and carry no such header. Its metadata.lifecycle-status, metadata.copyright, metadata.version and metadata.compatibility frontmatter fields were stripped per docs/skill-standard.md section 1.2, as was refactor-module's `## Input Parameters` function-signature framing. Two of its facts were corrected against local runs and the CHANGELOG (research/terraform.md rulings 3 and 9): the terraform-test skill dates run-block `state_key` to v1.9.0 when it landed in 1.11.0, and its MOCK_PROVIDERS.md states that mocks are plan-mode only, which is false - a `command = apply` run against a mock_provider passed on Terraform 1.16.2 and OpenTofu 1.12.6 and created nothing. The azure-verified-modules skill and terraform-policy's examples/conversion tree (AWS-specific Sentinel and policy.hcl rules) are cloud resource fields and were not used; terraform-stacks is noted only as a Terraform-only feature."
+  - id: antonbabenko-terraform
+    kind: repo
+    repo: antonbabenko/terraform-skill
+    url: https://github.com/antonbabenko/terraform-skill
+    paths:
+      - skills/terraform-skill/SKILL.md
+      - skills/terraform-skill/references/state-management.md
+      - skills/terraform-skill/references/module-patterns.md
+      - skills/terraform-skill/references/code-patterns.md
+      - skills/terraform-skill/references/testing-frameworks.md
+      - skills/terraform-skill/references/security-compliance.md
+      - skills/terraform-skill/references/ci-cd-workflows.md
+    ref: master
+    commit: 0a3a4a66e99001347d36a41e10260a825be3ab62
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Organising the workflows by failure mode rather than by API surface; the three module scales (resource module, infrastructure module, composition) and the rule that concrete values live only in the composition; state sizing and splitting criteria; terraform_remote_state reserved for genuine ownership boundaries and the read-access argument against it; the fact that `sensitive = true` masks display only while the value remains in state in plaintext; the targeted-destroy cascade in which a locals value referencing a targeted resource pulls every consumer in as an implicit dependent; the count-to-for_each migration recipe including preserving the original list order for index-derived arithmetic; `for_each` keys must be resolvable at plan time and `depends_on` does not fix it; the test-selection matrix and the set-typed nested block assertion trap; applying the reviewed plan artifact rather than re-planning in the apply job; and separating provider or runtime upgrades from functional changes."
+    notes: "The GitHub API reports license.spdx_id as NOASSERTION; the LICENSE file was read and is Apache-2.0 (Copyright 2026 Anton Babenko), which the README badge confirms, so this is merged. Two version claims were rejected against the Terraform CHANGELOG (research/terraform.md ruling 3): its feature-guard table dates the S3 native lock file to 1.10+ when `use_lockfile` reached general availability in Terraform 1.11 (OpenTofu 1.10), and it lists mock providers as 1.7+ without noting that OpenTofu did not gain them until 1.8. Its code-intelligence-lsp.md reference is a terraform-ls plus companion-plugin binding and was excluded as agent-specific per docs/skill-standard.md section 1.3, as was its five-part mandatory Response Contract; the review output contract in this skill is narrower. Its AWS/Azure/GCP backend, IAM policy and security-group examples are provider resource fields and were not used."
+  - id: opentofu
+    kind: repo
+    repo: opentofu/opentofu
+    url: https://github.com/opentofu/opentofu
+    paths: [CHANGELOG.md]
+    ref: main
+    commit: ae4c17990964b1ca0819ffaec03366cf969be5ed
+    license: MPL-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The OpenTofu side of every version gate in this skill, read from the CHANGELOG.md on each v1.N release branch: client-side state encryption with AES-GCM and the PBKDF2/AWS KMS/GCP KMS/OpenBao key providers (1.7), the `removed` block, provider-defined functions and `for_each` in import blocks (1.7), mock_provider and override_* plus variables and locals in module sources and backend blocks and the .tofu extension (1.8), `for_each` on provider configuration blocks and the `-exclude` planning option (1.9), OCI module sources and provider mirrors, deprecated variables and outputs and S3 native locking (1.10), ephemeral values and the `lifecycle { enabled }` meta-argument (1.11), `lifecycle { destroy = false }`, prevent_destroy referencing other symbols and identity-form import blocks (1.12), and the current stable release being 1.12.6."
+    notes: "MPL-2.0. Only factual version and feature information was extracted; no text was copied, so no reference is a derivative work and none carries an adaptation header."
+  - id: opentofu-docs
+    kind: docs
+    url: https://opentofu.org/docs/
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The permissively licensed authority for language semantics shared by both runtimes, used wherever the equivalent HashiCorp page could not be merged: moved/import/removed/check block semantics, for_each versus count expansion, the lifecycle meta-arguments, variable validation and the nullable and optional() rules, backend configuration and state locking behaviour, workspace semantics, and the state encryption and `enabled` meta-argument that exist only on this side."
+    notes: "Licence verified by reading the LICENSE of the docs source repository opentofu/opentofu.org: Apache-2.0, so this is merged rather than reference. This is the only official documentation source in this skill that can be merged - see the terraform-docs-site entry."
+  - id: awesome-copilot-terraform
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths: [instructions/terraform.instructions.md]
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Coverage enumeration for three points the other upstreams leave implicit: a module wrapping a single resource is not worth its indirection and module hierarchies should stay shallow; a data source that reads back a resource created in the same configuration is a needless round trip and a dependency-ordering hazard, so use the output instead; and terraform-docs generating the module README's input and output tables from the configuration."
+    notes: "Its instruction to place `depends_on` at the very beginning of a resource block was rejected in favour of the official style-guide ordering, which puts count/for_each first and depends_on and lifecycle last (research/terraform.md ruling 2); the same file elsewhere tells the reader to follow the Terraform Style Guide, so the instruction contradicts itself. Its `applyTo` frontmatter is a Copilot-specific field and was stripped. The AWS-specific security section (Secrets Manager, SSM Parameter Store, EBS, RDS, subnet placement) is cloud resource guidance and was not used."
+  - id: terraform-docs-site
+    kind: docs
+    url: https://developer.hashicorp.com/terraform
+    license: BUSL-1.1
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to verify facts before writing them: the official style guide's block and argument ordering and file-organisation conventions, moved/import/removed/check semantics, backend and locking behaviour, workspace semantics, test-framework syntax, and the plugin-framework and acceptance-testing guidance behind references/provider-development.md."
+    notes: "No content copied. The GitHub API reports NOASSERTION for the documentation source repository hashicorp/web-unified-docs; its LICENSE was read and is the Business Source License 1.1 (Licensor: IBM), a source-available rather than open-source licence, so this official documentation is reference rather than merged - the exception to this library's usual practice of merging official docs. Facts taken from it were independently confirmed either by running Terraform 1.16.2 locally or against the Apache-2.0 OpenTofu documentation."
+  - id: hashicorp-terraform
+    kind: repo
+    repo: hashicorp/terraform
+    url: https://github.com/hashicorp/terraform
+    paths: [CHANGELOG.md]
+    ref: main
+    commit: 799c8d896356c5e9623b8545d0c1d20187f27f7c
+    license: BUSL-1.1
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to establish the exact Terraform version for every gate in this skill, from CHANGELOG.md on each v1.N release branch: check and import blocks (1.5), the test framework (1.6), removed blocks and mock providers (1.7), ephemeral values (1.10), write-only arguments, run-block state_key and S3 use_lockfile general availability (1.11), identity-form import (1.12), stacks (1.13), list resources with terraform query and the actions block (1.14), deprecated variables and outputs, the convert function, output type constraints and variables in module sources (1.15), and import blocks inside modules, the terraform_data store block and action on_failure modes (1.16). Also the current stable release being 1.16.2."
+    notes: "No content copied. The GitHub API reports NOASSERTION; the LICENSE was read and is the Business Source License 1.1 covering Terraform 1.6.0 and later (Licensor: IBM), so this is reference. Only version-to-feature facts were extracted."
+  - id: terrashark
+    kind: repo
+    repo: LukasNiessen/terrashark
+    url: https://github.com/LukasNiessen/terrashark
+    paths: [SKILL.md]
+    ref: main
+    commit: 5744ea761541fa7f2ef44f589b4624872e815082
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only for one review convention that no other upstream states: separating example configurations into good, bad and neutral, where neutral means two acceptable spellings of the same thing that must not be reported as findings. That idea shaped the closing paragraph of this skill's Output format section; no wording or content was taken."
+    notes: "No content merged. Its SKILL.md is an 86-line router whose five failure-mode categories (identity churn, secret exposure, blast radius, CI drift, compliance gate gaps) are identical to antonbabenko-terraform's, and its repository was created 2026-02-23 against that upstream's 2026-01-15, so the earlier and deeper upstream was preferred wherever they overlap."
+  - id: nitinjain-platform-skills
+    kind: repo
+    repo: nitinjain999/platform-skills
+    url: https://github.com/nitinjain999/platform-skills
+    paths:
+      - .cursor/rules/terraform.mdc
+      - examples/demo/terraform-iam-risk
+      - examples/compliance/checkov-terraform-plan.sh
+    ref: main
+    commit: 52e62c9c41015ba73f08158e76f27f44d303cef0
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a third-party cross-check on the scanning and drift sections: that scanning the plan JSON rather than the HCL is what catches values arriving through variables, and that a scheduled plan -detailed-exitcode is the practical drift alarm."
+    notes: "No content merged. The material is Cursor rule files and slash-command definitions rather than skills, and its worked examples are AWS IAM policy documents, which are provider resource fields this skill does not cover."
+  - id: wshobson-terraform-specialist
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths: [plugins/cloud-infrastructure/agents/terraform-specialist.md]
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage check against an independent, widely used source before finalising the topic router; it named no subject this skill was missing."
+    notes: "No content merged: it is an agent persona prompt rather than a skill, with no version gates and no verifiable rules."
+  - id: tflint
+    kind: repo
+    repo: terraform-linters/tflint
+    url: https://github.com/terraform-linters/tflint
+    paths: [README.md, docs/rules]
+    ref: master
+    commit: 5aaf04b7a310ed736c211f20159b3dc1c142d6ed
+    license: MPL-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to draw the boundary between the four static checks this skill recommends: what terraform validate can decide offline against a schema, versus what needs a provider-aware linter, versus what needs a security scanner."
+    notes: "No content copied, so no reference is a derivative work and none carries an MPL adaptation header."
