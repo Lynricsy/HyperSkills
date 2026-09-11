@@ -1,0 +1,86 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin mongodb
+skill: mongodb
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: mongodb-agent-skills
+    kind: repo
+    repo: mongodb/agent-skills
+    url: https://github.com/mongodb/agent-skills
+    paths:
+      - plugins/mongodb/skills/mongodb-schema-design
+      - plugins/mongodb/skills/mongodb-query-optimizer
+      - plugins/mongodb/skills/mongodb-search-and-ai
+      - plugins/mongodb/skills/mongodb-connection
+      - plugins/mongodb/skills/mongodb-natural-language-querying
+    ref: main
+    commit: 1e72df255e54e81eff078054c2cfb2b5d8c13503
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The backbone of this skill. Modelling: embed-versus-reference by access pattern, the unbounded-array anti-pattern, the 16 MB ceiling and the subset split between hot and cold fields, the bucket, extended-reference, computed, outlier, polymorphic, attribute, approximation, archive and document-versioning patterns, $jsonSchema validation staged through moderate/warn, schema versioning as an online migration, and time-series collection configuration (metaField cardinality, granularity, the update and transaction restrictions). Indexing and plans: ESR and its selectivity exception, sort-direction and prefix rules, the covered-query requirements including the _id exclusion, multikey covering limits, collation matching, the hide-monitor-drop removal procedure and $indexStats as its evidence. Aggregation: what the optimiser already does with $match, $project and $sort+$limit, the $lookup optimisation order and its pipeline/let/$expr form, $unwind before and after filtering, $facet versus $unionWith, unbounded $group accumulators, blocking-stage memory, and the oplog cost of replaceOne versus an aggregation-pipeline update and of findOneAndUpdate versus updateOne. Search: the choice between lexical, vector and hybrid retrieval, vector index parameters (numDimensions, similarity, quantization, filter fields), numCandidates as the recall knob, pre-filter versus post-filter, ENN versus ANN, the $rankFusion and $scoreFusion version gates, automated embedding and its prerequisites, and the rule against using $regex or $text where real search is wanted. Connections: the (maxPoolSize + 2) x members x instances arithmetic, pool sizing by workload shape, the timeout inventory, the serverless client-outside-the-handler pattern, and the driver connection-monitoring events worth alerting on."
+    notes: "Content lives three times in the tree - plugins/mongodb/skills/*, plugins/mongodb-atlas/skills/* and the .agy-plugin/ mirrors of both; the paths above are the canonical copy (the top-level skills/ directory holds only OWNERS.yaml). Two things were removed rather than adapted, per docs/skill-standard.md section 1.3: every skill's main line is a MongoDB MCP tool-calling procedure (collection-indexes, explain, find, atlas-get-performance-advisor with their argument schemas), rewritten here as mongosh and driver equivalents with MCP demoted to one line in Environment; and mongodb-schema-design closes with a first-person approval policy ('I will NEVER execute write operations…', 'We're a team') that is harness behaviour, not MongoDB knowledge. The upstream metadata.version is semver and was replaced by this repository's date version. Its 1:N cardinality thresholds (N<100 embed, N>100 reference) were not carried over - see research/mongodb.md ruling 3."
+  - id: mongodb-docs
+    kind: docs
+    url: https://www.mongodb.com/docs/manual/
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The final authority for every version-gated or semantic claim: the implicit default write concern formula and the arbiter case, read-concern levels, the transaction runtime limit and the TransientTransactionError / UnknownTransactionCommitResult contract, retryable-write coverage, cursorTimeoutMillis and the 30-minute logical-session timeout that overrides noCursorTimeout, the 100 MB blocking-stage budget, the 64-index-per-collection ceiling, TTL and multikey semantics, operator-by-operator index usability, chunk sizing and jumbo chunks, refineCollectionShardKey versus reshardCollection (including 8.0 forceRedistribution and 8.0.10 time-series support), Queryable Encryption's GA equality and range support against the 8.2 public-preview prefix/suffix/substring types, and the $rankFusion (8.0+) and $scoreFusion (8.3+) gates."
+    notes: "Licence checked, not assumed: the source repository mongodb/docs reports license: null from the GitHub API and carries no LICENSE file at its root (only third-party notice files under content/), and https://www.mongodb.com/docs/ carries nothing beyond a copyright line. Treated as the no-licence-but-public case: license NONE, no text copied verbatim, every fact restated. Note that this is the documentation repository, which is distinct from the SSPL-licensed server source (see mongodb-server below). Every page also serves Markdown by appending .md to its path, which is how the facts above were read."
+  - id: azure-documentdb-kit
+    kind: repo
+    repo: Azure/documentdb-agent-kit
+    url: https://github.com/Azure/documentdb-agent-kit
+    paths:
+      - skills/indexing
+      - skills/data-modeling
+      - skills/sharding
+      - skills/query-optimization
+      - skills/connection
+      - skills/driver
+    ref: main
+    commit: 1dca5fcb7277248da0229c737b7a982a401dc0ac
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The gaps the official skills leave: the one-array-field-per-compound-index (parallel array) restriction and the fact that it fails on the write rather than on createIndex, the hideIndex-then-dropIndex lifecycle as an explicit procedure, the index-variant table (partial versus sparse, wildcard scoping, TTL date requirement, 2dsphere coordinate order, hashed keys giving up range queries), and the shard-key selection checklist as four independent properties - cardinality, frequency, monotonicity and query alignment - rather than a single recommendation."
+    notes: "Azure DocumentDB is a MongoDB wire-protocol-compatible engine built on PostgreSQL, used here as a cross-vendor check on the official skills rather than as an authority. Its engine-specific claims were deliberately not carried over: RUM and GiST index internals, the 64-single-field-index default extendable to 300 on request, and the preference for a textSearch index over community $text. Where the two disagreed, mongodb.com/docs decided - the 64-index figure in this skill is MongoDB's own hard limit, verified by running createIndex 65 times."
+  - id: awesome-copilot
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - instructions/mongo-dba.instructions.md
+      - agents/mongodb-performance-advisor.agent.md
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage checklist against an independent source. It surfaced two topics the official skills do not develop - locating an in-flight slow operation with db.currentOp() and the profiler rather than after the fact, and reading $indexStats against the working set - both of which were then written from mongodb.com/docs and from measurement."
+    notes: "No content merged. The instructions file is 25 lines of Copilot behaviour configuration ('recommend the VS Code extension', 'use official documentation links') with no executable rule, and the agent file carries a tools: binding that docs/skill-standard.md section 1.2 forbids."
+  - id: mongodb-server
+    kind: repo
+    repo: mongodb/mongo
+    url: https://github.com/mongodb/mongo
+    paths: [LICENSE-Community.txt]
+    ref: master
+    commit: 6d990baca59ce7cdddded93409e0266d1ac6a45a
+    license: SSPL-1.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to establish the current release train for the version gates in this skill: the newest tag is r8.3.9, 8.0 is the LTS the body is written against, and r9.0.0-alpha* confirms 9.0 is not yet a release."
+    notes: "The GitHub API reports license.spdx_id as NOASSERTION; LICENSE-Community.txt was read and is the Server Side Public License v1, which is not a permissive licence. Reference only under the licence rules for this repository - no code, comment, test or documentation text from this repository was copied or adapted. Note that the docs repository (mongodb-docs above) is a separate repository and is not SSPL-licensed."
+  - id: edd-skill
+    kind: repo
+    repo: mongodb-developer/edd-skill
+    url: https://github.com/mongodb-developer/edd-skill
+    paths: [SKILL.md, references/code-patterns.md]
+    ref: main
+    commit: 0211b0997d22b082efb5ef11b7611bfa642aa3be
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only for one procedural idea, restated in this skill's own terms: a modelling conversation starts from an enumerated list of read and write operations, not from an entity diagram."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its actual subject is a bespoke 'entity document diagram' notation, which was rejected: teaching a model a new symbol set is token cost with no failure-mode payoff, which is the opposite of what docs/skill-standard.md section 3 asks for. Maintained by MongoDB's developer-relations organisation rather than the product team, and last pushed 2026-05-11."

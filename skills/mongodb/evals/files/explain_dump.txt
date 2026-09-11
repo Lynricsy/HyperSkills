@@ -1,0 +1,80 @@
+# MongoDB 8.0.14 replica set (3 members), self-managed. Collection: shop.events (41M docs)
+# Captured with db.events.find(...).explain("executionStats")
+
+## db.events.getIndexes()
+[
+  { v: 2, key: { _id: 1 },                          name: '_id_' },
+  { v: 2, key: { createdAt: -1 },                   name: 'createdAt_-1' },
+  { v: 2, key: { tenantId: 1 },                     name: 'tenantId_1' },
+  { v: 2, key: { type: 1 },                         name: 'type_1' },
+  { v: 2, key: { createdAt: -1, tenantId: 1 },      name: 'createdAt_-1_tenantId_1' },
+  { v: 2, key: { tenantId: 1, type: 1 },            name: 'tenantId_1_type_1' },
+  { v: 2, key: { 'payload.orderId': 1 },            name: 'payload.orderId_1' },
+  { v: 2, key: { tags: 1, 'payload.sku': 1 },       name: 'tags_1_payload.sku_1' }
+]
+
+## Q1 — the dashboard feed
+db.events.find({ tenantId: 4471, type: "order.settled" })
+         .sort({ createdAt: -1 })
+         .limit(25)
+
+executionStats:
+  nReturned: 25
+  executionTimeMillis: 3184
+  totalKeysExamined: 812440
+  totalDocsExamined: 812440
+winningPlan:
+  { stage: 'LIMIT', limitAmount: 25,
+    inputStage: { stage: 'SORT', sortPattern: { createdAt: -1 }, memLimit: 104857600,
+                  type: 'simple', totalDataSizeSorted: 903118744, usedDisk: true,
+      inputStage: { stage: 'FETCH',
+        inputStage: { stage: 'IXSCAN', keyPattern: { tenantId: 1, type: 1 },
+                      indexName: 'tenantId_1_type_1',
+                      indexBounds: { tenantId: ['[4471, 4471]'], type: ['["order.settled", "order.settled"]'] } } } } }
+
+## Q2 — the CSV export, only needs three fields
+db.events.find({ tenantId: 4471, type: "order.settled" },
+               { type: 1, createdAt: 1, "payload.orderId": 1 })
+
+executionStats:
+  nReturned: 812440
+  executionTimeMillis: 9022
+  totalKeysExamined: 812440
+  totalDocsExamined: 812440
+winningPlan:
+  { stage: 'PROJECTION_SIMPLE',
+    inputStage: { stage: 'FETCH',
+      inputStage: { stage: 'IXSCAN', keyPattern: { tenantId: 1, type: 1 } } } }
+
+## Q3 — the audit lookup by order id
+db.events.find({ "payload.orderId": "ord_88f31c", tenantId: 4471 })
+
+executionStats:
+  nReturned: 3
+  executionTimeMillis: 6
+  totalKeysExamined: 3
+  totalDocsExamined: 3
+
+## Q4 — the "any tenant, recent" admin screen
+db.events.find({ type: "payment.failed" }).sort({ createdAt: -1 }).limit(100)
+
+executionStats:
+  nReturned: 100
+  executionTimeMillis: 14771
+  totalKeysExamined: 41277903
+  totalDocsExamined: 41277903
+winningPlan:
+  { stage: 'LIMIT',
+    inputStage: { stage: 'FETCH', filter: { type: { $eq: 'payment.failed' } },
+      inputStage: { stage: 'IXSCAN', keyPattern: { createdAt: -1 },
+                    indexName: 'createdAt_-1', direction: 'forward' } } }
+
+## db.events.aggregate([{$indexStats:{}}]) — accesses.ops since last restart (11 days)
+  _id_                        : 2210043
+  createdAt_-1                : 90114
+  tenantId_1                  : 0
+  type_1                      : 0
+  createdAt_-1_tenantId_1     : 0
+  tenantId_1_type_1           : 4402219
+  payload.orderId_1           : 331002
+  tags_1_payload.sku_1        : 0

@@ -1,0 +1,70 @@
+[
+  {
+    "skills": ["mongodb"],
+    "query": "Our team-chat backend is in chat_store.js. Posting a message in the busiest threads has crept up to about a second and the sidebar is slow too. Ops says two threads are close to failing writes entirely. Tell me what is wrong with this data model and exactly how to change it.",
+    "files": ["evals/files/chat_store.js"],
+    "expected_behavior": [
+      "Names the unbounded `messages` array as the root cause and says the hard ceiling is the 16 MB BSON document limit, so the busiest threads will start failing writes outright with an error like 'Resulting document after update is larger than 16777216' on the update path",
+      "Explains the write amplification independently of the size ceiling: every `$push` rewrites the whole document (and every index entry touching it) so the cost of posting a message grows with the number of messages already in the thread - not a constant cost",
+      "Moves messages into their own collection keyed by thread, or buckets them into fixed-size chunk documents, rather than only trimming the array, and says which of the two fits an append-and-read-recent workload",
+      "Points out that `listThreads` returns the entire `messages` array for 50 threads because there is no projection, so the sidebar transfers megabytes it never renders, and fixes it with a projection or by the same model change",
+      "Recommends `$push` with `$each` plus `$slice` only for the genuinely bounded case (a cached tail of recent messages), not as the fix for the unbounded history",
+      "Identifies `renameUser` as a consequence of duplicating `authorName`/`authorAvatarUrl` into every message, and resolves it either with the extended-reference tradeoff made explicit (accept staleness, refresh asynchronously) or by referencing the user document",
+      "Says the migration has to be online and versioned - add a schema version field, write both shapes or backfill in batches, and read tolerantly - rather than a single rewriting pass over 40k threads"
+    ]
+  },
+  {
+    "skills": ["mongodb"],
+    "query": "The nightly report in reporting_pipeline.js went from 40 seconds to 22 minutes. Indexes and collection sizes are in the header comment. Go stage by stage and tell me what to change.",
+    "files": ["evals/files/reporting_pipeline.js"],
+    "expected_behavior": [
+      "Flags `$lookup` from `merchants` on `foreignField: 'slug'` as the dominant cost because `merchants.slug` has no index, so the join scans the whole 180k-doc collection once per input document, and prescribes `db.merchants.createIndex({ slug: 1 })`",
+      "Flags the second `$lookup` on `refunds.orderId` for the same reason and prescribes an index on `refunds.orderId`",
+      "Says the `$match` must come first so it can use an index, and that no index currently serves `{status, createdAt}` together - prescribes a compound index with the equality field before the range/sort field, `{ status: 1, createdAt: -1 }`",
+      "Says the leading `$project` should be removed because the pipeline optimizer already prunes unused fields, and here it is actively harmful since it keeps large fields such as `lineItems`, `customer` and `shipping`",
+      "Identifies `sample: { $push: '$$ROOT' }` inside `$group` as an unbounded accumulator that can push a single group's result past the 16 MB document limit, and removes it or replaces it with `$topN`/`$firstN`",
+      "Explains that `$facet` feeds every input document to every branch so the branches cannot use their own index, and splits the cheap `totals` branch out (a separate count, or `$unionWith`) instead of leaving it inside the facet",
+      "Notes that `$unwind: '$lineItems'` before the grouping multiplies the document count, and that `orders: { $addToSet: '$_id' }` after the unwind is a workaround for the multiplication that itself accumulates unboundedly",
+      "Replaces the `skip(pageNumber * 100)` pagination in `page()` with a range/seek predicate on the sort key, explaining that skip still walks and discards every skipped index entry"
+    ]
+  },
+  {
+    "skills": ["mongodb"],
+    "query": "explain_dump.txt has the indexes, four explain outputs and $indexStats for our events collection. Which indexes should I create and which should I drop, and why is Q4 so much worse than Q1?",
+    "files": ["evals/files/explain_dump.txt"],
+    "expected_behavior": [
+      "Reads Q1 as an in-memory blocking SORT that spilled to disk (`usedDisk: true`, ~903 MB sorted) because `{tenantId: 1, type: 1}` has no sort component, and prescribes `{ tenantId: 1, type: 1, createdAt: -1 }` so the equality fields lead and the sort field trails - after which the plan returns 25 keys instead of 812440",
+      "Explains Q4 as the opposite failure: the planner used `{createdAt: -1}` to avoid the sort and then filtered 41M documents for `type`, so the fix is `{ type: 1, createdAt: -1 }` with the equality field first",
+      "Says Q2 is not covered because `totalDocsExamined` equals `nReturned`, and gives both requirements - every projected field must be in the index and `_id` must be explicitly excluded with `_id: 0`",
+      "Recommends dropping `tenantId_1` and `type_1` as redundant prefixes of compound indexes, and cites `$indexStats` showing zero accesses for them as confirmation rather than as the sole reason",
+      "Recommends dropping `createdAt_-1_tenantId_1` and `tags_1_payload.sku_1` on the evidence of zero `$indexStats` accesses over 11 days, and notes that `$indexStats` counters reset on restart so 11 days is the window being judged",
+      "Uses `hideIndex` (or the equivalent) to take an index out of planning before dropping it, so the change is reversible without paying for a rebuild",
+      "Bases every claim on `totalKeysExamined` / `totalDocsExamined` / `nReturned` from the supplied output rather than on generic indexing advice, and notes the healthy ratio in Q3 as the counter-example"
+    ]
+  },
+  {
+    "skills": ["mongodb"],
+    "query": "ledger_service.js is our transfer endpoint. The four production symptoms are in the header comment. Walk through the file and tell me what to fix.",
+    "files": ["evals/files/ledger_service.js"],
+    "expected_behavior": [
+      "Says the MongoClient must be created once per process and reused, not per request, because each client builds its own pool and its own monitoring connections - and connects that directly to the pool-cleared and server-selection-timeout errors",
+      "Computes the connection blast radius from pool size times pods times replica-set members (including the extra monitoring connections per member per client) and says 500/100 per pod is far beyond what the servers can hold",
+      "Explains that `retryWrites: false` is what allowed the duplicated payout: with retryable writes the driver retries once with a transaction number that the server deduplicates, whereas an application-level retry after a stepdown cannot know whether the first attempt committed",
+      "Says `w: 1` with `journal: false` means an acknowledged write can be lost in a primary election, and that a ledger needs `w: 'majority'`, spelling out the latency cost of that choice rather than only recommending it",
+      "Flags the `postWebhook` call inside the open transaction: it holds locks and the transaction lifetime for the duration of an external HTTP call, and transactions have a server-side lifetime limit after which the commit fails",
+      "Says the transaction body must be retryable as a unit for `TransientTransactionError` / `UnknownTransactionCommitResult`, and recommends `withTransaction` instead of manual start/commit/abort",
+      "Points out that reading the balance from `secondaryPreferred` right after the write can return a pre-transfer value, and gives the fix in terms of read preference or causal consistency in the same session",
+      "Explains `cursor id not found` in `exportAll` as the 10-minute idle cursor timeout being hit because each document does 40 ms of external work, and gives a concrete fix (batch the writes, `noCursorTimeout` with an explicit close, or resumable range-based paging)"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Review migrations/0042_add_settled_at.sql before tonight's deploy — that table takes about 900 writes a second and I do not want the migration to block it.",
+    "files": ["evals/files/0042_add_settled_at.sql"],
+    "expected_behavior": [
+      "Answers as a PostgreSQL question: ACCESS EXCLUSIVE lock levels, the whole file being one transaction, batching the UPDATE, and CREATE INDEX CONCURRENTLY outside a transaction block",
+      "Does not introduce MongoDB concepts such as documents, collections, aggregation pipelines or write concern",
+      "skill_read is false for the `mongodb` skill"
+    ]
+  }
+]
