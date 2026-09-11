@@ -6,6 +6,12 @@
 </h1>
 
 <p align="center">
+  <a href="#skill-目录"><img src="docs/assets/badge-skills.svg" height="28" alt="技能数量"></a>
+  <a href="THIRD_PARTY_NOTICES.md"><img src="docs/assets/badge-upstreams.svg" height="28" alt="上游记录数量，包含重写合入与参考对齐"></a>
+  <a href="THIRD_PARTY_NOTICES.md"><img src="docs/assets/badge-repos.svg" height="28" alt="去重后的来源仓库数量"></a>
+</p>
+
+<p align="center">
   <strong><a href="#安装">开始安装</a></strong> &nbsp; / &nbsp;
   <strong><a href="#skill-目录">浏览技能</a></strong> &nbsp; / &nbsp;
   <a href="docs/skill-standard.md">编写标准</a> &nbsp; / &nbsp;
@@ -237,8 +243,9 @@ $ uv run tools/build_catalog.py --check
 catalog is current (53 skill(s))
 ```
 
-`NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json` 与本页的目录表区块
-都由 `tools/build_catalog.py` 生成，手工编辑会在 `--check` 处报 stale。
+`NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json`、本页的目录表区块
+与 `docs/assets/badge-*.svg` 统计徽章都由 `tools/build_catalog.py` 生成，
+手工编辑会在 `--check` 处报 stale。徽章分别统计 skill 数量、上游记录总数与去重后的来源仓库数。
 
 ## 许可
 

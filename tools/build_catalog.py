@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml>=6"]
 # ///
-"""Generate NOTICE.md, THIRD_PARTY_NOTICES.md, marketplace.json and the README catalog.
+"""Generate notices, marketplace.json, README catalog and count badges.
 
     uv run tools/build_catalog.py           # write generated files
     uv run tools/build_catalog.py --check   # exit 1 if any generated file is stale
@@ -147,6 +147,29 @@ def splice_catalog(readme: str, table: str) -> str:
     )
 
 
+def render_count_badge(label: str, count: int) -> str:
+    """生成中文标签的统计徽章；宽度随数字位数增长。"""
+    value = str(count)
+    label_width = len(label) * 14 + 20
+    value_width = max(36, len(value) * 8 + 20)
+    width = label_width + value_width
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="28" '
+        f'viewBox="0 0 {width} 28" role="img" aria-labelledby="title">\n'
+        f'  <title id="title">{label}：{value}</title>\n'
+        f'  <rect width="{width}" height="28" rx="5" fill="#30302E"/>\n'
+        f'  <path d="M{label_width} 0h{value_width - 5}q5 0 5 5v18q0 5-5 5'
+        f'H{label_width}Z" fill="#EE8747"/>\n'
+        '  <g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" '
+        'font-size="12" text-anchor="middle">\n'
+        f'    <text x="{label_width / 2:g}" y="18" fill="#F5F5F2">{label}</text>\n'
+        f'    <text x="{label_width + value_width / 2:g}" y="18" '
+        f'fill="#191919" font-weight="700">{value}</text>\n'
+        "  </g>\n"
+        "</svg>\n"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -170,6 +193,22 @@ def main() -> int:
         planned[skill.path / "NOTICE.md"] = render_notice(skill)
     planned[root / "THIRD_PARTY_NOTICES.md"] = render_third_party(skills)
     planned[root / ".claude-plugin" / "marketplace.json"] = render_marketplace(skills)
+
+    upstream_count = sum(len(skill.upstreams) for skill in skills)
+    repos = {
+        upstream["repo"]
+        for skill in skills
+        for upstream in skill.upstreams
+        if upstream.get("repo")
+    }
+    for name, label, count in (
+        ("skills", "技能", len(skills)),
+        ("upstreams", "上游记录", upstream_count),
+        ("repos", "来源仓库", len(repos)),
+    ):
+        planned[root / "docs" / "assets" / f"badge-{name}.svg"] = render_count_badge(
+            label, count
+        )
 
     readme_path = root / "README.md"
     if readme_path.is_file():
