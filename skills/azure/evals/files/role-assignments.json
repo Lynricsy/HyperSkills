@@ -1,0 +1,68 @@
+{
+  "comment": "az role assignment list --all --include-inherited -o json  (trimmed, principal names redacted)",
+  "subscription": "/subscriptions/00000000-0000-0000-0000-000000000000",
+  "assignments": [
+    {
+      "principalType": "ServicePrincipal",
+      "principalName": "sp-github-deploy",
+      "roleDefinitionName": "Owner",
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000000",
+      "credential": "clientSecret",
+      "secretExpiresOn": "2027-02-14T00:00:00Z"
+    },
+    {
+      "principalType": "ServicePrincipal",
+      "principalName": "sp-github-deploy",
+      "roleDefinitionName": "Contributor",
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-orders-prod",
+      "credential": "clientSecret",
+      "secretExpiresOn": "2027-02-14T00:00:00Z"
+    },
+    {
+      "principalType": "User",
+      "principalName": "alice@contoso.com",
+      "roleDefinitionName": "User Access Administrator",
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000000",
+      "assignmentType": "Active"
+    },
+    {
+      "principalType": "ServicePrincipal",
+      "principalName": "app-orders-api",
+      "roleDefinitionName": "Storage Account Contributor",
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersprod001",
+      "note": "app reads and writes blobs in the 'invoices' container"
+    },
+    {
+      "principalType": "ServicePrincipal",
+      "principalName": "app-orders-api",
+      "roleDefinitionName": "Key Vault Contributor",
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-orders-prod/providers/Microsoft.KeyVault/vaults/kv-orders-prod",
+      "note": "app reads two secrets at startup"
+    },
+    {
+      "principalType": "Group",
+      "principalName": "grp-orders-oncall",
+      "roleDefinitionName": "Contributor",
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-orders-prod",
+      "assignmentType": "Active"
+    }
+  ],
+  "customRoles": [
+    {
+      "roleName": "Orders Deployer",
+      "assignableScopes": ["/subscriptions/00000000-0000-0000-0000-000000000000"],
+      "permissions": [
+        {
+          "actions": ["*"],
+          "notActions": ["Microsoft.Authorization/*/Delete"],
+          "dataActions": [],
+          "notDataActions": []
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "roleAssignmentsInSubscription": 3872,
+    "customRolesInTenant": 91
+  }
+}

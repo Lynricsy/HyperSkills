@@ -1,0 +1,56 @@
+{
+  "comment": "az functionapp show + az functionapp config appsettings list, merged and trimmed",
+  "name": "func-invoices-prod",
+  "resourceGroup": "rg-orders-prod",
+  "location": "westeurope",
+  "kind": "functionapp,linux",
+  "sku": {
+    "name": "Y1",
+    "tier": "Dynamic"
+  },
+  "identity": null,
+  "siteConfig": {
+    "linuxFxVersion": "Node|18",
+    "alwaysOn": false,
+    "ftpsState": "AllAllowed",
+    "minTlsVersion": "1.0",
+    "http20Enabled": false
+  },
+  "publicNetworkAccess": "Enabled",
+  "virtualNetworkSubnetId": null,
+  "appSettings": [
+    { "name": "FUNCTIONS_EXTENSION_VERSION", "value": "~4" },
+    { "name": "FUNCTIONS_WORKER_RUNTIME", "value": "node" },
+    { "name": "WEBSITE_NODE_DEFAULT_VERSION", "value": "~18" },
+    { "name": "AzureWebJobsStorage", "value": "DefaultEndpointsProtocol=https;AccountName=stinvoicesprod;AccountKey=<redacted>;EndpointSuffix=core.windows.net" },
+    { "name": "ServiceBusConnection", "value": "Endpoint=sb://sbns-orders-prod.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=<redacted>" },
+    { "name": "SQL_CONNECTION_STRING", "value": "Server=tcp:sql-orders-prod.database.windows.net;User ID=appuser;Password=<redacted>" },
+    { "name": "APPINSIGHTS_INSTRUMENTATIONKEY", "value": "<redacted-guid>" },
+    { "name": "WEBSITE_RUN_FROM_PACKAGE", "value": "1" },
+    { "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "value": "DefaultEndpointsProtocol=https;AccountName=stinvoicesprod;AccountKey=<redacted>" }
+  ],
+  "hostJson": {
+    "version": "2.0",
+    "extensionBundle": {
+      "id": "Microsoft.Azure.Functions.ExtensionBundle",
+      "version": "[2.*, 3.0.0)"
+    },
+    "functionTimeout": "00:10:00",
+    "logging": {
+      "applicationInsights": {
+        "samplingSettings": { "isEnabled": false }
+      }
+    },
+    "extensions": {
+      "serviceBus": {
+        "maxConcurrentCalls": 32,
+        "prefetchCount": 0
+      }
+    }
+  },
+  "observedProblems": [
+    "p95 end-to-end latency on the HTTP trigger is 4.2 s; p50 is 90 ms",
+    "the Service Bus trigger stops draining the queue for minutes at a time under load",
+    "the team wants the app on the private VNet that hosts sql-orders-prod"
+  ]
+}

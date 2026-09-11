@@ -1,0 +1,31 @@
+name: orders-platform
+metadata:
+  template: orders-platform@0.0.1
+
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
+services:
+  api:
+    project: ./src/api
+    language: csharp
+    host: appservice
+  worker:
+    project: ./src/worker
+    language: python
+    host: containerapp
+
+pipeline:
+  provider: github
+
+hooks:
+  postprovision:
+    shell: sh
+    run: |
+      az webapp config appsettings set \
+        --name app-orders-api-$AZURE_ENV_NAME \
+        --resource-group $AZURE_RESOURCE_GROUP \
+        --settings SQL_PASSWORD="$SQL_ADMIN_PASSWORD" \
+                   COSMOS_KEY="$(az cosmosdb keys list -n cosmos-orders-$AZURE_ENV_NAME -g $AZURE_RESOURCE_GROUP --query primaryMasterKey -o tsv)"

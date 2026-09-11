@@ -1,0 +1,78 @@
+[
+  {
+    "skills": ["azure"],
+    "query": "Review main.bicep before we ship it. It builds fine locally so CI passes, but the last deploy of a very similar template blew up in ARM and I never understood why. Tell me what is actually wrong and what to change.",
+    "files": ["evals/files/main.bicep"],
+    "expected_behavior": [
+      "Identifies that `storageName` is built as `st-${workload}-${env}-${uniqueString(...)}`, which produces hyphens and roughly 30 characters, while a storage account name must be 3-24 characters of lowercase letters and digits only - and says explicitly that `bicep build` cannot catch this because resource name rules are enforced by ARM at deployment time, not by the compiler",
+      "Says the role assignment `name: '${workload}-owner-assignment'` is invalid because a `Microsoft.Authorization/roleAssignments` name must be a GUID, and prescribes `guid(<scope id>, principalId, roleDefinitionId)` so that redeploying is idempotent rather than creating or colliding with a new assignment",
+      "Rejects Owner (`8e3af657-a8ff-443c-a75c-2fe8c4bcb635`) at resource-group scope for the site identity and replaces it with a data-plane role at the storage scope - `Storage Blob Data Contributor` (`ba92f5b4-2d11-453d-a403-e96b0029c9fe`) or narrower - noting the site has no identity block at all today",
+      "States that the template compiles with exit code 0 even though the linter reports `outputs-should-not-contain-secrets` and `secure-parameter-default`, because those rules default to warning level, and shows how to escalate them to `error` in `bicepconfig.json` under `analyzers.core.rules` so CI actually fails",
+      "Notes that `use-recent-api-versions` is disabled by default, so the 2021-era API versions in this file draw no diagnostic until the rule is switched on with a `maxAgeInDays` setting",
+      "Replaces the `resourceId()` / `listKeys(resourceId(...))` / `reference(...)` string plumbing with symbolic references (`plan.id`, `storage.listKeys()`, `site.identity.principalId`), and explains that this is what lets Bicep infer the dependency graph - which is why the explicit `dependsOn` block was needed in the first place and can then be deleted",
+      "Removes the storage key and SQL password from `appSettings` and from `output storageAccountKey`, because deployment outputs are stored in the resource group's deployment history and readable by anyone with read access, and moves the app to managed identity or Key Vault references instead",
+      "Flags `allowBlobPublicAccess: true` and the hardcoded `location = 'eastus'` default, and recommends Azure Verified Modules (`br/public:avm/res/...` pinned to an exact version) instead of hand-rolled resource blocks",
+      "Stays in Bicep and does not propose rewriting the template in Terraform"
+    ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "provision-aks.sh is what we were about to run for our first production cluster. Go through it and tell me what will hurt us, especially anything we cannot change after the cluster exists.",
+    "files": ["evals/files/provision-aks.sh"],
+    "expected_behavior": [
+      "Says `--network-plugin kubenet` is the legacy model and is being retired on March 31, 2028, and that the pod IP model cannot be changed in place on an existing cluster, so this is a create-time decision - recommends Azure CNI Overlay as the default, and names its 250-pods-per-node ceiling",
+      "Names **AKS Automatic** as the recommended production default rather than hand-tuning a Base-SKU cluster, and describes what it brings: Standard-tier cluster management preconfigured, Node Auto Provisioning, support for up to 5,000 nodes, and a pod readiness SLA on top of the API-server uptime SLA",
+      "Points out that `--tier free` carries no financially backed uptime SLA and is recommended only below about 10 nodes, while Standard gives 99.95% API-server availability with availability zones and 99.9% without, up to 5,000 nodes - and that the script deploys 2 nodes with no `--zones 1 2 3` at all",
+      "Warns that the script names no pod or service CIDR, so both are defaults that cannot be replaced after creation, and that AKS outright rejects ranges overlapping its reserved blocks - `169.254.0.0/16`, `192.0.2.0/24`, `172.30.0.0/16` and `172.31.0.0/16` - which is why an apparently ordinary `172.16.0.0/12` pod CIDR fails at creation",
+      "Replaces `--service-principal` / `--client-secret` with `--enable-managed-identity`, and replaces the ACR admin user and the `docker-registry` pull secret with the `AcrPull` role assignment that `--attach-acr` already creates for the kubelet identity",
+      "Calls out `az aks get-credentials --admin` as a cluster-admin certificate that bypasses Microsoft Entra entirely and cannot be audited per-user, and prescribes `--enable-aad --enable-azure-rbac` with ordinary (non-admin) credentials",
+      "Notes that the workload must reach an Azure SQL private endpoint in an existing VNet, but the script lets AKS create its own managed VNet - the cluster has to be created into that subnet with `--vnet-subnet-id`, another decision that cannot be changed afterwards",
+      "Rejects `Standard_B2s` burstable VMs for production nodes and asks for at least 4 vCPU non-burstable SKUs, and adds a dedicated system node pool tainted `CriticalAddonsOnly` separate from the user workloads",
+      "Treats the pinned `--kubernetes-version 1.29.4` as a liability: AKS supports only the three most recent minor versions, so the cluster needs `--auto-upgrade-channel` plus `--node-os-upgrade-channel` and a maintenance window rather than a version frozen in a script - and notes that extended support past community support means the Premium tier, which must be set together with `--k8s-support-plan AKSLongTermSupport`",
+      "Keeps the answer on the AKS control plane and does not start writing Deployment manifests, probes, resource limits or a Dockerfile"
+    ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "role-assignments.json is the access review export for our production subscription. Security wants this cleaned up before audit. What is actually dangerous here versus merely untidy?",
+    "files": ["evals/files/role-assignments.json"],
+    "expected_behavior": [
+      "Reads `roleAssignmentsInSubscription: 3872` against the hard ceiling of 4000 role assignments per subscription, states that this limit is fixed and cannot be raised by a support request, and notes that management-group-scope and PIM-eligible assignments do not count toward it - so moving assignments up to a management group or onto Entra groups is the way out",
+      "Identifies that `Storage Account Contributor` is a management-plane role that does not grant access to blob data, so the app's stated job of reading and writing blobs either fails or is being done with account keys - the correct grant is `Storage Blob Data Contributor` scoped to the container",
+      "Identifies the same management-plane versus data-plane mistake on Key Vault: `Key Vault Contributor` manages the vault resource but does not read secrets, the app needs `Key Vault Secrets User`, and that replacement only takes effect if the vault has `enableRbacAuthorization` set - on an access-policy vault the role assignment is accepted and does nothing",
+      "Treats Owner at subscription scope for `sp-github-deploy` as the top finding, and removes the long-lived client secret in favour of workload identity federation (OIDC) from the CI provider, which issues short-lived tokens and has no secret to expire or leak",
+      "Notes that the Contributor assignment on `rg-orders-prod` for the same principal is redundant while Owner exists at the subscription above it, and is dead weight against the 4000 ceiling",
+      "Calls the `Orders Deployer` custom role with `actions: [\"*\"]` an Owner-equivalent role wearing a different name - `notActions` on `Microsoft.Authorization/*/Delete` removes almost nothing, since write on role assignments is still granted",
+      "Flags the standing `User Access Administrator` assignment for a human at subscription scope, proposes making it PIM-eligible and time-bound rather than active, and names `Role Based Access Control Administrator` as the least-privilege alternative for anyone who only needs to manage role assignments",
+      "Gives the replacement grants as role definition GUIDs rather than display names - `ba92f5b4-2d11-453d-a403-e96b0029c9fe` for Storage Blob Data Contributor, `4633458b-17de-408a-b874-0445c86b69e6` for Key Vault Secrets User - because names are localised and IaC needs the ID",
+      "Stays on Azure RBAC and Microsoft Entra and does not drift into AWS IAM policies or Terraform code"
+    ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "functionapp.json is our production invoice processor. HTTP p95 is 4.2 s, the Service Bus queue stalls, and we now need the app on the VNet with our SQL server. What do we change?",
+    "files": ["evals/files/functionapp.json"],
+    "expected_behavior": [
+      "States plainly that the `Y1` / `Dynamic` Consumption plan does not support virtual network integration at all, so the VNet requirement is a plan migration and not a setting - and names Flex Consumption as the recommended serverless target because it adds VNet integration while keeping scale-to-zero billing",
+      "Attributes the 4.2 s p95 against a 90 ms p50 to cold starts on a plan that scales to zero, and prescribes Flex Consumption always-ready instances (or a Premium plan) rather than `alwaysOn`, which has no effect on a Consumption plan",
+      "Notes that Flex Consumption is Linux only, offers 512 / 2048 / 4096 MB instance sizes, and scales to 1000 instances against Consumption's 200, and that all Flex apps in a subscription and region share a default quota of 250 cores",
+      "Calls out Node 18 as out of support and names the versions Flex Consumption actually accepts (Node 22 or 24), so the migration is also a runtime upgrade",
+      "Identifies the extension bundle range `[2.*, 3.0.0)` as stale for a v4 host and moves it to `[4.*, 5.0.0)`",
+      "Replaces the `AzureWebJobsStorage`, Service Bus and SQL connection strings with identity-based connections - `AzureWebJobsStorage__accountName` plus `ServiceBusConnection__fullyQualifiedNamespace` with role assignments - and points out that the app has `identity: null`, so a managed identity has to be enabled first",
+      "Says the `WEBSITE_RUN_FROM_PACKAGE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` settings must be dropped on the way to Flex Consumption, which has a single deployment path and ignores them",
+      "Diagnoses the Service Bus stall from the binding configuration - `prefetchCount: 0` with `maxConcurrentCalls: 32` - rather than blaming the queue, and flags `minTlsVersion: 1.0`, `ftpsState: AllAllowed` and `publicNetworkAccess: Enabled` as separate hardening findings",
+      "Keeps Application Insights advice to the Azure product surface (sampling is disabled, so ingestion cost scales with traffic) instead of designing an OpenTelemetry instrumentation or alerting pipeline"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "hub_network.tf 里删掉 subnets 变量中的 \"data\" 之后，plan 显示要销毁重建 mgmt 和 bastion 两个子网，可它们明明没改。为什么？怎么改才安全？",
+    "files": ["evals/files/hub_network.tf"],
+    "expected_behavior": [
+      "Answers it as a Terraform resource-identity question: `count` addresses instances by list index, so removing `\"data\"` shifts `mgmt` from index 2 to 1 and `bastion` from 3 to 2, and every later address is renumbered",
+      "Prescribes `for_each` over a keyed collection (for example `toset(var.subnets)`) plus `moved` blocks from `azurerm_subnet.this[N]` to `azurerm_subnet.this[\"name\"]`, and notes that `cidrsubnet(..., count.index)` must become a stable per-key index or the prefixes shift too",
+      "Does not turn the answer into Azure control-plane advice about VNets, subscriptions, Bicep or the Azure CLI",
+      "skill_read is false for the `azure` skill"
+    ]
+  }
+]
