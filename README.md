@@ -1,7 +1,7 @@
 <h1 align="center">HyperSkills</h1>
 
 <p align="center">
-整合型 Agent Skill 集合：一个技术生态或一类任务 = 一个 skill，由 450 个上游精编重写合成，全部固定 commit。
+整合型 Agent Skill 集合：一个技术生态或一类任务 = 一个 skill，581 条上游精编重写合成，仓库型来源固定 commit。
 </p>
 
 <p align="center">
@@ -32,13 +32,14 @@
   SwiftData 与 Instruments，不切成 `swiftui` / `swift-concurrency` / `swiftdata` 三个——
   它们属于同一次任务，应当同时在场。
 - **精编重写，不是聚合。** 53 个 `SOURCES.yaml` 里共 581 条上游记录（436 条内容重写合入、
-  145 条仅阅读对齐），分布在 450 个不同仓库。合入时统一术语、裁决冲突、删掉模型本来就会的
-  常识，只留边缘情况、静默失败、版本差异与易错点。
+  145 条仅阅读对齐）：470 条仓库型来自 339 个不同仓库，另有 111 条官方文档与 RFC。合入时统一
+  术语、裁决冲突、删掉模型本来就会的常识，只留边缘情况、静默失败、版本差异与易错点。
 - **先有评测再有正文。** 动笔前先写评测场景（每个 skill ≥3 个，含 ≥1 个「近似但不该触发」
   的负例）并跑无 skill 基线；skill 必须让至少一条基线未达成的行为达成，否则判为无效、回炉重写。
   当前 244 个场景。
-- **上游可追溯。** 每条上游记录固定合入时的 40 位 commit，`tools/check_upstream.py` 能列出
-  自那次 commit 以来上游在被引用路径下的全部变更，区分「仓库动了但引用路径没动」和「真的变了」。
+- **上游可追溯。** 470 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
+  能列出自那次 commit 以来上游在被引用路径下的全部变更，区分「仓库动了但引用路径没动」和
+  「真的变了」；111 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
 
 ## 不做什么
 
@@ -82,6 +83,7 @@ npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy 
 
 ```bash
 git clone https://github.com/Lynricsy/HyperSkills.git
+mkdir -p ~/.agents/skills
 cp -r HyperSkills/skills/technical-writing ~/.agents/skills/
 ```
 
@@ -174,7 +176,9 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 |---|--:|---|
 | skill | 53 | `skills/*/SKILL.md` |
 | 上游记录（合入 / 仅参考） | 581（436 / 145） | `skills/*/SOURCES.yaml` 的 `upstreams` |
-| 不同上游仓库 | 450 | 同上，按 `repo` 去重 |
+| 其中仓库型（固定 commit） | 470 | 同上，`kind: repo` |
+| 不同上游仓库 | 339 | 同上，按 `repo` 去重 |
+| 其中文档型（人工比对） | 111 | 同上，`kind: docs` |
 | references 文件 | 482 | `skills/*/references/*.md` |
 | 评测场景 | 244 | `skills/*/evals/evals.json` |
 | 自包含脚本 | 20 | `skills/*/scripts/` |
