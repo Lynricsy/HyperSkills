@@ -1,0 +1,53 @@
+diff --git a/src/orders/list.ts b/src/orders/list.ts
+index 6e7110a..59a8fef 100644
+--- a/src/orders/list.ts
++++ b/src/orders/list.ts
+@@ -1,14 +1,27 @@
+ import { pool } from "../db";
++import type { Order } from "./types";
+ 
+-export async function listOrders(customerId: number, page: number) {
+-  const offset = page * 25;
++const PAGE_SIZE = 25;
++
++export async function listOrders(
++  customerId: number,
++  cursor?: string,
++): Promise<{ orders: Order[]; nextCursor?: string }> {
+   const { rows } = await pool.query(
+-    "SELECT id, total_cents, created_at FROM orders WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2",
+-    [customerId, offset],
++    `SELECT id, total_cents, created_at FROM orders
++       WHERE customer_id = $1 AND ($2::timestamptz IS NULL OR created_at < $2)
++       ORDER BY created_at DESC
++       LIMIT ${PAGE_SIZE + 1}`,
++    [customerId, cursor ?? null],
+   );
+-  return rows;
++  const orders = rows.slice(0, PAGE_SIZE);
++  const nextCursor =
++    rows.length > PAGE_SIZE ? orders[orders.length - 1].created_at.toISOString() : undefined;
++  return { orders, nextCursor };
+ }
+ 
+-export function formatTotal(cents: number) {
+-  return "$" + (cents / 100).toFixed(2);
++export function formatTotal(cents: number): string {
++  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
++    cents / 100,
++  );
+ }
+diff --git a/test/list.test.ts b/test/list.test.ts
+index 610a832..79ff4c6 100644
+--- a/test/list.test.ts
++++ b/test/list.test.ts
+@@ -3,7 +3,7 @@ import { listOrders } from "../src/orders/list";
+ 
+ describe("listOrders", () => {
+   it("returns a page of orders", async () => {
+-    const rows = await listOrders(7, 0);
+-    expect(rows).toHaveLength(25);
++    const { orders } = await listOrders(7);
++    expect(orders).toHaveLength(25);
+   });
+ });

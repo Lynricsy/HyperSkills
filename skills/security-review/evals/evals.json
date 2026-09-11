@@ -1,0 +1,81 @@
+[
+  {
+    "skills": ["security-review"],
+    "query": "We are about to open the reporting feature to customers. Audit it for security problems. orders-routes.js is the Express router, report_service.py is the Python service behind it, service-config.yaml is the config rendered into the reporting pod, api-package.json is the API's dependency manifest, and ARCHITECTURE.md describes how the pieces talk to each other. The repository is not checked out here, so work from these files and say what you would run against the real tree.",
+    "files": [
+      "evals/files/orders-routes.js",
+      "evals/files/report_service.py",
+      "evals/files/service-config.yaml",
+      "evals/files/api-package.json",
+      "evals/files/ARCHITECTURE.md"
+    ],
+    "expected_behavior": [
+      "Establishes reachability before ranking anything: names the `/reports/*` ALB rule in ARCHITECTURE.md as the fact that makes the reporting service publicly reachable, so the pickle and callback bugs are pre-authentication rather than reachable only from `api`, and says the whole ranking changes if that rule does not exist",
+      "Ranks `pickle.loads` on the client-supplied `cursor` in /internal/reports/resume as the top finding — unauthenticated remote code execution as the reporting-service role — above the callback-URL issue, and gives the path from request body to deserialisation rather than a generic 'insecure deserialization' warning",
+      "Gets the callback chain right in both directions: reports the one-request warehouse exfiltration (the caller controls both `spec.query` and `callback_url`, and ARCHITECTURE.md says the warehouse has no authentication) and does not claim IMDSv1 credential theft from a POST-only primitive without first establishing a GET or redirect-following path",
+      "Reports that `GET /api/orders/:id` and `/:id/invoice.pdf` authenticate but never compare the order's `customer_id` with the session, and cites the `GET /` handler — which does scope by `req.session.customerId` — as the in-repository evidence that the omission is a bug rather than this codebase's pattern",
+      "Flags the client-controlled `x-internal-role` header as the entire authorisation check on POST /:id/refund, and that GET /export has no tenant or role check at all",
+      "Flags the two places string interpolation reaches SQL for what they are: `ORDER BY \" + sort` cannot be fixed with a bound parameter and needs an allowlist, and PATCH /:id takes column names from `req.body` keys, which lets a caller write `status`, `total_cents` or `customer_id`",
+      "Does not report `notify_billing`, `settings.WAREHOUSE_URL` or `settings.BILLING_URL` as SSRF, and says why — those URLs come from deployment configuration, not from a request",
+      "Triages the dependency manifest by reachability rather than listing every outdated version: singles out `node-serialize@0.0.4` (CVE-2017-5941, code execution through a crafted serialized payload) and `jsonwebtoken@8.5.1` next to `jwt.algorithm: none` in the config, and says it would grep for actual imports before assigning severity",
+      "Gives each finding a likelihood and an impact as separate judgements with a reason for each, rather than only a single priority label, and never rates overall severity above the impact it actually demonstrated",
+      "Keeps the evidence boundary defensive: source reading plus, at most, a bounded local reproduction. Does not propose sending crafted payloads at a deployed or pre-production environment as part of the audit",
+      "States plainly what it could not verify from these five files (middleware behind requireSession, whether the ALB rule is still live, whether node-serialize is imported) instead of implying full coverage"
+    ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "Our house rule is that db.raw_query() must never receive a string built from request data — db.query() binds parameters and is fine. Write me a semgrep rule that enforces it, so we can put it in CI. raw_query_usages.py is a sample of real call sites.",
+    "files": ["evals/files/raw_query_usages.py"],
+    "expected_behavior": [
+      "Writes the test file before or alongside the rule, with `# ruleid: <rule-id>` on the line immediately above each finding it expects and `# ok: <rule-id>` above each call site that must not match, and covers `list_orders_ok`, `search_orders_ok` and `nightly_rollup_ok` as the ok cases",
+      "Chooses taint mode with `pattern-sources` on the Flask request and `pattern-sinks` on `db.raw_query(...)`, and says why: a plain `pattern: db.raw_query(...)` also matches `nightly_rollup_ok`, whose interpolated value comes from settings",
+      "Predicts or discovers that taint mode still flags `list_orders_ok` — the reassignment inside `if sort not in ALLOWED_SORTS` does not clear taint — and resolves it with a sanitizer or by changing the call site, rather than shipping the rule with that false positive",
+      "Warns that a broad `pattern-sanitizers` entry such as `$D.get(...)` also matches `request.args.get(...)`, which sanitises the source itself and silently turns the rule into a no-op that reports zero findings, and keeps the sanitizer narrow enough to avoid that",
+      "Runs `semgrep --test` and requires it to report all tests passing before calling the rule done, instead of eyeballing the pattern, and reads `missed lines` as false negatives and `incorrect lines` as false positives",
+      "Notes that `semgrep --test` over a directory pairs `<rule-id>.yaml` with `<rule-id>.<ext>` by basename and prints 'No unit tests found' while still exiting 0 when they do not match, so a green exit code is not by itself evidence the rule was tested",
+      "Uses a severity value semgrep actually accepts (ERROR / WARNING / INFO, or CRITICAL / HIGH / MEDIUM / LOW), one rule per YAML file, and no `todoruleid:` or `todook:` escape hatches that defer a known gap",
+      "Writes a message that tells the developer what to do — call `db.query()` with bound parameters — rather than restating the rule id"
+    ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "Bad news: ci-deploy.sh has credentials committed in it and the repo is public. Tell me exactly what to do, in order.",
+    "files": ["evals/files/ci-deploy.sh"],
+    "expected_behavior": [
+      "Puts revocation first and history rewriting last, and states the reason: rewriting history does not invalidate a credential, and until each secret is revoked every fork, mirror and clone still holds a working one",
+      "Treats each of the four secrets as already compromised from its commit date rather than 'probably fine', and derives the exposure window from the June 2026 commits in the git log excerpt at the bottom of the file",
+      "Scopes the blast radius per credential instead of one undifferentiated 'rotate the secrets': the Stripe live key moves money, the GitHub token has repository or organisation write, the committed deploy key grants server access, the warehouse token reads customer data",
+      "Asks for the provider-side audit logs over the exposure window — Stripe events, GitHub audit log, warehouse and SSH access logs — and says a clean log is weak evidence rather than proof of non-use, because reads are often unlogged and retention can be shorter than the window",
+      "Handles the case where revoking first would break production by issuing the replacement first and revoking immediately after, rather than deferring revocation to a maintenance window",
+      "Points out that deleting the lines in a new commit changes nothing, that even after a rewrite GitHub keeps the old objects reachable by SHA until support purges the cache, and that a collaborator's stale clone can push the blob back",
+      "Names the recurrence control — push protection or a pre-commit secret scan plus reading the secrets from the CI secret store — and states that adding the path to .gitignore does nothing for a file that is already tracked",
+      "Flags that the script echoes the token to stdout, so it is also in the CI job logs, which are a second place to purge"
+    ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "Threat model this system for me from ARCHITECTURE.md. I want to know where to spend the next two sprints, and map each threat to its OWASP Top 10 category so I can paste it into our compliance doc.",
+    "files": ["evals/files/ARCHITECTURE.md"],
+    "expected_behavior": [
+      "Enumerates trust boundaries as concrete edges with the protocol and the authentication on each — browser to api, api to reporting, reporting to warehouse, ALB to reporting — rather than a generic STRIDE checklist",
+      "Identifies the contradiction in the document as the highest-value finding: reporting is described as private and trusting anything that can reach it, while the `/reports/*` ALB rule exposes it publicly, so the stated assumption is already false",
+      "Uses the OWASP Top 10 2025 categories, not the 2021 ones — Broken Access Control is A01:2025, Security Misconfiguration A02:2025, Software Supply Chain Failures A03:2025, Cryptographic Failures A04:2025, Injection A05:2025 — and states that SSRF is no longer a standalone category because CWE-918 now sits inside A01:2025, instead of citing A10:2021 SSRF for the callback-URL threat",
+      "States attacker capabilities and also explicit non-capabilities for each principal, so severity is not inflated by an unstated worst case",
+      "Ranks threats by likelihood and impact as separate judgements and ties each one to a named component or edge from the file, with no threat that cannot be traced to the document",
+      "Covers the cross-tenant story concretely: `customer_id` with no row-level security, one S3 bucket with no policy separating tenant prefixes, and Redis sessions with no per-tenant namespace",
+      "Treats the 90-day signed session cookie and the login-only audit logging as detection and containment gaps, not just as configuration nits",
+      "Marks the conclusions as conditional on the assumptions it had to make and lists the questions whose answers would change the ranking, rather than presenting inferences as established facts"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Review pagination.diff before I merge it. Is it correct, is the style right, and did I miss anything?",
+    "files": ["evals/files/pagination.diff"],
+    "expected_behavior": [
+      "Does not read skills/security-review/SKILL.md",
+      "Reviews the diff for correctness and style — the keyset-pagination cursor logic, the `Intl.NumberFormat` change, the test that still asserts a length of 25 — instead of producing a threat model or a severity-ranked vulnerability report",
+      "Does not enumerate trust boundaries, assign exploitability ratings, or write a security report file"
+    ]
+  }
+]
