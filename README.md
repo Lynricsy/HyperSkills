@@ -44,20 +44,24 @@
 | [`flutter`](skills/flutter/) | 平台 | Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM)… | 2026.09.10 | 7 |
 | [`frontend-design`](skills/frontend-design/) | 任务 | Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking… | 2026.09.10 | 12 |
 | [`gcp`](skills/gcp/) | 平台 | Guides Google Cloud control-plane and architecture work: gcloud CLI discipline and its silent defaults, the organization/folder/project hierarchy and… | 2026.09.11 | 7 |
+| [`git-workflow`](skills/git-workflow/) | 任务 | Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice… | 2026.09.11 | 12 |
 | [`github`](skills/github/) | 平台 | Guides work that needs GitHub the platform | 2026.09.11 | 15 |
 | [`go`](skills/go/) | 框架 | Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation… | 2026.09.11 | 12 |
 | [`graphql`](skills/graphql/) | 框架 | Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and… | 2026.09.11 | 12 |
 | [`java-spring`](skills/java-spring/) | 框架 | Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts… | 2026.09.11 | 8 |
 | [`laravel`](skills/laravel/) | 框架 | Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts… | 2026.09.11 | 9 |
+| [`mcp-server`](skills/mcp-server/) | 任务 | Guides designing and reviewing a Model Context Protocol server: whether a capability is a tool, a resource or a prompt; tool names, schemas and… | 2026.09.11 | 9 |
 | [`mongodb`](skills/mongodb/) | 框架 | Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning… | 2026.09.11 | 6 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error… | 2026.09.11 | 13 |
 | [`observability`](skills/observability/) | 任务 | Guides observability for systems already running in production: OpenTelemetry traces, metrics and logs and how they correlate, SDK instrumentation… | 2026.09.11 | 15 |
 | [`office`](skills/office/) | 任务 | Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides… | 2026.09.10 | 19 |
+| [`planning`](skills/planning/) | 任务 | Turns a vague request into a plan that can be executed and verified: clarifying requirements into acceptance criteria that are either true or false… | 2026.09.11 | 8 |
 | [`postgres`](skills/postgres/) | 框架 | Guides self-managed PostgreSQL work: schema and type selection, constraints, index choice and composite column order, reading EXPLAIN (ANALYZE… | 2026.09.11 | 12 |
 | [`python`](skills/python/) | 框架 | Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml… | 2026.09.11 | 17 |
 | [`react`](skills/react/) | 框架 | Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle /… | 2026.09.10 | 8 |
 | [`react-native`](skills/react-native/) | 平台 | Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop… | 2026.09.11 | 7 |
 | [`redis`](skills/redis/) | 框架 | Guides Redis itself: choosing a data structure from the access pattern, key-space and TTL design, what each maxmemory-policy really does when memory… | 2026.09.11 | 7 |
+| [`security-review`](skills/security-review/) | 任务 | Audits a codebase, feature or threat surface for security defects, defensively and from source | 2026.09.11 | 17 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/ | 2026.09.10 | 14 |
 | [`supabase`](skills/supabase/) | 框架 | Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr… | 2026.09.11 | 12 |
 | [`svelte`](skills/svelte/) | 框架 | Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets… | 2026.09.11 | 11 |
@@ -66,6 +70,7 @@
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
 | [`typescript`](skills/typescript/) | 框架 | Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types… | 2026.09.11 | 9 |
 | [`vue`](skills/vue/) | 框架 | Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive… | 2026.09.11 | 10 |
+| [`web-testing`](skills/web-testing/) | 任务 | Guides end-to-end testing of web applications in real browsers with Playwright: accessibility-first locators and strict mode, auto-waiting and why a… | 2026.09.11 | 11 |
 
 <!-- catalog:end -->
 

@@ -21,8 +21,8 @@ notifications, DevTools panels, injected UI), project tooling with WXT including
 cross-browser output, testing and debugging each context, and Chrome Web Store packaging,
 policy and review.
 
-Not covered: driving a browser to test an ordinary website — that is browser automation
-rather than extension development, and this skill only covers Playwright and Puppeteer
+Not covered: driving a browser to test an ordinary website — use the `web-testing` skill;
+this skill only covers Playwright and Puppeteer
 insofar as they load an extension. Visual and UX design of the popup or injected UI —
 use the `frontend-design` skill; this skill covers which surface to use and how to
 isolate it, not how it should look. React component structure and hooks — use the `react`

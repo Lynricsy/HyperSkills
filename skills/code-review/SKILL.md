@@ -16,8 +16,10 @@ Review of a bounded set of changes — a diff, a commit range, a branch, a pull 
 other half of the job: acting on review feedback you received. Applies to code written by a
 human, by another agent, or by you.
 
-Not covered: auditing a whole codebase for vulnerabilities (this skill reviews a delta against
-its base), redesigning an architecture, and language- or framework-specific correctness, which
+Not covered: auditing a whole codebase for vulnerabilities. Reviewing a diff for general
+correctness and style is the `code-review` skill's job; auditing a whole codebase, feature or
+threat surface is the `security-review` skill's. Also not covered: redesigning an
+architecture, and language- or framework-specific correctness, which
 belongs to the ecosystem skill for that stack — `android`, `apple`, `csharp-dotnet`, `flutter`,
 `go`, `java-spring`, `python`, `react`, `react-native`, `typescript` and the rest. Team process
 — review SLAs, round cadence, approval bureaucracy — is out of scope by design.

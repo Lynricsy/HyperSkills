@@ -162,6 +162,15 @@
       ]
     },
     {
+      "name": "git-workflow",
+      "description": "Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice, resolving merge and rebase conflicts, commit granula",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/git-workflow"
+      ]
+    },
+    {
       "name": "github",
       "description": "Guides work that needs GitHub the platform. Actions: writing, auditing and speeding up workflows — triggers and privilege, script injection through ${{ }} interpolation, pull_request_target pwn reques",
       "source": "./",
@@ -207,6 +216,15 @@
       ]
     },
     {
+      "name": "mcp-server",
+      "description": "Guides designing and reviewing a Model Context Protocol server: whether a capability is a tool, a resource or a prompt; tool names, schemas and descriptions written for a model; result size and cursor",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/mcp-server"
+      ]
+    },
+    {
       "name": "mongodb",
       "description": "Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning, $jsonSchema validation), update operators, aggrega",
       "source": "./",
@@ -240,6 +258,15 @@
       "strict": false,
       "skills": [
         "./skills/office"
+      ]
+    },
+    {
+      "name": "planning",
+      "description": "Turns a vague request into a plan that can be executed and verified: clarifying requirements into acceptance criteria that are either true or false, recording assumptions and rejected options, and pro",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/planning"
       ]
     },
     {
@@ -285,6 +312,15 @@
       "strict": false,
       "skills": [
         "./skills/redis"
+      ]
+    },
+    {
+      "name": "security-review",
+      "description": "Audits a codebase, feature or threat surface for security defects, defensively and from source. Scopes the attack surface with a coverage ledger, threat-models trust boundaries as concrete edges, hunt",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/security-review"
       ]
     },
     {
@@ -360,6 +396,15 @@
       ]
     },
     {
+      "name": "web-testing",
+      "description": "Guides end-to-end testing of web applications in real browsers with Playwright: accessibility-first locators and strict mode, auto-waiting and why a fixed wait is a bug, web-first retrying assertions,",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/web-testing"
+      ]
+    },
+    {
       "name": "all",
       "description": "Every HyperSkills skill",
       "source": "./",
@@ -382,20 +427,24 @@
         "./skills/flutter",
         "./skills/frontend-design",
         "./skills/gcp",
+        "./skills/git-workflow",
         "./skills/github",
         "./skills/go",
         "./skills/graphql",
         "./skills/java-spring",
         "./skills/laravel",
+        "./skills/mcp-server",
         "./skills/mongodb",
         "./skills/nodejs-backend",
         "./skills/observability",
         "./skills/office",
+        "./skills/planning",
         "./skills/postgres",
         "./skills/python",
         "./skills/react",
         "./skills/react-native",
         "./skills/redis",
+        "./skills/security-review",
         "./skills/skill-authoring",
         "./skills/supabase",
         "./skills/svelte",
@@ -403,7 +452,8 @@
         "./skills/terraform",
         "./skills/test-driven-development",
         "./skills/typescript",
-        "./skills/vue"
+        "./skills/vue",
+        "./skills/web-testing"
       ]
     }
   ]

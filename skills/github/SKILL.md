@@ -22,10 +22,12 @@ fetched, answered and merged.
 Also not covered, and worth stating in full because the line matters:
 
 Purely local git work — branching strategy, worktrees, rebase and merge-conflict resolution,
-commit granularity and message style, history-rewrite guardrails. Anything git alone can do
+commit granularity and message style, history-rewrite guardrails. Use the `git-workflow`
+skill. Anything git alone can do
 offline is out of scope here; this skill starts where GitHub does.
 
-Not covered: auditing application code for vulnerabilities — this skill audits workflow YAML and
+Not covered: auditing application code for vulnerabilities — use the `security-review` skill;
+this skill audits workflow YAML and
 repository configuration, not the program those workflows build. Not covered: other CI platforms
 (GitLab CI, Jenkins, CircleCI); a check whose details URL is not an Actions run is reported by URL
 and not investigated. Not covered: the deployment target itself — what a cloud provider or

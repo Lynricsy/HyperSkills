@@ -21,8 +21,9 @@ licensing them, and organising a repository that holds several.
 
 Not covered — do not answer from this skill:
 
-- MCP servers, tools and resources. A skill is instructions an agent reads; an
-  MCP server is a process it calls. Wanting both does not make them one artifact.
+- MCP servers, tools and resources — use the `mcp-server` skill. A skill is
+  instructions an agent reads; an MCP server is a process it calls. Wanting
+  both does not make them one artifact.
 - Slash commands, subagent and agent definitions, output styles, hooks, prompt
   files, memory and rules files. These are host features that happen to live
   near skills; only the skill fields shared with them are in scope.
