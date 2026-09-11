@@ -1,3 +1,7 @@
+<p align="center">
+<img src="docs/assets/logo.svg" width="96" alt="HyperSkills 的标记：一只狐狸从三张错开的 skill 卡片后面探出来">
+</p>
+
 <h1 align="center">HyperSkills</h1>
 
 <p align="center">
@@ -199,7 +203,8 @@ HyperSkills/
 ├── docs/
 │   ├── skill-standard.md       # 结构 / 写作 / 溯源规范，校验器逐条对应
 │   ├── workflow.md             # 新增与更新 skill 的五阶段流水线
-│   └── roadmap.md              # 后续批次主题路线图
+│   ├── roadmap.md              # 后续批次主题路线图
+│   └── assets/logo.svg         # README 首屏标记（透明底，单份资产适配明暗主题）
 ├── research/<name>.md          # 候选调研、冲突裁决、基线缺口、评测结果（中文）
 ├── templates/                  # skill 与 research 脚手架
 ├── tools/                      # 校验 / 上游检查 / 目录生成 / 评测运行
