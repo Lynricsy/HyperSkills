@@ -35,8 +35,9 @@ Not covered:
   policy, pagination strategy, the error schema itself). Use the `api-design` skill.
 - Database schema design and query tuning. Use the `postgres` skill for PostgreSQL.
 - GraphQL schema and operations. Use the `graphql` skill.
-- ORM and migration tooling, containers and cloud deployment. Neither has a skill in this
-  library yet; say so rather than improvising one.
+- Container images, Compose and Kubernetes deployment. Use the `containers` skill.
+- ORM and migration tooling. No skill in this library covers it yet; say so rather than
+  improvising one.
 
 Paths below are relative to this skill's directory.
 

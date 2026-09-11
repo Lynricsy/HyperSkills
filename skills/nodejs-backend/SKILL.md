@@ -38,8 +38,8 @@ Not covered — do not answer from this skill:
 - REST contract and OpenAPI design (resource modelling, URI and status-code
   choice, pagination style, versioning). Use the `api-design` skill.
 - GraphQL schema design and operations. Use the `graphql` skill.
-- Container, Kubernetes or cloud deployment configuration. No skill in this
-  library covers those yet; say so rather than improvising one.
+- Container images, Compose and Kubernetes deployment configuration. Use the
+  `containers` skill; for the cloud infrastructure underneath it, use `terraform`.
 
 ## Core rules
 

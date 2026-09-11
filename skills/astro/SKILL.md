@@ -44,8 +44,8 @@ Not covered — do not answer from this skill:
   framework). Use the `nodejs-backend` skill; this skill covers `astro/hono`
   only as an advanced-routing entrypoint.
 - Preact, SolidJS and Alpine island internals, Starlight theming, the Astro
-  monorepo's own contributor workflow, and REST/OpenAPI contract design. None of
-  these has a skill in this library yet; say so rather than improvising.
+  monorepo's own contributor workflow. No skill in this library covers those yet; say so
+  rather than improvising. REST and OpenAPI contract design is the `api-design` skill's.
 
 ## Read first
 

@@ -21,7 +21,9 @@ one: `golang.org/x/sync/errgroup`, `github.com/google/go-cmp/cmp`, `go.uber.org/
 
 Not covered: cloud provider SDKs (AWS, GCP, Azure), Kubernetes operators, controllers and
 client-go, and MCP server implementation — no skill in this repository covers those yet,
-so work from the vendor's own documentation. Web frameworks (Gin, Echo, Fiber) and ORMs
+so work from the vendor's own documentation. Deploying the binary (container images,
+Kubernetes manifests, cloud infrastructure) belongs to `containers` and `terraform`.
+Web frameworks (Gin, Echo, Fiber) and ORMs
 are out of scope by design; the `net/http` and `database/sql` guidance here is about the
 standard library. Reviewing a diff, commit range or pull request is the `code-review`
 skill's job. The test-first loop as a methodology belongs to the

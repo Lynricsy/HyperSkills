@@ -63,6 +63,15 @@
       ]
     },
     {
+      "name": "containers",
+      "description": "Guides container artefacts: Dockerfiles and multi-stage builds, base-image choice, BuildKit cache mounts and build secrets, .dockerignore, multi-architecture images, image hardening and SBOMs, Compose",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/containers"
+      ]
+    },
+    {
       "name": "csharp-dotnet",
       "description": "Guides C# and .NET application work end to end: C# language rules (nullable reference types and the nullability attributes, records, pattern matching, exception and disposal contracts), async and conc",
       "source": "./",
@@ -78,6 +87,15 @@
       "strict": false,
       "skills": [
         "./skills/debugging"
+      ]
+    },
+    {
+      "name": "elasticsearch",
+      "description": "Guides Elasticsearch index and query work: mapping and field-type choice, text versus keyword and multi-fields, analyzers and tokenization, Query DSL and filter context, ES|QL, BM25 relevance tuning a",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/elasticsearch"
       ]
     },
     {
@@ -153,6 +171,15 @@
       ]
     },
     {
+      "name": "mongodb",
+      "description": "Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning, $jsonSchema validation), update operators, aggrega",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/mongodb"
+      ]
+    },
+    {
       "name": "nodejs-backend",
       "description": "Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error taxonomy and what a 5xx body may reveal, structure",
       "source": "./",
@@ -207,6 +234,15 @@
       ]
     },
     {
+      "name": "redis",
+      "description": "Guides Redis itself: choosing a data structure from the access pattern, key-space and TTL design, what each maxmemory-policy really does when memory runs out, RDB and AOF durability windows, the atomi",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/redis"
+      ]
+    },
+    {
       "name": "skill-authoring",
       "description": "Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/. Covers scoping a skill to one coherent job, writing a descrip",
       "source": "./",
@@ -240,6 +276,15 @@
       "strict": false,
       "skills": [
         "./skills/tauri"
+      ]
+    },
+    {
+      "name": "terraform",
+      "description": "Guides Terraform and OpenTofu configuration work: HCL style and expressions, variable, output and local design, module interfaces and version pinning, count versus for_each and resource identity, stat",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/terraform"
       ]
     },
     {
@@ -281,8 +326,10 @@
         "./skills/astro",
         "./skills/chrome-extension",
         "./skills/code-review",
+        "./skills/containers",
         "./skills/csharp-dotnet",
         "./skills/debugging",
+        "./skills/elasticsearch",
         "./skills/fastapi",
         "./skills/flutter",
         "./skills/frontend-design",
@@ -291,16 +338,19 @@
         "./skills/graphql",
         "./skills/java-spring",
         "./skills/laravel",
+        "./skills/mongodb",
         "./skills/nodejs-backend",
         "./skills/office",
         "./skills/postgres",
         "./skills/python",
         "./skills/react",
         "./skills/react-native",
+        "./skills/redis",
         "./skills/skill-authoring",
         "./skills/supabase",
         "./skills/svelte",
         "./skills/tauri",
+        "./skills/terraform",
         "./skills/test-driven-development",
         "./skills/typescript",
         "./skills/vue"
