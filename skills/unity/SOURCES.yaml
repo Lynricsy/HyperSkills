@@ -1,0 +1,82 @@
+skill: unity
+version: "2026.09.11"
+upstreams:
+  - id: gamedev-unity
+    kind: repo
+    repo: gamedev-skills/awesome-gamedev-agent-skills
+    url: https://github.com/gamedev-skills/awesome-gamedev-agent-skills
+    paths: [skills/unity]
+    ref: main
+    commit: b105e1cf617adf0b68ed98790a716bbb60993179
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Backbone structure for scripting, physics and build: MonoBehaviour callback choice, the Update/FixedUpdate split, Inspector serialization traps, the trigger/layer pitfalls, IL2CPP and managed stripping with link.xml, the separate Addressables content build, and ScriptableObject-based decoupling."
+    notes: "Root LICENSE read in full: single Apache-2.0 for the whole tree, no per-directory declarations. Correctness adjudication: its unity-physics pitfall 'Rigidbody.velocity doesn't exist in Unity 6.3 LTS' is wrong — the member exists with [Obsolete(... (UnityUpgradable) -> linearVelocity)]; corrected from UnityCsReference@6000.3. Its 'Related skills' cross-references (physics-tuning, steam-publish) do not exist in this library and were dropped."
+  - id: nicewolf-unity
+    kind: repo
+    repo: Nice-Wolf-Studio/unity-claude-skills
+    url: https://github.com/Nice-Wolf-Studio/unity-claude-skills
+    paths: [skills]
+    ref: main
+    commit: fefd1141f973f97a9441af1d2c90a34b09ec7108
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Topic structure for the areas the gamedev-skills set does not cover: URP rendering and materials, uGUI/UI Toolkit/TextMeshPro, Addressables and texture memory, Editor tooling, the Unity Test Framework, and the coroutine-versus-Awaitable decision."
+    notes: "LICENSE read in full: MIT. Its skills self-describe as derived from Unity's CC BY-NC-ND manual, so only the topic structure and checklist semantics were taken and every fact was re-sourced from docs.unity3d.com or UnityCsReference before being rewritten. Correctness adjudication: its unity-ui claim that UI Toolkit is recommended for new runtime projects and uGUI is legacy contradicts Unity's own recommendation table on both 6.3 and 6.6; the official position is used. Its 'globs' frontmatter key was stripped."
+  - id: wshobson-unity-ecs
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths: [plugins/game-development/skills/unity-ecs-patterns]
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "DOTS and ECS: ISystem versus SystemBase, EntityQuery and tag components, EntityCommandBuffer for structural change, baking, Jobs with native-collection disposal, chunk utilisation, and the 'most projects should not adopt DOTS' boundary."
+  - id: unity-official-skills
+    kind: repo
+    repo: Unity-Technologies/skills
+    url: https://github.com/Unity-Technologies/skills
+    paths: [skills]
+    ref: main
+    commit: d54932a923f9d7479a4ca59c421606db8b9cb27e
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage checklist only, taken from the 31 skill directory names: BiRP-to-URP migration, the UI Toolkit / uGUI / IMGUI three-way split, Render Graph renderer-feature validation, sprite-atlas management and the Unity CLI."
+    notes: "LICENSE.md read in full: 'Unity Skills (c) 2026 Unity Technologies. Licensed under the Unity Companion License for Unity-dependent projects' — not an OSI open-source licence, so relation: reference. No SKILL.md, references/ or resources/*.cs body was read and no text or script was copied; only the directory listing from the git tree API was used, and every fact was sourced independently."
+  - id: unity-docs
+    kind: docs
+    url: https://docs.unity3d.com/Manual/index.html
+    license: CC-BY-NC-ND-4.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Authority for every [official] claim: the collision and trigger message matrix, SRP Batcher behaviour and shader CBUFFER requirements, GPU Resident Drawer prerequisites and per-renderer exclusions, the runtime/Editor UI recommendation table, Unity serialization rules, Editor command-line arguments, and the Unity Test Framework command-line reference."
+    notes: "Manual/TermsOfUse.html read in full: code snippets are under the Unity Companion License and all other manual and Scripting Reference content is CC BY-NC-ND 4.0. NonCommercial plus NoDerivatives means it cannot be merged, so the official-vendor exception in docs/roadmap.md does not apply to this skill and it was filed under criterion 2 instead. Facts were verified and restated; no wording was reused."
+  - id: unity-cs-reference
+    kind: repo
+    repo: Unity-Technologies/UnityCsReference
+    url: https://github.com/Unity-Technologies/UnityCsReference
+    paths: [Runtime/Export, Modules, Editor/Mono]
+    ref: "6000.3"
+    commit: 343494d1a517cc6c4c0439769ad0818c8b18ae1c
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Authority for every [verified] claim, by reading the engine's own C# declarations per version branch: the exact [Obsolete] text and version boundary for FindObjectsSortMode / FindFirstObjectByType (6.4) and the Rigidbody velocity/drag renames, SerializeField's AttributeTargets.Field usage, Awaitable's await-once and no-SynchronizationContext contract, destroyCancellationToken's MissingReferenceException, UxmlFactory/UxmlTraits deprecation, and the BuildReport / RaycastCommand API shapes."
+    notes: "LICENSE.md read in full: a single line pointing at the Unity Reference-Only License. Read-only, so relation: reference and no source was copied. Branches 6000.3, 6000.4, 6000.5, 6000.6 and master (=6000.7) were diffed to establish version gates; 6000.3 is pinned because it is the LTS this skill baselines on."
+  - id: unity-graphics
+    kind: repo
+    repo: Unity-Technologies/Graphics
+    url: https://github.com/Unity-Technologies/Graphics
+    paths: [Packages/com.unity.render-pipelines.universal, Packages/com.unity.render-pipelines.core]
+    ref: master
+    commit: a7e4c051d256a781ab362c64316b125a1e104694
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Existence check for the URP and SRP core APIs named in the rendering reference, including the BatchRendererGroup and GPU-driven batching implementation behind the GPU Resident Drawer."
+    notes: "LICENSE.md read in full: Unity Companion License for Unity-dependent projects. Reference only; the URP prose documentation now lives on docs.unity3d.com rather than in this repository, so all rendering facts were taken from there."

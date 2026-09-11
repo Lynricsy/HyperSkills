@@ -1,0 +1,65 @@
+[
+  {
+    "skills": ["unity"],
+    "query": "This component is the top entry in our Profiler's Scripting sample and the GC graph is a sawtooth. Review it and tell me exactly what to change and why each change matters. The project is on Unity 6000.3.",
+    "files": ["evals/files/EnemyHudController.cs"],
+    "expected_behavior": [
+      "Flags Object.FindObjectsOfType<T>() as deprecated in Unity 6 and names FindObjectsByType as the replacement, and states the Unity 6.4+ boundary: the FindObjectsSortMode overloads are themselves deprecated and FindFirstObjectByType gives way to FindAnyObjectByType, so code written to the 6.3 advice starts emitting warnings after an editor upgrade",
+      "Says GetComponent<Rigidbody>() is called twice per frame and GameObject.Find plus Camera.main are whole-scene lookups per frame, and moves all three into a field cached in Awake",
+      "Flags e.gameObject.tag == \"Enemy\" as an allocating string comparison and replaces it with CompareTag, and flags the per-frame string concatenation into scoreLabel.text plus the interpolated Debug.Log as managed-heap garbage that is what produces the sawtooth",
+      "Says Physics.RaycastAll allocates a new RaycastHit[] on every call and names the preallocated-buffer form (Physics.RaycastNonAlloc, or RaycastCommand) instead, and points out that only the nearest hit is actually needed so a single Physics.Raycast is enough",
+      "Says writing transform.position on a Rigidbody object from Update fights the physics solver, that Rigidbody motion belongs in FixedUpdate, and that Rigidbody.velocity was renamed to linearVelocity in Unity 6 so the current line is an obsolete member",
+      "Says StartCoroutine(Blink()) inside Update starts a new coroutine every frame, allocating an iterator plus a WaitForSeconds per yield and stacking hundreds of concurrent blinkers, and gives a guard or a cached handle as the fix"
+    ]
+  },
+  {
+    "skills": ["unity"],
+    "query": "Designers say this component's Inspector is broken in half a dozen ways and the runtime values are not what the code sets. Explain each symptom and give me the corrected component.",
+    "files": ["evals/files/LootTable.cs"],
+    "expected_behavior": [
+      "States that on this project's Unity 6000.3 a [SerializeField] Dictionary is not serialized, and gets the version boundary right rather than repeating the folklore: Unity 6.6 added Dictionary<TKey,TValue> serialization behind [SerializeField], so the answer must either name 6.6 or scope the claim to 6.3 instead of calling Dictionary permanently unsupported",
+      "States that jagged and multidimensional arrays and directly nested containers are unsupported on every Unity 6 version, and that a plain interface-typed field is not serialized unless it carries [SerializeReference], and gives the concrete replacement (a [Serializable] entry type in a List)",
+      "Separates the two failure modes correctly: static and readonly fields accept [SerializeField] and are silently not serialized (Seed, rerollCooldown), whereas [SerializeField] on the Ammo auto-property is CS0592 because the attribute is declared AttributeTargets.Field, so the file does not compile at all",
+      "States that LootEntry is a plain class and needs [System.Serializable] before its instances can be serialized or shown in the Inspector",
+      "Explains that the MonoBehaviour constructor and the field initializers do not establish runtime state: Unity creates the object and then overwrites every serialized field with the deserialized value, so this initialization must move to Awake/OnEnable (and notes that touching Time.time from a constructor is not valid)",
+      "States that renaming a serialized field silently drops the stored data and that [FormerlySerializedAs(\"chance\")] on dropChance is what recovers the designers' values"
+    ]
+  },
+  {
+    "skills": ["unity"],
+    "query": "Read this capture and tell me where the SetPass calls come from and the fix order. Be specific about which of the four things we already tried was wrong and why.",
+    "files": ["evals/files/urp-frame-report.md"],
+    "expected_behavior": [
+      "Says a MaterialPropertyBlock makes the renderer SRP-Batcher-incompatible by definition, so the CrateTint script disqualifies all ~400 crates, and that allocating a new MaterialPropertyBlock every frame is separately a per-frame allocation",
+      "Says GetComponent<Renderer>().material instantiates a per-renderer copy of the material (leaking one material instance per plank) and names sharedMaterial or a material variant as the shared-edit path",
+      "Says a custom shader must declare its engine properties in a UnityPerDraw constant buffer and its material properties in a UnityPerMaterial constant buffer to be SRP-Batcher-compatible, so Custom/PlankWeathered has to be fixed at the shader level",
+      "Says the SRP Batcher reduces render-state changes between draw calls rather than the number of draw calls, and batches by shader variant rather than by material, so merely ticking it cannot move the SetPass count while the objects are incompatible",
+      "Says the Standard shader belongs to the Built-in Render Pipeline and renders magenta under URP, and that the fix is the Render Pipeline Converter or reassigning Universal Render Pipeline/Lit",
+      "Names the actual GPU Resident Drawer prerequisites that this project violates: the Rendering Path must be Forward+ or Deferred+ (not Forward), BatchRendererGroup Variants must be set to Keep All, and renderers with MaterialPropertyBlocks or with OnBecameVisible/OnWillRenderObject MonoBehaviours are silently excluded"
+    ]
+  },
+  {
+    "skills": ["unity"],
+    "query": "Our Unity CI job reports success even when the player build fails, and the log is useless. Fix both files and tell me which flag or API is responsible for each symptom.",
+    "files": ["evals/files/ci-build.sh", "evals/files/BuildScript.cs"],
+    "expected_behavior": [
+      "Says BuildPipeline.BuildPlayer returns a BuildReport and does not throw, so the script must inspect report.summary.result (or totalErrors) and call EditorApplication.Exit with a non-zero code itself — that, not the shell, is why the job is green on failure",
+      "Says -quit makes the Editor exit after the invoked method returns and can hide error messages, so it must not be relied on to propagate a build result, and that -quit is actively unsafe with asynchronous work",
+      "Says -logFile with a path leaves the failure invisible to the CI console and that -logFile - streams the Editor log to stdout instead",
+      "Says the script must live under an Editor folder for -executeMethod to find it, so Assets/CI/BuildScript.cs has to move (for example to Assets/Editor/CI/BuildScript.cs) or get its own Editor-only assembly definition",
+      "Says a batch-mode run on a GPU-less runner needs -nographics, and that -nographics turns off output logs unless -logFile is given and cannot bake GI",
+      "Says the API Updater does not run in batch mode unless -accept-apiupdate is passed, which surfaces as unexplained compiler errors",
+      "Flags BuildOptions.Development | BuildOptions.AllowDebugging as development-only flags that must not be in a shipping build, and notes the missing set -o pipefail / explicit exit-code propagation in the shell wrapper"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our ASP.NET Core minimal API allocates heavily under load. Walk me through using dotnet-counters to watch Gen0 collections, whether to set ServerGarbageCollector in runtimeconfig.json, and which BenchmarkDotNet job attribute to add to the csproj so the memory diagnoser runs.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read the unity skill: this is ASP.NET Core plus .NET CLI tooling, with no Unity project, MonoBehaviour or player build involved",
+      "Answers with dotnet-counters counter names, the runtimeconfig.json / csproj ServerGarbageCollection property, and the BenchmarkDotNet [MemoryDiagnoser] attribute",
+      "If it points at another skill at all, it points at csharp-dotnet rather than at a game engine"
+    ]
+  }
+]
