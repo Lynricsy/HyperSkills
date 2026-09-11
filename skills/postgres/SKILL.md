@@ -31,7 +31,7 @@ Not covered:
   migration locks, connection-per-request.
 - Managed-hosting control planes: instance sizing, provider backups and PITR, IAM
   authentication, provider parameter APIs, read-replica provisioning on RDS, Cloud SQL or
-  Azure Database for PostgreSQL. No skill in this library covers those; say so rather than
+  Azure Database for PostgreSQL. Use the `aws`, `gcp` or `azure` skill rather than
   improvising provider commands. The SQL-level rules here still apply on a managed server,
   but `ALTER SYSTEM` and anything under `/var/lib/postgresql` usually will not.
 - Other databases, and Postgres-compatible products with their own semantics.

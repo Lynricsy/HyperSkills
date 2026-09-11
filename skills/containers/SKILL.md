@@ -35,14 +35,13 @@ Not covered:
   the runtime stage actually needs).
 - Managed cluster control planes — EKS, AKS and GKE node pools, cloud IAM and workload
   identity, provider load balancers and CSI drivers, cluster upgrades through the
-  provider API. No skill in this library covers those; say so rather than improvising
-  `eksctl`, `az aks` or `gcloud container` commands. Everything here still holds for a
-  workload running on a managed cluster.
+  provider API. Use the `aws`, `azure` or `gcp` skill for those. Everything here still
+  holds for a workload running on a managed cluster.
 - Service meshes (Istio, Linkerd, Cilium Service Mesh) and their CRDs; GitOps
   controllers (Argo CD, Flux). Not covered by any skill in this library.
 - Observability pipelines and dashboards — Prometheus Operator, OpenTelemetry
-  Collector, log shipping, alert rules. Not covered by any skill in this library. This
-  skill stops at what a manifest declares (probes, `terminationGracePeriodSeconds`,
+  Collector, log shipping, alert rules. Use the `observability` skill. This skill stops
+  at what a manifest declares (probes, `terminationGracePeriodSeconds`,
   resource fields).
 
 Paths below are relative to this skill's directory.

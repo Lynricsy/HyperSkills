@@ -27,8 +27,8 @@ Not covered:
 - Document-database modelling and aggregation pipelines in MongoDB. Use the `mongodb` skill.
 - Key-value caching, expiry and eviction. Use the `redis` skill.
 - Log and metric collection pipelines, agents and shippers, alerting rules, SLOs, and working back
-  from a production alert to a code path. No skill in this library covers those; say so instead of
-  improvising. Index and query design for data that happens to be logs is in scope; getting the
+  from a production alert to a code path. Use the `observability` skill. Index and query design
+  for data that happens to be logs is in scope; getting the
   logs there and paging someone about them is not.
 - Kibana: dashboards, Lens, Discover, saved objects, Agent Builder, workflows. Not covered by any
   skill here.

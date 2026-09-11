@@ -34,9 +34,10 @@ Not covered:
   covers only what the pipeline must *run* (`fmt -check`, `validate`, `test`, a saved plan
   artifact) and why.
 - The field-level schema, defaults and architecture of any specific provider's resources —
-  AWS, Azure, GCP and everything else. No skill in this library covers those; read the
+  AWS, Azure, GCP and everything else. Use the `aws`, `azure` or `gcp` skill for the
+  service selection, quotas and control-plane behaviour behind those resources; read the
   provider's registry documentation or run `terraform providers schema -json` rather than
-  improvising argument names. Cross-cloud architecture advice is likewise out of scope.
+  improvising argument names.
 - Bicep, CloudFormation, Pulumi, CDK and Terragrunt-style orchestration wrappers.
 - HCP Terraform / Terraform Enterprise platform administration, and Stacks beyond noting
   that they exist and are Terraform-only.

@@ -36,9 +36,9 @@ Not covered:
   query tuning behind JPA: use the `postgres` skill.
 - Kubernetes manifests and container images: use the `containers` skill; the cloud
   infrastructure underneath them: `terraform`.
-- Cloud provider SDKs and managed services (AWS, Azure, GCP), Spring Cloud Gateway,
-  Spring Batch and Spring AI. None of these has a skill in this library yet; say so
-  rather than improvising.
+- Cloud provider services and hosting (AWS, Azure, GCP): use the `aws`, `azure` or `gcp`
+  skill. Spring Cloud Gateway, Spring Batch and Spring AI have no skill in this library
+  yet; say so rather than improvising.
 
 Paths below are relative to this skill's directory.
 

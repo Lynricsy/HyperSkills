@@ -31,7 +31,10 @@
 | [`api-design`](skills/api-design/) | 任务 | Designs and reviews HTTP API contracts independently of any framework: resource modelling and URI structure, HTTP method semantics and idempotency… | 2026.09.11 | 19 |
 | [`apple`](skills/apple/) | 平台 | Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS… | 2026.09.10 | 15 |
 | [`astro`](skills/astro/) | 框架 | Engineers Astro 7 sites: project and route structure including dynamic routes and getStaticPaths, island boundaries and the client:* hydration… | 2026.09.11 | 6 |
+| [`aws`](skills/aws/) | 平台 | Guides AWS architecture and control-plane work: IAM policy evaluation, permissions boundaries, trust policies and PassRole escalation; Lambda, API… | 2026.09.11 | 8 |
+| [`azure`](skills/azure/) | 平台 | Guides Azure control-plane and architecture work: Bicep and Azure Verified Modules, what-if preflight, deployment stacks, azd projects, CAF naming… | 2026.09.11 | 13 |
 | [`chrome-extension`](skills/chrome-extension/) | 平台 | Guides Chrome and Chromium browser extension work end to end: Manifest V3 manifests, the permissions and host-permissions model, activeTab and… | 2026.09.11 | 10 |
+| [`cloudflare`](skills/cloudflare/) | 平台 | Guides building and operating on the Cloudflare developer platform: the Workers isolate model and its CPU and memory limits, waitUntil and… | 2026.09.11 | 8 |
 | [`code-review`](skills/code-review/) | 任务 | Reviews code in both directions | 2026.09.10 | 9 |
 | [`containers`](skills/containers/) | 平台 | Guides container artefacts: Dockerfiles and multi-stage builds, base-image choice, BuildKit cache mounts and build secrets, .dockerignore… | 2026.09.11 | 13 |
 | [`csharp-dotnet`](skills/csharp-dotnet/) | 框架 | Guides C# and .NET application work end to end: C# language rules (nullable reference types and the nullability attributes, records, pattern… | 2026.09.11 | 10 |
@@ -40,6 +43,7 @@
 | [`fastapi`](skills/fastapi/) | 框架 | Guides FastAPI service work: APIRouter organisation, Annotated dependency injection including yield-dependency lifetime and exit scope, Pydantic v2… | 2026.09.11 | 12 |
 | [`flutter`](skills/flutter/) | 平台 | Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM)… | 2026.09.10 | 7 |
 | [`frontend-design`](skills/frontend-design/) | 任务 | Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking… | 2026.09.10 | 12 |
+| [`gcp`](skills/gcp/) | 平台 | Guides Google Cloud control-plane and architecture work: gcloud CLI discipline and its silent defaults, the organization/folder/project hierarchy and… | 2026.09.11 | 7 |
 | [`github`](skills/github/) | 平台 | Guides work that needs GitHub the platform | 2026.09.11 | 15 |
 | [`go`](skills/go/) | 框架 | Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation… | 2026.09.11 | 12 |
 | [`graphql`](skills/graphql/) | 框架 | Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and… | 2026.09.11 | 12 |
@@ -47,6 +51,7 @@
 | [`laravel`](skills/laravel/) | 框架 | Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts… | 2026.09.11 | 9 |
 | [`mongodb`](skills/mongodb/) | 框架 | Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning… | 2026.09.11 | 6 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error… | 2026.09.11 | 13 |
+| [`observability`](skills/observability/) | 任务 | Guides observability for systems already running in production: OpenTelemetry traces, metrics and logs and how they correlate, SDK instrumentation… | 2026.09.11 | 15 |
 | [`office`](skills/office/) | 任务 | Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides… | 2026.09.10 | 19 |
 | [`postgres`](skills/postgres/) | 框架 | Guides self-managed PostgreSQL work: schema and type selection, constraints, index choice and composite column order, reading EXPLAIN (ANALYZE… | 2026.09.11 | 12 |
 | [`python`](skills/python/) | 框架 | Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml… | 2026.09.11 | 17 |

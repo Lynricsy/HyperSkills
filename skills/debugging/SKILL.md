@@ -27,7 +27,9 @@ Not covered — do not answer from this skill:
   assertion libraries). Use the ecosystem skill or the tool's own docs.
 - Production telemetry design: metric names, dashboards, alerts, sampling.
   Temporary instrumentation to catch one bug is in scope; a permanent
-  observability design is not.
+  observability design is not. Where a local failure can be reproduced, use
+  the `debugging` skill; where only production signals exist (logs, metrics,
+  traces, alerts), this is the `observability` skill's job.
 - Reviewing a diff for quality or security — that is the `code-review` skill.
 - Browser-driven UI verification: use the ecosystem skill for that surface,
   then come back here with the failing signal.

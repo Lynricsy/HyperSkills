@@ -45,12 +45,39 @@
       ]
     },
     {
+      "name": "aws",
+      "description": "Guides AWS architecture and control-plane work: IAM policy evaluation, permissions boundaries, trust policies and PassRole escalation; Lambda, API Gateway, Step Functions, SQS and EventBridge selectio",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/aws"
+      ]
+    },
+    {
+      "name": "azure",
+      "description": "Guides Azure control-plane and architecture work: Bicep and Azure Verified Modules, what-if preflight, deployment stacks, azd projects, CAF naming and subscription structure, Microsoft Entra ID, manag",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/azure"
+      ]
+    },
+    {
       "name": "chrome-extension",
       "description": "Guides Chrome and Chromium browser extension work end to end: Manifest V3 manifests, the permissions and host-permissions model, activeTab and optional permissions, service worker lifecycle and event-",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/chrome-extension"
+      ]
+    },
+    {
+      "name": "cloudflare",
+      "description": "Guides building and operating on the Cloudflare developer platform: the Workers isolate model and its CPU and memory limits, waitUntil and request-scoped I/O, wrangler configuration, compatibility dat",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/cloudflare"
       ]
     },
     {
@@ -126,6 +153,15 @@
       ]
     },
     {
+      "name": "gcp",
+      "description": "Guides Google Cloud control-plane and architecture work: gcloud CLI discipline and its silent defaults, the organization/folder/project hierarchy and organization policy, IAM allow and deny policies, ",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/gcp"
+      ]
+    },
+    {
       "name": "github",
       "description": "Guides work that needs GitHub the platform. Actions: writing, auditing and speeding up workflows — triggers and privilege, script injection through ${{ }} interpolation, pull_request_target pwn reques",
       "source": "./",
@@ -186,6 +222,15 @@
       "strict": false,
       "skills": [
         "./skills/nodejs-backend"
+      ]
+    },
+    {
+      "name": "observability",
+      "description": "Guides observability for systems already running in production: OpenTelemetry traces, metrics and logs and how they correlate, SDK instrumentation, context propagation, span naming, kind and status, s",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/observability"
       ]
     },
     {
@@ -324,7 +369,10 @@
         "./skills/api-design",
         "./skills/apple",
         "./skills/astro",
+        "./skills/aws",
+        "./skills/azure",
         "./skills/chrome-extension",
+        "./skills/cloudflare",
         "./skills/code-review",
         "./skills/containers",
         "./skills/csharp-dotnet",
@@ -333,6 +381,7 @@
         "./skills/fastapi",
         "./skills/flutter",
         "./skills/frontend-design",
+        "./skills/gcp",
         "./skills/github",
         "./skills/go",
         "./skills/graphql",
@@ -340,6 +389,7 @@
         "./skills/laravel",
         "./skills/mongodb",
         "./skills/nodejs-backend",
+        "./skills/observability",
         "./skills/office",
         "./skills/postgres",
         "./skills/python",
