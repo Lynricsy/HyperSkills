@@ -1,0 +1,88 @@
+[
+  {
+    "skills": ["planning"],
+    "query": "Issue #412 landed on me and I need to turn it into something we can actually build this cycle. Here's the issue and the repo inventory. What do you need from me before we start?",
+    "files": [
+      "evals/files/notify/issue-412.md",
+      "evals/files/notify/repo-inventory.md"
+    ],
+    "expected_behavior": [
+      "Separates questions it answered itself from decisions only a human can make, and does not ask for facts that are already in the inventory (the test commands, whether services/notifier exists, whether the mailer has a send log)",
+      "States that `services/notifier/` does not exist and that `services/mailer` is a synchronous SMTP wrapper with no queue, retry, idempotency key or send log, so 'we already have the email templates so this is mostly plumbing' is wrong about the plumbing",
+      "Identifies the 'must not double-send when the worker retries' line as an idempotency requirement that the current stack cannot satisfy: `packages/events` is a fire-and-forget in-process EventEmitter and `services/worker` retries a whole job from the top, so at-least-once delivery plus no dedupe key means duplicate sends, and a durable outbox or idempotency key is new work nobody has scoped",
+      "Identifies @dana's retrievability comment as a second, separately shippable capability (a send log with retention) rather than folding it silently into the notification feature",
+      "Flags that @raj's mobile comment expands scope and that `web/` and `mobile/` both compile against the generated `packages/api-client`, so any new endpoint forces a client regeneration that breaks mobile's strict build — a cross-app dependency that must be settled before either app is touched",
+      "Writes down its own assumptions explicitly (for example which events count as important, immediate versus digest, in-app versus email versus push for v1) and marks each as needing confirmation, rather than silently choosing",
+      "Turns at least some requirements into acceptance criteria that can be judged true or false (a concrete trigger, a concrete observable outcome), instead of restating 'feel instant but not spammy'",
+      "States explicit non-goals for this cycle, given @sam's 'keep this small', and names what is being deferred rather than leaving scope open",
+      "Does not begin writing implementation code or creating files in services/ or web/"
+    ]
+  },
+  {
+    "skills": ["planning"],
+    "query": "Here's the draft plan for the notifications work plus the repo inventory. Review the plan before we start executing it.",
+    "files": [
+      "evals/files/notify/plan-draft.md",
+      "evals/files/notify/repo-inventory.md"
+    ],
+    "expected_behavior": [
+      "Rejects the plan for execution rather than merely suggesting improvements, and says what has to be true before it can be executed",
+      "Flags that Task 1 targets `services/notifier/`, which does not exist in the inventory, so the plan's first step is written against a codebase that is not there",
+      "Flags 'All tasks below are independent and can be worked in parallel' as false and names at least one real ordering: Task 2 consumes `GET /notifications` which Task 3 creates, so the frontend task cannot precede or run alongside the API task without a frozen contract",
+      "Flags that no task states the command that proves it is done, and that Task 7 'Run tests' and 'Write tests for the above' are not steps because they name no command and no expected output; the inventory's `make test` / `make test-one FILE=<path>` are the commands that should appear per task",
+      "Flags Task 6 (refactoring `services/mailer` and migrating the four billing receipt templates) as scope creep unrelated to notifying users, and its 'Similar to Task 1' as unusable by anyone reading tasks out of order",
+      "Flags 'The feature works end to end and the team is happy with it' as a definition of done that cannot be judged true or false",
+      "Notes that `db/migrations` is forward-only with no down migrations, so the plan's rollback story cannot be 'revert the migration' and a rollback point must be stated explicitly",
+      "Notes that the plan declares no assumptions, no non-goals and no owner for the mobile/api-client coupling, and that Task 5 (push) depends on store credentials that are not established anywhere in the plan",
+      "Does not silently rewrite the plan into a good one without first naming the specific defects"
+    ]
+  },
+  {
+    "skills": ["planning"],
+    "query": "Break the notifications work into tasks I can hand out, and tell me honestly which ones can run at the same time. Two engineers are free.",
+    "files": [
+      "evals/files/notify/repo-inventory.md",
+      "evals/files/notify/issue-412.md"
+    ],
+    "expected_behavior": [
+      "Orders tasks by a stated dependency relation rather than by layer, and puts the delivery-durability work (outbox or idempotency key) before anything that sends, because the no-double-send requirement depends on it",
+      "Refuses to call the `web/` and `mobile/` tasks parallel until `openapi.yaml` and the regenerated `packages/api-client` are settled, and makes freezing that contract its own task that both depend on",
+      "Identifies the migration in `db/migrations` as work that must be serialized rather than run alongside other tasks, because the tool is forward-only",
+      "Gives each task a verification step naming the inventory's own command (`make test-one FILE=<path>`, `make typecheck`, `make client`, `make migrate`) and an expected outcome, not a generic 'tests pass'",
+      "Front-loads the riskiest unknown as a cheap investigation rather than a build task: whether at-least-once delivery on top of an in-process EventEmitter can meet the no-double-send requirement at all",
+      "Keeps each task inside one subsystem, or says explicitly when a task spans two and why it cannot be split",
+      "Checks the existing `docs/plans/` before writing a new plan document and does not overwrite `docs/plans/2026-07-search.md`, which still has 6 of 11 tasks unchecked",
+      "States what is not in the task list (for example push notifications, or the 7-year retention send log) instead of leaving the boundary implicit"
+    ]
+  },
+  {
+    "skills": ["planning"],
+    "query": "Day 3 progress report is in. The plan and inventory are attached too. Tell me where we stand and what to do next.",
+    "files": [
+      "evals/files/notify/progress-report.md",
+      "evals/files/notify/plan-draft.md",
+      "evals/files/notify/repo-inventory.md"
+    ],
+    "expected_behavior": [
+      "Stops and calls for the plan to be revised rather than unblocking Task 5 and continuing, because a premise the plan rested on turned out to be false",
+      "Names the invalidated premise: `packages/events` is in-process and fire-and-forget, so no amount of handler-level work makes delivery reliable, and the plan assumed otherwise",
+      "Rejects the `setTimeout` 30s re-run as a solution to the retry requirement: it duplicates sends rather than deduplicating them, it dies with the process, and the issue's requirement was explicitly not to double-send",
+      "Treats the hand-written `fetch()` in `web/` with an inline response type as a contract violation to be recorded and resolved, not an acceptable shortcut, because `openapi.yaml` is the single source of truth both apps' client is generated from — and notes that mobile's 14 typecheck errors are the real unfinished work Task 3 was hiding",
+      "Rejects 'Tests pass' as a claim, because the report itself says `make test` has not been run since Task 2, and asks for the command output before any task is counted as done",
+      "Notices the schema shipped with a different shape than planned and that the migration is already applied on staging, and that with forward-only migrations this cannot be undone by reverting — so the divergence must be accepted deliberately (updating the plan and the schema decision) rather than left as an undocumented drift",
+      "Notices that the compliance requirement (retrievability of what was sent) is still unimplemented and is not represented by any task in the plan",
+      "Revises the plan by amending it — keeping the record of what was actually completed and why steps changed — rather than deleting or regenerating it from scratch",
+      "Reports 'done' counts against the plan's real acceptance state rather than repeating the report's claim that Tasks 1-4 are done"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "The plan is already signed off. File these six items as issues in acme/notify with the labels shown, put them all on the notifications-v1 milestone, and set the blocked-by relationships. Give me the commands.",
+    "files": ["evals/files/notify/tasks-to-file.md"],
+    "expected_behavior": [
+      "Does not read skills/planning/SKILL.md",
+      "Answers with the mechanical GitHub steps: `gh issue create` invocations with `--repo acme/notify`, `--label`, `--milestone`, plus how the blocked-by relation is expressed (issue body references or sub-issue/linked-issue commands), including creating the milestone or labels first if they do not exist",
+      "Does not re-litigate the agreed scope, re-derive the dependency graph, rewrite the items into acceptance criteria, or produce a plan document"
+    ]
+  }
+]

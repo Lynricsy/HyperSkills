@@ -1,0 +1,119 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by:
+#   uv run tools/check_upstream.py --pin planning
+skill: planning
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: obra-writing-plans
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths: [skills/writing-plans]
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The plan header (goal, approach, a pointer to the requirements it argues from, global constraints copied verbatim), the consumes/produces block and its rationale that an executor sees only their own step, the no-placeholder catalogue, the self-review triad (requirement coverage, placeholder scan, name and type consistency), and the right-sizing definition: the smallest unit worth a reviewer's separate yes or no."
+    notes: "The upstream expansion of every task into the TDD five-step loop is dropped: the loop belongs to the test-driven-development skill and is not executable for migration, upgrade or configuration steps. Its fixed docs/superpowers/plans/ location becomes 'follow the repository's own convention', and the announce-at-start line, worktree call-out and cross-skill handoff to subagent-driven-development are removed."
+  - id: obra-brainstorming
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths: [skills/brainstorming]
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The probe/bounded/structural classifier with its one-way ratchet and the judgement that bounded measures the repository rather than the author's familiarity, the two-or-three-real-options step with the recommendation led first, the present-then-stop agreement gate, the four-check specification self-review, and the rationalization table format."
+    notes: "The Graphviz digraph is dropped per the standard (it renders as nothing) and replaced by the dependency-graph ASCII in task-decomposition.md. The HARD-GATE XML block, the visual-companion section (it depends on an upstream browser service this repository does not ship) and the elements-of-style cross-reference are removed."
+  - id: obra-executing
+    kind: repo
+    repo: obra/superpowers
+    url: https://github.com/obra/superpowers
+    paths:
+      [
+        skills/executing-plans,
+        skills/verification-before-completion,
+        skills/subagent-driven-development,
+      ]
+    ref: main
+    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Critically re-reading the plan before executing it and raising concerns rather than working around them, the stop-and-ask triggers, the evidence-before-claim table rows that matter to a plan (requirements met needs a line-by-line walk, not a passing suite; a delegate's completion needs the diff, not its report), and the inference that a step handed to a fresh executor must be self-contained."
+    notes: "Only these elements are merged. The upstream dispatch mechanics, worktree setup and finishing-a-branch handoff are out of scope here (worktrees and branch closure are the git-workflow skill). The evidence gate wording is kept consistent with the test-driven-development, debugging and code-review skills so the four do not disagree."
+  - id: addy-planning
+    kind: repo
+    repo: addyosmani/agent-skills
+    url: https://github.com/addyosmani/agent-skills
+    paths: [skills/planning-and-task-breakdown, skills/spec-driven-development]
+    ref: main
+    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The dependency graph before decomposition, vertical against horizontal slicing, the acceptance command as a mandatory field of every task rather than a reminder to verify, the split triggers, checkpoints whose acceptance is the whole system, the parallel/sequential/needs-coordination categories with contract-freezing first, the never-overwrite-an-incomplete-plan rule, the explicit assumptions block, the capability map with stable ids and acyclic dependencies, and the always/ask-first/never boundary tiers."
+    notes: "Time-based sizing (an XS-XL table keyed on file counts and a two-hour threshold) is replaced by acceptance-shaped sizing: whether a reviewer could accept this step while rejecting its neighbour. Hours are unmeasurable for an agent executor and file counts misjudge a nine-file rename. The fixed tasks/plan.md and tasks/todo.md paths, the /build command and the cross-directory definition-of-done link are removed: a per-skill install does not copy them."
+  - id: copilot-plan
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      [
+        skills/create-implementation-plan,
+        skills/create-specification,
+        skills/create-architectural-decision-record,
+        skills/update-implementation-plan,
+        skills/structured-autonomy-plan,
+      ]
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Declare-once identifiers with the declaration-versus-reference distinction and the grep pipeline that checks it, alternatives and risks-and-assumptions as mandatory sections rather than optional prose, Given-When-Then acceptance criteria, labelling requirements separately from constraints and guidelines, the ADR structure with rejection reasons per alternative and supersedes/superseded_by chains, revision that preserves the completed record, and the in-place [NEEDS CLARIFICATION] marker."
+    notes: "The ${input:...} placeholder syntax, the fixed /plan/ and /spec/ directories, the shields.io status badge and the #tool:runSubagent instruction are stripped, along with the ResizeMe-specific research guide. Its rule that tasks within a phase are parallel unless a dependency is declared is adjudicated against: the burden of proof is inverted, so this skill requires an argument per pair. The epic/feature/story issue hierarchy in breakdown-plan is rejected outright as project-management scheduling plus GitHub issue mechanics."
+  - id: speckit-docs
+    kind: repo
+    repo: github/spec-kit
+    url: https://github.com/github/spec-kit
+    paths:
+      [
+        docs/concepts/spec-persistence.md,
+        docs/concepts/complex-features.md,
+        docs/guides/evolving-specs.md,
+      ]
+    ref: main
+    commit: c173bf19a6654e3b05386ec3599349a55282b897
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Which artefact to change first when requirements, plan and code disagree: the requirements-as-contract default with downstream artefacts regenerated from it, and the discovery-lands-where-the-work-is escape hatch with its discipline that a lower-level change is never left in place while the requirements still say otherwise. Also the consistency check across the artefact set before implementation resumes, and carrying rationale forward before replacing a derived artefact."
+    notes: "All /speckit.* slash commands, the .specify/ directory layout and the specify init --here --force workflow are removed: they belong to that project's own CLI and cannot be invoked from this skill. The flow-forward model is not adopted as a default because a single-repository feature accumulates historical directories nobody reads."
+  - id: mattpocock-spec
+    kind: repo
+    repo: mattpocock/skills
+    url: https://github.com/mattpocock/skills
+    paths: [skills/engineering/to-spec, skills/engineering/triage]
+    ref: main
+    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Keeping file paths and code out of the requirements because they go stale, with the exception for a prototype fragment that encodes a decision more precisely than prose; out-of-scope as a mandatory section; the two pre-checks before clarifying anything (search for an existing implementation by domain concept and report where you looked, then look for a prior rejection); verifying a claim before grilling it; and recording what clarification has established, not only what is still open."
+    notes: "The disable-model-invocation frontmatter field and the setup-command dependency are stripped. The issue-tracker state machine and its label vocabulary are deliberately not merged: filing and labelling belong to the github skill. Its position that specifications carry no paths is adjudicated as a layering rule rather than a contradiction of obra-writing-plans: requirements carry none, plans carry them all."
+  - id: neolab-sdd
+    kind: repo
+    repo: NeoLabHQ/context-engineering-kit
+    url: https://github.com/NeoLabHQ/context-engineering-kit
+    paths: [plugins/sdd]
+    ref: master
+    commit: 23e2428e809d77717f8acc9659c374a3a1fcb93e
+    license: GPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage check only. Its split into create-ideas, brainstorm, plan-task, add-task, implement-task and review confirmed that clarification, planning and execution tracking form one chain, which is why this skill keeps them in one skill with separate workflows instead of splitting them."
+    notes: "GPL-3.0 is incompatible with this repository's MIT licensing, verified by reading the repository's own COPYING file rather than trusting the API's spdx_id. No text, script or data file was copied; only the directory listing was read to judge coverage."
