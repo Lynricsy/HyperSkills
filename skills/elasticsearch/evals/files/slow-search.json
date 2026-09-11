@@ -1,0 +1,47 @@
+{
+  "_comment": "Elasticsearch 9.5, self-managed, basic licence. Search p99 on the logs cluster went from 300ms to 3.8s over two weeks. The platform team has a change request open to double the node count and to raise number_of_shards from 5 to 40 on the daily indices.",
+  "cluster": {
+    "nodes": 3,
+    "node_ram_gb": 64,
+    "jvm_heap_per_node": "48g",
+    "total_indices": 640,
+    "total_shards": 6400,
+    "index_pattern": "logs-app-YYYY.MM.DD, created by hand every night by a cron job",
+    "primary_data_per_day_gb": 210,
+    "retention_days": 60,
+    "shards_per_daily_index": { "primaries": 5, "replicas": 1 }
+  },
+  "cat_thread_pool_search": [
+    "node_name       name    active queue rejected",
+    "logs-data-1     search       0     0    18422",
+    "logs-data-2     search       1     0    17993",
+    "logs-data-3     search       0     0    19107"
+  ],
+  "slow_query": {
+    "query": {
+      "bool": {
+        "must": [
+          { "wildcard": { "message": "*timeout*" } },
+          { "match": { "service": "checkout" } },
+          { "term": { "env": "production" } },
+          { "range": { "@timestamp": { "gte": "now-7d", "lte": "now" } } }
+        ]
+      }
+    },
+    "from": 9980,
+    "size": 20,
+    "sort": [{ "@timestamp": "desc" }]
+  },
+  "relevant_mapping_fragment": {
+    "message": { "type": "text" },
+    "service": { "type": "keyword" },
+    "env": { "type": "keyword" },
+    "@timestamp": { "type": "date" }
+  },
+  "what_we_know": [
+    "The UI lets an operator page through results; support has hit 'Result window is too large' when going past page 500.",
+    "Nobody has run the query with \"profile\": true.",
+    "The cron job that creates tomorrow's index sometimes fails, and then writes land in yesterday's index.",
+    "Disk on each node is at 71%."
+  ]
+}

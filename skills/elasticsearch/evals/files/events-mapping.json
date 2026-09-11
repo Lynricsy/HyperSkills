@@ -1,0 +1,85 @@
+{
+  "_comment": "GET /events/_mapping and GET /events/_settings on our production cluster (Elasticsearch 9.5, basic licence, 3 data nodes, 64 GB RAM each). The index takes ~40M documents a day from our app servers and is 6 months old. Two things happen daily: (a) indexing rejects some documents, (b) the ops dashboard's terms aggregation on `message` fails.",
+  "settings": {
+    "index": {
+      "number_of_shards": "3",
+      "number_of_replicas": "1",
+      "refresh_interval": "1s"
+    }
+  },
+  "mappings": {
+    "dynamic": true,
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "event_id": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+      },
+      "session_id": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+      },
+      "url": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+      },
+      "status_code": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+      },
+      "tags": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+      },
+      "response_time_ms": { "type": "float" },
+      "message": {
+        "type": "text",
+        "fields": { "keyword": { "type": "keyword" } }
+      },
+      "labels": {
+        "type": "object",
+        "dynamic": true
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+          "plan": { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } }
+        }
+      }
+    }
+  },
+  "_sample_document": {
+    "@timestamp": "2026-09-11T04:12:03.114Z",
+    "event_id": "9f2c1b7e-0d4a-4f21-9a3e-1c8b77ee0a41",
+    "session_id": "s-88213004",
+    "url": "/api/v2/checkout/confirm?ref=email",
+    "status_code": "503",
+    "tags": "checkout,retry,eu-west-1",
+    "response_time_ms": 3841.5,
+    "message": "upstream connect error or disconnect/reset before headers. reset reason: connection termination while calling payments-gateway:8443 for order 88213004",
+    "labels": {
+      "k8s_pod_name": "checkout-7d9f8c-2x4qz",
+      "k8s_container_id": "containerd://8f1c...",
+      "deploy_sha": "3f21ab9",
+      "experiment_bucket_2026_09_11": "control"
+    },
+    "customer": { "id": "c-40021", "plan": "enterprise" }
+  },
+  "_errors_seen_in_the_last_24h": [
+    "illegal_argument_exception: Limit of total fields [1000] has been exceeded while adding new fields [1001]",
+    "illegal_argument_exception: Fielddata is disabled on [message] in [events]. Text fields are not optimised for operations that require per-document field data like aggregations and sorting, so these operations are disabled by default."
+  ],
+  "_access_patterns_from_the_dashboard_team": {
+    "event_id": "returned in results, never searched or aggregated",
+    "session_id": "returned in results, never searched, filtered or aggregated",
+    "url": "filtered by exact value and used as a terms aggregation key",
+    "status_code": "filtered by exact value, and bucketed by range (2xx/4xx/5xx)",
+    "tags": "filtered by exact value, one document can carry several tags",
+    "response_time_ms": "percentile and average aggregations only, two decimal places is plenty",
+    "message": "full-text search only; the dashboard also wants a top-10 of recurring messages",
+    "labels": "free-form key/value from the k8s environment, unbounded key names, only ever filtered on a handful of known keys",
+    "customer.id": "filtered by exact value",
+    "customer.plan": "filtered by exact value and aggregated"
+  }
+}

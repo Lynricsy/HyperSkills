@@ -1,0 +1,73 @@
+{
+  "_comment": "Product catalogue on Elasticsearch 9.5 (basic licence). 240k products. Users complain that searching 'running shoes' puts accessories and shoe-care products above actual running shoes, and that 'nike air max' returns almost nothing.",
+  "mapping": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "analyzer": "english"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "brand": { "type": "keyword" },
+      "category_path": { "type": "keyword" },
+      "price_cents": { "type": "integer" },
+      "popularity": { "type": "integer" },
+      "in_stock": { "type": "boolean" },
+      "autocomplete": {
+        "type": "text",
+        "analyzer": "edge_ngram_analyzer"
+      }
+    }
+  },
+  "analysis_settings": {
+    "analyzer": {
+      "edge_ngram_analyzer": {
+        "tokenizer": "edge_ngram_tokenizer",
+        "filter": ["lowercase"]
+      }
+    },
+    "tokenizer": {
+      "edge_ngram_tokenizer": {
+        "type": "edge_ngram",
+        "min_gram": 2,
+        "max_gram": 15,
+        "token_chars": ["letter", "digit"]
+      }
+    }
+  },
+  "current_search_body": {
+    "query": {
+      "bool": {
+        "must": [
+          { "match": { "description": "running shoes" } },
+          { "match": { "brand": "nike" } }
+        ],
+        "should": [
+          { "term": { "title.keyword": "running shoes" } }
+        ]
+      }
+    },
+    "sort": [
+      { "popularity": "desc" },
+      { "price_cents": "asc" }
+    ],
+    "size": 24
+  },
+  "what_the_product_owner_tried_last_sprint": [
+    "Raised the should-clause boost to 50 so that the exact title match would win.",
+    "Added a second sort key on in_stock.",
+    "Asked for a synonym file but nobody knows whether it belongs at index time or search time."
+  ],
+  "top_hits_today_for_running_shoes": [
+    { "_id": "P-9931", "title": "Shoe Care Kit - Running", "_score": 1.0, "popularity": 9120 },
+    { "_id": "P-2210", "title": "Running Socks 3-pack", "_score": 1.0, "popularity": 8800 },
+    { "_id": "P-4417", "title": "Nike Pegasus 41 Running Shoe", "_score": 1.0, "popularity": 400 }
+  ],
+  "top_hits_today_for_nike_air_max": [],
+  "notes": [
+    "There is no judgement set and no offline metric; relevance is signed off by one person eyeballing page 1.",
+    "The autocomplete field is queried with a plain match on the same field it is indexed with."
+  ]
+}

@@ -1,0 +1,119 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin elasticsearch
+skill: elasticsearch
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: elastic-agent-skills
+    kind: repo
+    repo: elastic/agent-skills
+    url: https://github.com/elastic/agent-skills
+    paths:
+      - plugins/elasticsearch/skills/elasticsearch-index-design
+      - plugins/elasticsearch/skills/elasticsearch-query-optimization
+      - plugins/elasticsearch/skills/elasticsearch-search-relevance
+      - plugins/elasticsearch/skills/elasticsearch-esql
+      - plugins/elasticsearch/skills/elasticsearch-cluster-health
+      - plugins/elasticsearch/skills/elasticsearch-ingest
+      - plugins/elasticsearch/skills/elasticsearch-reindex
+    ref: main
+    commit: baa511126ba2dc37b52e273b52734f8e4e0d323c
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The backbone: access-pattern-to-field-type decision procedure, the multi-field rule, the mapping-explosion review checks (analysed-but-not-searched fields, a keyword sub-field without ignore_above, dynamic free-form objects, doc_values on retrieve-only fields), the profile-driven query optimisation loop with its ban on proposing capacity before the profile names a clause, the split between query rules for deterministic pinning and multi_match for organic ranking plus the fact that a ruleset pins nothing without a rule query, the allocation-explain reading order (trigger versus decider) and the yellow/red/no_valid_shard_copy classification, the ES|QL command and directive inventory with its version gates, and the reindex-then-alias-swap procedure."
+    notes: "Elastic's own skill repository is licensed Apache-2.0, which is independent of the Elasticsearch product's AGPL-3.0/Elastic-Licence-2.0/SSPL triple licence, so this is merged. Two bindings were stripped as required by docs/skill-standard.md section 1.2/1.3: the `metadata.universal` frontmatter field, and the `<!-- begin-partial: preamble -->` block plus the closing `Operations` table in every skill, which mandate the `elastic` CLI and forbid calling the HTTP API. This skill writes REST endpoints instead (research/elasticsearch.md ruling 1). Its claim that dynamic mapping locks a string to `text` was corrected to `text` plus a `keyword` sub-field after measurement (ruling 4). The kibana/, observability/ and security/ plugins in the same repository are out of scope and were not used."
+  - id: clawic-elasticsearch
+    kind: repo
+    repo: clawic/skills
+    url: https://github.com/clawic/skills
+    paths: [skills/elasticsearch]
+    ref: main
+    commit: f825206afbf1c697202533a9187be68c7b697e0e
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Everything the official skills omit: the shard-count formula against a target shard size, the 20-shards-per-GB-of-heap budget and cluster.max_shards_per_node, the min(RAM/2, 31g) heap rule and the compressed-object-pointer threshold, the exception-type-to-cause table, the seven-step search triage ladder, deep pagination with search_after plus a point-in-time, incident handling for flood-stage watermarks and circuit breakers, the rebuildable-bulk-load pattern (refresh_interval -1 and replicas 0, then restore), the _bulk errors-flag trap, percolator as reverse search, and the discipline of proving a relevance change with _rank_eval."
+    notes: "Harness bindings stripped: the `slug`/`homepage`/`changelog` frontmatter keys, `metadata.clawdbot` (emoji, requires, os, configPaths, displayName) and `metadata.openclaw.requires.config`, and the whole Configuration section that stores user variables in ~/Clawic/data/elasticsearch/config.yaml. The one idea worth keeping from it - that the target shard size is a parameter rather than a constant - survives as an explicit 10-50 GB range in the formula. Its rules overlapping elastic-agent-skills (text versus keyword, filter context, reindex) were resolved in favour of the official wording."
+  - id: opensearch-launchpad
+    kind: repo
+    repo: opensearch-project/opensearch-agent-skills
+    url: https://github.com/opensearch-project/opensearch-agent-skills
+    paths:
+      - skills/opensearch-skills/search/opensearch-launchpad/opensearch_semantic_search_guide.md
+      - skills/opensearch-skills/search/opensearch-launchpad/evaluation_guide.md
+    ref: main
+    commit: 5076c03d24fdd61d9b06fa4e451c900023ad00da
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two engine-independent pieces: the retrieval-method comparison (BM25 versus dense versus sparse versus hybrid, by exact-match precision, semantic recall, out-of-vocabulary behaviour, storage and query cost), and the offline relevance-evaluation discipline - build a graded judgement set first, pick the metric to match the task (precision/recall, MRR for navigational, nDCG for graded ranking), and measure before and after rather than eyeballing one page."
+    notes: "Cross-vendor upstream, used only where OpenSearch and Elasticsearch genuinely share semantics. Everything OpenSearch-specific was excluded because it does not exist in Elasticsearch: the neural query, ml-commons model registration and connectors, search pipelines with normalization processors, agentic search, and PPL. Its hybrid-search recipe was replaced by the Elasticsearch RRF retriever, and then by the basic-licence bool/should fallback after measurement showed RRF is Enterprise-only (research/elasticsearch.md rulings 6 and 11)."
+  - id: elastic-rally
+    kind: repo
+    repo: elastic/rally
+    url: https://github.com/elastic/rally
+    paths: [skills/running-benchmarks]
+    ref: master
+    commit: 5401d96f458ecbce348e4a6913915b8510da3f5a
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The benchmarking honesty rules in references/diagnostics.md: a load generator co-located with the cluster under test perturbs its own measurements, a benchmark against a cluster the harness did not provision cannot collect host-level metrics (CPU, GC, disk I/O, index size) and is therefore directional rather than reproducible, and benchmarking production is invalid in both directions because the tooling mutates cluster state and competing traffic distorts the result."
+    notes: "Only the methodology was taken. Rally's own pipeline, track and challenge command line is the manual for a separate tool, not Elasticsearch knowledge, and is out of scope."
+  - id: elastic-docs
+    kind: docs
+    url: https://www.elastic.co/docs/
+    license: CC-BY-NC-ND-4.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read as the final authority for every fact in this skill that was not settled by measurement: field type semantics, analysis chain behaviour, query and aggregation contracts, retriever and inference APIs, data stream and ILM semantics, allocation deciders and watermarks, and licence tiers."
+    notes: "Source repository elastic/docs-content reports NOASSERTION through the GitHub API; its LICENSE file was read and is Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International. NoDerivatives forbids distributing an adapted version and NonCommercial forbids commercial redistribution, so this cannot be merged under the repository's MIT licence no matter how thoroughly it is rewritten. Facts were verified against it; no sentence, table or code block was copied. This is the same ruling as graphql-spec in wave 4."
+  - id: elasticsearch-repo
+    kind: repo
+    repo: elastic/elasticsearch
+    url: https://github.com/elastic/elasticsearch
+    paths:
+      - x-pack/plugin/rank-rrf/src/main/java/org/elasticsearch/xpack/rank/rrf/RRFRankPlugin.java
+    ref: main
+    commit: 47b36cb8a29859139b468948d67ff779c3244f98
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to establish two facts that documentation states imprecisely: the current major version (9.5.3 current, 8.19.21 the last 8.x) from the releases and branch lists, and the licence tier of the fusion retrievers - RANK_RRF_FEATURE and LINEAR_RETRIEVER_FEATURE are both declared License.OperationMode.ENTERPRISE, which confirms the HTTP 403 measured on a basic licence is a tier gate rather than an expired trial."
+    notes: "The product is triple-licensed AGPL-3.0 / Elastic License 2.0 / SSPL-1.0 (the GitHub API reports NOASSERTION); AGPL is recorded here as the most restrictive open option. None of the three permits merging into an MIT-licensed work, so no code, comment or documentation text was copied - only the two facts above, which are not copyrightable expression."
+  - id: vespa-es-migration
+    kind: repo
+    repo: vespa-engine/skills
+    url: https://github.com/vespa-engine/skills
+    paths: [elasticsearch-migration]
+    ref: main
+    commit: 65b9ae3282264aa1f9d386dc5f58973e91210bee
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage checklist: its Elasticsearch-to-Vespa concept mapping enumerates the Elasticsearch surface (index, mapping, _source, analyzers, nested, aliases, _bulk, reindex, function_score, dense_vector plus kNN, sparse vectors, ingest pipelines), which was used to find two gaps in this skill - the object-array flattening trap and the _source storage modes."
+    notes: "No content merged: the body is Vespa schema and YQL syntax, and the skill itself instructs readers not to copy Elasticsearch documentation into it."
+  - id: wshobson-vector-tuning
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths: [plugins/llm-application-dev/skills/vector-index-tuning]
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to cross-check the direction of the HNSW trade-offs (graph connectivity against memory, build effort against recall, quantization against precision) against an engine-independent source."
+    notes: "No content merged. Its parameter names are the FAISS/hnswlib ones (M, efConstruction, efSearch); Elasticsearch spells them index_options.m and index_options.ef_construction, and has no ef_search at all - the query-side knob is num_candidates. Copying its table verbatim would have produced field names Elasticsearch rejects (research/elasticsearch.md ruling 5)."
+  - id: face0b1101-es
+    kind: repo
+    repo: face0b1101/elasticsearch-skill
+    url: https://github.com/face0b1101/elasticsearch-skill
+    paths: [SKILL.md]
+    ref: main
+    commit: 850bfeffb00fbd01b73edc9850c18946e9a93658
+    license: CC-BY-4.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to cross-check that the REST paths this skill quotes still exist on the 9.x line; the upstream states it is tested against Elastic Stack 9.3.1."
+    notes: "No content merged. It is the maintained fork of davidgeorgehope/elasticsearch-skill, which was rejected for being 6.5 months stale with no licence file. Attribution under CC-BY-4.0 would be required if any text had been used; none was."

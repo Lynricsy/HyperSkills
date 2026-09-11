@@ -1,0 +1,74 @@
+[
+  {
+    "skills": ["elasticsearch"],
+    "query": "Our events index keeps hitting the 1000-field limit and the ops dashboard's aggregation on `message` fails every morning. events-mapping.json has the mapping, the settings, one real document, the errors and what each field is actually used for. Tell me exactly what to change and how to roll it out.",
+    "files": ["evals/files/events-mapping.json"],
+    "expected_behavior": [
+      "Traces the `Limit of total fields [1000] has been exceeded` error to the dynamic `labels` object: every distinct Kubernetes key (`k8s_container_id`, `experiment_bucket_2026_09_11`, ...) becomes a new mapped field, and prescribes `flattened` for it",
+      "States that `index.mapping.total_fields.limit` must not simply be raised, and that `index.mapping.total_fields.ignore_dynamic_beyond_limit` is worse than the error because it turns a loud rejection into fields silently dropped and marked `_ignored`",
+      "Explains the `Fielddata is disabled on [message]` failure as an aggregation on a `text` field AND states explicitly that `fielddata: true` must not be used to silence it, giving the reason (it uninverts every distinct term of the field into heap, which is how clusters get killed)",
+      "Flags `message.keyword` having no `ignore_above`: the whole multi-hundred-character log line is indexed as one term, useless as an aggregation key and a per-document cost - either drop the sub-field or bound it",
+      "Converts the filter/aggregate-only fields (`url`, `status_code`, `tags`, `customer.id`, `customer.plan`) from `text` (+`.keyword`) to plain `keyword`, and applies `doc_values: false` (or `index: false`) to `session_id` and `event_id`, which are returned in hits but never filtered, sorted or aggregated",
+      "States that none of these type changes can be applied to the live index: mappings are append-only, so the fix is a new index with the corrected mapping, `POST /_reindex`, then an alias swap - and recommends `dynamic: strict` so an unexpected field fails loudly instead of being guessed",
+      "Notes that a 40M-document-per-day time-based index should be a data stream with ILM rollover rather than a single growing index, or at minimum lives behind an alias",
+      "Keeps the answer anchored to the Elasticsearch 9.5 stated in the file: if it reproduces on a different version it says which one and which findings may not transfer, rather than presenting measurements from another version as facts about this cluster"
+    ]
+  },
+  {
+    "skills": ["elasticsearch"],
+    "query": "Search relevance on our product catalogue is bad - catalog-relevance.json has the mapping, the analysis settings, the query we run today, the current top hits and the things we already tried. 'running shoes' ranks accessories first and 'nike air max' returns nothing at all. Fix it.",
+    "files": ["evals/files/catalog-relevance.json"],
+    "expected_behavior": [
+      "Identifies the sort clause as the reason relevance is irrelevant: `sort` on `popularity`/`price_cents` replaces score ordering entirely, so no boost anywhere in the query can change the result order - the sort has to go before anything else is tuned",
+      "Explains that `nike air max` returns nothing because `brand` is a `keyword` field that `match` does not analyse the way a human types it, and because the brand clause sits in `must` and therefore ANDs every query to empty - brand belongs in `filter` as a `term` on the exact keyword value, driven by a facet rather than the free-text box",
+      "Points out that `title.keyword` does not exist in the mapping (`title` is a plain `text` field with no sub-field), so the `should` clause silently matches nothing whatever its boost - and says a `term` on a `.keyword` sub-field is the wrong instrument for a human-typed phrase anyway",
+      "Replaces the single-field `match` on `description` with a `multi_match` across `title` and `description` with the short, high-precision field boosted, and mentions `best_fields` versus `cross_fields` and that `cross_fields` requires the same analyzer on every field, which `english` on `title` and `standard` on `description` violate",
+      "Warns that the `edge_ngram` analyzer on `autocomplete` must not be used at search time: querying it with the same analyzer expands the query term into all of its prefixes so everything matches everything - the field needs `search_analyzer: standard`",
+      "Answers the synonym question with search time, and gives both reasons: index-time synonyms require a reindex of all 240k documents for every edit, and they inflate document frequency, which distorts IDF and therefore every other query's scores",
+      "Requires the change to be measured against a graded judgement set with `_rank_eval` and an explicit metric (nDCG@10 or similar) before and after, instead of one person eyeballing page one"
+    ]
+  },
+  {
+    "skills": ["elasticsearch"],
+    "query": "We want to add semantic search to our existing BM25 catalogue on Elasticsearch 9.5 and blend the two. We are on the basic licence and self-hosting. Give me the mapping, the query and the recall knobs, and tell me what will bite us.",
+    "files": [],
+    "expected_behavior": [
+      "States that the whole Inference API is licence-gated above basic, so it is not only RRF that is unavailable: `semantic_text` ingestion, ELSER, and semantic reranking (`text_similarity_reranker` / ES|QL `RERANK`) all fail on basic, and embeddings therefore have to be produced outside the cluster",
+      "Warns that this licence failure is delayed and therefore dangerous: the `semantic_text` mapping is accepted, `GET /_inference/_all` still lists the preconfigured endpoints, and only the first indexed document returns `403 current license is non-compliant for [inference]`, so a smoke test that only creates indices passes",
+      "Names the `rrf` and `linear` retrievers as the built-in fusion primitives and states they return 403 on basic, then gives a working substitute: a `knn` clause and a `match`/`multi_match` clause together inside `bool.should` with tuned boosts, or reciprocal-rank fusion of two result lists in the application, noting BM25 and vector scores are on incomparable scales",
+      "Uses `num_candidates` as the recall knob for approximate kNN and does not invent an `ef_search` parameter; the index-side knobs are `index_options.m` and `index_options.ef_construction`, which are fixed at index creation",
+      "Gives the actual 9.x quantization defaults rather than assuming float storage, including where the behaviour switches: roughly `int8_hnsw` for smaller dimension counts and `bbq_hnsw` with `rescore_vector.oversample` from 384 dimensions upward, and concludes that recall must be measured against an exact-search baseline",
+      "Warns that vector values are excluded from `_source` by default in 9.x (`index.mapping.exclude_source_vectors`), so code that expects to read the embedding back out of a hit silently gets nothing",
+      "Puts the filter inside the `knn` clause rather than around it, explaining that a filter outside is applied after the graph walk and can return fewer than `k` hits, and that the lexical and vector legs must use identical filters or the fusion is combining two different candidate sets",
+      "Insists the hybrid weighting is validated with a judgement set and `_rank_eval` (which does work on basic) rather than by looking at a few queries"
+    ]
+  },
+  {
+    "skills": ["elasticsearch"],
+    "query": "Logs cluster p99 went from 300ms to 3.8s. slow-search.json has the cluster shape, the thread pool counters, the slow query and the mapping. The platform team wants to double the nodes and go to 40 shards per daily index - sign off or push back, and give me the actual fix.",
+    "files": ["evals/files/slow-search.json"],
+    "expected_behavior": [
+      "Pushes back on adding nodes and shards, and requires `\"profile\": true` on the slow query before any capacity change, so the fix is driven by the clause the profile names rather than by the assumption that the cluster is too small",
+      "Identifies the leading wildcard `message:*timeout*` as a dominant cost - a leading `*` cannot use the inverted index and enumerates terms - and rewrites it as a `match` (or `match_phrase`) on the analysed `message` `text` field, which the mapping already supports",
+      "Moves the non-scoring clauses (`service`, `env`, the `@timestamp` range) out of `must` into `filter`, explaining that filter context skips scoring and is cacheable, that `match` on the `keyword` field `service` should be `term`, and that the unrounded `now` defeats the request cache",
+      "Identifies `from: 9980` with `size: 20` as exactly the `index.max_result_window` boundary of 10000, explains that every shard must sort and ship 10000 hits to the coordinating node, replaces it with `search_after` on a tie-broken sort plus a point-in-time, and explicitly refuses to raise `max_result_window`",
+      "Says more shards is the wrong direction and derives the right number from data volume rather than node count: `ceil(primary_gb / target_shard_size_gb)` with a 10-50 GB target makes 210 GB/day about 5 primaries of ~42 GB, so the existing setting is already correct",
+      "Notices that 640 indices is inconsistent with the stated 60-day retention and treats the un-deleted indices - 6400 shards on 3 nodes, far past the 20-shards-per-GB-of-heap budget and near `cluster.max_shards_per_node` - as a primary cost, since every search fans out across all of them",
+      "Flags the 48 GB heap as misconfigured: heap should be `min(RAM/2, 31g)`, and above roughly 32 GB the JVM loses compressed object pointers, so 48 GB addresses fewer objects than 31 GB while leaving only 16 GB of page cache for Lucene",
+      "Reads the `rejected` column in the search thread pool as a cumulative counter since node start, not a rate, and says two samples are needed before concluding anything from it",
+      "Replaces the hand-rolled nightly `logs-app-YYYY.MM.DD` cron indices with a data stream plus ILM rollover, which also removes the failure mode where the cron job fails and writes land in yesterday's index"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "我们的服务凌晨告警了，p99 延迟飙升，手里只有 OTel 追踪与指标（都在 checkout-alert-signals.md 里）。怎么从这个告警反查到该改的代码？还缺哪些埋点？",
+    "files": ["evals/files/checkout-alert-signals.md"],
+    "expected_behavior": [
+      "Treats this as a production-signal investigation: reads the exemplar trace top-down, sees that 4381 ms of the 4812 ms is `db.connect` with `pool.wait_ms=4380`, and concludes the request is queueing for a connection rather than doing slow work",
+      "Correlates that with `db.client.connections.usage` pinned at the pool maximum of 40 and 268 pending requests, and directs the fix at the connection pool and whatever holds connections, not at any search or index configuration",
+      "Names the missing instrumentation in OpenTelemetry terms - spans or attributes covering connection acquisition, checkout hold time, and the downstream call that holds connections open - so the next alert points at the code",
+      "Does not turn the answer into Elasticsearch index design, mapping, query DSL or shard-sizing advice, and does not propose Elasticsearch as the place to fix this",
+      "skill_read is false for the `elasticsearch` skill"
+    ]
+  }
+]
