@@ -1,27 +1,112 @@
-# HyperSkills
+<h1 align="center">HyperSkills</h1>
 
-整合型 Agent Skill 集合：**每个技术生态 / 每类常见任务 = 一个独立 skill**。
-每个 skill 都不是对某个上游仓库的搬运，而是把该领域多个高质量上游 skill **全部精编重写**
-合成的一份内容——去重、消歧、裁决冲突、补齐缺口，并在 `SOURCES.yaml` 中固定 commit
-记录全部上游，便于后续追踪上游更新。
+<p align="center">
+整合型 Agent Skill 集合：一个技术生态或一类任务 = 一个 skill，由 450 个上游精编重写合成，全部固定 commit。
+</p>
 
-## 设计原则
+<p align="center">
+<a href="LICENSE"><img alt="许可: MIT" src="https://img.shields.io/github/license/Lynricsy/HyperSkills"></a>
+<a href="skills/"><img alt="skill 数量" src="https://img.shields.io/github/directory-file-count/Lynricsy/HyperSkills/skills?type=dir&label=skills"></a>
+<a href="https://github.com/Lynricsy/HyperSkills/commits/main"><img alt="最近提交时间" src="https://img.shields.io/github/last-commit/Lynricsy/HyperSkills"></a>
+</p>
 
-1. **扁平**。所有 skill 平铺在 `skills/<name>/`。所有主流 agent（Claude Code / Codex /
-   Cursor / OMP）的 skill 发现都是一级扫描，嵌套分类目录不会被发现；分类只用 frontmatter
-   的 `metadata.category` 与本页目录表表达。
-2. **一个生态一个 skill**。不做 `swiftui` / `swift-concurrency` / `swiftdata` 这种碎片化
-   切分——它们属于同一次任务，应当同时在场。
-3. **精编重写，不是聚合**。上游内容一律重写：统一术语、统一章节结构、删掉模型本来就会的
-   常识、只留下边缘情况与易错点。代码示例按需调整并在本机跑通。
-4. **上游可追溯**。`SOURCES.yaml` 记录每个上游的 repo、路径、分支、合入时的 commit、许可与
-   贡献内容；`tools/check_upstream.py` 可以列出自那次 commit 以来上游的全部变更。
-5. **只收活跃高质量上游**。知名、认可度高、6 个月内有推送；陈旧 / 低质 / 无人维护的一律不
-   合入，并在 `research/<skill>.md` 中留下 REJECT 记录与理由。
-6. **评测先行**。动笔前先写 ≥3 个评测场景（含 ≥1 负例）并跑无 skill 基线；skill 必须填补
-   基线暴露出的缺口，否则视为无效。
+<p align="center">
+<a href="#安装">安装</a> ·
+<a href="#skill-目录">skill 目录</a> ·
+<a href="docs/skill-standard.md">编写标准</a> ·
+<a href="docs/workflow.md">五阶段流水线</a> ·
+<a href="https://github.com/Lynricsy/HyperSkills/issues">反馈</a>
+</p>
 
-## 目录
+> **skill 会以 agent 的全部权限运行。** 装之前把 `SKILL.md` 和 `scripts/` 读一遍——
+> 这条对本仓库和任何第三方 skill 都一样。
+
+状态：活跃开发中，53 个 skill 已过静态门与行为评测；仓库暂无 CI。维护者
+[@Lynricsy](https://github.com/Lynricsy)，问题走 [Issues](https://github.com/Lynricsy/HyperSkills/issues)。
+
+## 这是什么
+
+一个 skill 对应 agent 真正会遇到的一整类任务，而不是对某个上游仓库的搬运。
+
+- **一个生态一个 skill。** `apple` 一个 skill 同时覆盖 SwiftUI 数据流、Swift 6 严格并发、
+  SwiftData 与 Instruments，不切成 `swiftui` / `swift-concurrency` / `swiftdata` 三个——
+  它们属于同一次任务，应当同时在场。
+- **精编重写，不是聚合。** 53 个 `SOURCES.yaml` 里共 581 条上游记录（436 条内容重写合入、
+  145 条仅阅读对齐），分布在 450 个不同仓库。合入时统一术语、裁决冲突、删掉模型本来就会的
+  常识，只留边缘情况、静默失败、版本差异与易错点。
+- **先有评测再有正文。** 动笔前先写评测场景（每个 skill ≥3 个，含 ≥1 个「近似但不该触发」
+  的负例）并跑无 skill 基线；skill 必须让至少一条基线未达成的行为达成，否则判为无效、回炉重写。
+  当前 244 个场景。
+- **上游可追溯。** 每条上游记录固定合入时的 40 位 commit，`tools/check_upstream.py` 能列出
+  自那次 commit 以来上游在被引用路径下的全部变更，区分「仓库动了但引用路径没动」和「真的变了」。
+
+## 不做什么
+
+- **不建嵌套分类目录。** `skills/` 保持扁平（`skills/<name>/SKILL.md`），因为主流 agent 的
+  skill 发现是一级扫描；分类只在 frontmatter 的 `metadata.category` 与下方目录表里表达。
+- **不收陈旧或空洞的上游。** 6 个月内无推送、或正确性抽查两条以上对不上官方文档的候选直接
+  REJECT，连理由留在 `research/<skill>.md`，避免下一批重复讨论同一个候选。
+- **不碰专有许可的内容。** Anthropic 的 docx / pptx / xlsx / pdf skill 只作参考基准
+  （`relation: reference`），未复制任何文字、脚本或数据文件。
+- **不给多选项。** 正文只写裁决后的一种做法加一个逃生口，不罗列可选库；裁决过程留在
+  `research/`，不进 skill。
+- **没有 CI。** 下面两条质量门命令要在本地跑；红了不会有人自动告诉你。
+- **正文英文。** `SKILL.md`、`references/`、`scripts/` 注释一律英文（给模型读），
+  README、`docs/`、`research/` 一律中文（给人读）。
+
+## 安装
+
+### npx skills（任意 agent）
+
+```bash
+# 装一个
+npx skills@latest add Lynricsy/HyperSkills --skill technical-writing --agent universal --copy --yes
+
+# 装全部 53 个
+npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy --yes
+```
+
+两条都装到项目内的 `./.agents/skills/`；加 `-g` 改装到用户级。
+
+### Claude Code 插件市场
+
+```
+/plugin marketplace add Lynricsy/HyperSkills
+/plugin install technical-writing@hyperskills
+/plugin install all@hyperskills
+```
+
+插件名与 skill 目录名一致，`all` 是全部 53 个。清单是 `.claude-plugin/marketplace.json`。
+
+### 手工复制
+
+```bash
+git clone https://github.com/Lynricsy/HyperSkills.git
+cp -r HyperSkills/skills/technical-writing ~/.agents/skills/
+```
+
+目标目录换成你的 agent 自己的 skill 目录也可以，skill 是自包含的。
+
+## 装完之后确认它在
+
+```console
+$ npx skills@latest ls
+Project Skills
+
+technical-writing ./.agents/skills/technical-writing
+  Agents: Amp, Codex, Cursor, Droid, Gemini CLI +4 more  Source: Lynricsy/HyperSkills
+```
+
+`--agent universal` 会把 skill 写进 `./.agents/skills/`，再链接到本机识别到的 agent 目录；
+上面那次运行识别到 9 个（Amp、Codex、Cursor、Droid、Gemini CLI、GitHub Copilot、
+Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
+
+之后不需要手动指定：skill 靠 frontmatter 的 `description` 触发，触发关键词与否定边界
+（`Do not use for …`）都写在里面。
+
+## skill 目录
+
+53 个：框架 20、平台 17、任务 15、元技能 1。下表由 `tools/build_catalog.py` 生成。
 
 <!-- catalog:start -->
 
@@ -83,74 +168,81 @@
 
 <!-- catalog:end -->
 
-## 安装
+## 规模
 
-### `npx skills`（任意 agent）
-
-```bash
-npx skills@latest add Lynricsy/HyperSkills --skill apple
-npx skills@latest add Lynricsy/HyperSkills --skill '*'     # 全部
-```
-
-### Claude Code 插件市场
-
-```
-/plugin marketplace add Lynricsy/HyperSkills
-/plugin install apple@hyperskills
-/plugin install all@hyperskills
-```
-
-### 手工安装
-
-```bash
-git clone https://github.com/Lynricsy/HyperSkills.git
-cp -r HyperSkills/skills/apple ~/.agents/skills/
-```
+| 项 | 数量 | 数字来自 |
+|---|--:|---|
+| skill | 53 | `skills/*/SKILL.md` |
+| 上游记录（合入 / 仅参考） | 581（436 / 145） | `skills/*/SOURCES.yaml` 的 `upstreams` |
+| 不同上游仓库 | 450 | 同上，按 `repo` 去重 |
+| references 文件 | 482 | `skills/*/references/*.md` |
+| 评测场景 | 244 | `skills/*/evals/evals.json` |
+| 自包含脚本 | 20 | `skills/*/scripts/` |
 
 ## 仓库结构
 
 ```
 HyperSkills/
-├── skills/<name>/          # 扁平的 skill 目录
-│   ├── SKILL.md            # frontmatter + 正文（英文）
-│   ├── SOURCES.yaml        # 上游溯源，手工维护
-│   ├── NOTICE.md           # 生成，勿改
-│   ├── references/*.md     # 按需加载的深度内容
-│   ├── evals/evals.json    # 行为评测场景
-│   ├── scripts/            # 可选，自包含
-│   └── assets/             # 可选
+├── skills/<name>/              # 扁平的 skill 目录
+│   ├── SKILL.md                # frontmatter + 正文（英文，≤500 行）
+│   ├── SOURCES.yaml            # 上游溯源，手工维护
+│   ├── NOTICE.md               # 生成，勿改
+│   ├── references/*.md         # 按需加载的深度内容（≤600 行，>100 行须带 Contents）
+│   ├── evals/evals.json        # 行为评测场景
+│   ├── evals/files/            # 评测夹具（不得命名为 SKILL.md）
+│   ├── scripts/                # 可选，PEP 723 自包含
+│   └── assets/                 # 可选
 ├── docs/
-│   ├── skill-standard.md   # 结构 / 写作 / 溯源规范
-│   ├── workflow.md         # 新增与更新 skill 的五阶段流水线
-│   └── roadmap.md          # 后续批次主题路线图
-├── research/<name>.md      # 候选调研、冲突裁决、评测结果（中文）
-├── templates/              # 脚手架
-└── tools/                  # 校验 / 上游检查 / 目录生成 / 评测运行
+│   ├── skill-standard.md       # 结构 / 写作 / 溯源规范，校验器逐条对应
+│   ├── workflow.md             # 新增与更新 skill 的五阶段流水线
+│   └── roadmap.md              # 后续批次主题路线图
+├── research/<name>.md          # 候选调研、冲突裁决、基线缺口、评测结果（中文）
+├── templates/                  # skill 与 research 脚手架
+├── tools/                      # 校验 / 上游检查 / 目录生成 / 评测运行
+├── .claude-plugin/             # 生成的 Claude Code 市场清单
+└── THIRD_PARTY_NOTICES.md      # 生成的上游许可与署名汇总
 ```
 
-## 维护
+## 参与维护
 
-新增或更新 skill 必须走 `docs/workflow.md` 的五个阶段。常用命令：
+新增或更新一个 skill 必须依次走完 [`docs/workflow.md`](docs/workflow.md) 的五个阶段，
+跳阶段的产物不接受：
+
+| 阶段 | 做什么 | 产物 |
+|---|---|---|
+| A 调研 | ≥12 个候选，用 `gh api` 核对 stars / `pushed_at` / license，读原始 `SKILL.md` 再打分 | `research/<name>.md` 候选表，含 REJECT 行与理由 |
+| B 审查 + 评测先行 | 通读前 5–8 名、裁决冲突、定合入清单，然后先写评测并跑无 skill 基线 | 合入清单、`evals/evals.json`、基线缺口 |
+| C 重写 | 按标准写 `SKILL.md` 与 `references/`，脚本本机跑通，`--pin` 固定上游 commit | skill 正文、`SOURCES.yaml` |
+| D 校验 | 静态校验 + 安装冒烟 + 有 skill 评测，与基线逐条对照 | 评测结果表；缺口未填补则回 C |
+| E 记录与提交 | 记录「选了谁、拒了谁、冲突怎么裁」，单 skill 单次提交 | 日志 + commit |
+
+常用命令：
 
 ```bash
-uv run tools/new_skill.py <name> --category platform   # 脚手架
+uv run tools/new_skill.py <name> --category platform   # 脚手架（platform|framework|task|meta）
 uv run tools/run_evals.py <name> --baseline            # 无 skill 基线
-uv run tools/validate_skills.py                        # 质量门
+uv run tools/run_evals.py <name>                       # 有 skill
+uv run tools/validate_skills.py                        # 静态质量门
 uv run tools/check_upstream.py                         # 上游漂移
 uv run tools/check_upstream.py --pin <name>            # 固定 commit
 uv run tools/build_catalog.py                          # 生成目录与 NOTICE
 ```
 
-提交前必须通过：
+提交前这两条必须绿：
 
-```bash
-uv run tools/validate_skills.py && uv run tools/build_catalog.py --check
+```console
+$ uv run tools/validate_skills.py | tail -1
+53 skill(s): 0 error(s), 0 warning(s)
+$ uv run tools/build_catalog.py --check
+catalog is current (53 skill(s))
 ```
+
+`NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json` 与本页的目录表区块
+都由 `tools/build_catalog.py` 生成，手工编辑会在 `--check` 处报 stale。
 
 ## 许可
 
 - 本仓库自有内容：[MIT](LICENSE)。
 - 上游材料的许可与署名：见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与各
   `skills/<name>/NOTICE.md`。
-- 专有许可的上游（如 Anthropic 的 docx/pptx/xlsx/pdf skill）仅作为**参考基准**，
-  `relation: reference`，未复制任何文字、脚本或数据文件。
+- 专有许可的上游只作参考基准，未复制任何文字、脚本或数据文件。
