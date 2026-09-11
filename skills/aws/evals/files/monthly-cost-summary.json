@@ -1,0 +1,23 @@
+{
+  "_source": "Finance pasted this out of the console. Single account 111122223333, eu-west-1, month of August.",
+  "TimePeriod": { "Start": "2026-08-01", "End": "2026-08-31" },
+  "TotalUnblendedCost": { "Amount": "41820.55", "Unit": "USD" },
+  "GroupsByService": [
+    { "Service": "Amazon Elastic Compute Cloud - Compute", "Amount": "11240.10", "Note": "38 m5.2xlarge on-demand, running 24/7 for 14 months, average CPU 9%" },
+    { "Service": "EC2 - Other", "Amount": "8930.44", "Note": "of which NAT Gateway data processing 6,110.20 across 3 AZs; gp2 volumes 1,980.00; unattached volumes 410.00" },
+    { "Service": "Amazon Relational Database Service", "Amount": "7455.00", "Note": "db.r6g.4xlarge Multi-AZ prod, plus two db.r6g.2xlarge single-AZ copies named staging-clone and staging-clone-2, all on-demand" },
+    { "Service": "AmazonCloudWatch", "Amount": "5102.31", "Note": "of which custom metrics 3,480.00 (≈11,600 distinct metrics), Logs ingestion 1,210.00, Logs storage 412.31" },
+    { "Service": "AWS Lambda", "Amount": "3990.88", "Note": "620M invocations, all x86_64, p50 duration 180 ms, MemorySize 1769 across the board" },
+    { "Service": "Amazon Simple Storage Service", "Amount": "2604.10", "Note": "410 TB in S3 Standard, no lifecycle rules, ~2% of objects read after 30 days" },
+    { "Service": "Amazon Elastic Container Service for Kubernetes", "Amount": "1520.00", "Note": "8 EKS clusters, 4 of which have zero running pods" },
+    { "Service": "Amazon Data Transfer", "Amount": "977.72", "Note": "cross-AZ chatter between the API tier and the cache tier" }
+  ],
+  "CommitmentCoverage": {
+    "SavingsPlansCoveragePct": 0,
+    "ReservedInstanceCoveragePct": 0,
+    "ComputeOptimizerEnrolled": false
+  },
+  "Budgets": [],
+  "CostAnomalyMonitors": [],
+  "_question_from_finance": "Board wants 30% off this number by the end of next quarter without an availability incident."
+}

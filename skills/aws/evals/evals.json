@@ -1,0 +1,72 @@
+[
+  {
+    "skills": ["aws"],
+    "query": "Review deployer-policy.json before I attach it in production. It is the inline policy on our CodeBuild deploy role, plus that role's trust policy, the permissions boundary we attach to it, and the artifact bucket policy. Tell me what an attacker can actually do with it and give me the corrected JSON.",
+    "files": ["evals/files/deployer-policy.json"],
+    "expected_behavior": [
+      "Names the concrete escalation path rather than saying 'wildcards are bad': `iam:PassRole` on `Resource: \"*\"` combined with `lambda:CreateFunction` / `ec2:RunInstances` / `ecs:RegisterTaskDefinition` / `cloudformation:*` lets the holder pass any assumable role in the account - including an administrator role - to a compute service it controls and read that role's credentials, so the role is effectively account admin",
+      "Fixes PassRole by scoping `Resource` to specific role ARNs or an IAM path and constraining it with `iam:PassedToService` (and/or `iam:AssociatedResourceArn`), not by deleting the statement or by adding an unrelated Deny",
+      "Identifies that `ForAllValues:StringEquals` on `aws:TagKeys` is vacuously true when the key is absent from the request, so a `CreateTags` call that sends no tag keys at all satisfies the condition, and repairs it by adding `\"Null\": {\"aws:TagKeys\": \"false\"}` on the same context key in the same Condition block",
+      "States that the permissions boundary cannot make this safe because a boundary only intersects, never grants, and the boundary as written (`NotAction` of organizations/account/CreateUser/DeleteUser) still permits `iam:PassRole`; and separately notes that a resource-based policy naming an IAM user or role of the same account as `Principal` - the bucket policy's `s3:*` to `user/ci-bot` - is not limited by that principal's permissions boundary",
+      "Flags both confused-deputy holes in the trust policy: the `codebuild.amazonaws.com` service principal has no `aws:SourceAccount` / `aws:SourceArn` condition, and `arn:aws:iam::444455556666:root` trusts the entire external account, so any principal there that is allowed `sts:AssumeRole` can assume this role - the fix is an `sts:ExternalId` condition or a specific role ARN, not a root principal",
+      "Calls out `secretsmanager:GetSecretValue` on `Resource: \"*\"` as read access to every secret in the account (including ones this pipeline does not own) and scopes it to the pipeline's own secret ARNs",
+      "Prescribes evidence rather than assertion for the corrected policy - `aws iam simulate-custom-policy` / `simulate-principal-policy`, IAM Access Analyzer policy validation, or Access Analyzer's generate-policy from CloudTrail - instead of hand-reasoning that the new policy is sufficient",
+      "Does not answer in Terraform HCL or suggest an `aws_iam_policy_document` data source as the fix"
+    ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "orders-api-template.yaml is our SAM template. Load tests pass but in production about 4% of POST /orders calls return 504 and some orders get charged twice. Find out why and give me the corrected template.",
+    "files": ["evals/files/orders-api-template.yaml"],
+    "expected_behavior": [
+      "Traces the 504 to the API type, not to the Lambda: an `AWS::Serverless::HttpApi` is API Gateway v2, whose maximum integration timeout is 30 seconds and is **not** increasable, so a `Timeout: 300` function that runs past 30s returns 504 to the client while the function keeps running and keeps billing - and notes that only a REST API (Regional or private) can be raised above its 29-second default, that an edge-optimized REST API cannot, and that the increase can cost Region-level throttle quota",
+      "Concludes that a ~95-second synchronous fraud call cannot sit behind any API Gateway integration and moves it off the request path - accept-and-enqueue with SQS/EventBridge, or a Step Functions workflow with a status endpoint - rather than proposing to raise the timeout",
+      "Diagnoses the double charge as at-least-once delivery, not as a bug in the handler: the client retries a request the Lambda is still processing, so the handler must be idempotent keyed on an order/idempotency key (Powertools idempotency backed by DynamoDB, or a conditional write on the DynamoDB item)",
+      "Finds the second duplicate source in the queue wiring: `OrderEventsQueue` has `VisibilityTimeout: 30` while `OrderEventsConsumer` has `Timeout: 120`, so a message becomes visible again and is redelivered while the first invocation is still running - visibility timeout must be at least the function timeout (AWS guidance is about six times it) - and adds a redrive policy/DLQ plus `FunctionResponseTypes: [ReportBatchItemFailures]` so one poison record in the batch of 10 does not replay the other nine",
+      "Treats `STRIPE_SECRET_KEY` in `Environment.Variables` as a leaked live key: Lambda environment variables are readable by anyone holding `lambda:GetFunctionConfiguration` and are stored with the function configuration, so the key must be rotated and moved to Secrets Manager or SSM SecureString",
+      "Replaces `AmazonDynamoDBFullAccess` and `AWSLambda_FullAccess` with scoped permissions - SAM policy templates such as `DynamoDBCrudPolicy` against `!Ref OrdersTable` - and points out that `AWSLambda_FullAccess` on a function that can also pass roles is itself an escalation path",
+      "Gives an offline verification gate that does not need an AWS account - `sam validate --lint` (or `cfn-lint template.yaml`) - and does not claim the template is correct merely because it renders",
+      "Does not hand back Kubernetes manifests, a Dockerfile, or Terraform as the fix"
+    ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "stack-failure-events.json is what we got out of the analytics-prod deploy. The stack is stuck, the PR only renamed two CDK constructs, and nobody can deploy anything now. Tell me the root cause and the exact recovery sequence.",
+    "files": ["evals/files/stack-failure-events.json"],
+    "expected_behavior": [
+      "Corrects the diagnostic command: `describe-stack-events` has no filter parameter, so use `aws cloudformation describe-events --stack-name analytics-prod --filters FailedEvents=true`, which groups events by operation id and also surfaces early-validation and hook failures that `describe-stack-events` never returns",
+      "Separates the cascade from the causes: `Resource creation cancelled` on the log group and the Lambda carries no information and must not be diagnosed, while the two real failures are the service control policy's explicit deny on `iam:CreateRole` and the DynamoDB table's deletion protection - and says both must be fixed, since fixing only the first surfaces the second on the next attempt",
+      "Identifies the actual root cause as the rename: a CDK construct id is what produces the CloudFormation logical id, so renaming `Events` to `EventsTable` or moving a construct between stacks makes CloudFormation delete the old resource and create a new one - for a DynamoDB table that is data loss, and the diff showed `destroy` before anyone deployed",
+      "Prescribes preserving identity instead of accepting replacement: `cdk refactor` for the move, or pinning the old logical id (`node.defaultChild.overrideLogicalId` / `CfnResource.overrideLogicalId`), and treats a `cdk diff` containing `destroy` on a stateful resource as a stop condition rather than a warning",
+      "Recognises `Export analytics-prod:EventsTableName cannot be deleted as it is in use by reporting-prod` as the cross-stack deadly embrace and gives the ordered fix - weaken or duplicate the export so the consumer stops depending on it, deploy that, and only then remove it - rather than trying to delete the export in one deploy",
+      "Gives a recovery sequence for `UPDATE_ROLLBACK_FAILED` specifically - `cdk rollback` or `continue-update-rollback` skipping the resource that cannot roll back - and does not propose deleting the stack or the production table",
+      "Classifies the SCP denial as environment-level (fix the guardrail or the CDK execution role, out of the template's reach) rather than proposing template edits for it",
+      "Notes that `cdk bootstrap`'s `cfn-exec-role` is the principal being denied, so the permission has to be granted to that role, not to the engineer running the deploy"
+    ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "monthly-cost-summary.json is last month's AWS bill for our single production account. The board wants 30% off by the end of next quarter and nobody is allowed to cause an outage. Give me the plan, in the order you would do it.",
+    "files": ["evals/files/monthly-cost-summary.json"],
+    "expected_behavior": [
+      "Computes the savings arithmetic with a script or explicit tool rather than adding the line items in prose, and states that model arithmetic on cost data is not trustworthy enough to hand to a board",
+      "Catches that `Start=2026-08-01,End=2026-08-31` in a Cost Explorer `get-cost-and-usage` call excludes 31 August because the end date is exclusive, so this summary is a 30-day month and the baseline is understated",
+      "Attacks the NAT Gateway line with the right instrument: S3 and DynamoDB gateway VPC endpoints have no hourly and no per-GB charge and remove that traffic from the NAT path entirely, while interface (PrivateLink) endpoints bill per AZ-hour plus per GB and only pay off above a traffic threshold - and separately names the cross-AZ chatter as a topology problem",
+      "Explains the CloudWatch bill as a cardinality problem - roughly 11,600 custom metrics billed per metric per month - and fixes it by cutting dimensions or publishing through the embedded metric format, and sets a log-group retention, since CloudWatch Logs groups default to never expire so storage only grows",
+      "Names the two changes that are pure arithmetic with no capacity risk: Lambda on arm64/Graviton is about 20% cheaper per GB-second and every function here is x86_64, and gp3 replaces gp2 at roughly 20% less for the same or better baseline performance",
+      "Points out that the EKS control plane is billed per cluster-hour whether or not anything runs on it, so four clusters with zero pods are pure waste, and that `MemorySize: 1769` is exactly the one-vCPU boundary, so dropping below it halves the CPU rather than saving proportionally",
+      "Sequences by risk and reversibility, not by size: delete idle and unattached resources first, then right-size behind Compute Optimizer data (which must be enabled with `compute-optimizer update-enrollment-status --status Active` and needs 14 days of history), and buys Compute Savings Plans last because a 1-or-3-year commitment on an over-provisioned fleet locks in the waste",
+      "Installs the guardrail the account is missing - AWS Budgets with alerts and Cost Anomaly Detection - and notes the Budgets API only answers in `us-east-1`"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "platform-network.tf 里我把三个子网从 count 改成 for_each 之后，plan 要销毁重建全部 6 个子网。怎么改才能不动真实资源？",
+    "files": ["evals/files/platform-network.tf"],
+    "expected_behavior": [
+      "Answers it as a Terraform resource-identity question: `count` addresses instances by list index while `for_each` addresses them by key, so the address changes and Terraform plans destroy/create unless `moved` blocks map each `[0]`/`[1]`/`[2]` to its new key",
+      "Stays inside Terraform's own vocabulary - `moved` blocks, state addresses, an empty plan as the acceptance gate - without drifting into AWS VPC architecture, subnet sizing, or AWS CLI commands",
+      "skill_read is false for the `aws` skill: this is HCL and state mechanics, which belong to the `terraform` skill even though every resource in the file is an AWS resource"
+    ]
+  }
+]

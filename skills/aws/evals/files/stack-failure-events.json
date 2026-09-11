@@ -1,0 +1,63 @@
+{
+  "_note": "Output pasted from our deploy job. Stack analytics-prod is stuck in UPDATE_ROLLBACK_FAILED after a CDK deploy that renamed two constructs.",
+  "_command_used": "aws cloudformation describe-stack-events --stack-name analytics-prod --region eu-west-1",
+  "StackEvents": [
+    {
+      "Timestamp": "2026-09-10T22:14:02Z",
+      "LogicalResourceId": "analytics-prod",
+      "ResourceType": "AWS::CloudFormation::Stack",
+      "ResourceStatus": "UPDATE_ROLLBACK_FAILED",
+      "ResourceStatusReason": "The following resource(s) failed to update: [EventsTable9B2C1D4E, IngestFnServiceRole7E4A11C2]."
+    },
+    {
+      "Timestamp": "2026-09-10T22:13:47Z",
+      "LogicalResourceId": "EventsTable9B2C1D4E",
+      "ResourceType": "AWS::DynamoDB::Table",
+      "ResourceStatus": "DELETE_FAILED",
+      "ResourceStatusReason": "Resource handler returned message: \"Table is protected from deletion (Service: DynamoDb, Status Code: 400)\""
+    },
+    {
+      "Timestamp": "2026-09-10T22:12:09Z",
+      "LogicalResourceId": "IngestFnServiceRole7E4A11C2",
+      "ResourceType": "AWS::IAM::Role",
+      "ResourceStatus": "CREATE_FAILED",
+      "ResourceStatusReason": "API: iam:CreateRole User: arn:aws:sts::111122223333:assumed-role/cdk-hnb659fds-cfn-exec-role-111122223333-eu-west-1/AWSCloudFormation is not authorized to perform: iam:CreateRole on resource: arn:aws:iam::111122223333:role/analytics-prod-IngestFnServiceRole with an explicit deny in a service control policy"
+    },
+    {
+      "Timestamp": "2026-09-10T22:12:09Z",
+      "LogicalResourceId": "IngestFnLogGroupB41D0A77",
+      "ResourceType": "AWS::Logs::LogGroup",
+      "ResourceStatus": "CREATE_FAILED",
+      "ResourceStatusReason": "Resource creation cancelled"
+    },
+    {
+      "Timestamp": "2026-09-10T22:12:08Z",
+      "LogicalResourceId": "IngestFn5D3A9C10",
+      "ResourceType": "AWS::Lambda::Function",
+      "ResourceStatus": "CREATE_FAILED",
+      "ResourceStatusReason": "Resource creation cancelled"
+    },
+    {
+      "Timestamp": "2026-09-10T22:11:55Z",
+      "LogicalResourceId": "EventsTable9B2C1D4E",
+      "ResourceType": "AWS::DynamoDB::Table",
+      "ResourceStatus": "DELETE_IN_PROGRESS",
+      "ResourceStatusReason": "Requested update requires the creation of a new physical resource; hence creating one."
+    },
+    {
+      "Timestamp": "2026-09-10T22:10:31Z",
+      "LogicalResourceId": "ReportingStackExport",
+      "ResourceType": "AWS::CloudFormation::Stack",
+      "ResourceStatus": "UPDATE_FAILED",
+      "ResourceStatusReason": "Export analytics-prod:EventsTableName cannot be deleted as it is in use by reporting-prod."
+    }
+  ],
+  "_cdk_diff_excerpt": [
+    "Resources",
+    "[-] AWS::DynamoDB::Table EventsTable EventsTable0F1B2C3D destroy",
+    "[+] AWS::DynamoDB::Table EventsTable EventsTable9B2C1D4E",
+    "[-] AWS::IAM::Role IngestFn/ServiceRole IngestFnServiceRole11AA22BB destroy",
+    "[+] AWS::IAM::Role IngestFn/ServiceRole IngestFnServiceRole7E4A11C2"
+  ],
+  "_what_changed_in_the_pr": "Renamed the CDK construct id from 'Events' to 'EventsTable' and moved the ingest function from ApiStack into IngestStack. No property values were edited."
+}

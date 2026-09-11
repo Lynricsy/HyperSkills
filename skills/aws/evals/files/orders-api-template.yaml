@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Orders API - customer places an order, we score it for fraud, then bill it.
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    MemorySize: 1024
+    Timeout: 300
+    Tracing: Active
+
+Resources:
+  OrdersHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - POST
+          - GET
+
+  PlaceOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/place-order/
+      Handler: index.handler
+      Timeout: 300
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref OrdersTable
+          STRIPE_SECRET_KEY: sk_live_REDACTED
+          FRAUD_ENDPOINT: https://fraud.internal.example.com/score
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambda_FullAccess
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref OrdersHttpApi
+            Path: /orders
+            Method: POST
+
+  # Called from PlaceOrderFunction over HTTP, synchronously, in a retry loop.
+  # Worst observed end-to-end latency is about 95 seconds.
+  ScoreOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/score-order/
+      Handler: index.handler
+      Timeout: 120
+      MemorySize: 3008
+
+  OrdersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: orders
+      PrimaryKey:
+        Name: orderId
+        Type: String
+
+  OrderEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-events
+      VisibilityTimeout: 30
+
+  OrderEventsConsumer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/consume-events/
+      Handler: index.handler
+      Timeout: 120
+      Events:
+        Queue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt OrderEventsQueue.Arn
+            BatchSize: 10
+
+Outputs:
+  ApiUrl:
+    Description: Public endpoint
+    Value: !Sub 'https://${OrdersHttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod'

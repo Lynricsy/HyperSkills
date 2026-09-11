@@ -1,0 +1,120 @@
+skill: aws
+version: "2026.09.11"
+upstreams:
+  - id: awslabs-agent-plugins
+    kind: repo
+    repo: awslabs/agent-plugins
+    url: https://github.com/awslabs/agent-plugins
+    paths:
+      - plugins/aws-serverless/skills/aws-lambda
+      - plugins/aws-serverless/skills/api-gateway
+      - plugins/aws-serverless/skills/aws-step-functions
+      - plugins/aws-serverless/skills/aws-serverless-deployment
+      - plugins/deploy-on-aws/skills/deploy
+      - plugins/databases-on-aws/skills/dsql
+    ref: main
+    commit: 9898ddc4dcf7dd23ddb939cec1b905311dc7381d
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Serverless backbone: Lambda quotas and idempotency rules, the REST/HTTP/WebSocket API Gateway selection table and its failure modes, Step Functions Standard versus Express semantics and JSONata, SAM and CDK deployment practice, and the workload-shape criteria for picking a managed compute service."
+    notes: "Claude Code bindings stripped: argument-hint, metadata.tags, the 'MCP Server Unavailable' branch, and the 'ALWAYS use CDK/TypeScript' defaults (rewritten as workload-shape criteria). Its Lambda timeout table predates the Managed Instances exception; the official quota page wins."
+  - id: aws-agent-toolkit
+    kind: repo
+    repo: aws/agent-toolkit-for-aws
+    url: https://github.com/aws/agent-toolkit-for-aws
+    paths:
+      - skills/core-skills/aws-iam
+      - skills/core-skills/aws-cloudformation
+      - skills/core-skills/aws-cdk
+      - skills/core-skills/aws-billing-and-cost-management
+      - skills/core-skills/aws-containers
+      - skills/core-skills/aws-database
+      - skills/core-skills/aws-networking
+      - skills/core-skills/aws-observability
+      - skills/core-skills/aws-security
+    ref: main
+    commit: 1c0dfd4f677237ee9769769209969ca80b112140
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "IAM edge behaviour (policy evaluation, PassRole escalation, condition operators, STS and Organizations limits), the CloudFormation validation layers and describe-events, CDK deadly embrace and logical-id replacement, cost API traps, and the EKS/ECS control-plane surface including the App Runner sunset."
+    notes: "The repo ships the same skills twice; skills/core-skills is tracked and plugins/aws-core is its mirror. Removed the AWS-MCP 'retrieve_skill' guardrail sections, the call_aws / aws___read_documentation tool names, and the Metadata.AWSToolsMetrics.AWSAgentToolkit attribution marker it asks agents to write into user templates."
+  - id: aws-wa-samples
+    kind: repo
+    repo: aws-samples/sample-well-architected-skills-and-steering
+    url: https://github.com/aws-samples/sample-well-architected-skills-and-steering
+    paths:
+      - powers/aws-well-architected-framework-review/steering
+    ref: main
+    commit: 276eccfb94cfd9b1cb8b0dd68f4608cedb12b7d7
+    license: MIT-0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Well-Architected question grouping per pillar and the high-frequency failures in each, reshaped into this skill's trade-off table."
+    notes: "MIT No Attribution, read from the LICENSE file: no notice-retention condition. Only the question semantics were taken; the per-question file structure and the 14 tool adapters were not."
+  - id: aws-builder-samples
+    kind: repo
+    repo: aws-samples/sample-agent-skills-for-builders
+    url: https://github.com/aws-samples/sample-agent-skills-for-builders
+    paths:
+      - skills/api-gateway-authorizer-security
+    ref: main
+    commit: b4d559561c2d602db544f46dc5c4226998e0078b
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Lambda authorizer cache-key semantics and the policy-reuse authorisation bypass."
+    notes: "The rest of the repository is Bedrock AgentCore material, which no skill in this library covers yet and which was deliberately left out."
+  - id: awesome-copilot-aws
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths:
+      - skills/aws-cloudwatch-investigation
+      - skills/aws-cost-optimize
+      - skills/aws-well-architected-review
+      - skills/aws-resource-health-diagnose
+      - skills/aws-resource-query
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "CloudWatch investigation flow and Logs Insights usage, the cost resource-discovery command sequence, and the concrete Well-Architected review items."
+    notes: "Every one of these skills ends by filing GitHub issues; that agent binding was removed."
+  - id: aws-docs
+    kind: docs
+    url: https://docs.aws.amazon.com/
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Final authority for every number and API fact in this skill: Lambda quotas, API Gateway integration timeouts and throttling, CloudFormation DescribeEvents and EventFilter, IAM policy evaluation logic, and pricing dimensions."
+    notes: "Licence read from the AWS Site Terms (https://aws.amazon.com/terms/, LICENSE AND SITE ACCESS): prose on docs.aws.amazon.com is CC-BY-SA-4.0 and code therein is MIT-0. Structure and facts were taken; no sentence was copied."
+  - id: itsmostafa-aws
+    kind: repo
+    repo: itsmostafa/aws-agent-skills
+    url: https://github.com/itsmostafa/aws-agent-skills
+    paths:
+      - skills
+    ref: main
+    commit: 4ab904a69cda893b5c98f97966bf9a48311823e9
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Its eighteen per-service skills were used as a coverage checklist only."
+    notes: "Tutorial-style content that restates what the model already knows; nothing was merged."
+  - id: zxkane-aws
+    kind: repo
+    repo: zxkane/aws-skills
+    url: https://github.com/zxkane/aws-skills
+    paths:
+      - plugins/aws-cost-operations
+      - plugins/aws-cdk-development
+    ref: main
+    commit: 68530c6f296ccd2f5e99c79782f3e0fbf962c51a
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-check for the cost inspection checklist and CDK practice."
+    notes: "Last pushed three months before this sync and centred on Bedrock AgentCore and SST, both out of this skill's scope; nothing was merged."

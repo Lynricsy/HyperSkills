@@ -1,0 +1,89 @@
+{
+  "PolicyName": "PlatformDeployerRole-inline",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DeployCompute",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "ecs:RegisterTaskDefinition",
+        "ec2:RunInstances",
+        "cloudformation:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PassAnyRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "*"
+    },
+    {
+      "Sid": "TagScopedInstanceLaunch",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": "arn:aws:ec2:*:111122223333:instance/*",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": ["Owner", "CostCentre", "Environment"]
+        }
+      }
+    },
+    {
+      "Sid": "ArtifactBucket",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::platform-artifacts-111122223333",
+        "arn:aws:s3:::platform-artifacts-111122223333/*"
+      ]
+    },
+    {
+      "Sid": "ReadSecrets",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "*"
+    }
+  ],
+  "_trust_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": { "Service": "codebuild.amazonaws.com" },
+        "Action": "sts:AssumeRole"
+      },
+      {
+        "Effect": "Allow",
+        "Principal": { "AWS": "arn:aws:iam::444455556666:root" },
+        "Action": "sts:AssumeRole"
+      }
+    ]
+  },
+  "_permissions_boundary": {
+    "Comment": "Attached to PlatformDeployerRole as arn:aws:iam::111122223333:policy/PlatformBoundary",
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "NotAction": ["organizations:*", "account:*", "iam:CreateUser", "iam:DeleteUser"],
+        "Resource": "*"
+      }
+    ]
+  },
+  "_artifact_bucket_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowBuildUser",
+        "Effect": "Allow",
+        "Principal": { "AWS": "arn:aws:iam::111122223333:user/ci-bot" },
+        "Action": "s3:*",
+        "Resource": "arn:aws:s3:::platform-artifacts-111122223333/*"
+      }
+    ]
+  }
+}
