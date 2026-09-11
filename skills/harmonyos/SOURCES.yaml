@@ -1,0 +1,179 @@
+skill: harmonyos
+version: "2026.09.11"
+upstreams:
+  - id: openharmony-sdk-js
+    kind: repo
+    repo: openharmony/interface_sdk-js
+    url: https://github.com/openharmony/interface_sdk-js
+    paths:
+      - api/@ohos.router.d.ts
+      - api/@ohos.arkui.UIContext.d.ts
+      - api/@ohos.abilityAccessCtrl.d.ts
+      - api/@ohos.taskpool.d.ts
+      - api/@ohos.app.ability.UIAbility.d.ts
+    ref: master
+    commit: 8eba85dbad23d4d94c2ae6c1a8c817e7ef95274f
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Machine-checkable API availability: the @since / @deprecated / @useinstead annotations on the public SDK declarations, which is what lets an API-version claim in this skill be [verified] rather than [official]. Established that every global router function carries @deprecated since 18 with @useinstead @ohos.arkui.UIContext:Router, that UIContext.getRouter and getPromptAction are @since 10 while UIContext.isAvailable is @since 20, and that AtManager.checkAccessToken is @since 9."
+    notes: "Licence read in full: Apache License Version 2.0. This is the authoritative source for API shape and availability and it corrected the prose guide: ui/arkts-global-interface.md reads as though the UIContext replacements arrived at API 18, while the declarations show the accessors at API 10 and API 18 as the deprecation point for the global forms. When the two disagree, the declaration wins."
+  - id: openharmony-docs
+    kind: repo
+    repo: openharmony/docs
+    url: https://github.com/openharmony/docs
+    paths:
+      - en/application-dev/quick-start
+      - en/application-dev/ui/state-management
+      - en/application-dev/ui
+      - en/application-dev/application-models
+      - en/application-dev/arkts-utils
+      - en/application-dev/database
+      - en/application-dev/security/AccessToken
+      - en/application-dev/dfx/hdc.md
+      - en/application-dev/application-test
+      - en/application-dev/reference/apis-arkui
+    ref: master
+    commit: f41b9345badd47c7ab0c263344cd7f4b5a549afb
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Primary fact source: the arkts-* language restriction set with severities and error codes, state management V1/V2 decorator semantics and constraints, the API-gated V1/V2 interop rules, UIAbility and WindowStage lifecycles, UIContext replacements for global ArkUI APIs, TaskPool/Worker comparison, module.json5 and permission declaration schema, Preferences/RelationalStore limits, hdc and uitest."
+    notes: "Licence read in full: LICENSE is Creative Commons Attribution 4.0 International, no NonCommercial or NoDerivatives clause, so merged with attribution. This is the OpenHarmony documentation, not HarmonyOS NEXT's: platform contracts are shared and taken from here, while HarmonyOS-only facts (API version strings, DevEco Studio, AppGallery, Huawei Kits) come from huawei-docs and are marked [official]."
+
+  - id: corey-harmonyos
+    kind: repo
+    repo: CoreyLyn/harmonyos-skills
+    url: https://github.com/CoreyLyn/harmonyos-skills
+    paths:
+      - skills/harmonyos-dev
+      - skills/harmonyos-review
+    ref: main
+    commit: cd2be39e242aac053dcefc8517ae9564c6faffcb
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Evidence-first working method: read build-profile.json5 / oh-package.json5 / module.json5 before choosing an API, keep one state-management generation per component boundary, assign an owner to every subscription and ResultSet, and the five-part evidence bar plus severity definitions used by the review workflow and Output format."
+    notes: "Reconnaissance commands were PowerShell-specific upstream and were rewritten platform-neutrally."
+
+  - id: earfrog-arkts
+    kind: repo
+    repo: EarFrog/harmonyos-arkts-skill
+    url: https://github.com/EarFrog/harmonyos-arkts-skill
+    paths:
+      - SKILL.md
+      - scripts
+    ref: master
+    commit: f08c86e97147077695395597620c1d39e7a75f61
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Task routing between ArkTS/ArkUI work and the Native/NDK workflow, the signal list that identifies native work, and the discipline of establishing the ArkTS facade to .d.ts to Node-API registration to CMake/ABI chain top-down before editing."
+    notes: "Upstream depends on a harmonyos_developer_knowledge MCP server and on resolving a bundled script root; both were dropped as agent-specific."
+
+  - id: dengshiying-harmonyos
+    kind: repo
+    repo: DengShiyingA/harmonyos-ai-skill
+    url: https://github.com/DengShiyingA/harmonyos-ai-skill
+    paths:
+      - harmonyos-development
+    ref: main
+    commit: 4aab51a79612acd825d4cfded0af4bc427910b1c
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Structure for pairing OS version, API level and DevEco Studio build into one table that a reader can check a project against."
+    notes: "Two claims rejected. Upstream calls ArkTS a statically-checked superset of TypeScript; the official definition is that ArkTS restricts TypeScript, and SKILL.md rule 1 states the opposite of the upstream claim. Upstream release dates also disagree with Huawei's release notes, so no dates were carried over. The dist/ directory holds per-agent generated copies and was ignored."
+
+  - id: yibaiba-ark
+    kind: repo
+    repo: yibaiba/harmonyos-skills-pack
+    url: https://github.com/yibaiba/harmonyos-skills-pack
+    paths:
+      - skills/harmonyos-ark/arkts-modernization-guard
+    ref: main
+    commit: 93bc8b7cbb30a0a4e604f2b56e7f6f76c43cfc91
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Known bad-pattern catalogue reworked into falsifiable rules: @Prop receiving a callback, side effects inside build(), throwing a non-Error, dynamic $r(variable), @StorageLink bound to an @ObservedV2 class, and spread used to force a list refresh."
+    notes: "Upstream scan script hardcodes a .codex/skills path; only the rule semantics were taken."
+
+  - id: midscene-harmony
+    kind: repo
+    repo: web-infra-dev/midscene-skills
+    url: https://github.com/web-infra-dev/midscene-skills
+    paths:
+      - skills/harmony-automation
+    ref: main
+    commit: dec1d1c55252ecb1a90c4ecbcfd0d2cb3ce0ac7b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Vision-driven device verification: the @midscene/harmony CLI, its hdc prerequisite, the serial one-command-at-a-time loop constraint, and the HarmonyOS capability boundary that multi-touch gestures are unavailable."
+    notes: "Directory is skills/harmony-automation; the roadmap seed named it harmonyos-device-automation, which is the frontmatter name rather than the path. allowed-tools was stripped per this repository's frontmatter whitelist."
+
+  - id: oh-insight-migration
+    kind: repo
+    repo: openharmonyinsight/openharmony-skills
+    url: https://github.com/openharmonyinsight/openharmony-skills
+    paths:
+      - skills/android-to-harmonyos-migration-workflow
+    ref: main
+    commit: 5ae988cab6fdb8d75ac8add21e01e32dca2b1022
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Per-concern Android to HarmonyOS mapping skeleton for UI components, storage, context and framework entry points."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. The upstream navigation mapping routes through @ohos.router and Bundle-style params; rewritten to Navigation/NavPathStack per the conflict ruling. The other 96 skills in the repository target OpenHarmony OS contributors (C++, XTS, gitcode PR flows) and are out of scope."
+
+  - id: huawei-docs
+    kind: docs
+    url: https://developer.huawei.com/consumer/cn/doc/
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-checked the HarmonyOS NEXT facts that exist nowhere open: the API version ordering and the version-number format change at 26.0.0, compatibleSdkVersion / targetSdkVersion / compileSdkVersion semantics and their generated app.json5 counterparts, hvigorw tasks and parameters, signingConfigs material fields, and AppGallery release expectations."
+    notes: "Licence read directly from the documentation pages: the footer states Huawei Developer copyright with terms of use and no open licence, so reference only. Facts were verified against these pages and restated; nothing was copied."
+
+  - id: linhay-harmony-next
+    kind: repo
+    repo: linhay/harmony-next.skills
+    url: https://github.com/linhay/harmony-next.skills
+    paths:
+      - harmony-next
+    ref: master
+    commit: 880420ccaede758845daa3e86154c4e02e6f2249
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage cross-check for the DevEco / emulator / hdc / uitest surface, and the convention that a missing tool returns a structured blocked result rather than a pretend success."
+    notes: "No LICENSE file, and a separate content ruling applies: references/ is an offline mirror of developer.huawei.com documentation, which the repository cannot relicense. Reference only; the playbooks also bind to author-private DevEco interfaces and macOS paths."
+
+  - id: liasica-harmonyos
+    kind: repo
+    repo: liasica/harmonyos-skills
+    url: https://github.com/liasica/harmonyos-skills
+    paths:
+      - harmonyos
+    ref: master
+    commit: 8f252f3e2a3a450017679910773e64adc10b1343
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Used to confirm that a given rule or constraint really exists in Huawei's published documentation set."
+    notes: "Content ruling, not a licence ruling: the repository LICENSE is MIT but it covers liasica's retrieval tooling, not the roughly 16800 mirrored developer.huawei.com pages under references/. A repository cannot relicense the third-party documentation it mirrors, so reference only."
+
+  - id: kwai-arkts
+    kind: repo
+    repo: KwaiAppTeam/ks-arkts-skills
+    url: https://github.com/KwaiAppTeam/ks-arkts-skills
+    paths:
+      - arkts-code-check
+    ref: master
+    commit: 76b420d7e99c410971e46e278d83369d7de71c4f
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-check on how ArkTS compilation errors are indexed for lookup."
+    notes: "No LICENSE file, and its arkts_code_check_references/ tree is a scrape of Huawei's ArkTS guides. Reference only on both grounds."

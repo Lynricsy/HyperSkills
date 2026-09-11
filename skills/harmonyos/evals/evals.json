@@ -1,0 +1,66 @@
+[
+  {
+    "skills": ["harmonyos"],
+    "query": "This .ets page came straight over from our TypeScript codebase and DevEco reports a wall of errors we cannot read. Go through FeedPage.ets and tell me, for every construct that ArkTS rejects, which ArkTS rule it violates and what the replacement is. Also tell me whether ArkTS is just TypeScript with stricter settings, because that is what we assumed when we ported it.",
+    "files": ["evals/files/FeedPage.ets"],
+    "expected_behavior": [
+      "States that ArkTS restricts TypeScript rather than extending it: it is not a superset and not merely stricter compiler options, so a construct can be legal TypeScript and still be a compile error in ArkTS",
+      "Names the actual ArkTS rule identifiers for the violations present, at minimum arkts-no-any-unknown (any in parseFeed/decorate), arkts-no-var (var CACHE_KEY), arkts-no-for-in (for..in over payload.items), arkts-no-destruct-decls (const { id, title, tags } = ...), arkts-no-delete (delete on tags), arkts-no-func-expressions (setTimeout(function () {...})), arkts-no-nested-funcs (retry declared inside load), arkts-limited-throw (throw of a string literal), arkts-no-as-const (SORTS as const), arkts-no-in (the 'tags' in item guard) and arkts-no-globalthis",
+      "Identifies the two type-system violations that no linter message makes obvious: the object literal returned into FeedItemLike violates arkts-no-untyped-obj-literals / arkts-no-obj-literals-as-types because a literal must correspond to a declared class or interface, and casting FeedItem/Banner to Renderable relies on structural typing, which ArkTS does not support (arkts-no-structural-typing) - an explicit implements clause is required",
+      "Flags that router.pushUrl is the wrong navigation call on two counts: the global router API form is deprecated since API version 18 in favour of the UIContext-scoped router, and @ohos.router itself is no longer recommended in favour of Navigation with NavPathStack; also notes that passing a function (onDone) inside router params is not supported",
+      "Flags that promptAction.showToast as a bare global ArkUI API is unreliable under the Stage model because one ArkTS engine can host several UI instances, and gives the UIContext-based replacement",
+      "Separates errors from warnings rather than presenting one flat list, and states that ArkTS syntax checking is only enforced in standard mode, which is selected by compatibleSdkVersion being 10 or higher"
+    ]
+  },
+  {
+    "skills": ["harmonyos"],
+    "query": "CartPage.ets is wired with the state decorators but two things are broken: the quantity stepper never refreshes the total, and the toolbar badge updates only sometimes. compatibleSdkVersion is 6.0.0(20). Tell me which decorator usages are actually illegal versus merely ineffective, what each one causes, and how to fix the page.",
+    "files": ["evals/files/CartPage.ets"],
+    "expected_behavior": [
+      "Identifies the hard compile errors from mixing state management V1 and V2 decorators in one component: @Prop and @Link inside a @ComponentV2 struct, and @Param/@Local/@Monitor/@Consumer inside a @Component struct - V1 decorators are rejected in V2 components and V2 decorators are rejected in V1 components",
+      "Flags @Prop line: LineItem as wrong on a second count as well: a callback or an externally owned object arriving through a V1 one-way decorator cannot write back, and the V2 way to let a child change parent state is @Param paired with an @Event callback, not @Link",
+      "Flags @Consumer('theme') in CartPage as illegal next to @Provide, and notes that @Provider/@Consumer require local initialization and forbid initialization from the parent, which is the opposite of V1 @Provide/@Consume",
+      "Explains that the class layer is the real cause of the stale total: @Observed on Cart plus a plain lines array cannot observe LineItem.qty, while @ObservedV2/@Trace can - and that mixing them is forbidden, since a V1 decorator may not receive an @ObservedV2-decorated class and @ObservedV2/@Trace must be used in pairs with instances created via new",
+      "Gives the API-version gate for the fix rather than a single universal answer: the old mixed-use rules apply to API version 18 and earlier, and from API version 19 UIUtils.enableV2Compatibility and UIUtils.makeV1Observed exist for the migration; on API 20 the recommended fix is to move the whole subtree to @ComponentV2 + @Local/@Param/@Event with @ObservedV2/@Trace model classes",
+      "Notes that @Monitor cannot observe an entire array's item changes and that @Once is only legal together with @Param inside @ComponentV2"
+    ]
+  },
+  {
+    "skills": ["harmonyos"],
+    "query": "Review this module.json5 before we submit to AppGallery. Which permission declarations will fail release verification, and what is wrong with the rest of the file?",
+    "files": ["evals/files/module.json5"],
+    "expected_behavior": [
+      "Identifies the user_grant declarations that are incomplete and will fail release verification: ohos.permission.LOCATION has neither reason nor usedScene, ohos.permission.CAMERA has a reason but no usedScene, and ohos.permission.READ_IMAGEVIDEO has usedScene but no reason - reason and usedScene are both mandatory for user_grant permissions",
+      "Flags that reason must be a localized string resource reference in $string:... form, so the literal \"camera\" on ohos.permission.CAMERA is invalid, and that usedScene.when must be present and can only be inuse or always",
+      "Flags that minAPIVersion and targetAPIVersion are not module.json5 tags at all: they belong to app.json5, where they are generated during the build and cannot be manually configured, so the fix is to delete them here and set compatibleSdkVersion/targetSdkVersion in the project-level build-profile.json5 - relocating them to app.json5 is not a fix",
+      "Flags SyncAbility as an exported component with a custom action and no permission guarding it, so any application on the device can start it, and requires either exported: false or a permission entry plus validation of the incoming Want",
+      "States that declaring a permission is never sufficient at runtime: each use must re-check with checkAccessToken because the user can revoke it in Settings, and once the user has refused, requestPermissionsFromUser no longer shows a dialog, so the app must route the user to the settings dialog instead of re-prompting",
+      "Notes that permissions declared in the entry module already apply to the whole application, so they should not be duplicated into feature modules"
+    ]
+  },
+  {
+    "skills": ["harmonyos"],
+    "query": "Review this Android-to-HarmonyOS port plan and tell us which of the ten mapping decisions will bite us. We want the ones that cause real failures, not style opinions.",
+    "files": ["evals/files/migration-plan.md"],
+    "expected_behavior": [
+      "Rejects the one-UIAbility-per-Activity mapping: a UIAbility is a system-scheduled component with its own window and mission-stack entry, not a screen, so the normal port is one UIAbility hosting a Navigation stack of NavDestination pages, and nine UIAbilities means nine task-switcher entries and nine window lifecycles",
+      "Rejects item 2 on navigation: @ohos.router is no longer recommended and the global router API form is deprecated since API version 18, so navigation should use Navigation with NavPathStack; also notes router params cannot carry functions",
+      "Rejects item 5's single long-lived Worker for both sync and per-item work, citing the concrete limits: TaskPool is the default, a TaskPool task is capped at three minutes excluding awaited I/O, Worker is the choice only for work that exceeds that or must hold thread context, Worker tasks cannot be cancelled, and at most 64 Workers can run in one process",
+      "Rejects item 7: global ArkUI APIs such as promptAction.showToast, AlertDialog.show and router.back are unreliable in the Stage model because several UI instances share one ArkTS engine, and gives the UIContext-scoped replacements (whose accessors are @since 10, so age is not a reason to keep the global form)",
+      "Rejects item 8's cached permission result: authorization must be re-checked with checkAccessToken before every protected call because the user can revoke it in Settings, a refused permission stops producing a dialog, and requesting in onWindowStageCreate must wait until loadContent/setUIContent has completed",
+      "Rejects item 3: passing a model instance down as @Prop copies it one-way so child edits never reach the parent, and a V1 @State field on a plain class cannot observe nested property changes",
+      "Rejects item 10 on both counts: compatibleSdkVersion is the minimum installable API version so raising it to the newest SDK silently drops every older device, target and compatible are independent, and a debug signing profile cannot produce an AppGallery-acceptable release build",
+      "Corrects item 9: a .so is not consumed through JNI on HarmonyOS - the bridge is Node-API with a generated or maintained .d.ts facade plus CMake/externalNativeOptions wiring, so the JNI entry points have to be rewritten"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our Android shopping app is on Jetpack Compose. In CartScreen.kt the quantity stepper never refreshes the total and the list loses its scroll position whenever a line is removed. Fix the state handling.",
+    "files": ["evals/files/CartScreen.kt"],
+    "expected_behavior": [
+      "Does not read the harmonyos skill: this is native Android Kotlin with Jetpack Compose, and the harmonyos skill's scope explicitly hands Android off to the android skill",
+      "Treats the problem in Compose terms - a mutable data class behind MutableStateFlow does not trigger recomposition, the total is not derived from the lines, and items() needs a stable key to preserve scroll and composition state",
+      "Does not introduce ArkTS, ArkUI or HarmonyOS state decorators such as @State, @Local, @Param or @ObservedV2 into the answer"
+    ]
+  }
+]
