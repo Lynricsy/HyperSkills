@@ -1,0 +1,96 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin redis
+skill: redis
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: redis-agent-skills
+    kind: repo
+    repo: redis/agent-skills
+    url: https://github.com/redis/agent-skills
+    paths:
+      - plugins/redis-development/skills/redis-core
+      - plugins/redis-development/skills/redis-connections
+      - plugins/redis-development/skills/redis-clustering
+      - plugins/redis-development/skills/redis-search
+      - plugins/redis-development/skills/redis-security
+      - plugins/redis-development/skills/redis-observability
+      - plugins/redis-development/skills/redis-semantic-cache
+    ref: main
+    commit: a84871d065f398fed55e1633f66b66f731eb4e2b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The official trunk and the coverage map: data-structure selection by access pattern, colon-separated key naming and the multi-tenant prefix, pool versus multiplex including the rule that a multiplexed connection cannot carry a blocking command, pipelining, the KEYS/SMEMBERS/HGETALL to SCAN/SSCAN/HSCAN substitutions, RESP3 client-side caching and when it costs more than it saves, connect-shorter-than-read timeout ordering, hash tags and the CROSSSLOT surface (MGET, SDIFF, transactions, pipelines, multi-key Lua), why an entity-scoped tag beats a bare numeric one, the eventual-consistency cost of replica reads, the FT.SEARCH / FT.AGGREGATE / FT.HYBRID selection table with its version floors, RQE field-type selection, HNSW versus FLAT, zero-downtime index swaps through aliases, ACL categories and least-privilege application users, the INFO metric set worth alerting on, the SLOWLOG / MEMORY DOCTOR / CLIENT LIST / FT.PROFILE division of labour, and the semantic-cache rules that survive stripping the product (threshold band, one cache per task type, attribute filters)."
+    notes: "Only the vendor-neutral Redis-side content was used. The iris-development skill (a managed agent-memory service on Redis Cloud) was rejected outright, and the LangCache SDK/REST surface (cache_id, api_key, POST /v1/caches/...) was stripped from redis-semantic-cache along with the Redis Insight section of redis-observability. Four of its positions were narrowed after measurement on Redis 8.10.1 (research/redis.md rulings 4, 9, 10, 11): rename-command demoted below ACL categories, List-as-queue split into an at-most-once and an at-least-once answer, pipeline(transaction=True) reworded because MULTI gives isolation but not rollback, and the unconditional 10x TAG-over-TEXT claim replaced by the silent-mismatch failure it actually causes. Its instance-wide hit-ratio alert threshold was scoped to cache-aside key spaces only (ruling 5)."
+  - id: redisvl
+    kind: repo
+    repo: redis/redis-vl-python
+    url: https://github.com/redis/redis-vl-python
+    paths:
+      - redisvl/extensions/cache/llm/semantic.py
+      - redisvl/extensions/cache/embeddings/embeddings.py
+      - docs/user_guide/03_llmcache.ipynb
+      - docs/user_guide/10_embeddings_cache.ipynb
+    ref: main
+    commit: 2f8d3d396aadd766efcbc7ddc415edeb0556e837
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The parameter shape of a semantic cache built on plain Redis rather than on a hosted service: the threshold is a vector distance (smaller is stricter) and not a similarity constant, every cache entry carries its own TTL, the prompt-embedding cache and the response cache are separate key spaces with different lifetimes, and one index belongs to exactly one embedding model and dimensionality so a model swap means a new index."
+    notes: "Used as the vendor-neutral counterweight to redis-agent-skills' LangCache-based semantic-cache skill, whose threshold direction is the opposite (research/redis.md ruling 6). No library API is documented in this skill - only the Redis-side design the library implies."
+  - id: awesome-copilot-redis
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths: [skills/upstash-redis]
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Cache-aside and session shapes at the code level: every cache write carries an explicit TTL, a namespaced key per entity, a session refresh that re-sets the expiry rather than assuming it survives, a rate limiter whose keys are isolated by prefix so two limiters cannot cannibalise each other's budget, and the 429 plus Retry-After contract derived from the limiter's reset timestamp. Its step-then-checkpoint layout also informed the named verification gate that closes each workflow here."
+    notes: "The skill documents Upstash's HTTP gateway, so its transport-specific claims were dropped as inapplicable to a TCP Redis: one HTTP request per command, automatic value serialisation, and the instruction not to JSON.stringify before SET. A self-managed Redis stores opaque byte strings and serialisation is the application's responsibility - stated explicitly in references/caching-patterns.md (research/redis.md ruling 7). This was the only Redis entry in the repository; a full-tree search of skills/ and instructions/ found no other."
+  - id: redis-io-docs
+    kind: docs
+    url: https://redis.io/docs/latest/
+    license: CC-BY-NC-SA-4.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to verify every fact that was not measured locally: each command's Available-since version and ACL category membership, the exact semantics of the eight maxmemory-policy values, the lazy-plus-active expiry algorithm, RDB save-point and AOF appendfsync durability windows, the Cluster specification's CRC16 slot mapping and hash-tag rule, MOVED and ASK redirection, Stream consumer-group delivery and XAUTOCLAIM, keyspace notification classes, WAIT semantics, and the Redis Query Engine field types and query dialects."
+    notes: "Licence checked by reading redis/docs LICENSE: the site and documentation are CC-BY-NC-SA-4.0 (NonCommercial), with only the portions inherited from the archived redis/redis-doc under CC-BY-SA-4.0. NonCommercial is not an open-source licence, so under docs/skill-standard.md section 9 this cannot be a merged source: it is used for verification only, no wording, table or list structure was copied, and every rule here is stated in this skill's own terms or from local measurement. This is the exception to the usual rule that official documentation is merged."
+  - id: redis-oss
+    kind: repo
+    repo: redis/redis
+    url: https://github.com/redis/redis
+    paths: [LICENSE.txt, redis.conf]
+    ref: "8.10"
+    commit: 3399357e7c17b668289386b8a15a3037bc4527b1
+    license: AGPL-3.0-only OR SSPL-1.0 OR RSALv2
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to establish which major line is current (the releases endpoint shows 8.10.1 as the newest non-prerelease, alongside maintained 8.8.x, 8.6.x, 8.4.x, 8.2.x, 7.4.x, 7.2.x and 6.2.x lines) and to settle the licensing question that surrounds Redis itself."
+    notes: "LICENSE.txt read in full: from Redis 8 the server is tri-licensed under your choice of the Redis Source Available License v2, the Server Side Public License v1, or AGPLv3, with 7.2 and earlier remaining BSD-3-Clause. None of the three is an acceptable licence for merged content, so this is reference-only. Server defaults quoted in this skill were not taken from redis.conf but measured with CONFIG GET against a local redis:8-alpine instance reporting redis_version 8.10.1, which is also why the licence of the source tree never touches this skill's text."
+  - id: redis-py
+    kind: repo
+    repo: redis/redis-py
+    url: https://github.com/redis/redis-py
+    paths: [redis/connection.py, redis/client.py, redis/cluster.py]
+    ref: master
+    commit: 41585545ee8284d3a51797fdfa1ff995866ab558
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to cross-check the client-side defaults this skill asserts: that socket_timeout and socket_connect_timeout are unset unless given, how a connection pool leases and blocks, and how RESP3 plus a cache config turns on client-side caching."
+    notes: "No client API is taught here - that belongs to the framework skills. Only the defaults that change server-visible behaviour were taken, and each is stated as a property of the connection rather than of a particular library."
+  - id: lude-kit-redis
+    kind: repo
+    repo: iamdemetris/lude-kit
+    url: https://github.com/iamdemetris/lude-kit
+    paths: [skills/stacks/redis-expert]
+    ref: main
+    commit: b41c7a6a40c4960d687779227137b25be585ef55
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage checklist: it was the sole candidate outside the official repository that names RDB and AOF, Sentinel, hot keys, LATENCY DOCTOR and EVALSHA together, which is how the persistence, replication and latency material earned its place in references/operations.md."
+    notes: "The GitHub API reports NOASSERTION; the LICENSE file was read and is Apache-2.0. Nothing was copied regardless: the skill is written as a persona (\"You are a senior Redis operator\") and its description routes to other agents by name (senior-backend-engineer, postgres-expert), both prohibited by docs/skill-standard.md sections 1.2 and 1.3."

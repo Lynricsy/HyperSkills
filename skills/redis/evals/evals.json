@@ -1,0 +1,57 @@
+[
+  {
+    "skills": ["redis"],
+    "query": "cache_service.py has our product cache and the four incidents we keep hitting are listed in the docstring. Tell me exactly what to change - code and redis.conf - and why each change fixes the specific incident.",
+    "files": ["evals/files/cache_service.py"],
+    "expected_behavior": [
+      "Explains that `maxmemory-policy volatile-lru` is the cause of the OOM errors only in combination with keys that have no TTL: when no key in the instance is a candidate for eviction the volatile-* policies behave exactly like `noeviction` and return `OOM command not allowed when used memory > 'maxmemory'` - and prescribes `allkeys-lru` (or `allkeys-lfu`) for a pure cache",
+      "Identifies the 09:00 database spike as a synchronised-expiry stampede caused by `warm_cache` writing every key with the same 3600s TTL at 08:00, and fixes it by adding random jitter to the TTL (for example `ex=PRODUCT_TTL + random.randrange(600)`) rather than by raising the TTL",
+      "Fixes the hot-key stampede on the miss path (many concurrent requests all calling `db.fetch_product` for the same key) with a single-flight/mutex approach - `SET lock:product:<id> <token> NX EX <n>`, one caller recomputes while the others wait or serve stale - and not merely by \"adding a longer TTL\"",
+      "Identifies the random-UUID scraper as cache penetration and fixes it by caching the negative result under a short TTL (a sentinel value distinguishable from a real payload), optionally fronted by a Bloom filter (`BF.EXISTS`, built in on Redis 8), instead of returning early without writing anything to Redis",
+      "Says `r.set(key, json.dumps(session))` in `touch_session` silently drops the key's TTL, because a plain `SET` replaces the whole key including its expiry - so every authenticated request converts a 24h session into a key that never expires, or the reverse if it was meant to slide; the fix is `SET ... KEEPTTL`, an explicit `EX`/`EXPIRE` on every refresh, or `HSET` plus `HEXPIRE` on a hash",
+      "Replaces `r.keys(\"product:*\")` in `invalidate_category` - which blocks the single-threaded server for the whole scan of 1.2M keys and then does a `GET` per key - with either a maintained reverse index (a Set of product keys per category) or a versioned key prefix whose version bump invalidates the whole category in one write; mentions `SCAN` as the incremental fallback but not as the fix",
+      "Points out that `appendonly no` with `save 3600 1 300 100 60 10000` means up to an hour of writes can be lost on a crash, and says whether that matters here (it is a cache in front of Postgres, so it does not - the correct call is to say so explicitly rather than turn on AOF)"
+    ]
+  },
+  {
+    "skills": ["redis"],
+    "query": "Review the Redis usage in worker.py against the production problems listed at the top of the file. Which data structure is wrong in each case, and what is the replacement?",
+    "files": ["evals/files/worker.py"],
+    "expected_behavior": [
+      "Explains that the lost paid-but-never-shipped orders come from `RPOP` having no acknowledgement step: the message leaves Redis the instant it is read, so a worker killed during the 2-30s `ship()` call takes the order with it - and that this is a property of List-as-queue, not a bug in the code",
+      "Prescribes a Stream with a consumer group as the replacement (`XADD`, `XREADGROUP GROUP g c COUNT n STREAMS s >`, `XACK` after `ship()` succeeds, `XAUTOCLAIM`/`XPENDING` to recover entries left pending by a dead consumer), and mentions `MAXLEN`/`XTRIM` so the stream does not grow without bound",
+      "Offers `BLMOVE`/`LMOVE` into a per-worker processing list as the lower-effort alternative if Streams are too big a change, and notes it still needs a reaper for the processing list",
+      "Explains the duplicate shipments as the same missing-ack problem plus no idempotency key, and requires the ship step to be idempotent (a `SET shipped:<order_id> 1 NX` guard or a carrier-side idempotency key), because at-least-once delivery is what a consumer group guarantees",
+      "Says `SMEMBERS` on a 2.3M-member Set is an O(N) command that blocks the single-threaded server for the whole reply (the measured 41ms), and replaces it with `SSCAN` for iteration, `SISMEMBER`/`SINTERCARD` for the membership questions actually being asked, or a Sorted Set keyed by last-active timestamp if the real requirement is \"active in the last N minutes\"",
+      "Replaces the 5000-element List for recently-viewed with a capped structure the read pattern can use - `LTRIM` down to the ~20 items the endpoint actually returns, or a Sorted Set scored by timestamp with `ZREMRANGEBYRANK` - and points out `LRANGE key 0 -1` followed by a Python slice transfers all 5000 elements over the wire",
+      "Replaces the one-JSON-string-per-session pattern with a Hash so `update_push_token` becomes a single `HSET session:<id> push_token <token>` instead of read-modify-write of a 12 KB value, and notes that per-field TTL is available with `HEXPIRE`/`HPEXPIRE` (Redis 7.4+) if individual fields need to expire",
+      "Notes that the plain `SET`/`HSET` refresh must preserve or re-set the 24h expiry, and that a Hash's TTL is on the key, so adding a field does not extend it"
+    ]
+  },
+  {
+    "skills": ["redis"],
+    "query": "cluster_client.py is our current single-node Redis code and the errors we get on the 3-primary cluster staging environment. Walk through each function: what breaks in cluster mode, what the fix is, and what to do about the unbalanced shard and the idle replicas.",
+    "files": ["evals/files/cluster_client.py"],
+    "expected_behavior": [
+      "Explains the CROSSSLOT mechanism concretely: Redis Cluster maps each key to one of 16384 slots by CRC16 of the key name, a multi-key command must have every key in one slot, and `MGET`, the `MULTI` pipeline and the 2-key Lua script in this file all violate that because `user:1001:profile` and `user:1001:settings` hash independently",
+      "Fixes `load_user_bundle`, `move_to_processed` and `checkout` with a hash tag around the entity - `user:{1001}:profile` / `{user:1001}:profile` - and states the rule that only the substring between the first `{` and the following `}` is hashed",
+      "Warns against a bare numeric tag such as `{1001}` because unrelated namespaces (`order:{1001}`, `employee:{1001}`) would then collide on one slot, and against tagging everything, which recreates a single hot shard",
+      "Says `checkout`'s second key must be brought into the same slot or the counter must be moved out of the script (for example an unconditional `INCR stats:orders` issued separately), because a Lua script may only touch keys in one slot and declaring them in KEYS does not change that",
+      "Distinguishes `batch_prices` from the others: a non-transactional pipeline of single-key `GET`s is fine, but the client must route each command to the owning node - `RedisCluster` does this and splits the pipeline per node, whereas a plain `redis.Redis` pointed at one node returns MOVED",
+      "Identifies `leaderboard:global` as the unbalanced shard: one 60M-member Sorted Set is one key and therefore one slot on one primary regardless of shard count, and offers sharded leaderboards (per-bucket keys merged client-side) or keeping the leaderboard on a separate instance",
+      "Explains that replica reads are opt-in on the client (`RedisCluster(..., read_from_replicas=True)` or `READONLY` on the connection) and that replicas are asynchronously replicated, so read-your-own-writes breaks - suitable for the leaderboard and price reads, not for `pending`/`processed` state",
+      "Flags `per_request_client` as creating a TCP connection (and in cluster mode a fresh slot-map discovery) per request, and replaces it with one long-lived client or pool created at module scope",
+      "Mentions `CLUSTER KEYSLOT`/`CLUSTER COUNTKEYSINSLOT` (or `--cluster call ... DBSIZE`) as the way to confirm which keys landed where rather than guessing"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "这条 Postgres 查询在千万行表上很慢，`EXPLAIN (ANALYZE, BUFFERS)` 如下（见 slow_orders_plan.sql），该建什么索引？",
+    "files": ["evals/files/slow_orders_plan.sql"],
+    "expected_behavior": [
+      "Answers as a PostgreSQL indexing question: reads the plan, notes `Rows Removed by Filter: 3918442` on the backward index scan of `orders_created_at_idx`, and prescribes a composite index leading with the equality predicates and ending with the ordering column, such as `orders (merchant_id, status, created_at DESC)` or a partial index `... WHERE status = 'unfulfilled'`",
+      "Does not propose caching the result in Redis, adding a Redis layer, or any Redis data structure as the answer",
+      "skill_read is false for the `redis` skill"
+    ]
+  }
+]
