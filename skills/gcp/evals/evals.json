@@ -1,0 +1,60 @@
+[
+  {
+    "skills": ["gcp"],
+    "query": "Here is the live config of our Cloud Run service (cloudrun-service.yaml). Under load it saturates long before we expect, some requests are killed at the five minute mark, and cold starts are painful. Tell me exactly which settings to change and how to ship the change to 10% of traffic first before going to 100%.",
+    "files": ["evals/files/cloudrun-service.yaml"],
+    "expected_behavior": [
+      "States that when a service is created through the gcloud CLI or Terraform the default maximum concurrency is 80 multiplied by the number of vCPUs (so 320 on this 4-vCPU service), that the Google Cloud console default is a flat 80, and that the ceiling is 1000 - rather than asserting a single flat default of 80.",
+      "States that the Cloud Run request timeout for services defaults to 300 seconds and can be raised to at most 3600 seconds (60 minutes), and identifies timeoutSeconds: 300 as the cause of the requests cut off at five minutes.",
+      "Distinguishes the service-level --min/--max instance flags, which can be changed without creating a revision, from the revision-level --min-instances/--max-instances, which are set immutably on each revision so changing them deploys a new one.",
+      "Ships the change with gcloud run deploy --no-traffic --tag=<tag> followed by gcloud run services update-traffic --to-revisions=<revision>=10, instead of deploying straight into the 100% latestRevision traffic assignment shown in the file.",
+      "Notes that startup CPU boost is enabled by default on new services, so the explicit run.googleapis.com/startup-cpu-boost: \"false\" in this file is an opt-out that has to be removed rather than a feature to switch on for the first time."
+    ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "Audit iam-policy.yaml before we sign off this project for production. List concretely what to change, in which order, and how I verify each change actually took effect.",
+    "files": ["evals/files/iam-policy.yaml"],
+    "expected_behavior": [
+      "Flags the Compute Engine default service account holding roles/editor, names the iam.automaticIamGrantsForDefaultServiceAccounts organization policy constraint as the fix, and states that it is enforced by default only for organizations created after 3 May 2024 - so this 2022 organization has the automatic Editor grant and must enforce the constraint explicitly.",
+      "Replaces the downloaded JSON service account key for the CI pipeline with Workload Identity Federation or an attached service account, and names the iam.disableServiceAccountKeyCreation constraint to stop new keys being minted.",
+      "Answers the 'holds even if someone re-grants a role' requirement with an IAM deny policy (IAM v2, gcloud iam policies create --kind=denypolicies against a resource-manager attachment point), and states that deny policies are evaluated before allow policies so a deny wins over any later grant.",
+      "Warns that IAM changes take roughly two minutes and can take seven minutes or longer to propagate, so verifying immediately after the change can produce a false result, and gives a concrete verification command such as gcloud projects get-iam-policy or the Policy Troubleshooter rather than only re-reading the file.",
+      "Keeps the remediation in Google Cloud's own tooling (gcloud, organization policy, deny policies) and does not answer with Terraform HCL as the primary fix."
+    ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "bucket-lifecycle.json is our clickstream bucket and the bill is too high. Rewrite the lifecycle policy and the bucket settings to cut cost, and tell me what each change actually saves or costs.",
+    "files": ["evals/files/bucket-lifecycle.json"],
+    "expected_behavior": [
+      "States the minimum storage durations - Nearline 30 days, Coldline 90 days, Archive 365 days - and that deleting or re-classing an object before the minimum is reached is still billed for the remainder of that duration.",
+      "Identifies the combination of SetStorageClass ARCHIVE at age 7 with Delete at age 30 as actively more expensive than leaving the data in Standard, because every object is charged 365 days of Archive storage plus an early-deletion charge, and proposes Nearline (or no transition at all) for a 30-day lifetime instead.",
+      "Points out that soft delete is enabled with a seven-day retention (604800 seconds), that soft-deleted bytes are billed as storage, and that on a bucket writing ~700 GiB/day with object versioning on this is a material and invisible line item.",
+      "Notes that the bucket is in the US multi-region with uniform bucket-level access disabled, that location is fixed at creation time, and that gcloud storage buckets create defaults to the us multi-region and to uniform bucket-level access off - so both must be set explicitly when the replacement bucket is created.",
+      "Notes that lifecycle rules are evaluated asynchronously and can take up to 24 hours to act, so the policy is not a mechanism for prompt deletion and the bill does not drop the moment it is applied."
+    ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "cloudsql-instance.yaml is the database behind the checkout API that threw 500s last Friday. Give me the exact commands to pull those errors out of Cloud Logging, then tell me whether this instance is production ready.",
+    "files": ["evals/files/cloudsql-instance.yaml"],
+    "expected_behavior": [
+      "Warns that gcloud logging read defaults to --freshness=1d, so a query for an incident four days ago silently returns nothing unless --freshness is raised, and includes an explicit --freshness value in the command it gives.",
+      "Writes a Logging query with double-quoted string literals and a concrete resource.type such as cloud_run_revision for the service and cloudsql_database for the instance, instead of a bare severity filter or single-quoted literals.",
+      "Flags availabilityType: ZONAL as the create-time default that gives no failover, and states that production needs --availability-type=regional, which can be changed in place on an existing instance but restarts it.",
+      "Flags region: us-central as gcloud's legacy default region for Cloud SQL rather than the us-central1 the team probably intended, and notes that an instance's region cannot be changed after creation.",
+      "Flags at least two of: deletion protection disabled, requireSsl false, an authorized network of 0.0.0.0/0, and point-in-time recovery disabled - and recommends the Cloud SQL Auth Proxy or a private IP instead of the open authorized network."
+    ]
+  },
+  {
+    "skills": [],
+    "query": "worker-deployment.yaml is the manifest for our image resizer. Add liveness and readiness probes, set sensible resource requests and limits, and tighten the pod security context.",
+    "files": ["evals/files/worker-deployment.yaml"],
+    "expected_behavior": [
+      "Does not read or load the gcp skill: the task is Kubernetes manifest authoring with no Google Cloud control-plane decision in it.",
+      "Answers with Kubernetes manifest content - probe definitions, resources.requests and resources.limits, and a securityContext - rather than gcloud commands, GKE cluster settings or Google Cloud IAM.",
+      "Does not invent a GKE, Autopilot, Workload Identity or Artifact Registry dimension that the manifest and the request never mention."
+    ]
+  }
+]

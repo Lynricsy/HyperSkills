@@ -1,0 +1,35 @@
+# Captured with: gcloud sql instances describe checkout-db --format=yaml
+databaseVersion: POSTGRES_16
+name: checkout-db
+project: acme-prod
+region: us-central
+state: RUNNABLE
+gceZone: us-central-a
+connectionName: acme-prod:us-central:checkout-db
+settings:
+  tier: db-custom-2-7680
+  edition: ENTERPRISE
+  availabilityType: ZONAL
+  deletionProtectionEnabled: false
+  activationPolicy: ALWAYS
+  backupConfiguration:
+    enabled: true
+    startTime: "09:00"
+    pointInTimeRecoveryEnabled: false
+    transactionLogRetentionDays: 7
+  ipConfiguration:
+    ipv4Enabled: true
+    requireSsl: false
+    authorizedNetworks:
+      - name: office
+        value: 0.0.0.0/0
+  databaseFlags:
+    - name: max_connections
+      value: "100"
+  insightsConfig:
+    queryInsightsEnabled: false
+
+# --- incident context ---
+# The checkout-api Cloud Run service returned intermittent 500s last Friday
+# (four days ago). We need to pull those errors out of Cloud Logging and decide
+# whether this instance is fit for production before the next release.

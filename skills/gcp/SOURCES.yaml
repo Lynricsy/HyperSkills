@@ -1,0 +1,112 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin gcp
+skill: gcp
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: gcp-docs
+    kind: docs
+    url: https://cloud.google.com/docs
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authority for every product fact in this skill that the local CLI cannot show: the Cloud Run concurrency default of 80 x vCPU for CLI/Terraform-created services versus a flat 80 in the console and the ceiling of 1000, the 300 s / 3600 s request timeout pair, request-based versus instance-based billing and what silently does not run under the default, the gen1/gen2 execution environment trade-off; the IAM propagation figures (typically 2 minutes, potentially 7 minutes or longer), the 2024-05-03 boundary for iam.automaticIamGrantsForDefaultServiceAccounts, the rule that conditions cannot attach to basic roles or to allUsers/allAuthenticatedUsers, that custom roles cannot exist at folder level, and that deny policies are checked before allow policies; Cloud Storage minimum storage durations (Nearline 30 / Coldline 90 / Archive 365) plus the Rapid class, strong global consistency, the 24-hour lifecycle propagation window, soft delete on by default at 7 days and billed, and Autoclass's fee structure; Cloud Logging retention per bucket type (_Required 400 days non-configurable, _Default 30 days, folder/org buckets non-extendable), the $0.50/GiB ingestion price with 50 GiB free per project per month, and the Cloud Monitoring quota table; GKE Autopilot's 0.25 vCPU / 0.5 GiB minimum and 1:1-to-1:8 ratio, the 110-Pods-per-node default with a /24 per node, the $0.10 per cluster per hour management fee, the $74.40 free-tier credit that excludes the regional cluster fee, the $0.50/hour extended-support surcharge, and the surge versus blue-green upgrade strategies; the six Architecture Framework pillars; and the statement that an alerts-only budget does not cap spending."
+    notes: "Licence verified by reading the page footer of cloud.google.com pages (for example /run/docs/deploying) and developers.google.com/site-policies: page content is CC-BY-4.0 and code samples Apache-2.0. Attribution: portions of this skill are derived from Google Cloud documentation, used under CC-BY-4.0; no text is copied verbatim. Where a figure could be checked against the local Google Cloud SDK 584.0.0 it was, and the CLI reading wins - the docs and the CLI disagree on nothing material, but the CLI is the version actually installed."
+  - id: google-skills
+    kind: repo
+    repo: google/skills
+    url: https://github.com/google/skills
+    paths:
+      - skills/cloud/gcloud
+      - skills/cloud/cloud-run-basics
+      - skills/cloud/cloud-sql-basics
+      - skills/cloud/google-cloud-storage-basics
+      - skills/cloud/google-cloud-storage-bucket-architect
+      - skills/cloud/iam-helper-for-policy-management
+      - skills/cloud/iam-helper-for-troubleshooting
+      - skills/cloud/iam-helper-for-privileged-access-management
+      - skills/cloud/gke-cluster-creation
+      - skills/cloud/gke-upgrades
+      - skills/cloud/gke-networking
+      - skills/cloud/cloud-logging-query-generation
+      - skills/cloud/cloud-logging-configuration-basics
+      - skills/cloud/cloud-monitoring-metric-selection
+      - skills/cloud/google-cloud-waf-security
+      - skills/cloud/google-cloud-waf-reliability
+      - skills/cloud/google-cloud-waf-cost-optimization
+      - skills/cloud/google-cloud-solution-architecture
+      - skills/cloud/cloud-build-basics
+      - skills/cloud/google-cloud-recipe-auth
+    ref: main
+    commit: fd2bd41f0106962cc1a89d64844773dbaaef1905
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The CLI discipline this skill's Core rules are built on: leaf-level `gcloud help` validation being non-transitive, the ban on unscoped `list` commands, `--quiet` as a hard requirement in headless environments, explicit `--project` and location scoping, and the human-approval denylist (IAM mutation, delete, billing, organizations, kms, and proactive `services enable`). From the IAM helpers: the v1-allow / v2-deny two-paradigm model, deny-policy attachment points, the plan-then-confirm protocol for mutating policy changes, the refusal to grant basic roles to allUsers/allAuthenticatedUsers, and the ordering that puts Policy Troubleshooter after checking deny and organization policy. From gke-cluster-creation: Autopilot as the golden path and the concrete hardened `create-auto` flag set (private nodes, master authorized networks, DNS access, Secret Manager rotation, release channel). From cloud-logging-query-generation: the LQL hard rules - double quotes only, uppercase booleans, gce_instance name-versus-id confusion, internal_http_lb_rule rather than http_load_balancer, and SEARCH() rather than `=` or `:` for protoPayload.methodName. From cloud-run-basics: the service / job / worker-pool split, the required deploy roles, and the job flag defaults. From the WAF skills: the six-pillar review structure and the product mapping under each."
+    notes: "Repository LICENSE read directly and confirmed to be the Apache-2.0 full text, not merely the API's spdx_id. The non-standard `metadata.category` values (CloudInfrastructureAndServices, Serverless, Databases, WellArchitectedFramework, Security, Containers) were stripped per docs/skill-standard.md section 1.2, as were the MCP tool-name blocks (list_clusters, create_cluster, run_gcloud_command, search_documents). Two upstream positions were not adopted: the gcloud skill's rule 4, which forbids web search for gcloud syntax, is a Gemini CLI product constraint rather than an engineering fact and was re-expressed as 'the installed release's help output is the authority'; and its ALL-CAPS MANDATORY/FORBIDDEN register was dropped per docs/skill-standard.md section 3. The GKE skills' manifest-layer material (gke-manifest-generation, gke-app-onboarding, gke-workload-*) was deliberately excluded - gke-app-onboarding was already used by the `containers` skill, and Kubernetes manifests are that skill's scope. cloud-run-basics does not cover concurrency defaults, traffic splitting or the --min/--min-instances distinction; those came from the documentation and the local CLI instead."
+  - id: gcs-extension
+    kind: repo
+    repo: gemini-cli-extensions/google-cloud-storage
+    url: https://github.com/gemini-cli-extensions/google-cloud-storage
+    paths:
+      - skills/google-cloud-storage-diagnostic
+      - skills/gcs-security-assessment
+    ref: main
+    commit: db08d0fdb8c133ca0cb82e742d9d54228c4a318b
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The ordered 403/404 triage in references/cloud-storage.md, including the point that Cloud Storage returns 404 for objects the caller may not see so a 404 is usually a permission problem, and the ordering that puts identity and bucket IAM before object ACLs, deny policies and VPC Service Controls. From gcs-security-assessment: the public-exposure audit checklist (uniform bucket-level access, public access prevention, allUsers/allAuthenticatedUsers, CMEK) used as the security section's spine."
+    notes: "Its google-cloud-storage-basics and google-cloud-storage-bucket-architect skills duplicate the same-named skills in google/skills; google/skills is recorded as the source for those and this repository only for the two skills that exist nowhere else. Low star count (25) did not affect scoring - authority is assessed by the publishing organization, and gemini-cli-extensions is Google's."
+  - id: optimnow-finops
+    kind: repo
+    repo: OptimNow/cloud-finops-skills
+    url: https://github.com/OptimNow/cloud-finops-skills
+    paths:
+      - skills/cloud-finops
+    ref: main
+    commit: db48149a769ed51cf4cb7ec33ab3a16e3e3a2979
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The structure of the cost-investigation workflow: inform before optimise before operate, rank by period-over-period delta rather than absolute size, and attribute down through project then label then resource before proposing a change. Also the position that right-sizing must precede commitments, because a multi-year commitment on an over-provisioned fleet locks in the waste."
+    notes: "The GitHub API reports NOASSERTION; the repository's LICENSE.md was read directly and is Creative Commons Attribution-ShareAlike 4.0 International (Copyright 2025-2026 OptimNow, Jean Latiere). Per docs/roadmap.md's licence table, CC-BY-SA material is merged as structure and checklist semantics only, entirely rewritten in this skill's own words; no wording, table or example is carried over. Its cross-cloud AWS and Azure material was ignored, and every Google Cloud figure in references/cost-and-quotas.md was taken from cloud.google.com rather than from this repository."
+  - id: bagelhole-devops
+    kind: repo
+    repo: BagelHole/DevOps-Security-Agent-Skills
+    url: https://github.com/BagelHole/DevOps-Security-Agent-Skills
+    paths:
+      - infrastructure/cloud-gcp
+      - compliance/auditing/gcp-audit-logs
+    ref: main
+    commit: 0365f57a079b1332f95cf26e31dd2d5332a8399f
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage check that no major Google Cloud control-plane topic was missed (Compute Engine, VPC and networking, Cloud Functions, Cloud SQL, GKE, audit logging)."
+    notes: "No content merged. Its material is tutorial prose and command tables of the kind docs/skill-standard.md section 3 rules out, and its Prerequisites sections instruct the agent to run `gcloud services enable` directly, which contradicts the official gcloud skill's denylist; that conflict was resolved in favour of the stricter position and is recorded in research/gcp.md. Its terraform-gcp skill is out of scope for this skill."
+  - id: cloud-run-mcp
+    kind: repo
+    repo: GoogleCloudPlatform/cloud-run-mcp
+    url: https://github.com/GoogleCloudPlatform/cloud-run-mcp
+    paths:
+      - skills/cloud-run
+    ref: main
+    commit: 560558a78b9d10f30da4b21879dff67379c80668
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Completeness check on the `gcloud run` command surface - it is the source that flagged the multi-region-services and `compose up` subgroups, both confirmed present in the local Google Cloud SDK 584.0.0."
+    notes: "No content merged. The skill is a transcription of `gcloud run --help` into a table, which a capable model can obtain in one command."
+  - id: google-agents-cli
+    kind: repo
+    repo: google/agents-cli
+    url: https://github.com/google/agents-cli
+    paths:
+      - skills/google-agents-cli-deploy
+    ref: main
+    commit: 5597738f14b5d4a490dfdefa282bc229003b7bbe
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage check on the Cloud Run deployment path for containerised applications."
+    notes: "No content merged. Its deployment material is scaffolding for the agents CLI product itself (`agents deploy`, Agent Engine) rather than general Cloud Run practice, and the Cloud Run portion adds nothing beyond google/skills' cloud-run-basics."

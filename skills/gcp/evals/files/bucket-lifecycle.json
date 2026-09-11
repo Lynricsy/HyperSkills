@@ -1,0 +1,37 @@
+{
+  "_comment": "gcloud storage buckets describe gs://acme-app-events --format=json (trimmed)",
+  "name": "acme-app-events",
+  "location": "US",
+  "locationType": "multi-region",
+  "storageClass": "STANDARD",
+  "uniformBucketLevelAccess": {
+    "enabled": false
+  },
+  "softDeletePolicy": {
+    "retentionDurationSeconds": "604800"
+  },
+  "versioning": {
+    "enabled": true
+  },
+  "lifecycle": {
+    "rule": [
+      {
+        "action": { "type": "SetStorageClass", "storageClass": "ARCHIVE" },
+        "condition": { "age": 7 }
+      },
+      {
+        "action": { "type": "Delete" },
+        "condition": { "age": 30 }
+      },
+      {
+        "action": { "type": "Delete" },
+        "condition": { "numNewerVersions": 3 }
+      }
+    ]
+  },
+  "_workload": {
+    "description": "Clickstream events, ~20 TiB resident, ~700 GiB written per day.",
+    "read_pattern": "Dashboards scan the last 7 days constantly; older objects are read a handful of times per quarter for backfills.",
+    "current_monthly_bill_usd": 1180
+  }
+}

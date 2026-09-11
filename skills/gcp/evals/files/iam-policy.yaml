@@ -1,0 +1,29 @@
+# Captured with: gcloud projects get-iam-policy acme-prod --format=yaml
+bindings:
+  - members:
+      - user:dana@acme.example
+      - user:contractor-kim@partner.example
+    role: roles/owner
+  - members:
+      - serviceAccount:482910337712-compute@developer.gserviceaccount.com
+      - serviceAccount:ci-deployer@acme-prod.iam.gserviceaccount.com
+    role: roles/editor
+  - members:
+      - group:analytics@acme.example
+    role: roles/bigquery.dataViewer
+  - members:
+      - serviceAccount:checkout-api@acme-prod.iam.gserviceaccount.com
+    role: roles/cloudsql.client
+  - members:
+      - allAuthenticatedUsers
+    role: roles/storage.objectViewer
+etag: BwYf3kQmLp0=
+version: 1
+
+# --- notes from the platform team, for context ---
+# * The CI pipeline authenticates with a JSON key downloaded for
+#   ci-deployer@acme-prod.iam.gserviceaccount.com in 2024; the key lives in the
+#   CI provider's secret store and has never been rotated.
+# * The organization was created in 2022.
+# * We want contractor-kim to keep read access but lose the ability to change
+#   IAM, and we want that guarantee to hold even if someone re-grants a role.
