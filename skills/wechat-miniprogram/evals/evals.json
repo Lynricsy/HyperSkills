@@ -1,0 +1,72 @@
+[
+  {
+    "skills": ["wechat-miniprogram"],
+    "query": "Our WeChat Mini Program feed page stutters badly once the list passes ~200 rows, and the whole app stops responding to taps while the user scrolls. Go through feed-page.js and feed-page.wxml and tell me what is actually costing us, in order of impact. Our lead says the fix is to shrink the setData payload by diffing the list and only sending changed rows, so please confirm or reject that plan.",
+    "files": ["evals/files/feed-page.js", "evals/files/feed-page.wxml"],
+    "expected_behavior": [
+      "Rejects payload size as the primary cost and names the real ranking: the dominant factor for a data update is the node count of the Shadow tree belonging to the component that calls the update, and only after that the amount of data changed - so splitting the page into a per-row custom component that calls setData on itself beats any amount of payload diffing",
+      "Explains that the binding-map fast path is only chosen when exactly one data field is updated and that field is not consumed by wx:if / wx:for / let: nodes or their descendants; because `list` drives wx:for and every setData in this file bundles several keys at once, every update here falls back to a full depth-first virtual-tree walk - so the common advice of merging many fields into one setData actively disqualifies the fast path",
+      "Flags `onPageScroll` as a standing cost rather than a slow callback: declaring it at all makes the view layer stream scroll events to the logic layer at high frequency, so it must be omitted from the Page options entirely (not left as an empty function), and per-frame createSelectorQuery for exposure must be replaced with IntersectionObserver",
+      "Flags that `categoryIndex` and `reportBuffer` passed in the Page constructor object are deep-copied per page instance (function-typed fields excepted), so a ~400KB category tree must be assigned to `this` inside onLoad instead",
+      "Flags non-render data living in `data` (categoryTree, exposureMap, lastReportAt, sys, cursor) and gives the two correct homes: `this.userData`-style plain instance fields for render-irrelevant data, and pureDataPattern pure data fields for render-indirect data watched via observers",
+      "Flags `cursor: res.cursor === null ? undefined : res.cursor` as a silent bug: a data key set to undefined is skipped by setData and leaves stale state behind",
+      "Flags the setInterval countdown that keeps running after onHide: the logic layer is single-threaded, so a background page's updates steal time from the foreground page and are invisible to the user anyway",
+      "Mentions at least one measurement hook rather than only advice - setUpdatePerformanceListener on the component, or the devtools performance panel - and keeps the 1024 kB hard cap on a single setData call separate from the performance argument",
+      "Does not claim the cost is JSON serialisation across the two threads being proportional to payload bytes, and does not recommend groupSetData / batching as the primary fix"
+    ]
+  },
+  {
+    "skills": ["wechat-miniprogram"],
+    "query": "Review app.json and project.config.json for this shop mini program. We just switched the renderer and split the code into subpackages; the build now fails on some machines and the live pages misbehave. List every configuration error and what each one breaks.",
+    "files": ["evals/files/app.json", "evals/files/project.config.json"],
+    "expected_behavior": [
+      "Flags `packageGoods/promo` as illegal: a subPackages root may not be a subdirectory of another subPackages root",
+      "Flags the tabBar entry `packageGoods/pages/cart/cart`: tabBar pages must live in the main package",
+      "Flags the global usingComponents entry pointing at `/packageLive/components/badge/badge`: the main package cannot reference a subpackage's assets, and packageLive is additionally an independent subpackage, which may not be depended on at all",
+      "Flags `renderer: \"skyline\"` as incomplete: Skyline requires the glass-easel component framework (`componentFramework: \"glass-easel\"`) and every Skyline page needs `navigationStyle: \"custom\"` because Skyline has no native navigation bar; also notes that global `enablePullDownRefresh` / page-level scrolling does not exist under Skyline, so scrolling must move into scroll-view",
+      "Flags `lazyCodeLoading` being placed under project.config.json `setting`: it is an app.json field, so on-demand injection is silently off here",
+      "Explains the cost of the five globally declared usingComponents once lazyCodeLoading is fixed: components declared in app.json are treated as a dependency of every page and get injected at startup, so rarely used ones must be declared per page",
+      "States the concrete subpackage size limits that this split has to stay under - 2 MB for the main package and for each individual subpackage, 30 MB for the whole mini program (20 MB for service-provider-developed ones) - rather than only saying 'keep it small'",
+      "Warns about independent-subpackage semantics for packageLive: App is not registered when the user enters through it, so getApp() returns undefined unless getApp({allowDefault: true}) is used, app.wxss does not apply, App may not be defined there, and App.onLaunch/first onShow are deferred until the user reaches the main package"
+    ]
+  },
+  {
+    "skills": ["wechat-miniprogram"],
+    "query": "This store page puts a coupon popup over a map, a video and a canvas. On our test devices the popup sometimes renders under the video, the video's error handler never fires, and tapping the map does nothing. We wrapped the popup in cover-view because that is what the native component docs said. Tell me what is still true and what we should actually change.",
+    "files": ["evals/files/store-map.wxml"],
+    "expected_behavior": [
+      "States that same-layer rendering now applies to all native components except input in its focused state, so the historic 'native components are always on top, z-index cannot beat them' rule no longer holds and the cover-view / cover-image wrapper should be replaced by ordinary view / image / text",
+      "Identifies the event-binding rules as the limitation that did survive same-layer rendering: native components accept only the `bindeventname` form, so `bind:markertap`, `bind:play`, `bind:touchstart`, `catchtap` and `catch:error` on map / video / canvas are wrong, and catch / capture binding is not supported on native components at all",
+      "Flags the CSS applied to the native components: a native component cannot be `position: fixed`, cannot carry a CSS animation, and cannot be clipped by an ancestor's `overflow: hidden`",
+      "Recommends bindrendererror on the native components as the required fallback path, and explains that same-layer rendering can fail at runtime - missing webview kernel support on Android, and a failure rate on iOS when the node tree is unstable",
+      "States that the devtools simulator fakes native components with web elements, so layering and behaviour here must be verified on a real device, and notes native components occlude the vConsole panel",
+      "Flags the `animation=\"{{dockAnim}}\"` dock as the wrong animation mechanism for this page and points at CSS animation / transition (or the Skyline worklet path) instead of driving frames from the logic layer",
+      "Does not answer that cover-view is still required to draw above map / video / canvas"
+    ]
+  },
+  {
+    "skills": ["wechat-miniprogram"],
+    "query": "Our GitHub Actions job runs ci/upload.js on every merge to main and it fails with an authentication error, then a robot error. Fix the script and tell us what else about this pipeline is unsafe or simply will not work.",
+    "files": ["evals/files/upload.js"],
+    "expected_behavior": [
+      "Fixes the ci.Project options: the key is written to a file so the option must be `privateKeyPath`, not `privateKey` (which takes the key contents), and `type` must be one of miniProgram / miniProgramPlugin / miniGame / miniGamePlugin - the lowercase `miniprogram` here is invalid",
+      "Flags `robot: 42`: the CI robot number is limited to 1-30, and recommends reserving distinct robot numbers per pipeline so upload records stay attributable",
+      "Flags `ci.submitAudit` as a method miniprogram-ci does not provide: submitting for review is a WeChat open-API / mini program platform operation, not part of the CI compile module, so the pipeline must stop at upload",
+      "Flags the missing `qrcodeOutputDest` for ci.preview - the output path is required when qrcodeFormat is image - and notes the default format is `terminal`, which is for debugging only",
+      "Flags the missing `ci.packNpm` step before upload for any project that uses npm packages, since the miniprogram_npm output is what actually ships",
+      "Covers the credential handling concretely: the upload key comes from the mini program platform's code-upload settings, is not recoverable once lost, and its use should be constrained by the IP allowlist - which is the thing that actually breaks for a hosted GitHub Actions runner with a rotating egress IP",
+      "Corrects the size gate: `__FULL__` in subPackageInfo is the whole package while `__APP__` is the main package, and the 2 MB ceiling applies to the main package and to each individual subpackage, not to the total - the total limit is 30 MB",
+      "Notes that the `/tmp/private.key` file should be removed after use and never committed, and that `desc`/`version` should come from the tag or commit so a failed review can be traced back"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "ProductFeed.vue is a Vue 3 + Vite single-page app that we deploy to our web CDN. It jank-scrolls in mobile Safari once the catalogue gets big, and the keyword box lags a frame behind. Fix the component.",
+    "files": ["evals/files/ProductFeed.vue"],
+    "expected_behavior": [
+      "Does not read the wechat-miniprogram skill: this is a browser Vue 3 SPA built with Vite and deployed to a web CDN, and that skill hands plain Vue off to the vue skill and browser/H5 rendering performance off to the frontend-design skill",
+      "Treats the problem in browser terms - the scroll listener is not passive and writes layout-reading getBoundingClientRect per event, the computed re-filters and re-sorts the whole array on every keystroke, `sort` mutates the filtered array, and `:key=\"i\"` by index destroys list reuse",
+      "Does not introduce setData, wxml, wx:for, Page/Component constructors, subpackages or any other mini program concept into the answer"
+    ]
+  }
+]

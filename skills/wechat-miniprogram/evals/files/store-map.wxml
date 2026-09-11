@@ -1,0 +1,52 @@
+<!-- packageGoods/pages/store/store.wxml — 门店地图 + 直播卡片 + 优惠弹层 -->
+<view class="screen">
+  <!-- 底图：门店位置 -->
+  <map
+    id="storeMap"
+    class="map"
+    longitude="{{center.lng}}"
+    latitude="{{center.lat}}"
+    markers="{{markers}}"
+    style="z-index: 1; position: fixed; top: 0; left: 0;"
+    bind:markertap="onMarkerTap"
+    catchtap="onMapTap"
+  />
+
+  <!-- 门店预告片，压在地图上 -->
+  <video
+    id="teaser"
+    class="teaser"
+    src="{{teaserUrl}}"
+    autoplay="{{true}}"
+    style="z-index: 50;"
+    bind:play="onPlay"
+    catch:error="onVideoError"
+  />
+
+  <!-- 到店人数折线，压在视频上 -->
+  <canvas
+    type="2d"
+    id="trendChart"
+    class="chart"
+    style="z-index: 60;"
+    bind:touchstart="onChartTouch"
+  />
+
+  <!-- 自定义优惠弹层，希望盖住上面全部内容 -->
+  <view class="mask" wx:if="{{showCoupon}}" style="z-index: 999;" catchtouchmove="noop">
+    <cover-view class="coupon-card">
+      <cover-image class="coupon-bg" src="/img/coupon-bg.png" />
+      <cover-view class="coupon-title">{{coupon.title}}</cover-view>
+      <cover-view class="coupon-desc">{{coupon.desc}}</cover-view>
+      <cover-view class="coupon-actions">
+        <cover-view class="btn primary" bindtap="onClaim">立即领取</cover-view>
+        <cover-view class="btn" bindtap="onClose">稍后再说</cover-view>
+      </cover-view>
+    </cover-view>
+  </view>
+
+  <!-- 底部吸底栏，用 animation 做上滑入场 -->
+  <view class="dock" animation="{{dockAnim}}" style="z-index: 1000;">
+    <button open-type="getPhoneNumber" bindgetphonenumber="onPhone">一键到店</button>
+  </view>
+</view>

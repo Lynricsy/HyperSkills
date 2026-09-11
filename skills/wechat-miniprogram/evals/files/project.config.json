@@ -1,0 +1,24 @@
+{
+  "description": "shop mini program",
+  "miniprogramRoot": "./",
+  "appid": "wxREDACTEDappid01",
+  "compileType": "miniprogram",
+  "libVersion": "3.9.2",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false,
+    "coverView": true,
+    "lazyCodeLoading": "requiredComponents",
+    "packNpmManually": false,
+    "skylineRenderEnable": true,
+    "ignoreUploadUnusedFiles": true
+  },
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "condition": {}
+}

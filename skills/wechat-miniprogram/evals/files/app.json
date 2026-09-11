@@ -1,0 +1,65 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/feed/feed",
+    "pages/mine/mine"
+  ],
+  "subPackages": [
+    {
+      "root": "packageGoods",
+      "pages": [
+        "pages/detail/detail",
+        "pages/cart/cart",
+        "pages/checkout/checkout"
+      ]
+    },
+    {
+      "root": "packageGoods/promo",
+      "pages": [
+        "pages/coupon/coupon"
+      ]
+    },
+    {
+      "root": "packageLive",
+      "independent": true,
+      "pages": [
+        "pages/room/room",
+        "pages/replay/replay"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": ["packageGoods", "packageLive"]
+    }
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#07c160",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "img/home.png", "selectedIconPath": "img/home-on.png" },
+      { "pagePath": "packageGoods/pages/cart/cart", "text": "购物车", "iconPath": "img/cart.png", "selectedIconPath": "img/cart-on.png" },
+      { "pagePath": "pages/mine/mine", "text": "我的", "iconPath": "img/me.png", "selectedIconPath": "img/me-on.png" }
+    ]
+  },
+  "renderer": "skyline",
+  "window": {
+    "navigationBarTitleText": "Shop",
+    "navigationBarBackgroundColor": "#ffffff",
+    "enablePullDownRefresh": true
+  },
+  "usingComponents": {
+    "shop-toast": "/components/toast/toast",
+    "shop-skeleton": "/components/skeleton/skeleton",
+    "shop-coupon-modal": "/components/coupon-modal/coupon-modal",
+    "shop-share-sheet": "/components/share-sheet/share-sheet",
+    "shop-live-badge": "/packageLive/components/badge/badge"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于推荐附近门店"
+    }
+  },
+  "sitemapLocation": "sitemap.json"
+}

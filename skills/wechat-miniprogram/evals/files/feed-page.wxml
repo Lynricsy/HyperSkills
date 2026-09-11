@@ -1,0 +1,41 @@
+<!-- pages/feed/feed.wxml -->
+<wxs module="fmt">
+  exports.price = function (cents) { return (cents / 100).toFixed(2) }
+  exports.badge = function (item) { return item.stock > 0 ? '' : '售罄' }
+</wxs>
+
+<view class="page">
+  <view class="filter-bar">
+    <view class="chip {{filter.sort === 'default' ? 'on' : ''}}" bindtap="onSort" data-sort="default">综合</view>
+    <view class="chip {{filter.sort === 'price' ? 'on' : ''}}" bindtap="onSort" data-sort="price">价格</view>
+    <view class="chip {{filter.onlyStock ? 'on' : ''}}" bindtap="onStock">有货</view>
+  </view>
+
+  <view class="feed">
+    <block wx:for="{{list}}" wx:key="id">
+      <view class="feed-card" data-index="{{index}}">
+        <image class="cover" src="{{item.cover}}" mode="aspectFill" />
+        <view class="body">
+          <view class="title">{{item.title}}</view>
+          <view class="subtitle">{{item.shop.name}} · {{item.shop.city}}</view>
+          <view class="tags">
+            <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+          </view>
+          <view class="price-row">
+            <text class="price">¥{{fmt.price(item.priceCents)}}</text>
+            <text class="badge">{{fmt.badge(item)}}</text>
+            <view class="like" bindtap="onLike" data-index="{{index}}">
+              <image src="{{item.liked ? '/img/on.png' : '/img/off.png'}}" />
+              <text>{{item.likeCount}}</text>
+            </view>
+          </view>
+          <view class="promo" wx:if="{{item.promo}}">
+            <text wx:for="{{item.promo.rules}}" wx:for-item="rule" wx:key="id">{{rule.text}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+</view>

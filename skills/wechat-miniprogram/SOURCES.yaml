@@ -1,0 +1,135 @@
+skill: wechat-miniprogram
+version: "2026.09.11"
+upstreams:
+  - id: wx-api-typings
+    kind: repo
+    repo: wechat-miniprogram/api-typings
+    url: https://github.com/wechat-miniprogram/api-typings
+    paths: [types/wx]
+    ref: master
+    commit: 6092df9100c73b84e140c20b9a42a8e8799e0660
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Official TypeScript declarations for wx.*, Page, Component, Behavior; used as the machine-checkable source for API shapes, base-library version gates, setData/storage hard limits and deprecations."
+    notes: "LICENSE read in full: MIT. Verified locally against npm miniprogram-api-typings@5.2.3, whose types/ directory is published from this repository."
+
+  - id: wx-glass-easel
+    kind: repo
+    repo: wechat-miniprogram/glass-easel
+    url: https://github.com/wechat-miniprogram/glass-easel
+    paths: [glass-easel-skills/glass-easel, glass-easel/src]
+    ref: master
+    commit: 4aeef5fbfa6100b37f331417a7da7a602840471b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Official component-framework skill and runtime source: advanced data-update APIs, observer semantics, deep-copy options, wx:key sub-algorithms, slot modes, virtualHost."
+    notes: "LICENSE read in full: MIT text (header line is a bare copyright, not the string 'MIT License'). API names verified against npm glass-easel@1.2.0 dist/glass_easel.d.ts."
+
+  - id: wx-skyline-skills
+    kind: repo
+    repo: wechat-miniprogram/skyline-skills
+    url: https://github.com/wechat-miniprogram/skyline-skills
+    paths: [skills/skyline-overview, skills/skyline-config, skills/skyline-components]
+    ref: master
+    commit: 050bb071e091c2d0f7ac3e294f1e1514382b3978
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Skyline renderer configuration triad, WebView-to-Skyline behavioural differences, local-scrolling layout pattern and progressive migration granularity."
+    notes: "LICENSE read in full: MIT text under 'Copyright 2024 wechat-miniprogram'."
+
+  - id: wx-miniprogram-simulate
+    kind: repo
+    repo: wechat-miniprogram/miniprogram-simulate
+    url: https://github.com/wechat-miniprogram/miniprogram-simulate
+    paths: [docs, index.d.ts]
+    ref: master
+    commit: f6044fd0ab3183eb170f4f64aebe1a9576ba76f2
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Custom-component unit testing: load/render/attach flow and what the simulator does not emulate."
+
+  - id: dcloud-uni-app
+    kind: repo
+    repo: dcloudio/uni-app
+    url: https://github.com/dcloudio/uni-app
+    paths: [docs/compiler/platform.md, docs/mp]
+    ref: uni-app-x
+    commit: 8d4be0f32d23f4f142c53ed217d292c292e8372e
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "uni-app conditional-compilation syntax and platform constants, the undefined-platform fallthrough rule, and the mp-weixin glass-easel switches."
+
+  - id: taro
+    kind: repo
+    repo: NervJS/taro
+    url: https://github.com/NervJS/taro
+    paths: [packages/taro-cli]
+    ref: main
+    commit: d6d69e30f70d98e49aa9d0b6d4e149d7f4df2980
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Taro project layout, per-platform build targets and the pxtransform/designWidth contract; verified by scaffolding a project with taro 4.2.1."
+    notes: "GitHub API reports NOASSERTION; LICENSE read in full and is MIT (Copyright (c) 2018 O2Team)."
+
+  - id: wx-official-docs
+    kind: docs
+    url: https://developers.weixin.qq.com/miniprogram/dev/framework/
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Normative source for the data-update algorithm, native-component same-layer rendering status, routing and lifecycle ordering, subpackage size caps, startup flow, authorization scopes and the privacy-agreement APIs."
+    notes: "Page footer reads 'Copyright (c) 2012-2026 Tencent. All Rights Reserved.' - proprietary, so facts are cross-checked and restated, never copied."
+
+  - id: miniprogram-ci
+    kind: docs
+    url: https://www.npmjs.com/package/miniprogram-ci
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Upload/preview/packNpm option shapes and robot range, read from the published dist/@types declarations of miniprogram-ci@2.1.31."
+    notes: "package.json declares MIT but the published tarball ships no LICENCE file, so the licence is recorded as NONE and nothing is copied; only the declared API surface is restated."
+
+  - id: wx-ai-mode-skills
+    kind: repo
+    repo: wechat-miniprogram/ai-mode-skills
+    url: https://github.com/wechat-miniprogram/ai-mode-skills
+    paths: [wxa-skills-generate]
+    ref: master
+    commit: 9bd1f25a7051ff137206f15251f716536f8409e9
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to confirm coverage of the JSAPI whitelist and project-config integration; content ruling keeps it reference-only."
+    notes: "Content ruling, not a licence ruling: the repository targets the wx.modelContext AI-mode product surface, which is product packaging rather than mini program engineering."
+
+  - id: cloudbase-ai-toolkit
+    kind: repo
+    repo: TencentCloudBase/CloudBase-AI-Toolkit
+    url: https://github.com/TencentCloudBase/CloudBase-AI-Toolkit
+    paths: [config/.claude/skills/miniprogram-development]
+    ref: main
+    commit: 3ec840b552d20a164981d695eafaef70eb741aec
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-checked for project-structure and devtools/CI routing conventions."
+    notes: "Content ruling: the normative core is CloudBase and the Nightly wechatide CLI, both outside this skill's scope, and the CLI claims could not be verified here."
+
+  - id: sonofmagic-skills
+    kind: repo
+    repo: sonofmagic/skills
+    url: https://github.com/sonofmagic/skills
+    paths: [skills/weapp-vite, skills/weapp-tailwindcss]
+    ref: main
+    commit: e0e4e51e52d1ef799e97fe634c5d930197eed4ed
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-checked for third-party build-chain constraints (WXSS class-name escaping, rpx handling) when a project uses a non-official toolchain."
+    notes: "Content ruling: the skills document the author's own weapp-vite / wevu / weapp-tailwindcss packages, so they are not used to pick a default toolchain."
