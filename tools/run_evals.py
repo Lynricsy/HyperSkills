@@ -99,22 +99,52 @@ def extract_answer(events: list[dict[str, Any]]) -> str | None:
     return None
 
 
-def detect_skill_read(raw: str, skill: str, skills_dir: Path) -> bool:
-    """Whether the transcript shows the skill itself being loaded or read.
+def parse_events(raw: str) -> list[dict[str, Any]]:
+    """NDJSON lines that parsed; a truncated tail is expected after a timeout."""
+    events: list[dict[str, Any]] = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return events
 
-    Only the skill body and its references count. A fixture path under
-    `evals/files/` is something the scenario handed the agent, so matching the
-    bare skill directory reported every such path as a read — a baseline run
-    that merely globbed the repo came back `skill_read: True`.
+
+def detect_skill_read(events: list[dict[str, Any]], skill: str, skills_dir: Path) -> bool:
+    """Whether a tool call actually loaded the skill body or one of its references.
+
+    Substring-matching the whole transcript reported a read whenever the path
+    merely appeared: a `find` listing that printed `skills/<name>/SKILL.md`, an
+    answer saying "do not read `skill://<name>`", or any fixture path under
+    `evals/files/` all came back True. Only the *arguments* of a tool call that
+    then succeeded count as a read.
     """
-    markers = (
+    targets = (
         f"skills/{skill}/SKILL.md",
-        f"skill://{skill}",
         f"{skills_dir}/{skill}/SKILL.md",
         f"skills/{skill}/references/",
         f"{skills_dir}/{skill}/references/",
+        f"skill://{skill}",
     )
-    return any(marker in raw for marker in markers)
+    wanted: set[str] = set()
+    for event in events:
+        if event.get("type") != "tool_execution_start":
+            continue
+        if any(target in str(event.get("args") or "") for target in targets):
+            call_id = event.get("toolCallId")
+            if call_id is not None:
+                wanted.add(str(call_id))
+    if not wanted:
+        return False
+    for event in events:
+        if event.get("type") != "tool_execution_end":
+            continue
+        if str(event.get("toolCallId")) in wanted and not event.get("isError"):
+            return True
+    return False
 
 
 def run_scenario(
@@ -156,23 +186,34 @@ def run_scenario(
     cmd += ["--no-skills"] if baseline else ["--skills", skill]
     cmd += ["--model", model, "--thinking", thinking]
 
+    # Stream stdout straight to disk. Piping it through `capture_output` loses
+    # everything the run emitted when the timeout kills it — five 900s
+    # web-testing timeouts all left a 0-byte transcript and nothing to diagnose.
+    events_path = out_dir / EVENTS_FILE
     started = time.monotonic()
+    stderr_text = ""
+    timed_out = False
     try:
-        proc = subprocess.run(
-            cmd, cwd=work_dir, capture_output=True, text=True, timeout=SCENARIO_TIMEOUT
-        )
+        with events_path.open("w", encoding="utf-8") as sink:
+            proc = subprocess.Popen(
+                cmd, cwd=work_dir, stdout=sink, stderr=subprocess.PIPE, text=True
+            )
+            try:
+                _, stderr_text = proc.communicate(timeout=SCENARIO_TIMEOUT)
+            except subprocess.TimeoutExpired:
+                timed_out = True
+                proc.kill()
+                _, stderr_text = proc.communicate()
     except FileNotFoundError:
         raise SystemExit(
             "error: 'omp' not found on PATH. run_evals.py drives the omp CLI headlessly."
         ) from None
-    except subprocess.TimeoutExpired as exc:
-        # Keep whatever the run managed to emit: an empty file makes a timeout
-        # indistinguishable from a crash, and the transcript is the only way to
-        # see what the agent was doing when the budget ran out.
-        partial = exc.stdout or ""
-        if isinstance(partial, bytes):
-            partial = partial.decode("utf-8", errors="replace")
-        (out_dir / EVENTS_FILE).write_text(partial, encoding="utf-8")
+    duration = round(time.monotonic() - started, 1)
+
+    raw = events_path.read_text(encoding="utf-8", errors="replace")
+    events = parse_events(raw)
+
+    if timed_out:
         return {
             "skill": skill,
             "index": index,
@@ -180,34 +221,21 @@ def run_scenario(
             "thinking": thinking,
             "baseline": baseline,
             "status": "timeout",
-            "skill_read": detect_skill_read(partial, skill, skill_path.parent),
+            "skill_read": detect_skill_read(events, skill, skill_path.parent),
             "query": scenario["query"],
             "expected_behavior": scenario.get("expected_behavior", []),
             "answer_path": None,
             "workspace": str(work_dir),
-            "duration_s": round(time.monotonic() - started, 1),
+            "events_bytes": len(raw),
+            "duration_s": duration,
         }
-    duration = round(time.monotonic() - started, 1)
-
-    raw = proc.stdout
-    (out_dir / EVENTS_FILE).write_text(raw, encoding="utf-8")
     if proc.returncode != 0:
         print(
             f"error: omp exited {proc.returncode} for {skill} eval {index}:\n"
-            f"{(proc.stderr or '').strip()[:800]}",
+            f"{(stderr_text or '').strip()[:800]}",
             file=sys.stderr,
         )
         raise SystemExit(2)
-
-    events: list[dict[str, Any]] = []
-    for line in raw.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            events.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
 
     answer = extract_answer(events)
     answer_path: str | None = None
@@ -227,11 +255,12 @@ def run_scenario(
         "thinking": thinking,
         "baseline": baseline,
         "status": "ok",
-        "skill_read": detect_skill_read(raw, skill, skill_path.parent),
+        "skill_read": detect_skill_read(events, skill, skill_path.parent),
         "query": scenario["query"],
         "expected_behavior": scenario.get("expected_behavior", []),
         "answer_path": answer_path,
         "workspace": str(work_dir),
+        "events_bytes": len(raw),
         "duration_s": duration,
     }
 
