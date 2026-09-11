@@ -1,15 +1,20 @@
 <h1>
-  <img src="docs/assets/hero.svg" width="1200" alt="HyperSkills">
+  <picture>
+    <source media="(max-width: 600px)" srcset="docs/assets/hero-mobile.svg">
+    <img src="docs/assets/hero.svg" width="1000" alt="HyperSkills：把零散经验，编成完整技能。给 AI 编程助手的整合型技能库，精编重写、评测先行、来源可溯。">
+  </picture>
 </h1>
 
-**给 AI 编程助手的整合型技能库。一个技术生态或一类任务，一份完整 skill。**
+<p align="center">
+  <strong><a href="#安装">开始安装</a></strong> &nbsp; / &nbsp;
+  <strong><a href="#skill-目录">浏览技能</a></strong> &nbsp; / &nbsp;
+  <a href="docs/skill-standard.md">编写标准</a> &nbsp; / &nbsp;
+  <a href="docs/workflow.md">五阶段流水线</a>
+</p>
 
-从上游资料中精编重写，先评测，再合入；保留易错点、版本差异与可追溯来源。
-
-**[开始安装](#安装)** &nbsp; / &nbsp; [浏览技能](#skill-目录) &nbsp; / &nbsp; [编写标准](docs/skill-standard.md) &nbsp; / &nbsp; [五阶段流水线](docs/workflow.md) &nbsp; / &nbsp; [MIT 许可](LICENSE)
-
-活跃开发中，暂无 CI。维护者 [@Lynricsy](https://github.com/Lynricsy)；问题与建议请提
-[Issue](https://github.com/Lynricsy/HyperSkills/issues)。
+<p align="center">
+  <sub>活跃开发中，暂无 CI。<a href="LICENSE">MIT 许可</a> · 由 <a href="https://github.com/Lynricsy">@Lynricsy</a> 维护 · <a href="https://github.com/Lynricsy/HyperSkills/issues">反馈问题</a></sub>
+</p>
 
 > **skill 会以 agent 的全部权限运行。** 装之前把 `SKILL.md` 和 `scripts/` 读一遍——
 > 这条对本仓库和任何第三方 skill 都一样。

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="540" viewBox="0 0 1000 540" fill="none" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="570" viewBox="0 0 500 570" fill="none" role="img" aria-labelledby="title desc">
   <title id="title">HyperSkills：把零散经验，编成完整技能。</title>
   <desc id="desc">给 AI 编程助手的整合型技能库。精编重写、评测先行、来源可溯。定制几何字标与模块化 H 标记。</desc>
-  <rect width="1000" height="540" rx="16" fill="#191919"/>
-  <g transform="translate(56 42) scale(.68)">
+  <rect width="500" height="570" rx="16" fill="#191919"/>
+  <g transform="translate(32 32) scale(.72)">
   <g fill="#EE8747" transform="translate(-9 0) scale(.65)">
     <path d="M24 24H56V120L24 136Z"/>
     <path d="M68 70 92 58V90L68 102Z"/>
@@ -21,19 +21,19 @@
   <path d="m456 18 10-5v12h-10Z" fill="#F5F5F2"/>
   </g>
   <g font-family="Noto Sans CJK SC, Microsoft YaHei, PingFang SC, sans-serif">
-    <g fill="#F5F5F2" font-size="58" font-weight="700">
-      <text x="56" y="226">把零散经验，</text>
-      <text x="56" y="306">编成完整技能。</text>
+    <g fill="#F5F5F2" font-size="48" font-weight="700">
+      <text x="32" y="220">把零散经验，</text>
+      <text x="32" y="286">编成完整技能。</text>
     </g>
-    <text x="58" y="360" fill="#A6A6A1" font-size="22">给 AI 编程助手的整合型技能库</text>
-    <g fill="#F5F5F2" font-size="21" font-weight="500">
-      <text x="56" y="480">精编重写</text>
-      <text x="386" y="480">评测先行</text>
-      <text x="716" y="480">来源可溯</text>
+    <text x="34" y="338" fill="#A6A6A1" font-size="23">给 AI 编程助手的整合型技能库</text>
+    <g fill="#F5F5F2" font-size="24" font-weight="500">
+      <text x="34" y="425">精编重写</text>
+      <text x="34" y="475">评测先行</text>
+      <text x="34" y="525">来源可溯</text>
     </g>
   </g>
-  <path d="M56 430H944" stroke="#3A3A38"/>
-  <g transform="translate(680 160) scale(1.7)" fill="#EE8747">
+  <path d="M32 378H468" stroke="#3A3A38"/>
+  <g transform="translate(322 406) scale(.7)" fill="#EE8747">
     <path d="M24 24H56V120L24 136Z"/>
     <path d="M68 70 92 58V90L68 102Z"/>
     <path d="m104 40 32-16v112h-32Z"/>

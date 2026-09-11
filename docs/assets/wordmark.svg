@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="112" viewBox="0 0 640 112" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">HyperSkills</title>
+  <desc id="desc">手绘 HyperSkills 字标，以模块化 H、斜向连接和开放切口构成统一的几何字形。</desc>
+  <g fill="#EE8747" transform="translate(-9 0) scale(.65)">
+    <path d="M24 24H56V120L24 136Z"/>
+    <path d="M68 70 92 58V90L68 102Z"/>
+    <path d="m104 40 32-16v112h-32Z"/>
+  </g>
+  <g stroke="#EE8747" stroke-width="9" stroke-linecap="square" stroke-linejoin="round">
+    <path d="m98 40 21 42m21-42-25 57q-4 9-15 9"/>
+    <path d="M157 106V40m0 10q9-12 21-12c17 0 24 11 24 25s-7 25-24 25q-12 0-21-12"/>
+    <path d="M222 64h43v-5c0-14-8-21-21-21s-22 10-22 25 9 25 23 25q11 0 19-7"/>
+    <path d="M285 86V40m0 15q10-19 27-15"/>
+    <path d="M375 25q-9-9-22-9c-15 0-24 8-24 19 0 12 12 17 25 20 15 4 25 9 25 20 0 12-11 19-26 19q-16 0-28-11"/>
+    <path d="M400 18v70m36-48-36 31m15-13 24 30"/>
+    <path d="M461 42v46M484 18v57q0 13 12 13M515 18v57q0 13 12 13"/>
+    <path d="M580 44q-8-6-18-6c-11 0-18 5-18 13s8 11 19 13 19 6 19 13-8 12-19 12q-12 0-21-7"/>
+  </g>
+  <path d="m456 18 10-5v12h-10Z" fill="#EE8747"/>
+</svg>
