@@ -11,7 +11,7 @@
 `apple`、`flutter`、`office`、`frontend-design`、`react`、`skill-authoring`、
 `test-driven-development`、`debugging`、`code-review`。
 
-## 全面扩展：波次 1–9（44 个 skill，终态共 53 个）
+## 全面扩展：波次 1–10（46 个 skill，终态共 55 个）
 
 每波 ≤5 个 skill（AGENTS.md：不得同时让 5 个以上 subagent 工作）。顺序为
 平台/语言 → Web/后端 → 数据/云 → 任务/AI → 游戏/Web3/中文生态。
@@ -112,6 +112,28 @@
 三个游戏引擎同波：SKILL.md 章节与 `references/` 命名保持同构（`scripting`、`rendering`、`ui`、
 `physics`、`build`）。
 
+### 波次 10 — 多媒体
+
+建设期的领域调研从未把多媒体纳入视野：它既不在波次 1–9，也不在下面的「暂缓与排除」表里。
+这是路线图的盲区，不是评估后的否决。补立两个主题，按确定性/概率性切分而不是按媒体类型切分——
+同一个 agent 在一次任务里往往两边都要用（生成片段再拼成长视频、转写前先重采样），
+但两边的失败模式与验证手段完全不同。
+
+| skill | category | 种子上游 | 边界 | 状态 |
+|---|---|---|---|---|
+| `media-processing` | task | kajisho5/ffmpeg-skill(MIT, 950★) 主干；GoogleCloudPlatform/vertex-ai-creative-studio `experiments/mcp-genmedia/skills/*`(Apache-2.0，唯一官方厂商上游，按边界只取 ffmpeg 操作部分)；damionrashford/media-os(MIT，HLS/DASH/RTMP/SRT 唯一系统覆盖)；n0an/ffmpeg-skill(MIT)；TerminalSkills/skills `skills/{ffmpeg,imagemagick,sharp}`(Apache-2.0)；maxazure/video-editing-skill 与 sakydev/claude(无许可 → NONE)；ffmpeg.org + trac wiki + sharp/ImageMagick/libvips/Pillow(docs)；einverne/dotfiles(GPL-3.0 → reference) | 覆盖转码/切拼/滤镜/字幕/响度/HLS-DASH 打包/静图批处理/探测与交付验证。不覆盖框架内置图片管线(→`astro`/`react`)、页面性能取舍(→`frontend-design`)、Office 与 PDF(→`office`)、模型生成物(→`generative-media`) | 已完成 |
+| `generative-media` | task | openai/skills `skills/.curated/{transcribe,speech}` 与 `.system/imagegen`(Apache-2.0，逐目录实读 LICENSE.txt) 主干；ai.google.dev gemini-api docs(**CC-BY-4.0，本主题唯一可 merged 的一线厂商文档**)；replicate/skills(Apache-2.0)；GoogleCloudPlatform/vertex-ai-creative-studio(Apache-2.0，只取生成部分)；huggingface/diffusers + openai/whisper + ggml-org/whisper.cpp + c2pa-org/specifications；comfyanonymous/ComfyUI(GPL-3.0 → reference) | 覆盖生图与掩膜编辑、视频生成、TTS/ASR、本地 diffusion 复现、任务生命周期与成本、溯源与披露。不覆盖文本模型应用(→`ai-engineering`)、改权重(→`ml-training`)、确定性转码与封装(→`media-processing`) | 已完成 |
+
+两者同批：`SKILL.md` 的 `## Scope` 都以同一句分界句收束，`references/` 在交接点上只写自己一侧
+（ASR 前的 16 kHz 重采样、TTS 的裸 PCM 封装、生成片段的 concat 都归 `media-processing`）。
+
+**立项判据第 2 条的诚实记录**：`media-processing` 取得 10 个活跃且 ≥8 分的上游，远超下限；
+`generative-media` 取得 12 个。但 Phase B 的基线评测显示，Claude Opus 5 在两个主题的**常规工程**
+上已几乎无缺口（ffmpeg 命令、HLS GOP 对齐、异步任务、ASR 分段全部自行答对），
+两份评测因此各改写过一轮。真实增量集中在：工具选型的经济性判断（不为保住 ffmpeg 而手写色彩管理）、
+交付决策的交还，以及**没被问到时仍要履行的合规与溯源义务**。详见两份 research 的「基线缺口」节。
+
+
 ## 官方厂商特例主题
 
 按「新增主题的判据」第 4 条立项，`research/<skill>.md` 标题下第一行写「单一权威上游改写」。
@@ -132,6 +154,9 @@
 | `postgres` / `supabase` | RLS 策略语法与性能归 `postgres`；Supabase Auth 上下文（`auth.uid()`、JWT claims）与 dashboard/CLI 流程归 `supabase` |
 | `code-review` / `security-review` | 评审一个 diff 时的安全视角归 `code-review`；对整个仓库、功能或威胁面做审计归 `security-review` |
 | `debugging` / `observability` | 有可复现的本地失败归 `debugging`；只有生产信号（日志/指标/追踪/告警）归 `observability` |
+| `media-processing` / `generative-media` | 同样的输入必然得到同样的字节，归 `media-processing`；输出随模型、种子或服务端版本而变，归 `generative-media` |
+| `ai-engineering` / `generative-media` | 模型输出是文本或结构化数据、要接进 agent 循环或检索管道，归 `ai-engineering`；模型输出是像素、视频帧或音频采样，归 `generative-media` |
+| `ml-training` / `generative-media` | 改动权重（微调、LoRA、蒸馏）归 `ml-training`；调用别人训好的权重生成或识别媒体归 `generative-media` |
 
 ## 许可处理规则
 

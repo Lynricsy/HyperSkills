@@ -1,0 +1,53 @@
+[
+  {
+    "skills": ["generative-media"],
+    "query": "Our art director approves prompts on his MacBook, then we re-run the approved list on the A100 box and the finals come out different. Even re-running just one prompt on the same box gives a different image than the batch did. Same seed every time. Make the renders reproducible.",
+    "files": ["evals/files/batch_variants.py"],
+    "expected_behavior": [
+      "Identifies the reused `Generator` as why a single prompt cannot be reproduced on its own: the generator's state advances with each call, so image N depends on the calls before it, and creates or reseeds a generator per image",
+      "States that a CPU generator and a CUDA generator produce different noise from the same seed, so reproducing across machines requires generating the latents on CPU and moving them to the device",
+      "Says that identical seed, device and code still do not guarantee bit-identical output — nondeterministic kernels, TF32 and algorithm selection all move the result — and reaches for the deterministic switch (`enable_full_determinism`) while naming its performance cost",
+      "Refuses to promise bit-identical parity between the MacBook (mps) and the A100, and proposes archiving the approved image bytes as the artefact of record instead",
+      "Pins the versions that silently change output — diffusers, the model weights revision, the scheduler — rather than treating the seed alone as the reproducibility contract",
+      "Notes that `torch.manual_seed` at the top is not what seeds the pipeline here, so it gives false confidence"
+    ]
+  },
+  {
+    "skills": ["generative-media"],
+    "query": "Legal blocked our re-staged catalogue images. They say the product in the generated photos is not the product we photographed, and compliance wants to know how a shopper can tell the image was AI-made. This is the job that produces them.",
+    "files": ["evals/files/restage_product.py"],
+    "expected_behavior": [
+      "States that the mask is a prompt-level hint, not a pixel-level crop: the model may alter pixels inside the protected area, so 'only the background changes' is not something the edit endpoint can promise",
+      "Gets the product pixels back deterministically — compositing the original photo over the generated background through an alpha matte — rather than tightening the prompt or refining the mask and hoping",
+      "Says provider provenance marking (SynthID, C2PA manifests) rides in the generated asset and must be preserved rather than removed",
+      "Flags the `sharp-cli resize` step as destroying that provenance, because image tools strip metadata by default, and keeps or re-signs the manifest through the resize",
+      "Provides a disclosure the shopper actually sees, not only stored metadata, because the requirement is that a person can tell",
+      "Persists the generation record — prompt, model version, request id, and the hash of the delivered bytes — so a specific published image can be traced back to the call that produced it",
+      "Does not propose stripping or spoofing the provenance metadata to make the compliance complaint go away"
+    ]
+  },
+  {
+    "skills": ["generative-media"],
+    "query": "Narrated lessons are broken: short lessons play fine, long ones fail or come out truncated, and the files that do get written will not open in the browser player. Fix the narration job.",
+    "files": ["evals/files/narrate_lessons.py"],
+    "expected_behavior": [
+      "Identifies that the response is raw PCM (24 kHz, 16-bit, mono) with no container, so naming the file `.wav` does not make it a WAV — a RIFF header has to be written or the bytes muxed",
+      "Assigns that containerisation and any resampling to deterministic tooling rather than expecting the speech endpoint to return a playable file",
+      "Splits long lessons against the endpoint's input limit, and splits on sentence or paragraph boundaries rather than a fixed character count so prosody does not break mid-clause",
+      "Handles continuity across chunks — same voice and style configuration on every request, and joined with controlled silence rather than concatenated back to back",
+      "Strips or converts the markdown before narration instead of sending raw markup to be read aloud",
+      "Discloses to the learner that the narration is synthetic, given these sit in the same list as human-recorded lessons",
+      "Does not treat the audio as reproducible from a seed"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "This support answer function sometimes answers from the model's own knowledge instead of the articles we pass it, and the output format is inconsistent. Tighten it up.",
+    "files": ["evals/files/support_answer.py"],
+    "expected_behavior": [
+      "Does not read skills/generative-media/SKILL.md",
+      "Works on prompt structure, delimiting the retrieved articles as data, grounding/citation and provider-enforced structured output",
+      "Treats this as text-model application work rather than a media generation task"
+    ]
+  }
+]

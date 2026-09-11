@@ -1,0 +1,175 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin generative-media
+skill: generative-media
+version: "2026.09.12"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: openai-skills-transcribe
+    kind: repo
+    repo: openai/skills
+    url: https://github.com/openai/skills
+    paths: [skills/.curated/transcribe]
+    ref: main
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Recognition thresholds that change results instead of erroring: the ~25 MB single-request cap and input format whitelist, the requirement to pass an explicit chunking strategy beyond ~30 seconds, the diarising model refusing the prompt parameter, and the ~4 known-speaker reference cap."
+    notes: "The repository has no top-level LICENSE and the GitHub API reports null; skills/.curated/transcribe/LICENSE.txt was read directly and is Apache-2.0, as were the sibling speech and imagegen directories. Codex harness bindings (CODEX_HOME paths, bundled scripts) were stripped, and the upstream's model-id defaults were dropped under ruling 2."
+  - id: openai-skills-speech
+    kind: repo
+    repo: openai/skills
+    url: https://github.com/openai/skills
+    paths: [skills/.curated/speech]
+    ref: main
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Synthesis limits and obligations: the ~4096 character request cap and ~50 RPM ceiling treated as a hard client constraint, style instructions being silently ignored by models that predate instruction following, the per-dimension direction labels (affect, tone, pacing, emotion, pronunciation, pauses, emphasis, delivery), and the policy requirement to disclose an AI-generated voice to end users."
+    notes: "Per-directory LICENSE.txt read directly: Apache-2.0 (the repository has no top-level LICENSE). Model ids and Codex harness paths were stripped; the disclosure rule is carried as a policy obligation, not a suggestion."
+  - id: openai-skills-imagegen
+    kind: repo
+    repo: openai/skills
+    url: https://github.com/openai/skills
+    paths: [skills/.system/imagegen]
+    ref: main
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The generate-versus-edit decision rule keyed on what must survive, restating invariants on every edit round, the 16 input-image cap and input-fidelity cost effect, disambiguating the background parameter from scene wording, the allowed and forbidden prompt augmentation lists, versioned sibling filenames instead of overwriting assets, and the ruling-7 anchor that masking is prompt-guided with no guaranteed shapes."
+    notes: "Per-directory LICENSE.txt read directly: Apache-2.0. Heavy Codex harness binding (built-in image tools, CODEX_HOME output directory, bundled script) removed entirely; the upstream's model-id list is already stale and was dropped under ruling 2."
+  - id: replicate-skills
+    kind: repo
+    repo: replicate/skills
+    url: https://github.com/replicate/skills
+    paths:
+      - skills/run-models
+      - skills/find-models
+      - skills/compare-models
+      - skills/prompt-images
+      - skills/prompt-videos
+    ref: main
+    commit: 2f36e415965ae63baa1c9f6635888092bcd771d3
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Job lifecycle: the synchronous/polling/webhook choice with the ~60 s blocking cap, webhook signature verification headers, the starting-processing-succeeded state machine, automatic job lifetime, expiring output URLs, cold starts and per-call versus GPU-second pricing; the rule to enumerate models from the API and read the version's schema rather than trusting remembered ids; and cross-vendor prompt failure modes (negative prompts on models not trained for them, guidance burn, the ~1 megapixel sweet spot, identity-replacing verbs, subtitle contamination, seeds barely moving video models)."
+    notes: "Upstream self-describes as distilled from Replicate blog posts and states the techniques are model-agnostic; only the vendor-neutral half was taken. Least fresh of the merged upstreams (pushed 2026-06-04) but its subject is HTTP-level job lifecycle, which decays slowly."
+  - id: google-genmedia-skills
+    kind: repo
+    repo: GoogleCloudPlatform/vertex-ai-creative-studio
+    url: https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio
+    paths: [experiments/mcp-genmedia/skills]
+    ref: main
+    commit: e9edbfcd452d4b60ae6caf70c1f1efa0bce1dcab
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The four-block voice direction framework (audio profile, scene, director's notes, transcript) with millisecond-scale inline pause tags and the English-tags-with-non-English-lines rule, multiple takes in one request rather than several requests, the clinical rewrite response to a safety filter block, and storyboarding anything beyond a single clip into 5-8 second shots."
+    notes: "Only the generation half was taken; the ffmpeg halves of the video-editor and audio-engineer skills belong to the media-processing skill under the boundary sentence. MCP tool names in allowed-tools are harness bindings and were stripped. Path sits under experiments/ and may be reorganised upstream; note a second, distinct tree exists at experiments/agent_tools/plugins/genmedia/skills/."
+  - id: google-gemini-docs
+    kind: docs
+    url: https://ai.google.dev/gemini-api/docs
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Hard numbers no other licence-compatible source publishes: fixed 24 fps video with duration restricted to 4, 6 or 8 seconds and forced to 8 for high resolution, reference images or extension; one clip per request; 11 second to 6 minute request latency; two-day server-side retention; region-restricted person generation; no billing when safety filters block audio; the aspect-ratio to resolution to token cost chain and default watermarking of generated images; raw 24 kHz 16-bit mono PCM returned by speech synthesis; and the statement that the seed does not guarantee determinism but slightly improves it."
+    notes: "Attribution required: content from the Gemini API documentation (https://ai.google.dev/gemini-api/docs) by Google, licensed under CC BY 4.0 (code samples Apache-2.0), per the site footer read directly. Facts were restated in our own words; no text was copied verbatim. Model ids and SDK call shapes were deliberately not carried (rulings 1 and 2). Pages consulted: image-generation, video, veo, speech-generation."
+  - id: diffusers-docs
+    kind: repo
+    repo: huggingface/diffusers
+    url: https://github.com/huggingface/diffusers
+    paths:
+      - docs/source/en/using-diffusers/reusing_seeds.md
+      - docs/source/en/using-diffusers/schedulers.md
+      - docs/source/en/using-diffusers/image_quality.md
+    ref: main
+    commit: b27b69c1d6dbe7ca45194970ce11ef555c895ef2
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The local reproducibility boundary: generator state is consumed so reusing one object across a loop makes each image depend on the previous calls, CPU and GPU are different random number generators so latents are created on CPU and moved, a global manual seed is not what seeds an explicitly-seeded pipeline, the three things the full-determinism helper does (cuBLAS workspace config, cuDNN benchmark off, TF32 off) and their throughput cost, and the explicit statement that identical output is not guaranteed even with an identical seed."
+    notes: "Pure Python/PyTorch, no harness assumptions. Paired with the Gemini documentation's seed statement to split ruling 3 into a local contract and a hosted non-contract."
+  - id: openai-whisper
+    kind: repo
+    repo: openai/whisper
+    url: https://github.com/openai/whisper
+    paths:
+      - README.md
+      - model-card.md
+    ref: main
+    commit: 86098128c0b4f24f0e2aa2994de830614b474227
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The sliding 30-second window mechanism and its three downstream consequences (timestamp drift across windows, words cut at window boundaries, invented text in silent windows), plus the model card's own account of the two failure classes: hallucinated text that was never spoken, and repetition arising from the sequence-to-sequence architecture, both worse for low-resource languages."
+    notes: "Chosen over wrappers because only the upstream repository documents the windowing mechanism that explains the hosted services' 30-second chunking requirement."
+  - id: whisper-cpp
+    kind: repo
+    repo: ggml-org/whisper.cpp
+    url: https://github.com/ggml-org/whisper.cpp
+    paths: [README.md]
+    ref: master
+    commit: 1da4dc82fa7996d4edda05890dca65aeceaafd6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Local recognition input constraints (16 kHz mono 16-bit WAV) stated as a requirement on the deterministic toolchain's output rather than as transcode instructions, and voice-activity detection ahead of the model as the standard suppression for silent-window hallucination."
+    notes: "Build and backend selection were excluded as out of scope. This upstream is also the worked example of the media-processing boundary: the transcode is deterministic, the invented sentence is not."
+  - id: c2pa-spec
+    kind: repo
+    repo: c2pa-org/specifications
+    url: https://github.com/c2pa-org/specifications
+    paths: [specs]
+    ref: main
+    commit: 9c58c8c27044e44e8601f6ab13f1bcac1376eb1f
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The precise provenance vocabulary used in the governance reference: manifest, assertion, claim, claim signature, ingredient, validation and trust list, and the distinctions between an absent manifest, an invalid one, and a valid signature from an untrusted signer."
+    notes: "Attribution required: C2PA specifications by the Coalition for Content Provenance and Authenticity, licensed under CC BY 4.0 (LICENSE read directly). Terminology was restated, not quoted. Re-read the manifest and assertion definitions whenever the specification publishes a new version."
+  - id: google-skills-gemini-api
+    kind: repo
+    repo: google/skills
+    url: https://github.com/google/skills
+    paths: [skills/cloud/gemini-api]
+    ref: main
+    commit: ca4cde022318d8de9488d0209c0025c5ca14e2e0
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Read for coverage comparison only: which media capabilities a first-party skill considers in scope, and the division of labour between the image, multimodal and video surfaces."
+    notes: "Content ruling, not a licence ruling. Its call shapes have diverged from the current official documentation (ruling 1), so nothing was taken from it; the same coverage is grounded in the CC-BY-4.0 documentation instead."
+  - id: comfyui
+    kind: repo
+    repo: comfyanonymous/ComfyUI
+    url: https://github.com/comfyanonymous/ComfyUI
+    paths: [comfy_extras]
+    ref: master
+    commit: 1d48d9cf7bcecb6022a87b3cb13e0fb435bf9b8a
+    license: GPL-3.0
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Read only to decide coverage of node-graph workflows: sampler and scheduler selection, guidance scale, latent handling, adapter loading, masking and inpainting, and nodes that call hosted generation APIs from inside a local graph."
+    notes: "Licence ruling: GPL-3.0 is always reference in this repository. No text, node names beyond generic concepts, or configuration was copied; every fact stated about these topics is grounded in the Apache-2.0 diffusers documentation. The companion GPL-3.0 documentation repository Comfy-Org/docs was read under the same terms."
+  - id: openai-docs
+    kind: docs
+    url: https://developers.openai.com/api/docs/guides/image-generation
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Fact-checking only: the image, text-to-speech and speech-to-text guides were used to verify the request-size cap, format whitelist, chunking requirement beyond 30 seconds, the model scope of style instructions, and the AI-voice disclosure obligation quoted from the merged skills."
+    notes: "Licence ruling: no content licence is granted anywhere on the site, so it is treated as proprietary and nothing was copied. The equivalent engineering facts were merged from the Apache-2.0 openai/skills directories instead. This check is also what surfaced a whole-generation turnover of model ids, which is the evidence behind ruling 2."
+  - id: fal-community-skills
+    kind: repo
+    repo: fal-ai-community/skills
+    url: https://github.com/fal-ai-community/skills
+    paths: [skills]
+    ref: main
+    commit: 9ca850412943251fc9a466c4c29fdaf7a303a3d8
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Read as secondary corroboration for two cross-vendor judgements already merged from elsewhere: visual facts outperform flattering adjectives in prompts, change one variable per iteration, and modality decides synchronous versus queued execution."
+    notes: "No LICENSE file exists anywhere in the repository tree, so license is NONE; under this repository's rules that would still permit merging. It is reference for a content reason instead: the substance is single-vendor CLI usage and a hard-coded endpoint catalogue that decays quickly."

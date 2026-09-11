@@ -26,6 +26,9 @@ Not covered — do not answer from this skill:
 
 - Prompting, RAG, agent loops, and anything whose remedy is a better request
   to a hosted model: the `ai-engineering` skill.
+- Running someone else's diffusion or speech weights to produce images,
+  video or audio, and the reproducibility of those renders: the
+  `generative-media` skill. Training or adapting those weights belongs here.
 - Python packaging, virtualenvs, type checking, the language itself: the
   `python` skill. Training code is Python, but its problems here are
   numerical and memory-shaped.

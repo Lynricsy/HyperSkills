@@ -133,6 +133,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 | [`flutter`](skills/flutter/) | 平台 | Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM)… | 2026.09.10 | 7 |
 | [`frontend-design`](skills/frontend-design/) | 任务 | Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking… | 2026.09.10 | 12 |
 | [`gcp`](skills/gcp/) | 平台 | Guides Google Cloud control-plane and architecture work: gcloud CLI discipline and its silent defaults, the organization/folder/project hierarchy and… | 2026.09.11 | 7 |
+| [`generative-media`](skills/generative-media/) | 任务 | Engineers code that calls a media model: image generation and mask-guided editing where the mask is a hint and never a crop, video generation… | 2026.09.12 | 14 |
 | [`git-workflow`](skills/git-workflow/) | 任务 | Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice… | 2026.09.11 | 12 |
 | [`github`](skills/github/) | 平台 | Guides work that needs GitHub the platform | 2026.09.11 | 15 |
 | [`go`](skills/go/) | 框架 | Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation… | 2026.09.11 | 12 |

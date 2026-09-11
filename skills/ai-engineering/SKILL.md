@@ -28,6 +28,10 @@ Not covered — do not answer from this skill:
 
 - Fine-tuning, LoRA, RLHF, quantisation, distillation, dataset curation for
   training, and GPU training runs: the `ml-training` skill.
+- Models that emit or read pixels, video frames or audio samples — image
+  generation and editing, video generation, speech synthesis and
+  recognition, local diffusion: the `generative-media` skill. The prompt,
+  tool and injection rules here still apply when an agent calls one.
 - Vector index internals and query tuning — HNSW/IVF parameters, recall
   against exact search, index build memory, ANN latency: the `postgres`,
   `redis`, `mongodb` or `elasticsearch` skill for the store in use. Choosing

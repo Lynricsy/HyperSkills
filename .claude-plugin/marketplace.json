@@ -171,6 +171,15 @@
       ]
     },
     {
+      "name": "generative-media",
+      "description": "Engineers code that calls a media model: image generation and mask-guided editing where the mask is a hint and never a crop, video generation constrained to fixed short clips behind an asynchronous jo",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/generative-media"
+      ]
+    },
+    {
       "name": "git-workflow",
       "description": "Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice, resolving merge and rebase conflicts, commit granula",
       "source": "./",
@@ -518,6 +527,7 @@
         "./skills/flutter",
         "./skills/frontend-design",
         "./skills/gcp",
+        "./skills/generative-media",
         "./skills/git-workflow",
         "./skills/github",
         "./skills/go",
