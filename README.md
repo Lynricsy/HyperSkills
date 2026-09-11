@@ -142,6 +142,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 | [`java-spring`](skills/java-spring/) | 框架 | Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts… | 2026.09.11 | 8 |
 | [`laravel`](skills/laravel/) | 框架 | Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts… | 2026.09.11 | 9 |
 | [`mcp-server`](skills/mcp-server/) | 任务 | Guides designing and reviewing a Model Context Protocol server: whether a capability is a tool, a resource or a prompt; tool names, schemas and… | 2026.09.11 | 9 |
+| [`media-processing`](skills/media-processing/) | 任务 | Engineers deterministic media work with ffmpeg and the image tools: container and codec selection, remux versus transcode, rate control that silently… | 2026.09.12 | 24 |
 | [`ml-training`](skills/ml-training/) | 任务 | Trains and fine-tunes models whose weights you control: choosing between SFT, DPO and GRPO from the data actually available, computing the GPU memory… | 2026.09.11 | 9 |
 | [`mongodb`](skills/mongodb/) | 框架 | Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning… | 2026.09.11 | 6 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error… | 2026.09.11 | 13 |

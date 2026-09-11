@@ -1,0 +1,54 @@
+[
+  {
+    "skills": ["media-processing"],
+    "query": "This is our nightly transcode job. Quality complaints keep coming in and it falls over on some clips with an encoder error. Review it and fix whatever is actually wrong.",
+    "files": ["evals/files/transcode.sh"],
+    "expected_behavior": [
+      "Says the VP9 command needs `-b:v 0` alongside `-crf`, and explains that without it the encoder can silently run Constrained Quality instead of constant quality rather than merely 'it is recommended'",
+      "Identifies `scale=1280:-1` as the cause of the encoder failure — it can compute an odd height, which libx264 with yuv420p rejects — and changes it to `scale=1280:-2` rather than hardcoding a height or switching to `-s`",
+      "Removes the `setsar=1` after `scale`, stating that `scale` preserves the source SAR and that forcing SAR 1:1 corrupts the display aspect ratio of the anamorphic 640x480 source",
+      "Moves `-ss 00:01:30` before `-i` for the preview, and does not claim output-side seeking is required for frame accuracy when re-encoding",
+      "Surfaces `-preset veryslow` as a deliberate cost decision with its rough encode-time multiple against `medium`, instead of silently keeping it or silently changing it",
+      "Adds `-movflags +faststart` to the MP4 deliverables intended for web playback",
+      "Runs or prescribes `ffprobe` on a source to establish resolution, SAR/DAR, frame rate and codecs before changing the commands, instead of rewriting the script from the source text alone"
+    ]
+  },
+  {
+    "skills": ["media-processing"],
+    "query": "Players stutter and sometimes go black for a second when the network makes them switch quality on our lecture videos. Segment lengths in the playlists are also all over the place — some are 6 seconds, some are 11. This is the packaging script.",
+    "files": ["evals/files/package_hls.sh"],
+    "expected_behavior": [
+      "Names unaligned keyframes across the three renditions as the cause of the switching artefacts: each encode picks its own scene-change keyframes, so the player has no common splice point",
+      "Fixes it by forcing a fixed GOP across all renditions — `-g` and `-keyint_min` set to framerate times segment duration with `-sc_threshold 0`, or `-force_key_frames` on a time expression — and uses identical settings for every rendition",
+      "Explains the varying segment lengths as `hls_time` being a lower bound that the muxer can only cut on a keyframe, not an exact duration",
+      "Addresses variable frame rate in the phone-shot sources: a VFR input makes 'framerate times segment duration' meaningless, so the frame rate is pinned (`-r`/`fps` filter) or the keyframe expression is driven by timestamps rather than frame counts",
+      "Points out that `-b:v` together with `-crf` on libx264 is not the rate control an ABR ladder needs, and picks one — capped CRF with `-maxrate`/`-bufsize`, or two-pass ABR — per rendition",
+      "Says the master playlist BANDWIDTH values must reflect the measured peak bitrate of each rendition rather than being copied from the requested `-b:v`, and that RESOLUTION must match what was actually produced",
+      "Verifies by probing the produced segments — reporting actual segment durations and keyframe positions across renditions — instead of trusting `-hls_time`"
+    ]
+  },
+  {
+    "skills": ["media-processing"],
+    "query": "Thumbnails from this script come out sideways for a lot of the photos, and the studio shots look washed out on the product pages. Sort it out.",
+    "files": ["evals/files/make_thumbnails.py"],
+    "expected_behavior": [
+      "Names the root cause as ffmpeg not carrying EXIF through to the output — the Orientation tag is gone from the thumbnail, so nothing downstream can rotate it",
+      "Moves still-image work off ffmpeg onto an image tool (vips, sharp, ImageMagick or Pillow) instead of keeping ffmpeg and compensating inside it with hand-built rotation and colour-conversion machinery",
+      "Justifies the tool switch on cost: the image tools apply orientation and ICC conversion as one documented call, and the alternative is reimplementing colour management by hand",
+      "Applies orientation explicitly (`vips` autorotate, `sharp.autoOrient()`, `magick -auto-orient` or `ImageOps.exif_transpose`) rather than assuming the new tool does it silently",
+      "Explains the washed-out studio shots as a colour-management problem: the Display-P3 ICC profile is discarded or ignored, so wide-gamut pixels are interpreted as sRGB, and converts to sRGB deliberately",
+      "Does not carry `-q:v 2` across as if it were the same scale as `-quality`/`quality:` in the image tool",
+      "Re-reads a converted output file and reports its dimensions, orientation and colour profile as the check, rather than asserting the fix works"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our product images load slowly on mobile. We serve them from cdn.example.com through next/image. Tune the Next.js image config so mobile gets smaller files.",
+    "files": ["evals/files/next.config.mjs"],
+    "expected_behavior": [
+      "Does not read skills/media-processing/SKILL.md",
+      "Answers with Next.js image configuration (deviceSizes/imageSizes, formats, sizes prop on the component) rather than opening an ffmpeg or ImageMagick workflow",
+      "Treats this as framework-owned image pipeline work instead of a local media processing job"
+    ]
+  }
+]

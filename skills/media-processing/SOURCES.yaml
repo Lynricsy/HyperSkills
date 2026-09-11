@@ -1,0 +1,245 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin media-processing
+skill: media-processing
+version: "2026.09.12"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: kajisho-ffmpeg
+    kind: repo
+    repo: kajisho5/ffmpeg-skill
+    url: https://github.com/kajisho5/ffmpeg-skill
+    paths: [SKILL.md, docs/contract.md, scripts]
+    ref: main
+    commit: 2d03b6f1bd155b31d00c94ceccff5bca2e31911a
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The probe-plan-execute-read-back-look delivery gate, the split between mechanical format checks and content judgement checks, and the pitfall set: VFR, HDR versus log footage, keyframe-bounded stream-copy cuts, missing CJK glyphs, even dimensions, rotation metadata."
+    notes: "Rules rewritten from its documented behaviour; none of its 42 wrapper scripts or their interfaces were reproduced, since this skill teaches bare commands instead of shipping a wrapper library."
+  - id: vertex-genmedia-av
+    kind: repo
+    repo: GoogleCloudPlatform/vertex-ai-creative-studio
+    url: https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio
+    paths: [experiments/mcp-genmedia/skills/genmedia-video-editor, experiments/mcp-genmedia/skills/genmedia-audio-engineer]
+    ref: main
+    commit: e9edbfcd452d4b60ae6caf70c1f1efa0bce1dcab
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Ordering constraints for deterministic assembly: measure the base video before computing overlay coordinates, two-pass GIF at fps 15 and a 0.33 scale factor, matching dimensions and frame rate before concatenation with the normalising re-encode announced rather than hidden, matching sample rates before layering audio, relative voice-to-bed levels with a fade out, and wrapping raw PCM into WAV."
+    notes: "Only the ffmpeg half is used. Its generation surface (Veo, Lyria, Chirp, Gemini TTS) belongs to the generative-media skill. Its MCP tool names and allowed-tools frontmatter were stripped as harness bindings."
+  - id: media-os-ffmpeg
+    kind: repo
+    repo: damionrashford/media-os
+    url: https://github.com/damionrashford/media-os
+    paths: [skills/ffmpeg-cut-concat, skills/ffmpeg-streaming, skills/ffmpeg-hdr-color, skills/ffmpeg-hwaccel, skills/ffmpeg-probe, skills/ffmpeg-audio-filter, skills/ffmpeg-subtitles]
+    ref: main
+    commit: 5014c1e8b23fd3e18d49926d9aa147d15a3aa08e
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "HLS, DASH, RTMP and SRT packaging: GOP pinned to frame rate times segment duration, -keyint_min and -sc_threshold 0, the mutual exclusion of hls_playlist_type and delete_segments, fMP4 and CMAF, ABR ladders, the tee muxer, -force_key_frames for exact segmentation; the concat demuxer's parameter requirements and its silently broken playback on mismatch; the measure-then-apply shape of two-pass loudnorm."
+    notes: "Its slash-command bindings (argument-hint frontmatter, $ARGUMENTS, ${CLAUDE_SKILL_DIR} script paths) were removed and its 110-skill granularity deliberately not copied. Its ruling on input-side seeking was adopted over the other candidates (C1)."
+  - id: n0an-ffmpeg
+    kind: repo
+    repo: n0an/ffmpeg-skill
+    url: https://github.com/n0an/ffmpeg-skill
+    paths: [ffmpeg]
+    ref: main
+    commit: aec7706a3602134bfc606cc8a85eb010dfaa22ad
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Command-level parameter discipline: when -c copy is impossible, the yuv420p player requirement, HEVC -vtag hvc1, CRF plus or minus six as a bitrate halving heuristic, CRF being unable to hit a file size so two-pass ABR is required, mandatory setpts and asetpts after trim and atrim, setsar after pad, the difference between -shortest and duration=shortest, and the four-item checklist for a file that will not play."
+    notes: "Two of its claims were corrected before merging: its output-side seeking advice contradicts the official Seeking wiki and is recorded here as superseded behaviour (C1), and its -preset veryslow default was replaced by a three-row table (C4). Its narrow, correct reading of setsar after pad was adopted over the common 'always setsar after scale' advice (C5)."
+  - id: terminalskills-ffmpeg
+    kind: repo
+    repo: TerminalSkills/skills
+    url: https://github.com/TerminalSkills/skills
+    paths: [skills/ffmpeg]
+    ref: main
+    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Container and codec selection table, the remux-versus-transcode decision, and the normalising filter chain applied to heterogeneous sources before they are joined."
+    notes: "Its single-pass loudnorm recipe was rejected in favour of the two-pass form (C7)."
+  - id: terminalskills-imagemagick
+    kind: repo
+    repo: TerminalSkills/skills
+    url: https://github.com/TerminalSkills/skills
+    paths: [skills/imagemagick]
+    ref: main
+    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "ImageMagick coverage: the four geometry suffixes, the -gravity plus -extent square thumbnail recipe, -auto-orient, -strip, -density for vector rasterisation, and mogrify for batches together with its in-place rewrite hazard."
+    notes: "Its comment describing -resize WxH^ as a cropping fill is wrong; the caret only guarantees minimum coverage and cropping requires -extent. Corrected here from the ImageMagick option reference (C9). Every fact was re-sourced from the official options page because the image side of this skill has only one repository upstream."
+  - id: terminalskills-sharp
+    kind: repo
+    repo: TerminalSkills/skills
+    url: https://github.com/TerminalSkills/skills
+    paths: [skills/sharp]
+    ref: main
+    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "sharp coverage: fit semantics with withoutEnlargement, the non-transferable quality scales across JPEG, WebP and AVIF, responsive variant batches, SVG text watermarks via composite, and metadata() and stats() for inspection."
+    notes: "Its metadata guidance is inverted: it treats withMetadata as a stripping call, whereas sharp removes all metadata by default and keepMetadata or withMetadata are the preserving calls. Rewritten from the sharp output API documentation (C6)."
+  - id: maxazure-video
+    kind: repo
+    repo: maxazure/video-editing-skill
+    url: https://github.com/maxazure/video-editing-skill
+    paths: [SKILL.md]
+    ref: main
+    commit: c596fd7f81fca2074adbf5daba650e5fb9cc6ca7
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The fail-closed HDR-to-SDR rule: convert only on unambiguous PQ or HLG with BT.2020 primaries, tone map in linear light with zscale, reject a bare tonemap and reject 'force yuv420p' as a fallback, then verify all four colour tags on the output; the review proxy at 720p, 24 fps with burned timecode; and the media contract check with a full decode before an output is promoted."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Only its deterministic engineering rules were taken; its content-creation prompt library and its openclaw runtime metadata were not."
+  - id: dabrlin-ffmpeg
+    kind: repo
+    repo: DabRlin/ffmpeg-skills
+    url: https://github.com/DabRlin/ffmpeg-skills
+    paths: [SKILL.md]
+    ref: main
+    commit: 8fd7496e8d73a56daf9d3e9ed67e0737623ebc28
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Encoder and hardware-acceleration capability must be probed on every unfamiliar machine and the encoder chosen from what that probe reports, with an explicit fallback order from platform accelerators down to software encoders."
+  - id: sakydev-ffmpeg
+    kind: repo
+    repo: sakydev/claude
+    url: https://github.com/sakydev/claude
+    paths: [skills/ffmpeg]
+    ref: master
+    commit: 3b403bcbe61c2c40e5040d0ae43e81da3c2c2ccf
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The quality floor table (H.264 CRF 28, HEVC 32, VP9 40, AAC 128 kbit/s) with the rule that a size target crossing a floor is refused and the best achievable size at the floor reported instead, plus confirming the plan before starting on very large inputs."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim."
+  - id: cutcraft
+    kind: repo
+    repo: chang416/cutcraft
+    url: https://github.com/chang416/cutcraft
+    paths: [skills/cutcraft]
+    ref: main
+    commit: 535a1176a48fffcafe4a094b5090ec500306ac41
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rendering subtitle style previews over the real footage and having a human choose before committing to a burn-in, which turns a post-render rework into a pre-render gate."
+    notes: "Only that single rule was taken; its conversational production workflow and credential handling are out of scope."
+  - id: einverne-imagemagick
+    kind: repo
+    repo: einverne/dotfiles
+    url: https://github.com/einverne/dotfiles
+    paths: [claude/skills/imagemagick]
+    ref: master
+    commit: c6c0686125ae40cdf03141b1cff26afbe8fb300b
+    license: GPL-3.0-only
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Read only to cross-check ImageMagick topic coverage: the v7 magick entry point, convert as the legacy name, and the in-place rewrite hazard of mogrify."
+    notes: "The repository LICENSE is GPL-3.0 while the skill frontmatter claims MIT; the repository licence governs. Reference only under the GPL policy in docs/roadmap.md: no text, command or example copied, and every fact restated here was independently sourced from the ImageMagick option reference."
+  - id: dcloud-ffmpeg
+    kind: repo
+    repo: dcloud/agent-skills
+    url: https://github.com/dcloud/agent-skills
+    paths: [skills/ffmpeg]
+    ref: main
+    commit: 5b008bbeefd941a6a80eb2c78c76ceddd570aff1
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Rejected as a factual source after review; the entry records two errors in its AV1 section (libsvtav1 CRF default stated as 0, and -b:v 0 presented as the switch that enables CRF mode) so a later sync does not re-evaluate it. One convention was adopted independently: treating ffmpeg -h filter=, -h encoder=, -encoders and -pix_fmts as the way to answer questions the documentation does not."
+    notes: "No licence file and correctness score 0 under the review rubric, so it cannot be a merged source. Nothing copied."
+  - id: ffmpeg-filters-docs
+    kind: docs
+    url: https://ffmpeg.org/ffmpeg-filters.html
+    license: LGPL-2.1-or-later
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Option semantics for scale, pad, crop, setsar, overlay, subtitles, drawtext, trim and atrim, loudnorm, amix, afade, aresample, concat, zscale and tonemap."
+    notes: "Documentation ships with FFmpeg under GPL/LGPL. Only parameter and behaviour semantics are used; every command example here was written from scratch and no sentence reproduced."
+  - id: ffmpeg-formats-docs
+    kind: docs
+    url: https://ffmpeg.org/ffmpeg-formats.html
+    license: LGPL-2.1-or-later
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Semantics of the hls, dash, segment and tee muxers, including hls_time as a lower bound, hls_playlist_type, hls_flags, hls_segment_type fmp4, use_template and use_timeline, reset_timestamps, and -movflags."
+    notes: "Same treatment as the filters documentation: semantics only, examples written here, no text reproduced."
+  - id: ffmpeg-h264-docs
+    kind: docs
+    url: https://trac.ffmpeg.org/wiki/Encode/H.264
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "The CRF scale and its usable band, medium as the encoder default with the quantified cost of slower presets that settles the preset ruling, the two-pass ABR procedure, the purpose of -movflags +faststart, and the profile restriction on lossless H.264."
+    notes: "Trac wiki with no explicit licence grant; facts and numeric thresholds referenced, no text reproduced."
+  - id: ffmpeg-av1-docs
+    kind: docs
+    url: https://trac.ffmpeg.org/wiki/Encode/AV1
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "CRF as the default rate-control mode for libsvtav1 with an effective default of 35, the limitation of the -b:v 0 requirement to libaom before FFmpeg 4.3, and the short default keyframe interval of SVT-AV1."
+    notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced. This page settles the AV1 ruling against the dcloud candidate, cross-checked against the encoder's own configuration log on the test machine."
+  - id: ffmpeg-vp9-docs
+    kind: docs
+    url: https://trac.ffmpeg.org/wiki/Encode/VP9
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Constant quality for libvpx-vp9 requires -crf together with -b:v 0, since any other value or its omission selects Constrained Quality instead; also the Constrained Quality and CBR forms and -row-mt."
+    notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced."
+  - id: ffmpeg-seeking-docs
+    kind: docs
+    url: https://trac.ffmpeg.org/wiki/Seeking
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Input-side -ss is frame-accurate when transcoding from FFmpeg 2.1 onward, stream copy can only cut at keyframes, -avoid_negative_ts matters when the fragments will be concatenated, and -t wins over -to when both are given."
+    notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced. This page is the basis for rejecting the output-side-seeking advice found in several candidates."
+  - id: sharp-docs
+    kind: docs
+    url: https://sharp.pixelplumbing.com/
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Metadata is removed by default and the output converted to sRGB, keepMetadata and withMetadata are the preserving calls, autoOrient applies EXIF orientation and parameterless rotate is its backwards-compatible alias, plus the fit and position semantics and composite."
+  - id: imagemagick-docs
+    kind: docs
+    url: https://imagemagick.org/script/command-line-options.php
+    license: ImageMagick
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Geometry suffix semantics including the caret meaning minimum coverage without cropping, -extent and -gravity, -auto-orient, -strip, -density for rasterisation, -colorspace, and magick as the v7 entry point."
+  - id: libvips-docs
+    kind: docs
+    url: https://www.libvips.org/API/current/
+    license: LGPL-2.1-or-later
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Shrink-on-load in vips thumbnail as the correct path for bulk thumbnails, smartcrop, ICC handling, arrayjoin for sprite sheets, and sequential access for streaming large images."
+    notes: "libvips itself is LGPL, which governs linking; this skill only invokes the vips and vipsthumbnail command-line tools and cites documented behaviour, copying no text."
+  - id: pillow-docs
+    kind: docs
+    url: https://pillow.readthedocs.io/en/stable/
+    license: MIT-CMU
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "ImageOps.exif_transpose as the explicit orientation step, Image.draft as the JPEG reduced-scale decode path, the in-place and never-enlarging behaviour of thumbnail, and the save arguments for quality, progressive, subsampling and icc_profile."
+  - id: ebu-r128
+    kind: docs
+    url: https://tech.ebu.ch/publications/r128
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Definitions of integrated loudness in LUFS, loudness range, true peak in dBTP and the gating model, which give loudnorm's I, LRA and TP parameters their meaning."
+    notes: "Copyrighted standard text. Only the definitions are referenced; the per-destination loudness target table in this skill was compiled here from delivery conventions and is not taken from the standard."

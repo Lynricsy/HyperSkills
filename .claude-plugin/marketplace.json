@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "HyperSkills — curated, consolidated agent skills",
-    "version": "2026.09.11"
+    "version": "2026.09.12"
   },
   "plugins": [
     {
@@ -249,6 +249,15 @@
       "strict": false,
       "skills": [
         "./skills/mcp-server"
+      ]
+    },
+    {
+      "name": "media-processing",
+      "description": "Engineers deterministic media work with ffmpeg and the image tools: container and codec selection, remux versus transcode, rate control that silently degrades (VP9 constant quality without -b:v 0, SVT",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/media-processing"
       ]
     },
     {
@@ -518,6 +527,7 @@
         "./skills/java-spring",
         "./skills/laravel",
         "./skills/mcp-server",
+        "./skills/media-processing",
         "./skills/ml-training",
         "./skills/mongodb",
         "./skills/nodejs-backend",
