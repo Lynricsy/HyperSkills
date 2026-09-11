@@ -1,0 +1,70 @@
+[
+  {
+    "skills": ["solidity-web3"],
+    "query": "This vault is going to hold user ETH on mainnet next week. Review it for security before we ship.",
+    "files": ["evals/files/Vault.sol"],
+    "expected_behavior": [
+      "Reports `withdrawAll` as a drainable reentrancy: the ETH is sent before `balanceOf[msg.sender] = 0`, so a recipient contract re-entering from `receive()` passes the `amount > 0` check again and empties the contract, and says the fix is to zero the balance before the call (or add a `nonReentrant` guard), not to add a gas limit",
+      "Distinguishes `withdraw(uint256)` from `withdrawAll`: the same ordering bug is there, but because it subtracts with `-=` after the call, the outer frame underflows and Solidity 0.8.x checked arithmetic reverts the whole transaction, so that path denies the honest user rather than paying the attacker — and does not report both paths as identical drains",
+      "Reports `rewardHook.onWithdraw` as a second reentrancy entry point reached before any state change, so guarding only the ETH transfer does not close it",
+      "Reports `shareOf` as read-only reentrancy with the consequence stated for the integrator, not for this vault: during the callback `totalDeposits` still counts ETH that has already left, so a protocol pricing collateral from `shareOf` or from `totalDeposits` lends against value that is gone",
+      "Reports `setFeeRecipient` as having no access control at all, separately from the `tx.origin == owner` checks in `setFeeBps`/`setRewardHook`, which any contract the owner is merely interacting with satisfies",
+      "Reports `payFees`/`distribute` using `payable(...).transfer(...)`: the 2300-gas stipend makes payment to a contract recipient revert, which in `distribute` lets one recipient brick the loop for everyone, and recommends `call` with a checked return plus pull-based payouts rather than raising the stipend",
+      "Gets the OpenZeppelin 5.x surface right if it recommends library code: `ReentrancyGuard` lives in `@openzeppelin/contracts/utils/` (the `security/` directory was removed in 5.0), `Ownable` requires an `initialOwner` constructor argument, the reverts are custom errors rather than 4.x strings, and `ReentrancyGuardTransient` is gated on EIP-1153 and solc 0.8.34+ rather than offered unconditionally",
+      "Does not recommend `SafeMath`, does not claim Solidity 0.8 makes reentrancy harmless, and does not propose attacking any deployed contract"
+    ]
+  },
+  {
+    "skills": ["solidity-web3"],
+    "query": "StakingV1 is live behind an ERC-1967 proxy with about 4M USDC staked. I want to upgrade it to StakingV2 tomorrow. Anything I should fix first?",
+    "files": ["evals/files/StakingUpgradeable.sol"],
+    "expected_behavior": [
+      "Refuses the upgrade as written because StakingV2 prepends `rewardRate` and `treasury`, shifting every existing variable, and states the resulting misreads slot by slot: V2's `rewardRate` reads V1's `stakingToken`, V2's `treasury` reads V1's `totalStaked`, V2's `totalStaked` reads V1's `cooldown` (604800), and V2's `stakedOf` base slot no longer holds any balances — rather than describing it as a vague storage risk",
+      "Reports `_authorizeUpgrade` in StakingV1 as an empty override with no owner check, so any address can already call `upgradeToAndCall` on the live proxy today, and treats this as more urgent than the upgrade itself",
+      "Reports that neither implementation calls `_disableInitializers()` in its constructor, and that StakingV2's constructor assignment to `rewardRate` never takes effect for proxy users because constructor code runs against the implementation's own storage",
+      "Reports that `initializeV2` uses the `initializer` modifier, which reverts `InvalidInitialization()` on an already-initialized proxy, and names `reinitializer(2)` as the modifier for post-upgrade initialization",
+      "Names the pre-upgrade verification concretely — a storage-layout diff (`forge inspect <contract> storage-layout` on both versions) and `slither-check-upgradeability` — and says what neither of those catches, so the empty `_authorizeUpgrade` and the missing `_disableInitializers()` still have to be read by a human",
+      "Requires a fork test that upgrades the real proxy at a recent block and re-reads user balances and `totalStaked` through it, rather than only recommending a local compile",
+      "Knows that in OpenZeppelin 5.x the upgradeable bases keep their state in ERC-7201 namespaces, so V1's own variables start at slot 0 and no `__gap` arrays are involved, and does not propose `selfdestruct`ing the old implementation as a mitigation"
+    ]
+  },
+  {
+    "skills": ["solidity-web3"],
+    "query": "Our test suite is green but I do not trust it. Strengthen the tests for this vault.",
+    "files": ["evals/files/Vault.sol", "evals/files/Vault.t.sol"],
+    "expected_behavior": [
+      "Says the existing suite proves nothing about the reentrancy because there is no attacker contract in it, and writes a test with a malicious recipient whose `receive()` re-enters `withdrawAll`, asserting the attacker ends with more ETH than it deposited",
+      "Adds a stateful invariant test with a handler (bounded actor and amount inputs, `targetContract`) asserting a solvency property such as `address(vault).balance >= vault.totalDeposits()`, rather than only adding more single-path unit tests",
+      "States that `[invariant] fail_on_revert` defaults to `false` and reads the per-selector calls/reverts table as the evidence that each handler function actually executed, quoting the revert counts — not merely arranging for the handler to work",
+      "Explains why `test_SetFeeBps` fails under `forge test` even though the test contract is the owner: `setFeeBps` checks `tx.origin`, which `vm.prank(owner)` does not set, so the two-argument `vm.prank(owner, owner)` is needed — and treats the `tx.origin` check as the defect rather than patching the test around it",
+      "Replaces the bare `vm.expectRevert()` in `test_WithdrawRevertsWhenEmpty` with the specific expected revert, and says why: a bare expectation passes on any revert, including one that fires before the logic under test, so a test can pass for the wrong reason",
+      "Reports coverage as a measurement rather than a claim — per-branch numbers from `forge coverage`, or an explicit list of the untested functions (`payFees`, `distribute`, `setRewardHook`, the `receive()` fallback) — instead of asserting the strengthened suite is comprehensive"
+    ]
+  },
+  {
+    "skills": ["solidity-web3"],
+    "query": "Audit the pricing and accounting in this lending contract. It is going live on Base with real money.",
+    "files": ["evals/files/LendingDesk.sol"],
+    "expected_behavior": [
+      "Reports `collateralPrice` as manipulable within a single transaction because it reads the pool's instantaneous reserves: a flash-loaned swap moves the ratio, `borrow` values the collateral at the manipulated price, and the loan is drained in the same transaction — and names a manipulation-resistant source (a feed with staleness checks, or a TWAP over a window longer than one block) rather than only saying 'use an oracle'",
+      "Reports `loanAssetPrice` using `latestAnswer()` with no freshness data: it returns the last answer forever if the feed stops updating, and `latestRoundData()` with an `updatedAt` age bound plus a positive-answer check before the `uint256` cast is the current interface",
+      "Ties the staleness bound to evidence rather than a constant pulled from the air: the age limit comes from that specific feed's heartbeat, a single global bound across feeds is wrong in both directions, and a pinned-block fork test against the real aggregator is what establishes its decimals and update cadence — a mock only tests the assumption",
+      "Reports the interest bug concretely: `accrued` divides before multiplying, so `(debt * 5 / 100) / 365 days` truncates the per-second rate and the protocol under-charges, with the loss quantified at a realistic 6-decimal debt, and gives the corrected form that multiplies first and divides once",
+      "Reports the unchecked ERC-20 return values in `depositCollateral`, `borrow` and `liquidate`: a token that returns false instead of reverting credits collateral that never arrived, and `SafeERC20` is the fix",
+      "Reports that `liquidate` zeroes the borrower's whole debt while seizing all collateral and taking no repayment, so the accounting loses the debt, and that a borrower can call it on themselves",
+      "Names at least one non-standard-token assumption this contract breaks on — fee-on-transfer or rebasing collateral crediting more than arrives, or the hard-coded 1e12 and 1e10 scalings being wrong for any pair or feed whose decimals differ — and says decimals must be read rather than assumed",
+      "Does not propose profiting from the manipulation it describes, and does not stop at the list of defects without stating what must be verified before deployment"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "This balance card re-renders forever and the history list logs a React key warning. Fix the component.",
+    "files": ["evals/files/TokenBalanceCard.tsx"],
+    "expected_behavior": [
+      "Does not read skills/solidity-web3/SKILL.md",
+      "Fixes the render loop as a React problem: the `useEffect` has no dependency array and calls `setHistory` on every render, so it needs a dependency list and a functional update (or a ref) instead of spreading the captured `history`",
+      "Adds a stable `key` to the mapped list items and handles the `enabled`/`address` guard for `useReadContract` so the query does not run with `address!` undefined",
+      "Does not audit the on-chain contract, propose Solidity changes, or discuss reentrancy, oracles or proxy upgrades"
+    ]
+  }
+]

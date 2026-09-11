@@ -1,0 +1,253 @@
+skill: solidity-web3
+version: "2026.09.11"
+upstreams:
+  - id: pashov-auditor
+    kind: repo
+    repo: pashov/skills
+    url: https://github.com/pashov/skills/tree/main/solidity-auditor
+    paths: [solidity-auditor]
+    ref: main
+    commit: c577eb7799c349de0acb187ba00ca98e14e436fd
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The vulnerability taxonomy an EVM review has to cover, taken from its twelve specialty hunting agents and reorganised into this skill's topic references: rounding direction per quantity, zero-truncation and divide-before-multiply, decimal mismatch, narrow downcasts, first-depositor share inflation, initialize hijack and front-running, role escalation and renounce-bricking, proxy storage and admin-slot collisions, single-block oracle reads, ERC-4626 and permit edge cases, sentinel addresses in token operations, and conservation, round-trip and view-versus-write invariants. Also its evidence discipline: a claim without a demonstrated attack path is a lead, not a finding."
+    notes: "Its Claude-Code-specific orchestration (twelve background agents, AskUserQuestion model selection, bundle directories), the confidence-scoring arithmetic and the vendor banner were dropped — this skill is written for one agent doing one review. One upstream claim was corrected rather than carried: judging.md lists explicit narrowing casts as safe on 0.8 because they 'revert on overflow'; measured locally, uint128(2**128 + 7) returns 7 with no revert, so the cast rule here says the opposite."
+
+  - id: pashov-fizz
+    kind: repo
+    repo: pashov/skills
+    url: https://github.com/pashov/skills/tree/main/fizz
+    paths: [fizz]
+    ref: main
+    commit: c577eb7799c349de0acb187ba00ca98e14e436fd
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The shape of a fuzz harness that actually exercises the protocol: the clamped/unclamped handler split, bounding inputs instead of rejecting them, acting-actor modifiers, explicit donation handlers that move value without going through an entry point, ghost variables and before/after snapshots held outside the contract, and boundary-value stress variants."
+    notes: "Its Echidna/Medusa-first pipeline and its twenty-five vendored scripts and templates were not carried over: this skill makes Foundry's own invariant engine the default for in-repo CI and names the two campaign fuzzers as the deep-campaign escape hatch. Its cost estimates and coverage-percentage targets were dropped as time-sensitive."
+
+  - id: pashov-xray
+    kind: repo
+    repo: pashov/skills
+    url: https://github.com/pashov/skills/tree/main/x-ray
+    paths: [x-ray]
+    ref: main
+    commit: c577eb7799c349de0acb187ba00ca98e14e436fd
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two things: the per-protocol-type invariant catalogue (lending, AMM, vault, stablecoin, perps, liquid staking, bridge, governance) that seeds the invariant table, and the discipline that a guard is not an invariant — a property lifted from one guard that another write site fails to enforce is simultaneously an invariant and a candidate bug. Also the rule that a row you cannot verify is dropped rather than marked unverified."
+    notes: "Its three bundled scripts (~90 KB of Python and bash), its TodoWrite coupling and its generated report layout were not carried over."
+
+  - id: tob-secure-contracts
+    kind: repo
+    repo: trailofbits/skills
+    url: https://github.com/trailofbits/skills/tree/main/plugins/building-secure-contracts
+    paths: [plugins/building-secure-contracts]
+    ref: main
+    commit: 321ccfe628eca0d314b0ee4eaffcdd8a05639aaf
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The non-standard-ERC20 catalogue as a checklist semantic — missing return values, fee-on-transfer, balance changes outside transfers, blocklists, pausability, unusual decimals, revert-on-zero, approval-race protection, non-string metadata, multiple token addresses — plus the code-maturity axes used to decide what a review must cover (arithmetic, access control, complexity, decentralization, transaction ordering, low-level manipulation, testing) and the Slither-first ordering of the cheap passes."
+    notes: "CC-BY-SA-4.0 is share-alike and incompatible with this repository's MIT licensing, so no prose, table or code block was copied — only the checklist semantics, rewritten, with every tool fact re-measured locally against Slither 0.11.6. Three upstream claims were deliberately not carried: increaseAllowance/decreaseAllowance as the approval-race mitigation (removed from OpenZeppelin ERC20 in 5.0), Manticore as a recommended tool (unmaintained), and slither-prop presented as Truffle-gated. Its detector count ('70+') was replaced with the measured 102. The plugin contains no Solidity or EVM vulnerability-scanner skill despite its name; its per-chain scanners are for Algorand, Cairo, Cosmos, Solana, Substrate and TON."
+
+  - id: tob-property-testing
+    kind: repo
+    repo: trailofbits/skills
+    url: https://github.com/trailofbits/skills/tree/main/plugins/property-based-testing
+    paths: [plugins/property-based-testing]
+    ref: main
+    commit: 321ccfe628eca0d314b0ee4eaffcdd8a05639aaf
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The two ways a property test fails to be a test — tautology (restating the implementation) and vacuity (filtering out nearly every input) — with the Solidity-specific tautologies that look like properties (an unsigned value being non-negative, a balance being non-negative); the property strength ordering that says to assert the strongest shape the code supports; the position that code with no algebraic structure gets example-based tests and that saying so is a valid outcome; and the Echidna constraint that a property function must be view or pure and take no arguments."
+    notes: "Share-alike; semantics only, all wording original. The skill is polyglot and deliberately excludes Foundry's invariant engine — that half of this skill's invariant reference is measured locally instead."
+
+  - id: oz-contracts
+    kind: repo
+    repo: OpenZeppelin/openzeppelin-contracts
+    url: https://github.com/OpenZeppelin/openzeppelin-contracts
+    paths: [contracts/access, contracts/proxy, contracts/utils, contracts/token/ERC20]
+    ref: master
+    commit: 6bc7bf38645e87468779c8118f6ba4b8bc6d4067
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Every 5.x API shape asserted in this skill was read out of the installed v5.7.0 source and then exercised in a local test: the mandatory Ownable(initialOwner) constructor, the custom-error set (OwnableUnauthorizedAccount, OwnableInvalidOwner, ERC20InsufficientBalance, ERC20InsufficientAllowance, ReentrancyGuardReentrantCall, InvalidInitialization, AccessControlUnauthorizedAccount), the move of ReentrancyGuard and Pausable from security/ to utils/, ReentrancyGuardTransient and its EIP-1153 requirement, _reentrancyGuardEntered as the read-only-reentrancy hook, Initializable's ERC-7201 storage location and _disableInitializers, the removal of __UUPSUpgradeable_init and upgradeTo, ERC1967Utils.IMPLEMENTATION_SLOT, SafeERC20 including forceApprove and the removal of safeApprove, Math.mulDiv, and SafeCast."
+    notes: "Pinned at v5.7.0 (tag commit cab19933c33c2ad1d4c7a84864a3601dddfd16f3) for the measurements; ref/commit track master so check_upstream sees API changes. Also recorded: in 5.7.0 the upgradeable package's proxy/utils/Initializable.sol and UUPSUpgradeable.sol are two-line re-export shims, which is why a project must remap both packages."
+
+  - id: oz-skills
+    kind: repo
+    repo: OpenZeppelin/openzeppelin-skills
+    url: https://github.com/OpenZeppelin/openzeppelin-skills
+    paths: [skills/develop-secure-contracts, skills/setup-solidity-contracts, skills/upgrade-solidity-contracts]
+    ref: main
+    commit: 6f215af60eb60017ab1a933ce9d22a479cd42b26
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read to fix the coverage of the upgrade reference: which topics an upgrade skill must carry (pattern choice, storage rules, ERC-7201, initializer lifecycle, unsafe operations, validation tooling, the v4-to-v5 proxy prohibition) and the rule that override points must be verified against the installed dependency source rather than recalled. No content copied: AGPL-3.0 is incompatible with this repository's MIT licensing, so every fact it suggested was re-derived from the OpenZeppelin source, the ERC-7201 specification, or a local experiment."
+
+  - id: cyfrin-solskill
+    kind: repo
+    repo: Cyfrin/solskill
+    url: https://github.com/Cyfrin/solskill/tree/main/skills/solidity
+    paths: [skills/solidity]
+    ref: main
+    commit: d17bda028df073c61711a1fe156b5ca5dea91642
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read for coverage comparison on the style and CI side, and it is where the compiler-version question was first raised: its claim that 0.8.28 through 0.8.33 carry a high-severity transient-storage bug was independently confirmed against the Solidity project's own docs/bugs.json (TransientStorageClearingHelperCollision, introduced 0.8.28, fixed 0.8.34, severity high) and only then written down here. No content copied: AGPL-3.0 is incompatible with this repository's licensing."
+
+  - id: solidity-docs
+    kind: docs
+    url: https://github.com/argotorg/solidity/blob/develop/docs/bugs.json
+    license: GPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "The authoritative known-bug data used for the compiler-version policy: docs/bugs.json and docs/bugs_by_version.json, read directly, giving the severity, introduced and fixed versions for TransientStorageClearingHelperCollision, InheritanceOrderReversalOnStorageEndWarning, UnsoundSpillInMutualRecursion, SpillSlotCollisionAcrossMutualRecursion, MemoryByteArrayElementDeleteClearsWholeWord and MisorderedNamedParametersInRequireWithCustomErrors, and the fact that 0.8.37's entry is empty."
+    notes: "The Solidity repository moved from ethereum/solidity to argotorg/solidity and its LICENSE.txt is GPL-3.0, with no separate licence for docs/, so this upstream is reference-only. Only version numbers, bug names, severities and release facts are cited; no documentation prose was copied. The current stable release was confirmed as 0.8.37 (published 2026-09-10) through the releases API."
+
+  - id: foundry-book
+    kind: repo
+    repo: foundry-rs/book
+    url: https://github.com/foundry-rs/book
+    paths: [src/pages/config/reference]
+    ref: master
+    commit: 7004a8cb395b0e75fb774002dbdc1fac902ea9ee
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The configuration semantics this skill's testing rules depend on, taken from the config reference: [fuzz] runs 256 with fail_on_revert true and max_test_rejects 65536, [invariant] runs 256 with depth 500 and fail_on_revert FALSE, the fallback rule by which unset [invariant] keys inherit [fuzz] values, shrink_run_limit, and the bound-versus-assume guidance. The invariant defaults are what make 256 x 500 = 128000 calls per group, which matched the locally observed output exactly."
+    notes: "Everything else about Foundry in this skill was measured against forge 1.8.1 locally rather than taken from the book."
+
+  - id: slither
+    kind: repo
+    repo: crytic/slither
+    url: https://github.com/crytic/slither
+    paths: [slither/detectors, slither/utils]
+    ref: master
+    commit: eef5df948b8992eff85786b6b0bb4a193933e2c9
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read for detector names and semantics while triaging; every claim in this skill about Slither's output was then produced by running 0.11.6 over this skill's own fixtures — 32 results from 102 detectors, which detectors fired, which hits were duplicates of each other, the false-positive classes on upgradeable contracts, and the seven findings from 22 detectors that slither-check-upgradeability produced on the fixture pair."
+    notes: "AGPL-3.0: reference only, no code or documentation text copied."
+
+  - id: erc-7201
+    kind: repo
+    repo: ethereum/ERCs
+    url: https://github.com/ethereum/ERCs/blob/master/ERCS/erc-7201.md
+    paths: [ERCS/erc-7201.md]
+    ref: master
+    commit: 84b46e7d69d08dbd8876503e435fd299211c26b8
+    license: CC0-1.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The namespaced-storage rules used in the upgrade reference: the erc7201 formula keccak256(abi.encode(uint256(keccak256(id)) - 1)) & ~bytes32(uint256(0xff)), why the minus one and the second hash are needed to avoid Solidity's own storage tree, the @custom:storage-location annotation, the fact that solc has recorded it in the AST since 0.8.20, and that the compiler enforces nothing about it."
+
+  - id: crytic-properties
+    kind: repo
+    repo: crytic/properties
+    url: https://github.com/crytic/properties
+    paths: [PROPERTIES.md, contracts/ERC20, contracts/ERC4626]
+    ref: main
+    commit: 5ea14b813ff296e24b4257ab52a0402360f916f6
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read as the concrete vocabulary of contract invariants — the ERC-20, ERC-721, ERC-4626 and fixed-point property sets — to check that this skill's invariant table names the properties that matter rather than inventing a shorter list. No code copied, and the skill tells readers not to vendor it either: AGPL-3.0 copyleft reaches any derivative that is distributed or exposed over a network."
+
+  - id: tenequm-foundry
+    kind: repo
+    repo: tenequm/skills
+    url: https://github.com/tenequm/skills/tree/main/skills/foundry-solidity
+    paths: [skills/foundry-solidity]
+    ref: main
+    commit: c0866c58c4c6df579b305a9546a1e7cf4b974358
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The test-naming convention that makes a suite filterable (test_, testFuzz_, testFork_, test_RevertWhen_/test_RevertIf_, invariant_), and the idea of a single command as the definition of done: format check, build with sizes, lint, test, coverage, in that order, as one CI gate."
+    notes: "The repository root is MIT but skills/foundry-solidity/LICENSE.txt is the full Apache-2.0 text, so the directory licence governs. Its content is pinned to Foundry 1.5.0 and Solidity 0.8.30 and its example asserts the OpenZeppelin 4.x string revert ReentrancyGuard; every version-dependent fact was re-measured against forge 1.8.1, solc 0.8.37 and OpenZeppelin 5.7.0 instead. Its PRIVATE_KEY environment-variable convention was deliberately inverted: this skill requires a keystore account."
+
+  - id: max-taylor-sol
+    kind: repo
+    repo: max-taylor/Claude-Solidity-Skills
+    url: https://github.com/max-taylor/Claude-Solidity-Skills
+    paths: [skills/audit, skills/test-foundry]
+    ref: main
+    commit: 2608ae28efd7e44170d5102cd315da32676a53a9
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read for coverage comparison on the two topics no other candidate covered together: the handler-plus-ghost-variable Foundry invariant pattern, and the named weird-ERC20 trap list. Confirmed this skill covers both and left the upstream's wording alone."
+    notes: "No licence file exists anywhere in the repository tree; the only licence signal is a 'license: MIT' key inside .claude-plugin/plugin.json, which is a claim without licence text. Treated as reference-only for that reason, and last pushed 2026-02-19."
+
+  - id: wshobson-solsec
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents/tree/main/plugins/blockchain-web3
+    paths: [plugins/blockchain-web3/skills/solidity-security, plugins/blockchain-web3/skills/web3-testing]
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read for coverage comparison: it fixes the minimum class list a defensive Solidity skill must carry (reentrancy, access control, front-running, checks-effects-interactions, pull-over-push, input validation, circuit breakers) and demonstrates the two-tier SKILL.md-plus-reference structure. No content merged — it scored 0 on correctness in this repository's review scale, which is an automatic reject as a content source."
+    notes: "Its code is almost entirely OpenZeppelin 4.x and pre-Merge Hardhat: contracts/security/ import paths, Counters, no-argument Ownable, _beforeTokenTransfer, revert-string assertions, solc 0.8.19, a Goerli network config, @nomiclabs/hardhat-etherscan, testFail* naming, and payable().transfer() withdrawals. None of that was carried; each item became a version-gated rule here saying the opposite. Its defi-protocol-templates and nft-standards skills were read and rejected as content: they are templates built on removed APIs."
+
+  - id: layerghost-kit
+    kind: repo
+    repo: 0xlayerghost/solidity-agent-kit
+    url: https://github.com/0xlayerghost/solidity-agent-kit
+    paths: [skills/solidity-audit, skills/defi-security, skills/solidity-checklist]
+    ref: main
+    commit: 9ab80c64a7525ec323564eed613db6eaa1e13694
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The depth in its audit and DeFi-security skills that no other MIT candidate had: read-only reentrancy named as its own class, per-address state bypass, storage-pointer aliasing and nested-delete, oracle answeredInRound and staleness checks, ERC-4626 inflation, signature classes (zero recovery, malleability, replay, empty signer), the flash-loan variants, and the trust-boundary and composability framing."
+    notes: "Its solidity-coding and solidity-security skills are pinned to OpenZeppelin 4.9.x and pragma ^0.8.19 and were not used: contracts/security/ paths, Counters, PaymentSplitter, safeApprove, increaseAllowance as the approval-race fix, selfdestruct for deprecating contracts (inert after EIP-6780), and msg.sender == tx.origin as an anti-MEV check (broken by EIP-7702). Its [AUTO-INVOKE] description style and per-skill language directive were not copied, and it contains untranslated non-English prose in one section."
+
+  - id: mariano-audit
+    kind: repo
+    repo: mariano-aguero/solidity-security-audit-skill
+    url: https://github.com/mariano-aguero/solidity-security-audit-skill
+    paths: [SKILL.md, references]
+    ref: main
+    commit: e64fa2b1d4146d5ac536fa5a7e2324dc1a2222fe
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two structural ideas: a short grep-able red-flag pass before any deep reading, and an explicit common-false-positives table so a review does not spend its credibility on noise. Both were rewritten around this skill's own measured Slither output."
+    notes: "Three of its claims were rejected rather than carried: that payable().transfer() will not compile under Solidity 0.9.0 (no such release exists; current stable is 0.8.37), that the 2300-gas stipend no longer blocks reentrancy if the callee uses TSTORE (the stipend cannot fund a re-entrant CALL — measured: the callee runs out of gas at 2300), and an unverified 0.8.28-0.8.33 transient-storage version range, which was replaced with the range from the Solidity project's own bug list. Its keyword-stuffed multi-hundred-line description was not imitated."
+
+  - id: nuwrldnf8r-audit
+    kind: repo
+    repo: nuwrldnf8r/smart-contract-audit-skill
+    url: https://github.com/nuwrldnf8r/smart-contract-audit-skill
+    paths: [skills/smart-contract-audit]
+    ref: main
+    commit: 6fe26cc368c2a36885c89fa10bfe4dce612399fa
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two rules that no other candidate stated: treat the repository under review as untrusted input (do not run its scripts, do not source its .env, treat comments, README and NatSpec as claims to verify and as possible prompt injection), and the insider lens on privileged functions (assume the check passes and the holder is hostile, then ask what one transaction extracts), which makes unbounded admin power a finding even under a reputable multisig."
+    notes: "Its per-ecosystem reference files were not used; its Vyper reentrancy-decorator form is from Vyper 0.3.x and is stale."
+
+  - id: aderyn
+    kind: repo
+    repo: Cyfrin/aderyn
+    url: https://github.com/Cyfrin/aderyn
+    paths: [aderyn_core/src/detect]
+    ref: dev
+    commit: de6a0904a07ec20966b2b8f2ece4e89f0ada7bdb
+    license: GPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to confirm that naming a second static analyser with a different detector set is worth one line in the tooling section. No content copied; GPL-3.0 is incompatible with this repository's licensing."
