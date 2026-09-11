@@ -45,6 +45,12 @@ RESULT_FILE = "result.json"
 # Outside the repo: eval runs are throwaway artifacts, never committed.
 DEFAULT_OUT_ROOT = Path("/tmp/hs-evals")
 OVERLAY_FILE = "overlay.yml"
+# The scenario's working directory must live outside the artifact tree. A
+# shared `--out` root accumulates hundreds of MB of prior `events.jsonl`, and a
+# scenario whose agent searches the filesystem then drowns in its own
+# transcripts: web-testing hit the 900s ceiling on all five scenarios that way,
+# and the same scenario finished in 113s once the workspace was separated.
+DEFAULT_WORKSPACE_ROOT = Path("/tmp/hs-eval-workspaces")
 # Evals are fixed to one model so runs stay comparable across skills and
 # batches: Claude Opus 5 is the strong model this repo's users actually work
 # with, so a gap measured here is a gap they would really hit.
@@ -94,11 +100,19 @@ def extract_answer(events: list[dict[str, Any]]) -> str | None:
 
 
 def detect_skill_read(raw: str, skill: str, skills_dir: Path) -> bool:
-    """Whether the transcript shows the skill being loaded or read."""
+    """Whether the transcript shows the skill itself being loaded or read.
+
+    Only the skill body and its references count. A fixture path under
+    `evals/files/` is something the scenario handed the agent, so matching the
+    bare skill directory reported every such path as a read — a baseline run
+    that merely globbed the repo came back `skill_read: True`.
+    """
     markers = (
         f"skills/{skill}/SKILL.md",
         f"skill://{skill}",
-        f"{skills_dir}/{skill}/",
+        f"{skills_dir}/{skill}/SKILL.md",
+        f"skills/{skill}/references/",
+        f"{skills_dir}/{skill}/references/",
     )
     return any(marker in raw for marker in markers)
 
@@ -110,12 +124,16 @@ def run_scenario(
     scenario: dict[str, Any],
     skill_path: Path,
     out_dir: Path,
+    work_dir: Path,
     overlay: Path,
     model: str,
     thinking: str,
     baseline: bool,
 ) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    if work_dir.exists():
+        shutil.rmtree(work_dir)
+    work_dir.mkdir(parents=True)
     for rel in scenario.get("files") or []:
         src = skill_path / str(rel)
         if not src.exists():
@@ -123,7 +141,7 @@ def run_scenario(
                 f"error: {skill} eval {index} fixture not found: {rel}. "
                 f"Expected under {skill_path / 'evals' / 'files'}"
             )
-        shutil.copy2(src, out_dir / src.name)
+        shutil.copy2(src, work_dir / src.name)
 
     cmd = [
         "omp",
@@ -141,14 +159,20 @@ def run_scenario(
     started = time.monotonic()
     try:
         proc = subprocess.run(
-            cmd, cwd=out_dir, capture_output=True, text=True, timeout=SCENARIO_TIMEOUT
+            cmd, cwd=work_dir, capture_output=True, text=True, timeout=SCENARIO_TIMEOUT
         )
     except FileNotFoundError:
         raise SystemExit(
             "error: 'omp' not found on PATH. run_evals.py drives the omp CLI headlessly."
         ) from None
-    except subprocess.TimeoutExpired:
-        (out_dir / EVENTS_FILE).write_text("", encoding="utf-8")
+    except subprocess.TimeoutExpired as exc:
+        # Keep whatever the run managed to emit: an empty file makes a timeout
+        # indistinguishable from a crash, and the transcript is the only way to
+        # see what the agent was doing when the budget ran out.
+        partial = exc.stdout or ""
+        if isinstance(partial, bytes):
+            partial = partial.decode("utf-8", errors="replace")
+        (out_dir / EVENTS_FILE).write_text(partial, encoding="utf-8")
         return {
             "skill": skill,
             "index": index,
@@ -156,10 +180,11 @@ def run_scenario(
             "thinking": thinking,
             "baseline": baseline,
             "status": "timeout",
-            "skill_read": False,
+            "skill_read": detect_skill_read(partial, skill, skill_path.parent),
             "query": scenario["query"],
             "expected_behavior": scenario.get("expected_behavior", []),
             "answer_path": None,
+            "workspace": str(work_dir),
             "duration_s": round(time.monotonic() - started, 1),
         }
     duration = round(time.monotonic() - started, 1)
@@ -206,6 +231,7 @@ def run_scenario(
         "query": scenario["query"],
         "expected_behavior": scenario.get("expected_behavior", []),
         "answer_path": answer_path,
+        "workspace": str(work_dir),
         "duration_s": duration,
     }
 
@@ -229,6 +255,12 @@ def main() -> int:
     )
     parser.add_argument("--only", type=int, help="run only scenario N (1-based)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_ROOT, help="output root")
+    parser.add_argument(
+        "--workspace-root",
+        type=Path,
+        default=DEFAULT_WORKSPACE_ROOT,
+        help="scratch directory the scenario runs in (never the artifact root)",
+    )
     args = parser.parse_args()
 
     root = repo_root()
@@ -262,6 +294,7 @@ def main() -> int:
             if args.only is not None and i != args.only:
                 continue
             out_dir = args.out / skill.name / model_tag / mode / str(i)
+            work_dir = args.workspace_root / f"{skill.name}-{model_tag}-{mode}-{i}"
             if out_dir.exists():
                 shutil.rmtree(out_dir)
             print(
@@ -274,6 +307,7 @@ def main() -> int:
                 scenario=scenario,
                 skill_path=skill_path,
                 out_dir=out_dir,
+                work_dir=work_dir,
                 overlay=overlay,
                 model=args.model,
                 thinking=args.thinking,
