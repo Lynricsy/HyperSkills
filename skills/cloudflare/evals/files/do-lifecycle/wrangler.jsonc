@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rooms",
+  "main": "src/rooms.ts",
+  "compatibility_date": "2024-01-15",
+  "durable_objects": {
+    "bindings": [{ "name": "ROOM", "class_name": "GameRoom" }]
+  },
+  "migrations": [
+    { "tag": "v1", "new_classes": ["Room"] },
+    { "tag": "v1", "deleted_classes": ["Room"], "new_classes": ["GameRoom"] }
+  ],
+  "exports": {
+    "Lobby": { "type": "durable-object", "storage": "sqlite" }
+  },
+  "queues": {
+    "producers": [{ "binding": "LEDGER", "queue": "ledger" }]
+  }
+}

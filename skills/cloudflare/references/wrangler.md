@@ -1,0 +1,383 @@
+# Wrangler: configuration, local development and deployment
+
+Verified against: wrangler 4.131.0 with workerd 1.20260910.1, on a machine with no Cloudflare
+account and no `wrangler login`. Claims marked `[verified]` were reproduced in that state; the
+installed `node_modules/wrangler/config-schema.json` is the authority on which configuration
+fields exist for a given project, because the docs describe the latest wrangler rather than the
+one the project pins.
+
+## Contents
+
+- [File format and the schema reference](#file-format-and-the-schema-reference)
+- [Compatibility dates and flags](#compatibility-dates-and-flags)
+- [Bindings](#bindings)
+- [Generated types](#generated-types)
+- [Environments and non-inheritable keys](#environments-and-non-inheritable-keys)
+- [Secrets and local variables](#secrets-and-local-variables)
+- [limits and observability](#limits-and-observability)
+- [Automatic provisioning](#automatic-provisioning)
+- [A configuration worth copying](#a-configuration-worth-copying)
+- [Run the project's wrangler](#run-the-projects-wrangler)
+- [Local development and where state lives](#local-development-and-where-state-lives)
+- [Local versus remote data commands](#local-versus-remote-data-commands)
+- [Dry runs and what they prove](#dry-runs-and-what-they-prove)
+- [Versions, deployments and gradual rollout](#versions-deployments-and-gradual-rollout)
+- [Rollback and its limits](#rollback-and-its-limits)
+- [Secret commands deploy](#secret-commands-deploy)
+- [Diagnostics](#diagnostics)
+
+## File format and the schema reference
+
+`wrangler.jsonc`, `wrangler.json` and `wrangler.toml` are all accepted. Prefer `wrangler.jsonc`
+for new projects: comments are allowed, and it is the format the documentation and newer
+features are written against. Converting an existing `wrangler.toml` is not an improvement
+worth a diff on its own.
+
+Point the editor at the installed schema so unknown fields are caught while typing:
+
+```jsonc
+{ "$schema": "node_modules/wrangler/config-schema.json" }
+```
+
+When a framework generates the configuration, edit the source that generates it, not the
+output — a build will overwrite the output.
+
+## Compatibility dates and flags
+
+`compatibility_date` is how a Worker opts into backwards-incompatible runtime changes. Set it
+to today on a new project. On an existing project it is safe to leave alone — the runtime
+supports old dates indefinitely — but advancing it is a behaviour change: read the intervening
+compatibility flags and run the tests.
+
+```jsonc
+{
+  "compatibility_date": "2026-09-11",
+  "compatibility_flags": ["nodejs_compat"]
+}
+```
+
+Two gates that matter in practice: Durable Object RPC method calls need a date of at least
+**2024-04-03**, and `nodejs_compat` is what makes `node:*` imports resolve. A Worker uploaded
+through the REST API without a date gets **2021-11-02**, before any flag took effect, which is
+how an API-driven deploy ends up with pre-2022 runtime semantics. `[official]`
+
+## Bindings
+
+Bindings are how a Worker reaches Cloudflare resources in-process. Every `env.X` in the code
+needs a declaration whose name matches exactly, case-sensitively.
+
+```jsonc
+{
+  "kv_namespaces": [{ "binding": "CACHE", "id": "<id>", "preview_id": "<preview-id>" }],
+  "r2_buckets": [{ "binding": "UPLOADS", "bucket_name": "uploads" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "app", "database_id": "<uuid>" }],
+  "queues": {
+    "producers": [{ "binding": "JOBS", "queue": "jobs" }],
+    "consumers": [{
+      "queue": "jobs",
+      "max_batch_size": 10,        // default 10
+      "max_batch_timeout": 5,      // default 5 seconds
+      "max_retries": 3,            // default 3
+      "dead_letter_queue": "jobs-dlq"
+    }]
+  },
+  "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }] },
+  "exports": { "Room": { "type": "durable-object", "storage": "sqlite" } },
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<id>" }],
+  "services": [{ "binding": "AUTH", "service": "auth-worker" }],
+  "tail_consumers": [{ "service": "log-collector" }],
+  "vars": { "API_BASE_URL": "https://api.example.com" }
+}
+```
+
+Notes that save an incident:
+
+- Without a `dead_letter_queue`, messages that exhaust `max_retries` are **discarded**, not
+  parked.
+- A Durable Object binding needs both the binding and an `exports` (or legacy `migrations`)
+  entry; `class_name` must match the exported class name exactly.
+- `preview_id` on a KV namespace is what `--preview` uses; omitting it means preview runs
+  against production data or fails, depending on the command.
+- An unused binding is not, by itself, a finding. Establish a concrete consequence before
+  recommending its removal.
+
+## Generated types
+
+Never hand-write `Env`. `npx wrangler types` writes `worker-configuration.d.ts` containing
+both the binding interface and the runtime types for the configured compatibility date and
+flags: `[verified]`
+
+```ts
+// Generated by Wrangler by running `wrangler types`
+// Runtime types generated with workerd@1.20260910.1 2026-09-11 nodejs_compat
+interface __BaseEnv_Env {
+  CACHE: KVNamespace;
+  DB: D1Database;
+  COUNTER: DurableObjectNamespace<import("./src/index").Counter>;
+}
+```
+
+Two things follow. The Durable Object namespace is typed with the class, so RPC calls are
+checked end to end — a hand-written `DurableObjectNamespace` without the parameter throws that
+away. And re-running after a binding rename turns a would-be runtime `undefined` into a type
+error. Declare the handler as `satisfies ExportedHandler<Env>` so the handler signatures are
+checked too, and never paper over a mismatch with `as unknown as T`.
+
+## Environments and non-inheritable keys
+
+An environment is not a variant of one Worker — it deploys a **separate Worker** named
+`<name>-<environment>`. Select it with `--env`/`-e`, or `CLOUDFLARE_ENV` (the flag wins).
+
+Bindings and `vars` are **non-inheritable**: an environment that does not redeclare them does
+not have them. A top-level configuration that works proves nothing about staging.
+
+```jsonc
+{
+  "name": "app",
+  "vars": { "API_HOST": "dev.example.com" },
+  "kv_namespaces": [{ "binding": "SESSIONS", "id": "<dev-id>" }],
+  "env": {
+    "production": {
+      "routes": ["example.com/*"],
+      "vars": { "API_HOST": "example.com" },
+      "kv_namespaces": [{ "binding": "SESSIONS", "id": "<prod-id>" }]
+    }
+  }
+}
+```
+
+A service binding aimed at a specific environment must name the target's environment-suffixed
+Worker: `"service": "auth-worker-staging"`, not `"auth-worker"`. With the Cloudflare Vite
+plugin the environment is selected at dev/build time through `CLOUDFLARE_ENV`; passing an
+environment at deploy time does not retarget an already-flattened build.
+
+## Secrets and local variables
+
+`vars` are plaintext: visible in the repository and on the deployed Worker. Secrets are
+encrypted and invisible after they are set, and to the Worker there is no difference at read
+time.
+
+- Deployed: `wrangler secret put <KEY>`, `wrangler secret bulk`, or
+  `wrangler deploy --secrets-file .env.production` (up to 100 secrets per bulk request;
+  secrets absent from the file are preserved).
+- Local: `.dev.vars` **or** `.env`, in the configuration file's directory. Pick one — if
+  `.dev.vars` exists, `.env` values are ignored. Gitignore `.dev.vars*` and `.env*`.
+- Per environment: `.dev.vars.<env>` replaces `.dev.vars` entirely, whereas `.env` files merge
+  with precedence `.env.<env>.local` > `.env.local` > `.env.<env>` > `.env`.
+- Declare what the Worker needs with the `secrets` configuration property: `secrets.required`
+  makes `wrangler deploy` and `wrangler versions upload` fail with a clear error when a
+  required secret is missing, and restricts which keys are loaded locally.
+- Account-level secrets live in Secrets Store and attach as a binding, rather than being
+  duplicated per Worker.
+
+A value that has been committed is compromised. Rotate it; removing it from the file is not a
+fix.
+
+## limits and observability
+
+```jsonc
+{
+  "limits": { "cpu_ms": 300000 },
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  }
+}
+```
+
+`limits.cpu_ms` defaults to 30000 and tops out at 300000 (5 minutes) on Workers Paid. A value
+*below* the default is a deliberate ceiling — review any small number as a potential cause of
+`exceededCpu` rather than as a safety measure.
+
+`observability.enabled` does **not** turn on traces; `observability.traces.enabled` is its own
+field. Because `observability` is non-inheritable, check it per environment: production is the
+environment most likely to have been forgotten.
+
+## Automatic provisioning
+
+Omitting a resource identifier can trigger automatic provisioning, which creates a **new,
+empty** resource and binds that — the symptom is a staging deploy that comes up with no data
+and no error. Declare ids explicitly, and when binding an existing resource verify the id
+rather than trusting the name. `[community]`
+
+Reconcile dashboard edits before deploying: `wrangler deploy` can overwrite variables and
+routes changed in the dashboard, so a dashboard-only hotfix disappears on the next deploy.
+
+## A configuration worth copying
+
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "app",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.1 }
+  },
+  "assets": { "directory": "./dist/client", "not_found_handling": "single-page-application" },
+  "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }] },
+  "exports": { "Room": { "type": "durable-object", "storage": "sqlite" } },
+  "env": {
+    "production": {
+      "routes": ["app.example.com/*"],
+      "observability": { "enabled": true, "traces": { "enabled": true } },
+      "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }] },
+      "exports": { "Room": { "type": "durable-object", "storage": "sqlite" } }
+    }
+  }
+}
+```
+
+The repetition in `env.production` is the point: those keys do not inherit.
+
+
+## Run the project's wrangler
+
+Pin wrangler in `devDependencies` and invoke it through the project's package manager or
+scripts. `npx wrangler@latest` in a repository that pins 4.107 will happily write
+configuration the pinned version rejects. `npx wrangler --version` is the first command of any
+diagnosis, and `wrangler <command> --help` from the installed copy is the authority on which
+flags exist.
+
+Discover, do not recall:
+
+| Question | Ask this |
+|---|---|
+| Which commands and flags exist here | `npx wrangler --help`, `npx wrangler <cmd> --help` |
+| Which configuration fields exist here | `node_modules/wrangler/config-schema.json` |
+| What the Worker's bindings resolve to | `npx wrangler types` then read `worker-configuration.d.ts` |
+| Which account/Worker am I pointed at | `npx wrangler whoami` |
+
+## Local development and where state lives
+
+`wrangler dev` is local by default — `--remote` defaults to `false` — and needs no account and
+no real resource ids. workerd runs the Worker; KV, R2, D1, Durable Objects and the Cache are
+simulated and persisted as SQLite under `.wrangler/state/v3/`: `[verified]`
+
+```
+.wrangler/state/v3/kv/<namespace-id>/
+.wrangler/state/v3/d1/miniflare-D1DatabaseObject/
+.wrangler/state/v3/do/<worker>-<ClassName>/
+.wrangler/state/v3/r2/miniflare-R2BucketObject/
+.wrangler/state/v3/cache/miniflare-CacheObject/
+```
+
+State survives restarts: a Durable Object counter at 2 comes back at 3 on the next request
+after a restart, and a KV key written before the restart is still readable afterwards.
+`[verified]` `--persist-to <dir>` relocates the directory; `.wrangler/` belongs in
+`.gitignore`.
+
+**What local development cannot show you.** Local KV is read-after-write consistent — a `put`
+followed immediately by a `get` returns the new value `[verified]`. Production KV is not: a
+write is usually visible immediately in the location where it was made and takes up to 60
+seconds or more elsewhere. So an eventual-consistency bug, a same-key write-rate 429, a
+cross-region disagreement and a `overloaded` under contention are all invisible locally. "It
+works with `wrangler dev`" is not evidence; it is the absence of evidence.
+
+`--remote` runs the Worker on Cloudflare's network against production resources, which is the
+only way to exercise real consistency and quota behaviour — and the reason to be deliberate
+about which bindings a dev session can write to. `[official]`
+
+## Local versus remote data commands
+
+`wrangler kv`, `wrangler d1` and `wrangler r2` accept `--local` and `--remote`. Neither is
+marked as the default in `--help`, and with no flag and no login they operate on the local
+state directory: `[verified]`
+
+```sh
+npx wrangler kv key list --binding CACHE --local     # local state
+npx wrangler kv key list --binding CACHE --remote    # the real namespace
+npx wrangler d1 execute DB --local --command "SELECT count(*) FROM users"
+```
+
+Pass the flag you mean. A migration run without `--remote` "succeeds" against a SQLite file in
+`.wrangler/` and changes nothing in production — a silent no-op that reads as a completed
+task. For D1, `--preview` selects the preview database, which is a third target again.
+
+## Dry runs and what they prove
+
+```sh
+npx wrangler deploy --dry-run --outdir=dist
+```
+
+Builds and bundles, validates the configuration, prints the upload size and the binding table,
+and never contacts the API: `[verified]`
+
+```
+Total Upload: 1.48 KiB / gzip: 0.71 KiB
+Your Worker has access to the following bindings:
+Binding                                      Resource
+env.COUNTER (Counter)                        Durable Object
+env.CACHE (0123456789abcdef0123456789abcdef) KV Namespace
+env.DB (probe)                               D1 Database
+```
+
+It is the right pull-request check, and it catches configuration-level contradictions — a
+configuration carrying both `migrations` and `exports` fails here with
+`` `migrations` and `exports` are mutually exclusive `` `[verified]`. What it does not prove:
+that the remote resources exist, that ids are correct, or that anything works at runtime.
+`Total Upload` is the number the 64 MiB Worker-size limit measures.
+
+## Versions, deployments and gradual rollout
+
+A *version* is an immutable upload of code plus configuration; a *deployment* decides which
+versions serve traffic. `wrangler deploy` does both at once; `wrangler versions upload` only
+uploads, and `wrangler versions deploy` then assigns traffic — including a split across two
+versions. `[official]`
+
+- Gradual deployments need wrangler 3.40+, and 3.73+ to drop the `--x-versions` flag.
+- Version affinity keeps a given client on one version, which matters when the two versions
+  disagree about a data shape or an asset manifest.
+- `wrangler versions upload` **refuses** Durable Object lifecycle changes, and gradual
+  deployments do not support them at all: lifecycle changes are atomic at the control plane
+  and must go through `wrangler deploy`, alone.
+
+## Rollback and its limits
+
+`wrangler rollback` creates a new deployment pointing at an older version and takes effect
+across every route immediately. Rolling back from a split deployment collapses it to one
+version at 100%. The constraints are what make rollback a weaker safety net than it sounds:
+`[official]`
+
+- Only the **100 most recent** versions are reachable.
+- **Connected resources are not rolled back.** Old code against a migrated schema is its own
+  outage.
+- A rollback is rejected if bindings were deleted or modified between the two versions.
+- A rollback **cannot cross a Durable Object lifecycle change**.
+
+Design the forward change to be backward compatible — additive columns, tolerant readers —
+rather than treating rollback as the plan.
+
+## Secret commands deploy
+
+`wrangler secret put` and `wrangler secret delete` create a version **and deploy it
+immediately**. In a gradual-deployment workflow that is an unplanned full rollout. Use the
+staged form: `[official]`
+
+```sh
+npx wrangler versions secret put API_KEY     # creates a version only
+npx wrangler versions deploy                 # then assign traffic deliberately
+```
+
+## Diagnostics
+
+| Symptom | First command |
+|---|---|
+| Wrong account or Worker | `npx wrangler whoami` |
+| "Which config is the build using" | check the framework's generated config, then `--config <path>` explicitly |
+| Deploy rejected | `npx wrangler deploy --dry-run --outdir=dist` and read the validation error verbatim |
+| Live errors in production | `npx wrangler tail` (add `--format json` to pipe it) |
+| Bundle too large or slow to start | `npx wrangler deploy --dry-run --outdir=bundled/` and read `Total Upload` |
+| Types disagree with configuration | `npx wrangler types` and re-run the typecheck |
+| Which versions exist | `npx wrangler versions list`, `npx wrangler deployments list` |
+
+Wrangler writes a full log per invocation under `~/.config/.wrangler/logs/`; the path is
+printed on error and contains the detail the terminal truncated. For an unauthenticated
+prototype, claim deployments exist but have expiry rules — use a real account for anything
+that must keep working.
+
+<!-- sources: cloudflare-skills, cloudflare-docs, workers-sdk, jezweb-cloudflare -->

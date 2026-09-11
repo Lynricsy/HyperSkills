@@ -1,0 +1,215 @@
+# Workers static assets, and migrating off Pages
+
+Verified against: wrangler 4.131.0; asset routing and `_headers`/`_redirects` semantics
+re-read from the official documentation.
+
+## Contents
+
+- [Workers with assets is the current default](#workers-with-assets-is-the-current-default)
+- [Configuration](#configuration)
+- [Routing modes](#routing-modes)
+- [Default response headers](#default-response-headers)
+- [_headers](#_headers)
+- [_redirects](#_redirects)
+- [.assetsignore](#assetsignore)
+- [Migrating a Pages project](#migrating-a-pages-project)
+- [Limits that fail a deploy](#limits-that-fail-a-deploy)
+
+## Workers with assets is the current default
+
+For a new static site or full-stack application, deploy a Worker with `assets` rather than a
+Pages project. Requests for static assets are free on both, and Pages Functions invocations
+bill like Workers, so the cost structure is comparable — but Workers has the broader feature
+set (Durable Objects, Cron Triggers, service bindings, the full observability surface). Pages
+projects continue to work; there is no reason to migrate a purely static Pages site that
+nobody is changing.
+
+For frameworks, use the framework's Workers adapter rather than reimplementing the glue. That
+includes Next.js: on Cloudflare it deploys as a Worker with static assets through an adapter.
+Next.js itself belongs to the `react` skill.
+
+## Configuration
+
+```jsonc
+{
+  "name": "storefront",
+  "compatibility_date": "2026-09-11",
+  "main": "./worker/index.ts",          // omit for an assets-only Worker
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",                 // only valid when `main` is set
+    "not_found_handling": "single-page-application",
+    "run_worker_first": false
+  }
+}
+```
+
+- `assets.directory` replaces Pages' `pages_build_output_dir`.
+- `assets.binding` gives the Worker `env.ASSETS.fetch(request)` to serve an asset itself. It is
+  only valid alongside `main`; on an assets-only Worker, remove it.
+- A `compatibility_date` is mandatory for a Worker and was not for a Pages project. If the
+  project had Pages Functions with a date, carry that date over rather than jumping to today.
+
+## Routing modes
+
+**The default is the opposite of Pages.** Pages ran Functions ahead of static assets; Workers
+serves **assets ahead of the Worker script**. Anything that must run on every request —
+authentication, request logging, header injection — needs `run_worker_first`:
+
+```jsonc
+{ "assets": { "directory": "./dist/client", "run_worker_first": true } }
+```
+
+Without it, a request that matches an existing asset never reaches the Worker, so a migrated
+auth middleware silently stops protecting asset paths. This is the single most consequential
+difference in a Pages migration.
+
+`not_found_handling` must be declared, because Workers infers nothing from the presence of
+`index.html` or `404.html`:
+
+| Value | Behaviour |
+|---|---|
+| `"none"` (default) | a request with no matching asset falls through to the Worker, or 404 |
+| `"single-page-application"` | unmatched paths serve `index.html` with 200 |
+| `"404-page"` | unmatched paths serve the nearest `404.html` |
+
+`_routes.json` has no Workers equivalent. `run_worker_first` is the replacement; where it needs
+to be path-scoped, it accepts a list of path patterns rather than a bare boolean — but note
+that scoping it to `/account/*` also stops the Worker from seeing (and logging) every other
+request, which is not equivalent to Pages middleware that ran on everything.
+
+## Default response headers
+
+Workers attaches these to asset responses unless overridden:
+
+- `Content-Type`, determined by wrangler from the file extension at upload time.
+- `Cache-Control: public, max-age=0, must-revalidate` — sent when the request has no
+  `Authorization` or `Range` header. It permits caching but forces revalidation, so a stale
+  asset is never served.
+- `ETag`, a hash of the file, which is what makes the revalidation cheap (`If-None-Match` →
+  304).
+- `CF-Cache-Status`: `HIT` or `MISS`.
+
+The consequence for fingerprinted bundles: the default is conservative, so hashed asset paths
+should get an explicit long `max-age` with `immutable` through `_headers`.
+
+## _headers
+
+A plain text file named `_headers`, with no extension, inside the asset directory. It is
+parsed rather than served.
+
+```
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/account/*
+  Cache-Control: private, no-store
+```
+
+Rules are multi-line blocks: a URL or pattern, then indented `Name: value` pairs. Headers
+defined here override what Cloudflare would otherwise send. Absolute URLs are allowed but must
+begin with `https`, cannot specify a port, and match regardless of the incoming request's port
+and protocol.
+
+**`_headers` does not apply to responses generated by Worker code.** With SSR, or with
+`run_worker_first`, any response the Worker constructs itself — a redirect to `/login`, a JSON
+error, an SSR page — is sent without these headers. The security headers must be applied in the
+Worker too:
+
+```ts
+const SECURITY_HEADERS = {
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
+function withSecurityHeaders(response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
+  return new Response(response.body, { ...response, headers });
+}
+```
+
+Responses obtained from `env.ASSETS.fetch()` are asset responses and do carry the `_headers`
+rules; responses the Worker builds do not. That distinction is what to check when a migration
+"kept the headers" but a penetration test disagrees.
+
+## _redirects
+
+Also a plain text file in the asset directory, one rule per line:
+
+```
+/shop/*           /products/:splat   301
+/old-checkout     /checkout          301
+/blog/:year/:slug /articles/:slug    301
+```
+
+- Format is `source destination [code]`, default code 302. `*` splats and `:placeholders` are
+  supported; fragments in the source are not evaluated (browsers resolve those).
+- 2,000 static plus 100 dynamic rules, 2,100 total, 1,000 characters per declaration.
+- Order matters: the topmost rule for a source wins, and static rules should precede dynamic
+  ones.
+- **Redirects are always followed, whether or not an asset matches.** A catch-all
+  `/* /index.html 200` therefore intercepts `/assets/app.js` as well — use
+  `not_found_handling: "single-page-application"` for SPA fallback instead of a catch-all
+  redirect rule.
+- Like `_headers`, `_redirects` does not apply to Worker-generated responses. For large
+  redirect sets outside the asset path, Bulk Redirects is the platform feature.
+
+## .assetsignore
+
+A file in the asset directory listing what must **not** be uploaded as an asset. Pages excluded
+some paths automatically; Workers does not.
+
+```
+**/node_modules
+**/.DS_Store
+**/.git
+_worker.js
+```
+
+The `_worker.js` line matters specifically: a Pages "advanced mode" `_worker.js` living inside
+the output directory would otherwise be uploaded as a public static file. Either move it out of
+the directory (preferred) or ignore it, and point `main` at it.
+
+## Migrating a Pages project
+
+1. `pages_build_output_dir` → `assets.directory`; add `compatibility_date`.
+2. Declare `not_found_handling` explicitly, matching what Pages inferred.
+3. Set `run_worker_first` if anything ran before assets under Pages.
+4. Convert the Functions directory: `wrangler pages functions build --outdir=./dist/worker/`
+   compiles a `functions/` folder into a single Worker script, then `main` points at the
+   output. That command remains available, but for file-based routing going forward a framework
+   (HonoX, for example) is the recommended direction. A hand-rewrite of a small
+   `_middleware.ts` into a Worker entry is often simpler than keeping the compile step.
+5. Move `_worker.js` out of the asset directory or add `.assetsignore`.
+6. Re-apply `_headers` and `_redirects` semantics inside the Worker for every path the Worker
+   answers.
+7. Swap Pages-specific framework adapters for the Workers equivalents.
+8. Re-declare bindings and `vars` for every environment — they do not inherit, and a Pages
+   project that only set `env.preview.vars` will lose its KV binding in preview.
+
+Verify by exercising the acceptance criteria against `wrangler dev`: an asset path, a deep SPA
+route, each redirect, and a protected path with and without credentials, asserting status codes
+and headers.
+
+## Limits that fail a deploy
+
+| Limit | Workers Free | Workers Paid |
+|---|---|---|
+| Asset files per Worker version | 20,000 | 100,000 |
+| Individual file size | 25 MiB | 25 MiB |
+
+Count the files in the build output before the first deploy of a large documentation or media
+site — this is a hard stop, not a throttle. Large media belongs in R2 behind a custom domain,
+not in the asset manifest.
+
+During a gradual deployment, version affinity is what stops a client from loading an
+`index.html` from one version and a hashed bundle from another.
+
+<!-- sources: cloudflare-docs, cloudflare-skills, cf-nextjs -->

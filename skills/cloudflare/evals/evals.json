@@ -1,0 +1,78 @@
+[
+  {
+    "skills": ["cloudflare"],
+    "query": "Production keeps handing one customer another customer's session data, and /report started returning 500s once traffic grew. Review worker.ts and wrangler.toml and tell me which findings will actually cause an incident.",
+    "files": ["evals/files/review/worker.ts", "evals/files/review/wrangler.toml"],
+    "expected_behavior": [
+      "Names the module-scope `cachedUser` and `hitCount` as the cross-customer leak and explains the mechanism: an isolate is reused across requests from different users, so whichever session lands in the isolate first is served to everyone else it handles - and notes this is invisible in single-user local development",
+      "Flags `const { waitUntil } = ctx` as a runtime failure, not a style nit: the destructured function loses its receiver and throws `Illegal invocation`, so it must be called as `ctx.waitUntil(...)`",
+      "Identifies `limits.cpu_ms = 50` as a deliberate 50 ms CPU ceiling and states the real numbers - Workers Paid defaults to 30,000 ms and can be raised to 300,000 ms (5 minutes), Workers Free is fixed at 10 ms - without describing CPU time through the retired Bundled/Unbound usage models",
+      "Replaces the `api.cloudflare.com/client/v4/.../r2/...` call with an R2 binding, and flags `await request.arrayBuffer()` against the 128 MB per-isolate memory limit in favour of streaming `request.body`",
+      "Flags both crypto defects concretely: `Math.random()` for the share token and the upload key must become `crypto.randomUUID()` or `crypto.getRandomValues()`, and `token !== env.API_KEY` must become `crypto.subtle.timingSafeEqual` over equal-length digests of the two values",
+      "Flags the secrets in `[vars]`: values in the Wrangler configuration file are committed to version control and are plaintext on the deployed Worker, so they belong in `wrangler secret put` or the Secrets Store, and the exposed tokens must be rotated",
+      "Flags the bare `fetch(\"https://hooks.internal.example.com/ping\")` as a floating promise that is neither awaited, returned, nor passed to `ctx.waitUntil()`, so the request can be cancelled once the response is returned and its error is swallowed",
+      "Flags `ctx.passThroughOnException()` as fail-open behaviour that forwards failing requests to the origin and hides exactly the bug being investigated, and flags the hand-written `Env` with `DB: any` in favour of running `wrangler types`"
+    ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "quota.ts works perfectly against wrangler dev but in production the per-team counter loses increments, different regions disagree about the count, and some teams get 429 when they are nowhere near the limit. Fix it properly.",
+    "files": ["evals/files/kv-counter/quota.ts", "evals/files/kv-counter/wrangler.jsonc"],
+    "expected_behavior": [
+      "Explains the regional disagreement with KV's documented consistency model: a write is usually visible immediately in the location where it was made but can take up to 60 seconds or more to be visible in other locations, and negative lookups (key-does-not-exist) are cached the same way",
+      "States the same-key write limit correctly - 1 write per second to the same key on both Free and Paid - and therefore that a hot per-team key is rate limited by design, rather than quoting a figure in the hundreds or thousands of writes per second per key",
+      "Says a get-then-put counter on KV is simply not implementable: there is no atomic increment and no compare-and-swap, so concurrent invocations read the same value and the last write wins, and no TTL or retry setting fixes that",
+      "Moves the counter into a Durable Object keyed by team and explains why that is the fix: one instance per team, single-threaded, so increments serialise; and the count is written to storage before any in-memory value is trusted",
+      "Names the Durable Object capacity fact that decides the shard key: an individual object has a soft limit of about 1,000 requests per second and returns an `overloaded` error beyond it, so the object must be per team rather than one global counter",
+      "Explains why local development hid the bug: `wrangler dev` runs the Worker in workerd with local KV persisted under `.wrangler/state`, which is read-after-write consistent, so an eventual-consistency defect cannot reproduce there",
+      "Does not present D1 as the fix for a hot counter without saying that each D1 database is backed by a single Durable Object and processes queries one at a time, so it has the same serialisation ceiling plus SQL overhead",
+      "Keeps KV for the read-heavy `plan:` lookup, where it is the right tool, and mentions raising `cacheTtl` above its 60-second default for that read"
+    ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "Read rooms.ts and wrangler.jsonc. We want to rename the Durable Object class Room to GameRoom and add a new Lobby class, but wrangler refuses to deploy this config. Separately, the alarm sometimes settles the same room twice. What is wrong and what is the safe sequence?",
+    "files": ["evals/files/do-lifecycle/rooms.ts", "evals/files/do-lifecycle/wrangler.jsonc"],
+    "expected_behavior": [
+      "Explains the deploy rejection by naming the actual conflict: `migrations` and `exports` are mutually exclusive in one Wrangler configuration, so the legacy migrations array and the declarative `exports` map cannot both declare Durable Object lifecycle - and separately that the two migration entries reuse `tag: \"v1\"`",
+      "Says the written rename destroys data: `deleted_classes` removes the namespace and every object's stored data permanently with no trash or undo, and `new_classes: [\"GameRoom\"]` then provisions an empty namespace - a rename must be expressed as a rename",
+      "Gives the current mechanism with its version gate: the declarative `exports` map (Wrangler 4.107+) with a `state: \"renamed\"` tombstone keyed by the old class name, `renamed_to: \"GameRoom\"`, and a live `GameRoom` entry in the same map; `migrations` is the legacy flow",
+      "Requires the SQLite storage backend for anything new (`storage: \"sqlite\"`, or `new_sqlite_classes` on the legacy flow) and states why the fixture's `new_classes` is wrong: new key-value-backed namespaces are no longer available to accounts without an existing one, and the Free plan offers only SQLite",
+      "Prescribes the multi-deploy rename rather than one deploy, because the namespace class pointer and the deployed code do not flip atomically: first deploy the new class re-exported under the old name (`export { GameRoom as Room }`), then deploy the rename while the alias is live, then remove the alias",
+      "Diagnoses the double settlement as alarm semantics, not a race in the queue: the alarm handler is retried on failure so it must be idempotent, and `settle()` re-arms the alarm unconditionally - the fix is to record what has been settled in the same storage write and make the handler a no-op on replay",
+      "Notes that each object has at most one alarm and `setAlarm()` replaces any pending one, so `join()` re-arming on every player keeps pushing the settlement out instead of scheduling per player",
+      "Declares `Lobby` in `durable_objects.bindings` as well, and says a class exported by the code but not declared in `exports` is never provisioned rather than being picked up implicitly"
+    ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "Migrate this Cloudflare Pages project to Workers static assets: wrangler.toml, _headers, _redirects and middleware.ts are what we have today. After the migration the security headers and the redirects must still apply, and the /account auth check must still run before anything is served.",
+    "files": [
+      "evals/files/pages-migration/wrangler.toml",
+      "evals/files/pages-migration/_headers",
+      "evals/files/pages-migration/_redirects",
+      "evals/files/pages-migration/middleware.ts"
+    ],
+    "expected_behavior": [
+      "Replaces `pages_build_output_dir` with `assets.directory` and adds the `compatibility_date` that a Workers configuration requires but a Pages project did not",
+      "Gets the routing default the right way round and says so explicitly: Pages ran Functions ahead of static assets, whereas Workers serves assets ahead of the Worker script, so `assets.run_worker_first` is required for the /account auth check to keep running",
+      "Warns that `_headers` and `_redirects` are not applied to responses generated by Worker code - so with SSR or `run_worker_first` in play the security headers and redirects must also be set inside the Worker, otherwise the migration silently drops them",
+      "Sets `assets.not_found_handling` explicitly, noting that Workers does not infer SPA or custom-404 behaviour from the presence of index.html or 404.html the way Pages did, and connects it to the `/* /index.html 200` line in _redirects",
+      "Converts `functions/_middleware.ts` into a Worker entry, either by compiling with `wrangler pages functions build --outdir=...` or by rewriting it, and says `_routes.json` has no Workers equivalent because `run_worker_first` replaces it",
+      "Mentions `.assetsignore` for anything that must not be uploaded as an asset - a `_worker.js` inside the asset directory, plus the node_modules/.git/.DS_Store entries Pages excluded automatically",
+      "States the static-asset limits that can fail a deploy: 20,000 files per Worker version on Free and 100,000 on Paid, with 25 MiB per individual file",
+      "Turns on observability as part of the migration and knows the field it is easy to miss: `observability.enabled` does not by itself enable traces, `observability.traces.enabled` must be set too, with `head_sampling_rate` controlling volume"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "首页 LCP 4.2 秒。ProductGrid.tsx 里图片全是原图直出，还有一串 useEffect 里串行请求。帮我把这个组件的加载性能优化一下。",
+    "files": ["evals/files/negative/ProductGrid.tsx"],
+    "expected_behavior": [
+      "Answers it as a front-end loading-performance question: responsive images with width/height or an image component, `loading=\"eager\"`/`fetchPriority=\"high\"` for the LCP hero and lazy loading for the rest, and reserved dimensions to avoid layout shift",
+      "Fixes the request waterfall - the three `fetch` calls are serialised in one `useEffect` and should be parallelised or moved to the server/loader so they are not client-side sequential",
+      "Does not introduce Cloudflare Workers, Cloudflare Images, Cache API, KV or wrangler into the answer",
+      "skill_read is false for the `cloudflare` skill"
+    ]
+  }
+]

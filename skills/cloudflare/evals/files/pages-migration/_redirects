@@ -1,0 +1,5 @@
+# dist/client/_redirects
+/shop/* /products/:splat 301
+/old-checkout /checkout 301
+/blog/:year/:slug /articles/:slug 301
+/* /index.html 200

@@ -1,0 +1,127 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin cloudflare
+skill: cloudflare
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: cloudflare-skills
+    kind: repo
+    repo: cloudflare/skills
+    url: https://github.com/cloudflare/skills
+    paths:
+      - skills/workers-best-practices
+      - skills/wrangler
+      - skills/durable-objects
+      - skills/cloudflare-one
+      - skills/cloudflare/references/kv
+      - skills/cloudflare/references/r2
+      - skills/cloudflare/references/d1
+      - skills/cloudflare/references/queues
+      - skills/cloudflare/references/do-storage
+      - skills/cloudflare/references/static-assets
+      - skills/cloudflare/references/tunnel
+      - skills/cloudflare/references/tail-workers
+      - skills/cloudflare/references/miniflare
+      - skills/cloudflare/references/bindings
+    ref: main
+    commit: b052c32bab7dd493513260228a36c88294f343f1
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The official-vendor backbone. From workers-best-practices: the anti-pattern-to-consequence pairing that this skill's Core rules are written in, the rule that a destructured `ctx` loses its receiver and throws `Illegal invocation`, module-scope mutable state as simultaneously a cross-request leak and an I/O-ownership error, floating promises versus `ctx.waitUntil()`, streaming instead of buffering against the isolate memory limit, bindings instead of the Cloudflare REST API, `passThroughOnException()` as fail-open concealment, `extends` rather than `implements` on platform classes, `env` parameter versus `this.env` binding access, the per-API serialization boundary table, Web Crypto for tokens and constant-time secret comparison, and the standing instruction to prefer retrieval over pre-training with `wrangler --help` and the installed config-schema.json as the project's truth. From wrangler: non-inheritable keys must be restated per environment, dashboard edits are overwritten by deploy, omitted resource ids trigger automatic provisioning, `secret put` creates a version and deploys it immediately, a rollback does not roll back connected resources, and `CLOUDFLARE_ENV` selects the environment at dev/build time under the Vite plugin. From durable-objects: model one object per coordination atom rather than one global object, `getByName()` for deterministic routing, `blockConcurrencyWhile()` for constructor-time setup only and never across external I/O, persist before caching in memory, one alarm per object with `setAlarm()` replacing any pending one, and the use-versus-do-not-use table. From cloudflare-one: Access authorises applications while Gateway inspects traffic, Access is default-deny, the enrollment rule is a `warp`-type Access application so enrollment is debugged in Access, service-token clients authenticate as non_identity@ and never match IdP-group-targeted profiles, the split-tunnel include/exclude selection table and its per-profile scope, split-tunnel entries must align bidirectionally with tunnel routes, MDM parameters override dashboard profile settings, `dns.domains` matches subdomains while `dns.fqdn` is exact, HTTP Do Not Inspect precedes Allow/Block/Isolate, DLP profiles are inert until referenced by a policy, generated IPsec PSKs are returned once, and the log-toward-configuration troubleshooting direction. From the skills/cloudflare product reference tree: the gotchas for KV, R2, D1, Queues, Durable Object storage, static assets, Tunnel, Tail Workers, Miniflare and bindings, used to confirm this skill's coverage had no gaps."
+    notes: "Apache-2.0 confirmed by reading the LICENSE file rather than trusting the API's spdx_id. Its frontmatter carries only `name` and `description`, so no agent-specific fields needed stripping. Three of its facts were rejected against the official documentation (research/cloudflare.md rulings 1, 3 and 5): runtime-patterns.md states CPU limits as `10ms (Bundled) or 30s (Standard/Unbound)`, which are retired usage-model names - the current figures are 10 ms fixed on Free and a 30 s default with a 300,000 ms ceiling on Paid; durable-objects/SKILL.md teaches the legacy `migrations` array with `new_sqlite_classes` as the way to declare class lifecycle, superseded by the declarative `exports` map; and its testing reference points at `@cloudflare/vitest-pool-workers`, which has been replaced by `@cloudflare/vitest-plugin`. Its skills/agents-sdk (18 references, high quality) and skills/nextjs-on-cloudflare were excluded as out of scope per this batch's cross-skill contract; the Agents SDK and MCP topics have no skill in this library yet. The Stream, Zaraz, RealtimeKit, Spectrum, Turnstile, WAF and Bot Management branches of the product tree are network and security product surface and were not used. Its references/workers.md CORS, Zod-validation and timeout-wrapper snippets were not copied - they are general knowledge the model already has."
+  - id: cloudflare-docs
+    kind: docs
+    url: https://developers.cloudflare.com/
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The authority behind every number, default and version gate in this skill, and the source for everything the upstream skills get wrong or omit: the Workers plan-limit and CPU/wall-time tables including the `limits.cpu_ms` 30,000 default and 300,000 ceiling and the 30-second `waitUntil` extension; the 128 MB per-isolate memory limit and the six-connections-awaiting-headers rule; the compatibility-date mechanism and the 2021-11-02 default for API uploads; the secrets surface (`secret put` versus `versions secret put`, `.dev.vars` versus `.env` precedence, `secrets.required`, `--secrets-file`); environments deploying a separate `<name>-<env>` Worker with non-inheritable bindings and environment-suffixed service bindings; the declarative Durable Object `exports` lifecycle in full - every `state` and its required fields, the three-deploy rename, the four-deploy transfer, storage-backend immutability and `storage_type_mismatch`, reconciliation output, and the constraint set (mutually exclusive with `migrations`, one-way, no `versions upload`, no gradual deployments, rollbacks cannot cross a lifecycle change); Durable Object limits and the ~1,000 req/s soft limit, `overloaded`, and `SQLITE_FULL`; WebSocket hibernation and its billing consequence; the KV consistency model (immediate locally, up to 60 seconds or more elsewhere, negative lookups cached, 1 write per second to the same key, 60-second `cacheTtl` default) and the write-through-a-Durable-Object pattern; D1's 10 GB unraisable ceiling, single-threaded execution, and the Sessions API with bookmarks for read replication; R2's object and upload sizes and its 1-write-per-second-per-key rule; the Queues limit and default set including the discard behaviour with no dead-letter queue; static assets - `assets.directory`, `run_worker_first`, `not_found_handling`, `.assetsignore`, default response headers, the `_headers`/`_redirects` grammar and limits, and the rule that neither applies to Worker-generated responses; the Pages-to-Workers migration sequence and `wrangler pages functions build`; versions, gradual deployments, version affinity and the four rollback constraints; Workers Logs and traces configuration, invocation outcomes, Tail Workers, the OTel export and the `workers_trace_events` Logpush dataset; and the testing surface - `@cloudflare/vitest-plugin` with `cloudflareTest()`, `cloudflare:test` helpers including `runInDurableObject`, `runDurableObjectAlarm` and `evictDurableObject`, per-file storage isolation, and the automatically injected `nodejs_compat` trap."
+    notes: "Licence established by reading the LICENSE file of the documentation source repository cloudflare/cloudflare-docs: its text is the Creative Commons Attribution 4.0 International licence, matching the API's spdx_id. CC-BY-4.0 permits merging under docs/roadmap.md's licence table, so attribution is required and is carried here and in NOTICE.md: content adapted from the Cloudflare Developer Documentation (c) Cloudflare, Inc., CC-BY-4.0. This is deliberately unlike batch 5, where redis.io (CC-BY-NC-SA-4.0), the Elastic docs (CC-BY-ND) and hashicorp/terraform (BUSL-1.1) could only be reference - a repository's licence is its own, and this one was read rather than assumed. Everything taken from here was rewritten; no passage is reproduced verbatim."
+  - id: workers-sdk
+    kind: repo
+    repo: cloudflare/workers-sdk
+    url: https://github.com/cloudflare/workers-sdk
+    paths:
+      - packages/wrangler/CHANGELOG.md
+      - packages/wrangler/config-schema.json
+    ref: main
+    commit: 7d39eed90b6155961b7d342f7b69b6df95d21188
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The version gates, which no skill or documentation page states precisely: declarative Durable Object `exports` landed in wrangler 4.107.0 (CHANGELOG entry for PR #14382), which is where this skill's `(Wrangler 4.107+)` gate comes from, along with the same release's notes that local development reads SQLite storage settings from `exports` and that wrangler now suggests an `exports` entry rather than a legacy migrations block for an undeclared Durable Object class. The shipped config-schema.json supplied the exact `DurableObjectExport` shape used in references/do-lifecycle.md - the five `state` values and the required fields for each (`storage` for created and expecting-transfer, `renamed_to`, `transferred_to`, `transfer_from`) - and its own description stating that Durable Object exports are mutually exclusive with `migrations` at the config-validation boundary."
+    notes: "Apache-2.0 confirmed by reading the LICENSE file. Only version-to-feature facts and schema shapes were extracted; no text was copied. The CHANGELOG is over 1.5 MB and must be fetched with the raw media type rather than the contents API. This is the upstream to re-read on every sync, since every version gate in the skill depends on it."
+  - id: xiaoyuboi-tunnel
+    kind: repo
+    repo: xiaoyuboi/cloudflare-tunnel-skill
+    url: https://github.com/xiaoyuboi/cloudflare-tunnel-skill
+    paths:
+      - SKILL.md
+      - references/named-tunnel.md
+      - references/security.md
+      - references/troubleshooting.md
+    ref: main
+    commit: 1f4eebaaf3baa5e1d9fb41f38cf74348f03f0ec9
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Tunnel verification discipline in references/cloudflare-one.md, which the official material states less sharply: the quick-versus-named decision criteria (a URL that may change and needs no login versus a hostname that must survive restarts and serve webhooks); that a printed trycloudflare.com URL is not a working tunnel and at least one `Registered tunnel connection` log line must also appear; that 200, 301, 302, 304, 401 and 403 all count as evidence the local service is reachable, because an auth challenge means the server answered; that DNS for a freshly created trycloudflare.com hostname can take a minute or two and may never resolve behind a fake-IP proxy resolver, so DNS-over-HTTPS is the fallback check; and the instruction to pause and warn before exposing an admin panel, an unauthenticated write API or internal tooling to the public internet."
+    notes: "MIT confirmed by reading the LICENSE file (Copyright 2026 xiaoyuboi). Its `scripts/tunnel_helper.py` and the state directory convention under `.cloudflare-tunnel/` were not adopted: a Python wrapper around two cloudflared commands is not worth the maintenance, and the skill's own guidance is to run cloudflared directly. Its `metadata.tags` frontmatter field was stripped per docs/skill-standard.md section 1.2, and its `~/.claude/skills/...` absolute install paths are harness-specific and were not carried over."
+  - id: jezweb-cloudflare
+    kind: repo
+    repo: jezweb/claude-skills
+    url: https://github.com/jezweb/claude-skills
+    paths:
+      - plugins/cloudflare/skills/cloudflare-worker-builder
+      - plugins/cloudflare/skills/vite-flare-starter
+      - plugins/cloudflare/skills/d1-drizzle-schema/references/d1-specifics.md
+    ref: main
+    commit: e875a6bfff809e5d42c584104031e36e1f014f18
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Two scaffolding-time hazards that the official material mentions only in passing: that omitting a resource identifier lets wrangler auto-provision a new, empty resource and bind that instead of the existing one, so identifiers should always be explicit; and that under the Cloudflare Vite plugin the API routes and the static-assets fallback compete for the same paths, which is the concrete form the assets-before-Worker default takes in a Vite project."
+    notes: "MIT confirmed by reading the LICENSE file (Copyright 2025 Jeremy Dawes). Its Hono routing, Drizzle schema, React and Tailwind material was stripped per this batch's cross-skill contract - those belong to nodejs-backend, postgres, react and frontend-design. Its `compatibility: claude-code-only` frontmatter field was stripped per docs/skill-standard.md section 1.2. Last pushed 2026-07-02, so its version claims were re-checked rather than trusted."
+  - id: secondsky-cloudflare
+    kind: repo
+    repo: secondsky/claude-skills
+    url: https://github.com/secondsky/claude-skills
+    paths:
+      - plugins/cloudflare-kv/skills/cloudflare-kv
+      - plugins/cloudflare-r2/skills/cloudflare-r2
+      - plugins/cloudflare-d1/skills/cloudflare-d1
+      - plugins/cloudflare-queues/skills/cloudflare-queues
+      - plugins/cloudflare-durable-objects/skills/cloudflare-durable-objects
+      - plugins/cloudflare-zero-trust-access/skills/cloudflare-zero-trust-access
+      - plugins/cloudflare-workers
+    ref: main
+    commit: 00d6097723b88504637a3979d7810e82cab60694
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a coverage checklist. Its 33 Cloudflare skills are the broadest topic enumeration of any candidate, and comparing them against this skill's topic router confirmed that KV, R2, D1, Queues, Durable Objects, Workflows, Hyperdrive, Vectorize, Browser Rendering, Cron Triggers and Zero Trust were all either covered or deliberately out of scope. It named no subject this skill was missing."
+    notes: "No content copied. Its correctness did not survive spot-checking: cloudflare-kv states `Writes: 1000/sec per key` and warns against exceeding `1000 writes/second`, where the documented limit is 1 write per second to the same key - a three-order-of-magnitude error that inverts the architectural conclusion about whether KV can hold a counter (research/cloudflare.md ruling 2). Its frontmatter also carries non-specification fields (metadata.production_tested, token_savings, errors_prevented, keywords) that docs/skill-standard.md section 1.2 forbids. Every fact in this skill that overlaps with it was taken from the official documentation instead."
+  - id: cloudflare-computer
+    kind: repo
+    repo: cloudflare/computer
+    url: https://github.com/cloudflare/computer
+    paths: [.agents/skills/cloudflare/SKILL.md]
+    ref: main
+    commit: 860dc85eccb0125fa392720dcde325d16871dff5
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to weight this skill's topic router against Cloudflare's own choices in a real product repository: it routes to durable-objects, workers-best-practices and agents-sdk as the three primary skills and treats wrangler and the product reference tree as secondary, and it states that platform guidance is deliberately not vendored into the repository so that it tracks upstream. That confirmed putting Durable Objects and the runtime rules ahead of the product surface here."
+    notes: "No content copied. The file is a 74-line index of links to cloudflare/skills and contains no platform facts of its own."
+  - id: cf-nextjs
+    kind: repo
+    repo: cloudflare/skills
+    url: https://github.com/cloudflare/skills/tree/main/skills/nextjs-on-cloudflare
+    paths: [skills/nextjs-on-cloudflare/SKILL.md]
+    ref: main
+    commit: b052c32bab7dd493513260228a36c88294f343f1
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only for one boundary sentence carried into references/static-assets.md: a Next.js application on Cloudflare deploys as a Worker with static assets through an adapter rather than to Pages. Next.js itself belongs to the `react` skill."
+    notes: "No content copied. Tracked as a separate entry from cloudflare-skills because it is a distinct 33-line skill that was evaluated and deliberately not merged - its substance is Next.js, which this batch's cross-skill contract assigns to the `react` skill."
