@@ -1,32 +1,18 @@
-<p align="center">
-<img src="docs/assets/logo.svg" width="96" alt="HyperSkills 的标记：一只狐狸从三张错开的 skill 卡片后面探出来">
-</p>
+<h1>
+  <img src="docs/assets/hero.svg" width="1200" alt="HyperSkills">
+</h1>
 
-<h1 align="center">HyperSkills</h1>
+**给 AI 编程助手的整合型技能库。一个技术生态或一类任务，一份完整 skill。**
 
-<p align="center">
-整合型 Agent Skill 集合：一个技术生态或一类任务 = 一个 skill，581 条上游精编重写合成，仓库型来源固定 commit。
-</p>
+从上游资料中精编重写，先评测，再合入；保留易错点、版本差异与可追溯来源。
 
-<p align="center">
-<a href="LICENSE"><img alt="许可: MIT" src="https://img.shields.io/github/license/Lynricsy/HyperSkills"></a>
-<a href="skills/"><img alt="skill 数量" src="https://img.shields.io/github/directory-file-count/Lynricsy/HyperSkills/skills?type=dir&label=skills"></a>
-<a href="https://github.com/Lynricsy/HyperSkills/commits/main"><img alt="最近提交时间" src="https://img.shields.io/github/last-commit/Lynricsy/HyperSkills"></a>
-</p>
+**[开始安装](#安装)** &nbsp; / &nbsp; [浏览技能](#skill-目录) &nbsp; / &nbsp; [编写标准](docs/skill-standard.md) &nbsp; / &nbsp; [五阶段流水线](docs/workflow.md) &nbsp; / &nbsp; [MIT 许可](LICENSE)
 
-<p align="center">
-<a href="#安装">安装</a> ·
-<a href="#skill-目录">skill 目录</a> ·
-<a href="docs/skill-standard.md">编写标准</a> ·
-<a href="docs/workflow.md">五阶段流水线</a> ·
-<a href="https://github.com/Lynricsy/HyperSkills/issues">反馈</a>
-</p>
+活跃开发中，暂无 CI。维护者 [@Lynricsy](https://github.com/Lynricsy)；问题与建议请提
+[Issue](https://github.com/Lynricsy/HyperSkills/issues)。
 
 > **skill 会以 agent 的全部权限运行。** 装之前把 `SKILL.md` 和 `scripts/` 读一遍——
 > 这条对本仓库和任何第三方 skill 都一样。
-
-状态：活跃开发中，53 个 skill 已过静态门与行为评测；仓库暂无 CI。维护者
-[@Lynricsy](https://github.com/Lynricsy)，问题走 [Issues](https://github.com/Lynricsy/HyperSkills/issues)。
 
 ## 这是什么
 
