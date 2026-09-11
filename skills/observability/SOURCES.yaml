@@ -1,0 +1,210 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin observability
+skill: observability
+version: "2026.09.11"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: ollygarden-otel-skills
+    kind: repo
+    repo: ollygarden/opentelemetry-agent-skills
+    url: https://github.com/ollygarden/opentelemetry-agent-skills
+    paths:
+      - skills/otel-collector
+      - skills/otel-semantic-conventions
+      - skills/otel-sdk-versions
+      - skills/otel-ottl
+      - skills/otel-upgrade
+      - skills/otel-telemetry-emissions
+      - skills/otel-span-events-to-logs-migration
+      - skills/otel-declarative-config
+      - skills/otel-collector-builder
+    ref: main
+    commit: a6517bfbb88791f5ec52bcd62ea1668c6b5d2ac6
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The component-level Collector facts behind references/collector-pipelines.md: that memory_limiter compares against Go heap rather than process RSS so the container limit needs headroom above limit_mib, that check_interval and one of limit_mib/limit_percentage have no usable defaults and their exact validation error strings, that limit_mib silently wins when limit_percentage is also set, that spike_limit_mib must be strictly smaller, that refusal returns a non-permanent error so a receiver which does not retry loses data, that sustained refusal is an under-provisioning signal rather than a tuning problem, that the processor reports component health from 0.156 and that the middleware extension form (0.142+, Beta in 0.158) is absent from stock distributions; the snake_case component rename window across 0.146-0.154 with deprecated aliases preserved; per-component and per-signal stability levels as load-bearing when recommending production use; the otlp receiver defaulting to localhost; the exporter-side sending_queue.batch being opt-in; and the telemetrygen-plus-debug-exporter verification recipe shape that this skill's Environment section and validation gates are built on."
+    notes: "Its per-component README/configuration/verification/quirks split is the structure this skill's collector reference imitates. Frontmatter needed no stripping - the skills carry only name and description. Two of its claims were treated as conventions rather than enforced rules after local testing: memory_limiter placement first in the chain is not validated by the Collector (research/observability.md ruling 3), and its position that the batch processor remains supported was adopted over the conflicting dash0 guidance (ruling 1). Its bundled lookup scripts and generated version index were not copied; this skill points at the upstream registries instead."
+  - id: dash0-agent-skills
+    kind: repo
+    repo: dash0hq/agent-skills
+    url: https://github.com/dash0hq/agent-skills
+    paths:
+      - skills/otel-instrumentation
+      - skills/otel-collector
+      - skills/otel-semantic-conventions
+      - skills/otel-ottl
+    ref: main
+    commit: b809d934546a57c740b567014f5a0c67b906ebb5
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The instrumentation backbone: the three decisions every span needs (name, kind, status) and the low-cardinality naming table per signal; the span-kind selection rules and the recurring errors (PRODUCER for publishing rather than CLIENT, CONSUMER for processing rather than SERVER); the span-status mapping split by kind, where a 4xx on a SERVER span stays UNSET because the server answered correctly while the same 4xx on the CLIENT span is an error; OK only on confirmed success; no ERROR for retried-then-succeeded failures; recording exceptions as a log record with exception.type/message/stacktrace instead of the deprecated Span Event API; the numeric span-hygiene gates (root spans never CLIENT or PRODUCER, no parentless CLIENT/PRODUCER spans, no orphans, at most ten INTERNAL spans and twenty sub-5ms spans per trace) and the in-memory-exporter assertions for them; the manual SERVER root span for headless cron, worker and CLI operations; graceful shutdown and what SIGKILL bypasses; SDK samplers left at AlwaysOn with all sampling deferred to the Collector; the agent-plus-gateway tail-sampling architecture with loadbalancing over a headless Service and the decision_wait sizing model; materialising RED metrics from spans before any sampling step; k8sattributes pod_association ordering and its silent RBAC failure; and the rule that service identity attributes must not be upserted in a Collector."
+    notes: "Its rules/*.md frontmatter (title, impact, tags) is a Dash0 convention outside the Agent Skills specification and was stripped, as were the cross-skill relative links between rule files, which docs/skill-standard.md section 4 forbids. Two of its Collector claims were refuted by local testing against otelcol-contrib 0.160.0 and are not reproduced: that an unused declared component causes a startup error (it validates and starts cleanly - research/observability.md ruling 2), and that the batch processor should not be used because it is going away (it emits no deprecation warning and remains supported - ruling 1). Its Dash0-specific material (semantic-convention upgrade strategies, the Dash0 operator, Integration Hub links) is product surface and was not used. Its citation of OTEP 4430 was verified against the specification repository rather than taken on trust."
+  - id: grafana-skills
+    kind: repo
+    repo: grafana/skills
+    url: https://github.com/grafana/skills
+    paths:
+      - skills/grafana-cloud/prometheus-cardinality-troubleshooter
+      - skills/grafana-cloud/prometheus-label-strategy
+      - skills/grafana-cloud/loki-label-analyzer
+      - skills/grafana-core/alerting-irm
+    ref: main
+    commit: 51d33e71e191b409bbd25fc7be2684c610d18166
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The cardinality material and its central invariant: that no label which makes a series unique can be removed at scrape or relabel time, together with the full failure mechanism - counter resets from distinct series interleave so rate() and increase() return absurdly high values, multiple samples land on one series per scrape so sample volume rises rather than falls, aggregations become wrong rather than merely coarse, and none of it produces a configuration error or leaves evidence in the data; the same reasoning extended to normalising a label value at scrape; the three safe remediations (do not emit it, drop an entire metric by __name__, aggregate post-ingest with a counter-reset-aware reversible mechanism) plus the narrow exception for a label that exactly duplicates a target label; the TSDB status endpoint fields (seriesCountByMetricName, labelValueCountByLabelName, memoryInBytesByLabelName, seriesCountByLabelValuePair) as the fastest diagnosis path and the heuristics for reading them; series-churn diagnosis via head_series_created_total against _removed_total and the cause table; the histogram bucket-count-plus-three amplification and the rule to trim labels before buckets; the per-label cardinality scoring table; static target labels versus dynamic sample labels; the info-metric pattern with group_left and the info() function; exemplars as the escape hatch; the five remediation levers in preference order; and the alert-rule YAML shape with for, severity labels and runbook_url annotations."
+    notes: "Grafana Cloud product concepts (Adaptive Metrics, DPM, Active Series, Fleet Management, OnCall) were deliberately generalised: this skill describes the required mechanism - post-ingest, counter-reset-aware, audited, reversible aggregation - without naming a product, because a reader's backend may be Mimir, Thanos or a managed cloud service. The Prometheus version gates it states (native histograms 2.40+, _created 2.39+, exemplars 2.26+, info() as a 3.x experimental function behind a feature flag) were re-checked against prometheus/prometheus before being written. Its other 50-odd skills are Grafana Cloud product surface and were not used."
+  - id: addyosmani-agent-skills
+    kind: repo
+    repo: addyosmani/agent-skills
+    url: https://github.com/addyosmani/agent-skills
+    paths: [skills/observability-and-instrumentation]
+    ref: main
+    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The workflow framing: writing down the two-to-four questions an on-call engineer will ask before emitting any telemetry and keeping only signals that answer one; the division of labour where metrics tell you that something is wrong, traces where, and logs why, with each signal's cost profile; structured logging as events with stable low-cardinality names rather than interpolated prose; the log-level-to-on-call-action table; mandatory correlation identifiers generated at the system boundary and propagated across every hop; the rule that a log sink written by several entry points needs an entry-point field stamped where the run starts, because a correlation identifier says which run but not what started it and downstream inference is elimination against evidence that may not survive; RED for request-driven code and USE for resources; symptom-versus-cause alerting as two columns; the four rules for every alert (actionable, runbook-linked, threshold justified by an SLO or history, exactly two severities); the minimum three-line runbook and updating it when closing the incident it was used in; and the final verification step of triggering the failure path and locating it from telemetry alone without reading the source."
+    notes: "Its handoffs to sibling skills for active debugging, performance optimisation and launch checklists were re-pointed: the debugging boundary is stated verbatim per docs/roadmap.md, and its performance-optimization and shipping-and-launch targets have no equivalent in this library, so those paths are omitted rather than invented. Its reference to a repository-level observability-checklist.md outside the skill directory was not followed."
+  - id: o11y-dev-otel
+    kind: repo
+    repo: o11y-dev/opentelemetry-skill
+    url: https://github.com/o11y-dev/opentelemetry-skill
+    paths:
+      - SKILL.md
+      - references/collector.md
+      - references/instrumentation.md
+      - references/sampling.md
+      - references/architecture.md
+      - references/anti-patterns.md
+      - references/monitoring.md
+      - references/validation.md
+      - references/connectors.md
+      - references/ottl.md
+    ref: main
+    commit: 580194890c61f8a9769ca1299bf0a13446a599a0
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Four points the other upstreams leave implicit: OTLP gRPC on 4317 as the default with OTLP HTTP on 4318 as the escape hatch when gRPC is blocked by a proxy, browser or backend; that a load-balancing exporter's routing key must be deterministic and stable - trace ID for tail sampling, a tenant or cluster attribute for isolation - with non-string attributes normalised first; the quantified gate that an attribute with more than about a hundred distinct values does not belong as a metric dimension; and the pre-flight questions to settle before writing any pipeline or instrumentation (signal volume, cardinality risk, whether restart data loss is acceptable, whether any hop crosses a public network, deployment target). Its framing that a Collector review is a systems review - processor order, memory budget, replica strategy, routing, temporality and queue storage considered together rather than field by field - shaped this skill's review workflow and the closing table of its collector reference."
+    notes: "The GitHub API reports license.spdx_id as NOASSERTION; the LICENSE file was read and is Apache-2.0, which the skill's own metadata.license confirms, so this is merged. Its frontmatter is the most agent-specific of any upstream here - triggers with file_patterns/config_keys/keywords, tessl_version, signals, deployments, deployment_patterns, supported_platforms, vendor_agnostic - and all of it was stripped per docs/skill-standard.md section 1.2. Its references/ai-agents.md (observing AI coding agents) and its setup-kubernetes/setup-ecs/setup-vm/setup-docker deployment guides are out of this skill's scope per the wave boundary contract: container and Kubernetes mechanics belong to the containers skill, cloud deployment to the per-cloud skills, and AI-agent observability to no skill in this library yet."
+  - id: otel-semconv
+    kind: repo
+    repo: open-telemetry/semantic-conventions
+    url: https://github.com/open-telemetry/semantic-conventions
+    paths:
+      - docs/README.md
+      - docs/http/README.md
+      - docs/db/README.md
+      - docs/configuration/version-selection.md
+      - docs/non-normative
+      - CHANGELOG.md
+    ref: main
+    commit: 22b6cbb2bd2ae458fe636470838daa428865ed09
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Every version-boundary fact in references/semantic-conventions.md, read from the specification rather than recalled: the current release v1.44.0; the OTEL_SEMCONV_STABILITY_OPT_IN mechanism with its <category> and <category>/dup values, the default of changing nothing, and the precedence rule that /dup wins when both are present; the intended four-step migration sequence and the fact that already-stable instrumentation ignores the variable entirely; the Development-status declarative alternative at .instrumentation/development.general.<domain>.semconv with its version, experimental and dual_emit properties and the seven domains it covers; that the HTTP document's status is Mixed rather than uniformly stable, so stability must be answered per group and per version; the full list of convention areas and per-signal documents used as the coverage checklist; the deprecated-to-current rename table including the two duration metrics whose unit changed from milliseconds to seconds; deployment.environment deprecated in favour of deployment.environment.name since v1.27.0; and the move of gen_ai.* out of this repository in v1.42.0 to semantic-conventions-genai, leaving only deprecated stubs behind."
+    notes: "Apache-2.0. Only factual version-and-mechanism information was extracted and rewritten; no specification text was copied. The rename table was cross-checked against the equivalent table in dash0hq/agent-skills and the unit-change rows, which that table notes but does not emphasise, were promoted here because a ported threshold is then wrong by a factor of 1000."
+  - id: otel-docs
+    kind: docs
+    url: https://opentelemetry.io/docs/
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The vendor-neutral conceptual layer this skill is written on: the three signals and their data models, the resource/instrumentation-scope/record attribute levels and what belongs at each, resource identity attributes and their role, schema_url, context propagation and the W3C traceparent header, exemplars, metric instrument selection and temporality, and the Collector's component model (receivers, processors, exporters, connectors, extensions) plus the official terminology for agent and gateway deployment shapes."
+    notes: "Licence verified by reading the LICENSE of the documentation source repository open-telemetry/opentelemetry.io: Creative Commons Attribution 4.0 International, which is a merge-eligible licence under docs/roadmap.md. Attribution: content adapted from the OpenTelemetry documentation, (c) The OpenTelemetry Authors, licensed CC-BY-4.0. Note that the repository's licence is the documentation's, not the Apache-2.0 licence of the OpenTelemetry code it documents."
+  - id: rampstack-monitoring
+    kind: repo
+    repo: rampstackco/claude-skills
+    url: https://github.com/rampstackco/claude-skills
+    paths: [skills/monitoring-and-alerting]
+    ref: main
+    commit: a67dd34c609f034c0cfd736a348659bbdf1605bf
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The SLO layer: the four required parts of an SLO (the thing measured, the success criterion, the target, the compliance window) and that one missing the window is a slogan; the nines-to-allowed-failure-time table read against real operations rather than aspiration, and the argument that each nine costs an order of magnitude more so a target the organisation cannot meet is worse than a lower one it can; that a 100% target leaves no error budget and therefore no basis for shipping; the three-state error-budget policy of ship aggressively, slow down, freeze risky changes, and the insistence that the policy name a consequence rather than a meeting; alert tiering collapsed to page and ticket with everything else going to a dashboard; the quantified fatigue threshold of more than one or two pages per rotation per week; and the quarterly alert audit questions including which incidents no alert caught and which alerts fired without action."
+    notes: "Its four-layer model (availability, correctness, performance, errors) is written from a website perspective - Core Web Vitals, synthetic page checks - and only the layer-independent parts were taken. Its vendor recommendation naming a paging product's end-of-sale and end-of-support dates is a time-sensitive statement and is excluded per docs/skill-standard.md section 3. Its catalog_summary, display_order and category frontmatter keys belong to that repository's catalogue system and were stripped. It offers only single-window SLO alerting; the multi-window multi-burn-rate material comes from the SRE workbook entry instead."
+  - id: otel-collector-contrib
+    kind: repo
+    repo: open-telemetry/opentelemetry-collector-contrib
+    url: https://github.com/open-telemetry/opentelemetry-collector-contrib
+    paths: [processor, receiver, exporter, connector, extension]
+    ref: main
+    commit: 804718016c6744c6259ac9db89ec7da1a9330139
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The runtime that every Collector claim in this skill was measured against, via the official otel/opentelemetry-collector-contrib image at version 0.160.0: the exact validation error strings for a memory_limiter missing check_interval or a limit, the startup error for a receiver placed in a pipeline whose signal it does not support, the otlp receiver's default 127.0.0.1:4317 endpoint, the canonical otlp_grpc and otlp_http exporter names alongside the still-accepted otlp alias, the absence of memory_limiter from the extension registry in the stock distribution together with the list of valid extension ids, the acceptance of both the context-inferred and explicit-context OTTL syntaxes, the sending_queue.batch sub-block, and the debug exporter's detailed output format including the resource schema URL. Twelve experiments are recorded with their commands and raw output in research/observability.md."
+    notes: "Apache-2.0. No component documentation text was copied; the contribution is measurement. Three upstream-skill claims were corrected against this runtime rather than repeated: memory_limiter ordering is not validated, an unused declared component is not a startup error, and the batch processor emits no deprecation warning on 0.160.0."
+  - id: otel-spec
+    kind: repo
+    repo: open-telemetry/opentelemetry-specification
+    url: https://github.com/open-telemetry/opentelemetry-specification
+    paths: [oteps/4430-span-event-api-deprecation-plan.md]
+    ref: main
+    commit: 21d378b078ac09df61d568a0ba563fc2d08fa8c5
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to verify one load-bearing fact before writing it: that the Span Event API deprecation plan exists as OTEP 4430 in the specification repository, which is the sole authority behind this skill's rule to record exceptions as log records rather than with span.recordException. Two upstream skills assert the deprecation without citing a path; this confirmed it."
+    notes: "No content copied."
+  - id: prometheus
+    kind: repo
+    repo: prometheus/prometheus
+    url: https://github.com/prometheus/prometheus
+    paths: [docs, CHANGELOG.md]
+    ref: main
+    commit: 10f69629039e0215d056eb4948f0bd0fd22f5c89
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to re-verify the Prometheus-side version gates that the cardinality material depends on before restating them: native histograms from 2.40, the _created series from 2.39 (which is what makes the histogram multiplier bucket count plus three rather than plus two), exemplar support from 2.26, and info() as an experimental PromQL function in 3.x requiring --enable-feature=promql-experimental-functions. Also the TSDB status endpoint's field names."
+    notes: "No content copied. No local Prometheus instance was available, so the endpoint fields and PromQL gates are marked [official] in references/cardinality.md rather than [verified]."
+  - id: google-sre-workbook
+    kind: docs
+    url: https://sre.google/workbook/alerting-on-slos/
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only for the multi-window multi-burn-rate formulation that no open-licensed upstream in this skill provides: the burn-rate multipliers paired with long and short windows (14.4x over one hour, 6x over six hours, and the slower day-and-multi-day rules), the fraction of the error budget consumed before each fires, the convention of a short window at roughly one twelfth of the long one, and the reason the short window exists at all - so an alert resolves promptly instead of staying latched for the length of the long window."
+    notes: "Copyright Google, freely readable online but not open-licensed, so reference only: no text was copied and every conclusion in references/alerting-and-slos.md is rewritten. The numbers were checked against the chapter and are marked [official] rather than [verified] because they were not measured here."
+  - id: awesome-copilot-appinsights
+    kind: repo
+    repo: github/awesome-copilot
+    url: https://github.com/github/awesome-copilot
+    paths: [skills/appinsights-instrumentation]
+    ref: main
+    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only to confirm one boundary statement before writing it: that a vendor's monitoring distribution is an OpenTelemetry SDK plus an exporter, so the vendor-neutral instrumentation rules in this skill apply unchanged underneath it and only the exporter, connection and quota surface is product-specific."
+    notes: "No content merged. The skill directory carries its own MIT LICENSE.txt (Microsoft), so licence was not the reason for reference status: its substance is Azure Monitor product surface - connection strings, a Bicep template, a PowerShell provisioning script, Azure-side sampling semantics - which belongs to the azure skill under this wave's boundary contract, not here."
+  - id: getsentry-sdk-skills
+    kind: repo
+    repo: getsentry/sdk-skills
+    url: https://github.com/getsentry/sdk-skills
+    paths: [plugins/sentry-sdk-skills/skills/span-convention-review]
+    ref: main
+    commit: 5789a513b9c497b2c883144e8a185187452d2ac5
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as an independent cross-check that this skill's semantic-convention domain list has no gap: its mapping from span operation prefix to convention area (gen_ai, db, http, cache, queue, messaging, resource, ui) named no OpenTelemetry domain the reference was missing."
+    notes: "No content merged. Its substance is conformance to Sentry's own span conventions for contributors to Sentry SDK repositories, which is product-specific, and it was last pushed 2026-06-19, so it scores zero on freshness. Its model and allowed-tools frontmatter keys are agent-specific and would have required stripping. Note also that the sentry-sdk-setup and sentry-workflow skills recorded in docs/roadmap.md no longer exist in getsentry/skills - that repository now holds no observability skill at all."
+  - id: dotnet-claude-kit
+    kind: repo
+    repo: codewithmukesh/dotnet-claude-kit
+    url: https://github.com/codewithmukesh/dotnet-claude-kit
+    paths: [skills/opentelemetry]
+    ref: main
+    commit: 23300897f4d1a276bc475e373ecfe886e43dd7c5
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read only as a single-language cross-check that the division of labour this skill prescribes - automatic instrumentation first, manual spans only for units of work it cannot see, business context added to the existing active span - holds in an ecosystem whose primitives differ (ActivitySource and IMeterFactory rather than a tracer and meter provider). It contradicted nothing."
+    notes: "No content merged. The material is .NET-specific and overlaps the csharp-dotnet skill's territory; this skill stays language-neutral and its examples are illustrative rather than per-ecosystem setup guides."

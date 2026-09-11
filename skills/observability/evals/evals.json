@@ -1,0 +1,82 @@
+[
+  {
+    "skills": ["observability"],
+    "query": "Review otel-collector-agent.yaml. It is the DaemonSet agent config for our prod EKS cluster and we are about to roll it out everywhere. Tell me what breaks and what to change, with the corrected pipeline.",
+    "files": ["evals/files/otel-collector-agent.yaml"],
+    "expected_behavior": [
+      "Moves `memory_limiter` to the front of every processor list and states that the Collector does not enforce this: a config with memory_limiter last starts cleanly with no warning, so the misordering only shows up as an OOM under load, never as a startup error",
+      "Identifies the fatal one: the `otlp` receiver declares `grpc: {}` and `http: {}` with no `endpoint`, and the default is `localhost` (127.0.0.1:4317 / :4318), so a containerised agent binds to loopback and receives nothing from other pods - the endpoint must be set to 0.0.0.0 explicitly",
+      "Rejects `tail_sampling` on a DaemonSet agent: each agent only sees the spans produced on its own node, so a multi-node trace is split and every shard is decided on partial data. Tail sampling requires a gateway tier fed by a `load_balancing` exporter that hashes on trace ID, with a headless Service so DNS returns individual pod IPs",
+      "Flags `resource` upserting `service.name: eks-prod`, which overwrites the identity every SDK set and collapses every service in the cluster into one node in the service map; identity attributes should use `action: insert` (or be fixed at the SDK) while `k8s.cluster.name` is legitimately an `upsert`",
+      "Flags `pod_association` with only `from: connection`: behind a service mesh the Collector sees the sidecar proxy's IP, so enrichment silently attaches the wrong pod. `k8s.pod.uid` from the downward API must be the first source, with connection as fallback",
+      "Notes that `spanmetrics` is fed from the traces pipeline *after* `tail_sampling`, so the derived RED metrics are computed from 5% of traffic plus all errors - rate and error-rate come out wrong in opposite directions. Metrics must be materialised from spans before any sampling step",
+      "Flags `user.id` as a `spanmetrics` dimension as a cardinality bomb: every dimension multiplies the series count, and an unbounded user identifier belongs on the span or in an exemplar, never in a metric label",
+      "Points out that `memory_limiter.limit_mib` is compared against the Go heap, not process RSS, so the container memory limit has to sit meaningfully above 1024 MiB or the kernel OOM-kills the process before the limiter ever refuses data",
+      "Does not claim the unused declared components (`hostmetrics` in the traces case, `batch`, `debug`) make the Collector fail to start - `batch` is declared but referenced by no pipeline and the Collector accepts that; removing it is hygiene, and leaving the `debug` exporter on the production logs pipeline is the real finding because it prints every log record to stdout",
+      "Keeps the corrected config as OTel Collector YAML and does not answer with CloudWatch, Azure Monitor or Cloud Logging product configuration"
+    ]
+  },
+  {
+    "skills": ["observability"],
+    "query": "checkout-telemetry.ts is our OpenTelemetry setup. Production traces are useless - we can never find the request a customer complains about, and the dashboards disagree with each other. Fix the instrumentation.",
+    "files": ["evals/files/checkout-telemetry.ts"],
+    "expected_behavior": [
+      "Removes `TraceIdRatioBasedSampler(0.05)` from the SDK and leaves the default AlwaysOn sampler, because a head-sampling decision is made before the request's outcome is known, so the 5% dice roll throws away exactly the error and latency outliers being looked for; sampling belongs in the Collector where tail policies can see the finished trace",
+      "Replaces the interpolated span names (`POST /api/orders/${orderId}/pay`, `charge_provider_${orderId}`, `expire_cart_${row.id}`) with low-cardinality names derived from the route template - `POST /api/orders/:orderId/pay` - and moves the identifier to an attribute",
+      "Corrects the span status rules per span kind: a 400 on the SERVER span is not an error because the server answered a bad request correctly and should be left UNSET, while the CLIENT span to the payment provider must be ERROR on 4xx and 5xx instead of the unconditional `OK` it sets today, and `OK` should only be set on confirmed success rather than speculatively",
+      "Migrates the deprecated attribute names to the stable HTTP conventions - `http.method` to `http.request.method`, `http.status_code` to `http.response.status_code`, `http.url` to `url.full` - and explains that instrumentation libraries gate this behind the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable, where `http` switches to the stable set and `http/dup` emits both for a phased migration (`/dup` wins if both values are present)",
+      "Replaces `span.recordException(err)` with an exception log record emitted inside the active span context, carrying `exception.type`, `exception.message` and `exception.stacktrace` plus the span's `trace_id`/`span_id`, because the Span Event API is on a deprecation path in favour of log-based events",
+      "Replaces `console.log` with a structured logger emitting a stable event name and machine-readable fields, and requires `trace_id`/`span_id` on every record so a log line can be pivoted to its trace - this is what makes 'find the request this customer complained about' possible at all",
+      "Fixes the metric label sets: `user_id`, `order_id`, `error_message` and the raw `path` are unbounded and must come off `payment_attempts` and `checkout_latency`, leaving a bounded set such as route template, provider and status class; the identifiers move to spans, logs or exemplars",
+      "Notes that `checkout_latency` is a histogram, so every label multiplies by roughly the bucket count plus three - trimming labels on a histogram is worth an order of magnitude more than on a counter",
+      "Wraps `reconcileAbandonedCarts` in an explicit root span of kind SERVER or INTERNAL, because a headless job with no inbound request leaves the first auto-instrumented call as a parentless CLIENT root span, and collapses the per-row spans into one batch span with a `batch.size` attribute rather than one span per cart",
+      "Adds a graceful shutdown that calls `sdk.shutdown()` on SIGTERM, since the SDK batches before export and an unflushed process exit loses the spans from the request that caused the crash"
+    ]
+  },
+  {
+    "skills": ["observability"],
+    "query": "Our checkout on-call gets about 40 pages a week and almost all of them get acked with no action. Here are the alert rules and the SLO definition. Rebuild this so the pager means something.",
+    "files": ["evals/files/prometheus-alerts.yml", "evals/files/slo-checkout.yaml"],
+    "expected_behavior": [
+      "Demotes `HighCPU`, `MemoryPressure`, `PodRestarted` and `DiskFilling` from page to dashboard or ticket because they alert on causes rather than on something a user feels, and keeps paging only for symptoms - failed checkouts and slow checkouts",
+      "Replaces the count-based `ErrorCount` (`increase(...) > 100` over 5m) with a ratio, since an absolute count fires on a busy afternoon when nothing is wrong and stays silent during a traffic drop when everything is",
+      "Rejects `SLOBreached` as structurally unable to page in time: a 30-day window means the alert only fires once the budget is already gone, and with a 30-day averaging window it then stays firing for weeks. Replaces it with multi-window multi-burn-rate alerts - a fast burn (roughly 14.4x over a 1h long window paired with a 5m short window, consuming ~2% of the budget) that pages, and a slower burn (about 6x over 6h, and 1x-3x over a day or more) that tickets",
+      "Explains the short-window requirement: the second, shorter window exists so the alert resolves promptly once the burn stops, instead of staying latched for the length of the long window",
+      "Calls 99.99% over 30 days an unjustified target - about 4 minutes 22 seconds of allowed failure per month, so a single pod rollout or one bad deploy exhausts it - and recommends dropping to 99.9% (roughly 43 minutes) unless the business genuinely requires otherwise",
+      "Fixes the latency SLI: `avg(rate(sum)/rate(count))` is an average, not the p95 the file claims, and an average hides the tail that the SLO exists to protect. Replaces it with a good-events ratio - the fraction of requests whose histogram bucket is under the latency threshold, via `histogram_quantile` on the bucket series or a threshold-bucket count",
+      "Points out the availability SLI counts every non-5xx as good, which credits 4xx storms, timeouts and any request that never produced a status code as successes",
+      "Flags both recording rules as silently corrupt: `rate(sum without (pod, instance) (http_requests_total)[5m:30s])` sums a counter across pods *before* taking the rate, so the independent counter resets of different pods interleave on the summed series and every pod restart reads as a reset - the aggregation has to happen after `rate()`, as `sum without (pod, instance) (rate(...[5m]))`, and the subquery form hides the defect behind valid-looking syntax",
+      "Catches the `ProviderLatency` unit error: `http_client_request_duration_seconds_bucket` is in seconds because the stable OpenTelemetry HTTP conventions renamed `http.client.duration` to `http.client.request.duration` and changed its unit from milliseconds to seconds, so a threshold of `> 800` ported from the old metric now means 800 seconds and the alert can never fire. The fix is `> 0.8`, and the general rule is that a rename which also changes a unit invalidates every threshold derived from the old metric",
+      "Notes that the same semantic-convention migration is what an instrumentation library gates behind `OTEL_SEMCONV_STABILITY_OPT_IN`, where `<category>` switches to the stable names and `<category>/dup` emits both for a phased rollout (`/dup` taking precedence when both are set), so during a dual-emit window two metric names with different units coexist and an alert must name which one it is reading",
+      "Requires each surviving paging alert to carry a `for:` duration and a runbook link, and collapses severity to two tiers (page now / ticket this week) rather than adding more levels",
+      "Sets an error-budget policy with a consequence - freeze risky changes when the budget is spent - instead of 'discuss in the weekly platform meeting'"
+    ]
+  },
+  {
+    "skills": ["observability"],
+    "query": "Read prod-incident-signals.md. This is everything we have from last week's checkout incident - it never reproduced locally or in staging. Work out what happened and tell me what to change so next time the signals actually answer the question.",
+    "files": ["evals/files/prod-incident-signals.md"],
+    "expected_behavior": [
+      "Names the `labeldrop` of `pod`, `instance`, `user_id` and `order_id` as the cause of the absurd `rate()` values: collapsing distinct series merges their independent counter resets and lands multiple samples on one series per scrape, so rate explodes and samples-per-minute go up rather than down - and the damage is silent, with no config error and no evidence left in the data",
+      "States the only safe scrape-time action is dropping an entire metric by `__name__`, and that reducing the cardinality of a label that makes a series unique has to happen at the source (template the path, stop emitting the identifier) or post-ingest with a counter-reset-aware aggregation, never with `labeldrop`",
+      "Reads the `status/tsdb` output correctly: `checkout_latency_bucket` at 2.8M series is a histogram, so its label cardinality is amplified by roughly the bucket count plus three, and `user_id` at 402k and `order_id` at 391k unique values are the labels that must never have existed - that is the Prometheus OOM and the reason the dashboards time out",
+      "Explains the 11 traces against ~190,000 failed requests as a sampling artefact, not a missing-instrumentation artefact: `decision_wait: 5s` force-decides traces before slow or timed-out spans arrive, and the 5% probabilistic baseline plus per-order span names means the error policy had almost nothing coherent to match on",
+      "Identifies the CLIENT root spans named `charge_provider_88213` as two separate defects - a headless or context-broken path producing a parentless CLIENT root span, and per-order span names inflating the span-name cardinality so no operation-level view exists",
+      "Prescribes `trace_id` and `span_id` on every log record as the fix that makes the pivot from a log line to its trace possible; today `pod` is the only join key, which is why the investigation stalls",
+      "Says what the available signals can and cannot conclude, rather than asserting a root cause the data does not support - 'upstream timeout' in the log message plus the self-recovery is consistent with a provider-side degradation, but with 11 sampled traces and no trace correlation it cannot be confirmed from what is here",
+      "Frames the work as reading production signals rather than reproducing a local failure, and does not propose attaching a debugger, adding print statements or bisecting a local repro as the way forward",
+      "Does not answer with a CloudWatch, Azure Monitor or Cloud Logging console workflow, and does not turn the answer into Elasticsearch index or mapping design"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "slugify.py 有两个测试挂了，pytest 输出在 pytest-failure.txt。帮我修一下。",
+    "files": ["evals/files/slugify.py", "evals/files/pytest-failure.txt"],
+    "expected_behavior": [
+      "Treats it as an ordinary local failing test: reads the two assertions, explains that `_NON_WORD` strips `/` so `A/B` collapses to `ab`, and that `unique_slug` builds `-2` because `slugify(\"\")` returns an empty base with no fallback title",
+      "Proposes concrete code fixes - replace separator characters with a dash before the non-word strip, and fall back to a default base such as `untitled` when the slug is empty - and reruns pytest as the check",
+      "Does not bring in OpenTelemetry, traces, metrics, structured logging, cardinality, alerting or SLOs",
+      "skill_read is false for the `observability` skill"
+    ]
+  }
+]

@@ -1,0 +1,88 @@
+# Everything that pages the checkout on-call rotation.
+# Current state: ~40 pages/week, most acknowledged without action.
+groups:
+  - name: checkout
+    rules:
+      - alert: HighCPU
+        expr: instance:node_cpu_utilisation:rate5m > 0.85
+        labels:
+          severity: page
+        annotations:
+          summary: "CPU high on {{ $labels.instance }}"
+
+      - alert: MemoryPressure
+        expr: container_memory_working_set_bytes{namespace="checkout"} > 1.5e9
+        labels:
+          severity: page
+        annotations:
+          summary: "Container memory above 1.5 GiB"
+
+      - alert: PodRestarted
+        expr: changes(kube_pod_container_status_restarts_total{namespace="checkout"}[15m]) > 0
+        labels:
+          severity: page
+        annotations:
+          summary: "Pod {{ $labels.pod }} restarted"
+
+      - alert: ErrorCount
+        expr: sum(increase(http_requests_total{namespace="checkout",status_code=~"5.."}[5m])) > 100
+        labels:
+          severity: page
+        annotations:
+          summary: "More than 100 errors in five minutes"
+
+      - alert: SlowCheckout
+        expr: avg(rate(checkout_latency_sum[5m]) / rate(checkout_latency_count[5m])) > 800
+        labels:
+          severity: page
+        annotations:
+          summary: "Average checkout latency above 800ms"
+
+      - alert: DiskFilling
+        expr: node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.3
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk under 30% free"
+
+      - alert: SLOBreached
+        # The SLO is 99.99% success over 30 days (see slo-checkout.yaml).
+        expr: |
+          sum(rate(http_requests_total{namespace="checkout",status_code=~"5.."}[30d]))
+          /
+          sum(rate(http_requests_total{namespace="checkout"}[30d]))
+          > 0.0001
+        labels:
+          severity: page
+        annotations:
+          summary: "Checkout SLO breached"
+
+      - alert: ProviderLatency
+        # Ported over when we migrated the payment client to the stable
+        # OpenTelemetry HTTP conventions. Same 800ms budget as before.
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_client_request_duration_seconds_bucket{peer="stripe"}[5m]))
+          ) > 800
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "Payment provider p95 above 800ms"
+
+  - name: checkout-recording
+    interval: 30s
+    rules:
+      # Collapse per-pod series so the dashboards are cheaper to query.
+      - record: checkout:requests:rate5m
+        expr: rate(sum without (pod, instance) (http_requests_total{namespace="checkout"})[5m:30s])
+
+      # Same idea for the error counter.
+      - record: checkout:errors:rate5m
+        expr: |
+          rate(
+            sum without (pod, instance) (
+              http_requests_total{namespace="checkout",status_code=~"5.."}
+            )[5m:30s]
+          )

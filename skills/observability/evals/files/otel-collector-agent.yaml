@@ -1,0 +1,88 @@
+# Deployed as a DaemonSet on every node of the prod EKS cluster.
+# One collector per node; applications send OTLP to the node-local agent.
+receivers:
+  otlp:
+    protocols:
+      grpc: {}
+      http: {}
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu: {}
+      memory: {}
+
+processors:
+  k8sattributes:
+    auth_type: serviceAccount
+    extract:
+      metadata:
+        - k8s.namespace.name
+        - k8s.deployment.name
+        - k8s.pod.name
+    pod_association:
+      - sources:
+          - from: connection
+  resource:
+    attributes:
+      - key: service.name
+        value: "eks-prod"
+        action: upsert
+      - key: k8s.cluster.name
+        value: "prod-eu-1"
+        action: upsert
+  tail_sampling:
+    decision_wait: 5s
+    num_traces: 50000
+    policies:
+      - name: keep-errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: baseline
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 5
+  transform/scrub:
+    trace_statements:
+      - set(span.attributes["http.request.header.authorization"], "REDACTED")
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1024
+    spike_limit_mib: 256
+  batch:
+    send_batch_size: 8192
+    timeout: 200ms
+
+connectors:
+  spanmetrics:
+    dimensions:
+      - name: http.route
+      - name: user.id
+
+exporters:
+  otlp/vendor:
+    endpoint: ingest.example-apm.net:4317
+    headers:
+      Authorization: "Bearer ${env:APM_TOKEN}"
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors:
+        - k8sattributes
+        - resource
+        - tail_sampling
+        - transform/scrub
+        - memory_limiter
+      exporters: [otlp/vendor, spanmetrics]
+    metrics:
+      receivers: [otlp, hostmetrics, spanmetrics]
+      processors: [memory_limiter]
+      exporters: [otlp/vendor]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp/vendor, debug]

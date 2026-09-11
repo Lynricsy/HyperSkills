@@ -1,0 +1,32 @@
+# Written by the platform team last quarter. Never reviewed since.
+service: checkout
+owner: payments-team
+slos:
+  - name: checkout-availability
+    objective: 99.99          # "four nines, same as the payment provider"
+    window: 30d
+    sli:
+      # Anything that is not a 5xx counts as good.
+      good: 'sum(rate(http_requests_total{namespace="checkout",status_code!~"5.."}[5m]))'
+      total: 'sum(rate(http_requests_total{namespace="checkout"}[5m]))'
+    alerting:
+      # Page when the 30-day error ratio crosses the objective.
+      single_window:
+        window: 30d
+        threshold: 0.0001
+        severity: page
+
+  - name: checkout-latency
+    objective: 99.9
+    window: 30d
+    sli:
+      # p95 of the average latency, computed from the checkout_latency summary.
+      expression: 'avg(rate(checkout_latency_sum[5m]) / rate(checkout_latency_count[5m])) < 800'
+    alerting:
+      single_window:
+        window: 1h
+        threshold: 800
+        severity: page
+
+error_budget_policy:
+  - "If the budget is exhausted, discuss in the weekly platform meeting."
