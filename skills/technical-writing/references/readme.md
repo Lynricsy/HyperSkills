@@ -10,7 +10,6 @@
 - [The quick start](#the-quick-start)
 - [One home per fact](#one-home-per-fact)
 - [Package READMEs inside a monorepo](#package-readmes-inside-a-monorepo)
-- [Badges](#badges)
 - [Review checklist](#review-checklist)
 
 ## What a README is for
@@ -27,9 +26,12 @@ Fixing that is moving material out, not reorganising it in place.
 
 ## Where it lives
 
-The README sits at the top level of the code it describes — not inside the
-documentation directory. `docs/README.md` is a file nobody browsing the code
-will see, and forges render `README.md` at the directory root. [official]
+The README sits at the top level of the code it describes. A forge may surface
+a README from a hidden `.github` directory, from the repository root, or from
+`docs`, and it picks the first of those it finds — but the root file is the one
+a reader browsing the tree sees, the one a package build includes, and the one
+every other tool looks for. A repository whose real README lives anywhere else
+has a root file nobody maintains. [official]
 
 Every top-level directory of a shipped package should have one. This matters
 most for directories that other teams consume: they are the ones whose readers
@@ -65,7 +67,7 @@ one-paragraph what-and-why
 status banner, if not plainly supported
 install
 quick start that runs
-a short table of contents or links onward
+links onward
 ```
 
 Anything below the links onward is read by almost nobody; put nothing there
@@ -122,13 +124,6 @@ registry renders. The root README describes the repository and links the
 packages; it does not try to be the union of them. A package README that
 documents the whole monorepo is the wrong page for the only reader who will
 ever see it: someone who just installed that one package.
-
-## Badges
-
-Badges are for facts a reader needs before reading: build state, released
-version, licence. A wall of them pushes the first paragraph below the fold, and
-a badge pointing at a dead service says the project is unmaintained more loudly
-than anything in the prose. Check each one resolves, or remove it.
 
 ## Review checklist
 

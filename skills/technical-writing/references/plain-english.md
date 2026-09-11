@@ -27,6 +27,11 @@ only reason it is here.
 The rules below are Google's developer-documentation guidance, which is written
 for exactly this audience. [official]
 
+This page is about being understood. It is not about whether the prose reads as
+written by a person: a sentence can pass every check here and still be filler,
+and that is a separate pass with its own list. Two items overlap — `utilize`
+and `leverage` fail both tests, once for readability and once for register.
+
 ## Sentence shape
 
 - **Subject, verb, object.** Standard English word order, with the main subject

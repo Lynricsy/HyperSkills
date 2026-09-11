@@ -1,0 +1,22 @@
+[project]
+name = "nebula-queue"
+version = "2.1.0"
+description = "Distributed task queue for Python backed by Redis"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["redis>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/orbitlabs/nebula-queue"
+Issues = "https://github.com/orbitlabs/nebula-queue/issues"
+
+[project.scripts]
+nebula-worker = "nebula_queue.worker:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.7"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

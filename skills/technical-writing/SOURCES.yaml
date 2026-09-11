@@ -146,3 +146,87 @@ upstreams:
     synced_at: "2026-09-11"
     contributes: "Coverage check only. It confirmed that a sentence-level layer has to be covered somewhere in this skill, which references/plain-english.md does - sourced entirely from google-devdocs-style instead."
     notes: "Two independent reasons for reference rather than merged. Licence: GPL-3.0 is incompatible with this repository's MIT licensing. Content: of its 1044 lines, roughly 990 are a verbatim reprint of Strunk's 1918 Elements of Style, and its rules (use the active voice, omit needless words) are exactly the kind this skill's standard requires to be deleted because no specific consequence can be stated for violating them. No text was copied."
+  - id: github-writing-docs
+    kind: docs
+    url: https://docs.github.com/en/get-started/writing-on-github
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Every [official] statement about what a forge actually renders: the heading-slug rule that letters are lower-cased, spaces become hyphens and all other punctuation is removed - which is what makes an emoji heading slug start with a hyphen; custom anchors being excluded from the generated outline; the automatically generated table of contents from headings, which is the argument against a hand-written one on a short file; <picture> with prefers-color-scheme and the instruction that the inner <img> is the fallback and must carry the alt text; <details> and its open attribute; the alerts syntax together with the guidance to use them only when crucial, to keep to one or two per page and never to place them consecutively or nested; mermaid, geoJSON, topoJSON and STL fenced blocks; the recommendation to use relative links inside a repository; the README lookup order .github then root then docs; the 500 KiB rendering truncation; and the upload limits and supported media types, including H.264 for video compatibility."
+    notes: "Licence per the GitHub Docs repository's own terms for documentation content (CC BY 4.0); attribution is carried in NOTICE.md. No text is reproduced - each statement was re-derived and rewritten. The relative-link recommendation is adopted only for files that are never published to a package registry: measurement shows relative paths do not resolve on a registry page, and that conflict is settled in references/readme-portability.md rather than by following either source unconditionally. Profile-README material on those pages is out of scope for this skill."
+  - id: pypa-readme
+    kind: docs
+    url: https://packaging.python.org/en/latest/guides/making-a-pypi-friendly-readme/
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "That a Python package's project page is rendered from the README named by the manifest, that the renderer is readme_renderer rather than the forge's, and that twine check is the pre-upload way to find out what the page will look like. This is the basis for treating the README as a multi-renderer artefact rather than a repository page."
+    notes: "Licence per the PyPA packaging guide's own CC BY-SA 4.0 terms; no text reproduced. The page does not document which HTML survives the renderer, so the support matrix in references/readme-portability.md was measured directly with readme_renderer and the reproduction commands are recorded in research/technical-writing-readme-presentation.md."
+  - id: standard-readme
+    kind: repo
+    repo: RichardLitt/standard-readme
+    url: https://github.com/RichardLitt/standard-readme
+    paths: [spec.md]
+    ref: main
+    commit: 0ebca6e613f215dd4111debd512670065e7ecbd8
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The checkable first-screen constraints: the short description is under 120 characters, sits on its own line, and matches both the package manager's description field and the forge's repository description - a cross-artefact invariant nothing else in this skill covered. Also that a banner and a badge block carry no heading of their own and sit directly under the title, that badges are newline-delimited, that a banner links to an image committed in the repository, and that a table of contents is expected once a file passes roughly a hundred lines and should capture every second-level heading."
+    notes: "Its suggestion that a static badge be hosted locally to avoid tracking is adopted only in part: measurement shows the forge and both package registries fetch badge images through their own proxies, so the reader's address is not exposed there. The reason to commit a badge is the cache and the outage, and that is what references/badges-and-widgets.md says. The specification's fixed section order and its own compliance badge are not adopted; this skill orders a README by what a reader needs first."
+  - id: awesome-readme-skill
+    kind: repo
+    repo: fralapo/awesome-agent-skills
+    url: https://github.com/fralapo/awesome-agent-skills
+    paths: [skills/awesome-readme]
+    ref: main
+    commit: 759a6a82b079b3ffca7bd14ece0a541c29c2d85e
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The coverage map for README presentation, which is what this skill was missing: first-screen composition as an ordered set of decisions, visual assets by project type, collapsed sections, tables of contents, badge grouping and style consistency, and an explicit anti-AI-prose pass on every draft. Its structural anti-pattern list contributed the ones that carry a stated consequence: unfilled template placeholders, broken image links, empty and coming-soon sections, dead badge services, and reference-style link definitions belonging at the bottom of the file."
+    notes: "A second-hand compilation - zero stars, self-described as mined from the repositories listed in its own frontmatter - so every claim was taken from the first-hand source instead and several were refuted. Three of its rules are not adopted. Its back-to-top anchor pattern, copied from Best-README-Template, is a construct whose rendered HTML does not resolve. Its cap of five to eight badges is an unsupported number, replaced by the fold, dependency and discrimination criteria. Its one-em-dash-per-section rule contradicts its own cited upstream, which reports em-dash frequency as a weak signal and the spacing around them as the usable one. Its profile-README reference is out of scope here. Its templates and examples files are not merged: a template per project type is the kind of scaffolding this skill's standard rejects."
+  - id: wikipedia-ai-signs
+    kind: docs
+    url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+    license: CC-BY-SA-4.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The whole structure of references/human-voice.md: the split between structural tells that survive model changes and lexical ones that decay, copula avoidance, the trailing present-participle pseudo-analysis, undue emphasis on significance and broader trends, vague attribution and overgeneralised opinion, the rule of three, the negative-parallelism family, the challenges-and-future-prospects ending, section summaries, and the mechanical signals - spaced em dashes, mixed curly and straight quotation marks, title case in headings, thematic breaks between every section, and assistant markup leftovers such as oaicite, [cite: 1] and utm_source=openai. Also the two caveats that keep the page honest: detection tools have non-trivial error rates and people who do not use these models heavily perform at about chance, so the page is written as an editing pass rather than an accusation."
+    notes: "Licence is Wikipedia's CC BY-SA 4.0. Handled the same way as diataxis in this file: structure and semantics only, every sentence written fresh, no table, list or example text reproduced. Two of its findings correct the awesome-readme-skill upstream: em-dash frequency is a weak indicator and one current model uses them less than professional writers, and the bolded-lead bullet list is a habit inherited from READMEs, so flagging it inside a README is a false positive. Its Wikipedia-specific signs - wikitext bugs, category and template hallucination, Articles-for-Creation artefacts, edit-summary patterns - are not carried over."
+  - id: shields
+    kind: repo
+    repo: badges/shields
+    url: https://github.com/badges/shields
+    paths: [doc]
+    ref: master
+    commit: 6eb2cd9e5938046b84cb582544868d0297abdad3
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Identified the service whose behaviour references/badges-and-widgets.md documents. The style values, the per-endpoint cache lifetimes, the refusal to honour a cacheSeconds below a service minimum, the silent fallback on an unrecognised style, and the HTTP 200 response carrying a badge that reads 404: badge not found were all measured against the live service rather than read, and the measuring commands are in research/technical-writing-readme-presentation.md."
+    notes: "Reference rather than merged: no text, table or badge template from the repository is reproduced. The upstream skill's copy-paste badge catalogue is deliberately not carried over - a list of URL templates goes stale and teaches nothing, whereas the failure modes do not."
+  - id: github-readme-stats
+    kind: repo
+    repo: anuraghazra/github-readme-stats
+    url: https://github.com/anuraghazra/github-readme-stats
+    paths: [readme.md]
+    ref: master
+    commit: 54a7985aeefda00d5eadb55b80c17c7f976c37d2
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Its maintainers' own statement of what the widget costs, which is the honest basis for the third-party widget section: the public instance is best-effort and unreliable under rate limits and traffic spikes, self-hosting or generating the card in a workflow is the recommended path, and the default cache is 24 hours for the stats card, 144 hours for top languages, 240 hours for a pinned repository and 48 hours for a gist card."
+    notes: "Read for its documented limits, not for its card catalogue; no markup is reproduced. The skill's position - that these widgets answer none of the four questions a README exists to answer and therefore belong below the content if anywhere - is this repository's judgement, not the upstream's."
+  - id: best-readme-template
+    kind: repo
+    repo: othneildrew/Best-README-Template
+    url: https://github.com/othneildrew/Best-README-Template
+    paths: [README.md]
+    ref: main
+    commit: fc444eb7b04b2e4863f6080b1507a219e95103fa
+    license: Unlicense
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Counter-example. Rendering its own README through the forge's repository-context pipeline produced nine links to #readme-top against one element carrying the rewritten id, which is the evidence behind this skill's rule against hand-written anchors and back-to-top schemes. Nothing else was taken: its section order, placeholder prose and badge stack are the patterns this skill's presentation reference argues against."
+    notes: "Licence read from the repository's own LICENSE.txt, whose first line is The Unlicense; the GitHub API agrees. Public domain, so reuse would be unrestricted - the reason nothing is copied is editorial, not legal."

@@ -1,0 +1,35 @@
+{
+  "name": "tilekit",
+  "version": "0.4.2",
+  "description": "Packs sprite folders into a texture atlas and emits the frame map",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glyphworks/tilekit.git"
+  },
+  "homepage": "https://github.com/glyphworks/tilekit#readme",
+  "bugs": "https://github.com/glyphworks/tilekit/issues",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "tilekit": "./dist/cli.js"
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "node --test",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "sharp": "^0.34.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "eslint": "^9.14.0",
+    "typescript": "^5.7.2"
+  }
+}

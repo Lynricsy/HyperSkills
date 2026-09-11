@@ -98,5 +98,96 @@
       "Notes the mechanical consequences of moving from forge-rendered Markdown to a generated site — that relative links like `../reference/config.md` need mkdocs link handling, and that Pages has to be enabled on the repository — without reviewing what the pages say",
       "Does not critique the documents' content, reclassify them into Diataxis quadrants, rewrite any page, or audit them against the code"
     ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "tilekit has no README and we're about to promote it on Hacker News. Write one. It has to actually look good on the repo page — people judge a project in about five seconds — but I don't want the usual badge soup.",
+    "files": [
+      "evals/files/tilekit/repo-layout.md",
+      "evals/files/tilekit/package.json",
+      "evals/files/tilekit/index.ts",
+      "evals/files/tilekit/cli.ts",
+      "evals/files/tilekit/ci.yml"
+    ],
+    "expected_behavior": [
+      "The first screen answers what this is before any decoration: a one-line description matching the `description` field in package.json and the repository description quoted in repo-layout.md, rather than a logo block and a badge row that push the first sentence below the fold",
+      "Centring, if used, is done with the `align` attribute on `<div>`/`<p>`/`<h1>`; no `style=`, `class=`, `<center>`, `<font>` or `<style>` block appears, because forges strip CSS from README HTML",
+      "The demo GIF or the logo is embedded with a non-empty `alt` attribute and an explicit `width`, and the dark/light pair `atlas-light.png`/`atlas-dark.png` uses `<picture>` with an `<img>` fallback rather than `<source>` alone",
+      "Badge selection is justified and small: a build badge pointing at `ci.yml` (the real workflow file), an npm version badge, and a licence badge reading Apache-2.0; no coverage badge is invented, and no Discord, Twitter, sponsors or hits badge is invented, because repo-layout.md states those do not exist",
+      "Every badge in the output uses one shields.io `style=` value, or none at all — not a mix of `flat`, `flat-square` and `for-the-badge`",
+      "No hand-written `<a name=\"readme-top\"></a>`/`<a id=...>` anchor and no 'back to top' link scheme; if a table of contents appears at all, its links are heading slugs, and the README is short enough that the case for omitting the table of contents entirely is stated",
+      "Any table-of-contents link to a heading carrying an emoji uses the slug that the emoji actually produces (a leading hyphen, for example `#-quick-start`), or the emoji is dropped from the heading",
+      "The quick start installs with `npm install tilekit`, uses ESM `import` rather than `require` (package.json sets `\"type\": \"module\"`), calls the functions that exist (`loadSprites`, `packTiles`) with the real option names (`maxSize`, `padding`, `powerOfTwo`), or shows the real CLI form `tilekit pack <sprite-dir>` with flags that appear in cli.ts, and states the Node >= 20.11 requirement",
+      "Nothing claimed that the fixtures do not support: no hosted demo link, no coverage figure, no benchmark number, no contributor or star-history widget"
+    ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "Someone on the team spent a weekend making our README look amazing and now I'm not sure it's an improvement. Go through it and tell me what's actually wrong, then give me the fixed file.",
+    "files": [
+      "evals/files/nebula/README.md",
+      "evals/files/nebula/pyproject.toml",
+      "evals/files/nebula/repo-layout.md"
+    ],
+    "expected_behavior": [
+      "Identifies that this README is also the PyPI project page (pyproject.toml sets `readme = \"README.md\"`) and judges every construct against both renderers rather than against GitHub alone",
+      "Names the constructs that are stripped and therefore do nothing: the `<style>` block, the `class=` and `style=` attributes, `<center>` and `<marquee>` — and states that centring survives only as the `align` attribute",
+      "Flags the `<picture>` block that contains only `<source>` elements and no `<img>` fallback, and says it renders as nothing off GitHub; flags `<video src=\"assets/demo.mp4\">` as stripped on PyPI with no fallback, and the mermaid block as degrading to a plain source-code block there",
+      "Flags the `<a name=\"readme-top\"></a>` anchor plus the nine 'back to top' links as a construct that does not resolve in the rendered HTML itself (nine links against one `user-content-` prefixed id), and either deletes the scheme or replaces it with heading slugs",
+      "Flags the table-of-contents entries whose anchors do not match their emoji headings — `#quick-start` against `## 🚀 Quick Start`, `#installation` against `## 📦 Installation`, and the same for Configuration, Architecture, Contributors and Star History — and either corrects them to the leading-hyphen slug or removes the emoji from the headings",
+      "Flags the misspelled shields path `github/licence/...` and states that a wrong shields.io URL still returns HTTP 200 with a badge reading '404: badge not found', so a status-code link check does not catch it",
+      "Flags the coverage badge as claiming a measurement the project does not make (repo-layout.md says coverage is not measured anywhere), the Discord badge as pointing at a server that no longer exists, and `hits.dwyl.com` as a dead service",
+      "Cuts the badge wall to a small set and makes the remaining badges use one style, instead of the current mix of `for-the-badge`, `flat-square`, `flat`, `plastic` and `social`",
+      "Flags the broken image `assets/arch.png` and the link to `docs/architecture.md`, neither of which exists, and flags that relative links and relative image paths do not resolve on the PyPI page at all",
+      "Flags `<details open>` around Installation and Quick start: the `open` attribute is dropped on PyPI, so the two things a new reader needs are collapsed there, and says that install and quick start should not be inside a collapsed section at all",
+      "Flags that the first sentence explaining what the project is sits below a hero image, a badge wall, a typing SVG and a video, and moves the description above them",
+      "Names the third-party widgets (typing SVG, contrib.rocks, github-readme-stats, star-history) as external services whose failure shows up as a broken image in the README, and removes or demotes them"
+    ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "Our README renders fine on GitHub but people keep telling us the npm page for this package looks broken. I can't see anything wrong with the file. What is going on and what do I change?",
+    "files": [
+      "evals/files/harbor/README.md",
+      "evals/files/harbor/package.json"
+    ],
+    "expected_behavior": [
+      "Explains that the README is rendered by several different renderers and that the npm package page is not GitHub-flavoured Markdown with GitHub's post-processing, rather than treating the report as a caching or publishing problem",
+      "Identifies the `> [!WARNING]` and `> [!NOTE]` alerts as the visible defect: on the npm page they render as an ordinary blockquote with the literal text `[!WARNING]` left in the first line, and rewrites them into something that reads correctly everywhere (for example a bold lead-in inside the blockquote)",
+      "Identifies that the hand-written Contents list is dead on npm because heading anchors are not generated there, and either removes the list, keeps it knowing it degrades to plain text, or links to the GitHub file instead",
+      "Notes that the `#quick-start` entry does not match the `## 🚀 Quick start` heading even on GitHub, because the emoji leaves a leading hyphen in the slug",
+      "Identifies the relative image `docs/retry-sequence.png` and the relative links `docs/troubleshooting.md` and `CHANGELOG.md` as broken on the registry page, and replaces them with absolute URLs into the repository",
+      "Identifies the mermaid block as unrendered off GitHub and proposes a fallback: an exported image, or prose that carries the same information",
+      "Identifies `<video>` as stripped off GitHub and proposes a poster image or an animated GIF that survives",
+      "Confirms the constructs that do survive and should be kept — `<div align=\"center\">`, `<picture>` with its `<img>` fallback, `<details>`/`<summary>`, tables, shields badges — rather than recommending a rewrite into plain Markdown",
+      "States how to check the result rather than asserting it, for example rendering the file through the registry's own renderer or inspecting the published package page"
+    ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "Every person I've shown this README to has said 'did an AI write this'. The structure is fine. Fix the writing.",
+    "files": [
+      "evals/files/driftwood/README.md",
+      "evals/files/driftwood/repo-layout.md"
+    ],
+    "expected_behavior": [
+      "Names the specific patterns rather than saying the prose should be more natural: the promotional adjectives (`blazing-fast`, `next-generation`, `seamless`, `intuitive`, `robust`, `rock solid`, `battle tested`), the significance inflation (`stands as a testament`, `crucial`, `landscape`, `journey`), the copula avoidance (`delivers`, `provides`, `serves as`), the trailing participle clauses (`empowering developers to ship with confidence`, `ensuring nothing breaks`, `underscoring its position`), the negative parallelism (`It's not just a migration runner — it's a philosophy`), the rule-of-three synonym runs (`speed, reliability, and performance`), the chatbot leftovers (`Here's a breakdown`, `Let me know if you need any clarification`) and the uplift ending (`The future is bright`, `Exciting times ahead`)",
+      "Replaces the vague claims with the specific facts available in the attached notes rather than deleting them and leaving nothing: PostgreSQL 14+ only and no MySQL support, two maintainers, first commit 2023-04-11, and the measured 1.9 s against 26 s planning time on a 412-table schema with the date and the tool compared",
+      "Rewrites the Performance section around that measurement instead of the unsupported claim that it significantly outperforms comparable tools",
+      "Keeps or adds the honest caveat a human maintainer would write — that `CREATE INDEX CONCURRENTLY` runs outside the single transaction and is not rolled back, and the undecided question in issue #87 — rather than presenting the project as finished",
+      "Cuts the installation narration (`To get started with installing the library, you'll want to utilize pip...`) down to the command, and replaces `utilize`, `in order to` and `simply`",
+      "Leaves the section order and the heading set as they are, since the request was about the prose",
+      "Does not introduce a new layer of enthusiasm: the rewritten text contains no new superlatives, no emoji added to headings, and no marketing tagline"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "I want to redo my GitHub profile README — the one in the repo named after my username. Give me the layout: intro card, tech-stack icon row, the stats and top-languages cards, a streak widget, a typing SVG header and the contribution snake.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read skills/technical-writing/SKILL.md",
+      "Answers the request as a personal profile page: the `username/username` repository, the widget markup asked for, and where each block goes",
+      "Does not classify the page as a Diataxis document type, does not demand a runnable quick start, a status line, an owner or a licence link, and does not audit any claim against source code"
+    ]
   }
 ]

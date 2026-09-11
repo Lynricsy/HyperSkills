@@ -1,0 +1,15 @@
+{
+  "name": "harbor-fetch",
+  "version": "3.0.1",
+  "description": "Retrying HTTP client for Node with a per-host circuit breaker",
+  "license": "MIT",
+  "repository": "github:portside/harbor-fetch",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "files": ["dist"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test"
+  }
+}
