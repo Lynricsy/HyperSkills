@@ -1,0 +1,21 @@
+$ git status
+On branch main
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+	both modified:   rates.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git log --oneline --left-right --boundary HEAD...MERGE_HEAD
+< 1245d14 feat(rates): retry the provider three times
+> 87cc0dd fix(rates): honour TTL when reading the cache
+- 29fb724 base
+
+$ git ls-files -u
+100644 593841ec02b629989f44b8958dd87ba262f689fb 1	rates.ts
+100644 7754c48bab3e797f566ed8820b9d73a8a5d2c255 2	rates.ts
+100644 e8df37c0b858fcb5c16233c50c0a63672c8330e6 3	rates.ts

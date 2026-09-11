@@ -1,0 +1,73 @@
+[
+  {
+    "skills": ["git-workflow"],
+    "query": "My push to the shared branch was rejected. I had amended my last commit. Then I ran `git fetch` because I wanted to see what was on the remote, and after that `git push --force-with-lease` went through with no complaint. Colleagues are saying their work vanished. repo-state.txt is the state I had, gitconfig-fragment.ini is my global config. Explain what happened and give me the setup so it cannot happen again. The repository is not checked out here; work from the files and tell me the commands you would run.",
+    "files": ["evals/files/repo-state.txt", "evals/files/gitconfig-fragment.ini"],
+    "expected_behavior": [
+      "States the mechanism exactly: --force-with-lease compares the remote's ref against the local remote-tracking ref (refs/remotes/origin/<branch>), so any `git fetch` — even an informational one — refreshes that ref to the colleague's commit and the lease then passes while the colleague's commit is still absent from the pushed history; the earlier 'stale info' rejection was the lease doing its job",
+      "Prescribes `--force-if-includes` (git 2.30+) as the actual fix, explaining that it additionally requires the pushed history to contain the remote-tracking tip, or else a pinned `--force-with-lease=<ref>:<expected-sha>` captured before the fetch",
+      "Says the lost commits are recoverable from the remote-side or a colleague's reflog / `git fsck` rather than treating the force-push as unrecoverable, and gives the recovery as the first step before any config change",
+      "Flags `fp = push --force` and `sync = !git fetch origin && git reset --hard origin/main` in the alias block as the dangerous items — plain --force has no lease at all and the reset --hard alias discards uncommitted work with no reflog entry for it",
+      "Names `git range-diff <upstream> <old-tip> <new-tip>` (or an equivalent old-vs-new comparison) as the check that a rewrite dropped nothing, rather than eyeballing `git log`",
+      "Notes that `commit.gpgsign = true` plus a rewrite means every rewritten commit is re-signed by whoever ran the rewrite, and that a rebase without signing configured leaves the commits unsigned",
+      "Does not recommend plain `git push --force` anywhere, and does not claim `--force-with-lease` alone is sufficient protection"
+    ]
+  },
+  {
+    "skills": ["git-workflow"],
+    "query": "I'm mid-merge and stuck. rates.ts.conflicted is the conflicted file, merge-state.txt is the git output, gitconfig-fragment.ini is my global config. Walk me through resolving this properly. Also: on the last conflict I hit, `git status` said the file was unmerged but there were no conflict markers in it at all, which I don't understand. Repository is not checked out here — say what you would run.",
+    "files": [
+      "evals/files/rates.ts.conflicted",
+      "evals/files/merge-state.txt",
+      "evals/files/gitconfig-fragment.ini"
+    ],
+    "expected_behavior": [
+      "Explains the markerless-but-unmerged file as rerere: `rerere.enabled = true` replayed a previously recorded resolution into the worktree, and with `rerere.autoupdate = true` it is staged as well, so `git commit` would seal a resolution nobody reviewed — and says to inspect `git rerere diff` / the staged content before committing",
+      "Says `git rerere forget <path>` clears the recorded resolution but does not put the markers back, and that `git checkout --merge <path>` (or `git checkout -m <path>`) is what regenerates the conflict",
+      "Identifies that `merge.conflictstyle = merge` is a two-way presentation that hides the merge base, and prescribes `zdiff3` (git 2.35+) — or reading stage 1 with `git show :1:rates.ts` / `git ls-files -u` — so the original text is visible",
+      "Reads the intent of both sides from history before editing (`git log -p <merge-base>..HEAD -- rates.ts` and the same against MERGE_HEAD, using MERGE_HEAD/REBASE_HEAD/CHERRY_PICK_HEAD as appropriate) rather than resolving from the hunk text alone",
+      "Composes both changes — TTL-aware cache read plus the three-attempt provider retry — instead of choosing a side, and explicitly rejects `-X ours` / `-X theirs` / `git checkout --ours` as silent deletion",
+      "Notes that ours/theirs invert during a rebase or cherry-pick (ours is the upstream being replayed onto, theirs is your own commit), so the labels cannot be read the same way in both operations",
+      "Warns that `rebase.autoStash = true` can finish the rebase successfully and still leave the autostash application conflicted, with the entry still in `git stash list`, so a green 'Successfully rebased' line is not proof of a clean tree",
+      "Ends by running the project's own checks before committing the merge, and points out that a syntactically clean resolution can still satisfy both branches and pass neither's tests"
+    ]
+  },
+  {
+    "skills": ["git-workflow"],
+    "query": "Tidy up my branch before it gets merged. branch-history.txt is the commit list. One of those commits added deploy/creds.env with real tokens and it needs to be gone from history. Separately, yesterday I ran `git reset --hard` and lost a commit I need back, and I already ran `git gc --prune=now` since then. The repository is not checked out here — give me the commands.",
+    "files": ["evals/files/branch-history.txt", "evals/files/git-log-graph.txt"],
+    "expected_behavior": [
+      "Recovers the lost commit from the reflog and states why it is still there: `git gc --prune=now` does not delete objects a reflog entry still references, so `git reflog` / `git reflog show <branch>` remains the route and only `git reflog expire --expire-unreachable=now --all` followed by `gc --prune=now` actually destroys them",
+      "Adds the fallback for a commit no reflog covers (a dropped stash, or a branch deleted with `git branch -D`, which removes that branch's own reflog while HEAD's reflog keeps the entry): `git fsck --unreachable --no-reflogs`, then `git branch <name> <sha>` to re-anchor it",
+      "States plainly that the credentials in deploy/creds.env must be rotated regardless of the rewrite, because the commit has already been pushed to origin/feat/refund-window",
+      "Names git-filter-repo as the tool for the removal and, if filter-branch is used instead, requires the full cleanup — delete `refs/original/*`, expire all reflogs, then `gc --prune=now` — because the old blob stays readable until every one of those is done",
+      "Says rewriting `feat/refund-window` is safe only because it is a topic branch, and that everyone else with it checked out must reset to the new tip rather than merge or pull; a rewrite of `main` is off the table",
+      "Uses `git rebase --autosquash` to fold `fixup! feat(refunds): withinWindow helper` into its target, and notes `rebase.autosquash` is off by default so the flag (or config) is required — a plain rebase leaves the fixup commit standing",
+      "Deals with the merge commit 54cb85e in the range — either rebase onto the updated main instead of keeping the sync merge, or preserve it with `--rebase-merges` — rather than silently flattening it",
+      "Notes that rewriting resets every committer date to now and every SHA while preserving author dates, and that `git range-diff` against the pre-rewrite tip is how the cleanup is verified to have dropped no work"
+    ]
+  },
+  {
+    "skills": ["git-workflow"],
+    "query": "I want to run three agents in parallel on this repo, one per task, using worktrees, and then delete the branches that have already landed. repo-state.txt is the current state. Set out the plan and the exact commands. Not checked out here.",
+    "files": ["evals/files/repo-state.txt"],
+    "expected_behavior": [
+      "Warns that `refs/stash` is shared across every worktree of a repository, so parallel agents running `git stash` will pop each other's entries — and that per-worktree state is limited to HEAD, the index, the working tree, the in-progress merge/rebase/bisect state and that worktree's reflog",
+      "States that a branch can be checked out in only one worktree at a time and that a second `git worktree add` on it fails, so each agent needs its own branch created with `git worktree add <path> -b <branch>`",
+      "Notes that untracked and ignored files do not come along — a new worktree has no .env, no node_modules, no build cache — so each worktree needs its own setup step before tests mean anything",
+      "Says removal must go through `git worktree remove`, that `rm -rf` of the directory leaves the branch locked ('cannot delete branch ... used by worktree at ...') and the admin directory behind until `git worktree prune`, and that a refused removal means files exist nowhere else so --force is the user's call and not the agent's",
+      "Identifies from `git branch --merged main` / `--no-merged main` that feat/currency was squash-merged and therefore reports as unmerged, and uses `git cherry -v main feat/currency` (patch-id comparison) or an equivalent check rather than `git branch -d`'s merged test to decide it has landed",
+      "Does not propose `git branch -D` on feat/refund-window: the graph shows it 4 commits ahead of its upstream, so it has not landed",
+      "Notes that the worktree's own reflog is deleted along with its admin directory, so deleting the branch after the worktree is gone leaves no local recovery path"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "The CI check on my pull request is failing and I can't tell why. Can you help me see the failure and get the PR merged?",
+    "expected_behavior": [
+      "Does not read skills/git-workflow/SKILL.md",
+      "Treats this as GitHub pull-request and Actions work — reading the run logs, the checks and the PR — rather than local branch, worktree or history-rewrite mechanics",
+      "Does not open with conflict-style, rerere, reflog or force-with-lease guidance"
+    ]
+  }
+]

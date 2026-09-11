@@ -1,0 +1,23 @@
+$ git log --oneline --no-decorate main..feat/refund-window
+54cb85e Merge branch 'main' into feat/refund-window
+c4df943 asdf
+bfcee1b fixup! feat(refunds): withinWindow helper
+2840a9d wip
+8edf90f chore: add deploy credentials
+60e2e38 feat(refunds): withinWindow helper
+
+$ git log --pretty='%h %an %ad %s' --date=short main..feat/refund-window
+54cb85e Lab 2026-09-11 Merge branch 'main' into feat/refund-window
+c4df943 Sam Okafor 2026-08-26 asdf
+bfcee1b Sam Okafor 2026-08-25 fixup! feat(refunds): withinWindow helper
+2840a9d Sam Okafor 2026-08-25 wip
+8edf90f Sam Okafor 2026-08-22 chore: add deploy credentials
+60e2e38 Sam Okafor 2026-08-22 feat(refunds): withinWindow helper
+
+$ git log --oneline --stat -- deploy/creds.env
+8edf90f chore: add deploy credentials
+ deploy/creds.env | 2 ++
+ 1 file changed, 2 insertions(+)
+
+$ git rev-list --count main..feat/refund-window
+6

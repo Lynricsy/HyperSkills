@@ -1,0 +1,34 @@
+$ git log --oneline --decorate --graph --all --date-order
+*   54cb85e (HEAD -> feat/refund-window) Merge branch 'main' into feat/refund-window
+|\  
+| * 9807e2f (origin/main, origin/HEAD, main) feat(currency): supported currency list (squashed)
+| | * ff1ba3c (feat/currency) feat(currency): supported currency list
+| |/  
+* | c4df943 (origin/feat/refund-window) asdf
+* | bfcee1b fixup! feat(refunds): withinWindow helper
+* | 2840a9d wip
+* | 8edf90f chore: add deploy credentials
+* | 60e2e38 feat(refunds): withinWindow helper
+| * db205e1 fix(index): export auditLog
+| * 25daab0 feat(audit): structured audit log
+|/  
+* 38344de feat(refunds): add refund window constant
+* c30884b chore: scaffold payments-api
+
+$ git status --short --branch
+## feat/refund-window...origin/feat/refund-window [ahead 4]
+
+$ git branch -vv
+  feat/currency      ff1ba3c feat(currency): supported currency list
+* feat/refund-window 54cb85e [origin/feat/refund-window: ahead 4] Merge branch 'main' into feat/refund-window
+  main               9807e2f [origin/main] feat(currency): supported currency list (squashed)
+
+$ git branch --merged main
+  main
+
+$ git branch --no-merged main
+  feat/currency
+* feat/refund-window
+
+$ git worktree list
+/home/dev/src/payments-api 54cb85e [feat/refund-window]

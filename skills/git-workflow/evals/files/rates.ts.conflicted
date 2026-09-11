@@ -1,0 +1,15 @@
+const DEFAULT_TTL_MS = 60_000;
+
+export async function fetchRate(pair: string): Promise<number> {
+  const cached = cache.get(pair);
+<<<<<<< HEAD
+  if (cached) return cached;
+  const rate = await withRetry(() => provider.get(pair), 3);
+  cache.set(pair, rate);
+=======
+  if (cached && !isStale(cached)) return cached.value;
+  const rate = await provider.get(pair);
+  cache.set(pair, { value: rate, at: Date.now() });
+>>>>>>> topic
+  return rate;
+}
