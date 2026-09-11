@@ -1,0 +1,73 @@
+[
+  {
+    "skills": ["godot"],
+    "query": "player.gd is our arena player in a Godot 4.7 project. Movement speed changes when the framerate changes, the HUD update costs us frames on a Steam Deck, the death sequence crashes about half the time, and QA says the run summary file is empty in shipped builds but fine when they run it from the editor. Go through the file and tell me what is actually broken, what each defect causes at runtime, and the fix.",
+    "files": ["evals/files/player.gd"],
+    "expected_behavior": [
+      "Identifies the physics-loop error as two separate defects, not one: move_and_slide() belongs in _physics_process because it uses the physics step's delta internally, and CharacterBody2D.velocity is already in pixels per second, so `velocity.x = dir * speed * delta` is the documented mistake of turning a velocity into a per-frame displacement - the delta multiplication must be removed, not moved",
+      "Rules that the two duplicated connect calls behave differently and explains why: a Signal can only be connected once to the same Callable, so the second `mgr.connect(\"wave_started\", _on_wave_started)` returns ERR_INVALID_PARAMETER, prints an error and leaves exactly one connection, whereas the two `func(b): _on_hurt(b)` lambdas are two distinct Callables that both connect, so _on_hurt really does run twice per overlap",
+      "Flags free() in die() as the cause of the intermittent crash: free() destroys the object immediately, so every statement after it - change_scene_to_file and the print that reads get_parent() - runs against a freed instance; queue_free() is the correct call and it defers deletion to the end of the frame",
+      "Explains the empty run summary as a res:// write rather than a permissions problem: writing to res:// in an exported build is not blocked and reports no error, but subsequent reads still come from the packed data, so the save silently goes nowhere; user:// is the only writable location, and ProjectSettings.globalize_path(\"res://\") returns an empty string in an export so it cannot even be logged",
+      "Flags get_node in _init() as unusable because children do not exist until the node enters the tree, and separately notes that hp_bar and sprite are assigned without ever being declared, which is a parse error - @onready is the correct mechanism",
+      "Identifies the per-frame absolute string node paths in _process as the HUD cost and gives the ordering: resolving a string path each frame is roughly an order of magnitude more expensive than holding a cached reference, and a NodePath constant is several times cheaper than the equivalent String, so these lookups belong in @onready variables",
+      "Flags `overlay.anchors_preset = Control.PRESET_FULL_RECT` as a silent no-op: anchors_preset is an editor-facing property whose setter returns early unless layout_mode is already Anchors or Uncontrolled, so the anchors are never touched; set_anchors_preset(Control.PRESET_FULL_RECT) is the working call",
+      "Flags the integer division in take_damage: with an integer armor value, `stats.armor / 100` truncates to 0 for every armor below 100, so armour reduces nothing - the expression needs float arithmetic",
+      "Flags the pooling bug in _on_wave_started: _ready() runs at most once per node, and remove_child followed by add_child does not run it again; request_ready() must be called before re-adding if the node's _ready is meant to re-initialise it",
+      "Flags that RayCast2D results are only updated on the physics tick, so is_colliding() read from _process can be a frame stale, and that the stats resource loaded from res://data/player_stats.tres is a single shared object rather than per-instance state"
+    ]
+  },
+  {
+    "skills": ["godot"],
+    "query": "In wave_spawner.gd the later waves are leaking difficulty into earlier ones - after wave 3, restarting the run gives us wave-3 grunts on wave 1, and the values stick even after closing the game. Loot also drops inconsistently. Godot 4.7. What is going on and how do we fix it?",
+    "files": ["evals/files/wave_spawner.gd"],
+    "expected_behavior": [
+      "Identifies the root cause as Resource sharing rather than a reset bug: an exported Resource property assigned in the Inspector points at one loaded object, so every instance produced by PackedScene.instantiate() holds the same EnemyProfile, and `enemy.profile.damage = ...` mutates the single shared profile for every grunt already spawned and every grunt spawned later",
+      "Explains why the values survive a restart: the mutated resource is the project file res://data/grunt_profile.tres, so in the editor the change is written back to disk on save, which is why wave-1 grunts come back with wave-3 numbers",
+      "Gives both correct fixes and distinguishes them: set resource_local_to_scene (Local to Scene) on the resource so each scene instance gets its own duplicate, or duplicate() the resource per instance in code; also notes that duplicate() is shallow by default so nested resources, arrays and dictionaries stay shared unless the deep form is used",
+      "Rules that per-instance mutable state such as current hp does not belong on a shared design-data Resource at all, so _on_enemy_hit decrementing profile.max_hp is wrong even after the sharing is fixed",
+      "Rules on the two connect sites separately instead of calling both duplicate-connection leaks: `wave_cleared.connect(node.on_wave_cleared)` in respawn_all() uses the same object-and-method Callable, so it is rejected with ERR_INVALID_PARAMETER and an error and the handler still runs once, whereas `func(amount): _on_enemy_hit(enemy, amount)` builds a fresh Callable on every call and genuinely stacks",
+      "Flags the await in _on_enemy_died as a real defect with the correct frame count: after queue_free() the node stays valid for the remainder of the frame, so one `await get_tree().process_frame` is not enough for is_instance_valid to become false - the loot branch runs on a node already scheduled for deletion, and the following remove_child neither cancels the deletion nor is safe if the node already left the tree",
+      "Flags that start_wave indexes waves[_index] without bounds-checking and that the recursive start_wave call from _on_enemy_died will run past the end of the array"
+    ]
+  },
+  {
+    "skills": ["godot"],
+    "query": "We upgraded this project from Godot 4.3 to 4.7.2 and are about to add a web build. Review project.godot, export_presets.cfg and ci-export.sh together: which of these will behave differently from a project created fresh in 4.7, which will fail outright in CI, and what breaks on the web target?",
+    "files": ["evals/files/project.godot", "evals/files/export_presets.cfg", "evals/files/ci-export.sh"],
+    "expected_behavior": [
+      "Establishes that the settings a freshly created 4.7 project writes into project.godot are absent here, and names them with their consequences: physics/3d/physics_engine is written as \"Jolt Physics\" for new projects while the engine default is GodotPhysics3D, so this upgraded project silently runs a different 3D physics engine; display/window/stretch/mode and stretch/aspect are written as canvas_items and expand while the defaults are disabled and keep; rendering/rendering_device/driver.windows is written as d3d12 while the default is vulkan",
+      "Rules that the Web preset cannot use Forward+: web runs the Compatibility renderer only, which is why rendering/renderer/rendering_method.web defaults to gl_compatibility, and states the concrete losses for this project - volumetric fog is Forward+ only and is silently absent on the web build, while SSAO is supported on Compatibility - so the renderer for a build must be read at runtime from RenderingServer.get_current_rendering_method() rather than from the rendering_method project setting, which can be wrong after a fallback or a command-line override",
+      "Flags `--export-release \"Linux\"` in ci-export.sh as a guaranteed failure because the preset is named \"Server\": the preset name is matched exactly and the engine reports `Invalid export preset name` and lists the presets it did find",
+      "Flags that the export output directory must already exist: exporting into build/windows, build/web or build/server on a fresh clone fails with `Prepare Template: The given export path doesn't exist` followed by `Project export for preset ... failed`, so CI has to create the directories first",
+      "Rules that the smoke test proves nothing as written: --quit-after counts main-loop iterations rather than seconds, and a project whose main scene script fails to parse still exits with status 0, so the step must additionally fail on SCRIPT ERROR / ERROR output or use --check-only to gate parsing",
+      "Flags that a fresh clone has no script-class cache, so global class_name types do not resolve on the first headless run and produce `Could not find type ... in the current scope` parse errors; `godot --headless --import` must run before any export or smoke step",
+      "Flags that the Web preset enables thread support, which requires the server to send Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp, and that an `aws s3 sync` of the files does not configure those headers, so the page loads blank",
+      "Notes that config/features still records 4.3 and that the export templates installed on the CI image must match the engine version exactly, otherwise the export fails with a missing-template error"
+    ]
+  },
+  {
+    "skills": ["godot"],
+    "query": "net_player.gd is the avatar script for our Godot 4.7 deathmatch. It works when the host plays alone, but with two clients everyone can shoot everyone through walls, positions jitter, and one tester has a build where a completely different function runs when they take damage. The host spawns avatars with add_child(avatar) from net.gd. Review the networking.",
+    "files": ["evals/files/net_player.gd"],
+    "expected_behavior": [
+      "Identifies the authority assignment as wrong in kind, not in detail: the script runs on every peer for every avatar, so set_multiplayer_authority(multiplayer.get_unique_id()) in _ready makes each peer claim authority over all avatars locally; authority must be derived from a value that is identical on all peers, such as the node name set by the spawner, and set_multiplayer_authority does not replicate itself to other peers",
+      "Rules that every @rpc here is marked \"any_peer\" with no server-side validation, so any client can call apply_damage, die and award_kill on any node - the server must own damage and scoring, with clients sending intent only",
+      "Explains the wrong-function-runs report as an RPC id mismatch and names the mechanism: RPCs are dispatched by a numeric id derived from the sorted position of the method name in the node's RPC config, so adding, removing or renaming any @rpc method shifts the ids of the others, and a peer built from different source dispatches a different function; the engine only prints an rpc node checksum warning when it confirms a node path and then continues running",
+      "Flags award_kill(victim: Node) as unable to work at all because RPC arguments are serialised as plain data and cannot carry Objects or Nodes - a peer id or a node path must be sent instead",
+      "Flags add_child(avatar) without a readable name as the reason node paths diverge across peers: without force_readable_name a name collision is replaced by a generated @-prefixed name from a per-process counter, so RPC routing by node path breaks; MultiplayerSpawner, or add_child(node, true) with a deterministic name, is the fix",
+      "Rules that push_state broadcast from _physics_process every tick is the wrong shape for state replication - a MultiplayerSynchronizer replicating position and velocity is the intended mechanism - and that carrying hp in the same unreliable packet lets a dropped or out-of-order packet resurrect stale health",
+      "Notes that @rpc defaults to call_remote, so a function called through rpc() does not run on the caller; \"call_local\" is required when the host is also a player"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "PlayerController.cs is the player in our Unity 6 arena prototype on URP. Movement stutters and the speed changes with framerate, and the wave banner animation fires several times per wave after a scene reload. Also the HUD update shows up in the profiler. Fix it.",
+    "files": ["evals/files/PlayerController.cs"],
+    "expected_behavior": [
+      "Does not read the godot skill: this is a Unity MonoBehaviour on URP, and the godot skill's scope hands Unity off to the unity skill",
+      "Treats the problems in Unity terms - Rigidbody work belongs in FixedUpdate rather than Update, MovePosition is being handed an absolute position derived from transform.position instead of a target, and OnEnable subscribes to CombatManager.WaveStarted with no matching OnDisable unsubscribe, so a scene reload stacks handlers",
+      "Replaces the per-frame GameObject.Find and FindWithTag lookups with references cached in Awake or assigned through serialized fields",
+      "Does not introduce Godot concepts such as _physics_process, move_and_slide, queue_free, @onready, GDScript signals or PackedScene into the answer"
+    ]
+  }
+]

@@ -1,0 +1,163 @@
+skill: godot
+version: "2026.09.11"
+upstreams:
+  - id: godot-engine
+    kind: repo
+    repo: godotengine/godot
+    url: https://github.com/godotengine/godot
+    paths:
+      - doc/classes
+      - modules/multiplayer/scene_rpc_interface.cpp
+      - modules/multiplayer/scene_cache_interface.cpp
+      - editor/editor_node.cpp
+      - scene/gui/control.cpp
+      - misc/extension_api_validation
+      - CHANGELOG.md
+    ref: "4.7"
+    commit: ed1daf0bf001b61586d9930840f2f1394092c079
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "First-class fact source, the machine-checkable form of the class reference. doc/classes/*.xml supplied every property default (mouse_filter STOP on Control but IGNORE on Label and PASS on TextureRect; collision_layer and collision_mask both 1; inference_on_variant at Error; rendering_method forward_plus with .web defaulting to gl_compatibility), every deprecated= marker (TileMap, ParallaxBackground), and the exact semantics of queue_free, _ready, add_child(force_readable_name) and set_multiplayer_authority(recursive). Engine source supplied three facts that exist in no prose: RPC dispatch is by the sorted position of the method name (scene_rpc_interface.cpp), the rpc checksum only prints and continues (scene_cache_interface.cpp:119), and new projects are written four non-default settings by EditorNode::get_initial_settings (editor_node.cpp:8346)."
+    notes: "Licence read in full: LICENSE.txt is the Expat MIT licence, so merged. Pinned to the 4.7.2-stable commit on the 4.7 release branch, not master: the release branch and master have diverged (151 ahead, 2241 behind), so pinning master would track facts that are not in any shipped 4.7. Every version gate in this skill was forensically established by fetching the same doc/classes file from the 4.2, 4.3, 4.4, 4.5, 4.6 and 4.7 branches and finding the branch on which the member, annotation or deprecated= attribute first appears, rather than by trusting prose; misc/extension_api_validation/<from>-stable/GH-*.txt is the engine's own pre-diffed extension-API break ledger and was used to confirm signature changes. Declarations and source win over prose whenever they disagree: four upstream or documentation claims were overturned this way - duplicate signal connect, the @rpc checksum mechanism, assigning the anchors_preset property, and the ParallaxBackground deprecation version."
+  - id: godot-docs
+    kind: repo
+    repo: godotengine/godot-docs
+    url: https://github.com/godotengine/godot-docs
+    paths:
+      - tutorials/rendering
+      - tutorials/migrating
+      - tutorials/export
+      - tutorials/scripting
+      - tutorials/ui
+      - tutorials/physics
+      - tutorials/networking
+      - tutorials/performance
+      - tutorials/best_practices
+    ref: master
+    commit: e1129cb5c3f27e0e3a12e816ae405ab5ce032e3f
+    license: CC-BY-3.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The Forward+ / Mobile / Compatibility feature matrix that drives renderer selection, including the counter-intuitive entries (web supports Compatibility only; SSAO works on Compatibility but not Mobile; CompositorEffects need a RenderingDevice renderer; only Forward+ has volumetric fog, SSR, SDFGI, VoxelGI, TAA and FSR2). The seven upgrading_to_godot_4.x guides supplied every version gate used in this skill, including the Godot 4.7 behaviour changes (AudioStreamPlayer.area_mask default 1 to 0, Jolt WorldBoundaryShape3D plane sign, mouse and keyboard device ids, CanvasItem line feather) and the Godot 4.6 .tscn format change."
+    notes: "GitHub reports NOASSERTION; LICENSE.txt read in full and it is Creative Commons Attribution 3.0 Unported, with no NonCommercial and no NoDerivatives clause, so merged with attribution. Attribution: Juan Linietsky, Ariel Manzur and the Godot community, CC-BY-3.0. Tracked as a repo rather than as kind: docs so that commits can be pinned and changes detected per path; docs.godotengine.org is this repository's build output. One correction was applied against the declarations: upgrading_to_godot_4.7.rst attributes the area_mask default change to AudioStreamPlayer, but the property exists only on AudioStreamPlayer2D and AudioStreamPlayer3D, where the branch diff shows default 1 on 4.6 and 0 on 4.7; the plain AudioStreamPlayer has no area_mask at all."
+  - id: awesome-gamedev-godot
+    kind: repo
+    repo: gamedev-skills/awesome-gamedev-agent-skills
+    url: https://github.com/gamedev-skills/awesome-gamedev-agent-skills
+    paths:
+      - skills/godot
+    ref: main
+    commit: b105e1cf617adf0b68ed98790a716bbb60993179
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Backbone: the topic split that this skill's references follow, and the pitfalls-before-API shape. Concrete rules carried over include change_scene_to_file being deferred so the new scene's nodes are unreachable on the calling line, scene-unique %Name surviving renames where $Path does not, PhysicsRayQueryParameters exclude taking Array[RID] rather than nodes, force_raycast_update() after moving a ray within a tick, call_group silently skipping nodes that lack the method, RigidBody position assignment fighting the solver, and the Control rect_* to size/position/custom_minimum_size rename."
+    notes: "Licence read in full: root LICENSE is Apache-2.0 and it is the only licence file in the tree, so no per-directory check was needed. Three claims were overturned against the engine and are stated the other way round in this skill: duplicate connect of the same Callable is rejected rather than stacked, the @rpc mismatch mechanism is id shifting rather than annotation checksumming, and assigning anchors_preset is a no-op. The Related skills sections cross-reference sibling skills that do not exist in this library (physics-tuning, save-systems, game-ai, steam-publish, card-game) and were removed per the frontmatter and cross-reference rules; the animation, audio, tilemap, shader and 3D-scene skills in the same directory were used only to confirm coverage boundaries."
+  - id: haxqer-godot
+    kind: repo
+    repo: haxqer/godot-skill
+    url: https://github.com/haxqer/godot-skill
+    paths:
+      - skill/godot
+    ref: main
+    commit: 8e0552b158861020d6a9a12059ce11c4ba8cd303
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The only community upstream that states checkable Godot 4.7 assertions rather than restating tutorials. Supplied the := inference rule (inference_on_variant ships as an error, so inferring from a Dictionary read or an untyped call does not load at all), the hand-written .tscn trap where every node carrying parent=\".\" loads with zero errors and stacks every Control at the origin, the TileMap to TileMapLayer and ParallaxBackground to Parallax2D node deprecations, the container-first layout doctrine as the fix for controls piling up at the origin, and that POT generation and lightmap, occluder and reflection-probe bakes are editor-only and cannot be driven headlessly."
+    notes: "Licence read in full: MIT. Assertions were spot-checked against the engine and two of three held exactly: inference_on_variant is default=2 in ProjectSettings.xml and is a parse error on this machine, and the .tscn parent=\".\" trap reproduces. The third was corrected by a cross-branch diff of doc/classes: upstream calls both node replacements 4.3 deprecations, but the deprecated= attribute on TileMap.xml first appears on branch 4.3 while the one on ParallaxBackground.xml first appears on branch 4.5 - Parallax2D was merely added in 4.3. This skill therefore states the two gates separately. The upstream is built around its own bundled dispatcher.gd and run_project.py toolchain, which was not copied; only the engine facts and the headless conventions were taken."
+  - id: wshobson-godot
+    kind: repo
+    repo: wshobson/agents
+    url: https://github.com/wshobson/agents
+    paths:
+      - plugins/game-development/skills/godot-gdscript-patterns
+    ref: main
+    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "GDScript authoring conventions: the ordering of a node script (class_name, signals, exports, @onready, private underscore fields, lifecycle, public API), @export_group and @export_range for inspector organisation, and the shape of a state machine driven by signals."
+    notes: "Licence read in full: root LICENSE is MIT and is the only licence file in the tree. The prose is tutorial-shaped and was not carried over; only the conventions and the state-machine skeleton were used."
+  - id: abagames-headless-godot
+    kind: repo
+    repo: abagames/headless-godot-skill-kit
+    url: https://github.com/abagames/headless-godot-skill-kit
+    paths:
+      - .agents/skills/headless-godot
+    ref: main
+    commit: d671685670957576474cd701892f35ea21cc675b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Headless and CI discipline: always pass --headless --path <project> so the run does not depend on the working directory, capture output to a log file because the interesting failures are on stderr, override XDG_DATA_HOME / XDG_CONFIG_HOME / XDG_CACHE_HOME to a project-local directory in sandboxes and containers where user:// writes fail, never edit .tscn as raw text but drive edits through --headless --script, and keep the boot smoke test separate from logic tests."
+    notes: "Licence read in full: MIT. Pushed 2026-04-26, which is inside the six-month window but scores 1 on freshness; every rule taken from it was independently reproduced on this machine before being written down."
+  - id: godot-prompter
+    kind: repo
+    repo: jame581/GodotPrompter
+    url: https://github.com/jame581/GodotPrompter
+    paths:
+      - skills/godot-testing
+      - skills/godot-debugging
+      - skills/godot-ui
+      - skills/csharp-godot
+    ref: master
+    commit: eae755a1f3719076d52f50ab76f21993ebb9682b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "An editorial boundary adopted verbatim in intent: describe node trees, Inspector property names and exported-variable wiring, but never menu paths, dock layouts or toolbar positions, because those move between Godot versions and are the most-hallucinated part of any answer. Also the division between unit tests that run inside the engine and automation that drives it from outside."
+    notes: "Licence read in full: MIT. The repository binds to its own hook and to a state file at ~/.godot-prompter/state/<sha256 of project path>.json; both are agent-specific mechanisms and were dropped per the frontmatter and body restrictions."
+  - id: zimo-godot-ui
+    kind: repo
+    repo: zimo-xiao-zheng/godot-ui-integration
+    url: https://github.com/zimo-xiao-zheng/godot-ui-integration
+    paths:
+      - SKILL.md
+    ref: main
+    commit: 346fa1718d6c6b8558a68d7b25158b04fd4bf881
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-check on one invariant: the .tscn scene is the visual source of truth and a screen must be openable with its composition visible before _ready() runs, so runtime code fills in data and never constructs or relocates the primary layout."
+    notes: "Licence is MIT, so this is a content ruling rather than a licence ruling: the rest of the skill is a design-approval workflow that requires a Godot MCP server, which is product and process packaging rather than engine knowledge. Reference only."
+  - id: gd-agentic-skills
+    kind: repo
+    repo: thedivergentai/GD-Agentic-Skills
+    url: https://github.com/thedivergentai/GD-Agentic-Skills
+    paths:
+      - skills
+    ref: main
+    commit: 4c4d0ff5c4597938cc9257d99d9e35f7692c9c06
+    license: LGPL-3.0
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage check only: its 129 godot-* directory names were used to confirm that this skill's seven references do not miss a whole topic. Its 2D and 3D physics, autoload architecture, CharacterBody2D and rich-text UI entries all land inside the physics, nodes-and-scenes and ui references here; its genre directories (MOBA, RTS, party, RPG stats, turn system) are game-genre templates and are out of scope."
+    notes: "Licence read in full: GNU Lesser General Public Licence v3, so reference only per this repository's licence rules - no text taken, and every fact re-sourced from doc/classes or the official documentation. A separate content objection also applies: the skill is built as a named persona with a 95-entry never-list loaded through a bespoke multi-file protocol, which does not fit this library's shape."
+  - id: randroids-godot
+    kind: repo
+    repo: Randroids-Dojo/Godot-Claude-Skills
+    url: https://github.com/Randroids-Dojo/Godot-Claude-Skills
+    paths:
+      - skills/godot
+    ref: main
+    commit: 335df5d3f4a45735c3558be10ba8f22eb42e455e
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-check on the shape of the GdUnit4 command line that runs GDScript unit tests inside a headless engine."
+    notes: "Licence is MIT, but the last push was 2026-01-19, roughly 7.7 months before this survey, so freshness scores 0 and it is not used as a content source. Its second framework requires a custom fork of the engine and was rejected. The GdUnit4 invocation in this skill is marked [community] because the addon was not installed on this machine."
+  - id: dsh-godot
+    kind: repo
+    repo: akira399/dsh-godot-skill
+    url: https://github.com/akira399/dsh-godot-skill
+    paths:
+      - .dsh/skills/godot-4-development
+    ref: main
+    commit: 5ff40843e2f9bba8f86e9a76eec3341a9a0e22ca
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Coverage check against the official feature list, used to confirm that no large subsystem was left out of this skill's scope statement."
+    notes: "Content ruling, not a licence ruling: the licence is MIT, but the skill states outright that it is a reorganisation of the official feature-list page plus links into the class reference, which is a generated link index. Reference only."

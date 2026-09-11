@@ -1,0 +1,41 @@
+; Engine configuration file.
+; Project started on Godot 4.3, opened in 4.7.2 without changes.
+
+config_version=5
+
+[application]
+
+config/name="Skyforge"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameState="*res://systems/game_state.gd"
+LootTable="*res://systems/loot_table.gd"
+Net="*res://systems/net.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+
+[input]
+
+fire={
+"deadzone": 0.5,
+"events": [Object(InputEventMouseButton,"device":0,"button_index":1,"pressed":true)]
+}
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+environment/defaults/default_environment="res://default_env.tres"
+anti_aliasing/quality/msaa_3d=2
+environment/ssao/enabled=true
+environment/volumetric_fog/enabled=true
