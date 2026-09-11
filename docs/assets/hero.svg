@@ -1,12 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="280" viewBox="0 0 1000 280" fill="none" role="img" aria-labelledby="title desc">
   <title id="title">HyperSkills</title>
-  <desc id="desc">墨黑底色上的橙色几何狐狸与浅白色 HyperSkills 字标。</desc>
+  <desc id="desc">墨黑底色上的橙色模块化 H 标记与浅白色 HyperSkills 字标。</desc>
   <rect width="1000" height="280" rx="16" fill="#191919"/>
-  <g transform="translate(62 52) scale(1.1)">
-    <path d="M24 18 65 48H95L136 18 128 102 80 144 32 102Z" fill="#EE8747"/>
-    <path d="m35 39 25 20H38Zm90 0-25 20h22Z" fill="#191919"/>
-    <path d="m32 79 48 22-18 24-30-23Zm96 0-48 22 18 24 30-23Z" fill="#F5F5F2"/>
-    <path d="m46 76 21 10-7 7-14-7Zm68 0L93 86l7 7 14-7ZM68 112h24l-12 14Z" fill="#191919"/>
+  <g transform="translate(62 52) scale(1.1)" fill="#EE8747">
+    <path d="M24 24H56V120L24 136Z"/>
+    <path d="M68 70 92 58V90L68 102Z"/>
+    <path d="m104 40 32-16v112h-32Z"/>
   </g>
   <text x="260" y="170" fill="#F5F5F2" font-family="Arial, Helvetica, sans-serif" font-size="112" font-weight="700" letter-spacing="-5">HyperSkills</text>
 </svg>

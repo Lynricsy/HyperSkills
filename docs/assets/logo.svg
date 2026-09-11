@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none" role="img" aria-labelledby="title desc">
   <title id="title">HyperSkills</title>
-  <desc id="desc">橙色几何狐狸标记，尖耳与折纸般的浅色面颊构成向下收拢的轮廓。</desc>
-  <path d="M24 18 65 48H95L136 18 128 102 80 144 32 102Z" fill="#EE8747"/>
-  <path d="m35 39 25 20H38Zm90 0-25 20h22Z" fill="#191919"/>
-  <path d="m32 79 48 22-18 24-30-23Zm96 0-48 22 18 24 30-23Z" fill="#F5F5F2"/>
-  <path d="m46 76 21 10-7 7-14-7Zm68 0L93 86l7 7 14-7ZM68 112h24l-12 14Z" fill="#191919"/>
+  <desc id="desc">三个独立模块组成 HyperSkills 的 H 字母标记，两侧竖柱通过倾斜横梁连接，表达技能的组合与整合。</desc>
+  <g fill="#EE8747">
+    <path d="M24 24H56V120L24 136Z"/>
+    <path d="M68 70 92 58V90L68 102Z"/>
+    <path d="m104 40 32-16v112h-32Z"/>
+  </g>
 </svg>
