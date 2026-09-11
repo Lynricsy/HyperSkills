@@ -1,0 +1,17 @@
+[project]
+name = "corral"
+version = "3.1.0"
+requires-python = ">=3.11"
+description = "HTTP client with retries and shared rate limiting"
+dependencies = ["httpx>=0.27"]
+
+[project.optional-dependencies]
+redis = ["redis>=5.0"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+corral = "corral.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

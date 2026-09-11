@@ -1,0 +1,102 @@
+[
+  {
+    "skills": ["technical-writing"],
+    "query": "Our README has turned into the only doc anyone maintains and it's now unreadable. Here it is along with the repo layout and the actual source. Tell me what to do with it and give me the rewritten README.",
+    "files": [
+      "evals/files/corral/README.md",
+      "evals/files/corral/repo-layout.md",
+      "evals/files/corral/client.py",
+      "evals/files/corral/limiter.py",
+      "evals/files/corral/pyproject.toml",
+      "evals/files/corral/Makefile"
+    ],
+    "expected_behavior": [
+      "Names the document types currently fused in this one file and says where each part goes: the 'Why rate limiting is hard' section is explanation (docs/), 'Let's build a price scraper' is a tutorial (docs/getting-started.md already exists for that), the Options table is reference (docs/reference.md already exists), and only the orienting material plus a runnable quick start stays in the README",
+      "Does not propose creating four empty quadrant directories or an empty page per Diataxis type; the split it proposes moves material that already exists",
+      "The rewritten README keeps the installation instruction in exactly one place rather than the two it currently has ('## Installation' and '## More on installation')",
+      "Every command and code block in the rewritten README is consistent with the attached source: no `Client.fetch(...)` (the method is `Client.request(method, path)`), no `capacity=` keyword on the limiters (it is `burst=`), `CORRAL_TOKEN` rather than `CORRAL_API_KEY`, and `CorralRateLimited` rather than `RateLimitError`",
+      "Flags that `make docs-serve` and `npm run docs` do not exist (the Makefile has only test, lint, typecheck, and the layout states there is no package.json) and removes or replaces them rather than carrying them over",
+      "Flags that the README points readers at `docs/concepts.md`, which the layout states does not exist, and either drops the link or says the file must be created before the link ships",
+      "Flags that the CLI is installed as `corral`, not `corral-cli`, citing the `[project.scripts]` entry in pyproject.toml",
+      "States that the quick start as written cannot run: `pip install corral` does not provide `RedisLimiter` (it needs the `redis` extra declared in pyproject.toml) and `Client(...)` raises unless a token is passed or `CORRAL_TOKEN` is set — and the rewritten quick start declares both prerequisites before the first code block",
+      "Does not carry over the Options table into the README verbatim as its own reference section, or if it keeps a short table, states that docs/reference.md remains the single source and this one must be derived from it"
+    ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "Three people in a row have told us they gave up on our getting-started guide. Here's the guide, the repo layout and the source. Find out why and fix it.",
+    "files": [
+      "evals/files/corral/getting-started.md",
+      "evals/files/corral/repo-layout.md",
+      "evals/files/corral/client.py",
+      "evals/files/corral/limiter.py",
+      "evals/files/corral/pyproject.toml"
+    ],
+    "expected_behavior": [
+      "Identifies that the guide fails at Step 2, before the step readers report giving up on: `Client(\"https://api.example.com\")` raises `CorralError` unless `token=` is passed or `CORRAL_TOKEN` is set, and the guide never mentions a token at all",
+      "Identifies that Step 1's `pip install corral` cannot satisfy Step 3: `RedisLimiter` needs the `redis` extra (`pip install 'corral[redis]'`) declared in pyproject.toml, and that Step 3 also needs a Redis instance running at `redis://localhost:6379` which no step starts",
+      "Identifies the removed and renamed API the guide still calls: `client.fetch(...)` (now `Client.request(method, path)`), `max_retries` (now `max_attempts`), `retry_on` (removed in 3.0), and `capacity=` on RedisLimiter (now `burst=`)",
+      "Identifies that `backoff=\"exponential\"` in Step 6 raises `ValueError` because `Client.__init__` validates against `BACKOFF_STRATEGIES = (\"full_jitter\", \"decorrelated\")`",
+      "Flags the bare `...` inside the Step 4 code block as making the block unpasteable and replaces it with real code or a comment in the language, rather than leaving an ellipsis",
+      "Flags that Step 5 and Step 7 state no observable result and no command — Step 5 says 'notice how the two processes share the budget' with nothing to look at, and Step 7 says 'set the appropriate environment variables' without naming one — and rewrites them to name a concrete thing the reader sees, or drops them",
+      "The rewritten guide declares its prerequisites before the first code block, and every code block in it can be pasted and run in order given those prerequisites",
+      "Keeps the rewritten guide on a single path to one stated outcome rather than adding alternative options, backends or tuning branches a first-time reader has to choose between",
+      "Does not silently fix the code examples without first stating which specific claims were wrong"
+    ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "We're cutting 3.2 next week. Audit docs/reference.md against the code and tell me exactly which lines are lying. Don't change anything yet.",
+    "files": [
+      "evals/files/corral/reference.md",
+      "evals/files/corral/client.py",
+      "evals/files/corral/limiter.py",
+      "evals/files/corral/pyproject.toml",
+      "evals/files/corral/repo-layout.md"
+    ],
+    "expected_behavior": [
+      "Stays read-only: reports findings and does not edit reference.md, because the request said not to change anything yet",
+      "Finds the wrong defaults and names both sides: documented `timeout=30.0` against `DEFAULT_TIMEOUT_SECONDS = 10.0`, and documented `max_retries=5` against `DEFAULT_MAX_ATTEMPTS = 3`",
+      "Finds that `max_retries` is not merely a different default but a renamed parameter with different semantics (`max_attempts` counts total attempts including the first), so a reader who sets 3 expecting 4 requests gets 3",
+      "Finds that the documented `retry_on` parameter no longer exists, and that `backoff` accepts `(\"full_jitter\", \"decorrelated\")` rather than the documented `\"exponential\"`, `\"linear\"`, `\"none\"` — so every documented backoff value raises ValueError",
+      "Finds the renamed method `Client.fetch` (now `Client.request`, which also takes a `method` argument the doc's signature omits), the renamed field `Response.retries` (now `attempts`), the renamed exception `RateLimitError` (now `CorralRateLimited`), the renamed limiter argument `capacity` (now `burst`), and the wrong env var `CORRAL_API_KEY` (the source reads `CORRAL_TOKEN`)",
+      "Finds that `RedisLimiter` is documented as 'Included in the base install' while pyproject.toml declares `redis` as an optional extra and `RedisLimiter.__init__` raises ImportError without it",
+      "Separates a documented setting that does not exist in the code (`CORRAL_TIMEOUT`, which the layout states nothing reads) from the mismatches above, rather than reporting it identically",
+      "Cites a specific file and line or a quoted signature for each finding rather than asserting the mismatch in prose alone",
+      "Ranks the findings by what they cost the reader rather than listing them in file order, and does not pad the report with wording or style preferences"
+    ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "This is our CHANGELOG.md. Someone on 2.4 wants to upgrade to 3.1 and this file is useless to them. Rewrite it.",
+    "files": [
+      "evals/files/corral/CHANGELOG.md",
+      "evals/files/corral/repo-layout.md",
+      "evals/files/corral/client.py",
+      "evals/files/corral/limiter.py",
+      "evals/files/corral/pyproject.toml"
+    ],
+    "expected_behavior": [
+      "Drops the entries that are commit history rather than notable change: the `Merge pull request #...` lines, `wip`, `typo`, `lint`, `fix CI`, `update tests`, `bump version`, `README tweaks`, `address review comments`, `remove dead code in limiter.py`",
+      "Groups each remaining entry under the standard change types (Added, Changed, Deprecated, Removed, Fixed, Security) instead of one flat list per version, and does not invent extra types such as Internal, Performance or Dependencies",
+      "Marks every 3.0.0 entry that breaks a caller — `fetch` renamed to `request`, `retry_on` removed, `max_retries` renamed to `max_attempts`, `RateLimitError` renamed to `CorralRateLimited`, `Response.retries` renamed to `attempts`, the token env var rename, the default backoff change, and redis becoming an extra — and keeps each marker inside the type it belongs to rather than collecting them into a separate breaking-changes section",
+      "States which interface is breaking for each one: the Python API, the environment/configuration surface, or the install (the redis extra), rather than only saying 'breaking'",
+      "Rewrites each entry so it says what changed for the user, with the old and new name in the entry itself, so a reader on 2.4 can act on the line without opening the diff — `max_attempts` in particular says that it now counts total attempts, not retries after the first",
+      "Dates every version in `YYYY-MM-DD` using the tag dates given in the layout (2.4.0 2026-02-11, 2.4.1 2026-03-02, 3.0.0 2026-05-19, 3.1.0 2026-08-27) rather than leaving versions undated",
+      "Adds the file's missing frame: a `# Changelog` heading with the preamble naming the conventions followed, an `Unreleased` section, and reference-style links resolving each `[x.y.z]` to a tag comparison on https://github.com/acme/corral",
+      "Notes that none of the 3.0.0 removals was announced as deprecated in a 2.4.x release, so a reader upgrading met no warning — and does not retroactively invent a Deprecated entry that never shipped",
+      "Keeps the upgrade steps short enough to sit in the entries, or says they belong in a separate migration guide, rather than turning the changelog into a step-by-step upgrade procedure"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our docs are plain Markdown in docs/ and people read them on the forge. Stand up a real docs site with mkdocs-material: give me mkdocs.yml with the nav, the strict build command, and the Actions job that publishes it to Pages.",
+    "files": ["evals/files/docs-tree.md"],
+    "expected_behavior": [
+      "Does not read skills/technical-writing/SKILL.md",
+      "Answers with the tooling: an `mkdocs.yml` with `theme: name: material`, a `nav:` covering the existing directories, the `mkdocs build --strict` command, the `uv`/`pip` dependency additions (`mkdocs`, `mkdocs-material`), and a GitHub Actions job that builds and deploys to Pages with the permissions Pages deployment needs",
+      "Notes the mechanical consequences of moving from forge-rendered Markdown to a generated site — that relative links like `../reference/config.md` need mkdocs link handling, and that Pages has to be enabled on the repository — without reviewing what the pages say",
+      "Does not critique the documents' content, reclassify them into Diataxis quadrants, rewrite any page, or audit them against the code"
+    ]
+  }
+]
