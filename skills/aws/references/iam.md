@@ -48,10 +48,16 @@ consequences that catch people:
 
 - A boundary cannot grant. Attaching a boundary that allows `s3:*` to a role with no identity
   policy gives that role nothing.
-- A resource-based policy that names the IAM user or role of the **same account** as
-  `Principal` is not limited by that principal's boundary. A bucket policy granting `s3:*` to
-  `arn:aws:iam::111122223333:user/ci-bot` works even if `ci-bot`'s boundary excludes S3, so
-  an audit of identity policies alone understates effective permissions. `[official]`
+- Whether a resource-based policy escapes the boundary depends on **which kind of ARN** it
+  names as `Principal`, and conflating the three is how audits go wrong. Within the same
+  account: an **IAM user ARN** is not limited by an implicit deny in that user's identity
+  policy or permissions boundary — a bucket policy granting `s3:*` to
+  `arn:aws:iam::111122223333:user/ci-bot` works even if `ci-bot`'s boundary excludes S3. An
+  **IAM role session ARN** (`arn:aws:sts::111122223333:assumed-role/<role>/<session>`) is
+  likewise not limited, because the grant lands on the session. But an **IAM role ARN** is
+  still limited by an implicit deny in a permissions boundary or session policy, so naming
+  `arn:aws:iam::111122223333:role/ci-role` does *not* bypass that role's boundary. An
+  explicit `Deny` anywhere always wins, in all three cases. `[official]`
 - Boundaries are commonly used as a *delegation* control: give a team `iam:CreateRole` only
   with `iam:PermissionsBoundary` conditioned to your boundary policy, so they can create roles
   but not roles more powerful than the boundary. Without that condition the delegation is an

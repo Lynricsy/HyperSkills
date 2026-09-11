@@ -65,9 +65,10 @@ Paths below are relative to this skill's directory.
 5. `ForAllValues:*` is vacuously true when the context key is absent from the request, so a
    caller who sends no tags at all passes a `ForAllValues:StringEquals` on `aws:TagKeys`.
    Pair it with `"Null": {"<same key>": "false"}` in the same `Condition` block.
-6. A resource-based policy that names an IAM user or role of the same account as `Principal`
-   is not limited by that principal's permissions boundary. Auditing identity policies alone
-   understates effective permissions.
+6. A resource-based policy naming an IAM **user** ARN or an **assumed-role session** ARN of
+   the same account as `Principal` is not limited by that principal's permissions boundary; a
+   policy naming a **role** ARN still is. Auditing identity policies alone understates
+   effective permissions (`references/iam.md`).
 7. A trust policy with a service principal and no `aws:SourceAccount` / `aws:SourceArn`, or
    with `arn:aws:iam::<account>:root` and no `sts:ExternalId`, is a confused-deputy hole: the
    whole external account, not one role, can assume it.

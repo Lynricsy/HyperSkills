@@ -169,7 +169,7 @@ REJECT 5 项，范围外 4 项。合计 18 行，满足下限 12。
 | 4 | 默认 IaC 框架 | awslabs 全系列：未指定时 **ALWAYS use CDK + TypeScript**；aws/agent-toolkit `aws-cloudformation`：简单工作负载（<50 资源）或团队无 CDK 经验时推荐 CloudFormation | 正文写成有判据的选型而不是 ALWAYS：纯 Lambda+API+表的无服务器应用用 SAM，需要跨栈抽象/多环境合成/单元测试的用 CDK，团队已有 YAML 资产或需要交给非开发者读的用 CloudFormation；需要 Terraform 时转交 `terraform` skill | 两家官方口径不一致，说明「默认 CDK」是产品倾向而非工程结论；本仓库标准第 3 节要求「只给一个默认方案 + 一个逃生口」，而这里的默认取决于工作负载形态，所以给判据表 |
 | 5 | Express 模式与 hotswap 是不是一回事 | awslabs `aws-cloudformation`：明确要求回答 CDK+Express 问题时必须讲清区别；部分社区内容把两者混为「快速部署」 | 采用官方区分：Express 走完整 CloudFormation、无 drift、但默认关闭回滚且失败后**不能回滚只能向前修**；`--hotswap` 绕过 CloudFormation 直接调服务 API、**故意制造 drift**、且对不可 hotswap 的资源静默跳过仍报成功。两者都禁止用于生产 | aws/agent-toolkit `aws-cdk` 与 `aws-cloudformation` 两份官方 skill 口径一致，且 `aws-cdk` 给出了 `--revert-drift` 的恢复路径 |
 | 6 | AWS App Runner 还能不能推荐 | 多数社区 skill 仍把 App Runner 列为「最简单的容器托管」 | 不推荐。官方 `aws-containers` skill 写明 App Runner 自 2026-04-30 起 sunset——不接受新客户、不再有新功能，存量客户迁往 ECS Express Mode | aws/agent-toolkit `aws-containers`（官方）+ AWS 文档 App Runner Availability Change 页。「更新 > 更旧」 |
-| 7 | 权限边界能不能兜住 `iam:PassRole` 提权 | 常见直觉：挂了 boundary 就安全 | 不能。boundary 只做交集不做授予；且官方明确：**同账号内以 IAM 用户/角色 ARN 作 `Principal` 的资源型策略不受该主体权限边界限制**。评测场景 1 把这条做成了断言 | aws/agent-toolkit `aws-iam` "Policy Evaluation" 条目 + IAM 用户指南权限边界评估逻辑页 |
+| 7 | 权限边界能不能兜住 `iam:PassRole` 提权 | 常见直觉：挂了 boundary 就安全 | 不能。boundary 只做交集不做授予。**但「资源型策略绕过 boundary」这条必须按 ARN 类型分三种**,上游 skill 与初稿都笼统写成「用户/角色」,实际上:同账号内以 **IAM 用户 ARN** 或 **assumed-role 会话 ARN**(`arn:aws:sts::…:assumed-role/<role>/<session>`)作 `Principal` 时不受隐式拒绝(身份策略/权限边界)限制;以 **IAM 角色 ARN** 作 `Principal` 时**仍受**权限边界与会话策略的隐式拒绝限制。显式 `Deny` 三种情况下一律生效。评测场景 1 的夹具用的是 `user/ci-bot`,属于「不受限」那一类 | IAM 用户指南 `access_policies_boundaries.html`「Evaluating effective permissions with boundaries」小节逐字实读(2026-09-11 复核):Resource-based policies for IAM users / for IAM roles / for role sessions 三段分列 |
 | 8 | `ForAllValues` 条件运算符 | 社区常写成「限制只能用这几个 tag key」 | `ForAllValues:*` 对**缺失或为空的键求值为真**（空集上的全称量化为真），所以不带任何 tag 的请求也能通过。必须在同一个 `Condition` 块里对**同一个上下文键**加 `Null: {"<key>": "false"}` | aws/agent-toolkit `aws-iam`（官方）给出了完整 JSON 示例；IAM 用户指南多值上下文键页同义 |
 | 9 | CloudWatch 归谁 | 本波次 `observability` skill 也覆盖指标与告警 | 按边界契约：OTel 埋点、Collector、语义约定、RED/USE、告警与 SLO 方法论归 `observability`；CloudWatch 自身的配额、计费维度（自定义指标按条计费、Logs 默认永不过期）、Logs Insights 查询语法、控制台流程归本 skill。两边 SKILL.md 都写这条 | `docs/roadmap.md` 波次 6 契约 |
 
@@ -197,7 +197,7 @@ REJECT 5 项，范围外 4 项。合计 18 行，满足下限 12。
 | 场景 | 未达成的行为 | 说明 |
 |---|---|---|
 | 1 IAM 策略评审 | `ForAllValues:StringEquals` 对缺失键为真（空集全称量化），必须在同一 `Condition` 里对同一上下文键加 `Null: "false"` | 基线把 `ForAllValues` + `aws:TagKeys` 解释成「只限键不限值」，并据此讲了一个 ABAC 改 tag 值的攻击。方向对但不是这条：它完全没有意识到**不带任何 tag 的请求直接通过**，也没给出 `Null` 修补 |
-| 1 IAM 策略评审 | 同账号内以 IAM 用户/角色 ARN 作 `Principal` 的资源型策略不受该主体权限边界限制 | 基线正确指出 boundary 是黑名单写法且挡不住 PassRole，但对 `_artifact_bucket_policy` 授权给 `user/ci-bot` 只讲了「静态密钥 + 供应链注入」，没有点出这条策略绕过 `ci-bot` 自己的权限边界 |
+| 1 IAM 策略评审 | 同账号内以 IAM **用户** ARN 作 `Principal` 的资源型策略不受该用户权限边界限制(角色 ARN 则仍受限) | 基线正确指出 boundary 是黑名单写法且挡不住 PassRole,但对 `_artifact_bucket_policy` 授权给 `user/ci-bot` 只讲了「静态密钥 + 供应链注入」,没有点出这条策略绕过 `ci-bot` 自己的权限边界 |
 | 2 SAM 模板 | REST 与 HTTP 超时的确切分界：HTTP API 30s 不可提；REST 29s 默认，**只有 Regional 与 private 可提、edge-optimized 不可提**，且提升可能要以 Region 级节流配额为代价 | 基线只写了「HTTP API 集成超时硬上限 ~30s」，用了约等号，且完全没提 REST 侧的可提/不可提分界。用户若据此改用 REST edge-optimized，会踩到同一堵墙 |
 | 2 SAM 模板 | `AWSLambda_FullAccess` 本身在能 PassRole 的函数上是提权路径 | 基线把两个 `*FullAccess` 归到「顺手的安全债」并换成最小权限，正确但没说明为什么这一个比另一个危险 |
 | 3 栈恢复 | 用 `aws cloudformation describe-events --filters FailedEvents=true`；`describe-stack-events` 不支持过滤且不返回 early-validation 与 Hook 失败事件 | **明确未达成**：基线的「阶段 1：取真实状态」第一条命令就是 `aws cloudformation describe-stack-events --stack-name $SN --output json`，并把它当成拿到完整事件的手段。这是本批次最干净的一个缺口 |
@@ -224,8 +224,8 @@ NAT→gateway endpoint、CloudWatch 基数、arm64/gp3、按可逆性排序—�
 
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
-| 1 IAM 策略评审 | claude-opus-5:medium | 无（基线） | false | 6/8：PassRole 提权链、`iam:PassedToService` 收敛、boundary 是黑名单、两处 confused deputy、`secretsmanager:*`、`simulate-custom-policy` | 缺 `ForAllValues` 空集真值 + `Null` 守卫；缺「资源型策略以同账号 IAM 主体为 Principal 时不受其权限边界限制」 |
-| 1 IAM 策略评审 | claude-opus-5:medium | 有 | **true** | **8/8** | 两条缺口都补上：「对空集的全称量化恒真，缺 `"Null": {"aws:TagKeys": "false"}` 守卫」与「资源策略把同账号主体写成 Principal 时，该主体的权限边界不适用 —— 所以只看身份策略会低估实际权限」。验证门也从只有 `simulate-custom-policy` 扩成 `simulate-custom-policy --permissions-boundary-policy-input-list` + `accessanalyzer validate-policy` |
+| 1 IAM 策略评审 | claude-opus-5:medium | 无(基线) | false | 6/8:PassRole 提权链、`iam:PassedToService` 收敛、boundary 是黑名单、两处 confused deputy、`secretsmanager:*`、`simulate-custom-policy` | 缺 `ForAllValues` 空集真值 + `Null` 守卫;缺「资源型策略以同账号 IAM 用户为 Principal 时不受其权限边界限制」 |
+| 1 IAM 策略评审 | claude-opus-5:medium | 有 | **true** | **8/8** | 两条缺口都补上:「对空集的全称量化恒真,缺 `"Null": {"aws:TagKeys": "false"}` 守卫」与「资源策略把同账号主体写成 Principal 时,该主体的权限边界不适用 —— 所以只看身份策略会低估实际权限」。验证门也从只有 `simulate-custom-policy` 扩成 `simulate-custom-policy --permissions-boundary-policy-input-list` + `accessanalyzer validate-policy`。**事后更正**:这一轮的答复与当时的 `expected_behavior` 都把结论笼统写成「IAM 用户或角色」,而官方文档只对用户 ARN 与会话 ARN 成立,角色 ARN 仍受 boundary 限制。夹具用的是 `user/ci-bot`,所以判定为达成不变;`expected_behavior`、`SKILL.md` 规则 6 与 `references/iam.md` 已按三类主体改写 |
 | 2 SAM 模板 504 + 重复扣款 | claude-opus-5:medium | 无（基线） | false | 6/8：95s 必须离开请求路径、可见性超时 < 函数超时、幂等表、DLQ + `ReportBatchItemFailures`、明文密钥、最小权限 | 超时只写「HTTP API 硬上限 ~30s」，没有 REST 侧 29s 可提/edge-optimized 不可提的分界；`AWSLambda_FullAccess` 只当成一般安全债 |
 | 2 SAM 模板 504 + 重复扣款 | claude-opus-5:medium | 有 | **true** | **8/8** | 写出「API Gateway v2 集成超时硬上限 30 秒，不可调（REST API 才有 29s 可调，且仅 Regional/private）」；并复述了本 skill 实测过的 cfn-lint 覆盖面：「cfn-lint 不会校验 `AWS::Serverless::Function` 的超时越界，原模板同样能 lint 通过」——这是 skill 里 `[verified]` 那张表直接起作用的地方 |
 | 3 栈卡死恢复 | claude-opus-5:medium | 无（基线） | false | 7/8：改名即替换、级联噪音、deadly embrace、`continue-update-rollback`、SCP 属环境级、被拒主体是 `cfn-exec-role`、`overrideLogicalId` | **用错 API**：恢复序列第一步就是 `aws cloudformation describe-stack-events ... --output json`，并把它当作「取完整事件」的手段 |
@@ -238,7 +238,7 @@ NAT→gateway endpoint、CloudWatch 基数、arm64/gp3、按可逆性排序—�
 结论：**达成**。基线未达成而有 skill 时达成的行为共 **6 条**，分布在 4 个正例场景里：
 
 1. 场景 1 —— `ForAllValues` 对缺失键为真，必须加同键 `Null` 守卫。
-2. 场景 1 —— 同账号资源型策略以 IAM 主体为 `Principal` 时不受其权限边界限制。
+2. 场景 1 —— 同账号资源型策略以 IAM **用户** ARN 为 `Principal` 时不受其权限边界限制(角色 ARN 仍受限,见上表事后更正)。
 3. 场景 2 —— HTTP API 30s 不可提 / REST 29s 仅 Regional 与 private 可提的确切分界。
 4. 场景 3 —— 必须用 `describe-events --filters FailedEvents=true`，`describe-stack-events` 不支持过滤。
 5. 场景 4 —— 成本算术必须落成可复跑的脚本。
