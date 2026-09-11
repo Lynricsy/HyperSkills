@@ -1,0 +1,74 @@
+[
+  {
+    "skills": ["ml-training"],
+    "query": "This fine-tune dies the moment we launch it and we only have the one A100. Here's the script and the run notes. Make it actually run on this box.",
+    "files": [
+      "evals/files/sft/train_sft.py",
+      "evals/files/sft/run.md"
+    ],
+    "expected_behavior": [
+      "Separates the two failure modes instead of treating them as one: the script raises TypeError at config construction on the pinned versions, before any GPU memory is touched, and the configuration it describes would also not fit in 80 GB",
+      "Names the removed/renamed arguments concretely for trl 1.13 / transformers 5.x — `max_seq_length` is `max_length`, `evaluation_strategy` is `eval_strategy`, `warmup_ratio` is gone in favour of `warmup_steps`, `Trainer`/`SFTTrainer` takes `processing_class` rather than `tokenizer`, and `from_pretrained(torch_dtype=...)` is now `dtype=` — rather than saying 'update the API' in general terms",
+      "Gives the memory arithmetic for a full fine-tune of an 8B model with AdamW, showing that weights + gradients + two fp32 optimizer moments alone are on the order of 100-130 GB before activations, so no batch size or sequence length makes full fine-tuning fit on one 80 GB card",
+      "States that per-device batch 8 at 8192 tokens with gradient checkpointing off is the activation term that blows up, and that lowering the per-device batch while raising `gradient_accumulation_steps` keeps the effective batch constant",
+      "Recommends LoRA/QLoRA (or an equivalently memory-bounded method) as the change that makes the run fit, and quantifies why: the optimizer state follows the trainable parameter count, which an adapter cuts to well under 1% of the model",
+      "Sizes `max_length` against the data rather than by guessing — the notes give median 1.4k and p99 9.6k tokens — and says what truncation at the chosen value costs",
+      "Does not claim to have run the training or measured GPU memory on this machine"
+    ]
+  },
+  {
+    "skills": ["ml-training"],
+    "query": "Our fine-tune scores 86% on the public benchmark but the on-call engineers say it is no better than the base model. Here's the data pipeline and the eval report. What is going on?",
+    "files": [
+      "evals/files/data/build_dataset.py",
+      "evals/files/data/eval-report.md"
+    ],
+    "expected_behavior": [
+      "Identifies that `support-bench-v2.jsonl` — the public benchmark the 86% is reported on — is concatenated into `rows` before the split, so benchmark items are in the training set and the benchmark score is meaningless",
+      "Identifies that the shuffle-then-split happens before deduplication, so re-opened tickets (same thread, `RE:` subject, copied resolution) land on both sides of the split and the held-out eval loss of 0.41 is partly memorisation",
+      "States that deduplicating each split independently cannot fix cross-split leakage, and that dedup must run on the pooled corpus before splitting, or splits must be grouped by thread/customer identity rather than by row",
+      "Points out that `bench_subset.jsonl` is carved out of `eval_rows`, so the model-card number and the eval-loss number are not independent measurements",
+      "Notes that exact-string dedup misses the near-duplicates described in the report and names a concrete near-duplicate or contamination check (n-gram overlap or MinHash/Jaccard over shingles, with a stated threshold) rather than only 'check for duplicates'",
+      "Treats the human spot check (12/40) as the measurement that disagrees, and does not propose to fix the disagreement by adjusting the benchmark or the threshold",
+      "Says which numbers in the report have to be re-measured after the pipeline is fixed, rather than trying to salvage the existing ones"
+    ]
+  },
+  {
+    "skills": ["ml-training"],
+    "query": "Review the alignment stage before we burn GPU hours on it. Two trainers, DPO then GRPO, same box as the SFT run.",
+    "files": ["evals/files/align/train_grpo.py"],
+    "expected_behavior": [
+      "Flags that `DPOConfig(max_prompt_length=...)` no longer exists in trl 1.13 and that the script therefore raises TypeError before training starts",
+      "Flags `learning_rate=2e-5` on both DPO and GRPO as an SFT-scale learning rate carried into preference training, states the library defaults are 1e-6 for both, and explains the consequence — the policy moves far from the reference and collapses rather than being nudged",
+      "Flags `beta=0.5` on DPO as far above the usual 0.1 and says what the KL coefficient actually trades off, instead of only calling it 'high'",
+      "Catches the GRPO batch arithmetic: `generation_batch_size` = per-device batch x world size x steps-per-generation = 2 on this single-GPU box, which is not divisible by `num_generations=8`, so GRPOConfig raises before the first step",
+      "Flags `beta=0.0` in GRPO as switching the KL penalty off entirely, and connects that to the reward function: a binary 'contains ESCALATION-TEMPLATE-V4' reward with no KL anchor is reward hacking waiting to happen — the model learns to emit the header",
+      "Questions 1,800 preference pairs for 5 epochs of DPO as a recipe for overfitting the preference set, and notes the pairs are constructed from the SFT model's own samples",
+      "Says which of these are hard errors that stop the script and which are hyperparameter judgements that only show up as a wasted run"
+    ]
+  },
+  {
+    "skills": ["ml-training"],
+    "query": "We deployed the fine-tuned model with vLLM and it is slower than the 7B it replaced, and the metrics endpoint does not answer. Here's the deployment note.",
+    "files": ["evals/files/serve/vllm-deploy.md"],
+    "expected_behavior": [
+      "States that `vllm serve` exposes Prometheus metrics on the `/metrics` path of the API server port (8000 here) and that neither `--enable-metrics` nor `--metrics-port` is a `vllm serve` argument, so port 9090 was never going to answer",
+      "Explains the start-up failure as the chunked-prefill/`max_num_batched_tokens` interaction: with chunked prefill disabled, `max_num_batched_tokens` must exceed `max_model_len`, and 4096 against 131072 does not",
+      "Connects `--max-model-len 131072` to KV cache: the served length is a per-request reservation ceiling and the workload only needs about 12k, so declaring 128k starves concurrency for no benefit",
+      "Explains the preemption warnings as insufficient KV cache rather than as a scheduling bug, and ties the fix to reducing `max_model_len` (and leaving chunked prefill on) rather than raising `--gpu-memory-utilization` further",
+      "Flags `--gpu-memory-utilization 0.98` as leaving no headroom for activations and CUDA graph capture on a card that also holds 16 GB of weights",
+      "Flags `--enforce-eager` as disabling CUDA graph capture, which costs decode throughput, and says it is a start-up-time/debug setting rather than a production one",
+      "Makes the TTFT-versus-throughput trade-off explicit for this workload (long prompts, short answers) instead of recommending a single 'faster' configuration"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our ticket triage calls a hosted model API and it's flaky — timeouts, and sometimes the JSON comes back wrapped in prose. Make the client robust and cheaper.",
+    "files": ["evals/files/api/classify.py"],
+    "expected_behavior": [
+      "Does not read skills/ml-training/SKILL.md",
+      "Answers as an API-client problem: retries with backoff on timeouts and 429/5xx, structured-output or schema-constrained decoding instead of parsing prose, concurrency or batching over the per-ticket loop, prompt/response caching, and moving the key out of a source-code default",
+      "Does not propose fine-tuning, LoRA, a memory budget, a GPU, or a training framework as the answer"
+    ]
+  }
+]
