@@ -41,6 +41,7 @@ SCENARIO_TIMEOUT = 900
 # extraction can still be judged by hand.
 EVENTS_FILE = "events.jsonl"
 ANSWER_FILE = "answer.md"
+STDERR_FILE = "stderr.log"
 RESULT_FILE = "result.json"
 # Outside the repo: eval runs are throwaway artifacts, never committed.
 DEFAULT_OUT_ROOT = Path("/tmp/hs-evals")
@@ -186,24 +187,39 @@ def run_scenario(
     cmd += ["--no-skills"] if baseline else ["--skills", skill]
     cmd += ["--model", model, "--thinking", thinking]
 
-    # Stream stdout straight to disk. Piping it through `capture_output` loses
-    # everything the run emitted when the timeout kills it — five 900s
-    # web-testing timeouts all left a 0-byte transcript and nothing to diagnose.
+    # `stdin=DEVNULL` is load-bearing, not hygiene. `subprocess` only replaces
+    # stdout/stderr; stdin stays inherited, and under a parent chain that holds
+    # an open pipe nobody ever writes to or closes, `omp -p` still enters
+    # `readPipedInput` and waits for an EOF that never comes. That, not the
+    # query, is what burned 900s per scenario with a 0-byte transcript: the same
+    # scenario finishes in 154s with rc=0 and a 701 KB transcript when stdin is
+    # /dev/null.
+    #
+    # stderr goes to its own file for the whole run. Discarding it on timeout is
+    # what made the hang undiagnosable — omp was printing
+    # `Still starting after 570s — phase: readPipedInput` the entire time.
     events_path = out_dir / EVENTS_FILE
+    stderr_path = out_dir / STDERR_FILE
     started = time.monotonic()
-    stderr_text = ""
     timed_out = False
     try:
-        with events_path.open("w", encoding="utf-8") as sink:
+        with events_path.open("w", encoding="utf-8") as sink, stderr_path.open(
+            "w", encoding="utf-8"
+        ) as err_sink:
             proc = subprocess.Popen(
-                cmd, cwd=work_dir, stdout=sink, stderr=subprocess.PIPE, text=True
+                cmd,
+                cwd=work_dir,
+                stdin=subprocess.DEVNULL,
+                stdout=sink,
+                stderr=err_sink,
+                text=True,
             )
             try:
-                _, stderr_text = proc.communicate(timeout=SCENARIO_TIMEOUT)
+                proc.communicate(timeout=SCENARIO_TIMEOUT)
             except subprocess.TimeoutExpired:
                 timed_out = True
                 proc.kill()
-                _, stderr_text = proc.communicate()
+                proc.communicate()
     except FileNotFoundError:
         raise SystemExit(
             "error: 'omp' not found on PATH. run_evals.py drives the omp CLI headlessly."
@@ -212,8 +228,15 @@ def run_scenario(
 
     raw = events_path.read_text(encoding="utf-8", errors="replace")
     events = parse_events(raw)
+    stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
 
     if timed_out:
+        tail = "\n".join(stderr_text.strip().splitlines()[-5:])
+        print(
+            f"warn: {skill} eval {index} hit the {SCENARIO_TIMEOUT}s ceiling after "
+            f"emitting {len(raw)} bytes of events. Last stderr lines:\n{tail}",
+            file=sys.stderr,
+        )
         return {
             "skill": skill,
             "index": index,
@@ -227,12 +250,13 @@ def run_scenario(
             "answer_path": None,
             "workspace": str(work_dir),
             "events_bytes": len(raw),
+            "stderr_path": str(stderr_path),
             "duration_s": duration,
         }
     if proc.returncode != 0:
         print(
             f"error: omp exited {proc.returncode} for {skill} eval {index}:\n"
-            f"{(stderr_text or '').strip()[:800]}",
+            f"{stderr_text.strip()[:800]}",
             file=sys.stderr,
         )
         raise SystemExit(2)
