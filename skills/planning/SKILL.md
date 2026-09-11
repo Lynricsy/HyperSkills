@@ -38,8 +38,8 @@ Not covered — do not answer from this skill:
 - Diagnosing a failure whose cause is unknown: the `debugging` skill.
 - Designing the interface once the plan says one is needed: the `api-design`
   skill.
-- Writing the prose — user docs, release notes, a guide. No skill in this
-  library covers technical writing yet; say so rather than improvising.
+- Writing the prose — user docs, release notes, a guide. Use the
+  `technical-writing` skill.
 - Product roadmaps, cross-team prioritisation, sprint scheduling and delivery
   estimates. Nothing here predicts dates.
 

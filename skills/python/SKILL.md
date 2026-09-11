@@ -21,7 +21,8 @@ checker and a linter both miss.
 Not covered: web frameworks — FastAPI request handling, dependency injection and
 response models are the `fastapi` skill's job; Django request handling, ORM
 models and migrations are the framework's own concern. Also not covered: data
-analysis and notebooks (pandas, numpy, Jupyter); model training and fine-tuning.
+analysis and notebooks (pandas, numpy, Jupyter). Model training and fine-tuning:
+use the `ml-training` skill; calling a hosted model: the `ai-engineering` skill.
 For the discipline of driving code with tests rather than the pytest API, use the
 `test-driven-development` skill. For diagnosing a specific observed failure, use
 the `debugging` skill. For reviewing a diff, use the `code-review` skill.

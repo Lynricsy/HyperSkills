@@ -29,7 +29,8 @@ Not covered — do not answer from this skill:
   near skills; only the skill fields shared with them are in scope.
 - Writing the domain content itself. This skill decides what belongs in a skill
   about PostgreSQL; it does not know PostgreSQL.
-- Human-facing documentation. A skill directory holds no README, changelog or
+- Human-facing documentation — use the `technical-writing` skill. A skill
+  directory holds no README, changelog or
   installation guide: those add clutter an agent has to read past.
 
 ## Read first

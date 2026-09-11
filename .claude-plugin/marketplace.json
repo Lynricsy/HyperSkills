@@ -9,6 +9,15 @@
   },
   "plugins": [
     {
+      "name": "ai-engineering",
+      "description": "Builds and reviews code that calls a language model: prompts separating instructions from retrieved or tool-supplied data, provider-enforced structured output, tools declaring side effects and idempot",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/ai-engineering"
+      ]
+    },
+    {
       "name": "android",
       "description": "Guides native Android work end to end: Kotlin with coroutines and Flow, Jetpack Compose (state, side effects, stability, recomposition and scroll performance, Baseline Profiles), the legacy View syste",
       "source": "./",
@@ -198,6 +207,15 @@
       ]
     },
     {
+      "name": "harmonyos",
+      "description": "Guides HarmonyOS NEXT app work in ArkTS and ArkUI: the arkts-* language restrictions that make legal TypeScript fail to compile, build() purity, state management V1 vs V2 decorators and the API-gated ",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/harmonyos"
+      ]
+    },
+    {
       "name": "java-spring",
       "description": "Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts, declarative HTTP service clients, Spring Data JPA (entity m",
       "source": "./",
@@ -222,6 +240,15 @@
       "strict": false,
       "skills": [
         "./skills/mcp-server"
+      ]
+    },
+    {
+      "name": "ml-training",
+      "description": "Trains and fine-tunes models whose weights you control: choosing between SFT, DPO and GRPO from the data actually available, computing the GPU memory ledger (weights, gradients, optimizer state, activ",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/ml-training"
       ]
     },
     {
@@ -333,6 +360,15 @@
       ]
     },
     {
+      "name": "solidity-web3",
+      "description": "Writes, reviews and hardens Solidity contracts defensively, and proves the result with Foundry. Covers contract layout and checks-effects-interactions, reentrancy including cross-function and read-onl",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/solidity-web3"
+      ]
+    },
+    {
       "name": "supabase",
       "description": "Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr cookie flows, getClaims versus getUser versus getSession",
       "source": "./",
@@ -357,6 +393,15 @@
       "strict": false,
       "skills": [
         "./skills/tauri"
+      ]
+    },
+    {
+      "name": "technical-writing",
+      "description": "Writes and repairs the documents a project ships to human readers: READMEs, documentation pages, tutorials, how-to guides, reference pages, architecture decision records and changelogs. Classifies a p",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/technical-writing"
       ]
     },
     {
@@ -410,6 +455,7 @@
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/ai-engineering",
         "./skills/android",
         "./skills/api-design",
         "./skills/apple",
@@ -431,9 +477,11 @@
         "./skills/github",
         "./skills/go",
         "./skills/graphql",
+        "./skills/harmonyos",
         "./skills/java-spring",
         "./skills/laravel",
         "./skills/mcp-server",
+        "./skills/ml-training",
         "./skills/mongodb",
         "./skills/nodejs-backend",
         "./skills/observability",
@@ -446,9 +494,11 @@
         "./skills/redis",
         "./skills/security-review",
         "./skills/skill-authoring",
+        "./skills/solidity-web3",
         "./skills/supabase",
         "./skills/svelte",
         "./skills/tauri",
+        "./skills/technical-writing",
         "./skills/terraform",
         "./skills/test-driven-development",
         "./skills/typescript",

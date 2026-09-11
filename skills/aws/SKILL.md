@@ -39,8 +39,9 @@ Not covered:
 - Microsoft Azure and Google Cloud. Use the `azure` and `gcp` skills. Cross-cloud comparison
   is out of scope beyond a sentence where a decision genuinely depends on it.
 - Building LLM applications on Bedrock, AgentCore or SageMaker inference — prompting, RAG,
-  agent orchestration, evaluation. No skill in this library covers it yet; say so rather than
-  improvising. Bedrock's IAM, quota and cost surface is in scope like any other service.
+  agent orchestration, evaluation. Use the `ai-engineering` skill; training or fine-tuning the
+  weights is the `ml-training` skill. Bedrock's IAM, quota and cost surface is in scope like
+  any other service.
 
 Paths below are relative to this skill's directory.
 

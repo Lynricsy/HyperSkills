@@ -39,8 +39,9 @@ Not covered:
   Application Insights and Log Analytics as *Azure resources* - diagnostic settings, retention,
   ingestion cost, workspace placement - belong here.
 - AWS and GCP. Cross-cloud comparison only where a decision genuinely turns on it.
-- Building LLM applications on Azure AI Foundry or Azure OpenAI. No skill in this library covers
-  it yet; say so rather than improvising. Provisioning the accounts and quota for those services
+- Building LLM applications on Azure AI Foundry or Azure OpenAI. Use the `ai-engineering`
+  skill; training or fine-tuning the weights is the `ml-training` skill. Provisioning the
+  accounts and quota for those services
   is ordinary Azure work and does belong here.
 
 Paths below are relative to this skill's directory.

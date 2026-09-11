@@ -40,8 +40,9 @@ and Kubernetes hardening to `containers`; cloud IAM and network policy detail to
 `gcp` or `cloudflare`; production signal analysis to `observability`. MCP-protocol threats —
 tool poisoning, prompt injection arriving through a tool's return value, over-broad scopes,
 a server acting as a confused deputy — belong to `mcp-server`; audit the whole surface here and
-get the protocol detail there. Smart-contract auditing has no skill in this library yet; say so
-rather than improvising one.
+get the protocol detail there. Smart-contract auditing — reentrancy, proxy storage collisions,
+oracle manipulation, Foundry and Slither — belongs to `solidity-web3`; the threat-modelling,
+severity and reporting method here still applies to that work.
 
 ## Core rules
 

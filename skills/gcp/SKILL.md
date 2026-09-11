@@ -41,8 +41,9 @@ Not covered:
   SQL schema, indexing and `EXPLAIN` for Postgres. Use the `postgres` skill.
 - AWS and Azure. This skill writes only Google Cloud; cross-cloud comparison stays to a
   sentence where a decision genuinely depends on it.
-- Firebase, and Gemini / Vertex AI application development. No skill in this library covers
-  either yet; say so rather than improvising.
+- Gemini and Vertex AI application development: use the `ai-engineering` skill; training or
+  fine-tuning the weights is the `ml-training` skill. Firebase has no skill in this library
+  yet; say so rather than improvising.
 
 Paths below are relative to this skill's directory.
 
