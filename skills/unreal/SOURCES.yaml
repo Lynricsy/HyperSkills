@@ -1,0 +1,118 @@
+skill: unreal
+version: "2026.09.11"
+upstreams:
+  - id: gamedev-unreal
+    kind: repo
+    repo: gamedev-skills/awesome-gamedev-agent-skills
+    url: https://github.com/gamedev-skills/awesome-gamedev-agent-skills
+    paths: [skills/unreal]
+    ref: main
+    commit: b105e1cf617adf0b68ed98790a716bbb60993179
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Topic decomposition for UE5 C++ gameplay, Blueprints, Enhanced Input, Niagara, packaging and behaviour trees, plus the failure-first pitfall framing; every fact rewritten after re-verification against the UE 5.8 documentation."
+    notes: "Root LICENSE is Apache-2.0 and applies to the whole tree; no per-directory licence files exist. Its Live Coding claim (header/UPROPERTY changes require a full editor restart) contradicts the official Live Coding page and was dropped."
+  - id: epic-ue-skills
+    kind: repo
+    repo: EpicGames/unreal-engine-skills-for-claude-code-plugin
+    url: https://github.com/EpicGames/unreal-engine-skills-for-claude-code-plugin
+    paths: [skills/unreal-skill, skills/unreal-mcp, skills/create-toolset]
+    ref: main
+    commit: d1b05809e4f089bd0ef174532c692fbcf1562eb7
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Epic's own position on in-editor agent work: the sanctioned path for manipulating editor content is the official MCP server's toolsets, which is what references/unreal-build.md states an agent may and may not do with .uasset content."
+    notes: "Official Epic Games repository; LICENSE read in full (MIT, Copyright (c) 2026 Epic Games, Inc.). Scope is editor automation, not gameplay programming, so it sets the editor-automation boundary rather than the engine facts."
+  - id: kevinpbuckley-ue
+    kind: repo
+    repo: kevinpbuckley/unreal-engine-skills
+    url: https://github.com/kevinpbuckley/unreal-engine-skills
+    paths: [skills/core]
+    ref: master
+    commit: 023eaa68d80897e6df64a22fcf471940a7b6848b
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Coverage map for a whole-engine skill (48 topic skills) and the pointer-type/lifetime decision tables that this skill's scripting reference reorganizes; its citation discipline set the bar of naming an official page per claim."
+    notes: "No licence file anywhere in the tree; used under the repository's permissive-attribution policy with no text copied verbatim. Its engine-source line numbers were not reusable here because EpicGames/UnrealEngine is access-restricted and was deliberately not consulted."
+  - id: unrealxu-ue5
+    kind: repo
+    repo: UnrealXu/UnrealEngine5-Skills
+    url: https://github.com/UnrealXu/UnrealEngine5-Skills
+    paths: [skills/ue5-cpp-gameplay, skills/ue5-architecture, skills/ue5-debug-validation]
+    ref: main
+    commit: c21bb876a128a7c06e2782769bda524a3301aa99
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "The symptom -> locate -> fix table shape used by the failure-symptom tables, and the module/Build.cs review emphasis."
+  - id: maystudios-unreal
+    kind: repo
+    repo: maystudios/claude-skills
+    url: https://github.com/maystudios/claude-skills
+    paths: [unreal-best-practices, unreal-gas]
+    ref: main
+    commit: 25145cf85b0709dcc2f7a40a7035c7527c137a6c
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-11"
+    contributes: "Legacy-versus-current system framing (Enhanced Input, GAS, Niagara, Lumen, Nanite, World Partition) and the GAS structure that references/unreal-gas.md rewrites from the official pages."
+    notes: "States system status as of UE 5.7 and carries an unsourced '20-30% perf improvement' figure for avoiding Event Tick; the figure was dropped and every status claim re-checked against the UE 5.8 documentation."
+  - id: epic-ue-docs
+    kind: docs
+    url: https://dev.epicgames.com/documentation/en-us/unreal-engine
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "The factual base: every rule in SKILL.md and every reference claim was verified against the UE 5.8 pages for reflection, object pointers, replication, RPCs, ticking, Enhanced Input, GAS, Lumen, Nanite, UMG, Chaos, modules, Live Coding, packaging and automation testing."
+    notes: "Epic's documentation site carries no open licence, so it is reference-only: no text was copied and every statement was rewritten. Read through a rendered browser session because the site is client-rendered."
+  - id: quodsoler-ue
+    kind: repo
+    repo: quodsoler/unreal-engine-skills
+    url: https://github.com/quodsoler/unreal-engine-skills
+    paths: [skills]
+    ref: main
+    commit: 231c8571be6f3335685edc566a28ec6f9621361d
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Cross-checked its eleven ue-* topic list against this skill's coverage; nothing merged."
+    notes: "Freshness ruling: last pushed 2026-03-01, more than six months before this batch, so it scores 0 on freshness and cannot be a merged upstream even though the licence is permissive."
+  - id: a5c-babysitter
+    kind: repo
+    repo: a5c-ai/babysitter
+    url: https://github.com/a5c-ai/babysitter
+    paths: [library/specializations/game-development/skills]
+    ref: main
+    commit: feb68abe397acc14f32b34984975c48fedba2b33
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Used only as a coverage cross-check for unreal-cpp, unreal-gamesframework and unreal-networking."
+    notes: "Content ruling, not a licence ruling: capability bullet lists with no falsifiable rules, agent-specific frontmatter fields this repository forbids, a name/description mismatch (unreal-gamesframework documents GAS), and a docs link pinned to UE 5.0."
+  - id: benjaminastera-skills
+    kind: repo
+    repo: benjaminasterA/antigravity-awesome-skills
+    url: https://github.com/benjaminasterA/antigravity-awesome-skills
+    paths: [skills/unreal-engine-cpp-pro]
+    ref: main
+    commit: 07fe5471efd000f4846fc8b03dfe51a0c1c95a42
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Read for its UObject-hygiene checklist; nothing merged."
+    notes: "Content ruling: advises preferring AddToRoot over TStrongObjectPtr, which contradicts the official Object Pointers page (AddToRoot is a permanent root-set pin; TStrongObjectPtr is the documented way to hold a UObject from a non-UObject owner)."
+  - id: fjz13-specifiers
+    kind: repo
+    repo: fjz13/UnrealSpecifiers
+    url: https://github.com/fjz13/UnrealSpecifiers
+    paths: [Doc]
+    ref: main
+    commit: 38c30241efce36c451f2a3c9dfaa9067ccdf5b5a
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-11"
+    contributes: "Consulted as a specifier cross-check for UPROPERTY and UCLASS behaviour; every specifier statement in this skill comes from the official specifier pages instead."
+    notes: "Licence ruling: LICENSE.md reserves all rights to the author and forbids commercial use, so it cannot be merged regardless of content quality."

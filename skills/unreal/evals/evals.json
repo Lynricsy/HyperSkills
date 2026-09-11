@@ -1,0 +1,72 @@
+[
+  {
+    "skills": ["unreal"],
+    "query": "This pickup actor compiles on one machine and crashes a few seconds after spawn on another, and the ScoreValue designers set in the level keeps coming back as 10. Go through ArenaPickup.h and ArenaPickup.cpp and tell me which of these are hard errors the reflection system rejects, which are lifetime bugs that only show up at runtime, and what each one actually costs us.",
+    "files": ["evals/files/ArenaPickup.h", "evals/files/ArenaPickup.cpp"],
+    "expected_behavior": [
+      "Flags the raw CachedData member as invisible to the garbage collector and states the scope of the guarantee it loses: only references the reflection system can see keep a UObject alive AND get automatically nulled when an actor or component is destroyed, so an unreflected pointer has neither lifetime nor null-out - the fix is UPROPERTY() TObjectPtr<UArenaPickupData>",
+      "Rejects TSharedPtr<UArenaPickupData> for a UObject because a reference count is not a reflected reference, and names TStrongObjectPtr as the documented way to hold a UObject from a non-UObject class",
+      "Flags TStrongObjectPtr as a UPROPERTY with the documented reasons rather than a general 'wrong tool': it does not support UPROPERTY, is expensive to create and destroy, is always a strong reference, and inside a UObject creates an uncollectable cycle that a TObjectPtr self-reference does not",
+      "Says why TObjectPtr rather than a raw UPROPERTY pointer in UE5 - it is GC-safe only as a UPROPERTY, and it is what enables the GC write barrier incremental marking needs plus cook-time dependency tracking - instead of treating the two as interchangeable style",
+      "Flags GENERATED_BODY() not being the very first thing inside the class body, and the generated.h include not being last, as Unreal Header Tool requirements that fail before the compiler produces any diagnostic",
+      "Flags the AddToRoot() call with no paired RemoveFromRoot(): a rooted object is in the root set and can never be collected, and it pins everything it references with it",
+      "Flags 'delete CachedData' as a category error rather than a style issue: UObject destruction belongs to the collector, actors are removed with Destroy(), and deleting behind the collector corrupts the object graph",
+      "Flags the U prefix on a class deriving from AActor as part of the reflection contract: A is for actor-derived spawnable classes, U for the rest of the UObject tree",
+      "Explains the ScoreValue symptom exactly: Transient properties are never saved or loaded and are zero-filled at load, so EditAnywhere plus Transient discards every designer value - and the fix is removing Transient, not changing where the value is set",
+      "Gives the documented worker-thread pattern for the Loaded access, not a generic 'marshal back to the game thread': a UObject must not be dereferenced through a TObjectPtr off the game thread unless already rooted, and the prescribed form is a TWeakObjectPtr with Pin() returning a TStrongObjectPtr that holds the object for the access"
+    ]
+  },
+  {
+    "skills": ["unreal"],
+    "query": "Multiplayer review, dedicated server build. In HealthComponent health looks right on the shooting client but never changes on any other machine, and the hit sound sometimes plays for players on the far side of the map. Tell me exactly what is wrong with the replication setup and the RPCs.",
+    "files": ["evals/files/HealthComponent.h", "evals/files/HealthComponent.cpp"],
+    "expected_behavior": [
+      "Identifies the missing GetLifetimeReplicatedProps override as the root cause and states the whole four-part contract: the Replicated/ReplicatedUsing specifier, registration with DOREPLIFETIME after calling Super, bReplicates on the owning actor, and the component itself set to replicate - distinguishing SetIsReplicatedByDefault in the constructor from SetIsReplicated at runtime, and noting Net/UnrealNetwork.h is required for the macros",
+      "Flags ServerApplyDamage being declared UFUNCTION(Client) despite its name and use: a Client RPC executes on the owning client connection, so the client's call runs locally on a machine with no authority, and adds that a Server RPC must be called from the client that owns the actor - ownership, not the name, decides delivery",
+      "Requires WithValidation plus a _Validate function for the client-supplied damage value and states both outcomes: passing runs the implementation, failing disconnects the calling client",
+      "Flags LocalApplyDamage mutating Health on a client and hand-calling OnRep_Health as fabricating a replication event the server never sent, and notes the authority does not run OnRep_ at all - so the death handling that only lives in OnRep_Health never executes on the dedicated server",
+      "Raises the RepNotify registration semantics rather than only its presence: a RepNotify runs on change by default, and DOREPLIFETIME_CONDITION_NOTIFY with REPNOTIFY_Always is what makes it fire for a re-sent identical value (a re-join or a repeated hit to the same value), which is a different bug class from 'the property never replicates'",
+      "Flags the Reliable NetMulticast for a cosmetic hit sound on both documented grounds: RPCs are unreliable by default and reliable ones cost bandwidth so cosmetic events stay unreliable, and a multicast executes on the server plus every client the actor is currently relevant for",
+      "Warns about reliable RPCs driven by player input specifically: a player can press faster than the reliable queue drains, and overflowing it drops the connection - so the damage RPC needs a rate limit or unreliable delivery, not just a corrected specifier",
+      "Notes that a replicated TArray of structs marks the whole property dirty on every change and grows without bound, and narrows it (server-only, a condition such as COND_OwnerOnly, or off the wire entirely) rather than leaving an unbounded log replicating"
+    ]
+  },
+  {
+    "skills": ["unreal"],
+    "query": "Our game module fails to link with unresolved externals for UEnhancedInputComponent and for the Gameplay Ability System types, and the packaged Shipping build fails even though it works in the editor. Here is ArenaGame.Build.cs - tell me what to change and why, and what else has to happen after I change it.",
+    "files": ["evals/files/ArenaGame.Build.cs"],
+    "expected_behavior": [
+      "States the mechanism rather than just the edit: Unreal Build Tool compiles only the modules in the project's dependency chain, so a module absent from every Build.cs is skipped entirely and its symbols are unresolved externals at link time",
+      "Adds the missing EnhancedInput dependency, and the Gameplay Ability System's modules (GameplayAbilities alongside the GameplayTags entry already present, plus GameplayTasks), and notes that the Gameplay Ability System plugin also has to be enabled for the project",
+      "Identifies UnrealEd and AssetTools as editor-only modules and explains the observed asymmetry: an Editor-type module is not part of a packaged target at all, which is why the editor build works and the Shipping build does not; the fix is a separate Editor-type module or a dependency gated on Target.bBuildEditor with WITH_EDITOR around the code",
+      "Explains the Public versus Private dependency split with its documented consequence: public means used in this module's public headers and propagates to every dependent module, private means used only in .cpp files and is preferred because it reduces compile times - so an all-public list with an empty private list is backwards",
+      "Says that Unreal Build Tool builds from Target.cs and Build.cs rather than from the IDE solution files, so IDE project files must be regenerated after editing a Build.cs and 'it compiles in my IDE' is not evidence about the build",
+      "Raises module initialization order as a separate hazard when adding modules: load order within a LoadingPhase is not deterministic, so code that needs another module ready during StartupModule must call LoadModule or LoadModuleChecked explicitly",
+      "Does not invent Build.cs API: every field or method it recommends is a real ModuleRules member"
+    ]
+  },
+  {
+    "skills": ["unreal"],
+    "query": "Profiling says this one component is eating our frame budget on a 40-enemy level, and the threat label on the HUD flickers between targets. Rewrite the update strategy for PatrolSensorComponent and tell me how to prove the change worked.",
+    "files": ["evals/files/PatrolSensorComponent.cpp", "evals/files/PatrolSensorComponent.h"],
+    "expected_behavior": [
+      "Attacks the per-frame full-world query first: GetAllActorsOfClass plus a Cast for every character on every tick is O(actors) per component per frame, and the replacement is a cached, event-maintained candidate set or a perception/overlap query, not a cheaper loop body",
+      "Uses the documented tick controls instead of leaving the work per-frame: a minimum tick interval, SetComponentTickEnabled to stop ticking when idle, or a timer - and says sensing does not need frame rate",
+      "Names the tick-group consequence for the visibility trace: a trace that must agree with the rendered frame belongs in TG_PostPhysics because TG_PrePhysics reads physics data that is one frame old, and TG_DuringPhysics cannot tell which frame the data came from",
+      "Flags bTraceComplex on a per-frame trace against skeletal meshes as per-triangle work against render geometry, with simple collision being the default for gameplay queries, and requires the trace to ignore the owner",
+      "Replaces the per-frame widget text push with event-driven updates and cites Unreal's own UMG guidance - drive UI from events rather than Bindings or Tick events - rather than presenting it as a general performance opinion",
+      "Flags the unchecked CreateWidget result and the unchecked GetWidgetFromName lookup, and treats one widget per component as a correctness bug for a HUD element (one per local player), not just waste",
+      "Gives a concrete verification path with real tooling and the order to use it: stat unit first to establish which thread is the problem, then stat game or a stat group, then an Unreal Insights capture of the same 40-enemy scene before and after - rather than asserting the rewrite is faster"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "This standalone C++17 particle pool in tools/sim leaks and the second emitter corrupts the first one's data. It is a plain CMake command-line tool with no engine dependency. Fix the ownership so it is exception-safe and copying an emitter is safe.",
+    "files": ["evals/files/particle_pool.cpp"],
+    "expected_behavior": [
+      "Does not read the unreal skill: this is plain C++ with std::shared_ptr and a hand-rolled buffer in a CMake tool, with no UCLASS, no UPROPERTY and no engine module, which the unreal skill's scope hands off explicitly",
+      "Fixes the real C++ defects: the new[] buffer is never deleted, and the copy constructor copies the raw pointer so two Emitters own one buffer - the fix is a std::vector or std::unique_ptr member plus correct copy/move semantics, not a manual delete added to the destructor",
+      "Does not introduce Unreal types or idioms such as UPROPERTY, TObjectPtr, TSharedPtr, TArray, UObject, GENERATED_BODY or a Build.cs into the answer"
+    ]
+  }
+]
