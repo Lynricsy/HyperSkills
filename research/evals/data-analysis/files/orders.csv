@@ -1,0 +1,7 @@
+order_id,customer_id,gross_usd
+o1,001,100
+o2,001,100
+o3,002,60
+o4,,40
+o5,003,
+o6,004,0

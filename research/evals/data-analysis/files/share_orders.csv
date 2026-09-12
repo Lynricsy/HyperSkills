@@ -1,0 +1,7 @@
+order_id,region,status,amount_usd
+n1,North,completed,100
+n2,North,completed,300
+s1,South,completed,600
+s2,South,completed,0
+n3,North,completed,
+n4,North,cancelled,1000

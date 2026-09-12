@@ -1,0 +1,6 @@
+reading_id,participant_id,arm,value
+r1,p01,A,0
+r2,p01,A,0
+r3,p02,A,100
+r4,p03,B,40
+r5,p04,B,40

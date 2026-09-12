@@ -1,0 +1,6 @@
+refund_id,order_id,refund_usd,status
+r1,o1,10,settled
+r2,o1,5,settled
+r2,o1,5,settled
+r3,o2,20,settled
+r4,o3,,pending

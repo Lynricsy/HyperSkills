@@ -1,0 +1,57 @@
+[
+  {
+    "skills": ["data-analysis"],
+    "query": "Finance needs net booked revenue by region and overall, plus order counts and average net revenue per booked order, from these local exports. orders.csv is one booked order per row; gross_usd is the entire order amount, not a line amount. A blank amount means not yet reconciled, not zero. refunds.csv contains payment-provider events: a repeated refund_id is the same event delivered again, and only settled refunds reduce booked revenue. Customer identifiers are opaque strings; a blank customer_id means unknown and must not identify a customer. The draft revenue_draft.sql has been producing inconsistent totals. Repair the analysis, run it against the files, and give finance the results with a rerunnable script or SQL and any limitations that prevent a requested metric from being reported exactly. Preserve the source exports.",
+    "files": ["evals/files/orders.csv", "evals/files/customers.csv", "evals/files/order_lines.csv", "evals/files/refunds.csv", "evals/files/revenue_draft.sql"],
+    "expected_behavior": [
+      "Computes at order grain, removing refund event retries and aggregating settled refunds before any fact-to-fact join; does not use SUM(DISTINCT gross_usd) as a repair because o1 and o2 are different $100 orders.",
+      "Reports 6 booked orders, $300 known gross, $35 settled refunds, and $265 known net subtotal, explicitly distinguishing that subtotal from an exact total because o5 has unknown gross.",
+      "Reports North: 3 orders, $165 known net, 1 unknown-net order; South: 2 orders, $60 net; unattributed: 1 order, $40 net. Does not assign the unknown customer to VIP or discard it.",
+      "Does not report $265/6 as an exact average across all booked orders. It may report the clearly labeled known-amount-only mean $53 across 5 orders, while stating that the requested all-order mean is unknown.",
+      "Delivers and executes a rerunnable local analysis whose reconciliation independently checks the order-level known subtotal and retained population, rather than merely asserting the draft is fixed. Leaves the raw exports unchanged."
+    ]
+  },
+  {
+    "skills": ["data-analysis"],
+    "query": "Use dst_events.csv to calculate the number of purchases, distinct purchasing users, and booked dollars for the New York business day 2025-11-02. occurred_at is an absolute UTC timestamp. Our business day is midnight to the next midnight in America/New_York. Each event_id identifies one purchase; duplicate deliveries of the same event_id are not another purchase, but separate IDs by the same user are separate purchases. Give the actual answer and a rerunnable local analysis, and make the included time range auditable. This report will later run on a machine configured in another timezone.",
+    "files": ["evals/files/dst_events.csv"],
+    "expected_behavior": [
+      "Uses the half-open UTC interval [2025-11-02T04:00:00Z, 2025-11-03T05:00:00Z), derived from America/New_York local midnights; does not assume every local day lasts 24 hours or rely on machine timezone.",
+      "Keeps both e2 and e3 despite their repeated 01:30 local wall-clock time, removes the repeated delivery of e3 by event_id, includes e1 and e4, and excludes e0 and e5.",
+      "Executes the analysis and reports exactly 4 purchases, 3 distinct purchasing users, and $100 booked dollars, with enough inclusion evidence to independently reconcile these totals.",
+      "Provides runnable code or SQL preserving absolute timestamp interpretation and duplicate identity rather than a one-off hand answer."
+    ]
+  },
+  {
+    "skills": ["data-analysis"],
+    "query": "These two CSV exports are parts of one pilot study. We want the difference B minus A in the average participant response: each participant contributes their mean observed reading, and each participant then has equal weight within their arm. reading_id identifies a measurement, so export overlap is not another measurement; different reading_ids are real repeat measurements. Blank values are missing measurements. Compare the arms, state who the estimate represents, and explain whether the pilot supports claiming that B improves response. Deliver a rerunnable analysis with actual numbers. The real exports arrive in many parts and may exceed RAM, so also explain how your computation can be performed incrementally without changing this metric; do not benchmark this tiny fixture as evidence of large-data performance.",
+    "files": ["evals/files/readings_a.csv", "evals/files/readings_b.csv"],
+    "expected_behavior": [
+      "Deduplicates globally by reading_id across file boundaries while retaining distinct repeat readings; r2 is counted once, and p01's distinct r1/r2/r6 measurements remain legitimate observations.",
+      "Calculates observed participant means A: p01=0 and p02=100, giving A=50 over 2 observed participants; B: p03=p04=p06=40, giving B=40 over 3 observed participants; reports B minus A = -10.",
+      "Reports p05 as an A participant with no observed outcome, not a zero; notes A has 3 represented participants but only 2 observed outcomes, and does not claim the full-arm average is identified without missingness assumptions.",
+      "Rejects an improvement claim from the observed point estimate and does not treat repeated readings as independent participants for significance or causality. Distinguishes descriptive pilot evidence from causal identification.",
+      "Provides and executes a reproducible local analysis; its incremental design maintains global measurement identity and per-participant sum/count before arm aggregation, rather than averaging chunk means or independently deduplicating chunks. Accounts for potentially unbounded distinct-ID state using disk-backed partitioning/aggregation or an equivalent bounded-memory design."
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our SQLite database stores a table called analysis_results, but this task is only about operating the database. Two processes now contend while writing and we get database is locked. Explain how to diagnose writer ownership and choose WAL/busy timeout/transaction boundaries without losing committed results. We do not need you to analyze the values, compute statistics, or produce a report file.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read or activate the data-analysis skill; treats the request as SQLite concurrency and operational diagnosis rather than statistical or tabular analysis.",
+      "Does not propose deleting the database or its journal/WAL files as a routine lock fix."
+    ]
+  },
+  {
+    "skills": ["data-analysis"],
+    "query": "Our existing Polars report in revenue_share.py is supposed to show orders in a selected region, ranked by their share of company-wide completed revenue. The denominator is the sum of known amounts of all completed orders in the input, before display region, ranking, or row-limit choices. Blank amounts are unknown and must remain unknown, not zero; shares are explicitly shares of the known-amount subtotal, not of a fully reconciled total. The API build_report(path, region, limit) is consumed as a LazyFrame by another job, which sometimes adds filters or selects columns and chooses either the default or streaming engine. Repair this pipeline without replacing Polars or changing that lazy API, run the North top-two report, and explain the root cause. Check that changing the display region or engine does not redefine company-wide share. Do not fix this by collecting the whole source into Python inside build_report, freezing a scalar from this fixture, or globally disabling the optimizer. Use the dependency version declared in the script.",
+    "files": ["evals/files/revenue_share.py", "evals/files/share_orders.csv"],
+    "expected_behavior": [
+      "Identifies that add_company_share depends on the full completed population, so allowing predicate/slice pushdown across its opaque map_batches boundary or declaring it streamable is not a semantics-preserving promise. Explains that a region filter can alter the denominator and per-batch normalization cannot compute a company-wide share.",
+      "Repairs the actual Polars pipeline while preserving build_report as a composable LazyFrame and the specified business definition; native expressions or correctly scoped aggregate-and-join plans are acceptable, as is another semantics-preserving lazy implementation. Does not collect the entire input into Python, hardcode fixture totals, or disable optimization globally.",
+      "Executes the repaired North top-two report and obtains n2=0.3 and n1=0.1 from the $1000 known completed subtotal, excluding cancelled n4. Keeps n3's share null when included in an untruncated North report, rather than converting unknown revenue to zero or treating $1000 as the exact fully reconciled total.",
+      "Exercises both default and streaming collection and at least one changed display population (South, or a downstream filter on an order). A retained order keeps its company-wide share: s1=0.6, s2=0.0, n2=0.3, n1=0.1 wherever displayed. Evidence must show output agreement, not merely assert that streaming is safe."
+    ]
+  }
+]
