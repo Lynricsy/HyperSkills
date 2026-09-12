@@ -1,6 +1,6 @@
 ---
 name: sqlite
-description: "Guides embedded SQLite work: connection and transaction lifetime, single-writer concurrency, SQLITE_BUSY and SQLITE_BUSY_SNAPSHOT, WAL checkpoints and database file sets, consistent backup and restore, affinity and STRICT tables, foreign keys and NULL constraints, atomic schema migrations, and index plans. Use when a local .db file loses committed data in a backup, a transaction stays locked, an import accepts invalid values, a table rebuild breaks dependencies or reuses IDs, or EXPLAIN QUERY PLAN reveals an unexpected scan. Do not use for Cloudflare D1 or Turso platform operations, ORM or language-binding APIs, PostgreSQL, or general data analysis."
+description: "Designs and operates embedded SQLite databases, transactions, WAL and backups."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
