@@ -1,10 +1,10 @@
 ---
 name: python
-description: "Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml, dependency groups, build backends and PyPI publishing; pytest fixtures, parametrization, isolation and plugins; typing with Protocol, TypedDict, PEP 695 generics and gradual mypy/pyright strictness; asyncio task lifetime, cancellation and blocking-call detection; and the language-level traps that survive review. Use when creating, migrating, typing, testing, packaging or debugging Python code, when reading pyproject.toml to decide how dependencies and tooling are declared, or when a test suite passes alone but fails as part of the whole run. Do not use for Django, FastAPI, data analysis with pandas or notebooks, or model training and fine-tuning."
+description: "Develops Python code with uv, pytest, typing, asyncio and packaging."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
