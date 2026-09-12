@@ -1,10 +1,10 @@
 ---
 name: planning
-description: "Turns a vague request into a plan that can be executed and verified: clarifying requirements into acceptance criteria that are either true or false, recording assumptions and rejected options, and producing a plan whose every step names the command that proves it done, its dependencies, its rollback point and its explicit non-goals. Covers task decomposition, honest parallelism, front-loading unknowns, catching scope creep, and the triggers that force a stop-and-replan when execution contradicts the plan. Applies when a request is too vague to start, when work must be broken into tasks, when reviewing a draft plan, or when a progress report disagrees with its plan. Do not use for writing SKILL.md files (use the `skill-authoring` skill), the red-green test loop (use the `test-driven-development` skill), the mechanical creation of GitHub issues or pull requests (use the `github` skill), technical writing itself, or product roadmaps and sprint scheduling."
+description: "Turns requirements into executable plans with dependencies and verifiable acceptance criteria."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
