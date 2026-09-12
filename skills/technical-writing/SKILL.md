@@ -1,10 +1,10 @@
 ---
 name: technical-writing
-description: "Writes and repairs the documents a project ships to human readers: READMEs, documentation pages, tutorials, how-to guides, reference pages, architecture decision records and changelogs. Classifies a page as tutorial, how-to, reference or explanation first, makes code blocks runnable as pasted, and holds documented defaults and symbols to the source. Also decides how a README looks and reads: first-screen composition, logos and demo recordings, badges and third-party widgets, collapsed sections, alerts, diagrams, anchors that survive npm and PyPI as well as the forge, and prose edited out of an AI register. Applies when docs are written, restructured, made presentable, audited against code, or abandoned by their readers, and when a commit log must become a changelog. Do not use for SKILL.md or AGENTS.md (use the `skill-authoring` skill), GitHub profile READMEs, docs-site generators, OpenAPI generation (use the `api-design` skill), plan documents (use the `planning` skill), or marketing copy."
+description: "Writes and edits READMEs, documentation, tutorials, architecture decisions and changelogs."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
