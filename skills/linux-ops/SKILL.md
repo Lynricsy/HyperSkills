@@ -1,6 +1,6 @@
 ---
 name: linux-ops
-description: "Guides Linux bare-metal and VPS host operations: systemd lifecycle, non-root permissions and capabilities, mount namespaces, process and FD limits, disk blocks and inodes, deleted-open files, DNS, TLS, routing, dual-stack host firewalls, and backup recovery with RPO/RTO. Use when a service works in a shell but fails under systemd, a disk remains full after deletion, a certificate reload serves old data, SSH access is at risk during a network change, or a restore must be proven usable. Do not use for cloud control planes, Kubernetes manifests, application-code bugs, database-engine internals, or shell programming tutorials."
+description: "Operates Linux hosts with systemd, permissions, networking, storage and backup recovery."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
