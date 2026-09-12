@@ -1,6 +1,6 @@
 ---
 name: cpp
-description: "Guides C++17/20/23 engineering: ownership and borrowed-view invalidation, construction failure and move invariants, deferred callbacks and coroutine lifetimes, synchronization protocols, CMake usage requirements, ABI/ODR boundaries, and compiler versus standard-library support. Use when writing or reviewing .cpp/.hpp or CMakeLists.txt, diagnosing dangling string_view/span, exception-safety failures, coroutine cancellation, atomic publication, cross-target layout mismatches, or sanitizer reports. Do not use for Unreal gameplay and reflection, embedded board bring-up, GPU training, or a general C-language tutorial."
+description: "Develops C++ code with CMake, ownership, concurrency and memory safety."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
