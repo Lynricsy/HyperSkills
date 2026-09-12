@@ -1,10 +1,10 @@
 ---
 name: gcp
-description: "Guides Google Cloud control-plane and architecture work: gcloud CLI discipline and its silent defaults, the organization/folder/project hierarchy and organization policy, IAM allow and deny policies, service accounts and Workload Identity Federation, Cloud Run revisions, concurrency, traffic splitting and cold starts, the GKE cluster control plane, Cloud SQL and managed data service selection, Cloud Storage classes and lifecycle, Cloud Logging and Cloud Monitoring as products, cost attribution, budgets and quotas, and Architecture Framework reviews. Use when writing or reviewing gcloud commands, auditing a project IAM policy, deploying or debugging Cloud Run, sizing a GKE cluster, or explaining a Google Cloud bill. Do not use for Kubernetes manifests or container images (use the `containers` skill), Terraform HCL (use the `terraform` skill), OpenTelemetry instrumentation or alert pipelines (use the `observability` skill), AWS, Azure, Firebase, or Gemini API application development."
+description: "Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
