@@ -2,7 +2,7 @@
 # `commit` is filled automatically by:
 #   uv run tools/check_upstream.py --pin ml-training
 skill: ml-training
-version: "2026.09.11"           # must equal SKILL.md metadata.version
+version: "2026.09.12"           # must equal SKILL.md metadata.version
 upstreams:
   - id: nvidia-skills
     kind: repo

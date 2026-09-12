@@ -1,10 +1,10 @@
 ---
 name: ml-training
-description: "Trains and fine-tunes models whose weights you control: choosing between SFT, DPO and GRPO from the data actually available, computing the GPU memory ledger (weights, gradients, optimizer state, activations) before a run instead of after it OOMs, picking parallelism that matches the interconnect, keeping eval sets uncontaminated, and making runs resumable. Covers LoRA/QLoRA and quantization trade-offs, the transformers 5 / trl 1 renames that break older scripts at config construction, OOM and throughput triage, and serving with vLLM. Applies to fine-tuning, preference alignment, distributed training, dataset hygiene, OOM debugging, and reviewing a training script before GPU hours are spent. Do not use for calling a third-party LLM API (use the `ai-engineering` skill), Python tooling (use the `python` skill), containers and Kubernetes (use the `containers` skill), cloud GPU instances and quota (use the `aws`, `azure` or `gcp` skill), or bioinformatics pipelines."
+description: "Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
