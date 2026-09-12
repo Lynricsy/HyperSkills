@@ -1,10 +1,10 @@
 ---
 name: go
-description: "Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation, channels and sync primitives, errgroup, the race detector, error wrapping with %w and errors.Is/As/Join, module and workspace management, package layout, go test (table-driven, t.Parallel, t.Cleanup, synctest, fuzz, b.Loop benchmarks), pprof and runtime/trace profiling, go vet and golangci-lint, and the modern standard library (slices, maps, cmp, iter, math/rand/v2, log/slog, net/http timeouts and graceful shutdown). Use when writing, reviewing, debugging, profiling or modernising Go code, when reading go.mod to pick an approach, or when a goroutine leaks, a test is flaky, a data race appears or allocations dominate a profile. Do not use for cloud provider SDK usage, Kubernetes operators and controllers, or MCP server implementation."
+description: "Develops Go code with goroutines, modules, testing and performance profiling."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
