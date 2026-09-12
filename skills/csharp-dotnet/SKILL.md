@@ -1,10 +1,10 @@
 ---
 name: csharp-dotnet
-description: "Guides C# and .NET application work end to end: C# language rules (nullable reference types and the nullability attributes, records, pattern matching, exception and disposal contracts), async and concurrency (ValueTask, cancellation, ConfigureAwait, thread-pool starvation, Channels), the SDK build (Directory.Build.props and .targets evaluation order, MSBuild properties and items, Central Package Management, incremental build, binlogs), ASP.NET Core (minimal APIs, DI lifetimes and captive dependencies, middleware, options, auth, OpenAPI, EF Core on the request path), Blazor render modes and prerendering, .NET MAUI, testing on Microsoft.Testing.Platform with xUnit, NUnit or MSTest, production diagnostics with dotnet-counters, dotnet-trace and dotnet-dump, and target-framework upgrades through .NET 10 and 11. Use when writing, reviewing, building, testing, profiling or upgrading .cs, .csproj, .razor, .props or .targets files. Do not use for Unity C# and its engine APIs, or for Azure resource orchestration."
+description: "Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
