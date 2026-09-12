@@ -1,10 +1,10 @@
 ---
 name: mongodb
-description: "Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning, $jsonSchema validation), update operators, aggregation pipelines (stage order and pushdown, $lookup cost, $facet, blocking-stage memory), index choice and compound key order, reading explain('executionStats'), transactions and retryable writes, read and write concern, replica-set and shard-key behaviour, time-series collections, Atlas Search and $vectorSearch, driver connection pools and cursor lifetime, and online collection change. Use when designing or reviewing a MongoDB collection or pipeline, when a query got slow, when explain shows COLLSCAN or an in-memory SORT, when documents approach the 16 MB limit, when writes are lost or duplicated across a failover, or when connections exhaust. Do not use for relational schema design or SQL tuning, for Firestore, DynamoDB or other non-MongoDB document stores, or for cloud control-plane operations."
+description: "Designs and tunes MongoDB documents, aggregations, indexes and cluster operations."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
