@@ -1,5 +1,5 @@
 skill: flutter
-version: "2026.09.10"
+version: "2026.09.12"
 upstreams:
   - id: flutter-official
     kind: repo

@@ -1,10 +1,10 @@
 ---
 name: flutter
-description: "Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM), go_router navigation and platform deep links, unit/widget/integration tests with mocktail, mockito or patrol, Dart 3 language features (patterns, records, sealed classes, primary constructors), rendering and jank performance, localization with ARB files, JSON and http, and platform channels, Pigeon and FFI. Use when creating, reviewing, debugging or migrating Flutter apps and Dart packages, when reading pubspec.yaml to pick a state or routing approach, or when fixing RenderFlex overflow, unbounded-constraint and analyzer errors. Do not use for native iOS, Android, SwiftUI or Jetpack Compose code, React Native, or Flutter web hosting and store release operations."
+description: "Develops cross-platform Flutter apps with Dart, widgets and state management."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: platform
 ---
 
