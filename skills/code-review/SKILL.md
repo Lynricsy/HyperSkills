@@ -1,10 +1,10 @@
 ---
 name: code-review
-description: "Reviews code in both directions. Reviewing a diff, PR or branch: pin the base ref, review the tests first, gather Standards and Spec findings on separate axes, apply the five quality lenses and the Fowler smell baseline, size the change, grade findings by severity and end with an explicit merge verdict. Security-aware review of risky changes: auth, crypto, external calls, removed validation, dependency bumps, blame on removed guards, blast radius. Responding to review feedback: verify before implementing, clarify every unclear item first, push back with evidence, never performative agreement. Use when asked to review code or a pull request, to respond to review comments, or to review an already-finished change of your own before calling it done. Do not use for writing a feature or a fix, for a full security audit of a whole codebase, or for architectural redesign."
+description: "Reviews code changes and pull-request diffs, or evaluates review feedback."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: task
 ---
 
