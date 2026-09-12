@@ -1,10 +1,10 @@
 ---
 name: ai-engineering
-description: "Builds and reviews code that calls a language model: prompts separating instructions from retrieved or tool-supplied data, provider-enforced structured output, tools declaring side effects and idempotency, RAG pipelines whose chunking, relevance floor, reranking, context budget and citations are decided, not defaulted, offline evals with decidable criteria and a held-out set, and agent loops with stop conditions, spend caps and defences against injection arriving in a tool result. Applies when reviewing or writing model-calling code, when an agent loops or overspends, or when an eval never fails. Do not use for training or fine-tuning weights (`ml-training`), or for tuning a vector index and its queries — HNSW or IVF parameters, `ef_search`, recall against exact search, index build memory, ANN latency — which belong to `postgres`, `redis`, `mongodb` or `elasticsearch`. Also not for `skill-authoring`, `mcp-server`, or deployment (`containers`, `aws`, `azure`, `gcp`, `cloudflare`)."
+description: "Builds LLM applications, prompts, tool-using agents, RAG pipelines and model evaluations."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
