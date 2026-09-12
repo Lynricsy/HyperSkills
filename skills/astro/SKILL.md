@@ -1,10 +1,10 @@
 ---
 name: astro
-description: "Engineers Astro 7 sites: project and route structure including dynamic routes and getStaticPaths, island boundaries and the client:* hydration directives, server islands with server:defer, content collections and the content layer (glob/file loaders, schemas, live collections), output modes and SSR adapters, astro:actions and the HTML form contract, middleware, sessions and astro:env, view transitions with the ClientRouter component, integrations and Vite configuration, image and font optimisation, route caching, and the Astro 5/6/7 removals that a remembered answer still uses. Applies when writing, reviewing, debugging or upgrading Astro code, deciding what to hydrate, or auditing a page that ships too much JavaScript. Do not use for the internal implementation of the framework component inside an island, or for visual design decisions."
+description: "Builds Astro sites with islands, content collections and server rendering."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
