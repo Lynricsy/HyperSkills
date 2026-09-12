@@ -1,10 +1,10 @@
 ---
 name: api-design
-description: "Designs and reviews HTTP API contracts independently of any framework: resource modelling and URI structure, HTTP method semantics and idempotency, status-code selection, pagination (offset, keyset, opaque cursors) with the failure mode of each, filtering, sorting and sparse fieldsets, the RFC 9457 problem-details error contract, optimistic concurrency with ETag and If-Match, cache headers, long-running operations behind 202 and a status monitor, versioning and deprecation with the Deprecation and Sunset headers, a breaking-versus-compatible change matrix, and authoring an OpenAPI 3.1 document that is validated with redocly lint and exercised with a prism mock. Use when shaping a new API surface, turning verb-style endpoints into resources, choosing a pagination or versioning scheme, standardising error bodies, or judging whether a proposed change breaks existing clients. Do not use for implementing endpoints in a particular framework, or for GraphQL schema and operation design."
+description: "Designs REST API contracts, resource models, pagination and OpenAPI specifications."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 

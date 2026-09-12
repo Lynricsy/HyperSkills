@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin api-design
 skill: api-design
-version: "2026.09.11"           # must equal SKILL.md metadata.version
+version: "2026.09.12"           # must equal SKILL.md metadata.version
 upstreams:
   - id: jeffallan-api-designer
     kind: repo
