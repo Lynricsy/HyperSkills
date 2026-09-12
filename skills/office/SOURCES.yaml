@@ -1,5 +1,5 @@
 skill: office
-version: "2026.09.10"
+version: "2026.09.12"
 upstreams:
   - id: anthropic-docx
     kind: repo

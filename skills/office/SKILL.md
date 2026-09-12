@@ -1,10 +1,10 @@
 ---
 name: office
-description: "Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides, spreadsheets, financial models, forms, tracked changes and comments, markdown-to-docx, PDF merge, split, fill, OCR and table extraction — with a LibreOffice render-and-inspect quality gate that catches the layout and formula failures the libraries accept in silence. Use whenever the deliverable is an Office or PDF file, or when an existing one must be edited or extracted. Do not use for Google Docs, Sheets or Slides, for HTML or markdown output, or for data analysis that does not produce a spreadsheet."
+description: "Creates, edits and converts Word, PowerPoint, Excel and PDF documents."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: task
 ---
 
