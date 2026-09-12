@@ -1,10 +1,10 @@
 ---
 name: security-review
-description: "Audits a codebase, feature or threat surface for security defects, defensively and from source. Scopes the attack surface with a coverage ledger, threat-models trust boundaries as concrete edges, hunts access-control gaps (IDOR, cross-tenant reads, client-trusted roles, token lifetime), injection and untrusted deserialization, SSRF and service trust, leaked credentials and their revocation order, and dependency risk; turns a repeated finding into a tested semgrep rule; grades findings by exploitability and demonstrated impact and states its coverage limits. Use when asked to security review, audit or threat model a repository, service or feature, to triage scanner output, to handle a committed secret, or to write a semgrep rule. Do not use for reviewing a diff for general correctness and style, GitHub Actions hardening and CI supply chain, language- or framework-specific correctness, penetration testing, attacking running systems or evading detection, or contract audits."
+description: "Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
