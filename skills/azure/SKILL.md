@@ -1,10 +1,10 @@
 ---
 name: azure
-description: "Guides Azure control-plane and architecture work: Bicep and Azure Verified Modules, what-if preflight, deployment stacks, azd projects, CAF naming and subscription structure, Microsoft Entra ID, managed identity, federated credentials and Azure RBAC, choosing between App Service, Container Apps, Functions and AKS, the AKS control plane, Resource Health and Activity Log diagnosis, quotas, cost and Well-Architected reviews. Use when reading or writing .bicep, .bicepparam or azure.yaml, when an az deployment fails, when a role assignment does not grant what was expected, or when picking an Azure service or region. Do not use for Terraform, HCL or .tf files, including the azurerm provider (use the `terraform` skill), Kubernetes manifests, Helm charts or container images (use the `containers` skill), .NET code (use the `csharp-dotnet` skill), OpenTelemetry instrumentation or alert pipelines (use the `observability` skill), AWS, GCP, or LLM applications on Azure AI Foundry."
+description: "Manages Azure architecture, Bicep deployments, identity and cloud services."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 

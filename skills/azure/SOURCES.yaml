@@ -1,5 +1,5 @@
 skill: azure
-version: "2026.09.11"
+version: "2026.09.12"
 upstreams:
   - id: microsoft-azure-skills
     kind: repo
