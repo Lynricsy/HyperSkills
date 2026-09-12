@@ -1,10 +1,10 @@
 ---
 name: nodejs-backend
-description: "Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error taxonomy and what a 5xx body may reveal, structured logging, request context through AsyncLocalStorage, configuration and secrets, dependency injection for testability, stream backpressure, and event-loop blocking. Branches to the project's own framework after reading package.json — Fastify plugins, hooks and decorators; NestJS modules, providers, scopes and filters; Hono middleware, validators and streaming — and covers moving an Express service onto one of them. Use when writing, reviewing, testing, profiling or hardening a Node.js backend, or when a service leaks stack traces, drops in-flight requests on deploy, logs the wrong user, or runs out of memory on a large response. Do not use for Next.js server actions or React Server Components, for designing REST contracts and OpenAPI documents, for GraphQL schema design, or for TypeScript type modelling."
+description: "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
