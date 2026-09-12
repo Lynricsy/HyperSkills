@@ -1,10 +1,10 @@
 ---
 name: frontend-design
-description: "Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking interfaces, UI code review against interface guidelines (accessibility and WCAG 2.2, forms, focus, animation, performance, i18n, copy), modern CSS and HTML platform features with Baseline support checks, and Core Web Vitals. Use when designing, building or auditing the look, feel and usability of any web frontend regardless of framework, including requests phrased as \"make this look less AI-generated\", \"review my UI\", \"pick a palette and a type scale\", \"check accessibility\", \"why does this feel cheap\", or \"can I use container queries yet\". Do not use for React or Next.js-specific APIs (use the react skill), native mobile UI, or print and poster design."
+description: "Designs and audits web interfaces for visual quality, usability and accessibility."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: task
 ---
 
