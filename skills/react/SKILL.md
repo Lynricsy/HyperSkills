@@ -1,10 +1,10 @@
 ---
 name: react
-description: "Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle / async performance rules carrying stable rule ids, React Server Component boundaries and directives, data fetching and caching, route handlers, metadata / image / font, hydration errors, Cache Components instant navigation, and shadcn/ui components with the Tailwind conventions shadcn enforces. Applies when writing, reviewing, profiling or migrating React or Next.js code, adding a shadcn/ui component, diagnosing a hydration mismatch, or making a route's navigation instant. Do not use for visual design decisions (use the frontend-design skill), for Vue or Svelte, or for React Native."
+description: "Develops React and Next.js web applications, components and server rendering."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: framework
 ---
 
