@@ -108,6 +108,15 @@
       ]
     },
     {
+      "name": "cpp",
+      "description": "Guides C++17/20/23 engineering: ownership and borrowed-view invalidation, construction failure and move invariants, deferred callbacks and coroutine lifetimes, synchronization protocols, CMake usage r",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/cpp"
+      ]
+    },
+    {
       "name": "csharp-dotnet",
       "description": "Guides C# and .NET application work end to end: C# language rules (nullable reference types and the nullability attributes, records, pattern matching, exception and disposal contracts), async and conc",
       "source": "./",
@@ -556,6 +565,7 @@
         "./skills/cloudflare",
         "./skills/code-review",
         "./skills/containers",
+        "./skills/cpp",
         "./skills/csharp-dotnet",
         "./skills/data-analysis",
         "./skills/debugging",

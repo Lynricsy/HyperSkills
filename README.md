@@ -32,15 +32,15 @@
 - **一个生态一个 skill。** `apple` 一个 skill 同时覆盖 SwiftUI 数据流、Swift 6 严格并发、
   SwiftData 与 Instruments，不切成 `swiftui` / `swift-concurrency` / `swiftdata` 三个——
   它们属于同一次任务，应当同时在场。
-- **精编重写，不是聚合。** 59 个 `SOURCES.yaml` 里共 685 条上游记录（482 条内容重写合入、
-  203 条仅阅读对齐）：510 条仓库型来自 366 个不同仓库，另有 175 条官方文档与 RFC。合入时统一
+- **精编重写，不是聚合。** 60 个 `SOURCES.yaml` 里共 695 条上游记录（485 条内容重写合入、
+  210 条仅阅读对齐）：514 条仓库型来自 370 个不同仓库，另有 181 条官方文档与 RFC。合入时统一
   术语、裁决冲突、删掉模型本来就会的常识，只留边缘情况、静默失败、版本差异与易错点。
 - **先有评测再有正文。** 动笔前先写评测场景（每个 skill ≥3 个，含 ≥1 个「近似但不该触发」
   的负例）并跑无 skill 基线；默认以填补真实基线缺口作为增益门，没有差异就不宣称有效。
-  当前 272 个场景；波次11在强基线后按用户明确决定继续建设，内容交付与增益结论分开记录。
-- **上游可追溯。** 510 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
+  当前 277 个场景；波次11在强基线后按用户明确决定继续建设，内容交付与增益结论分开记录。
+- **上游可追溯。** 514 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
   能列出自那次 commit 以来上游在被引用路径下的全部变更，区分「仓库动了但引用路径没动」和
-  「真的变了」；175 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
+  「真的变了」；181 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
 
 ## 不做什么
 
@@ -64,7 +64,7 @@
 # 装一个
 npx skills@latest add Lynricsy/HyperSkills --skill technical-writing --agent universal --copy --yes
 
-# 装全部 59 个
+# 装全部 60 个
 npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy --yes
 ```
 
@@ -78,7 +78,7 @@ npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy 
 /plugin install all@hyperskills
 ```
 
-插件名与 skill 目录名一致，`all` 是全部 59 个。清单是 `.claude-plugin/marketplace.json`。
+插件名与 skill 目录名一致，`all` 是全部 60 个。清单是 `.claude-plugin/marketplace.json`。
 
 ### 手工复制
 
@@ -109,7 +109,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
 ## skill 目录
 
-59 个：框架 22、平台 18、任务 18、元技能 1。下表由 `tools/build_catalog.py` 生成。
+60 个：框架 23、平台 18、任务 18、元技能 1。下表由 `tools/build_catalog.py` 生成。
 
 <!-- catalog:start -->
 
@@ -126,6 +126,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 | [`cloudflare`](skills/cloudflare/) | 平台 | Guides building and operating on the Cloudflare developer platform: the Workers isolate model and its CPU and memory limits, waitUntil and… | 2026.09.11 | 8 |
 | [`code-review`](skills/code-review/) | 任务 | Reviews code in both directions | 2026.09.10 | 9 |
 | [`containers`](skills/containers/) | 平台 | Guides container artefacts: Dockerfiles and multi-stage builds, base-image choice, BuildKit cache mounts and build secrets, .dockerignore… | 2026.09.11 | 13 |
+| [`cpp`](skills/cpp/) | 框架 | Guides C++17/20/23 engineering: ownership and borrowed-view invalidation, construction failure and move invariants, deferred callbacks and coroutine… | 2026.09.12 | 10 |
 | [`csharp-dotnet`](skills/csharp-dotnet/) | 框架 | Guides C# and .NET application work end to end: C# language rules (nullable reference types and the nullability attributes, records, pattern… | 2026.09.11 | 10 |
 | [`data-analysis`](skills/data-analysis/) | 任务 | Guides local tabular data analysis from CSV, Parquet and dataframes to reproducible conclusions using the project's pandas, Polars or DuckDB stack | 2026.09.12 | 14 |
 | [`debugging`](skills/debugging/) | 任务 | Diagnoses broken behaviour and fixes it at the root cause: builds a red-capable feedback loop before theorising, reproduces and minimises, localises… | 2026.09.10 | 4 |
@@ -170,7 +171,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
 | [`typescript`](skills/typescript/) | 框架 | Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types… | 2026.09.11 | 9 |
 | [`unity`](skills/unity/) | 平台 | Guides Unity 6 game work in C#: MonoBehaviour lifecycle and execution order, what Unity's serializer stores and silently drops (Dictionary only from… | 2026.09.11 | 7 |
-| [`unreal`](skills/unreal/) | 平台 | Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCLASS/UPROPERTY/UFUNCTION reflection contract and what the garbage collector can and… | 2026.09.11 | 10 |
+| [`unreal`](skills/unreal/) | 平台 | Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCLASS/UPROPERTY/UFUNCTION reflection contract and what the garbage collector can and… | 2026.09.12 | 10 |
 | [`vue`](skills/vue/) | 框架 | Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive… | 2026.09.11 | 10 |
 | [`web-testing`](skills/web-testing/) | 任务 | Guides end-to-end testing of web applications in real browsers with Playwright: accessibility-first locators and strict mode, auto-waiting and why a… | 2026.09.11 | 11 |
 | [`wechat-miniprogram`](skills/wechat-miniprogram/) | 平台 | Guides WeChat Mini Program work: the two-thread runtime, exparser vs glass-easel frameworks, WebView vs Skyline renderers, the data-update cost model… | 2026.09.11 | 11 |
@@ -181,13 +182,13 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
 | 项 | 数量 | 数字来自 |
 |---|--:|---|
-| skill | 59 | `skills/*/SKILL.md` |
-| 上游记录（合入 / 仅参考） | 685（482 / 203） | `skills/*/SOURCES.yaml` 的 `upstreams` |
-| 其中仓库型（固定 commit） | 510 | 同上，`kind: repo` |
-| 不同上游仓库 | 366 | 同上，按 `repo` 去重 |
-| 其中文档型（人工比对） | 175 | 同上，`kind: docs` |
-| references 文件 | 510 | `skills/*/references/*.md` |
-| 评测场景 | 272 | `skills/*/evals/evals.json` |
+| skill | 60 | `skills/*/SKILL.md` |
+| 上游记录（合入 / 仅参考） | 695（485 / 210） | `skills/*/SOURCES.yaml` 的 `upstreams` |
+| 其中仓库型（固定 commit） | 514 | 同上，`kind: repo` |
+| 不同上游仓库 | 370 | 同上，按 `repo` 去重 |
+| 其中文档型（人工比对） | 181 | 同上，`kind: docs` |
+| references 文件 | 514 | `skills/*/references/*.md` |
+| 评测场景 | 277 | `skills/*/evals/evals.json` |
 | 脚本入口 | 12 | `skills/*/scripts/` 根目录的 `.py`、`.sh`、`.mjs`，不含依赖文件或辅助模块 |
 
 ## 仓库结构
@@ -250,9 +251,9 @@ uv run tools/build_catalog.py                          # 生成目录与 NOTICE
 
 ```console
 $ uv run tools/validate_skills.py | tail -1
-59 skill(s): 0 error(s), 0 warning(s)
+60 skill(s): 0 error(s), 0 warning(s)
 $ uv run tools/build_catalog.py --check
-catalog is current (59 skill(s))
+catalog is current (60 skill(s))
 ```
 
 `NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json`、本页的目录表区块

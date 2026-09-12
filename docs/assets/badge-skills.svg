@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="84" height="28" viewBox="0 0 84 28" role="img" aria-labelledby="title">
-  <title id="title">技能：59</title>
+  <title id="title">技能：60</title>
   <rect width="84" height="28" rx="5" fill="#30302E"/>
   <path d="M48 0h31q5 0 5 5v18q0 5-5 5H48Z" fill="#EE8747"/>
   <g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" font-size="12" text-anchor="middle">
     <text x="24" y="18" fill="#F5F5F2">技能</text>
-    <text x="66" y="18" fill="#191919" font-weight="700">59</text>
+    <text x="66" y="18" fill="#191919" font-weight="700">60</text>
   </g>
 </svg>

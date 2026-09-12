@@ -289,3 +289,10 @@ Epic 文档站是客户端渲染的 SPA：`read` 直接取 URL 只能拿到几�
 Cloudflare 429。本轮用受控浏览器渲染后抓 `innerText`，共取到 40 个官方页面（约 13k 行纯文本）
 作为事实底稿；旧版本 URL（`unreal-engine-5-6-documentation`）会被重定向到 5.8，这也是版本基线的
 判定依据。
+
+## 2026-09-12 相邻技能集成
+
+随本批正式构建`cpp`，删除Scope中“本库没有通用C++ skill”的过期声明，改为路由`cpp`。
+仅修改否定边界与版本；UObject、Gameplay、复制、GAS等平台规则、上游pin和既有评测不变，
+不把本次边界更新当成重新验证Unreal平台行为。对应C++的Unreal近似负例由本批使用
+`openai/gpt-5.6-sol`、`medium`检验，结果记在`research/cpp.md`。

@@ -4,7 +4,7 @@ description: "Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCL
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
@@ -25,8 +25,8 @@ every rule that only holds from a specific release. Rules without a version gate
 across UE 5.x.
 
 Not covered: the general C++ language, the standard library, CMake, and ownership questions
-in engine-free C++ code. **No skill in this library covers general C++**; answer those
-directly instead of reaching for an engine idiom. Unity is the `unity` skill and Godot is
+in engine-free C++ code. Use the `cpp` skill instead of reaching for an engine idiom.
+Unity is the `unity` skill and Godot is
 the `godot` skill; this skill never answers for them and cross-engine comparison stays to
 one sentence where it is unavoidable. Game UI *implementation* is here, but visual design
 principles — hierarchy, typography, colour, spacing — use the `frontend-design` skill.

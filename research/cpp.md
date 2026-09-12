@@ -1,5 +1,7 @@
 # cpp 调研记录
 
+> 正式正文与4份参考已完成，评测唯一入口为 [`skills/cpp/evals/`](../skills/cpp/evals/)。下文保留Phase A/B当时记录；用户继续建设后的最新结论见文末，内容交付不等于已证明增益。
+
 ## 调研日期与检索途径
 
 - 调研/复核日期：2026-09-12。
@@ -165,6 +167,154 @@ GitHub官方身份不等于C++维护方。Core Guidelines是权威专家校验�
 - 已通过gh递归树定位并固定实读 `docs/notes/cpp/cpp_raii.rst` 的构造失败章节（同a33b7e7提交），与网页核对一致；最终SOURCES应包含该路径，不把移动网页当固定commit内容。
 - 官方工作草案章节会前移；前三个正例使用C++17已有语义，新增协程场景要求C++20，后续正文有版本敏感规则须再核实发布标准/工具版本。
 
-## 构建准备交付
+## Phase B构建准备交付（历史记录）
 
-保留[评测定义](evals/cpp/evals.json)及原始故障夹具，临时Scope/SOURCES骨架移出安装目录，目录表不增加C++。下一次先执行 `uv run tools/new_skill.py cpp --category framework`，再执行 `cp -R research/evals/cpp/. skills/cpp/evals/`；已有调研记录不会被覆盖。本批基线模型命令见[路线图](../docs/roadmap.md)，输出使用新目录保留旧证据。真实缺口出现后才进入Phase C，不将基线已知能力重述为技能增益。
+当时保留评测与原始故障，临时Scope骨架不计入目录。原5场景与7份夹具现已原样迁入[正式评测目录](../skills/cpp/evals/)，不再维护准备目录副本或骨架恢复命令。用户随后要求正式建设，后续对照按[路线图](../docs/roadmap.md)使用同模型medium与独立输出，保留既有20/20基线事实。
+
+## Phase C 正式建设（2026-09-12）
+
+用户获知上一轮停在Phase B且没有正文后，明确要求“好，正式开始构建skill”。
+本轮按该继续建设决定交付完整正文，不再把强基线无缺口作为停笔条件。
+上述20/20无skill结果、原始事件路径及历史暂缓裁决完整保留；本节更新的是
+建设状态，不把已通过的能力宣称为新增模型收益。有skill组仍待Main统一运行，
+当前没有增益结论。
+
+### 实际结构与来源落点
+
+- `skills/cpp/SKILL.md`：framework类别、版本2026.09.12；20条Core rules；
+  ownership、concurrency、cross-target build、feature adoption四个具名验证门工作流；
+  四个带可观察read-when的一层路由；不扩大到Unreal/GPU/板级或C全集。
+- `references/lifetime-and-exceptions.md`：owner/borrow与snapshot区别、vector具体失效、
+  普通与委托构造失败、function-try-block、move耦合不变量和真实异常保证。
+  重新实读cppcheatsheet的`docs/notes/cpp/cpp_raii.rst`，只重写构造失败主题；
+  未采用其vector move必须noexcept的过度断言，也未复制其scope guard代码。
+- `references/deferred-work.md`：queue/closure/frame/handle四层生命期、
+  owning按值参数先于initial_suspend、取消前从未resume、运行中与外部awaiter撤销、
+  完成后frame释放。例子明确为消费项目已有Task的集成片段，不冒充标准task或可独立运行程序。
+- `references/concurrency-protocols.md`：状态协议、同一发布的release/acquire链、
+  one-shot与可复用消息区别、条件变量谓词、callback重入及shutdown quiescence。
+  重新实读Margelo cpp全文，仅重写通用所有权与异步主题；不采Nitro、
+  mutex-last-resort或Jeffallan无安全回收的lock-free示例。
+- `references/build-and-diagnostics.md`：producer usage requirements、
+  PUBLIC/PRIVATE/INTERFACE与static link区别、ABI/ODR及编译器/stdlib/feature probe、
+  ASan/UBSan/TSan实测边界和CTest不为空的实际执行。
+  重新实读ECC `skills/cpp-testing/SKILL.md`，窄选确定性调度与诊断覆盖思想，
+  不复制测试样板、不采ASan+TSan组合，也不采用其Core Guidelines派生standards。
+- `SOURCES.yaml`：三个真实merged来源与七个reference记录。三个merged仓库HEAD
+  经本次已登录`gh api`重新查询，均与原固定40位提交一致；cppcheatsheet/ECC
+  LICENSE全文实读为MIT；Margelo API license仍null，明确NONE、宽松署名重写且无逐字复制。
+  Core Guidelines本次只重读LICENSE并核实HEAD，记录路径仅LICENSE，
+  Proprietary/reference，不虚称本轮重新读取指南全文，不借MIT镜像洗许可。
+- 官方本次实读：工作草案except.ctor、vector.modifiers、lib.types.movedfrom、
+  atomics.order、dcl.fct.def.coroutine（含参数副本后半段）；CMake4.1.6
+  buildsystem/compile-features相应章节；Clang ASan/UBSan/TSan覆盖和限制章节。
+  正文对C++17/20/23标注机制底线，不把草案后续设施泛称C++17可用。
+
+### 交付与未执行项
+
+已恢复`skills/cpp/`正文和四个references；使用目录复制恢复
+`research/evals/cpp/`到`skills/cpp/evals/`，没有解析重写原5个定义或7个错误夹具。
+原归档路径暂留，由Main独占最终迁移整合。本轮未新增脚本、README或生成NOTICE。
+按并行写作合同，未运行格式化、lint、测试、构建、安装、模型评测、全库校验、
+check_upstream --pin、提交或推送；示例命令不是本轮实跑证据。
+Main后续统一结构检查、实际验证与with-skill评测，不能把本次文档校准写成sanitizer通过。
+
+## Phase D 实际有 skill 审阅（2026-09-12）
+
+本节覆盖原5场、20项 `expected_behavior`，以当前
+[`evals.json`](../skills/cpp/evals/evals.json) 原判据逐项评分，不另加关键词、
+命令数量或新知识题。正式建设是用户获知强基线后明确要求的交付；
+下列结果更新Phase C的“待运行”，不抹去Phase A/B历史裁决。
+审阅只读取已有结果、真实工具事件和最终workspace，未重跑模型、编译、测试或安装。
+
+证据路径约定：
+
+- `R/N` = `/tmp/hs-five-build-20260912/evals/cpp/openai-gpt-5.6-sol-medium/skill/N`。
+- `W/N` = `/tmp/hs-five-build-20260912/workspaces/cpp-openai-gpt-5.6-sol-medium-skill-N`。
+- `A` = 对应 `R/N/answer.md`；`E` = 对应 `R/N/events.jsonl`，数字为物理行号。
+  `W` 后文件行号指最终产物，不取同回合中途编辑状态。
+- 五份 `result.json` 均记录 `model=openai/gpt-5.6-sol`、
+  `thinking=medium`、`baseline=false`；E中assistant的provider/model也均为
+  `openai` / `gpt-5.6-sol`。`status=ok`只表示运行结束，不作为评分证明。
+
+### 五场汇总与实际导航
+
+| 场景 | 有skill评分 | 无skill既有评分 | skill_read | 实际读取正文后的references（工具结果行） | 时长 |
+|---|---|---|---|---|---|
+| 1 queued-labels | 4 pass / 0 partial / 0 fail | 4/4 | true（E28） | lifetime-and-exceptions（E58）、deferred-work（E61） | 148.0s |
+| 2 packet ABI | 4 pass / 0 partial / 0 fail | 4/4 | true（E135） | build-and-diagnostics（E168） | 150.0s |
+| 3 publication | 5 pass / 0 partial / 0 fail | 5/5 | true（E142） | concurrency-protocols（E180） | 225.8s |
+| 4 Unreal near-miss | 2 pass / 0 partial / 0 fail | 2/2 | false | 无cpp正文或reference读取；官方Unreal文档路线 | 272.5s |
+| 5 deferred-report | 5 pass / 0 partial / 0 fail | 5/5 | true（E35） | deferred-work（E58） | 143.2s |
+
+四份reference均至少被一个正例实际读到；场景1的双引用分别对应字符失效与
+延迟所有权，场景5直接读协程引用。读取是导航诊断，不算行为增益。
+负例在cpp可用的with-skill配置下仍为 `skill_read=false`，不是“无技能可读”的
+空通过；其E97解析Unreal文档，E153/157/161分别取得RPC、复制条件和GAS资料，
+E191还实际读取Epic RPC页面。
+
+### 20项逐项判定
+
+| 条号 | 原预期要点 | 评分 | 决定性证据 |
+|---|---|---|---|
+| 1.1 | view值捕获仍借用，增长/修改/销毁失效 | pass | A5–10说明地址长度不拥有字符、reserve(1)后重分配、edited破坏快照及局部labels销毁；未把output存活等同labels保活。 |
+| 1.2 | callback拥有post时字符快照，仍defer | pass | W/1 `queued-labels.cpp:19–28` 两次初始化捕获实际复制string；25仍修改首标签，10–13仍排队后drain，31–37保留alpha/beta检查；E533实际输出alpha/beta。 |
+| 1.3 | 不以reserve/view值捕获/可变容器shared owner代替修复 | pass | A12–22给owning string方案；W/1仍有reserve(1)，修复不依赖容器保活或改变其修改。 |
+| 1.4 | C++17输出与ASan诊断，阴性非全性质证明 | pass | A26–39的命令与输出由E527调用/E533结果独立支持：`g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=address,undefined -fno-omit-frame-pointer`后运行alpha/beta。只声称本次无报告，没有推导所有生命周期安全；不为缺特定免责声明造partial。 |
+| 2.1 | PRIVATE造成跨TU不同定义、ODR/ABI且可链接 | pass | A11–17说明PRIVATE只给packet.cpp而公开头布局受宏控制；A45说明相同符号可链接但较大写入破坏较小栈对象。虽未拼写ODR缩写，实质说明同类型跨TU定义不一致，不按关键词扣分。 |
+| 2.2 | producer PUBLIC传递给未来链接消费者 | pass | W/2 `CMakeLists.txt:7` 唯一改动是PRIVATE→PUBLIC；8–9仍仅创建client并链接packet。A13–15解释传递使用要求。 |
+| 2.3 | 无全局flags/逐client宏/packing/cast/布局改动 | pass | 最终四文件与原夹具对照：仅上述一行改变；`packet.hpp`、`packet.cpp`、`packet-client.cpp`逐字节相同。 |
+| 2.4 | 检查双方编译命令、干净构建运行、sizeof不证ABI | pass | E674调用configure/build --verbose/run，E690含新构建目录配置及两条真实`/usr/bin/c++ -DPACKET_EXTENDED=1`命令，分别编译packet.cpp与packet-client.cpp，实际`client=16 library=16`；A47–57列偏移/顺序/条件成员/对齐/调用约定等sizeof未覆盖契约。 |
+| 3.1 | 全atomic无race不等于跨对象发布正确 | pass | A5–9指出relaxed没有跨线程同步链、允许ready真后payload仍0；A45明确两对象均atomic，原协议可无TSan可报告race。 |
+| 3.2 | ready release与观察该发布的acquire，payload relaxed | pass | W/3 `publication.cpp:14–21`只把ready两处改为release/acquire，payload两处保持relaxed；A15–25一致。 |
+| 3.3 | SB/SW/HB链保证42，不靠join事后修复 | pass | A27–39明确store payload → SB → release → SW →读到true的acquire → SB → load payload，限定one-shot且不复位/再写。W/3:17–24 consumer创建仍在producer.join之前，未靠先join producer再启动consumer引入隐含HB。 |
+| 3.4 | TSan检测race，阴性非atomic协议证明 | pass | A43–47区分三类工具覆盖与语言推理，不称原payload为非atomic race，也不承诺TSan必报。 |
+| 3.5 | ASan+UBSan与TSan独立且本CPU实测不冒充可移植证明 | pass | E666有三个独立C++17/-pthread构建调用，优化、ASan+UBSan、TSan结果分别E674/E684/E679，均42；E775压力运行结果`10000 42`。A46–56明确硬件/调度覆盖有限，保证来自源级同步链。 |
+| 4.1 | 不读cpp，路由Unreal或引擎文档 | pass | result的false与全场工具调用一致；E97/153/157/161及E191实读引擎文档，A370–376给Epic来源。 |
+| 4.2 | 不以std::atomic/CMake替代引擎权限/预测 | pass | A3–8、83–117、135–182、201–217、286–325分别处理RPC发起端/所有权/相关性、复制条件、LocalPredicted和prediction key，无通用原子或构建替代。 |
+| 5.1 | closure已销毁但Scheduler的frame仍在 | pass | A5准确区分捕获shared_ptr的闭包与惰性协程帧隐式对象引用；不是shared_ptr本身失效，而是owner仅在局部closure。 |
+| 5.2 | owner按值进入真实跨suspension存储 | pass | W/5 `deferred-report.cpp:55–65`新增命名协程按值shared_ptr，submit移动到参数而非仅改lambda捕获；A22–33明确参数进入frame早于initial_suspend。submit返回时局部owner已移动并销毁，首次resume前frame仍有强引用。 |
+| 5.3 | 保留lazy、move-only Task、Scheduler所有权及main检查 | pass | W/5:15–16仍suspend_always；21–31禁复制、移动handle、析构destroy；43–50仍Scheduler持有Task；68–83原main完全保留。最终修改只在原submit附近，没有同步执行、全局保留或泄漏closure。 |
+| 5.4 | 未首次resume取消释放owner且不写，完成清frame也释放 | pass | A32–33说明两条路径；W/5:31/46/48分别destroy与clear，55–57输出仅在协程体；72–81检查排队存活、完成过期、取消前存活/后过期且输出仍daily。E517和E557运行这些真实检查成功。 |
+| 5.5 | C++20现有检查实跑，显式过期失败不冒称sanitizer报告 | pass | E138/143为原文件C++20普通编译，E157/163运行明确`report expired while queued`、exit 1；修后E492/497普通编译、E511/517运行成功；E532/537以C++20 `-fsanitize=address,undefined -fno-omit-frame-pointer`独立编译，E551/557运行`completion and cancellation release reports`。A39–51没有把原显式weak_ptr检查当ASan诊断。 |
+
+### 产物与实验边界
+
+最终workspace逐文件与正式原夹具对照，只观察到四类必要源修复：
+场景1删除view变量/头并改两次owning捕获；场景2一行PUBLIC；
+场景3两处memory_order；场景5把捕获协程换为按值参数命名协程。
+没有篡改alpha/beta、42、daily/discard输入、删除main检查、提前执行drain，
+也没有改Task/Scheduler机制来过关。场景3的10,000次运行是多个独立程序，
+没有向程序内部加入测试同步、sleep或新的重试；保留的yield轮询来自原夹具。
+场景5现有main实际覆盖首次resume前保活和未resume取消，不扩大为任意外部awaiter、
+运行中取消或跨线程调度证明。读取reference中的示例不计为编译过示例。
+
+本轮审阅所有partial/fail：**无**。场景2缺ODR字样、场景1未另写全称免责声明
+属于表达而非消费者故障；按原判据的语义评分，不以命名缺失制造收益或退化。
+
+### 公共结构、安装及补充机制冒烟
+
+以下为Main已执行并提供的公共验证事实，本审阅未重复运行：
+
+- 五个正式skill各有4份一层references；cpp安装单元共15文件、恰好一个SKILL.md。
+- `uv run tools/validate_skills.py`：60 skill(s)，0 errors / 0 warnings。
+- `build_catalog --check`：current 60；五主题 `check_upstream` 共19条repo来源记录全up_to_date，
+  `--pin`更新0。
+- 隔离 `npx skills` 安装恰好5包，源与安装复制的所有文件逐字节一致，
+  每包一个SKILL.md；不是只数入口、漏掉references或evals。
+- 原25场定义和31夹具字节未改；原料已从research/evals迁至skills/topic/evals，
+  cpp唯一有效评测入口是本节所链正式目录，不恢复旧副本。
+- Main补充C++17 ASan+UBSan机制冒烟：普通构造异常 `member=1 owner=0`，
+  委托构造异常 `member=1 owner=1`，one-shot输出42。这是已执行的机制检查，
+  不是跨CPU发布证明，也不是全部协程路径验证，更不新增为第21项增益证据。
+
+### 保持结论，不宣称D2增益通过
+
+有skill **20/20 pass，0 partial，0 fail**，既有无skill **20/20**：
+逐项差值0，五场均为保持，全部20项是本模型上的非区分项。四个正例正确导航、
+负例在技能可用时拒绝读取，证明本轮路由和行为未观察到退化，
+不证明正文修补了baseline遗漏。**D2“至少一个基线缺口被关闭”的增益门未通过**，
+不能把安装成功、编译成功、较多工具调用或更长答案替代增益。
+两批并非同时运行，且每配置每场单次；没有重复方差或其他模型数据，
+也不从本次单模型结果外推跨模型稳定性。本轮交付完整skill内容及可复核保持证据，
+按用户继续决定完成建设，不再重启知识题迫使差异；本审阅没有提交或推送。

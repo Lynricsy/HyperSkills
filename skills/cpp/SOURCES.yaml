@@ -1,0 +1,94 @@
+skill: cpp
+version: "2026.09.12"
+upstreams:
+  - id: cppcheatsheet
+    kind: repo
+    repo: crazyguitar/cppcheatsheet
+    url: https://github.com/crazyguitar/cppcheatsheet
+    paths: [docs/notes/cpp/cpp_raii.rst, LICENSE]
+    ref: master
+    commit: a33b7e756f6c2811e80ae73165bd2a053289bac3
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rewritten construction-failure ownership and exception-guarantee analysis in SKILL.md and references/lifetime-and-exceptions.md."
+    notes: "Narrow selection only; corrected ordinary versus delegating construction and rejected the blanket noexcept requirement for vector moves. No upstream code example copied."
+  - id: margelo-cpp
+    kind: repo
+    repo: margelo/react-native-skills
+    url: https://github.com/margelo/react-native-skills
+    paths: [skills/cpp/SKILL.md]
+    ref: main
+    commit: 1e9e17be6f41c838db472d6a4b943fc26355a3be
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Independently rewritten ownership, deferred-callback, reentrancy and thread-boundary guidance across SKILL.md and the lifetime, deferred-work and concurrency references."
+    notes: "No repository license declared; used under this repository's permissive attribution policy for NONE sources, with no verbatim copying. Excludes Nitro integration and the mutex-as-last-resort prescription."
+  - id: ecc-cpp-testing
+    kind: repo
+    repo: affaan-m/everything-claude-code
+    url: https://github.com/affaan-m/everything-claude-code
+    paths: [skills/cpp-testing/SKILL.md, LICENSE]
+    ref: main
+    commit: c4904e3f6381df934fc00bffb0afa7a1f8dae0e3
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rewritten deterministic scheduling, target diagnostic coverage and actual-test-execution checks in SKILL.md and the deferred-work, concurrency and build references."
+    notes: "Excludes cpp-coding-standards and all Core Guidelines derivatives; rejects simultaneous ASan/TSan configuration and does not copy testing boilerplate."
+  - id: cpp-core-guidelines
+    kind: repo
+    repo: isocpp/CppCoreGuidelines
+    url: https://github.com/isocpp/CppCoreGuidelines
+    paths: [LICENSE]
+    ref: master
+    commit: 33bcd015997f0d8e0fa0202eb66254a16f59ad8f
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "License-boundary verification for excluding restricted guideline text and derivative mirrors from the skill."
+    notes: "License permits personal or internal business use only; no guideline prose, tables or examples copied, directly or through MIT-labelled mirrors."
+  - id: cpp-draft
+    kind: docs
+    url: https://eel.is/c++draft/
+    license: NONE
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Semantic calibration of construction unwinding, moved-from library objects, vector invalidation, atomic publication and coroutine parameter/frame lifetime."
+    notes: "Read except.ctor, vector.modifiers, lib.types.movedfrom, atomics.order and dcl.fct.def.coroutine. Working draft is not a released-standard availability table; no draft prose or examples copied."
+  - id: cmake-buildsystem
+    kind: docs
+    url: https://cmake.org/cmake/help/v4.1/manual/cmake-buildsystem.7.html
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official target scope and usage-requirement calibration for references/build-and-diagnostics.md."
+  - id: cmake-features
+    kind: docs
+    url: https://cmake.org/cmake/help/v4.1/manual/cmake-compile-features.7.html
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official distinction between minimum language mode and individual feature support in SKILL.md and references/build-and-diagnostics.md."
+  - id: clang-asan
+    kind: docs
+    url: https://clang.llvm.org/docs/AddressSanitizer.html
+    license: Apache-2.0 WITH LLVM-exception
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official memory-check coverage and compiler-driver linkage guidance for references/build-and-diagnostics.md."
+  - id: clang-ubsan
+    kind: docs
+    url: https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+    license: Apache-2.0 WITH LLVM-exception
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official undefined check-group exclusions and recovery behavior for references/build-and-diagnostics.md."
+  - id: clang-tsan
+    kind: docs
+    url: https://clang.llvm.org/docs/ThreadSanitizer.html
+    license: Apache-2.0 WITH LLVM-exception
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official race-detection, instrumentation, static-linking and runtime-environment limits for the concurrency and build references."
