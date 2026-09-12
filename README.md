@@ -112,6 +112,13 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 
 60 个：框架 23、平台 18、任务 18、元技能 1。下表由 `tools/build_catalog.py` 生成。
 
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/assets/catalog-mobile.svg">
+  <img src="docs/assets/catalog.svg" width="1000" alt="HyperSkills 技能目录：框架 23 个、平台 18 个、任务 18 个、元技能 1 个。技术栈配品牌标志，其余任务配用途图标；完整名称与可点击链接见下表。">
+</picture>
+
+图标采用 [Simple Icons](https://simpleicons.org/) 收录的技术品牌标志（综合生态使用代表性技术标志），无独立品牌的任务配用途图标。商标归各自权利人所有，不表示官方背书；来源链接记录于 SVG 元数据。
+
 <!-- catalog:start -->
 
 | Skill | 类别 | 说明 | 版本 | 上游数 |
