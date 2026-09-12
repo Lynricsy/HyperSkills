@@ -1,10 +1,10 @@
 ---
 name: godot
-description: "Guides Godot 4 work in GDScript: the scene tree and node lifetime, queue_free versus free and when an instance really becomes invalid, _ready running at most once so pooled nodes need request_ready, @onready instead of lookups in _init, static typing where := on a Variant is a parse error, signals where repeating connect of the same Callable is rejected but a fresh lambda stacks, _process versus _physics_process and velocity already being per-second, Forward+ / Mobile / Compatibility differences and why web gets Compatibility, Control anchors that containers discard, collision layers versus masks, Resource sharing across scene instances, export presets and headless builds, and multiplayer authority and @rpc id ordering. Use when reading or writing .gd, .tscn, .tres, project.godot or export_presets.cfg, running godot --headless, or debugging freed-node, stale-UI, shared-resource or RPC-mismatch bugs. Do not use for the C# language or .NET tooling, Unity, Unreal, visual design, or TDD methodology."
+description: "Develops Godot games with GDScript, scenes, nodes and engine APIs."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
