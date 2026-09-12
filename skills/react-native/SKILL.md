@@ -1,10 +1,10 @@
 ---
 name: react-native
-description: "Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop layer), Hermes and startup/TTI, list and scroll performance with FlashList, native navigators under Expo Router or React Navigation 7, app config and prebuild, EAS Build and EAS Update channels and runtime versions, React Native and Expo SDK upgrades through Upgrade Helper and the Strict TypeScript API, brownfield integration into an existing native app, and on-device profiling. Use when a task mentions react-native, Expo, EAS, Metro, Hermes, FlashList, TurboModule, expo-router, pod install in an app, or a React Native version bump. Do not use for React component, hook or rendering rules, for the Swift/Objective-C or Kotlin/Java body of a native module, or for Flutter."
+description: "Develops React Native and Expo mobile apps, navigation and native integrations."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
