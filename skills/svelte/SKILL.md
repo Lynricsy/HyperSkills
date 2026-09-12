@@ -1,10 +1,10 @@
 ---
 name: svelte
-description: "Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets and {@render}, props and $bindable, attachments, routing, universal versus server load, devalue serialization and transport hooks, invalidation with depends, form actions with use:enhance, experimental remote functions, hooks, adapters, Vitest browser-mode and Playwright testing, and Svelte 4 to 5 migration. Applies when writing, reviewing, debugging or migrating .svelte and .svelte.ts files or a SvelteKit route, diagnosing state that will not update, or porting stores and slots to runes and snippets. Do not use for visual design, Tailwind or CSS design decisions, for React, Vue or Astro, or for generic Node server frameworks."
+description: "Develops Svelte and SvelteKit applications with runes, routing and server data flows."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 

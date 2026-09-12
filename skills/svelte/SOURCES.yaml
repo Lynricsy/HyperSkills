@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin svelte
 skill: svelte
-version: "2026.09.11"
+version: "2026.09.12"
 upstreams:
   - id: svelte-ai-tools
     kind: repo
