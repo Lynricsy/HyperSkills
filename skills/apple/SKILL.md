@@ -1,10 +1,10 @@
 ---
 name: apple
-description: "Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS 26+), Swift 6.x strict concurrency and actor isolation, SwiftData, accessibility (VoiceOver, Dynamic Type, Voice Control), localization, Swift Testing, UIKit/AppKit interop and scene lifecycle, and Instruments-based performance analysis of hangs and hitches. Covers iOS, iPadOS, macOS, watchOS, tvOS, visionOS and Xcode. Use when writing, reviewing, migrating or profiling Swift or SwiftUI code, when a build fails on a concurrency or availability diagnostic, or when adopting a new SDK. Do not use for Flutter or React Native apps, server-side Swift, or App Store submission and marketing."
+description: "Develops Apple platform apps with Swift, SwiftUI and UIKit."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: platform
 ---
 

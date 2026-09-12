@@ -1,5 +1,5 @@
 skill: apple
-version: "2026.09.10"
+version: "2026.09.12"
 upstreams:
   - id: twostraws-swiftui
     kind: repo
