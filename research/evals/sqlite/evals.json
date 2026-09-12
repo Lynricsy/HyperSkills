@@ -1,0 +1,58 @@
+[
+  {
+    "skills": ["sqlite"],
+    "query": "Our local inventory service sometimes returns database-is-locked after reading stock even though the other worker already finished. reservation.py isolates the two workers without threads. Please run it, explain the failure, and repair reserve so the request for 3 units is rejected after the competing reservation of 4 units. Keep the competing commit after the first read; it represents work completed by another worker, must happen exactly once, and cannot be dropped or moved. Do not change initial stock or reserve fewer units. Show the final result and a bounded recovery policy suitable for this operation.",
+    "files": ["evals/files/reservation.py"],
+    "expected_behavior": [
+      "Identifies the stale WAL read snapshot and SQLITE_BUSY_SNAPSHOT rather than treating the failure as an ordinary busy writer; explains why a larger timeout cannot make this snapshot writable.",
+      "Restarts the whole transaction and rereads stock after releasing the obsolete snapshot; rejects the request with remaining stock 1, preserving the competing commit exactly once.",
+      "Does not retry only the UPDATE with the cached availability, loop forever, or replay the external after_read side effect on each retry.",
+      "Distinguishes prevention using BEGIN IMMEDIATE before reading from recovery after the already-committed competing write; does not deadlock this same-thread fixture by waiting for a writer it is blocking."
+    ]
+  },
+  {
+    "skills": ["sqlite"],
+    "query": "Our scheduled export reports integrity_check=ok but a restored local database is missing a committed order. backup_job.py is the stripped-down job. Please run it and fix export_backup while leaving the writer running and preserving its data. Verify the restored order rather than only the integrity result. We cannot depend on an installed sqlite3 executable; Python stdlib is available. Also explain what a restore procedure must do before replacing a database file used by the service.",
+    "files": ["evals/files/backup_job.py"],
+    "expected_behavior": [
+      "Explains that committed changes can reside in the WAL and an internally valid main-file copy can still be stale.",
+      "Uses a SQLite-aware consistent backup mechanism and demonstrates restored order (17, 950) while the source connection remains open.",
+      "Does not delete source WAL/SHM files, disable journaling, require downtime for this backup, or claim copying the three live files sequentially creates a coherent backup.",
+      "Separates backup creation from restore cutover: quiesces and closes users of the destination, preserves recovery evidence/rollback copy, checks the restored data and constraints, and prevents stale destination sidecars from being paired with the replacement."
+    ]
+  },
+  {
+    "skills": ["sqlite"],
+    "query": "import_orders.py finishes successfully and integrity_check says ok, but order 2 names a missing customer and contains a nonnumeric amount. Please run it, fix future imports, and propose a safe migration of the existing orders table to enforce integer amounts. Existing bad records must be reported rather than silently deleted or cast to zero; valid order 1 must survive a failed migration. Demonstrate both rejection paths independently and describe how you check the SQLite version used by this process before selecting the migration syntax.",
+    "files": ["evals/files/import_orders.py"],
+    "expected_behavior": [
+      "Finds the per-connection foreign-key setting and the silent no-op when toggled inside a transaction; enables and verifies enforcement before BEGIN on each importing connection.",
+      "Uses foreign_key_check to expose existing orphan rows rather than accepting integrity_check=ok as proof of referential integrity.",
+      "Distinguishes ordinary type affinity from STRICT lossless coercion, checks the linked SQLite runtime for STRICT support (3.37.0+), and does not use unsupported ALTER TABLE ADD STRICT or BOOLEAN/DECIMAL types in STRICT DDL.",
+      "Demonstrates an invalid customer with an otherwise valid amount and an invalid amount with an existing customer as separate failures, so one constraint does not conceal the other.",
+      "Plans or demonstrates an atomic table rebuild preserving indexes/triggers and valid rows; migration failure leaves the original data available and identifies malformed records without lossy cleanup."
+    ]
+  },
+  {
+    "skills": [],
+    "query": "My Cloudflare Worker uses D1. Help me configure separate preview and production database bindings in wrangler.jsonc and explain how to apply a D1 migration to the remote production database without accidentally applying it only to local development. I am not working with a local SQLite database file or engine concurrency.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read or activate the sqlite skill; routes the task to Cloudflare platform guidance.",
+      "Addresses Wrangler environment bindings and explicit local versus remote D1 migration targeting rather than recommending local WAL, busy_timeout or file-copy operations."
+    ]
+  },
+  {
+    "skills": ["sqlite"],
+    "query": "Our desktop app needs to migrate its existing products table to STRICT with nonnegative integer price_cents. Please run catalog_migration.py and repair migrate, keeping both supplied databases and their consumer checks. Product IDs have already appeared on issued receipts: deleted product 900 must never be issued again, nor may any earlier issued ID be reused. Existing shipments, price-audit behavior, unique SKUs and public_catalog are still used by the app and must survive. For the valid database show the new schema and exercise these contracts, including the next generated product ID. For the legacy database containing price -5, reject and report the bad record without changing data, schema, issued-ID state or schema version; the operator will repair it separately. Use the actual SQLite library available through Python, no external sqlite3 executable, and restore the connection's foreign-key enforcement on both success and failure.",
+    "files": ["evals/files/catalog_migration.py"],
+    "expected_behavior": [
+      "Completes the valid table rebuild using supported syntax and an atomic transaction, retaining AUTOINCREMENT and the previously issued high-water mark; a newly generated product ID exceeds 900 rather than using MAX(id)+1 from surviving rows.",
+      "Preserves shipment (41,1) without cascading deletion or broken parent references, and restores enabled foreign-key enforcement; an orphan shipment is rejected and foreign_key_check returns no violations.",
+      "Preserves the unique SKU index, update audit trigger and public_catalog view as observable behavior: duplicate BOOK is rejected, updating product 1 records its old/new prices, and the view returns the current catalog.",
+      "Demonstrates that the migrated table rejects negative and nonnumeric prices independently, retains valid product 1, and only publishes user_version=2 after a successful migration.",
+      "The negative-price legacy database is rejected with product 1 and its invalid price identified, leaving original rows, shipments, audit, schema objects, AUTOINCREMENT state and user_version=1 unchanged, with foreign-key enforcement restored.",
+      "Does not hide migration errors, discard malformed data, reset historical ID allocation to the largest surviving row, or repair the supplied fixtures by removing their existing consumer contracts."
+    ]
+  }
+]
