@@ -1,10 +1,10 @@
 ---
 name: graphql
-description: "Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and field naming, interfaces, unions, input objects and enum evolution, cursor Connection pagination and opaque cursors, error modelling (top-level errors versus a payload with userErrors), writing operations with named documents, variables and fragments, DataLoader batching for N+1, demand control through depth, breadth and complexity limits, trusted documents, server differences across graphql-js, Yoga, Apollo Server and Pothos, federated subgraphs with entities and @key, authorisation placement, introspection, and deprecating a field without breaking clients. Use when designing, reviewing, evolving or debugging a GraphQL schema, when a query returns null data or fires hundreds of database statements, or when writing queries, mutations and subscriptions. Do not use for REST and HTTP contract design or OpenAPI, nor for Apollo Client's React bindings and cache."
+description: "Designs GraphQL schemas, operations, resolvers, federation and query controls."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
