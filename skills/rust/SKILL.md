@@ -1,6 +1,6 @@
 ---
 name: rust
-description: "Guides Rust language and runtime engineering: ownership-driven APIs and error contracts, async cancellation and task ownership, Send/Sync and lock lifetimes, unsafe and FFI proof obligations, and Cargo feature unification, independent consumers and MSRV. Use when editing .rs or Cargo.toml, resolving borrow or non-Send future errors, losing work during select!, reviewing raw-pointer wrappers or callbacks, or diagnosing a crate that builds only inside its workspace. Do not use for Tauri configuration, capabilities or IPC, smart contracts, or a single web framework's routing and middleware APIs."
+description: "Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
