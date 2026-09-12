@@ -1,10 +1,10 @@
 ---
 name: wechat-miniprogram
-description: "Guides WeChat Mini Program work: the two-thread runtime, exparser vs glass-easel frameworks, WebView vs Skyline renderers, the data-update cost model (the calling component's Shadow tree before payload size), setData/updateData/groupUpdates, lifecycle ordering, routing and the page stack, native components under same-layer rendering, subpackages and package-size caps, lazyCodeLoading, storage quotas, wx.login and authorization scopes, privacy consent, uni-app conditional compilation, Taro builds, and miniprogram-ci upload. Use when reading or writing .wxml, .wxss, .wxs, app.json, project.config.json, pages.json or manifest.json, or when a mini program stutters, fails to build, or is rejected in review. Do not use for Vue 3 or Vite single-page apps (use the `vue` skill), browser and H5 pages or web rendering performance and visual design (use the `frontend-design` skill), TypeScript and tsconfig (use the `typescript` skill), or CloudBase cloud development (wx.cloud, cloud functions)."
+description: "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
