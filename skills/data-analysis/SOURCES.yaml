@@ -1,0 +1,121 @@
+skill: data-analysis
+version: "2026.09.12"
+upstreams:
+  - id: polars-official
+    kind: repo
+    repo: polars-inc/skills
+    url: https://github.com/polars-inc/skills
+    paths: [polars/SKILL.md, polars/references/lazy-api.md]
+    ref: main
+    commit: 70bec73cd09722411492dfd3613c73bb6df979b8
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rewritten scan, expression naming, lazy-plan, join and sink guidance in references/polars.md and the scale workflow."
+    notes: "Read root LICENSE; rejected mandatory engine migration, no-I/O schema claims and guaranteed streaming completion."
+  - id: duckdb-official
+    kind: repo
+    repo: duckdb/duckdb-skills
+    url: https://github.com/duckdb/duckdb-skills
+    paths: [skills/query/SKILL.md, skills/read-file/SKILL.md, skills/convert-file/SKILL.md]
+    ref: main
+    commit: 7feda8e01e22bc0886c86123f3884947e36d8c69
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rewritten schema-first local SQL, bounded presentation and derived-file export workflow in references/duckdb.md and SKILL.md."
+    notes: "Read root LICENSE; omitted host state, slash commands, generic format macros, xls claims and automatic extension installation."
+  - id: anthropic-data
+    kind: repo
+    repo: anthropics/knowledge-work-plugins
+    url: https://github.com/anthropics/knowledge-work-plugins
+    paths: [data/skills/analyze/SKILL.md, data/skills/validate-data/SKILL.md, data/skills/statistical-analysis/SKILL.md]
+    ref: main
+    commit: a6d8653261a4cf3353c145648fece23bad949278
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rewritten population, join-grain, denominator, independent reconciliation, evidence and reproducibility guidance across SKILL.md and analytical references."
+    notes: "Read data/LICENSE; removed connector dependencies and corrected universal range checks, UTC calendar simplification and statistical shortcuts."
+  - id: kdense-eda
+    kind: repo
+    repo: K-Dense-AI/scientific-agent-skills
+    url: https://github.com/K-Dense-AI/scientific-agent-skills
+    paths: [skills/exploratory-data-analysis/SKILL.md]
+    ref: main
+    commit: c1ed16d97dd61ff50a3bd46dd353e4a55fd77f34
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-12"
+    contributes: "Rewritten observation hierarchy, missingness distinctions, raw-data preservation and exploratory-claim limits in SKILL.md and references/statistical-design.md."
+    notes: "Read LICENSE.md; no scripts, scientific-format support matrix, host restrictions or automatic paper-citation instructions copied."
+  - id: pandas-csv
+    kind: docs
+    url: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for identifier dtype, per-column missing tokens, converters and chunked ingestion in references/pandas.md."
+  - id: pandas-merge
+    kind: docs
+    url: https://pandas.pydata.org/docs/reference/api/pandas.merge.html
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for null-key matching and cardinality validation in references/pandas.md."
+  - id: pandas-time
+    kind: docs
+    url: https://pandas.pydata.org/docs/user_guide/timeseries.html
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for localization, instant conversion and ambiguous/nonexistent clock times in the calendar-window guidance."
+  - id: polars-streaming
+    kind: docs
+    url: https://docs.pola.rs/user-guide/concepts/streaming/
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official correction of streaming memory guarantees and physical-plan inspection guidance in references/polars.md."
+  - id: polars-map-batches
+    kind: docs
+    url: https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.map_batches.html
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for UDF purity, schema, pushdown and streamability promises at population-sensitive boundaries."
+  - id: polars-join
+    kind: docs
+    url: https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.join.html
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for join validation, null equality, coalescing and unspecified output ordering."
+  - id: duckdb-csv
+    kind: docs
+    url: https://duckdb.org/docs/current/data/csv/overview.html
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for explicit CSV types, nullstr, force_not_null, rejects and schema alignment in references/duckdb.md."
+  - id: duckdb-aggregates
+    kind: docs
+    url: https://duckdb.org/docs/current/sql/functions/aggregates.html
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for aggregate grain, DISTINCT values, null coverage and order-sensitive aggregation."
+  - id: duckdb-workloads
+    kind: docs
+    url: https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads.html
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for spilling prerequisites, blocking-operator limitations and EXPLAIN versus EXPLAIN ANALYZE."
+  - id: scipy-ttest
+    kind: docs
+    url: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
+    license: BSD-3-Clause
+    relation: reference
+    synced_at: "2026-09-12"
+    contributes: "Official fact checks for independent samples, Welch variance assumptions, contrast sign, NaN policy and confidence intervals."

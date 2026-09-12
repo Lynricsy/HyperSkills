@@ -1,10 +1,12 @@
 # data-analysis 调研记录
 
+> 正式正文与4份参考已完成，评测唯一入口为 [`skills/data-analysis/evals/`](../skills/data-analysis/evals/)。下文保留Phase A/B当时记录；用户继续建设后的最新结论见文末，内容交付不等于已证明增益。
+
 ## 调研日期与检索途径
 
 - 调研 / 复核日期：2026-09-12。
 - 本轮结论：通过常规立项门，不使用官方特例。已实读 15 个候选，来自 6 个仓库；至少 DuckDB、Polars、Anthropic、K-Dense 四家提供六个月内活跃、评分 ≥8 的相关上游。并非以同仓路径数量冒充独立来源。
-- 当前阶段：Phase A 完成；Phase B 首轮基线1–4已完成，16/16全部达成；保留原场景并追加场景5待Main执行。尚未开始规则正文 / topic references 重写；没有技能效果结论。
+- 准备期记录：Phase A完成后先运行场景1–4，16/16达成，再追加场景5；后续20/20结果和正式建设分节记录，不据此宣称技能增益。
 - 检索：`pandas polars data analysis SKILL.md github`；从 roadmap 的 duckdb/duckdb-skills 起步，搜索结果发现 polars-inc/skills、TerminalSkills、K-Dense、Gonzih；通过 GitHub API 目录树发现 Anthropic 通用分析候选。
 - GitHub 内容一律使用已登录 `gh api`：`repos/<repo>` 核验 stars/pushed_at/license；`git/trees/HEAD?recursive=1` 核验真实路径和 HEAD；`contents/<path>` base64 解码读原文。没有匿名 GitHub 请求，没有把搜索摘要当原文。
 - 官方事实交叉核验用 pandas 3.0.5、Polars stable、DuckDB current、SciPy 1.18、NIST EDA 文档；另经 Context7 `/websites/pola_rs_api_python_stable` 查询 join validation / count 语义。
@@ -211,6 +213,149 @@
 - 官方身份不是正确性豁免；Polars错误风格表、streaming保证、DuckDB xls误支持已明确剔除。K-Dense Polars即使高stars仍按正确性0拒绝。
 - 未读取/合并原仓脚本，不对其运行安全和所有API作通过承诺。没有更改共享docs、生成物、日志，没有commit/push。
 
-## 构建准备交付
+## Phase B构建准备交付（历史记录）
 
-保留[评测定义](evals/data-analysis/evals.json)和原始输入，不发布Scope骨架或修改安装目录计数。恢复时执行 `uv run tools/new_skill.py data-analysis --category task`，然后 `cp -R research/evals/data-analysis/. skills/data-analysis/evals/`；已有调研记录不会被覆盖。使用[路线图](../docs/roadmap.md)中的同模型medium命令与新输出目录；下一次先取得真实最终行为缺口，再写最少规则并运行有skill对照。
+当时保留评测定义与原始输入，不发布Scope骨架。原5场景与10份夹具现已原样迁入[正式评测目录](../skills/data-analysis/evals/)，不再维护准备目录副本或骨架恢复命令。用户随后要求正式建设，按[路线图](../docs/roadmap.md)使用同模型medium和独立输出完成后续对照；历史基线保持不变。
+
+## Phase C 正式建设（2026-09-12）
+
+用户在已知上轮停在 Phase B、尚无正文后明确要求“好，正式开始构建skill”。
+本轮按该决定完成正文，不再以强基线无缺口为由停在准备态。此前 5 场景
+20/20 无 skill 基线与逐项证据全部保留；这些行为仍是非区分项，不能据此
+宣称本 skill 带来增益，也没有编造新的 baseline 失败。
+
+### 实际落点
+
+- `skills/data-analysis/SKILL.md`：任务型范围、16 条硬规则，以及 Data contract、
+  Inference、Partition invariance、Reproduction 四个具名门；沿用项目已有引擎
+  与 LazyFrame 等消费者契约，明确排除数据库运维、Office/PDF 交付、通用 Python、
+  训练、专用科学格式与连接器平台。
+- `references/statistical-design.md`：估计目标与权重、记录身份和独立单位之别、
+  配对/聚类/重复测量、全缺失资格总体、Welch 的有限适用范围、p 值与等效性边界。
+- `references/pandas.md`：CSV 的 dtype 与缺失标记必须共同声明；null merge、
+  基数验证、缺失分组与 subtotal、两端本地日历转 UTC、跨块身份状态。
+- `references/polars.md`：惰性消费者边界、表达式命名、null/NaN、独立全局分母分支、
+  UDF 四种优化承诺及纯函数/schema 要求；streaming 非内存上限保证，sink 不抹除
+  上游状态；不强推所有数据都迁移到 Polars。
+- `references/duckdb.md`：显式 CSV 类型/nullstr/force_not_null、原生粒度核对、
+  SUM DISTINCT 的错误修复、空集/未知度量、WHERE/HAVING 与显示边界、
+  spill 限制与有界输出。没有合入错误的 xls 读取宏或自动安装扩展。
+- `SOURCES.yaml`：4 个本次实读仓库作为 merged，10 个实读官方文档作为 reference；
+  每个 reference 的尾注均使用对应来源 id，贡献说明英文且指出实际路径。
+- 原 `research/evals/data-analysis/` 经 `shutil.copytree` 原样复制到安装目录
+  `evals/`，没有改评测定义、期望或原始故障夹具。旧归档路径由 Main 集成时处理。
+  未新增脚本；没有证据支持值得长期维护的重复自动化工具。
+
+### 本次实读与裁决延续
+
+通过已登录 `gh api` 重新读取四仓 main 的 HEAD，均与上方快照一致：
+Polars `70bec73cd09722411492dfd3613c73bb6df979b8`；
+DuckDB skills `7feda8e01e22bc0886c86123f3884947e36d8c69`；
+Anthropic `a6d8653261a4cf3353c145648fece23bad949278`；
+K-Dense `c1ed16d97dd61ff50a3bd46dd353e4a55fd77f34`。
+重新读取了 SOURCES 所列 SKILL 原文、Polars lazy-api，以及 Polars/DuckDB 根
+LICENSE、Anthropic data/LICENSE、K-Dense LICENSE.md。K-Dense 的 `LICENSE`
+路径返回 404 后通过根目录定位为 `LICENSE.md`，未把失败读取当许可证据。
+四仓许可分别 MIT、MIT、Apache-2.0、MIT。
+
+官方 API/机制再次实读：pandas 3.0.5 read_csv、merge、timeseries 的 DST 段；
+Polars 1.44.2 join、map_batches 和 streaming guide；DuckDB CSV、aggregates、
+workload tuning（GitHub latest release 为 1.5.5）；SciPy 1.18.0 ttest_ind。
+官方文档所在仓库的 license API 返回 pandas/SciPy BSD-3-Clause、
+Polars/DuckDB web MIT。文档仅用于事实核对，不复制整段文档。
+
+保留既有裁决：streaming 可能回退且结果仍需内存；map_batches 的 pushdown/
+streamable 是语义承诺而非性能按钮；CSV 标识符字符串不自动取消 NA 解析；
+pandas null-null merge 与普通 SQL/Polars 默认不同；UTC 瞬时标准化不能替代
+业务本地日期；重复观测不等于独立样本。没有按原 fixture 数字编写正文，
+没有照搬厂商默认引擎、固定采样阈值或生信工具安装表。
+
+### 验证状态
+
+按本批分工，未运行 formatter、lint、测试、构建、安装冒烟、模型评测、
+全库校验或 check_upstream --pin；未生成 NOTICE/目录索引等共享产物，
+未提交或推送。以上版本标签表示本轮对照阅读的官方文档基线，不表示示例
+已经实跑。with-skill、代码示例冒烟、安装及结构校验明确待 Main 统一执行。
+正式正文已交付；技能增益结论仍为未证明，不将“内容完整”混同“评测有效”。
+
+## Phase D 统一验证与实际行为对照（2026-09-12）
+
+Main 已完成上节列出的安装、示例冒烟、结构检查及原5场 with-skill。
+定义和10份原始夹具逐字节迁至
+[正式评测目录](../skills/data-analysis/evals/)，未修改题目、判据或原始导出。
+模型固定 `openai/gpt-5.6-sol`、`--thinking medium`；真实 assistant 消息也核对一致。
+
+令 `R=/tmp/hs-five-build-20260912/evals/data-analysis/openai-gpt-5.6-sol-medium/skill`，
+`W=/tmp/hs-five-build-20260912/workspaces/data-analysis-openai-gpt-5.6-sol-medium-skill-`。
+`N/A`、`N/E` 分别为 `R/N/answer.md`、`R/N/events.jsonl`，`WN` 为编号工作区。
+基线保留在 `/tmp/hs-five-20260912/evals/data-analysis/openai-gpt-5.6-sol-medium/baseline/`。
+
+### 逐项判读
+
+| 场景 | 秒 | 读取本 skill | pass / partial / fail |
+|---|---:|---|---|
+| 1 订单粒度、重传退款及未知金额 | 337.7 | 是 | 4 / 1 / 0 |
+| 2 DST 业务日与事件身份 | 168.1 | 是 | 4 / 0 / 0 |
+| 3 跨分片身份与参与者等权 | 331.8 | 是 | 5 / 0 / 0 |
+| 4 SQLite 锁诊断近似负例 | 153.2 | 否 | 2 / 0 / 0 |
+| 5 Polars 惰性全局分母 | 245.5 | 是 | 4 / 0 / 0 |
+
+全部 `status=ok` 只表示运行结束。下表按原20条复合判据计分，不以输出流畅度、
+答案长度或脚本存在替代实际行为。
+
+| 原判据 | 裁决 | 可复核证据 |
+|---|---|---|
+| 1.E1 订单事实粒度 | pass | W1/analyze_revenue.py:1–186、revenue_draft.sql:1–91；按 refund_id 去重并先聚合 settled 退款，不联接 order_lines 放大事实、不使用 SUM(DISTINCT gross) |
+| 1.E2 总人口及金额账本 | partial | 1/A:1–46、1/E:3404、4342 报告6单、退款35、已知净额265及1笔未知；但没有单列已知 gross=300。计算结果未错，缺的是该复合判据要求的 gross 报告项，不把能由265+35推导当作已经报告 |
+| 1.E3 地区及未归属人口 | pass | 1/E:3404、4029、4342；North 3/165/1未知，South 2/60，Unknown 1/40；空客户不匹配 VIP，标识符保留字符串 |
+| 1.E4 未知均值不伪装为精确总均值 | pass | 1/A 给已知金额5单均值53，明确全部6单均值未知；没有把265/6报告为精确值 |
+| 1.E5 可重跑执行与独立对账 | pass | 1/E:3404、4342 实际运行本地脚本；1/E:4029 另在 eval 中独立遍历原订单/退款，得到6=5+1、地区净额合计265、唯一退款35与重传行40。不是调用同一分析函数回显结果；原4份 CSV 字节未改 |
+| 2.E1 本地午夜构成25小时半开区间 | pass | W2/analyze_dst_events.py:43–46、82–86；边界为11-02 04Z至11-03 05Z，以 America/New_York 日期推导而非24小时偏移 |
+| 2.E2 事件身份与重复墙上时间 | pass | W2/analyze_dst_events.py:49–80；跨输入以 event_id 去重，e2/e3 两个01:30仍各保留，e3重传只算一次 |
+| 2.E3 实际数值及纳入清单 | pass | 2/E:121、148 得到 e1/e2/e3/e4、4次购买、3用户、100美元；机器时区改为 Asia/Tokyo 仍一致 |
+| 2.E4 可重跑时间解释 | pass | W2/analyze_dst_events.py:1–108；读取绝对时间后统一到 UTC，再按业务日筛选，原输入未改 |
+| 3.E1 全局 measurement 去重 | pass | W3/analyze_pilot.py:119–175；磁盘主键 reading_id 跨分片去重，r2只算一次，不删除 p01 的其他不同读数 |
+| 3.E2 参与者等权点估计 | pass | 3/E:444、517；A中 p01=0、p02=100，A=50；B三人各40，B=40，B-A=-10 |
+| 3.E3 保留全缺失参与者 | pass | W3/analyze_pilot.py:179–220；左联接完整参与者人口，A共3人、仅2个已观测结果；3/A:25–48 不把 p05 当0或外推全组均值 |
+| 3.E4 推断单位与因果限制 | pass | 3/A:50–83；Welch 在参与者均值上计算，SE50、df1、宽区间约[-645.31,625.31]，不声称改善、重复读数独立或因果成立 |
+| 3.E5 增量磁盘状态与执行 | pass | W3/analyze_pilot.py:98–220 使用磁盘唯一键及参与者聚合，不把无界 ID 集合留在 Python 内存；3/E:439 独立对账-10，444正常执行，449重复整个分片后仍-10，517最终执行成功 |
+| 4.E1 SQLite 负例不读取分析 skill | pass | 4/result.json skill_read=false，事件无本 skill/参考读取；4/A 聚焦 SQLite writer 与事务 |
+| 4.E2 不删除数据库或 WAL 解锁 | pass | 4/A:1–263；明确拒绝删除数据库、WAL 或 journal，采用事务/连接诊断而非破坏性“清理” |
+| 5.E1 不透明 UDF 优化承诺错误 | pass | 5/A:5–16；解释地区谓词下推改变全公司分母，分批归一化不能给全局份额；5/E:788 原结果为0.75/0.25 |
+| 5.E2 保持可组合 LazyFrame | pass | W5/revenue_share.py:21–46；完整 completed 流做原生聚合后 cross join，显示筛选与 limit 在后，不 Python 全量 collect、不硬编码1000、不全局关优化 |
+| 5.E3 正确份额与未知值 | pass | 5/E:1613 修复后 North 为0.3/0.1；2044 未截断 n3仍null；5/A 明确1000是已知 completed 小计，不是全部收入精确总额 |
+| 5.E4 引擎与显示人口保持 | pass | 5/E:2044 实际比较 auto/streaming，North含0.3/0.1/null、South含0.6/0，下游筛到 n1 仍0.1 |
+
+实际参考导航：场景1读 duckdb，场景3读 statistical-design，场景5读 polars；
+场景2只用主文，负例不读本 skill。**pandas 参考没有在模型对照中被打开**，
+不能将安装可达误写成模型导航覆盖。场景1实际执行的是 stdlib Python，
+其 DuckDB SQL 因该评测环境缺少 DuckDB 未执行，答案已说明；Python 消费者通过。
+
+### 参考代码、安装与结构的独立冒烟
+
+Main 从四份参考抽取可运行代码，在 Python3.12 与 pandas3.0.5、Polars1.44.2、
+DuckDB1.5.5、SciPy1.18.0 的临时隔离环境实际运行，得到：
+
+- pandas：字符串身份、NULL不互配、23小时和25小时业务日边界通过；
+- Polars：NULL不互配、全局分母不受显示筛选/limit改变、全未知输入、
+  auto与streaming结果一致；
+- DuckDB：明确CSV NULL策略、重复键检测、覆盖率及Parquet导出通过；
+- SciPy：Welch统计量约-1.2247449，p约0.2878641、df4，
+  mean(a)-mean(b) 的95%区间约[-3.2669579,1.2669579]。
+
+这证明参考示例在所列版本可执行，不为场景1未执行的 SQL 冒领运行证据，
+不增加原20条之外的模型得分。五主题合并工作区全库校验60 skill、
+0 error/0 warning，目录 current 60；19条仓库型来源记录全部 up_to_date，
+pin更新0。隔离安装恰好五包，data-analysis 的18个文件与源逐字节一致。
+
+### 结论与限制
+
+基线20/20，本轮 **19 pass / 1 partial / 0 fail**。1.E2 的已知 gross
+报告项覆盖不足如实保留；不把其余正确净额和人口结果包装成20/20。
+没有发现被正文关闭的基线失败，D2增益未证明；用户明确要求继续正式建设，
+因此交付完整内容及原样证据，不换弱模型、不增补知识题制造优势。
+
+每配置每场单次，不能推断跨模型或重复运行稳定性。场景3附加 CLI 的
+`--state-db` 会重建内部同名表，只应使用专用分析状态库，不能据此推荐把任意既有
+数据库当临时库；默认临时文件路径不改原CSV。本次没有把该评测辅助脚本作为
+skill脚本发布，也没有审定其中手写 Student-t 数值实现为通用统计库替代品。
