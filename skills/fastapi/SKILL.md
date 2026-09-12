@@ -1,10 +1,10 @@
 ---
 name: fastapi
-description: "Guides FastAPI service work: APIRouter organisation, Annotated dependency injection including yield-dependency lifetime and exit scope, Pydantic v2 request and response models, response_model filtering and serialisation traps, exception handlers and a single error contract, the async/blocking boundary (async def versus def, the 40-slot threadpool, lifespan and lifespan state), streaming and Server-Sent Events, background tasks versus a real task queue, testing with TestClient or httpx.AsyncClient plus dependency_overrides, security dependencies, and what FastAPI puts into the generated OpenAPI schema. Use when writing, reviewing, debugging or upgrading FastAPI endpoints, when a request path stalls under concurrency, when a response leaks or silently drops fields, or when a test suite still talks to real databases and identity providers. Do not use for the Python language and its general toolchain, nor for designing the REST contract and OpenAPI specification itself."
+description: "Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
