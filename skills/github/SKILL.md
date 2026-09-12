@@ -1,10 +1,10 @@
 ---
 name: github
-description: "Guides work that needs GitHub the platform. Actions: writing, auditing and speeding up workflows — triggers and privilege, script injection through ${{ }} interpolation, pull_request_target pwn requests, SHA pinning, least-privilege permissions, OIDC instead of long-lived cloud secrets, zizmor, caching, matrices, concurrency, reusable workflows. Pull requests with gh: opening one, writing a reviewer-facing description, linking an issue, reading CI failures, replying on review threads, merging. Issues: creating, triaging, labels and issue forms. Repository governance: rulesets and branch protection, CODEOWNERS, Dependabot, secret scanning, environments and approvals. Releases and tags. Use when the task touches .github/workflows, a failing or slow CI run, gh pr / gh issue / gh run / gh api, branch protection, CODEOWNERS or Dependabot. Do not use for purely local git work, for auditing application code for vulnerabilities, for other CI platforms such as GitLab CI or Jenkins, or for the deployment target itself."
+description: "Manages GitHub pull requests, issues, Actions workflows, releases and repository settings."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
