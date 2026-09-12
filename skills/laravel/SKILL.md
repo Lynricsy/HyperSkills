@@ -1,10 +1,10 @@
 ---
 name: laravel
-description: "Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts, strictness), migrations and indexes, routing and controllers, form requests and validation, gates and policies, request-forgery protection and rate limiting, queues and jobs (retry_after versus timeout, attempts and backoff, idempotency versus ShouldBeUnique, dispatching inside transactions), events, notifications and mail, scheduling and Artisan, Blade and Livewire 4, Pennant feature flags, Pest tests and suite isolation, configuration, Octane caveats, and the 12 to 13 upgrade. Use when writing, reviewing, debugging or upgrading Laravel PHP code, when a page issues far too many queries, when a queued job duplicates or loses work, when a feature flag or a test behaves nondeterministically, or when Artisan, Eloquent, Blade, Livewire or Pennant appear in the task. Do not use for Laravel Cloud or Forge hosting and deployment operations, or for WordPress."
+description: "Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
