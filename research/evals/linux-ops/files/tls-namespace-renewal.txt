@@ -1,0 +1,49 @@
+Synthetic operator-collected incident bundle. Analyze only; do not run commands against the evaluation host or contact any endpoint.
+
+Service: streamd.service on a Debian VPS, systemd 252. It terminates TLS itself on TCP 8443. No proxy, load balancer, socket activation, DNS change, or second listener exists. A fresh client TLS connection with the correct SNI still receives certificate serial 1001 after renewal to serial 1002. Both certificates currently validate for the same service name; 1001 expires tomorrow. Existing upload streams can last 20 minutes and must not be aborted. The operator may schedule a graceful drain and restart, but cannot drop User=streamd, NoNewPrivileges or read-only isolation. Host paths below are evidence labels, not evaluation workspace files.
+
+systemctl cat streamd.service
+[Unit]
+Description=Streaming archive gateway
+[Service]
+Type=exec
+User=streamd
+Group=streamd
+ExecStart=/usr/local/bin/streamd --cert /run/streamd-tls/server.pem --key /run/streamd-tls/server.key --port 8443
+ExecReload=/usr/local/libexec/streamd-reload $MAINPID
+ProtectSystem=strict
+NoNewPrivileges=yes
+BindReadOnlyPaths=/etc/streamd-tls/server.pem:/run/streamd-tls/server.pem
+BindReadOnlyPaths=/etc/streamd-tls/server.key:/run/streamd-tls/server.key
+ReadWritePaths=/var/lib/streamd
+
+streamd-reload implementation, installed root-owned and not writable by streamd:
+#!/bin/sh
+set -eu
+/usr/bin/openssl x509 -in /run/streamd-tls/server.pem -noout -serial
+kill -HUP "$1"
+
+Documented application behavior: on HUP, the main process closes and reopens both configured TLS paths, validates the pair, and publishes a new TLS context for subsequent connections. Existing streams remain attached to their original context. The code and this behavior have not changed. The daemon logs the serial actually loaded; a successful reload does not imply a different serial.
+
+At 08:00 renewal staged a valid matching cert/key pair under /etc/streamd-tls, then used rename(2) to replace each of server.pem and server.key. No in-place writes occurred. Rotations are serialized and both renames completed before reload. Permissions remain root:streamd 0640; all ancestor directories are searchable by streamd. The stable parent /etc/streamd-tls contains only this service's TLS material; it is not renamed/replaced during renewal. No MAC denials exist.
+
+Before renewal:
+  host /etc/streamd-tls/server.pem device 253:0 inode 88010 serial 1001
+After renewal:
+  host /etc/streamd-tls/server.pem device 253:0 inode 89110 serial 1002
+  host openssl pair validation: valid matching certificate and key
+
+08:01 systemctl reload streamd.service exited 0
+Journal:
+  streamd-reload[8120]: serial=1002
+  streamd[7000]: HUP received; reopened TLS certificate and key; loaded serial=1001
+  streamd[7000]: TLS reload complete
+
+08:02 read-only inspection:
+  /proc/7000/root/run/streamd-tls/server.pem device 253:0 inode 88010 serial 1001
+  MainPID=7000; MainPID unchanged since yesterday
+  /proc/7000/mountinfo contains distinct read-only file bind mounts at /run/streamd-tls/server.pem and /run/streamd-tls/server.key
+  The completed ExecReload process had its own mount namespace, different from PID 7000.
+  systemctl show streamd.service and systemctl cat agree on the unit settings above; no unloaded drop-ins exist.
+
+A teammate proposes systemctl daemon-reload followed by another systemctl reload, since the reload helper already proves the new certificate is readable. Another proposes overwriting the two old inodes in place through /proc/7000/root, to avoid interrupting uploads. The service owner wants a minimal correction plus a future renewal procedure that keeps read-only isolation and permits reload-only renewals. A short maintenance drain for the one-time unit-layout change is acceptable; future certificate renewals must not require service restart.

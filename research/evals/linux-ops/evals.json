@@ -1,0 +1,65 @@
+[
+  {
+    "skills": ["linux-ops"],
+    "query": "Review service-incident.txt. Explain the immediate startup failure and give the smallest safe unit change and activation/verification steps. Also decide whether to accept the proposed file-descriptor limit increase. Work only from the supplied evidence; do not operate this host.",
+    "files": ["evals/files/service-incident.txt"],
+    "expected_behavior": [
+      "Explains that CapabilityBoundingSet limits available capabilities but does not grant them, and NoNewPrivileges prevents gaining the executable's file capability at exec; restores the specific AmbientCapabilities=CAP_NET_BIND_SERVICE rather than root identity or disabling NoNewPrivileges.",
+      "Keeps the ledger-owned writable state path and filesystem hardening; proposes unit validation, daemon-reload, an approved restart, and an actual port/application health check rather than treating enable or daemon-reload as activation.",
+      "Rejects the blanket soft LimitNOFILE increase above 1024 for the documented select(2) backend, identifying the FD_SETSIZE boundary rather than treating a larger limit as a universal fix."
+    ]
+  },
+  {
+    "skills": ["linux-ops"],
+    "query": "Review capacity-incident.txt. What accounts for the disk numbers, which proposed emergency actions should be rejected, and what bounded operator plan addresses the outage without destroying unapproved data? Do not execute any host commands.",
+    "files": ["evals/files/capacity-incident.txt"],
+    "expected_behavior": [
+      "Attributes the block usage discrepancy to a deleted-open inode; recognizes the two descriptors refer to one 70 GiB file, not 140 GiB, and that all holders must release it for final reclamation.",
+      "Separately diagnoses severe inode pressure from staging files; explains that closing the large deleted log may free blocks but cannot resolve millions of occupied inodes.",
+      "Rejects repeated unlink, blind proc-FD truncation and unapproved staging deletion; proposes documented SIGUSR1 log reopening for all relevant workers under appropriate authority or an approved graceful restart, followed by both block and inode checks and service health.",
+      "Preserves seven-day retained logs and treats staging cleanup as requiring purpose/retention discovery rather than assuming age or disk pressure grants deletion authority."
+    ]
+  },
+  {
+    "skills": ["linux-ops"],
+    "query": "Review network-change.txt. Give a go/no-go verdict on the proposed firewall rollout, a corrected recovery-safe plan, and a diagnosis for the HTTPS failure. Use only supplied material; do not execute firewall commands or connect to these example addresses.",
+    "files": ["evals/files/network-change.txt"],
+    "expected_behavior": [
+      "Rejects the rollout because new SSH sessions on 2222 would be blocked while the established session survives; does not accept whoami in the existing session as access verification.",
+      "Preserves the actual management source and port plus necessary ICMPv6 traffic; does not blindly replace them with port 22 or IPv4-only ICMP in an inet policy.",
+      "Requires a tested detached timed rollback restoring the known-good running rules and persistent file before applying, validates the candidate, tests a fresh SSH connection plus service reachability before cancellation, and explicitly refuses apply while recovery is unarmed.",
+      "Locates the observed HTTPS failure at the IPv6 TLS endpoint's wrong certificate/SNI virtual-host deployment, not at DNS failure or IPv4 routing; does not fix it by disabling verification, flushing firewall rules, or deleting the intended AAAA record."
+    ]
+  },
+  {
+    "skills": ["linux-ops"],
+    "query": "Review restore-evidence.txt. Decide whether the recovery proposal and RPO/RTO claim are defensible, then give a safe recovery and verification plan that preserves ongoing uploads and required metadata. Analysis only; no repository or host operations.",
+    "files": ["evals/files/restore-evidence.txt"],
+    "expected_behavior": [
+      "Rejects unqualified latest because it selects other-vps; selects files-vps snapshot 1111aaaa explicitly and restores into an isolated target instead of overlaying /.",
+      "Explains that the --delete mirror propagated deletion and archive mode alone omits hardlink, ACL and xattr preservation; proposes metadata-aware handling such as -aHAX with required privileges and verifies those attributes before promotion.",
+      "Distinguishes restic structural check from --read-data payload checking and from an application restore rehearsal; does not claim an unmeasured two-hour RTO is proven.",
+      "Notes the available files-vps recovery point is 26 hours before the incident and therefore misses the 24-hour RPO; preserves snapshots and current uploads, coordinates a write barrier or delta reconciliation before promotion, retains a rollback copy, and defers prune until recovery is validated."
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Our Linux-hosted Python application has a pure in-memory cache bug: after cache[key] = value, a helper rebinds its local cache = {} and callers still see the old entries. Explain the Python name-binding issue and a minimal code correction. No operating-system diagnosis or service changes are requested.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read the linux-ops skill.",
+      "Addresses local name rebinding versus mutation of the shared dict; does not propose systemctl, firewall, kernel tuning or host restart."
+    ]
+  },
+  {
+    "skills": ["linux-ops"],
+    "query": "Review tls-namespace-renewal.txt. Reconcile the contradictory renewal observations, judge the two proposed fixes, and give a minimal one-time correction and durable renewal procedure meeting the service owner's availability and isolation requirements. Include the evidence that would actually prove success. Analyze only; do not operate a host.",
+    "files": ["evals/files/tls-namespace-renewal.txt"],
+    "expected_behavior": [
+      "Explains that atomic pathname replacement leaves the main process's individual file bind mounts attached to the old inodes, while ExecReload gets separately constructed mounts and can read serial 1002; does not dismiss the daemon's reopen behavior as an application bug or treat helper success as proof of the main process's view.",
+      "Rejects daemon-reload plus HUP as a way to rebuild the existing main process mount namespace, and rejects in-place proc-root overwrites that defeat read-only isolation or expose a partially written certificate/key pair.",
+      "Replaces individual file binds with a read-only bind of the stable service-specific parent directory, or an equally concrete design preserving pathname replacement visibility and least privilege; resets/removes both inherited file bindings so they cannot keep shadowing the new directory view. Does not merely append a directory binding while leaving stale per-file mount declarations effective.",
+      "Plans one approved graceful drain and restart to instantiate the corrected namespace, then validates a matching staged pair, publishes within the stable bound directory under serialized rotation, and reloads without restarting for future renewals. Verifies the main process's actual view and loaded serial plus a fresh SNI TLS handshake, preserves ongoing streams and a known-good rollback pair, and does not declare success from exit status or the helper serial alone."
+    ]
+  }
+]

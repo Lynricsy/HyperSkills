@@ -1,0 +1,22 @@
+Synthetic recovery evidence. Review only; do not contact the backup repository.
+Host: files-vps. A filesystem-only archive service stores uploads at /srv/archive. No live database is included. Archive owner requires preservation of ACLs, hardlinks and security.capability xattrs. Destination supports these attributes and the approved restoration account can set them. RPO 24 hours; RTO 2 hours. All times below UTC.
+
+Daily mirror command:
+rsync -av --delete /srv/archive/ /backup/current/
+This mirror is the only local copy. There is also an offsite restic repository with snapshots for multiple hosts.
+
+restic snapshots
+ID       Time                 Host       Tags     Paths
+1111aaaa 2026-09-11 02:00:00  files-vps  nightly  /srv/archive
+2222bbbb 2026-09-12 02:00:00  other-vps  nightly  /srv/archive
+
+restic check run on 2026-09-12 03:00:00:
+load indexes
+check all packs
+check snapshots, trees and blobs
+no errors were found
+No --read-data option was used. No restore has ever been exercised.
+
+At 2026-09-12 04:00:00 an operator accidentally deleted a directory in /srv/archive, and the mirror ran afterward. The restic snapshot from files-vps predates the deletion.
+Proposed recovery: restic restore latest --target / ; restart archive.service ; forget --keep-last 1 --prune.
+The service is still accepting uploads. The incident lead asks whether this proves RPO/RTO compliance and whether the proposed recovery is safe.

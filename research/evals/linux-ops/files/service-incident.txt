@@ -1,0 +1,36 @@
+Synthetic operator-collected evidence; not output collected from the evaluation host.
+Target: Debian VPS, systemd 252, service ledger.service. Only analyze these records.
+A deployment replaced the executable. Operators may restart ledger during an approved 30-second window, but may not change user identity or remove filesystem hardening.
+
+systemctl cat ledger.service
+[Unit]
+Description=Ledger API
+[Service]
+Type=exec
+User=ledger
+Group=ledger
+ExecStart=/opt/ledger/bin/ledger --port 443 --state /var/lib/ledger
+Restart=on-failure
+NoNewPrivileges=yes
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ledger
+LimitNOFILE=1024
+[Install]
+WantedBy=multi-user.target
+
+journalctl -u ledger.service --no-pager
+ledger[4123]: bind 0.0.0.0:443: permission denied
+systemd[1]: ledger.service: Main process exited, code=exited, status=1/FAILURE
+
+getcap /opt/ledger/bin/ledger
+/opt/ledger/bin/ledger cap_net_bind_service=ep
+
+namei -l /var/lib/ledger
+drwxr-xr-x root root /
+drwxr-xr-x root root var
+drwxr-xr-x root root lib
+drwx------ ledger ledger ledger
+
+Additional measurements: net.ipv4.ip_unprivileged_port_start=1024; no SELinux or AppArmor enforcement; no competing port 443 listener. The previous unit had AmbientCapabilities=CAP_NET_BIND_SERVICE. A maintainer removed it believing CapabilityBoundingSet grants that capability and the executable file capability is sufficient.
+The same deployment proposes increasing LimitNOFILE to 65536. The binary's documented networking backend uses select(2); no backend migration is part of this maintenance window.

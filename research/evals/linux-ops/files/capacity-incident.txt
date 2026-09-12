@@ -1,0 +1,22 @@
+Synthetic read-only incident evidence. Do not run these commands against this host.
+Target: one ext4 /var filesystem, major:minor 253:2. No bind mounts or snapshots. Writers are still running.
+Support asks why removing worker.log did not restore capacity. Log retention is seven days. Immediate action is diagnostic only; a restart window needs service-owner approval. The worker supports SIGUSR1 to reopen logs; SIGHUP terminates it.
+
+df -B1 /var
+Filesystem 1B-blocks Used Available Use% Mounted on
+/dev/mapper/vg-var 107374182400 106837311488 536870912 100% /var
+
+du -x -B1 -s /var
+32212254720 /var
+
+df -i /var
+Filesystem Inodes IUsed IFree IUse% Mounted on
+/dev/mapper/vg-var 6553600 6550000 3600 100% /var
+
+lsof +L1 /var
+COMMAND PID USER FD TYPE DEVICE SIZE/OFF NLINK NODE NAME
+worker 2100 worker 8w REG 253,2 75161927680 0 80125 /var/log/worker.log (deleted)
+worker 2101 worker 8w REG 253,2 75161927680 0 80125 /var/log/worker.log (deleted)
+
+Read-only inventory: /var/lib/worker/staging contains 6,400,000 tiny files. Their purpose and retention are not yet established. The visible seven-day application logs total 200 MiB. Journald reports 300 MiB total.
+Both worker processes inherited the same open log inode. Operator already ran rm once. A teammate proposes rm again, truncating /proc/2100/fd/8, and deleting all staging files in one emergency command.

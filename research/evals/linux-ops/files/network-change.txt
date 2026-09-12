@@ -1,0 +1,38 @@
+Synthetic operator-collected evidence. Analyze only; do not connect to any address or change a host.
+Target: VPS with native nftables; no UFW, firewalld, Docker or additional base chains. Management is SSH TCP 2222 from 198.51.100.17. Current console recovery is unavailable. nftables.service loads /etc/nftables.conf at boot. A local systemd timer facility is available for a privileged detached rollback, but no rollback has been scheduled yet.
+Existing SSH session remains connected. Service checkout.example.test should serve HTTPS to IPv4 and IPv6 clients.
+
+Current rules:
+table inet filter {
+ chain input {
+  type filter hook input priority 0; policy drop;
+  ct state established,related accept
+  iifname "lo" accept
+  ip saddr 198.51.100.17 tcp dport 2222 accept
+  tcp dport 443 accept
+  meta l4proto ipv6-icmp accept
+ }
+ chain output { type filter hook output priority 0; policy accept; }
+}
+
+Proposed /etc/nftables.conf:
+flush ruleset
+table inet filter {
+ chain input {
+  type filter hook input priority 0; policy drop;
+  ct state established,related accept
+  iifname "lo" accept
+  tcp dport { 22, 443 } accept
+  ip protocol icmp accept
+ }
+}
+
+Operator rollout proposal: save the proposed file; nft -f /etc/nftables.conf; run whoami in the existing SSH session; declare success and reboot.
+
+Diagnostic observations before this proposal:
+getent ahostsv4 checkout.example.test -> 203.0.113.44
+getent ahostsv6 checkout.example.test -> 2001:db8:44::44
+ip route get 203.0.113.44 -> via 192.0.2.1 dev eth0 src 192.0.2.44
+curl --resolve checkout.example.test:443:203.0.113.44 https://checkout.example.test/health -> HTTP 200, certificate verified
+curl -6 https://checkout.example.test/health -> curl: (60) certificate subject name does not match target hostname
+IPv6 TLS endpoint with SNI checkout.example.test serves a certificate SAN DNS:old.example.test. Both A and AAAA are intended addresses for this service.
