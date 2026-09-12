@@ -1,0 +1,57 @@
+[
+  {
+    "skills": ["cpp"],
+    "query": "This C++17 event-loop example should queue snapshots of labels at the time post is called. queued-labels.cpp sometimes prints corrupted labels. Please fix it without changing drain into immediate execution or changing the expected alpha/beta output. Explain the failure and show a focused verification command. The output vector and event loop remain alive until drain completes.",
+    "files": ["evals/files/queued-labels.cpp"],
+    "expected_behavior": [
+      "Identifies that value-capturing string_view copies a borrow, not its character storage, and traces possible invalidation during vector growth or string mutation as well as certain destruction of local labels before drain.",
+      "Makes each queued callback own the character snapshot taken when it was posted; preserves alpha and beta even after the first label is edited, without extending unrelated container lifetime or running callbacks synchronously.",
+      "Does not present reserve, capturing the view by value, or shared ownership of a still-mutated container as a sufficient fix.",
+      "Provides a C++17 compile/run check for the actual output and a suitable ASan lifetime diagnostic; does not claim a clean sanitizer run proves all lifetime properties."
+    ]
+  },
+  {
+    "skills": ["cpp"],
+    "query": "Our packet library compiles and links, but packet_client reports a different Packet size and can corrupt its stack. The attached four files are a complete CMake 3.20/C++17 reproduction. PACKET_EXTENDED must remain enabled for the library's public wire adapter. Fix the producer's build contract so future consumers work just by linking packet; do not add a macro separately to each client or change the struct layout. Explain whether a successful link or matching sizeof alone proves ABI compatibility.",
+    "files": ["evals/files/CMakeLists.txt", "evals/files/packet.hpp", "evals/files/packet.cpp", "evals/files/packet-client.cpp"],
+    "expected_behavior": [
+      "Traces PACKET_EXTENDED being PRIVATE on packet to incompatible definitions of Packet in library and client translation units, explaining the ODR/ABI problem despite a successful link.",
+      "Changes the library's compile definition to PUBLIC (or an equivalent producer-owned usage requirement consumed transitively), preserving the extended layout for the library and every target linking it.",
+      "Does not use global compiler flags, client-specific duplicate macros, packing, reinterpret_cast, or struct edits to mask the mismatch.",
+      "Checks actual compile commands or preprocessed definitions on both sides and gives clean configure/build/run verification; explains sizeof equality cannot establish identical member layout/types or the entire ABI contract."
+    ]
+  },
+  {
+    "skills": ["cpp"],
+    "query": "publication.cpp is a C++17 one-shot message channel. It passes a million runs on x86_64 with both ASan+UBSan and a separate TSan build. Does that establish that a consumer which sees ready gets payload 42 on every supported CPU? Please review the protocol, make the smallest portable correction if required, and explain what evidence the sanitizers can and cannot supply. Keep the one-shot design and do not add sleeps or retries.",
+    "files": ["evals/files/publication.cpp"],
+    "expected_behavior": [
+      "Distinguishes a data-race-free all-atomic program from a correct publication protocol: relaxed operations on separate atomics do not establish the needed cross-object ordering.",
+      "Uses release on the ready publication and acquire on the load observing it (or a correctly justified stronger synchronization), while allowing payload operations to remain relaxed.",
+      "Explains the concrete sequenced-before/synchronizes-with/happens-before chain that guarantees 42, rather than claiming volatile, CPU barriers by name alone, or thread joins after the read repair publication.",
+      "States that TSan detects data races and a clean run is not a proof of atomic protocol correctness; does not falsely label this original program's payload accesses as a non-atomic data race or promise TSan must report them.",
+      "Keeps ASan+UBSan and TSan instrumentation in separate suitable builds and distinguishes source-level reasoning from empirical evidence on one CPU."
+    ]
+  },
+  {
+    "skills": [],
+    "query": "In Unreal Engine 5 my replicated ACharacter ability fires on the owning client but not on remote clients. I need advice on UFUNCTION Server/NetMulticast RPC ownership, replication conditions, and Gameplay Ability System prediction keys. The code is C++, but this is not a language, object-lifetime or CMake problem.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read the cpp skill; routes the engine networking and GAS question to unreal or the appropriate engine documentation.",
+      "Does not replace engine authority, ownership and prediction analysis with generic std::atomic or CMake advice."
+    ]
+  },
+  {
+    "skills": ["cpp"],
+    "query": "The attached C++20 batch exporter started reporting 'report expired while queued' after we changed Task to start lazily. Please repair the lifetime bug while preserving the Scheduler/Task ownership model and deferred execution. A submitted report must remain alive until its task completes or is cancelled, and be released afterward; cancellation must not write output. The output vector and scheduler outlive all tasks. Keep the checks in main and explain why the fix covers both normal completion and cancelling a task that has never resumed.",
+    "files": ["evals/files/deferred-report.cpp"],
+    "expected_behavior": [
+      "Distinguishes the local lambda closure's lifetime from the coroutine frame: the frame survives in Scheduler but accessing the captured shared_ptr still requires the already-destroyed closure.",
+      "Transfers owning Report state into storage that actually outlives suspension, such as a by-value coroutine parameter in a noncapturing coroutine; does not merely change the capture to shared_ptr, reference, or std::move.",
+      "Preserves initial lazy suspension and Scheduler-owned move-only Task frames, without running the task synchronously, leaking a closure, retaining every report globally, or deleting main's lifetime checks.",
+      "Accounts for cancellation before first resume: frame destruction must release the owned report without executing the output write; completion also releases ownership once the scheduler clears completed tasks.",
+      "Provides a C++20 compile/run verification of the existing main checks and distinguishes an explicit expired-while-queued failure from a sanitizer diagnosis; does not claim a sanitizer report was observed unless it was."
+    ]
+  }
+]
