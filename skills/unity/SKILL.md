@@ -1,10 +1,10 @@
 ---
 name: unity
-description: "Guides Unity 6 game work in C#: MonoBehaviour lifecycle and execution order, what Unity's serializer stores and silently drops (Dictionary only from 6.6, [SerializeReference], [FormerlySerializedAs]), coroutines versus Awaitable, per-frame Find/GetComponent/tag/string allocations behind a GC sawtooth, the Unity 6.4 FindObjectsByType deprecations, URP SRP Batcher and GPU Resident Drawer compatibility, uGUI versus UI Toolkit, FixedUpdate physics and the collision/trigger matrix, Addressables and texture memory, Editor extensions, DOTS boundaries, Unity Test Framework, and batch-mode builds with IL2CPP, stripping and exit codes. Use when reading or writing .cs under Assets/, .asmdef or a Unity CI script. Do not use for the C# language, .NET SDK/MSBuild/NuGet, ASP.NET Core or dotnet-counters/BenchmarkDotNet GC work (use the csharp-dotnet skill), for Godot or Unreal, for game-UI visual design (use the frontend-design skill), or for TDD methodology (use the test-driven-development skill)."
+description: "Develops Unity games with C#, engine APIs, rendering and asset workflows."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
