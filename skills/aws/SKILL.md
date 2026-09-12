@@ -1,10 +1,10 @@
 ---
 name: aws
-description: "Guides AWS architecture and control-plane work: IAM policy evaluation, permissions boundaries, trust policies and PassRole escalation; Lambda, API Gateway, Step Functions, SQS and EventBridge selection and quotas; choosing between CloudFormation, SAM and CDK and recovering a stack that is stuck or about to replace a stateful resource; managed data service selection; VPC endpoints, NAT and cross-AZ traffic; EKS and ECS control planes; CloudWatch quotas and billing; Well-Architected trade-offs; and cost work with Cost Explorer, Compute Optimizer, Savings Plans and Budgets. Use when reviewing an IAM policy, a SAM or CloudFormation template or a CDK app, diagnosing a 504, a throttle, a failed deployment or a cost spike, or picking an AWS service. Do not use for Terraform HCL (use the `terraform` skill), Dockerfiles or Kubernetes manifests (`containers`), OpenTelemetry instrumentation or alerting pipelines (`observability`), Azure, Google Cloud, or building LLM applications on Bedrock."
+description: "Manages AWS architecture, IAM, cloud services, deployments and costs."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
