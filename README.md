@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <sub>活跃开发中，暂无 CI。<a href="LICENSE">MIT 许可</a> · 由 <a href="https://github.com/Lynricsy">@Lynricsy</a> 维护 · <a href="https://github.com/Lynricsy/HyperSkills/issues">反馈问题</a></sub>
+  <sub>活跃开发中，已配置 <a href=".github/workflows/ci.yml">GitHub CI</a>。<a href="LICENSE">MIT 许可</a> · 由 <a href="https://github.com/Lynricsy">@Lynricsy</a> 维护 · <a href="https://github.com/Lynricsy/HyperSkills/issues">反馈问题</a></sub>
 </p>
 
 > **skill 会以 agent 的全部权限运行。** 装之前把 `SKILL.md` 和 `scripts/` 读一遍——
@@ -52,7 +52,7 @@
   （`relation: reference`），未复制任何文字、脚本或数据文件。
 - **不给多选项。** 正文只写裁决后的一种做法加一个逃生口，不罗列可选库；裁决过程留在
   `research/`，不进 skill。
-- **没有 CI。** 下面两条质量门命令要在本地跑；红了不会有人自动告诉你。
+- **不把静态 CI 当行为评测。** CI 自动检查解析、结构和生成物一致性；模型行为与上游内容准确性仍按五阶段流水线验证。
 - **正文英文。** `SKILL.md`、`references/`、`scripts/` 注释一律英文（给模型读），
   README、`docs/`、`research/` 一律中文（给人读）。
 
@@ -243,6 +243,7 @@ uv run tools/new_skill.py <name> --category platform   # 脚手架（platform|fr
 uv run tools/run_evals.py <name> --baseline            # 无 skill 基线
 uv run tools/run_evals.py <name>                       # 有 skill
 uv run tools/validate_skills.py                        # 静态质量门
+uv run --locked tools/check_repository.py             # 与 CI 相同的完整内容门
 uv run tools/check_upstream.py                         # 上游漂移
 uv run tools/check_upstream.py --pin <name>            # 固定 commit
 uv run tools/build_catalog.py                          # 生成目录与 NOTICE
@@ -260,6 +261,47 @@ catalog is current (60 skill(s))
 `NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json`、本页的目录表区块
 与 `docs/assets/badge-*.svg` 统计徽章都由 `tools/build_catalog.py` 生成，
 手工编辑会在 `--check` 处报 stale。徽章分别统计 skill 数量、上游记录总数与去重后的来源仓库数。
+
+### 自动检查
+
+[GitHub Actions 工作流](.github/workflows/ci.yml) 在推送到 `main`、所有 PR、
+合并队列请求及手动触发时运行，不按变更路径跳过检查：
+
+| 检查任务 | 覆盖 |
+|---|---|
+| `Repository / Python 3.11`、`Repository / Python 3.14` | YAML / JSON 重复键与非法语法、TOML、SVG、frontmatter、Python 语法与 PEP 723 元数据；真实脚手架替换后解析 |
+| 同上 | 全量 skill 规范、引用与来源、评测字段及夹具边界、Python / Node / Bash 脚本语法；`--strict` 将警告也视为失败 |
+| 同上 | NOTICE、市场清单、README 目录和统计徽章一致性；校验器边界回归 |
+| `Workflow checks` | actionlint 检查工作流结构、表达式及内嵌 shell；zizmor 离线检查权限、注入风险和依赖固定策略 |
+
+本地完整内容门要求 Git、uv、Node.js 和 Bash；Python 由 uv 提供：
+
+```bash
+uv run --locked tools/check_repository.py
+```
+
+该命令包含上面的两条既有质量门，失败返回非零退出码，不重写生成文件。
+依赖通过 `tools/check_repository.py.lock` 固定；更新时运行
+`uv lock --script tools/check_repository.py --upgrade`，并提交锁文件。
+矩阵版本在独立 runner 运行；本地同时验证多个 Python 版本时应使用各自的 `UV_CACHE_DIR`。
+
+工作流检查可独立复现（actionlint 需要 Go 1.25+，安装后将 `go env GOPATH` 下的 `bin` 加入 PATH）：
+
+```bash
+go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+actionlint -color
+uvx zizmor==1.30.1 --offline --strict-collection --no-progress .github
+```
+
+内容扫描遵守 Git 忽略规则，也覆盖未暂存的新文件；`skills/*/evals/files/` 中故意错误的
+代码与配置不做语法扫描，但评测声明的夹具路径、存在性与大小仍检查。
+CI 不调用模型、不执行分发脚本和评测夹具、不联网检查外部链接或上游漂移，也不代替安装冒烟。
+首次安装 Python、工具和依赖需要网络，检查内容本身不依赖模型凭据或上游 API。
+
+所有 Action 固定到完整 commit SHA，令牌只有 `contents: read`，checkout 不保留凭据，
+任务有超时与并发取消策略。[Dependabot](.github/dependabot.yml) 每周合并提出 Action
+更新，设置 7 天冷却；工具版本与脚本锁文件由维护者显式更新。
+工作流不会修改分支保护；若要禁止红灯合并，需在仓库规则中把上述三个任务设为必需检查。
 
 ## 许可
 

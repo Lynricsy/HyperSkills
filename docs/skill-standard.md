@@ -25,6 +25,9 @@ metadata:
   category: platform | framework | task | meta
 ---
 ```
+YAML 必须可安全解析；frontmatter 和 `SOURCES.yaml` 各层映射的显式键不得重复，
+避免解析器静默覆盖前一个值。标准 YAML 锚点及合并键的显式覆盖仍可使用。
+
 
 ### 1.1 字段约束
 
@@ -169,7 +172,10 @@ Phase B 结束、Phase C 动笔之前先写 ≥3 个评测场景：
 
 - 至少 1 个场景是「近似但不应触发本 skill」的**负例**（`skills: []`，
   `expected_behavior` 写明不应读取本 skill）。
-- 夹具文件放 `evals/files/`，小文件，≤50 KB。
+- `skills` 必须是合法 skill 名称的字符串数组；`expected_behavior` 必须是非空、非空白字符串数组。
+- JSON 各层对象不得含重复键，不得使用 `NaN` / `Infinity` 等非标准 JSON 值。
+- `files` 若提供，必须是非空白相对路径字符串数组。每个路径必须指向 `evals/files/`
+  内的文件，解析符号链接后也不得越界；夹具文件 ≤50 KiB（51,200 字节）。
 - **skill 目录下只有根目录可以有 `SKILL.md`。** 夹具即使内容是一个 skill，也必须换名
   （如 `widget-builder-SKILL.md`）——Cursor 等递归发现器把「含 SKILL.md 的目录」直接
   当作一个 skill，`evals/files/SKILL.md` 会注册出第二个坏 skill。
@@ -201,6 +207,11 @@ upstreams:
 约束：`skill` == 目录名；`version` == frontmatter `metadata.version`；`upstreams` 非空；
 `id` 唯一；`kind=repo` 时 `commit` 为 40 位 hex；`relation ∈ {merged, reference}`；
 `synced_at` 为 ISO 日期；**至少一个 `relation: merged`**。
+`kind=repo` 的 `paths` 必须是非空、非空白字符串数组。
+
+全量校验把 `skills/` 下每个非隐藏一级目录都视为 skill 候选，缺少 `SKILL.md` 必须报错，
+不能因无法发现入口而跳过。空 skill 集合也必须使校验失败。CI 使用 `--strict`，
+将本标准中建议项产生的警告升级为检查失败；本地不加此参数时仍仅错误返回非零退出码。
 
 ---
 

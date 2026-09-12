@@ -32,7 +32,13 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _common import SkillLoadError, load_skill, repo_root, resolve_targets  # noqa: E402
+from _common import (  # noqa: E402
+    SkillLoadError,
+    load_json,
+    load_skill,
+    repo_root,
+    resolve_targets,
+)
 
 # A single eval turn is usually 1-5 minutes; 900s leaves headroom for slow
 # models and tool-heavy scenarios without hanging a batch forever.
@@ -67,7 +73,7 @@ def write_overlay(out_root: Path, skills_dir: Path) -> Path:
     out_root.mkdir(parents=True, exist_ok=True)
     overlay = out_root / OVERLAY_FILE
     overlay.write_text(
-        "skills:\n" f'  customDirectories: ["{skills_dir}"]\n', encoding="utf-8"
+        f'skills:\n  customDirectories: ["{skills_dir}"]\n', encoding="utf-8"
     )
     return overlay
 
@@ -114,7 +120,9 @@ def parse_events(raw: str) -> list[dict[str, Any]]:
     return events
 
 
-def detect_skill_read(events: list[dict[str, Any]], skill: str, skills_dir: Path) -> bool:
+def detect_skill_read(
+    events: list[dict[str, Any]], skill: str, skills_dir: Path
+) -> bool:
     """Whether a tool call actually loaded the skill body or one of its references.
 
     Substring-matching the whole transcript reported a read whenever the path
@@ -203,9 +211,10 @@ def run_scenario(
     started = time.monotonic()
     timed_out = False
     try:
-        with events_path.open("w", encoding="utf-8") as sink, stderr_path.open(
-            "w", encoding="utf-8"
-        ) as err_sink:
+        with (
+            events_path.open("w", encoding="utf-8") as sink,
+            stderr_path.open("w", encoding="utf-8") as err_sink,
+        ):
             proc = subprocess.Popen(
                 cmd,
                 cwd=work_dir,
@@ -304,10 +313,14 @@ def main() -> int:
         help=f"reasoning level (default: {DEFAULT_THINKING})",
     )
     parser.add_argument(
-        "--baseline", action="store_true", help="run with --no-skills to measure the gap"
+        "--baseline",
+        action="store_true",
+        help="run with --no-skills to measure the gap",
     )
     parser.add_argument("--only", type=int, help="run only scenario N (1-based)")
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT_ROOT, help="output root")
+    parser.add_argument(
+        "--out", type=Path, default=DEFAULT_OUT_ROOT, help="output root"
+    )
     parser.add_argument(
         "--workspace-root",
         type=Path,
@@ -341,7 +354,11 @@ def main() -> int:
         if not evals_path.is_file():
             print(f"error: {evals_path} not found", file=sys.stderr)
             return 1
-        scenarios = json.loads(evals_path.read_text(encoding="utf-8"))
+        try:
+            scenarios = load_json(evals_path.read_text(encoding="utf-8"))
+        except (ValueError, OSError) as exc:
+            print(f"error: {evals_path}: {exc}", file=sys.stderr)
+            return 1
 
         for i, scenario in enumerate(scenarios, start=1):
             if args.only is not None and i != args.only:
@@ -371,7 +388,9 @@ def main() -> int:
             )
             results.append(result)
 
-    print("\n| skill | # | model | thinking | mode | skill_read | status | secs | answer |")
+    print(
+        "\n| skill | # | model | thinking | mode | skill_read | status | secs | answer |"
+    )
     print("|---|---|---|---|---|---|---|---|---|")
     for r in results:
         print(

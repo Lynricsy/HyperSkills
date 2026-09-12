@@ -17,7 +17,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import subprocess
 import sys
@@ -35,6 +34,7 @@ from _common import (  # noqa: E402
     VERSION_RE,
     Skill,
     SkillLoadError,
+    load_json,
     load_skill,
     render_notice,
     resolve_targets,
@@ -147,7 +147,9 @@ def check_frontmatter(skill: Skill, rep: Report) -> None:
         rep.error("frontmatter 'metadata' must be a mapping")
     else:
         if meta.get("author") != "HyperSkills":
-            rep.error(f"metadata.author must be 'HyperSkills', got {meta.get('author')!r}")
+            rep.error(
+                f"metadata.author must be 'HyperSkills', got {meta.get('author')!r}"
+            )
         version = str(meta.get("version", ""))
         if not VERSION_RE.match(version):
             rep.error(f"metadata.version must be YYYY.MM.DD, got {version!r}")
@@ -160,7 +162,7 @@ def check_frontmatter(skill: Skill, rep: Report) -> None:
     extra = set(fm) - ALLOWED_TOP_LEVEL_KEYS
     if extra:
         rep.error(
-            f"non-spec top-level frontmatter keys: {', '.join(sorted(extra))}. "
+            f"non-spec top-level frontmatter keys: {', '.join(sorted(map(str, extra)))}. "
             f"Allowed: {', '.join(sorted(ALLOWED_TOP_LEVEL_KEYS))}"
         )
 
@@ -185,9 +187,13 @@ def check_body(skill: Skill, rep: Report) -> None:
     """Checks 6, 7, 15."""
     lines = skill.body.splitlines()
     if len(lines) > SKILL_MD_HARD_LIMIT:
-        rep.error(f"SKILL.md body is {len(lines)} lines, hard limit {SKILL_MD_HARD_LIMIT}")
+        rep.error(
+            f"SKILL.md body is {len(lines)} lines, hard limit {SKILL_MD_HARD_LIMIT}"
+        )
     elif len(lines) > SKILL_MD_WARN_LIMIT:
-        rep.warn(f"SKILL.md body is {len(lines)} lines, prefer <= {SKILL_MD_WARN_LIMIT}")
+        rep.warn(
+            f"SKILL.md body is {len(lines)} lines, prefer <= {SKILL_MD_WARN_LIMIT}"
+        )
 
     referenced: set[str] = set()
     for match in ASSET_REF_RE.finditer(skill.body):
@@ -222,7 +228,9 @@ def check_references(skill: Skill, rep: Report) -> None:
     ref_dir = skill.path / "references"
     if not ref_dir.is_dir():
         return
-    known_ids = {str(u.get("id")) for u in skill.upstreams if u.get("id")}
+    known_ids = {
+        str(u.get("id")) for u in skill.upstreams if isinstance(u, dict) and u.get("id")
+    }
     for ref in sorted(ref_dir.glob("*.md")):
         rel = f"references/{ref.name}"
         text = ref.read_text(encoding="utf-8")
@@ -258,7 +266,9 @@ def check_references(skill: Skill, rep: Report) -> None:
                     )
 
         if REFERENCE_LINK_RE.search(text):
-            rep.error(f"{rel} links to another reference; only SKILL.md may link one level")
+            rep.error(
+                f"{rel} links to another reference; only SKILL.md may link one level"
+            )
 
         check_banned(text, rel, rep)
         if BACKSLASH_PATH_RE.search(text):
@@ -273,7 +283,9 @@ def check_sources(skill: Skill, rep: Report) -> None:
         return
     src = skill.sources
     if src.get("skill") != skill.name:
-        rep.error(f"SOURCES.yaml 'skill' must be '{skill.name}', got {src.get('skill')!r}")
+        rep.error(
+            f"SOURCES.yaml 'skill' must be '{skill.name}', got {src.get('skill')!r}"
+        )
     if str(src.get("version", "")) != skill.version:
         rep.error(
             f"SOURCES.yaml version {src.get('version')!r} != "
@@ -329,8 +341,12 @@ def check_sources(skill: Skill, rep: Report) -> None:
             if not SHA_RE.match(commit):
                 rep.error(f"{tag} 'commit' must be a 40-hex sha, got {commit!r}")
             paths = up.get("paths")
-            if paths is not None and not isinstance(paths, list):
-                rep.error(f"{tag} 'paths' must be a list when present")
+            if (
+                not isinstance(paths, list)
+                or not paths
+                or any(not isinstance(p, str) or not p.strip() for p in paths)
+            ):
+                rep.error(f"{tag} 'paths' must be a non-empty list of strings")
 
         if up.get("license") == "Proprietary" and relation == "merged":
             rep.error(f"{tag} proprietary sources must be relation: reference")
@@ -388,15 +404,17 @@ def check_evals(skill: Skill, rep: Report) -> None:
         rep.error("evals/evals.json is missing")
         return
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
+        data = load_json(path.read_text(encoding="utf-8"))
+    except ValueError as exc:
         rep.error(f"evals/evals.json is not valid JSON: {exc}")
         return
     if not isinstance(data, list):
         rep.error("evals/evals.json must be a JSON array")
         return
     if len(data) < MIN_EVAL_SCENARIOS:
-        rep.error(f"evals/evals.json has {len(data)} scenarios, need >= {MIN_EVAL_SCENARIOS}")
+        rep.error(
+            f"evals/evals.json has {len(data)} scenarios, need >= {MIN_EVAL_SCENARIOS}"
+        )
 
     has_negative = False
     for i, scenario in enumerate(data):
@@ -409,6 +427,10 @@ def check_evals(skill: Skill, rep: Report) -> None:
             rep.error(f"{tag} 'skills' must be an array")
         elif skills_field == []:
             has_negative = True
+        elif any(
+            not isinstance(s, str) or not NAME_RE.fullmatch(s) for s in skills_field
+        ):
+            rep.error(f"{tag} 'skills' must contain skill names")
         query = scenario.get("query")
         if not isinstance(query, str) or not query.strip():
             rep.error(f"{tag} 'query' must be a non-empty string")
@@ -417,6 +439,8 @@ def check_evals(skill: Skill, rep: Report) -> None:
         expected = scenario.get("expected_behavior")
         if not isinstance(expected, list) or not expected:
             rep.error(f"{tag} 'expected_behavior' must be a non-empty array")
+        elif any(not isinstance(e, str) or not e.strip() for e in expected):
+            rep.error(f"{tag} 'expected_behavior' must contain non-empty strings")
         elif any("TODO" in str(e) for e in expected):
             rep.error(f"{tag} 'expected_behavior' still contains a 'TODO' placeholder")
         files = scenario.get("files")
@@ -425,17 +449,30 @@ def check_evals(skill: Skill, rep: Report) -> None:
                 rep.error(f"{tag} 'files' must be an array when present")
             else:
                 for rel in files:
-                    if not (skill.path / str(rel)).exists():
+                    if not isinstance(rel, str) or not rel.strip():
+                        rep.error(f"{tag} fixture path must be a non-empty string")
+                        continue
+                    fixture = (skill.path / rel).resolve()
+                    fixture_root = (skill.path / "evals" / "files").resolve()
+                    if Path(rel).is_absolute() or not fixture.is_relative_to(
+                        fixture_root
+                    ):
+                        rep.error(f"{tag} fixture must stay inside evals/files/: {rel}")
+                    elif not fixture.is_file():
                         rep.error(f"{tag} fixture not found: {rel}")
+                    elif fixture.stat().st_size > 50 * 1024:
+                        rep.error(f"{tag} fixture exceeds 50 KiB: {rel}")
     if not has_negative:
-        rep.error("evals/evals.json needs at least one negative scenario with skills: []")
+        rep.error(
+            "evals/evals.json needs at least one negative scenario with skills: []"
+        )
 
 
 def validate(path: Path) -> Report:
     rep = Report(path.name)
     try:
         skill = load_skill(path)
-    except SkillLoadError as exc:
+    except (SkillLoadError, OSError, UnicodeError) as exc:
         rep.error(str(exc))
         return rep
 
@@ -443,9 +480,12 @@ def validate(path: Path) -> Report:
     check_body(skill, rep)
     check_no_nested_skill_md(skill, rep)
     check_banned(skill.body, "SKILL.md", rep)
+    errors_before_sources = len(rep.errors)
     check_sources(skill, rep)
+    sources_valid = len(rep.errors) == errors_before_sources
     check_references(skill, rep)
-    check_notice(skill, rep)
+    if sources_valid:
+        check_notice(skill, rep)
     check_scripts(skill, rep)
     check_evals(skill, rep)
     return rep
@@ -453,7 +493,12 @@ def validate(path: Path) -> Report:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("targets", nargs="*", help="skill names or paths (default: all)")
+    parser.add_argument(
+        "targets", nargs="*", help="skill names or paths (default: all)"
+    )
+    parser.add_argument(
+        "--strict", action="store_true", help="treat warnings as failures (used by CI)"
+    )
     args = parser.parse_args()
 
     try:
@@ -463,8 +508,8 @@ def main() -> int:
         return 1
 
     if not targets:
-        print("no skills found under skills/ — nothing to validate")
-        return 0
+        print("error: no skills found under skills/", file=sys.stderr)
+        return 1
 
     reports = [validate(p) for p in targets]
     for rep in reports:
@@ -473,7 +518,7 @@ def main() -> int:
     errors = sum(len(r.errors) for r in reports)
     warnings = sum(len(r.warnings) for r in reports)
     print(f"\n{len(reports)} skill(s): {errors} error(s), {warnings} warning(s)")
-    return 1 if errors else 0
+    return 1 if errors or (args.strict and warnings) else 0
 
 
 if __name__ == "__main__":

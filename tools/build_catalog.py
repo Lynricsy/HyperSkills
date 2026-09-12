@@ -138,13 +138,7 @@ def splice_catalog(readme: str, table: str) -> str:
         raise SystemExit(
             f"README.md must contain {CATALOG_START} and {CATALOG_END} markers"
         )
-    return (
-        readme[: start + len(CATALOG_START)]
-        + "\n\n"
-        + table
-        + "\n\n"
-        + readme[end:]
-    )
+    return readme[: start + len(CATALOG_START)] + "\n\n" + table + "\n\n" + readme[end:]
 
 
 def render_count_badge(label: str, count: int) -> str:
@@ -186,7 +180,7 @@ def main() -> int:
 
     if not skills:
         print("no skills found under skills/ — nothing to generate")
-        return 0
+        return 1 if args.check else 0
 
     planned: dict[Path, str] = {}
     for skill in skills:

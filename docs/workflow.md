@@ -112,6 +112,16 @@ gh api repos/<owner>/<repo> \
 ## Phase D 校验
 
 ### D1 静态
+仓库 CI 在 PR、`main` 推送、合并队列和手动触发时执行完整静态门：
+
+```bash
+uv run --locked tools/check_repository.py
+```
+
+它复用下方的 skill 校验器并开启 `--strict`，检查生成目录一致性、仓库文件语法与
+校验器回归；运行环境、锁文件维护及工作流自身检查见 [README 自动检查](../README.md#自动检查)。
+该门不调用模型、不执行评测夹具，也不替代本节的安装冒烟或 D2 行为评测。
+
 
 ```bash
 uv run tools/validate_skills.py skills/<name>
