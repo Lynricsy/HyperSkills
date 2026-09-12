@@ -1,10 +1,10 @@
 ---
 name: typescript
-description: "Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types, exhaustive switches, errors as data), designing deep modules and their exported interfaces, replacing `any` and `as` with narrowing, type predicates and assertion functions, writing generics that infer, and configuring tsconfig, module resolution, declaration emit and package `exports` for TypeScript 6/7 — including the options 7.0 turned into hard errors. Also covers the TypeScript side of vitest and jest: type-check gates, `types` entries for test globals and type-level tests. Use when designing or refactoring types, fixing a confusing type error, tightening strictness, migrating a tsconfig, or publishing a typed package. Do not use for React or any frontend framework (use the `react` skill), for server frameworks such as Fastify, NestJS or Hono, or for Vue, Svelte and Astro."
+description: "Designs TypeScript types, fixes type errors and configures typed package builds."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
