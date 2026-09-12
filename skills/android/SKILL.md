@@ -1,10 +1,10 @@
 ---
 name: android
-description: "Guides native Android work end to end: Kotlin with coroutines and Flow, Jetpack Compose (state, side effects, stability, recomposition and scroll performance, Baseline Profiles), the legacy View system and XML-to-Compose migration, layered architecture with ViewModel and Hilt or Koin, Navigation 3 and type-safe Navigation 2, Gradle version catalogs, convention plugins, AGP 9 migration and R8 keep rules, unit/Robolectric/instrumented/Compose/screenshot testing, edge-to-edge and insets, permissions, WorkManager, exported-component and Intent security, and sharing code through Kotlin Multiplatform and Compose Multiplatform. Use when creating, reviewing, debugging, profiling or migrating Android modules, when reading libs.versions.toml or build.gradle.kts, or when chasing recomposition storms, janky LazyColumn scrolling, slow cold start or flaky instrumented tests. Do not use for Flutter, React Native or Expo, native iOS and SwiftUI, or server-side Kotlin on Spring."
+description: "Develops native Android apps with Kotlin, Jetpack Compose and Gradle."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
