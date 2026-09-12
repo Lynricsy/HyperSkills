@@ -1,10 +1,10 @@
 ---
 name: vue
-description: "Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive destructuring, reassigned proxies, missing `.value`, props destructure, shallow refs), `computed` versus `watch` versus `watchEffect`, compiler macros including `defineModel`, provide/inject, composable contracts, Pinia store design, Vue Router guards and param changes, Nuxt 4 file conventions, data fetching and de-duplication, server/client boundaries and hydration mismatches, list and update performance, and Vitest with Vue Test Utils. Use when writing, reviewing, debugging, testing or profiling .vue files, composables, stores, routes or Nuxt pages, or when a value changes and the UI does not. Do not use for visual and UX design decisions, for React or Next.js, or for WeChat mini-programs and uni-app."
+description: "Develops Vue and Nuxt applications with Composition API, Pinia and routing."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
