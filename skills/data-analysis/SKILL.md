@@ -1,6 +1,6 @@
 ---
 name: data-analysis
-description: "Guides local tabular data analysis from CSV, Parquet and dataframes to reproducible conclusions using the project's pandas, Polars or DuckDB stack. Covers record identity, join cardinality, metric grain, missingness and denominators, business-day timezones, repeated measurements, statistical inference, and incremental execution. Use when reconciling inconsistent totals, investigating trends or group differences, repairing a data pipeline, or analyzing files too large to materialize. Do not use for database operations or schema tuning, Office/PDF deliverables, general Python tooling, model training, or specialized scientific file formats."
+description: "Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
