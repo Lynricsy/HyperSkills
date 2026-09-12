@@ -1,8 +1,10 @@
 # sqlite 调研记录
 
+> 正式正文与4份参考已完成，评测唯一入口为 [`skills/sqlite/evals/`](../skills/sqlite/evals/)。下文保留Phase A/B当时记录；用户继续建设后的最新结论见文末，内容交付不等于已证明增益。
+
 ## 调研日期与检索途径
 
-- 调研/复核日期：2026-09-12。按 docs/workflow.md Phase A/B；正文重写等待 Main 实跑基线。
+- 调研/复核日期：2026-09-12。Phase A/B历史记录与后续正式建设、验证分节保存。
 - 检索：已登录 `gh api search/code`，分别检索 `filename:SKILL.md path:sqlite`、`filename:SKILL.md sqlite WAL`、`filename:SKILL.md "SQLite Expert"`、`filename:SKILL.md "sqlite" "busy_timeout"`；web_search 检索 `sqlite skill SKILL.md github WAL busy` 补出 domain-expert。
 - 官方检查：`gh api search/code -X GET -f q='org:sqlite filename:SKILL.md'` 返回空列表。此结论只代表此次可索引GitHub范围内未发现，不声称证明SQLite全球没有skill；未发现可用官方例外。Turso不是SQLite维护组织；Litestream也不能代替SQLite官方身份。
 - 所有 GitHub 正文、目录、许可与元数据只经 `gh api repos/...`，未匿名读GitHub。两次网络timeout后合理重试成功；没有认证失败或限流。
@@ -243,6 +245,159 @@ SOURCES.yaml当前四个候选均为reference，诚实反映尚无正文合入�
 官方ALTER页面另有重要更新：3.53.0新增ALTER COLUMN SET/DROP NOT NULL；不能继续笼统声称
 SQLite不支持任何ALTER COLUMN。此项与实际链接版本一起纳入基线后的迁移范围评估。
 
-## 构建准备交付
+## Phase B构建准备交付（历史记录）
 
-保留[评测定义](evals/sqlite/evals.json)及原始故障夹具，不计入安装目录或生成目录表。恢复时执行 `uv run tools/new_skill.py sqlite --category framework`，再执行 `cp -R research/evals/sqlite/. skills/sqlite/evals/`；已有调研记录会保留。按[路线图](../docs/roadmap.md)使用相同模型medium与新输出目录，先得到真实最终行为缺口，再写正文及有skill对照。首轮部分扩展解释没有覆盖，不把它们笼统写成“21/21全达成”，也不据此宣称消费者失败。
+当时只保留评测与原始故障，不发布Scope骨架。原5场景与4份夹具现已原样迁入[正式评测目录](../skills/sqlite/evals/)，不再维护准备目录副本或骨架恢复命令。用户随后要求正式建设，后续对照沿用同模型medium及独立输出。首轮部分扩展解释没有覆盖，仍不笼统写成“21/21全达成”，也不据此宣称消费者失败。
+
+## Phase C 正式构建（2026-09-12）
+
+用户获知上轮只有Phase A/B与评测准备、没有正文后，明确要求“好，正式开始构建skill”。
+本轮据此继续建设，不因强基线尚无消费者缺口再次停笔；这是用户继续决定，
+不是对基线的重新判负，也不是已经证明with-skill增益。
+
+已恢复 `skills/sqlite/`，直接完成可安装正文与四份按条件读取的reference，
+没有保留Scope-only骨架或新增脚本。`research/evals/sqlite/` 的原5场定义和
+4个原始故障夹具使用文件复制恢复至 `skills/sqlite/evals/`，无内容转换；
+归档旧路径由Main统一移除。正文版本2026.09.12，category=framework。
+
+| 文件 | 实际结构与重点 | 本轮来源落点 |
+|---|---|---|
+| SKILL.md | 20条不变量；连接诊断、配置、备份恢复、迁移/导入、查询调优五流程；具名验证门；边界与报告模板 | 四个准入社区skill的重写贡献及官方事实 |
+| references/connections-and-transactions.md | 连接归属/语句结束；原子SQL；按错误码和阶段恢复；旧快照完整重算，不重放外部副作用 | TerminalSkills、harness、OpenFang；transaction/isolation/busy_handler/pragma |
+| references/wal-backup-and-recovery.md | WAL拓扑与耐久性；修复分支；checkpoint三返回值；引擎备份、恢复隔离、业务事实检验 | TerminalSkills、moollm；wal/backup/vacuum/pragma |
+| references/types-and-migrations.md | affinity与STRICT；NULL/FK；版本化ALTER；复杂依赖重建；sqlite_sequence历史水位及失败不变 | moollm；datatype3/stricttables/foreignkeys/lang_createtable/lang_altertable/autoinc |
+| references/query-plans-and-indexes.md | 观测而非追求无SCAN；复合/覆盖/表达式/部分索引；统计策略；结果等价与写成本 | OpenFang；eqp/optoverview/expridx/partialindex/lang_analyze |
+
+本轮重新以已登录 `gh api` 获取四库default branch及HEAD，按该40位SHA读取完整SKILL.md
+及许可原文；HEAD与前表一致。没有匿名GitHub HTTP、重搜候选、pin或修改其他skill。
+四项实际重写后在SOURCES标为merged，并逐项记录文件落点及被剥离的错误/固定调优。
+RightNow-AI的license API识别为NOASSERTION，但实际返回并完整读取LICENSE-APACHE，
+文本明确Apache License Version 2.0，故按实读许可记Apache-2.0，不复制API的未知判断。
+
+官方页面本轮实读，未从历史摘要冒充取证。额外裁决：
+
+- ALTER COLUMN SET/DROP NOT NULL从3.53.0可用，native ALTER不再被笼统禁止；
+  冗余NOT NULL时DROP不保证一次移除全部，要求检查结果。
+- WAL-reset主线3.51.3及后续已修复，3.50.7/3.44.6是回移分支；
+  不能只比较是否小于3.51.3，也不假定发行包版本等于应用加载引擎。
+- 复杂重建先建新表、复制、移除可能暂时无效的依赖、删旧、改新名、重建依赖；
+  incoming FK、外部trigger和view不能只靠tbl_name过滤；保存历史sequence而非MAX(id)。
+- 官方backup后半段说明并发写会使增量备份重启；不承诺固定开始时刻快照，
+  只承诺完成的一致性快照，精确新鲜度需要应用标记/协调。
+- 本轮明确实读 https://www.sqlite.org/copyright.html ，其public-domain声明包含
+  code **and documentation**。SOURCES官方docs记录reference、license NONE并解释
+  无需许可而非未知继承，不假造MIT/CC0；官方文本未原样复制。
+
+### 证据与待Main执行
+
+历史结果保持不变：原始消费者错误被无skill模型修复；场景5基线6/6，
+首轮某些扩展解释仍是partial explanation，不转写为消费者失败或正文增益。
+本轮只有来源取证和正文建设，没有运行测试、格式化、lint、构建、安装冒烟、
+模型评测或全库校验，未提交/推送。with-skill对照、原始夹具字节校验、
+结构及引用校验、生成NOTICE/目录和安装证明统一待Main执行。
+
+## Phase D 实际 with-skill 审阅（2026-09-12）
+
+本节覆盖原5场、21条 `expected_behavior`，依据[原评测定义](../skills/sqlite/evals/evals.json)、
+各场最终 `answer.md`、最终workspace代码和 `events.jsonl` 的真实toolResult逐条判读。
+`status=ok`只表示运行结束，不作为达成证明；读到的skill/reference内容也不算模型已解释或已执行。
+本轮审阅没有重跑任何模型、夹具、测试、编译或安装命令，没有改正文、评测或夹具。
+
+证据缩写（本节均为绝对路径，不与历史baseline混用）：
+
+- `R` = `/tmp/hs-five-build-20260912/evals/sqlite/openai-gpt-5.6-sol-medium/skill`；
+  `Rn`表示`R/n`，答案行号记`Rn/answer.md:L`，事件行号记`Rn/events.jsonl:L`。
+- `Wn` = `/tmp/hs-five-build-20260912/workspaces/sqlite-openai-gpt-5.6-sol-medium-skill-n`。
+- 历史baseline仍以本文件Phase B既有判读为准；没有重跑或将历史结果统一改成21/21。
+
+### 五场汇总与真实导航
+
+五份`result.json`均记录唯一被评测模型`openai/gpt-5.6-sol`、`thinking=medium`、
+`baseline=false`。实际assistant消息的`provider=openai/model=gpt-5.6-sol`可分别在
+R1/R2/R3/R5事件行23及R4行25核对；以下时长来自各自`duration_s`，不是纯推理耗时。
+正例实际链接SQLite均为3.53.1。
+
+| 场景 | 逐条结果 | skill_read | 时长/s | 实际成功读取（toolResult事件行） |
+|---|---|---|---:|---|
+| 1 WAL库存竞争 | 3 pass / 1 partial / 0 fail | true | 221.7 | SKILL行35 → `connections-and-transactions.md`行64 |
+| 2 在线备份 | 4 pass / 0 partial / 0 fail | true | 204.2 | SKILL行35 → `wal-backup-and-recovery.md`行71 |
+| 3 导入与类型迁移 | 3 pass / 2 partial / 0 fail | true | 251.7 | SKILL行31 → `types-and-migrations.md`行72 |
+| 4 纯D1近似负例 | 2 pass / 0 partial / 0 fail | false | 168.9 | sqlite可用但无读取；Cloudflare官方迁移/环境/CLI正文行154/157/160 |
+| 5 复杂父表重建 | 6 pass / 0 partial / 0 fail | true | 261.4 | SKILL行34 → `types-and-migrations.md`行68 |
+
+合计 **18 pass、3 partial、0 fail（21条）**。四个正例均先读正文再读对应的一份reference，
+未见重复读取同一SQLite reference；`query-plans-and-indexes.md`本组没有读取，
+因为没有查询规划场景，不能据此断言导航失效或该引用已被验证。
+D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读取官方页面；
+这满足“路由到平台指导”，不虚报加载了不存在于本场读取记录的skill。
+
+### 21条逐项评分与最终证据
+
+`partial`表示复合预期中有明确未覆盖子项；不折算成pass，也不自动等同消费者故障。
+
+| 条号 | 评分 | 可复核证据与边界 |
+|---|---|---|
+| 1.E1 | pass | R1/answer.md:15–20明确旧WAL快照、517及timeout不能刷新；事件103实跑原夹具为`error 517 SQLITE_BUSY_SNAPSHOT`。 |
+| 1.E2 | pass | W1/reservation.py:13–22、31–38先rollback后重开并重读；18–19只在attempt=0调用竞争回调。事件809最终`accepted False / remaining 1`；初始5、竞争减4、请求3仍在代码49–59，未改题。 |
+| 1.E3 | pass | W1/reservation.py:6、10–39上限两事务，只重试首次写阶段的BUSY_SNAPSHOT，不缓存跨事务库存、不重放回调；R1/answer.md:33–39给有界策略。事件809证明实际退出并拒绝。 |
+| 1.E4 | partial | W1/reservation.py:13保留首次BEGIN，仅在竞争commit之后的恢复使用IMMEDIATE；事件809未死锁。R1/answer.md:26–38解释恢复提前拿写权限，但没有明确区分“正常情况下首次读前IMMEDIATE预防”与“本同线程夹具首次拿锁会阻挡回调”的理由。消费者恢复安全已达成，缺的是扩展解释。 |
+| 2.E1 | pass | R2/answer.md:5–13解释WAL提交与有效但陈旧主文件；事件120实证旧备份`restored orders []`且live有`(17,950)`。 |
+| 2.E2 | pass | W2/backup_job.py:23–30使用stdlib `Connection.backup`；43–60让writer保持打开到备份后查询。事件571为`integrity ok`、restored与live均`[(17,950)]`。关闭的是备份专用source连接，不是writer。 |
+| 2.E3 | pass | W2/backup_job.py:7–36只清理独立暂存文件；不删除源WAL/SHM、不改journal、不停止writer。保留原夹具先checkpoint建表、后提交订单的顺序（46–51）；不是靠新增checkpoint让主文件复制蒙混通过。 |
+| 2.E4 | pass | R2/answer.md:55–67给独立目录、无旧sidecar、integrity/FK/业务/版本/sequence检查，停止并关闭所有用户，保存旧库与恢复侧文件，隔离发布和重开验收。本项要求解释restore流程；不把该文字流程算成已实跑服务恢复。 |
+| 3.E1 | pass | R3/answer.md:5解释事务内PRAGMA静默无效；W3/import_orders.py:32–39事务外启用并回读，53–56每导入连接在BEGIN前调用；事件126原状态`import FK setting 0`，3341独立FK拒绝。 |
+| 3.E2 | partial | 现有孤儿确实被发现：W3/import_orders.py:80–88用LEFT JOIN，事件3341报告`missing customers: [(2,999)]`，答案7不信integrity ok。但要求的`foreign_key_check`只在成功重建后136–138执行；坏库在101–103已经抛错，没有用该PRAGMA暴露旧孤儿的执行证据。不是漏掉孤儿的消费者故障，但指定诊断子项未达成。 |
+| 3.E3 | partial | W3/import_orders.py:23–29、95–123实查链接版本并按3.37.0分支构造合法STRICT DDL；事件3341选择STRICT且真实拒绝TEXT，无ADD STRICT/BOOLEAN/DECIMAL。R3/answer.md:6、40解释affinity和版本，却未说明STRICT仍允许无损转换；代码46的Python int-only是更窄导入策略，不能充当STRICT无损转换解释。 |
+| 3.E4 | pass | W3/import_orders.py:181–190分别用缺失客户+整数金额、现存客户+非数字金额；241–254再绕过应用层独立测试数据库约束。事件3341同时有导入两种拒绝及迁移后FK/TEXT两种拒绝，非一条非法记录由先触发约束遮蔽。 |
+| 3.E5 | pass | W3/import_orders.py:99–148单事务显式复制、保存并恢复orders索引/trigger SQL、检查后commit、异常rollback。事件3341报告订单2原值/text/客户999、有效订单1仍`(1,1,250)`且schema相同，干净副本重建成功。夹具没有索引/trigger，保存路径是代码证据，不能声称已动态验证这些对象或更广依赖。 |
+| 4.E1 | pass | R4/result.json为skill_read=false；全部读取调用没有sqlite正文或引用。事件154/157/160是真实Cloudflare官方页面toolResult，平台边界正确。 |
+| 4.E2 | pass | W4/wrangler.jsonc:6–26分别声明preview/production数据库；R4/answer.md:45–75同时指定`--env production --remote`、区分local与`--preview`，无本地WAL/busy_timeout/文件复制建议。事件674只证明`jq empty`语法成功；UUID为占位值，答案84明确未执行远程操作。 |
+| 5.E1 | pass | W5/catalog_migration.py:61–62、97–143、156–160单事务重建AUTOINCREMENT，保存历史sequence并取原/新水位较大者，不用当前MAX(id)替代；事件2084给新STRICT schema与`next issued id 901`；事件3141独立断言结果再次证明水位900→下一ID901。 |
+| 5.E2 | pass | W5/catalog_migration.py:51–58在事务外关FK，145–149检查，161–170恢复并回读；原incoming FK及ON DELETE CASCADE定义24–27未改。事件2084保留`shipments [(41,1)]`、`orphan shipment rejected`、`foreign key violations []`；3141核对FK=1。 |
+| 5.E3 | pass | W5/catalog_migration.py:82–95、114–120保存products显式索引/trigger和具名public_catalog并恢复；事件2084为`duplicate SKU rejected`、audit`[(1,1200,1300)]`、catalog`[(1,'BOOK',1300),(901,'NEW',700)]`；事件3135实际断言代码及3141结果复核三项消费者行为。 |
+| 5.E4 | pass | W5/catalog_migration.py:105–109有INTEGER/NOT NULL/CHECK/STRICT；145–157所有检查后事务内设user_version=2并commit。事件2084独立negative/text rejected且保留产品1；事件3135/3141断言版本2与STRICT标记。 |
+| 5.E5 | pass | W5/catalog_migration.py:69–80报告原ID/价格/存储类，158–170回滚并恢复FK；snapshot:173–182包含products、shipments、audit、完整非内部schema、sequence、version、FK。事件2084明确`id=1 price_cents=-5 storage=integer / state unchanged True`，3141独立断言before=after、FK=1、user_version=1。 |
+| 5.E6 | pass | 最终代码13–43与185–240保留两数据库及原消费者检查，未删除负价或绕过检查；异常回滚后重新抛出，水位来源为sqlite_sequence。事件2084/3141同时展示成功全合同与失败完整不变，不将中途失败或模型自述代替最终结果。 |
+
+复杂迁移的覆盖范围必须单列：场景5真实覆盖incoming FK、products所属trigger、
+独立命名view、唯一索引及已删除900的sequence历史状态。**没有外部表所属trigger、
+额外view或view依赖链夹具**；最终代码82–95也仅搜`tbl_name='products'`索引/trigger并
+单取`public_catalog`，不是通用依赖图迁移器。不能由本次6/6宣称所有外部依赖都能保留；
+同样不能给未在原query/expected/夹具内的通用化要求新增隐藏扣分。
+场景3的完整依赖覆盖更窄，应沿用同一限制。
+
+### 历史对照与严格增益限制
+
+- 历史1.E4的扩展解释缺失本轮仍为partial；本轮虽采用IMMEDIATE恢复，不等于解释齐全。
+- 历史2.E4未显式给FK检查，本轮答案给出完整检查项，记为解释覆盖改善；
+  原备份消费者基线已经修复，不能把补写PRAGMA名称当成恢复能力增益。
+- 历史3.E2基线已用foreign_key_check暴露旧坏数据，本轮用LEFT JOIN正确识别孤儿，
+  但指定诊断方法未展示；这是本次覆盖回退，不应被“最终导入修好”抹去。
+  3.E3当前遗漏无损转换说明，也不把版本和类型拒绝已有证据一并抹成失败。
+- 原三个消费者错误和复杂迁移在无skill基线已修复，场景5基线就是6/6；
+  两配置都满足的消费者条目为非区分项，D1负例也不是正文收益。
+- 当前是同一强模型、同一medium的单次五场with-skill；baseline是此前独立批次，
+  不是同时配对重复试验。未测其他模型、重复方差、held-out触发率或生产环境。
+  不宣称D2“闭合真实缺口”通过，不把18/21当成功率增益，也不为了强行制造差异重启知识题。
+- 用户在获知强基线后明确继续正式建设，故仍交付完整skill；该产品决定与
+  “已证明skill提升消费者结果”的科学主张严格分开。三个partial不阻碍如实记录已完成正文，
+  但禁止写成全项通过；本节没有提交或推送声明。
+
+### 公共结构、安装与本机机制证据
+
+以下为Main本轮已执行并回传的公共验证事实，本审阅者未重跑：
+
+- 五个正式skill各有4份reference；SQLite安装包共12文件，每包仅一个`SKILL.md`。
+- `uv run tools/validate_skills.py`：60 skill(s)，0 errors、0 warnings；
+  `build_catalog --check`：current 60。
+- `check_upstream`检查五主题19条仓库型来源记录全部up_to_date；`--pin`更新0。
+- 隔离`npx skills`安装恰好五包，源目录与安装复制全部文件逐字节一致，
+  证明正文、引用及SQLite评测资源一起可达，不只是根文件存在。
+- 原五主题25场定义和31份夹具字节未改；SQLite原5场与4夹具唯一现址为
+  [skills/sqlite/evals](../skills/sqlite/evals/)。旧research副本已安全删除，
+  前文旧路径只作历史叙述，不恢复双份目录。
+- Main另用本机Python实际链接SQLite **3.53.4**执行机制实验：
+  native `ALTER COLUMN SET NOT NULL`确实拒绝NULL，DROP后接受；
+  commit后backup恢复`[(1,0),(2,None)]`，`integrity_check=ok`、`foreign_key_check`空。
+  这与模型运行的3.53.1分开记录；只证明本机语法与提交后备份机制，
+  **不是电源断电、网络文件系统或生产恢复演练**，也不是额外with-skill模型得分。

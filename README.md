@@ -32,15 +32,15 @@
 - **一个生态一个 skill。** `apple` 一个 skill 同时覆盖 SwiftUI 数据流、Swift 6 严格并发、
   SwiftData 与 Instruments，不切成 `swiftui` / `swift-concurrency` / `swiftdata` 三个——
   它们属于同一次任务，应当同时在场。
-- **精编重写，不是聚合。** 58 个 `SOURCES.yaml` 里共 663 条上游记录（478 条内容重写合入、
-  185 条仅阅读对齐）：506 条仓库型来自 363 个不同仓库，另有 157 条官方文档与 RFC。合入时统一
+- **精编重写，不是聚合。** 59 个 `SOURCES.yaml` 里共 685 条上游记录（482 条内容重写合入、
+  203 条仅阅读对齐）：510 条仓库型来自 366 个不同仓库，另有 175 条官方文档与 RFC。合入时统一
   术语、裁决冲突、删掉模型本来就会的常识，只留边缘情况、静默失败、版本差异与易错点。
 - **先有评测再有正文。** 动笔前先写评测场景（每个 skill ≥3 个，含 ≥1 个「近似但不该触发」
   的负例）并跑无 skill 基线；默认以填补真实基线缺口作为增益门，没有差异就不宣称有效。
-  当前 267 个场景；波次11在强基线后按用户明确决定继续建设，内容交付与增益结论分开记录。
-- **上游可追溯。** 506 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
+  当前 272 个场景；波次11在强基线后按用户明确决定继续建设，内容交付与增益结论分开记录。
+- **上游可追溯。** 510 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
   能列出自那次 commit 以来上游在被引用路径下的全部变更，区分「仓库动了但引用路径没动」和
-  「真的变了」；157 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
+  「真的变了」；175 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
 
 ## 不做什么
 
@@ -64,7 +64,7 @@
 # 装一个
 npx skills@latest add Lynricsy/HyperSkills --skill technical-writing --agent universal --copy --yes
 
-# 装全部 58 个
+# 装全部 59 个
 npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy --yes
 ```
 
@@ -78,7 +78,7 @@ npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy 
 /plugin install all@hyperskills
 ```
 
-插件名与 skill 目录名一致，`all` 是全部 58 个。清单是 `.claude-plugin/marketplace.json`。
+插件名与 skill 目录名一致，`all` 是全部 59 个。清单是 `.claude-plugin/marketplace.json`。
 
 ### 手工复制
 
@@ -109,7 +109,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
 ## skill 目录
 
-58 个：框架 21、平台 18、任务 18、元技能 1。下表由 `tools/build_catalog.py` 生成。
+59 个：框架 22、平台 18、任务 18、元技能 1。下表由 `tools/build_catalog.py` 生成。
 
 <!-- catalog:start -->
 
@@ -161,6 +161,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 | [`security-review`](skills/security-review/) | 任务 | Audits a codebase, feature or threat surface for security defects, defensively and from source | 2026.09.11 | 17 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/ | 2026.09.10 | 14 |
 | [`solidity-web3`](skills/solidity-web3/) | 框架 | Writes, reviews and hardens Solidity contracts defensively, and proves the result with Foundry | 2026.09.11 | 20 |
+| [`sqlite`](skills/sqlite/) | 框架 | Guides embedded SQLite work: connection and transaction lifetime, single-writer concurrency, SQLITE_BUSY and SQLITE_BUSY_SNAPSHOT, WAL checkpoints… | 2026.09.12 | 22 |
 | [`supabase`](skills/supabase/) | 框架 | Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr… | 2026.09.11 | 12 |
 | [`svelte`](skills/svelte/) | 框架 | Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets… | 2026.09.11 | 11 |
 | [`tauri`](skills/tauri/) | 平台 | Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and… | 2026.09.12 | 6 |
@@ -180,13 +181,13 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
 | 项 | 数量 | 数字来自 |
 |---|--:|---|
-| skill | 58 | `skills/*/SKILL.md` |
-| 上游记录（合入 / 仅参考） | 663（478 / 185） | `skills/*/SOURCES.yaml` 的 `upstreams` |
-| 其中仓库型（固定 commit） | 506 | 同上，`kind: repo` |
-| 不同上游仓库 | 363 | 同上，按 `repo` 去重 |
-| 其中文档型（人工比对） | 157 | 同上，`kind: docs` |
-| references 文件 | 506 | `skills/*/references/*.md` |
-| 评测场景 | 267 | `skills/*/evals/evals.json` |
+| skill | 59 | `skills/*/SKILL.md` |
+| 上游记录（合入 / 仅参考） | 685（482 / 203） | `skills/*/SOURCES.yaml` 的 `upstreams` |
+| 其中仓库型（固定 commit） | 510 | 同上，`kind: repo` |
+| 不同上游仓库 | 366 | 同上，按 `repo` 去重 |
+| 其中文档型（人工比对） | 175 | 同上，`kind: docs` |
+| references 文件 | 510 | `skills/*/references/*.md` |
+| 评测场景 | 272 | `skills/*/evals/evals.json` |
 | 脚本入口 | 12 | `skills/*/scripts/` 根目录的 `.py`、`.sh`、`.mjs`，不含依赖文件或辅助模块 |
 
 ## 仓库结构
@@ -249,9 +250,9 @@ uv run tools/build_catalog.py                          # 生成目录与 NOTICE
 
 ```console
 $ uv run tools/validate_skills.py | tail -1
-58 skill(s): 0 error(s), 0 warning(s)
+59 skill(s): 0 error(s), 0 warning(s)
 $ uv run tools/build_catalog.py --check
-catalog is current (58 skill(s))
+catalog is current (59 skill(s))
 ```
 
 `NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json`、本页的目录表区块

@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="28" viewBox="0 0 120 28" role="img" aria-labelledby="title">
-  <title id="title">上游记录：663</title>
+  <title id="title">上游记录：685</title>
   <rect width="120" height="28" rx="5" fill="#30302E"/>
   <path d="M76 0h39q5 0 5 5v18q0 5-5 5H76Z" fill="#EE8747"/>
   <g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" font-size="12" text-anchor="middle">
     <text x="38" y="18" fill="#F5F5F2">上游记录</text>
-    <text x="98" y="18" fill="#191919" font-weight="700">663</text>
+    <text x="98" y="18" fill="#191919" font-weight="700">685</text>
   </g>
 </svg>

@@ -423,6 +423,15 @@
       ]
     },
     {
+      "name": "sqlite",
+      "description": "Guides embedded SQLite work: connection and transaction lifetime, single-writer concurrency, SQLITE_BUSY and SQLITE_BUSY_SNAPSHOT, WAL checkpoints and database file sets, consistent backup and restore",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/sqlite"
+      ]
+    },
+    {
       "name": "supabase",
       "description": "Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr cookie flows, getClaims versus getUser versus getSession",
       "source": "./",
@@ -582,6 +591,7 @@
         "./skills/security-review",
         "./skills/skill-authoring",
         "./skills/solidity-web3",
+        "./skills/sqlite",
         "./skills/supabase",
         "./skills/svelte",
         "./skills/tauri",
