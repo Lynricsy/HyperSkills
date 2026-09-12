@@ -1,6 +1,6 @@
 ---
 name: tauri
-description: "Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and permissions model with command scopes and the runtime authority, IPC through #[tauri::command], events, channels and managed state, plugin usage and plugin authoring, windows, webviews, tray and menus, sidecars and bundled resources, the updater with its signing keys, code signing and notarisation, dev-time debugging and mock-based testing, upgrading a Tauri 1 app to v2, and the security baseline (CSP, isolation pattern, Rust-side validation). Use when reading or editing src-tauri, tauri.conf.json, capabilities/*.json, build.rs or invoke calls, when a command or plugin call fails at runtime, when packaging or auto-updates break, or when hardening a Tauri app. Do not use for frontend framework work, general Rust language questions, or Electron."
+description: "Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
