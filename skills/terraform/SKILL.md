@@ -1,10 +1,10 @@
 ---
 name: terraform
-description: "Guides Terraform and OpenTofu configuration work: HCL style and expressions, variable, output and local design, module interfaces and version pinning, count versus for_each and resource identity, state backends, locking, splitting and sensitive values, refactoring with moved, import and removed blocks, provider and version constraints, terraform test suites, policy-as-code and configuration scanning, environment layering, the feature gaps between Terraform and OpenTofu, and writing a provider against the plugin framework. Use when writing or reviewing .tf, .tftest.hcl or .tfquery.hcl files, when a plan proposes to destroy something that was only renamed, when state has drifted or must be adopted, split or migrated, or when choosing between count and for_each. Do not use for the field-level schema, defaults or architecture of a specific cloud provider's resources, or for Bicep, CloudFormation or Pulumi."
+description: "Manages infrastructure as code with Terraform or OpenTofu modules, state and providers."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
