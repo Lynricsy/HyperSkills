@@ -1,10 +1,10 @@
 ---
 name: java-spring
-description: "Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts, declarative HTTP service clients, Spring Data JPA (entity mapping, transaction boundaries, self-invocation, N+1, projections, Flyway), Spring Security 7 (lambda DSL filter chains, OAuth2 resource server, method security), slice and Testcontainers testing with @MockitoBean, Spring Modulith, Actuator and Micrometer, Maven and Gradle builds, container and GraalVM native packaging, Spring Boot 3.5 to 4 migration, and Java 17 to 25 upgrades including records, sealed types, pattern matching and virtual threads. Use when writing, reviewing, debugging, testing, upgrading or packaging Spring Boot services, or when reading pom.xml, build.gradle.kts, application.yml, an @Entity, a SecurityFilterChain or a @SpringBootTest. Do not use for Android or Kotlin mobile development, cloud hosting on AWS, Azure or GCP, or REST contract and OpenAPI design."
+description: "Develops Java services with Spring Boot, Spring Security and Spring Data JPA."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
