@@ -1,10 +1,10 @@
 ---
 name: mcp-server
-description: "Guides designing and reviewing a Model Context Protocol server: whether a capability is a tool, a resource or a prompt; tool names, schemas and descriptions written for a model; result size and cursor pagination; errors as the model's only recovery hint, where the SDKs disagree about thrown exceptions; stdio versus Streamable HTTP, the stdout framing rule, required MCP headers, deprecated HTTP+SSE; the stateless 2026-07-28 envelope, server/discover, dual-era initialize clients, server-minted handles replacing protocol sessions; OAuth audience binding, token passthrough, least-privilege scope, CIMD over DCR, confused deputy; tool poisoning and injection through tool results. Use when building, reviewing, migrating or publishing an MCP server. Do not use for authoring agent skills (use the skill-authoring skill), operating someone else's MCP server, the host language itself (typescript, python, go, csharp-dotnet skills), or deploying it (containers, aws, azure, gcp, cloudflare skills)."
+description: "Builds Model Context Protocol servers with tools, resources, transports and authorization."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
