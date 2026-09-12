@@ -1,6 +1,6 @@
 ---
 name: generative-media
-description: "Engineers code that calls a media model: image generation and mask-guided editing where the mask is a hint and never a crop, video generation constrained to fixed short clips behind an asynchronous job, text to speech returning raw PCM rather than a playable file, speech to text whose fixed decode window drives timestamp drift and silence hallucination, local diffusion whose reproducibility rests on generator state, device RNG and pinned versions rather than a seed, job lifecycle with polling, webhooks, retries that cost money, quotas and billing, and provenance duties (SynthID, C2PA, disclosure) that a later resize destroys. Use when adding or fixing generated or transcribed images, video, speech or music, when a render cannot be reproduced across machines, when a generation times out in a handler, or when compliance asks how a viewer can tell an asset is AI-made. Do not use for text-model applications, retrieval or agent loops, for training weights, or for deterministic transcoding, muxing and resizing."
+description: "Integrates AI image, video, speech and music generation or transcription models."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
