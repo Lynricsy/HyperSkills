@@ -1,10 +1,10 @@
 ---
 name: harmonyos
-description: "Guides HarmonyOS NEXT app work in ArkTS and ArkUI: the arkts-* language restrictions that make legal TypeScript fail to compile, build() purity, state management V1 vs V2 decorators and the API-gated rules for mixing them, Stage model UIAbility and WindowStage lifecycles, UIContext instead of global ArkUI APIs, Navigation and NavPathStack instead of the deprecated router, TaskPool vs Worker and Sendable, Preferences and RelationalStore, module.json5 requestPermissions reason/usedScene, exported components and Want validation, hvigorw builds, signing and AppGallery release, Android-to-HarmonyOS porting, and hdc/uitest verification. Use when reading or writing .ets, module.json5, build-profile.json5 or oh-package.json5, when DevEco reports arkts-* errors, or for 鸿蒙 ports. Do not use for native Android or iOS - use the `android` and `apple` skills - nor for Flutter OHOS or React Native; for TypeScript outside ArkTS use the `typescript` skill."
+description: "Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
