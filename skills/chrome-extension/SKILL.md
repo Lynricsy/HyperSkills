@@ -1,10 +1,10 @@
 ---
 name: chrome-extension
-description: "Guides Chrome and Chromium browser extension work end to end: Manifest V3 manifests, the permissions and host-permissions model, activeTab and optional permissions, service worker lifecycle and event-driven design, content scripts across the isolated and MAIN worlds, injection timing and single-page-app re-injection, chrome.runtime messaging and ports, chrome.storage areas with their quotas and schema migrations, declarativeNetRequest, the side panel, action, offscreen and DevTools surfaces, WXT project structure and cross-browser builds, unit tests against a fake browser plus Playwright end-to-end runs, extension CSP and the remotely-hosted-code ban, and Chrome Web Store packaging, permission justifications and review. Use when creating, reviewing, debugging or shipping an extension, when reading manifest.json, wxt.config.ts or a background service worker, or when a chrome.* API fails silently. Do not use for driving a browser to test an ordinary website, or for the visual and UX design of pages."
+description: "Builds Chrome extensions with Manifest V3, service workers and content scripts."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
