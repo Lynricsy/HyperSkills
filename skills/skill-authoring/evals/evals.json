@@ -4,7 +4,7 @@
     "query": "Review widget-builder-SKILL.md in this folder — it is the SKILL.md of our widget-builder skill, installed at .claude/skills/widget-builder/SKILL.md, and the skill also ships advanced.md and internals.md under references/ (both are in this folder too). Two problems: the agent almost never picks the skill up on its own, and when it does pick it up it clearly only reads part of the material. Tell me exactly what is wrong and how to fix each thing.",
     "files": ["evals/files/widget-builder-SKILL.md", "evals/files/advanced.md", "evals/files/internals.md"],
     "expected_behavior": [
-      "Flags that the description is written in the first person and contains no triggering conditions or keywords, and supplies a rewritten third-person description that states what the skill does, when to use it, concrete trigger terms, and an explicit negative boundary such as 'Do not use for ...'",
+      "Flags the first-person, vague description and replaces it with one third-person English sentence of at most 160 characters naming UI widget work and the design system or React, without a capability list or procedural summary",
       "Flags that name: Widget_Builder is invalid because the name field allows only lowercase letters, digits and hyphens and must match the parent directory name widget-builder",
       "Flags the non-portable Claude-Code-specific constructs — the ${CLAUDE_PLUGIN_ROOT} variable in the generator command and the backtick shell-injection line that inlines src/registry.json — and replaces them with a plain relative script path plus an instruction to read the registry at task time",
       "Flags that the body is far over the ~500-line budget and that the component catalogue must move into references/ with an explicit 'read this when' pointer from SKILL.md rather than staying inline",
@@ -20,7 +20,7 @@
       "Says to run the representative tasks with no skill first and write down the specific failures, so the skill is built against observed gaps rather than imagined ones",
       "Says to write at least three evaluation scenarios with observable expected behaviours before writing the skill body, and to include a near-miss case that should not trigger the skill",
       "Says to keep only what the model lacks — the allowlist mechanics, the @requires legality rule, the depth and complexity limits — and to leave out general GraphQL explanation",
-      "Gives a concrete description shaped as what plus when plus trigger keywords plus a negative boundary, in the third person",
+      "Gives one third-person English description sentence of at most 160 characters naming the internal GraphQL gateway task, without enumerating its rules, and places detailed coverage and exclusions in Scope rather than requiring a negative sentence",
       "Says references/ files are loaded on demand and must each be introduced from SKILL.md with a 'read when' condition, kept one level deep",
       "Treats bundling a script as conditional on evidence that runs keep rewriting the same code, rather than recommending one up front"
     ]
@@ -29,7 +29,7 @@
     "skills": ["skill-authoring"],
     "query": "Our release-notes skill has the description 'Helps with release notes.' The agent hardly ever invokes it, and when someone asks a changelog question it grabs a different skill instead. Give me the replacement description, plus the procedure that would show my new wording is genuinely better rather than just different. Answer in this conversation; do not create files or build tooling.",
     "expected_behavior": [
-      "Rewrites the description in the third person with what the skill does, when to use it, concrete trigger phrasings including 'changelog', and an explicit negative boundary",
+      "Replaces the description with one third-person English sentence of at most 160 characters naming release-note and changelog work, without a capability list, procedural summary or separate negative sentence",
       "Says to front-load the key use case and trigger words because some hosts shorten or truncate the skill listing, so text at the end may never be seen",
       "Says to build a trigger evaluation set of roughly twenty realistic, detailed user queries split between should-trigger and should-not-trigger cases",
       "Says the should-not-trigger cases must be near misses that share vocabulary with the skill, because obviously unrelated queries prove nothing",
@@ -41,7 +41,7 @@
     "skills": [],
     "query": "Build me an MCP server in TypeScript that exposes our ticketing system as three tools: list_tickets, create_ticket and comment_on_ticket. Wire up the stdio transport and show me the tool schemas.",
     "expected_behavior": [
-      "Does not read the skill-authoring skill: an MCP server is a protocol server, not an Agent Skill, and skill-authoring's description excludes MCP servers",
+      "Does not read the skill-authoring skill because implementing an MCP protocol server is outside the task of authoring Agent Skills",
       "Answers with MCP server implementation work — server construction, tool registration with input schemas, and stdio transport wiring — without discussing SKILL.md frontmatter, progressive disclosure or skill descriptions"
     ]
   }

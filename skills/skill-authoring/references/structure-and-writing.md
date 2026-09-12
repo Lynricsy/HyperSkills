@@ -35,10 +35,10 @@ section that has no content; do not reorder them.
 | `## Output format` | The exact shape of a report or artifact | The skill produces no structured output |
 | `## Environment` | Required binaries, packages, platform limits | Nothing external is needed |
 
-Two things this skeleton deliberately excludes. There is no "when to use"
-section: triggering lives in the description, and a body copy of it is dead
-weight that also invites the agent to re-litigate whether the skill applies. And
-there is no narrative — "in one session we found that..." is a story about one
+Two things this skeleton deliberately excludes. There is no duplicate "when to
+use" section: the description routes to the skill, while `## Scope` retains
+the detailed applicability and exclusions needed after loading. And there is
+no narrative — "in one session we found that..." is a story about one
 occasion, not a reusable technique.
 
 ## Naming

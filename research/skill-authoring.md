@@ -307,3 +307,70 @@ read-when 条件、脚本的证据条件、关键用途前置与截断预算、�
   `git ls-remote --symref` + `--filter=blob:none --depth 1` 浅克隆读取实际文件，
   数据仍是当日实测，取证方式已在候选表「许可」列标注。`SOURCES.yaml` 的 commit 由
   `tools/check_upstream.py --pin` 写入（该脚本自带 `git ls-remote` 回退），9 个 repo 类上游全部钉住。
+
+## 2026-09-12 本地 description 收敛
+
+- **A — 规范裁决**：本轮不重新同步上游、不改来源 pin。Agent Skills 规范的
+  description 上限仍为 1024 字符；它是格式上限，不是本仓库的常驻预算。
+  本地唯一规范源为 `docs/skill-standard.md`，本轮采用一句英文「任务 + 关键技术或
+  产物名」，通常 8–16 词、1–160 字符且不能全空白，不设凑字数下限。详细范围与
+  否定边界留在已有 `Scope`；只有实际相邻歧义才加极短限定词。
+- **B — 实测缺口**：Main 已运行场景 3 的无 skill 基线，产物为
+  `/tmp/hs-description-authoring/skill-authoring/anthropic-claude-opus-5-medium/baseline/3/answer.md`。
+  其中第 13–20 行的替换 description 包含多句：能力/产物清单、`Use when` 场景清单、
+  单独排他句；第 23 行还明确将这一长公式作为要点。它没有满足本轮短句契约，
+  是本轮正文需要闭合的可观察缺口，不是对短 description 路由效果的测量。
+- **C — 本地修改决策**：Core rules、review checklist、description 参考、规范说明、
+  示例与发布前清单统一为短路由句；删除「能力清单安全」「两类必须否定边界」
+  和欠触发必然需要推销式长描述的推论。来源注释保留，但上述旧裁决和旧评测中
+  把否定句当作必需能力的结论不再作为本轮规范依据。
+  既有四个场景数量与任务不变：场景 1–3 的 description 期望改为可判定的
+  单句、≤160 字符、任务/关键名词和无长清单；场景 4 按 MCP 与 Agent Skills
+  的任务范围判定不加载，而不是要求某个固定排他字串。真实查询、近似负例、
+  重复运行和留出集方法保留，未把缩短字符数冒充路由质量提升。
+
+### D — 本轮实测
+
+全库 60 个 description 合计 **54,600 → 4,727 字符（减少 91.34%）**，
+平均 **910 → 78.8**，改后范围 **59–94 字符**。这是字符统计，不是特定模型的 token 数；
+59 个其他 skill 的技术正文未改，来源 pin 也未改。
+
+场景 3 使用 `anthropic/claude-opus-5`、`medium`，查询不变：
+
+| 本轮可观察期望 | 无 skill | 有 skill |
+|---|---|---|
+| 单句 ≤160 字符，命名 release notes / changelog，不罗列过程或追加排他句 | 未达成：603 字符多句描述 | 达成：81 字符、12 词 |
+| 解释前置关键用途是因为宿主会截断目录 | 未明确达成 | 未明确达成；本轮不宣称所有期望通过 |
+| 构造真实正例与负例查询集 | 达成 | 达成 |
+| 负例为共享词汇的相邻任务 | 达成 | 达成 |
+| 留出部分查询，不用于措辞迭代 | 达成 | 达成 |
+| 同条件重复对照旧新触发结果 | 达成 | 达成 |
+
+基线 `skill_read=false`、状态 `ok`、61.0 秒；有 skill `skill_read=true`、
+状态 `ok`、47.5 秒。产物在
+`/tmp/hs-description-authoring/skill-authoring/anthropic-claude-opus-5-medium/`
+的 `baseline/3/answer.md` 与 `skill/3/answer.md`。有 skill 的实际替换句：
+
+```yaml
+description: Writes release notes and changelog entries from merged pull requests and commits.
+```
+
+路由独立对照：在改写前固定 30 个相邻任务样本，覆盖 React / 视觉设计 / React Native、
+Git / GitHub、Agent Skills / MCP / 文档、模型调用 / 训练 / 媒体、
+数据库 / Supabase / 数据分析、排障 / 可观测性 / 审查，以及基础设施与测试边界。
+旧、新完整 60 项目录分别用会话默认模型 `openai/gpt-6-astra` 做两轮无状态批量分类，
+只提供名称与描述，不提供正文或工具；四轮均 **30/30**。候选在查看评分之前固定，
+未根据这些验收结果调词。样本、旧新目录和逐条选择保存在
+`/tmp/hs-description-routing.json`。
+这只是固定样本的目录选择对照，不是跨宿主、跨模型实际加载率的保证，也不证明技术能力提升。
+
+其他验证：
+
+- 校验器冒烟：短句、空串、全空白、160 字符边界、161 字符超限、XML 六项通过；
+  改前已观察短句/160 边界失败以及 161 字符未被拒绝，证明验证能够判错。
+- `npx skills@latest add /root/Projects/Ling/HyperSkills --skill '*' --agent universal --copy --yes`：
+  临时目录全量安装 60 个 skill，1,550 个非缓存文件与源码逐字节一致。
+- `uv run tools/validate_skills.py && uv run tools/build_catalog.py --check`：
+  `60 skill(s): 0 error(s), 0 warning(s)`；`catalog is current (60 skill(s))`。
+- Ruff 检查另报告三项既有规则问题（`RUF100`、`PIE810`、`PLW1510`），未修改无关旧代码；
+  只对本轮变更的校验语句执行局部格式化，不宣称全文件 lint / 格式检查通过。

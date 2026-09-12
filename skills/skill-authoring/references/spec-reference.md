@@ -49,7 +49,7 @@ defined; nothing else is portable.
 | Field | Required | Constraint |
 |---|---|---|
 | `name` | yes | 1–64 characters; lowercase `a-z`, digits `0-9` and `-` only; no leading or trailing `-`; no `--`; must equal the parent directory name; no XML tags; no vendor reserved words |
-| `description` | yes | 1–1024 characters, non-empty; states what the skill does *and* when to use it; carries the trigger keywords; no XML tags |
+| `description` | yes | Specification: 1–1024 characters, non-empty; describes what the skill does and when to use it; no XML tags. HyperSkills applies the tighter local policy below |
 | `license` | no | Licence name, or the name of a bundled licence file. Keep it short |
 | `compatibility` | no | 1–500 characters; environment requirements — intended product, system packages, network access. Most skills do not need it |
 | `metadata` | no | A map from string keys to string values. Host-specific extras live here; pick key names unlikely to collide |
@@ -60,7 +60,7 @@ Minimal valid frontmatter:
 ```yaml
 ---
 name: pdf-processing
-description: Extracts text and tables from PDF files, fills forms, and merges documents. Use when working with PDFs or when the user mentions forms or document extraction.
+description: Extracts text and tables from PDF files for document processing.
 ---
 ```
 
@@ -89,23 +89,23 @@ provider cannot be distinguished from a first-party one. Names such as
 
 ## The `description` field
 
-The description is the only part of a skill that is always in context, and the
-only text a host matches against a request. Everything about triggering is
-decided here.
+The description is the always-loaded routing text. Use it to select the skill,
+not to reproduce its capability catalogue or procedure.
 
-- State what the skill does and when to use it. A description that only names a
-  topic ("Helps with PDFs") gives the host nothing to match a real request to.
-- Include the keywords a user would actually type: file extensions, tool names,
-  error strings, product names, the synonyms of the task.
-- Write in the third person. The text is injected into a system prompt, where a
-  first- or second-person voice reads as a different speaker and measurably
-  hurts selection.
-- End with the negative boundary. Adjacent skills compete, and the boundary is
-  what resolves the competition.
+- Write one English task-and-key-noun sentence in the third person, usually
+  8–16 words: name the task and its identifying technology or artifact.
+- HyperSkills requires 1–160 characters, not all whitespace. There is no
+  padding minimum; a clear shorter sentence is preferable.
+- Put detailed applicability and exclusions in the body's `## Scope`. Do not
+  require a "Do not use for" clause; use a brief qualifier only for real
+  ambiguity between adjacent scopes.
+- Do not enumerate capabilities, versions or steps. A task and its object can
+  express what and when without a second sentence.
 
-The 1024-character ceiling is the specification's limit, not a target. Hosts
-shorten long entries before they drop skills, so length past the point of
-usefulness costs the tail of the text.
+The specification's 1,024-character ceiling remains a format constraint, not
+the repository's authoring budget or a target. HyperSkills' source of truth for
+the tighter policy is its repository standard; this reference explains that
+policy without changing the upstream specification.
 
 ## `license`, `compatibility`, `metadata`, `allowed-tools`
 

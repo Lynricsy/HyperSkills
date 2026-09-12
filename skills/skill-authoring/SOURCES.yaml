@@ -1,5 +1,5 @@
 skill: skill-authoring
-version: "2026.09.10"
+version: "2026.09.12"
 upstreams:
   - id: anthropic-skill-creator
     kind: repo

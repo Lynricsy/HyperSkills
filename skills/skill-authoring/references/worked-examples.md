@@ -201,6 +201,9 @@ with the references carrying depth rather than substance.
 ## What all three have in common
 
 - The body states what the skill will not answer.
+- Each description is one short task-and-key-noun routing sentence, usually
+  8–16 words and at most 160 characters under HyperSkills policy; it does not
+  list the gotchas, calibration steps or reference topics.
 - Nothing explains something the model already knows.
 - Every rule carries its reason, and the reason is a failure that actually
   happens.

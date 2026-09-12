@@ -1,16 +1,14 @@
 # Writing and optimising a description
 
-The description is the only text always in context and the only text a host
-matches a request against. A skill with an excellent body and a weak description
-is never used, and nothing reports the failure.
+The description is the always-loaded routing sentence, not a capability
+catalogue or a substitute for the body. Name the task and the key technology or
+artifact so the agent can decide whether to load the skill.
 
 ## Contents
 
-- The two description types
-- The formula for a capability skill
-- The formula for a workflow skill
+- One routing sentence
 - Voice, length and ordering
-- The negative boundary
+- Adjacent scopes
 - Undertriggering
 - Building a trigger query set
 - Why near-miss negatives are the only useful negatives
@@ -19,88 +17,54 @@ is never used, and nothing reports the failure.
 - What triggering does not fix
 - Worked before and after
 
-## The two description types
+## One routing sentence
 
-The one genuine disagreement between the authoritative sources, and it resolves
-by asking what the skill's value actually *is*.
-
-| Type | Description contains | Reason |
-|---|---|---|
-| Workflow skill — the value is an ordered procedure, especially one with branches or repeated stages | Triggering conditions only | A procedure summary in the description becomes the shortcut the agent takes *instead of* reading the body. Documented case: a description mentioning "code review between tasks" produced one review, while the body's flow required two. Removing the summary fixed it |
-| Capability skill — the value is knowledge: gotchas, invariants, a reference surface, a review checklist | What it does, when to use it, trigger keywords | There is no procedure to short-circuit, and the extra specificity improves selection among competing skills |
-
-Both types end with a negative boundary. Both are third person.
-
-The deciding test is not whether the body contains a checklist — plenty of
-knowledge skills do. It is this: **could an agent produce a plausible imitation
-of the body's procedure from the description alone?** If yes, the description is
-too procedural and has to come back to triggering conditions, because a
-plausible imitation is exactly what gets executed instead of the real thing.
-
-A coverage list — the topics the skill knows about — does not pass that test and
-is safe in a capability description. An ordered summary — "detects the stack,
-then audits, then reports" — does, and is not.
-
-## The formula for a capability skill
+Use the same shape for knowledge and workflow skills:
 
 ```
-<Third-person verb phrase: what it does, most important use first>.
-<Use when ...: the situations, phrased as a user would recognise them>.
-<Do not use for ...: the adjacent things it must lose to>.
+<Third-person task verb> <task or artifact> <key technology or context>.
 ```
 
-Fill the middle clause with the concrete nouns a request contains — file
-extensions, library and product names, error strings, command names, the
-synonyms of the task. A host matches text; give it text to match.
+Usually 8–16 words are enough. Select the nouns that distinguish the job;
+do not enumerate every supported API, version, symptom or subtask. The task
+and its object express what the skill does and when it is relevant without
+a separate "Use when" sentence.
 
-## The formula for a workflow skill
-
-```
-Use when <situation>, <situation>, or <symptom>. Do not use for <adjacent thing>.
-```
-
-No verbs describing the procedure. No step counts. No "then" clauses.
+Keep procedures in the body. The workflow-shortcut failure documented by
+obra-writing-skills supports omitting procedural summaries; it does not
+justify capability lists for other skills. Detailed coverage and exclusions
+belong in `## Scope`, whatever shape the body takes.
 
 ## Voice, length and ordering
 
-- **Third person.** The description is injected into a system prompt, where
-  "I can help you..." reads as a different speaker. Selection degrades measurably.
-- **Front-load.** Hosts shorten long listings and cut from the end — one caps
-  the whole list at 2% of the context window, another truncates each entry at
-  1,536 characters. The last sentence of a long description may never be seen,
-  so the most important use case and the strongest keywords go first.
-- **Length.** The ceiling is 1,024 characters. Aim for the shortest text that
-  carries what, when, keywords and the boundary; do not pad to the limit.
+- **Third person.** Use a task verb such as "Writes" or "Reviews", not
+  "I can help" or "You can".
+- **Front-load.** Put the task and identifying nouns first. Hosts can shorten
+  listings, and every installed skill shares the always-loaded context budget.
+- **Length.** HyperSkills requires one English sentence of 1–160 characters,
+  not all whitespace, usually 8–16 words. This is a repository policy, not the
+  Agent Skills specification's 1,024-character ceiling. Neither is a target;
+  do not pad a clear shorter sentence.
 - **No XML tags**, in either the name or the description. They are rejected.
 
-## The negative boundary
+## Adjacent scopes
 
-The boundary is what resolves competition between adjacent skills, and it is the
-clause authors skip most often. Without it the host has no basis to prefer a
-neighbouring skill, so both trigger, or the wrong one does.
-
-Write the boundary as the thing that should win instead, not as an abstraction:
-
-```
-Do not use for visual design decisions, Vue or Svelte, or React Native.
-```
-
-is decidable. "Do not use for unrelated tasks" is not.
+Keep detailed exclusions in `## Scope`; a "Do not use for" sentence is not
+required in the description. If realistic near-miss queries reveal genuine
+ambiguity, replace a broad noun with a precise one or add a brief qualifier,
+such as "native Android" or "self-managed PostgreSQL". Stay within the single
+routing sentence rather than appending a refusal list.
 
 ## Undertriggering
 
-Models under-select skills rather than over-select them, for a structural
-reason: a skill is consulted only for tasks the model cannot obviously handle
-alone. A one-step request — "read this PDF" — often will not trigger a matching
-skill at all, because the model can just do it.
+Treat undertriggering as an observation to measure, not a reason to make every
+description longer. A missed request can reflect imprecise routing nouns,
+competing skills, or a host that chooses not to consult a skill for trivial
+work. Inspect the actual selection before changing the sentence.
 
-Two consequences:
-
-1. A slightly pushy capability description is correct. Naming the situations
-   explicitly, including cases where the user does not say the skill's own
-   vocabulary, closes real misses.
-2. Trivial queries are worthless as trigger tests. A test query must be
-   substantive enough that consulting a skill is plainly the better route.
+Use substantive, realistic requests in the evaluation. Replace weak wording
+with the task or artifact the failures reveal; do not accumulate keywords or
+marketing claims after each miss.
 
 ## Building a trigger query set
 
@@ -165,10 +129,10 @@ meets a real request.
 1. Score the current description on the whole set, running each query several
    times. Triggering is stochastic; a single run cannot separate a better
    description from noise.
-2. Read the failures. A miss on a should-trigger query names a missing keyword
-   or situation; a hit on a near-miss names a boundary that is too wide.
-3. Propose a candidate that addresses the specific failures. Do not rewrite from
-   scratch — that discards what already worked.
+2. Read the editing-split failures. A miss suggests checking the task and nouns;
+   a hit on a near-miss suggests checking whether the stated scope is too broad.
+3. Propose a short candidate addressing that failure. Prefer replacing vague
+   words over adding clauses; retain one sentence within the repository limit.
 4. Re-score on train and held-out. Keep the candidate with the better held-out
    rate, not the better train rate.
 5. Stop after a few iterations, or when the held-out rate stops moving.
@@ -192,24 +156,19 @@ problem and editing it will not help. Two distinct failures with distinct fixes:
 ## Worked before and after
 
 ```yaml
-# Before — nothing to match, no boundary, first person
+# Before — vague task, first person
 description: I can help you with release notes.
 ```
 
 ```yaml
-# After — capability skill: what, when, keywords, boundary; key use first
-description: Writes release notes and changelog entries from merged pull
-  requests and commit history, grouping changes by user-visible impact and
-  flagging breaking changes and migrations. Use when preparing a release,
-  drafting or editing a CHANGELOG entry, summarising what shipped since a tag,
-  or writing upgrade notes for a version bump. Do not use for commit messages,
-  pull request descriptions, or marketing announcements.
+# After — one task-and-artifact routing sentence
+description: Writes release notes and changelog entries from merged pull requests and commits.
 ```
 
-What changed, and why each change is load-bearing: third person; the first
-clause names the artifact so the most likely request matches on the first words;
-`changelog`, `CHANGELOG`, `since a tag`, `breaking changes`, `upgrade notes` are
-the terms real requests contain; the boundary names the three neighbours that
-were previously stealing the request.
+The replacement names the task, the two artifacts and their inputs in one
+sentence. It does not promise a writing procedure or list every release-related
+request. Put detailed coverage and adjacent exclusions in `## Scope`, and use
+near-miss queries to measure whether the concise routing sentence distinguishes
+those jobs.
 
 <!-- sources: anthropic-skill-creator, obra-writing-skills, anthropic-best-practices, agentskills-spec, codex-skills-docs, claude-code-skills-docs, grafana-skill-authoring -->

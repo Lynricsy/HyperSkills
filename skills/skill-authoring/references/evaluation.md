@@ -281,8 +281,10 @@ and which scenarios had variance wide enough to distrust.
 
 **Core quality**
 
-- [ ] The description is specific and carries the trigger terms
-- [ ] The description states both what the skill does and when to use it
+- [ ] The description is one third-person task-and-key-noun routing sentence,
+      usually 8–16 words, 1–160 characters and not all whitespace in HyperSkills
+- [ ] Capability lists, procedures and detailed exclusions remain in the body,
+      with scope boundaries in `## Scope`, not a mandatory negative sentence
 - [ ] The body is under 500 lines
 - [ ] Detail lives in separate files, one level deep
 - [ ] No time-sensitive statement outside a collapsed old-patterns block
