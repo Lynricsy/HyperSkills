@@ -1,10 +1,10 @@
 ---
 name: solidity-web3
-description: "Writes, reviews and hardens Solidity contracts defensively, and proves the result with Foundry. Covers contract layout and checks-effects-interactions, reentrancy including cross-function and read-only, access control and role layering, proxy upgrades (ERC-1967 slots, storage layout, initializers, UUPS versus Transparent), arithmetic and precision, external calls and non-standard ERC-20s, oracle manipulation and staleness, gas and denial-of-service, Foundry unit, fuzz, invariant and fork tests, Slither triage, and the audit pass and its deliverables. Use when writing or upgrading a contract, reviewing one for vulnerabilities, planning a proxy upgrade, strengthening a Foundry suite, or triaging static-analysis output. Do not use for general application security-audit methodology (use the `security-review` skill), dApp front-ends (use the `react` skill), wallet or exchange product APIs, or for attacking contracts you do not control, MEV extraction or any other offensive on-chain work."
+description: "Develops and audits Solidity smart contracts with Foundry security testing."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
