@@ -1,10 +1,10 @@
 ---
 name: observability
-description: "Guides observability for systems already running in production: OpenTelemetry traces, metrics and logs and how they correlate, SDK instrumentation, context propagation, span naming, kind and status, semantic-convention stability and the OTEL_SEMCONV_STABILITY_OPT_IN migration, Collector pipelines, processor ordering and tail sampling, metric cardinality and the label edits that silently corrupt rate(), structured logs and trace correlation, RED/USE, SLOs, error budgets and multi-window burn-rate alerting. Use when instrumenting a service, reviewing a collector config, alert rules or an SLO, or diagnosing something that only happens in production. Do not use for failures reproducible locally (debugging), cloud monitoring product surfaces - CloudWatch, Azure Monitor, Cloud Logging quotas, billing, consoles (aws, azure, gcp), Elasticsearch index and mapping design (elasticsearch), or review and testing methodology (code-review, test-driven-development)."
+description: "Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
