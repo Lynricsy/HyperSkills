@@ -1,10 +1,10 @@
 ---
 name: containers
-description: "Guides container artefacts: Dockerfiles and multi-stage builds, base-image choice, BuildKit cache mounts and build secrets, .dockerignore, multi-architecture images, image hardening and SBOMs, Compose development environments with profiles, healthchecks and watch, Kubernetes manifests (Deployment, Service, Ingress, ConfigMap, Secret, PodDisruptionBudget, HPA), probe semantics, requests and limits, QoS and OOMKill, rolling updates, securityContext and Pod Security Standards, RBAC, Helm charts, Kustomize overlays, devcontainer.json, and CrashLoopBackOff / ImagePullBackOff / Pending diagnosis. Use when writing or reviewing a Dockerfile, compose file, Kubernetes manifest, chart or overlay, when an image is too large or rebuilds too slowly, when a rollout or node drain misbehaves, or when a pod will not start. Do not use for Terraform, OpenTofu or other infrastructure-as-code syntax, for managed control planes such as EKS, AKS or GKE, for service-mesh products, or for the application code inside the container."
+description: "Builds Docker images and configures Compose, Kubernetes, Helm and container security."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
