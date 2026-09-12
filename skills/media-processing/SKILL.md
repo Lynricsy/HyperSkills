@@ -1,6 +1,6 @@
 ---
 name: media-processing
-description: "Engineers deterministic media work with ffmpeg and the image tools: container and codec selection, remux versus transcode, rate control that silently degrades (VP9 constant quality without -b:v 0, SVT-AV1's sentinel CRF default), filter-graph traps (scale=W:-1 producing odd heights libx264 rejects, setsar=1 corrupting display aspect ratio), frame-accurate seeking, concat, subtitles, two-pass loudnorm and the 192 kHz resample it hides, HLS and DASH packaging with keyframe-aligned GOPs, and still-image batches in libvips, sharp, ImageMagick or Pillow where EXIF orientation and ICC profiles decide whether the result is right. Use when transcoding, cutting, packaging for streaming, normalising loudness, extracting frames, generating thumbnails, or reviewing an ffmpeg command that produced an unplayable file. Do not use for framework-owned image pipelines such as the Astro image service or next/image, for image format choices made for page speed, for Office and PDF documents, or for media a model generates."
+description: "Processes existing video, audio and images with ffmpeg and deterministic image tools."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
