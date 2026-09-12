@@ -239,3 +239,10 @@ Apache-2.0 文本双重声明，根 `LICENSE` 只是内容放错。`SOURCES.yaml
   重叠严重，本 skill 只保留「桌面代码要在移动端可编译」的那几条约束（`lib.rs` 入口、
   `crate-type`、capability 的 `platforms` 字段、插件是否有移动端实现）。
 - 不带 `scripts/`：见「最终合入清单」末尾。
+
+## 2026-09-12 相邻技能集成
+
+随本批正式构建`rust`，将Scope中通用Rust语言与crate问题改为按名称路由`rust`，
+不再让这类任务从Tauri规则推断。仅修改否定边界与本skill版本；Tauri平台规则、
+上游pin和既有评测保持不变，不冒称重新验证了各平台构建。对应Rust的Tauri近似负例
+仍由本批使用`openai/gpt-5.6-sol`、`medium`检验，结果记在`research/rust.md`。

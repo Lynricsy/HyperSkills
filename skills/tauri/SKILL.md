@@ -4,7 +4,7 @@ description: "Guides Tauri v2 desktop and mobile application work end to end: ta
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
@@ -24,8 +24,8 @@ Not covered: the frontend framework itself — React or Next.js component, hook 
 questions belong to the `react` skill; visual and layout design belongs to the
 `frontend-design` skill; type-layer modelling and `tsconfig` belong to the `typescript` skill.
 General Rust language and crate questions (ownership puzzles, async runtime choice, `Cargo`
-workspace layout unrelated to `src-tauri`), Vue and Svelte, and Electron are not covered here at
-all — answer those from their own documentation rather than from this skill. Mobile work is
+workspace layout unrelated to `src-tauri`) belong to the `rust` skill. Vue and Svelte,
+and Electron are not covered here; use their own documentation. Mobile work is
 covered only where the desktop code has to stay buildable for it (library entry point, crate
 type, per-platform capabilities, plugins without a mobile implementation); full Android and iOS
 platform work is not in scope.

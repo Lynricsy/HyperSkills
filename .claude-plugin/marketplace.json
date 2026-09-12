@@ -369,6 +369,15 @@
       ]
     },
     {
+      "name": "rust",
+      "description": "Guides Rust language and runtime engineering: ownership-driven APIs and error contracts, async cancellation and task ownership, Send/Sync and lock lifetimes, unsafe and FFI proof obligations, and Carg",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/rust"
+      ]
+    },
+    {
       "name": "security-review",
       "description": "Audits a codebase, feature or threat surface for security defects, defensively and from source. Scopes the attack surface with a coverage ledger, threat-models trust boundaries as concrete edges, hunt",
       "source": "./",
@@ -549,6 +558,7 @@
         "./skills/react",
         "./skills/react-native",
         "./skills/redis",
+        "./skills/rust",
         "./skills/security-review",
         "./skills/skill-authoring",
         "./skills/solidity-web3",

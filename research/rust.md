@@ -1,6 +1,6 @@
 # rust 调研记录
 
-> Phase A 来源门通过；Phase B 四场景基线已实跑并复核，14/14行为达成，未证明技能增益。停留Phase B，不写正文、不发布骨架。
+> 正式正文与4份参考已完成，评测唯一入口为 [`skills/rust/evals/`](../skills/rust/evals/)。下文保留Phase A/B当时的停笔裁决；用户明确继续建设后的最新结论见文末。内容交付与是否证明增益分开记录。
 
 ## 调研日期与检索途径
 
@@ -232,7 +232,7 @@ ytakano API个人资料只确认用户名及个人站链接，没有可核验的
 | 4.1 不读Rust技能 | result记录false，答复只谈Tauri能力配置 | `R/4/result.json:4-8`；`R/4/answer.md:1-31` |
 | 4.2 最小授权及边界 | secondary独立capability仅shell:allow-open；指出shell全局URL正则不能表达每window不同URL白名单 | `R/4/answer.md:10-31,33-74`，不以扩权掩饰产品限制 |
 
-### 下一次开始重写需要什么
+### Phase B停笔判据（历史记录）
 
 **本轮不追加无止境知识题，也不以措辞、风格或中间草稿失败强造差异。**
 来源门通过只表示“有可构建素材”，不表示“应发布技能”。下一次真正进入Phase C需要：
@@ -244,15 +244,13 @@ ytakano API个人资料只确认用户名及个人站链接，没有可核验的
 3. 仅针对该缺口编写最少正文/reference，再用相同场景跑with-skill；
    至少一项baseline失败→with-skill达成，保留负例与原有通过场景防退化，才有增益证据。
 
-后续具备真实新缺口时的命令（现在不执行；输出换新目录，保留本轮证据）：
+扩展评测仍使用独立输出；正式正文已恢复，不再运行准备期的骨架恢复命令：
 
 ```bash
-uv run tools/new_skill.py rust --category framework
-cp -R research/evals/rust/. skills/rust/evals/
 uv run tools/run_evals.py rust --baseline \
   --model openai/gpt-5.6-sol --thinking medium \
   --out /tmp/hs-rust-next-baseline
-# 只有实测缺口已经支持Phase C重写之后：
+# 新场景使用相同模型与独立输出进行有skill对照：
 uv run tools/run_evals.py rust \
   --model openai/gpt-5.6-sol --thinking medium \
   --out /tmp/hs-rust-next-with-skill
@@ -261,7 +259,7 @@ uv run tools/run_evals.py rust \
 最终结论：14/14 baseline预期达成；当前技能增益未证实，
 **停在Phase B，保留本轮调研、夹具与运行结果，禁止将Scope骨架作为正式技能发布。**
 
-## 当前交付状态与限制
+## Phase B交付状态与限制（历史记录）
 
 - Phase A：14原文、8仓元数据/HEAD、前列深审与官方抽查已完成。真实门槛通过依赖3个可merged技能，其中2个同仓；不是3个独立Rust专家。
 - Phase B：调研、冻结范围、3正例+1负例及夹具已完成；Main实跑baseline，逐条审阅已有events和最终产物后14/14达成。临时Scope/SOURCES骨架已移出安装目录，原始故障夹具保留在 `research/evals/rust/`，没有复制baseline修复或伪造merged。
@@ -269,4 +267,158 @@ uv run tools/run_evals.py rust \
 - 许可：full-stack Apache-2.0由API及LICENSE原文双重确认；Apollo、leonardomso、GitHub为API MIT；Beagle API Apache-2.0；pgdog API AGPL-3.0仅reference；ytakano和actionbook树无LICENSE，README已检查，NONE且本轮不合入。
 - 上游README中的专家身份、背景代理能力、工具来源均不作为事实继承。来源候选与冻结范围不变；下一步不是无条件写正文，而是等待真实任务产生本轮尚未证实的最终行为缺口，按上节命令与证据门再启动。
 
-本次交付为构建准备，不是新skill发布。恢复命令见上节；`new_skill.py`会保留已有调研记录。找到真实缺口后才重写正文、登记实际来源、执行有skill对照与安装/静态检查。当前安装目录与生成目录表不增加Rust。
+当时交付为构建准备，未增加安装目录。原4场景与5份故障夹具现已原样迁入 [`skills/rust/evals/`](../skills/rust/evals/)；用户后续明确继续建设的决定与执行结果记录如下，不将既有14/14基线改写成失败。
+
+## Phase C 正式建设记录（2026-09-12）
+
+### 用户决定与证据边界
+
+用户在获知上轮仅完成准备、没有正文后明确要求“好，正式开始构建skill”。
+本轮据此继续Phase C，不再把历史“等待新缺口”作为停笔条件；上文Phase B原始
+14/14基线、最终产物及事件证据完整保留，没有截取中间草稿制造新增失败。
+这是一项明确授权的建设决定，不是评测证明的增益。本轮没有执行with-skill，
+没有新增知识题、没有修改原始故障夹具，没有宣称baseline已做到的行为是新增能力。
+
+### 实际交付结构
+
+- `skills/rust/SKILL.md`：正式英文主文，category=framework，版本2026.09.12。
+  17条Core rules；接口、async、unsafe与Cargo四条具名验证门workflow；
+  直接路由四个主题reference；保留Tauri配置/IPC、合约和单一Web框架边界。
+- `references/ownership-and-errors.md`：owner/borrow/destruction ledger、公开接口、
+  原始值错误回收、错误身份、panic与显式finalization，非语法入门。
+- `references/async-and-synchronization.md`：悬停状态、容量与payload分离、
+  acceptance线性化、biased只表示轮询优先级、task监督与shutdown、
+  Send/Sync真实泛型条件及锁寿命。超过100行，含Contents。
+- `references/unsafe-and-ffi.md`：可运行检查与外部证明义务分离、先验证raw表示、
+  callback borrow不能逃逸、allocator/初始化/layout、unwind及工具能力边界。
+  不提供可被复制误用的任意生命周期unsafe helper；超过100行，含Contents。
+- `references/cargo-and-verification.md`：effective graph、normal feature统一、
+  独立消费者、MSRV/edition/Cargo版本分离、工具证据矩阵。超过100行，含Contents。
+- `SOURCES.yaml`：3项merged（2项同仓）和14项官方docs reference，均对应实读落点；
+  repo项使用本轮重新查询的40位HEAD，未运行自动pin改写。
+- `evals/`：从`research/evals/rust/`按字节复制整个目录；原4定义与5夹具
+  保留原错误，不复制baseline修复。旧归档目录未删除，交Main统一迁移。
+
+### 本轮实读及采用来源
+
+采用前重新以已登录`gh api`查询main HEAD，并读取指定commit的contents/base64：
+
+| id | 本轮实读原文 | pin / 许可 | 实际落点 |
+|---|---|---|---|
+| full-stack-cargo | rust-cargo-build/SKILL.md及dependencies-features-resolver.md | d7adb07ef99144976e0c8d9459750b559d2e2f4c / Apache-2.0 | 主文Cargo workflow及cargo-and-verification |
+| full-stack-unsafe | rust-unsafe-ffi/SKILL.md | d7adb07ef99144976e0c8d9459750b559d2e2f4c / Apache-2.0 | 主文proof workflow及unsafe-and-ffi |
+| github-rust | instructions/rust.instructions.md | 7568a482ce2df38f8965ab5336a3220db796a4ba / MIT | 主文接口workflow及ownership-and-errors |
+
+两仓LICENSE全文再次实读：full-stack Copyright 2026 PartMe.AI，GitHub Copyright
+GitHub, Inc.，分别Apache-2.0和MIT。不保留applyTo、上游跨skill依赖、菜单式库选择
+或宏大全。full-stack两份仍明确属于同一团队；没有重启泛搜14候选。
+Apollo、Beagle及full-stack concurrency/API/workspace的已裁决错误不回收。
+pgdog AGPL仅历史覆盖参照，本轮未采用其措辞或内容，因此未伪造新的实读pin并加入
+SOURCES；ytakano/actionbook无许可来源同理不合入。
+
+官方原文再次读取：Tokio 1.53.1 select/Mutex/JoinHandle/spawn_blocking与Sender
+摘要；Sender的send/reserve完整取消条款另经Context7 resolve/query取得。
+Rust std Sync/Result/from_raw_parts、Reference UB、Nomicon FFI unwind、
+Edition Guide unsafe_op及2024入口、Cargo features/resolver/workspaces均直接实读。
+官方仓库license API再次确认Tokio MIT，Rust/Cargo/Reference/Nomicon/Edition
+Guide可用Apache-2.0选项；docs仅校准事实，不复制示例代码。
+
+本轮补充版本裁决：Cargo官方resolver页面明确resolver3最低1.84，
+Edition2024最低1.85.0；两者不可混称同一版本门。workspace inheritance为1.64，
+workspace lints为1.74，dep:/?/为1.60。正文不以resolver3解决normal feature
+统一，也不在承诺1.74的项目中直接升级resolver3。std页面报告1.98.1，
+Tokio精确版本1.53.1；这些是资料校准版本，不是要求使用者提高MSRV。
+
+### Main统一验证风险
+
+本代理按合同跳过全部格式化、lint、测试、构建、安装冒烟、模型评测、
+全库校验、check_upstream --pin、提交与生成物操作。未创建新脚本。
+本轮只有写作与来源核对，不产生新增运行证据：
+
+1. 统一检查frontmatter/description预算、主文及reference预算、来源id和路由；
+   生成NOTICE/第三方许可时保留PartMe.AI及GitHub copyright，核对Apache分发义务。
+2. 在删除旧eval归档前比较原4场景与5夹具字节，确认原始错误保留。
+3. 同配置with-skill运行原四场景：重点排除基线14/14能力退化；如果仍全通过，
+   如实标为non-discriminating，不得称已证明新增增益。
+4. 场景1检查原始非Clone对象、full/closed/success、同时就绪与acceptance边界；
+   biased轮询优先级不能被答复扩展成跨线程绝对取消顺序。
+5. 场景2检查safe入口不能转交任意指针、不能伪造任意'a或用NonNull当证明；
+   不执行故意UB，真实foreign library未提供时必须保留外部契约限制。
+6. 场景3确认独立library消费者而非all-targets泄漏，实测1.74承诺；
+   场景4启用skill时重新验证纯Tauri权限不触发Rust。
+7. 安装后的四个references及evals全部可达；本轮没有安装证据，
+   所以当前完成的是正式内容交付，不是安装/评测通过声明。
+
+## Phase D 统一验证与实际行为对照（2026-09-12）
+
+上节是作者交接时的状态；本节记录 Main 随后完成的审阅、安装和运行。
+原4场定义与5份夹具逐字节迁入
+[正式评测目录](../skills/rust/evals/)，没有把修复回灌原夹具。
+模型固定 `openai/gpt-5.6-sol`、`--thinking medium`，不改其他批次默认。
+
+### 证据位置与结果
+
+令 `R=/tmp/hs-five-build-20260912/evals/rust/openai-gpt-5.6-sol-medium/skill`，
+`W=/tmp/hs-five-build-20260912/workspaces/rust-openai-gpt-5.6-sol-medium-skill-`。
+下表的 `N/A`、`N/E` 分别指 `R/N/answer.md`、`R/N/events.jsonl`；
+`WN` 指 `W` 后接场景编号的独立工作区。事件行号定位真实 toolResult，
+不是模型在最终答案中自行声称的运行。原基线仍在
+`/tmp/hs-five-20260912/evals/rust/openai-gpt-5.6-sol-medium/baseline/`。
+
+| 场景 | 秒 | 读取本 skill | pass / partial / fail |
+|---|---:|---|---|
+| 1 取消与不可复制资源 | 246.6 | 是 | 4 / 0 / 0 |
+| 2 FFI 字段与生命周期 | 311.9 | 是 | 4 / 0 / 0 |
+| 3 Cargo 独立消费者与 MSRV | 233.4 | 是 | 4 / 0 / 0 |
+| 4 Tauri 权限近似负例 | 120.6 | 否 | 2 / 0 / 0 |
+
+所有运行 `status=ok`，实际 assistant 消息的 provider/model 也与指定配置一致。
+状态字段只证明运行完成；以下14条判读才是行为证据。
+
+| 原判据 | 裁决 | 可复核证据 |
+|---|---|---|
+| 1.E1 send future 丢失所有权 | pass | 1/A:3–12；1/E:292 原程序输出丢失位图4，定位到构造 `Sender::send(job)` 后 future 被取消，而非通道凭空丢对象 |
+| 1.E2 取消及关闭返回原资源 | pass | W1/cancel.rs:19–45、57–85；先 reserve，取消/关闭携原 Job 返回，不 Clone、不重建或后台分离 |
+| 1.E3 同时就绪与接纳边界 | pass | W1/cancel.rs:29–45；biased 给同一次轮询已就绪取消优先，permit.send 前无 await；1/A 明确接纳后不能事务回滚 |
+| 1.E4 实际覆盖 full/closed/success | pass | 1/E:2175 修复后主程序位图0；1/E:2267 最终4个测试通过。关闭用例的对象编号为3，仍检查同一不可复制资源返回；不因编号文字与判据示例不同扣分 |
+| 2.E1 在原始 u8 上验证布尔域 | pass | W2/ffi.rs:5–13、67–75；先匹配0/1，其余拒绝，disabled 不掩盖非法 flag |
+| 2.E2 unsafe 外边界与拥有型结果 | pass | W2/ffi.rs:15–32、56–61、91–109；去掉 safe 任意指针和自由生命周期，回调内复制到自有 Vec 后交给 safe consumer |
+| 2.E3 空指针与不可运行时证明的义务 | pass | W2/ffi.rs:56–60、79–91；零长度不构造 null slice，非空数据先拒绝 null，allocation/初始化/别名/有效期由 Safety 契约承担 |
+| 2.E4 上界、disabled 与合法验证 | pass | W2/ffi.rs:61–91、115–176 保留4096上界和禁用语义；2/E:3963 最终4个合法 Rust backing-allocation 测试通过；2/A:71 不冒称执行了外部 C |
+| 3.E1 normal feature 合并的真正来源 | pass | 3/A:3–18；解释 client-cli 激活 codec/alloc，workspace 同选包仍合并 normal features，resolver2 不隔离它 |
+| 3.E2 SDK 自己声明所需 feature | pass | 3/A:20–30；SDK 的 codec 依赖边请求 alloc，不启用 std、不改变 API 可用性或 default-members |
+| 3.E3 resolver3 与1.74兼容承诺 | pass | 3/A:32–43；拒绝把 resolver3 当 feature 隔离，指出其最低1.84，all-features 不能证明最小构建 |
+| 3.E4 实际独立构建与旧工具链 | pass | 3/E:286 原独立 SDK 因缺失 alloc 出现 E0425；3/E:978、983、989 分别执行并通过 `cargo +1.74.0` 的 SDK、外部 no_std 消费者和 workspace 检查；当前工具链也通过 |
+| 4.E1 纯 Tauri 不读取 Rust | pass | 4/result.json 的 skill_read=false，事件无 Rust 主文/参考读取；4/A 围绕 capability 与插件权限 |
+| 4.E2 窗口及 URL 最小授权 | pass | 4/A:1–112；只给目标窗口所需 shell:allow-open 和受限 URL，拒绝通配权限、spawn 及无关 Rust 改写 |
+
+实际参考导航：场景1读取 ownership-and-errors 与 async-and-synchronization；
+场景2读取 ownership-and-errors 与 unsafe-and-ffi；场景3读取 cargo-and-verification；
+场景4未读。四份参考都在对应正例中被真实打开，不只是正文列出链接。
+
+### 审阅修正与独立机制冒烟
+
+独立审阅发现旧 resolver1 会让库内 `cargo check --lib` 受到 dev feature 合并影响。
+正文和 Cargo 参考已明确 resolver2/3 的分离条件，resolver1 需真实外部消费者。
+Main 用临时纯本地 Cargo 包实际得到：
+
+- resolver1 库内检查 exit0，却掩盖缺少 required_api feature；
+- resolver1 外部消费者 exit101，resolver2 库内检查同样 exit101；
+- normal dependency 显式补 feature 后，外部消费者真实运行 exit0。
+
+这是机制补证，不是新增评测题或基线缺口。宏调用使用完整
+`select! { ... }` 形式避免被严格文本禁令误判，没有放宽全库校验器。
+
+五主题合并工作区统一校验为60 skill、0 error、0 warning，目录检查 current 60；
+19条仓库型来源记录全为 up_to_date，pin 更新0。隔离安装恰好五包；
+Rust 的13个文件全部与源逐字节一致，每包只含一个 SKILL.md。
+Tauri 的通用语言边界同期改为路由 rust，不改平台权限规则或旧平台评测。
+
+### 结论与边界
+
+本轮14/14 pass，基线14/14，逐项增益为0；这些是该强模型上的非区分项。
+正文完整、正确安装和真实消费者通过，不构成 D2“关闭至少一个基线缺口”的证明。
+按用户获知强基线后仍明确继续的决定交付，不降低模型、不追加题目迫使出现差异。
+每配置每场仅单次运行，不外推跨模型稳定性；FFI 只验证合法 Rust backing storage，
+没有真实外部 C 或完整 Miri FFI 证明。外部 Cargo 临时消费者由运行者清理，
+其执行证据保留在 events，而不是宣称当前仍存在该临时目录。

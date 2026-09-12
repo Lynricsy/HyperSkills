@@ -32,15 +32,15 @@
 - **一个生态一个 skill。** `apple` 一个 skill 同时覆盖 SwiftUI 数据流、Swift 6 严格并发、
   SwiftData 与 Instruments，不切成 `swiftui` / `swift-concurrency` / `swiftdata` 三个——
   它们属于同一次任务，应当同时在场。
-- **精编重写，不是聚合。** 53 个 `SOURCES.yaml` 里共 581 条上游记录（436 条内容重写合入、
-  145 条仅阅读对齐）：470 条仓库型来自 339 个不同仓库，另有 111 条官方文档与 RFC。合入时统一
+- **精编重写，不是聚合。** 56 个 `SOURCES.yaml` 里共 636 条上游记录（471 条内容重写合入、
+  165 条仅阅读对齐）：498 条仓库型来自 358 个不同仓库，另有 138 条官方文档与 RFC。合入时统一
   术语、裁决冲突、删掉模型本来就会的常识，只留边缘情况、静默失败、版本差异与易错点。
 - **先有评测再有正文。** 动笔前先写评测场景（每个 skill ≥3 个，含 ≥1 个「近似但不该触发」
-  的负例）并跑无 skill 基线；skill 必须让至少一条基线未达成的行为达成，否则判为无效、回炉重写。
-  当前 244 个场景。
-- **上游可追溯。** 470 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
+  的负例）并跑无 skill 基线；默认以填补真实基线缺口作为增益门，没有差异就不宣称有效。
+  当前 256 个场景；波次11在强基线后按用户明确决定继续建设，内容交付与增益结论分开记录。
+- **上游可追溯。** 498 条仓库型记录各自固定合入时的 40 位 commit，`tools/check_upstream.py`
   能列出自那次 commit 以来上游在被引用路径下的全部变更，区分「仓库动了但引用路径没动」和
-  「真的变了」；111 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
+  「真的变了」；138 条文档型（`kind: docs`）只记 URL，工具报 `manual check`，靠人工比对。
 
 ## 不做什么
 
@@ -64,7 +64,7 @@
 # 装一个
 npx skills@latest add Lynricsy/HyperSkills --skill technical-writing --agent universal --copy --yes
 
-# 装全部 53 个
+# 装全部 56 个
 npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy --yes
 ```
 
@@ -78,7 +78,7 @@ npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy 
 /plugin install all@hyperskills
 ```
 
-插件名与 skill 目录名一致，`all` 是全部 53 个。清单是 `.claude-plugin/marketplace.json`。
+插件名与 skill 目录名一致，`all` 是全部 56 个。清单是 `.claude-plugin/marketplace.json`。
 
 ### 手工复制
 
@@ -109,7 +109,7 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
 ## skill 目录
 
-53 个：框架 20、平台 17、任务 15、元技能 1。下表由 `tools/build_catalog.py` 生成。
+56 个：框架 21、平台 17、任务 17、元技能 1。下表由 `tools/build_catalog.py` 生成。
 
 <!-- catalog:start -->
 
@@ -155,12 +155,13 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 | [`react`](skills/react/) | 框架 | Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle /… | 2026.09.10 | 8 |
 | [`react-native`](skills/react-native/) | 平台 | Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop… | 2026.09.11 | 7 |
 | [`redis`](skills/redis/) | 框架 | Guides Redis itself: choosing a data structure from the access pattern, key-space and TTL design, what each maxmemory-policy really does when memory… | 2026.09.11 | 7 |
+| [`rust`](skills/rust/) | 框架 | Guides Rust language and runtime engineering: ownership-driven APIs and error contracts, async cancellation and task ownership, Send/Sync and lock… | 2026.09.12 | 17 |
 | [`security-review`](skills/security-review/) | 任务 | Audits a codebase, feature or threat surface for security defects, defensively and from source | 2026.09.11 | 17 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/ | 2026.09.10 | 14 |
 | [`solidity-web3`](skills/solidity-web3/) | 框架 | Writes, reviews and hardens Solidity contracts defensively, and proves the result with Foundry | 2026.09.11 | 20 |
 | [`supabase`](skills/supabase/) | 框架 | Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr… | 2026.09.11 | 12 |
 | [`svelte`](skills/svelte/) | 框架 | Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets… | 2026.09.11 | 11 |
-| [`tauri`](skills/tauri/) | 平台 | Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and… | 2026.09.11 | 6 |
+| [`tauri`](skills/tauri/) | 平台 | Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and… | 2026.09.12 | 6 |
 | [`technical-writing`](skills/technical-writing/) | 任务 | Writes and repairs the documents a project ships to human readers: READMEs, documentation pages, tutorials, how-to guides, reference pages… | 2026.09.11 | 20 |
 | [`terraform`](skills/terraform/) | 框架 | Guides Terraform and OpenTofu configuration work: HCL style and expressions, variable, output and local design, module interfaces and version… | 2026.09.11 | 11 |
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything… | 2026.09.10 | 5 |
@@ -177,14 +178,14 @@ Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
 | 项 | 数量 | 数字来自 |
 |---|--:|---|
-| skill | 53 | `skills/*/SKILL.md` |
-| 上游记录（合入 / 仅参考） | 581（436 / 145） | `skills/*/SOURCES.yaml` 的 `upstreams` |
-| 其中仓库型（固定 commit） | 470 | 同上，`kind: repo` |
-| 不同上游仓库 | 339 | 同上，按 `repo` 去重 |
-| 其中文档型（人工比对） | 111 | 同上，`kind: docs` |
-| references 文件 | 482 | `skills/*/references/*.md` |
-| 评测场景 | 244 | `skills/*/evals/evals.json` |
-| 自包含脚本 | 20 | `skills/*/scripts/` |
+| skill | 56 | `skills/*/SKILL.md` |
+| 上游记录（合入 / 仅参考） | 636（471 / 165） | `skills/*/SOURCES.yaml` 的 `upstreams` |
+| 其中仓库型（固定 commit） | 498 | 同上，`kind: repo` |
+| 不同上游仓库 | 358 | 同上，按 `repo` 去重 |
+| 其中文档型（人工比对） | 138 | 同上，`kind: docs` |
+| references 文件 | 498 | `skills/*/references/*.md` |
+| 评测场景 | 256 | `skills/*/evals/evals.json` |
+| 脚本入口 | 12 | `skills/*/scripts/` 根目录的 `.py`、`.sh`、`.mjs`，不含依赖文件或辅助模块 |
 
 ## 仓库结构
 
@@ -205,7 +206,6 @@ HyperSkills/
 │   ├── roadmap.md              # 后续批次主题路线图
 │   └── assets/logo.svg         # README 首屏标记（透明底，单份资产适配明暗主题）
 ├── research/<name>.md          # 候选调研、冲突裁决、基线缺口、评测结果（中文）
-├── research/evals/<name>/      # 尚未发布主题的评测定义与原始故障夹具，不参与技能发现
 ├── templates/                  # skill 与 research 脚手架
 ├── tools/                      # 校验 / 上游检查 / 目录生成 / 评测运行
 ├── .claude-plugin/             # 生成的 Claude Code 市场清单
@@ -225,10 +225,11 @@ HyperSkills/
 | D 校验 | 静态校验 + 安装冒烟 + 有 skill 评测，与基线逐条对照 | 评测结果表；缺口未填补则回 C |
 | E 记录与提交 | 记录「选了谁、拒了谁、冲突怎么裁」，单 skill 单次提交 | 日志 + commit |
 
-当前构建准备：`rust`、`data-analysis`、`linux-ops`、`sqlite`、`cpp`，共复核75个候选、
-运行25个无skill场景。本批按用户指定使用 `openai/gpt-5.6-sol`、`medium`；
-尚无可证明的技能增益，未发布这五个skill。候选、许可裁决、逐项评分及恢复命令见
-[波次11调研与准备](docs/roadmap.md)，夹具保存在 [`research/evals/`](research/evals/)。
+波次11范围：`rust`、`data-analysis`、`linux-ops`、`sqlite`、`cpp`。此前共复核75个候选、
+运行25个无skill场景；用户获知强基线后明确要求正式构建。有skill对照仍使用
+`openai/gpt-5.6-sol`、`medium`，保留原场景与原始故障，不把基线已具备的能力重述为增益。
+各主题随正文、4份参考和固定版本来源逐项提交；来源、逐项证据与本批决策见
+[波次11建设记录](docs/roadmap.md)。已纳入目录的主题只在 `skills/<name>/evals/` 维护评测。
 
 常用命令：
 
@@ -246,9 +247,9 @@ uv run tools/build_catalog.py                          # 生成目录与 NOTICE
 
 ```console
 $ uv run tools/validate_skills.py | tail -1
-53 skill(s): 0 error(s), 0 warning(s)
+56 skill(s): 0 error(s), 0 warning(s)
 $ uv run tools/build_catalog.py --check
-catalog is current (53 skill(s))
+catalog is current (56 skill(s))
 ```
 
 `NOTICE.md`、`THIRD_PARTY_NOTICES.md`、`.claude-plugin/marketplace.json`、本页的目录表区块
