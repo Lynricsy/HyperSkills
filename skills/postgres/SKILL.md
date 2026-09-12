@@ -1,10 +1,10 @@
 ---
 name: postgres
-description: "Guides self-managed PostgreSQL work: schema and type selection, constraints, index choice and composite column order, reading EXPLAIN (ANALYZE, BUFFERS) and rewriting the query behind it, transactions, isolation and lock levels, MVCC, autovacuum and bloat, plain-SQL row-level security policy syntax and its performance, online schema migrations on a live table, connection limits and PgBouncer pool modes, JSONB, full-text search, pgvector, catalogue diagnostics, and the Postgres-side damage ORMs cause. Use when designing or reviewing a schema or migration, when a query got slow, when a plan shows a sequential scan or bitmap intersection, when writes block on locks or a table bloats, when connections or prepared statements fail under a pooler, or when picking an index type. Do not use for anything on the Supabase platform, including auth.uid() policies, JWT claims, an SDK returning no rows, and the Supabase dashboard or CLI; nor for hosting control planes such as RDS or Cloud SQL; nor for ORM syntax."
+description: "Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
