@@ -1,10 +1,10 @@
 ---
 name: elasticsearch
-description: "Guides Elasticsearch index and query work: mapping and field-type choice, text versus keyword and multi-fields, analyzers and tokenization, Query DSL and filter context, ES|QL, BM25 relevance tuning and offline evaluation, aggregations and their accuracy limits, dense_vector and semantic_text retrieval, data streams and reindexing, shard and heap sizing, and reading a search profile. Use when designing or reviewing a mapping, when a term query returns nothing, when an aggregation fails on a text field, when results rank badly, when a search is slow or the cluster is yellow or red, or when adding vector or hybrid search. Do not use for log ingestion pipelines, alerting or tracing-driven incident investigation, for Kibana dashboards and saved objects, or for tuning a relational or document database."
+description: "Designs and tunes Elasticsearch mappings, queries, search relevance and indexes."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
