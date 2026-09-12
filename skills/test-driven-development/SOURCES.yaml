@@ -2,7 +2,7 @@
 # `commit` is filled automatically by:
 #   uv run tools/check_upstream.py --pin test-driven-development
 skill: test-driven-development
-version: "2026.09.10"           # must equal SKILL.md metadata.version
+version: "2026.09.12"           # must equal SKILL.md metadata.version
 upstreams:
   - id: obra-tdd
     kind: repo

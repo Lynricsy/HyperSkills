@@ -1,10 +1,10 @@
 ---
 name: test-driven-development
-description: "Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything, agrees the seam under test, then runs one red-green-refactor slice at a time with a mandatory watch-it-fail step. Covers tests that name the break they catch instead of detecting change or restating the implementation, mocking only at system boundaries, the mutation check, and proving a regression test is real by reverting the fix. Applies when implementing a feature, fixing a bug, adding or reviewing tests, or when the user mentions TDD, red/green, unit tests or test coverage. Do not use for CI, build or dependency-caching configuration, for test-runner API details (use the ecosystem skill for the project's runner), or for browser end-to-end verification."
+description: "Drives implementation and bug fixes through test-first red-green-refactor cycles."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: task
 ---
 
