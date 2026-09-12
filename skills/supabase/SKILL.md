@@ -1,10 +1,10 @@
 ---
 name: supabase
-description: "Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr cookie flows, getClaims versus getUser versus getSession, RLS policies against auth.uid(), JWT claims and access-token-hook custom claims, Data API exposure through grants and exposed schemas, Storage buckets with per-operation policies and signed URLs, Realtime authorization and Postgres Changes versus Broadcast, Edge Functions on Deno with withSupabase, verify_jwt, secrets, CORS and runtime limits, and the CLI workflow for the local stack, declarative schemas, db diff, db push and generated types. Use when a policy using auth.uid() returns nothing through the client SDK, a session never reaches the server, a function 401s or fails a browser preflight, an upload or signed URL misbehaves, a realtime subscription never fires, a migration diff is empty, or an anonymous caller may reach too much. Do not use for Postgres tuning or EXPLAIN work, and not for Firebase."
+description: "Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
