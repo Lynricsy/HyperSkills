@@ -1,10 +1,10 @@
 ---
 name: debugging
-description: "Diagnoses broken behaviour and fixes it at the root cause: builds a red-capable feedback loop before theorising, reproduces and minimises, localises across component boundaries, bisects regressions, ranks falsifiable hypotheses and tests one variable at a time, instruments with tagged probes it later removes, fixes the producer rather than the crash site, locks the bug down with a regression test at a correct seam, and stops to ask after three failed attempts. Use when something is broken, throwing, failing, flaky, slow, corrupt or newly regressed, or when the user says debug, diagnose, investigate, or asks why something happens. Do not use for writing new features (use the test-driven-development skill), for test-runner or framework API details, or for designing production observability."
+description: "Diagnoses and fixes reproducible bugs, regressions, failures and performance problems."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.10"
+  version: "2026.09.12"
   category: task
 ---
 
