@@ -205,6 +205,7 @@ HyperSkills/
 │   ├── roadmap.md              # 后续批次主题路线图
 │   └── assets/logo.svg         # README 首屏标记（透明底，单份资产适配明暗主题）
 ├── research/<name>.md          # 候选调研、冲突裁决、基线缺口、评测结果（中文）
+├── research/evals/<name>/      # 尚未发布主题的评测定义与原始故障夹具，不参与技能发现
 ├── templates/                  # skill 与 research 脚手架
 ├── tools/                      # 校验 / 上游检查 / 目录生成 / 评测运行
 ├── .claude-plugin/             # 生成的 Claude Code 市场清单
@@ -223,6 +224,11 @@ HyperSkills/
 | C 重写 | 按标准写 `SKILL.md` 与 `references/`，脚本本机跑通，`--pin` 固定上游 commit | skill 正文、`SOURCES.yaml` |
 | D 校验 | 静态校验 + 安装冒烟 + 有 skill 评测，与基线逐条对照 | 评测结果表；缺口未填补则回 C |
 | E 记录与提交 | 记录「选了谁、拒了谁、冲突怎么裁」，单 skill 单次提交 | 日志 + commit |
+
+当前构建准备：`rust`、`data-analysis`、`linux-ops`、`sqlite`、`cpp`，共复核75个候选、
+运行25个无skill场景。本批按用户指定使用 `openai/gpt-5.6-sol`、`medium`；
+尚无可证明的技能增益，未发布这五个skill。候选、许可裁决、逐项评分及恢复命令见
+[波次11调研与准备](docs/roadmap.md)，夹具保存在 [`research/evals/`](research/evals/)。
 
 常用命令：
 

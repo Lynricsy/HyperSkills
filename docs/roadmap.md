@@ -133,6 +133,46 @@
 两份评测因此各改写过一轮。真实增量集中在：工具选型的经济性判断（不为保住 ffmpeg 而手写色彩管理）、
 交付决策的交还，以及**没被问到时仍要履行的合规与溯源义务**。详见两份 research 的「基线缺口」节。
 
+### 波次 11 — 系统语言、主机运维与本地数据
+
+本批由用户指定 `rust`、`data-analysis`、`linux-ops`、`sqlite`、`cpp`。2026-09-12
+重新实读并复核共 75 个候选，五项均通过来源门；来源可用于后续重写，不等于已发布。
+本批按用户要求临时覆盖默认模型，统一使用 `--model openai/gpt-5.6-sol --thinking medium`；
+无 skill 与有 skill 必须保持该模型和思考档一致，不修改其他批次的默认值。
+
+| skill | category | 本轮通过复核的主要候选 | 边界 | 状态与证据 |
+|---|---|---|---|---|
+| `rust` | framework | full-stack-skills/rust-skills 的 cargo-build、unsafe-ffi；github/awesome-copilot Rust instructions；Tokio、Rust Reference、Cargo 官方文档校正 | 通用所有权/错误、取消与任务生命周期、unsafe/FFI、Cargo/feature/MSRV；不覆盖 Tauri 权限配置、单个 Web 框架或智能合约 | 构建准备；4 场景、14/14 达成，未证实增益；[14 候选与裁决](../research/rust.md) |
+| `data-analysis` | task | polars-inc/skills、duckdb/duckdb-skills、anthropics/knowledge-work-plugins 的 data、K-Dense EDA | 本地数据清洗、指标粒度、缺失、时区、重复测量与可复现分析；不覆盖数据库运维、Office 文件交付或模型训练 | 构建准备；5 场景、20/20 达成，未证实增益；[15 候选与裁决](../research/data-analysis.md) |
+| `linux-ops` | platform | TerminalSkills/skills 的 systemd、ssh、rsync；Linux/systemd/OpenSSH/rsync 官方手册校正 | 裸机/VPS 主机运维、容量、权限、网络、恢复与回滚；不覆盖云控制面、K8s 清单或应用代码调试 | 构建准备；6 场景、21/21 达成，未证实增益；[16 候选与裁决](../research/linux-ops.md) |
+| `sqlite` | framework | TerminalSkills、SimHacker/moollm、RightNow-AI/openfang、harness-studio 的 SQLite 候选；sqlite.org 校正 | 嵌入式引擎、事务与文件生命周期；不覆盖 D1 平台配置、Turso 引擎扩展或特定 ORM API | 构建准备；5 场景，原消费者问题已修复、复杂迁移补测6/6；[15 候选与逐项评分](../research/sqlite.md) |
+| `cpp` | framework | crazyguitar/cppcheatsheet、margelo/react-native-skills 的通用 cpp、everything-claude-code 的 cpp-testing；C++ 草案/CMake/Clang 校正 | 通用生命周期、并发协议、ABI/ODR、构建与诊断；不覆盖 Unreal Gameplay、板级工具链或 GPU 训练 | 构建准备；5 场景、20/20 达成，未证实增益；[15 候选与裁决](../research/cpp.md) |
+
+Rust 和 Linux 的合格候选有同仓不同 skill，不冒称三个独立专家团队；SQLite、C++ 不套用
+官方厂商特例。Core Guidelines 的实际许可限制为个人或内部业务使用，故 C++ 仅将其列为
+`reference`，不会用社区转载仓库的 MIT 标签替代原始授权。旧暂缓结论保留在下表作历史背景。
+
+**本批交付为调研与构建准备，不发布五个空skill。** 25 个场景均已运行；判定对象是带工具、
+允许同一回合复审修正的最终产物，不是中间草稿。SQLite 首轮有部分扩展解释未覆盖，已原样记录，
+不笼统报全通过，也不以未要求的备选方案或不存在的schema对象强造失败。负例的baseline
+`skill_read=false`不等于未来有skill时触发率合格。本批没有有skill对照或增益结论。
+
+原始故障夹具与评测定义保存在 [`research/evals/<name>/`](../research/evals/)，不会被当作
+安装skill或加入生成目录表。临时Scope/SOURCES骨架不发布。恢复一项准备时（以下以Rust为例）：
+
+```bash
+uv run tools/new_skill.py rust --category framework
+cp -R research/evals/rust/. skills/rust/evals/
+uv run tools/run_evals.py rust --baseline \
+  --model openai/gpt-5.6-sol --thinking medium \
+  --out /tmp/hs-rust-next-baseline \
+  --workspace-root /tmp/hs-rust-next-workspaces
+```
+
+`new_skill.py`会保留已有research记录；其他四项的category见上表。先取得真实工程任务的
+未达成基线证据，再进入Phase C；随后用相同模型/思考档/场景跑有skill组，执行静态、安装和
+目录检查后才发布。输出与workspace都用新目录，保留本轮证据；不把“素材充足”替代增益门。
+
 
 ## 官方厂商特例主题
 
@@ -176,16 +216,17 @@
 |---|---|---|
 | `angular`、`firebase`、`dbt` | 用户暂缓 | 官方单一上游合格，用户本轮不要 |
 | `django` | 暂缓 | 无官方上游；社区仅 imankulov(1★)、saaspegasus（维护脚本） |
-| `rust` | 暂缓 | 仅 apollographql `rust-best-practices` 一份通用权威；其余框架专用或零采纳 |
+| `rust` | 本批重新调研 | 旧结论为仅 Apollo 一份通用权威；波次 11 已重估，Apollo 引用发现两条事实错误被拒，其他候选通过来源门，详见 research |
 | `electron` | 暂缓 | electron/electron 的 skills 是维护 Electron 本身；应用开发上游仅两家个人 |
 | auth（auth0 / clerk / better-auth） | 排除 | SaaS 产品官方仓库，属产品包装类 |
 | `wordpress` | 暂缓 | 官方仓 NOASSERTION，第二上游 GPL-2.0 且面向核心贡献者 |
-| `data-analysis` | 暂缓 | 活跃上游几乎全是数据库产品用法；duckdb/duckdb-skills(541★, MIT) 可下轮重估 |
+| `data-analysis` | 本批重新调研 | 旧结论为活跃上游多属数据库产品包装；波次 11 已找到本地 DuckDB/Polars 与通用分析任务上游，详见 research |
 | `google-workspace` | 暂缓 | 用户暂不需要（Batch 1 决定，保留） |
 | `incident-response`、`refactoring`、`performance-profiling`、`prompt-engineering`、`database-migration`、`dependency-upgrade` | 不立项 | 既有/本轮 skill 的子集（分别 → `observability`+`debugging`、`code-review`+`test-driven-development`、`frontend-design`/`ml-training`、`ai-engineering`、各数据库 skill、各生态 skill） |
 | `web-accessibility`、`web-performance`、`seo`、`tailwind`、`animation` | 不立项 | `frontend-design` 子集；下次同步 `frontend-design` 时评估追加 addyosmani/web-quality-skills |
 | `kotlin-multiplatform`、`prisma`、`agent-building`、`github-actions` | 并入 | 分别 → `android`、`postgres`、`ai-engineering`、`github` |
-| `sql-general`、`linux-ops`、`cpp`、`shell-scripting`、`ruby-rails`、`htmx`、`wasm`、`embedded`、`cli-tooling`、`web-scraping`、`ecommerce`、`vector-db` | 无合格上游 | 无权威活跃上游，或属产品包装 |
+| `linux-ops`、`cpp` | 本批重新调研 | 旧结论为无合格上游；波次 11 按现行量表重新实读、校正与筛选，已进入基线，不代表正文已发布 |
+| `sql-general`、`shell-scripting`、`ruby-rails`、`htmx`、`wasm`、`embedded`、`cli-tooling`、`web-scraping`、`ecommerce`、`vector-db` | 无合格上游 | 无权威活跃上游，或属产品包装 |
 
 ## 已排除主题（Batch 1 起沿用）
 
