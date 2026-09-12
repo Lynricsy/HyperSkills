@@ -1,5 +1,7 @@
 # linux-ops 调研记录
 
+> 正式正文与4份参考已完成，评测唯一入口为 [`skills/linux-ops/evals/`](../skills/linux-ops/evals/)。下文保留Phase A/B当时记录；用户继续建设后的最新结论见文末，内容交付不等于已证明增益。
+
 ## 调研日期与检索途径
 
 - 调研及复核日期：2026-09-12。
@@ -152,6 +154,119 @@
 
 Phase C的拟建范围是一个主机变更/诊断工作流，reference只在基线实际遗漏对应规则时创建：service-privileges-and-limits、storage-and-processes、network-and-remote-changes、backup-and-restore。不能按菜单预先填满正文。Main提供逐项基线结果后再决定写哪些规则；全部通过则先调整场景，不空造增益。本子任务没有格式化、lint、测试、模型评测、安装冒烟、生成目录修改或commit/push。
 
-## 构建准备交付
+## Phase B构建准备交付（历史记录）
 
-保留[评测定义](evals/linux-ops/evals.json)和只读现场夹具，不向安装目录或生成目录表加入空skill。下一次执行 `uv run tools/new_skill.py linux-ops --category platform`，然后 `cp -R research/evals/linux-ops/. skills/linux-ops/evals/`；已有调研记录保留。按[路线图](../docs/roadmap.md)使用同模型、medium和新的输出目录复跑，先证明消费者合同缺口，再重写正文并做有skill对照。
+当时只保留评测和只读现场，不向安装目录加入空skill。原6场景与5份现场夹具现已原样迁入[正式评测目录](../skills/linux-ops/evals/)，不再维护准备目录副本或骨架恢复命令。用户随后要求正式建设，按[路线图](../docs/roadmap.md)使用同模型medium与独立输出进行对照；没有把场景分析授权扩展成主机操作授权。
+
+## Phase C 正式构建（用户明确继续）
+
+2026-09-12，用户在获知上一轮仅完成 Phase B、没有技能正文之后明确要求“好，正式开始构建skill”。本轮按此新决定完成正文建设，不再把先证明强基线缺口作为停笔条件；这不推翻上面的历史实验。现有六场景仍为无 skill 21/21，全部是当前模型上的非区分项。**正文已经写成，不等于已证明增益；with-skill 与发布校验待 Main 统一执行。**
+
+### 实际交付结构
+
+- `skills/linux-ops/SKILL.md`：platform，2026.09.12，限定裸机/VPS主机边界；16条核心规则；诊断、服务变更、容量恢复、远程访问变更、备份恢复五条带具名验收门的工作流。正文要求观察/计划/授权执行分开，分析夹具不会自动变成真实主机连接或修改。
+- `references/service-privileges-and-limits.md`：磁盘配置/manager配置/活进程三态；exec/notify/reload协议；非root、祖先search、ACL/MAC、bounding/ambient/NNP；single-file bind旧inode、ExecReload独立namespace、绑定列表整体重置及保留其他bind；稳定父目录与受控drain/restart迁移；select与FD软上限、user manager hard limit及cgroup区别。
+- `references/storage-and-processes.md`：blocks/inodes/quota/read-only/FD不同资源；按device+inode汇总deleted-open全部holder；先保留证据再释放最后引用；不把proc-FD截断、盲删tmp或kill当修复；目标确认、外部恢复与剩余写入证据。
+- `references/network-and-remote-changes.md`：resolver/NSS与split-DNS、路由/监听/过滤分层；sshd -t/-T Match检查；关闭multiplexing的新SSH连接；双栈规则、独立回滚执行器、运行态+持久态、回滚重放不能简单叠加；逐A/AAAA端点SNI/链验证。
+- `references/backup-and-restore.md`：RPO实际可恢复点、全链路RTO、普通check/payload check/应用一致/实际restore四种证据；显式snapshot ID与--path不是内容过滤；隔离目标、非root检查、元数据与HAX、writer fence/final delta、接受新写后不能盲切回旧树。
+- `SOURCES.yaml`：三个TerminalSkills独立skill分开列merged，明确同仓而非独立团队；其余官方资料均reference，无GPL/LGPL/CC-BY-SA原文或代码复制。未新增脚本。
+- 原 `research/evals/linux-ops/` 用不转换内容的目录复制恢复到 `skills/linux-ops/evals/`，六个定义及五份原错误夹具保持原内容；旧路径最终归档移除交给Main，作者未删除历史证据。
+
+### 本轮实读来源与落点
+
+本轮没有重搜16候选，更没有泛搜五主题75候选；通过已登录 `gh api` 解析TerminalSkills main HEAD为 `56037efc04d0ffd20a0a85b18894115df74bd70f`，重新实读 `skills/systemd/SKILL.md`、`skills/ssh/SKILL.md`、`skills/rsync/SKILL.md` 全文与LICENSE元数据（Apache-2.0）。分别贡献服务组织、SSH连接路径和rsync同步语义；拒绝全局Restart=always、无条件关闭密码和失败后继续部署脚本。
+
+官方校正本轮实读：
+
+| 来源id | 实读内容 | 正文落点 / 许可 |
+|---|---|---|
+| systemd-exec | 261.2 BindPaths、NNP、bounding/ambient、rlimits、PrivateMounts原文段落 | service/storage/network；LGPL-2.1-or-later，API读取man/systemd.exec.xml SPDX确认 |
+| systemd-service | Type、ExecReload、Restart、OOMPolicy段落 | service；LGPL-2.1-or-later，仅事实reference |
+| systemctl-manual | cat/show、enable、reload、daemon-reload | 主文及service三态；LGPL-2.1-or-later |
+| linux-unlink / linux-path | Linux man-pages 6.19 unlink与path_resolution原文 | storage/service；Linux-man-pages-copyleft，另通过API读取历史源文件许可头，不把历史源版本当本轮事实版本 |
+| openssh-sshd | 官方sshd(8) -t/-T/-C、端口覆盖与reload | network；SSH-OpenSSH，API实读sshd.8的Ylonen及BSD二条款许可头 |
+| nft-manual | nft(8) check、family、ruleset序列化与版权段落 | network；文档明确CC-BY-SA-4.0，不误写程序GPL-2.0许可 |
+| nginx-tls | configuring_https_servers链顺序、缓存中间证书、SNI握手 | network；通过nginx/nginx.org LICENSE确认BSD-2-Clause |
+| rsync-manual | archive遗漏HAX、尾斜线、dry-run、hardlink、transport与COPYING | backup；GPL-3.0-or-later，仅事实reference，COPYING还列linking exceptions |
+| restic-docs | master HEAD `ba802d42b7294c98b62c16d1157ea3e80820c019`，完整045_working_with_repos.rst与050_restore.rst | backup；API确认BSD-2-Clause，明确check不是全payload或应用恢复证明 |
+
+前轮peter来源依旧维持许可不明、仅reference裁决；本轮没有采用其文本或脚本，也没有重新读取后冒称合入，故正式SOURCES仅列本轮实际使用的资料。bagel与Terminal iptables同样留在历史候选/冲突表，不为凑数量进入本次SOURCES。netfilter git COPYING请求遇到反机器人页面，随后直接读已获取nft手册的版权段落得到文档CC-BY-SA-4.0；没有绕过验证或将挑战页当源文。
+
+### 状态与未运行事项
+
+本轮只完成资料实读、正文/溯源写入和既有eval文件复制。遵守并行约束，**没有运行格式化、lint、测试、构建、安装冒烟、模型评测、全库校验或check_upstream --pin**，没有连接真实主机、执行主机变更、修改其他skill/生成物，也没有提交或推送。上述验收门是技能消费者未来的执行要求，不是作者本轮执行成功的声明。Main将统一进行with-skill、结构/引用/安装验证与最终集成；不能根据正文存在宣称21/21基线获得提升。
+
+## Phase D 统一验证与实际行为对照（2026-09-12）
+
+Main 已完成上节交接后的统一审阅、安装、结构检查和原6场 with-skill。
+原定义及5份夹具逐字节迁入
+[正式评测目录](../skills/linux-ops/evals/)，没有把运维方案写回原始证据。
+固定 `openai/gpt-5.6-sol`、`--thinking medium`；实际 assistant 消息也核对为该模型。
+
+令 `R=/tmp/hs-five-build-20260912/evals/linux-ops/openai-gpt-5.6-sol-medium/skill`。
+下文 `N/A`、`N/E` 指 `R/N/answer.md`、`R/N/events.jsonl`。
+旧基线在 `/tmp/hs-five-20260912/evals/linux-ops/openai-gpt-5.6-sol-medium/baseline/`。
+这些都是只读诊断/方案场景；事件中没有 bash、exec 或 OneSSH 主机变更调用。
+**可执行方案判据通过，不等于执行过重启、防火墙切换、证书轮转或恢复演练。**
+
+| 场景 | 秒 | 读取本 skill | pass / partial / fail |
+|---|---:|---|---|
+| 1 capability 与 select FD 上限 | 129.6 | 是 | 3 / 0 / 0 |
+| 2 deleted-open 与独立 inode 压力 | 211.9 | 是 | 4 / 0 / 0 |
+| 3 防火墙回退与 IPv6 TLS | 176.5 | 是 | 4 / 0 / 0 |
+| 4 异机快照、RPO 与恢复发布 | 203.7 | 是 | 4 / 0 / 0 |
+| 5 Python 名称重绑定近似负例 | 28.1 | 否 | 2 / 0 / 0 |
+| 6 单文件 bind mount 与证书轮转 | 143.4 | 是 | 4 / 0 / 0 |
+
+### 原21条判据与证据
+
+| 原判据 | 裁决 | 答案证据及判读 |
+|---|---|---|
+| 1.E1 capability 授予机制 | pass | 1/A:5–50；bounding set 只是上限，NNP阻止exec从filecap取新权限，恢复特定 ambient CAP_NET_BIND_SERVICE，不改root、不关闭NNP |
+| 1.E2 保留隔离并验证真实服务 | pass | 1/A:40–115；保留ledger写目录和文件系统限制，unit verify、daemon-reload、授权restart之后核对实际PID capability与新客户端端口/应用健康 |
+| 1.E3 select 的 FD_SETSIZE | pass | 1/A:138–155；拒绝把soft NOFILE一律升过1024，不以更大rlimit取代后端适配 |
+| 2.E1 一个70GiB inode的所有持有者 | pass | 2/A:13–22、87–95；相同device/inode两FD不相加成140GiB，所有holder释放后才真正回收 |
+| 2.E2 inode与块压力分别处理 | pass | 2/A:28–35、100–126；关大文件不释放数百万staging inode，分别复查df块与inode |
+| 2.E3 拒绝破坏性解法与正确reopen | pass | 2/A:39–58、75–95；拒绝重复unlink/proc-FD截断及未授权删除，用文档SIGUSR1覆盖全部相关worker或授权优雅restart，再检查健康 |
+| 2.E4 留存与staging用途 | pass | 2/A:75–83、100–115；先外部保存七天日志，staging用途/保留策略确认后才讨论清理，不把磁盘紧张当删除权限 |
+| 3.E1 旧SSH连接不是新会话证明 | pass | 3/A:7–28；2222未放行会阻断新连接，既有ESTABLISHED下whoami不能证明新规则安全 |
+| 3.E2 真实管理源与双栈控制流 | pass | 3/A:46–76；候选保留真实管理源/2222与必要ICMPv6，不替换成22或只写IPv4规则 |
+| 3.E3 激活前武装脱离会话的回退 | pass | 3/A:89–134；先验证定时回退恢复运行态和持久文件，再激活候选，以新SSH和服务连通为取消回退条件 |
+| 3.E4 IPv6 SNI证书而非DNS | pass | 3/A:142–169；定位IPv6 TLS端点wrong certificate/vhost，不curl -k、不清空规则或删除应保留的AAAA |
+| 4.E1 显式本机快照与隔离恢复 | pass | 4/A:7–16、62–93；拒绝latest取到other-vps，明确files-vps/1111aaaa并恢复隔离目录而非覆盖根 |
+| 4.E2 删除传播与元数据 | pass | 4/A:12、49–58、99–108；解释--delete镜像传播删除，archive漏HAX，要求权限及hardlink/ACL/xattr核对 |
+| 4.E3 三种备份验证与未测RTO | pass | 4/A:31–43、79–108；结构check、read-data与应用恢复演练分开，不宣称两小时RTO已实测 |
+| 4.E4 RPO、当前写入及回退 | pass | 4/A:17–29、124–164；26小时超过24小时RPO，保留快照/current uploads、发布前write barrier/delta、旧代回退和延后prune |
+| 5.E1 Python负例不读取运维 | pass | 5/result.json skill_read=false；事件无本 skill/参考读取 |
+| 5.E2 重绑定与共享对象修改 | pass | 5/A:1–38；解释局部cache={}与cache.clear()区别，不提systemctl、防火墙或主机重启 |
+| 6.E1 路径替换与不同mount namespace | pass | 6/A:5–18；主进程旧单文件bind钉旧inode，ExecReload新namespace可见1002，不把helper成功当主进程换证成功 |
+| 6.E2 不以reload重建namespace或越过只读 | pass | 6/A:24–47；daemon-reload+HUP不更新主进程bind，不写/proc-root来绕过隔离或暴露半对证书 |
+| 6.E3 替换而非叠加单文件bind | pass | 6/A:57–71；清空两条继承file bind，改稳定专用父目录只读bind，保留其他hardening |
+| 6.E4 一次授权重启及未来无重启轮转 | pass | 6/A:79–179；先drain/restart实例化namespace，以锁串行发布匹配pair；核主进程实际视图/serial、新SNI握手、长流和回退pair，后续reload保持MainPID |
+
+实际参考导航：1读service-privileges-and-limits，2读storage-and-processes，
+3读network-and-remote-changes，4读backup-and-restore，
+6读service与network；负例不读。四份参考都由对应正例真实打开。
+
+### 附加表述缺陷与验证边界
+
+场景4答案137–139把“旧树改名保留，再把新树改名到活动路径”的两次rename整体
+称为原子切换。这不是一个原子交换，读者可能遇到路径空窗。
+该答案的写屏障、delta和旧代回退满足原4.E4，但**不能当作零间隙读访问保证**。
+原判据没有零读中断要求，故不临时新增隐藏扣分项；错误附加措辞在此明确保留。
+已审阅的 backup-and-restore 参考131–148要求写屏障、流量协调和回退，
+没有作“两次rename整体原子”的错误承诺，不以评测答案的附加措辞反写正确规则。
+
+五主题合并工作区统一校验60 skill、0 error/0 warning，目录 current 60；
+19条仓库型来源记录全部 up_to_date，pin更新0。隔离安装恰好五包，
+linux-ops 的13个文件与源逐字节一致，每包只含一个 SKILL.md。
+模型和 Main 本轮均未连接授权主机或执行生产运维；安装/文本检查不证明RTO、
+RPO达标、真实网络回退或证书轮转无中断。
+
+### 结论
+
+原判据本轮21/21 pass、基线21/21，逐项增益0，都是指定强模型上的非区分项。
+D2“至少关闭一个基线缺口”的增益门未通过；不把更长方案、正确导航或安装完成
+冒充净提升。按用户获知基线后仍明确继续的决定交付完整skill，
+保留原场景和上面的附加缺陷，不再追加知识题迫使差异。
+每配置每场单次运行，不外推跨模型、重复运行稳定性或真实主机操作结果。

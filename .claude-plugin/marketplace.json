@@ -261,6 +261,15 @@
       ]
     },
     {
+      "name": "linux-ops",
+      "description": "Guides Linux bare-metal and VPS host operations: systemd lifecycle, non-root permissions and capabilities, mount namespaces, process and FD limits, disk blocks and inodes, deleted-open files, DNS, TLS",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/linux-ops"
+      ]
+    },
+    {
       "name": "mcp-server",
       "description": "Guides designing and reviewing a Model Context Protocol server: whether a capability is a tool, a resource or a prompt; tool names, schemas and descriptions written for a model; result size and cursor",
       "source": "./",
@@ -555,6 +564,7 @@
         "./skills/harmonyos",
         "./skills/java-spring",
         "./skills/laravel",
+        "./skills/linux-ops",
         "./skills/mcp-server",
         "./skills/media-processing",
         "./skills/ml-training",
