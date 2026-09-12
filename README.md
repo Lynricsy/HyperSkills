@@ -309,3 +309,7 @@ CI 不调用模型、不执行分发脚本和评测夹具、不联网检查外�
 - 上游材料的许可与署名：见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与各
   `skills/<name>/NOTICE.md`。
 - 专有许可的上游只作参考基准，未复制任何文字、脚本或数据文件。
+
+## 友情链接
+
+- [LINUX DO](https://linux.do/)
