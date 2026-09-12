@@ -46,8 +46,8 @@ SKILL_MD_WARN_LIMIT = 400  # plan's "keep it 150-400" upper edge
 REFERENCE_HARD_LIMIT = 600
 REFERENCE_WARN_LIMIT = 400
 CONTENTS_REQUIRED_OVER = 100  # references longer than this need a `## Contents` TOC
-DESCRIPTION_MIN = 80  # forces what+when+keywords+negative boundary
-DESCRIPTION_MAX = 1024  # hard spec limit
+DESCRIPTION_MIN = 1  # 标准 1.1：非空路由句，不要求凑字数
+DESCRIPTION_MAX = 160  # 本仓库的常驻路由预算，比官方规范更严格
 NAME_MAX = 64  # hard spec limit
 MIN_EVAL_SCENARIOS = 3  # standard section 6
 
@@ -120,8 +120,10 @@ def check_frontmatter(skill: Skill, rep: Report) -> None:
             rep.error("name must not contain XML tags")
 
     desc = fm.get("description")
-    if not isinstance(desc, str) or not desc:
-        rep.error("frontmatter 'description' is missing")
+    if not isinstance(desc, str) or not desc.strip():
+        rep.error(
+            "frontmatter 'description' must be a non-empty, non-whitespace string"
+        )
     else:
         if not DESCRIPTION_MIN <= len(desc) <= DESCRIPTION_MAX:
             rep.error(
@@ -134,8 +136,6 @@ def check_frontmatter(skill: Skill, rep: Report) -> None:
             rep.error("description must be third person, not 'I '/'You '")
         if " I can " in desc:
             rep.error("description must be third person; found ' I can '")
-        if "do not use for" not in desc.lower():
-            rep.warn("description should state a negative boundary ('Do not use for ...')")
         if "TODO" in desc:
             rep.error("description still contains the scaffold placeholder 'TODO'")
 

@@ -17,7 +17,7 @@
 ```yaml
 ---
 name: <目录名>
-description: "<英文；what + when + 触发关键词 + 一句否定边界 'Do not use for ...'；80–1024 字符>"
+description: "<一句极短英文路由句：任务 + 关键技术或产物名；1–160 字符>"
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
@@ -31,11 +31,15 @@ metadata:
 | 字段 | 约束 |
 |---|---|
 | `name` | 必填；`^[a-z0-9]+(-[a-z0-9]+)*$`；≤64 字符；**必须等于所在目录名**；不得含保留字 `anthropic` / `claude`；不得含 XML 标签 |
-| `description` | 必填；本仓库要求 80–1024 字符；第三人称（`Guides…` / `Reviews…`），禁止 `I can…` / `You can…`；必须含否定边界 `Do not use for …`；最核心用途放最前（Codex 会截断） |
+| `description` | 必填；非空、非全空白，1–160 字符；一句英文路由句，通常 8–16 词，不凑字数；第三人称（`Guides…` / `Reviews…`），禁止 `I can…` / `You can…`；不得含 XML 标签或 `TODO` 占位符；最核心用途放最前 |
 | `license` | 必填；本仓库统一 `MIT (upstream attributions in NOTICE.md)` |
 | `metadata.author` | 必须为 `HyperSkills` |
 | `metadata.version` | `^\d{4}\.\d{2}\.\d{2}$`，日期版本；每次合入 / 同步后改为当天 |
 | `metadata.category` | `platform` \| `framework` \| `task` \| `meta` |
+
+Agent Skills 官方允许 description 为 1–1024 字符；本仓库为常驻选择信息采用更紧的
+160 字符上限，而非把官方上限当目标。单句是写作要求，不用句号正则判定，以免误伤
+`Node.js`、`.NET` 等技术名。
 
 ### 1.2 顶层键白名单
 
@@ -89,7 +93,9 @@ metadata:
 - **自由度与脆弱性匹配**：多种做法皆可 → 启发式（高自由度）；有首选模式 → 带参数的模板 /
   伪代码（中）；脆弱且必须按序 → 精确命令并注明"不要改动参数"（低）。
 - **祈使语气，解释 why**；禁止满篇 ALL-CAPS MUST/NEVER。
-- **触发条件全部写进 `description`**，正文不重复"何时使用"。
+- **`description` 只负责选择**：用一句极短英文写任务与关键技术 / 产物名，不写能力、
+  版本或过程长清单，不强制 `Do not use for …`。详细适用范围与否定边界放在已有
+  `## Scope`；仅在真实路由歧义下加极短限定词，不把 Scope 搬回常驻描述。
 - **只给一个默认方案 + 一个逃生口**：`Use X. For <特殊情况> use Y instead.` 不罗列多个可选库。
 - **术语全篇一致**：一个概念只用一个词。
 - **不写时间敏感表述**（"2025 年 8 月前用旧 API"）。弃用内容放在 `## Old patterns` 节的

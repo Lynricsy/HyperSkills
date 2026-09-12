@@ -1,6 +1,6 @@
 ---
 name: {{name}}
-description: "TODO: what it does + when to use it + trigger keywords + one negative boundary starting with 'Do not use for'. Third person. 80-1024 characters. Put the most important use first — some clients truncate."
+description: "TODO: One short English routing sentence: task + key technology or artifact; third person; 1-160 characters."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
@@ -12,8 +12,11 @@ metadata:
 
 ## Scope
 
-<!-- What this skill covers, and explicitly what it does NOT cover. The negative
-     scope is what stops the model from inventing answers outside its knowledge. -->
+<!-- Keep detailed coverage and exclusions here, not in the description.
+     The description is only a routing sentence, usually 8-16 words; no padding,
+     capability/version/procedure lists, or required "Do not use for" sentence.
+     Add a brief routing qualifier only for a genuine ambiguity.
+     Negative scope stops the model from inventing answers outside its knowledge. -->
 
 ## Read first
 

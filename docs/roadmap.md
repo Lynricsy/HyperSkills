@@ -16,7 +16,8 @@
 每波 ≤5 个 skill（AGENTS.md：不得同时让 5 个以上 subagent 工作）。顺序为
 平台/语言 → Web/后端 → 数据/云 → 任务/AI → 游戏/Web3/中文生态。
 
-「边界」列是该 skill 的 `## Scope` 否定范围与 `description` 末尾 `Do not use for …` 的内容来源；
+「边界」列主要是该 skill 的 `## Scope` 覆盖范围与否定范围的内容来源；
+`description` 只写极短路由句，仅在真实歧义下取极短限定词，不搬入完整边界清单。
 括号内 `→ x` 表示转交给哪个 skill。许可标注中 `(无许可)` = GitHub API `license: null`，
 `(NOASSERTION)` = 需实读仓库 LICENSE 文件再定；处理方式见「许可处理规则」。
 

@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "ai-engineering",
-      "description": "Builds and reviews code that calls a language model: prompts separating instructions from retrieved or tool-supplied data, provider-enforced structured output, tools declaring side effects and idempot",
+      "description": "Builds LLM applications, prompts, tool-using agents, RAG pipelines and model evaluations.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -19,7 +19,7 @@
     },
     {
       "name": "android",
-      "description": "Guides native Android work end to end: Kotlin with coroutines and Flow, Jetpack Compose (state, side effects, stability, recomposition and scroll performance, Baseline Profiles), the legacy View syste",
+      "description": "Develops native Android apps with Kotlin, Jetpack Compose and Gradle.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -28,7 +28,7 @@
     },
     {
       "name": "api-design",
-      "description": "Designs and reviews HTTP API contracts independently of any framework: resource modelling and URI structure, HTTP method semantics and idempotency, status-code selection, pagination (offset, keyset, o",
+      "description": "Designs REST API contracts, resource models, pagination and OpenAPI specifications.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -37,7 +37,7 @@
     },
     {
       "name": "apple",
-      "description": "Guides Apple platform development in Swift — SwiftUI views, data flow and @Observable, ForEach identity, navigation, animation, Liquid Glass (iOS 26+), Swift 6.x strict concurrency and actor isolation",
+      "description": "Develops Apple platform apps with Swift, SwiftUI and UIKit.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -46,7 +46,7 @@
     },
     {
       "name": "astro",
-      "description": "Engineers Astro 7 sites: project and route structure including dynamic routes and getStaticPaths, island boundaries and the client:* hydration directives, server islands with server:defer, content col",
+      "description": "Builds Astro sites with islands, content collections and server rendering.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -55,7 +55,7 @@
     },
     {
       "name": "aws",
-      "description": "Guides AWS architecture and control-plane work: IAM policy evaluation, permissions boundaries, trust policies and PassRole escalation; Lambda, API Gateway, Step Functions, SQS and EventBridge selectio",
+      "description": "Manages AWS architecture, IAM, cloud services, deployments and costs.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -64,7 +64,7 @@
     },
     {
       "name": "azure",
-      "description": "Guides Azure control-plane and architecture work: Bicep and Azure Verified Modules, what-if preflight, deployment stacks, azd projects, CAF naming and subscription structure, Microsoft Entra ID, manag",
+      "description": "Manages Azure architecture, Bicep deployments, identity and cloud services.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -73,7 +73,7 @@
     },
     {
       "name": "chrome-extension",
-      "description": "Guides Chrome and Chromium browser extension work end to end: Manifest V3 manifests, the permissions and host-permissions model, activeTab and optional permissions, service worker lifecycle and event-",
+      "description": "Builds Chrome extensions with Manifest V3, service workers and content scripts.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -82,7 +82,7 @@
     },
     {
       "name": "cloudflare",
-      "description": "Guides building and operating on the Cloudflare developer platform: the Workers isolate model and its CPU and memory limits, waitUntil and request-scoped I/O, wrangler configuration, compatibility dat",
+      "description": "Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -91,7 +91,7 @@
     },
     {
       "name": "code-review",
-      "description": "Reviews code in both directions. Reviewing a diff, PR or branch: pin the base ref, review the tests first, gather Standards and Spec findings on separate axes, apply the five quality lenses and the Fo",
+      "description": "Reviews code changes and pull-request diffs, or evaluates review feedback.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -100,7 +100,7 @@
     },
     {
       "name": "containers",
-      "description": "Guides container artefacts: Dockerfiles and multi-stage builds, base-image choice, BuildKit cache mounts and build secrets, .dockerignore, multi-architecture images, image hardening and SBOMs, Compose",
+      "description": "Builds Docker images and configures Compose, Kubernetes, Helm and container security.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -109,7 +109,7 @@
     },
     {
       "name": "cpp",
-      "description": "Guides C++17/20/23 engineering: ownership and borrowed-view invalidation, construction failure and move invariants, deferred callbacks and coroutine lifetimes, synchronization protocols, CMake usage r",
+      "description": "Develops C++ code with CMake, ownership, concurrency and memory safety.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -118,7 +118,7 @@
     },
     {
       "name": "csharp-dotnet",
-      "description": "Guides C# and .NET application work end to end: C# language rules (nullable reference types and the nullability attributes, records, pattern matching, exception and disposal contracts), async and conc",
+      "description": "Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -127,7 +127,7 @@
     },
     {
       "name": "data-analysis",
-      "description": "Guides local tabular data analysis from CSV, Parquet and dataframes to reproducible conclusions using the project's pandas, Polars or DuckDB stack. Covers record identity, join cardinality, metric gra",
+      "description": "Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -136,7 +136,7 @@
     },
     {
       "name": "debugging",
-      "description": "Diagnoses broken behaviour and fixes it at the root cause: builds a red-capable feedback loop before theorising, reproduces and minimises, localises across component boundaries, bisects regressions, r",
+      "description": "Diagnoses and fixes reproducible bugs, regressions, failures and performance problems.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -145,7 +145,7 @@
     },
     {
       "name": "elasticsearch",
-      "description": "Guides Elasticsearch index and query work: mapping and field-type choice, text versus keyword and multi-fields, analyzers and tokenization, Query DSL and filter context, ES|QL, BM25 relevance tuning a",
+      "description": "Designs and tunes Elasticsearch mappings, queries, search relevance and indexes.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -154,7 +154,7 @@
     },
     {
       "name": "fastapi",
-      "description": "Guides FastAPI service work: APIRouter organisation, Annotated dependency injection including yield-dependency lifetime and exit scope, Pydantic v2 request and response models, response_model filterin",
+      "description": "Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -163,7 +163,7 @@
     },
     {
       "name": "flutter",
-      "description": "Guides Flutter and Dart work end to end: widgets and responsive layout, state management (Riverpod 3 Notifier, Bloc/Cubit, ChangeNotifier MVVM), go_router navigation and platform deep links, unit/widg",
+      "description": "Develops cross-platform Flutter apps with Dart, widgets and state management.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -172,7 +172,7 @@
     },
     {
       "name": "frontend-design",
-      "description": "Guides visual and UX quality for web UIs: design direction (typography, color and tokens, layout, spacing, motion), avoiding generic AI-looking interfaces, UI code review against interface guidelines ",
+      "description": "Designs and audits web interfaces for visual quality, usability and accessibility.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -181,7 +181,7 @@
     },
     {
       "name": "gcp",
-      "description": "Guides Google Cloud control-plane and architecture work: gcloud CLI discipline and its silent defaults, the organization/folder/project hierarchy and organization policy, IAM allow and deny policies, ",
+      "description": "Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -190,7 +190,7 @@
     },
     {
       "name": "generative-media",
-      "description": "Engineers code that calls a media model: image generation and mask-guided editing where the mask is a hint and never a crop, video generation constrained to fixed short clips behind an asynchronous jo",
+      "description": "Integrates AI image, video, speech and music generation or transcription models.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -199,7 +199,7 @@
     },
     {
       "name": "git-workflow",
-      "description": "Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice, resolving merge and rebase conflicts, commit granula",
+      "description": "Manages local Git branches, worktrees, commits, merges, conflicts and history recovery.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -208,7 +208,7 @@
     },
     {
       "name": "github",
-      "description": "Guides work that needs GitHub the platform. Actions: writing, auditing and speeding up workflows — triggers and privilege, script injection through ${{ }} interpolation, pull_request_target pwn reques",
+      "description": "Manages GitHub pull requests, issues, Actions workflows, releases and repository settings.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -217,7 +217,7 @@
     },
     {
       "name": "go",
-      "description": "Guides Go work end to end: idiomatic language use and useful zero values, interfaces and composition, goroutine lifetime, context cancellation, channels and sync primitives, errgroup, the race detecto",
+      "description": "Develops Go code with goroutines, modules, testing and performance profiling.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -226,7 +226,7 @@
     },
     {
       "name": "godot",
-      "description": "Guides Godot 4 work in GDScript: the scene tree and node lifetime, queue_free versus free and when an instance really becomes invalid, _ready running at most once so pooled nodes need request_ready, @",
+      "description": "Develops Godot games with GDScript, scenes, nodes and engine APIs.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -235,7 +235,7 @@
     },
     {
       "name": "graphql",
-      "description": "Guides GraphQL schema and operation work: nullability and the non-null error propagation that turns one failing field into a null response, type and field naming, interfaces, unions, input objects and",
+      "description": "Designs GraphQL schemas, operations, resolvers, federation and query controls.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -244,7 +244,7 @@
     },
     {
       "name": "harmonyos",
-      "description": "Guides HarmonyOS NEXT app work in ArkTS and ArkUI: the arkts-* language restrictions that make legal TypeScript fail to compile, build() purity, state management V1 vs V2 decorators and the API-gated ",
+      "description": "Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -253,7 +253,7 @@
     },
     {
       "name": "java-spring",
-      "description": "Guides Spring Boot work end to end: auto-configuration and configuration properties, Spring MVC versus WebFlux and RFC 9457 error contracts, declarative HTTP service clients, Spring Data JPA (entity m",
+      "description": "Develops Java services with Spring Boot, Spring Security and Spring Data JPA.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -262,7 +262,7 @@
     },
     {
       "name": "laravel",
-      "description": "Guides Laravel application work on Laravel 12 and 13 with modern PHP: Eloquent modelling and loading strategy (N+1, eager loading, scopes, casts, strictness), migrations and indexes, routing and contr",
+      "description": "Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -271,7 +271,7 @@
     },
     {
       "name": "linux-ops",
-      "description": "Guides Linux bare-metal and VPS host operations: systemd lifecycle, non-root permissions and capabilities, mount namespaces, process and FD limits, disk blocks and inodes, deleted-open files, DNS, TLS",
+      "description": "Operates Linux hosts with systemd, permissions, networking, storage and backup recovery.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -280,7 +280,7 @@
     },
     {
       "name": "mcp-server",
-      "description": "Guides designing and reviewing a Model Context Protocol server: whether a capability is a tool, a resource or a prompt; tool names, schemas and descriptions written for a model; result size and cursor",
+      "description": "Builds Model Context Protocol servers with tools, resources, transports and authorization.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -289,7 +289,7 @@
     },
     {
       "name": "media-processing",
-      "description": "Engineers deterministic media work with ffmpeg and the image tools: container and codec selection, remux versus transcode, rate control that silently degrades (VP9 constant quality without -b:v 0, SVT",
+      "description": "Processes existing video, audio and images with ffmpeg and deterministic image tools.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -298,7 +298,7 @@
     },
     {
       "name": "ml-training",
-      "description": "Trains and fine-tunes models whose weights you control: choosing between SFT, DPO and GRPO from the data actually available, computing the GPU memory ledger (weights, gradients, optimizer state, activ",
+      "description": "Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -307,7 +307,7 @@
     },
     {
       "name": "mongodb",
-      "description": "Guides MongoDB work: document modelling (embed versus reference, array growth, bucketing, subset and extended-reference tradeoffs, schema versioning, $jsonSchema validation), update operators, aggrega",
+      "description": "Designs and tunes MongoDB documents, aggregations, indexes and cluster operations.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -316,7 +316,7 @@
     },
     {
       "name": "nodejs-backend",
-      "description": "Engineers Node.js HTTP services: process and request lifecycle, graceful shutdown and connection draining, schema validation at every boundary, error taxonomy and what a 5xx body may reveal, structure",
+      "description": "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -325,7 +325,7 @@
     },
     {
       "name": "observability",
-      "description": "Guides observability for systems already running in production: OpenTelemetry traces, metrics and logs and how they correlate, SDK instrumentation, context propagation, span naming, kind and status, s",
+      "description": "Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -334,7 +334,7 @@
     },
     {
       "name": "office",
-      "description": "Creates, edits, reads and converts Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and PDF files — reports, memos, letters, decks, slides, spreadsheets, financial models, forms, tracked changes and co",
+      "description": "Creates, edits and converts Word, PowerPoint, Excel and PDF documents.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -343,7 +343,7 @@
     },
     {
       "name": "planning",
-      "description": "Turns a vague request into a plan that can be executed and verified: clarifying requirements into acceptance criteria that are either true or false, recording assumptions and rejected options, and pro",
+      "description": "Turns requirements into executable plans with dependencies and verifiable acceptance criteria.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -352,7 +352,7 @@
     },
     {
       "name": "postgres",
-      "description": "Guides self-managed PostgreSQL work: schema and type selection, constraints, index choice and composite column order, reading EXPLAIN (ANALYZE, BUFFERS) and rewriting the query behind it, transactions",
+      "description": "Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -361,7 +361,7 @@
     },
     {
       "name": "python",
-      "description": "Guides modern Python work: uv for projects, tools and PEP 723 single-file scripts; ruff as the single linter and formatter; pyproject.toml, dependency groups, build backends and PyPI publishing; pytes",
+      "description": "Develops Python code with uv, pytest, typing, asyncio and packaging.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -370,7 +370,7 @@
     },
     {
       "name": "react",
-      "description": "Engineers React 19+ and Next.js App Router (15/16+) code: component architecture and composition, state selection, rendering / re-render / bundle / async performance rules carrying stable rule ids, Re",
+      "description": "Develops React and Next.js web applications, components and server rendering.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -379,7 +379,7 @@
     },
     {
       "name": "react-native",
-      "description": "Engineers React Native and Expo apps at the runtime and native boundary: New Architecture (Fabric, Turbo Native Module specs, codegen, the interop layer), Hermes and startup/TTI, list and scroll perfo",
+      "description": "Develops React Native and Expo mobile apps, navigation and native integrations.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -388,7 +388,7 @@
     },
     {
       "name": "redis",
-      "description": "Guides Redis itself: choosing a data structure from the access pattern, key-space and TTL design, what each maxmemory-policy really does when memory runs out, RDB and AOF durability windows, the atomi",
+      "description": "Designs and operates Redis data structures, caching, streams and clusters.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -397,7 +397,7 @@
     },
     {
       "name": "rust",
-      "description": "Guides Rust language and runtime engineering: ownership-driven APIs and error contracts, async cancellation and task ownership, Send/Sync and lock lifetimes, unsafe and FFI proof obligations, and Carg",
+      "description": "Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -406,7 +406,7 @@
     },
     {
       "name": "security-review",
-      "description": "Audits a codebase, feature or threat surface for security defects, defensively and from source. Scopes the attack surface with a coverage ledger, threat-models trust boundaries as concrete edges, hunt",
+      "description": "Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -415,7 +415,7 @@
     },
     {
       "name": "skill-authoring",
-      "description": "Authors, reviews, evaluates and publishes Agent Skills — the SKILL.md frontmatter and body plus bundled references/, scripts/ and assets/. Covers scoping a skill to one coherent job, writing a descrip",
+      "description": "Authors, reviews and evaluates Agent Skills and their SKILL.md files.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -424,7 +424,7 @@
     },
     {
       "name": "solidity-web3",
-      "description": "Writes, reviews and hardens Solidity contracts defensively, and proves the result with Foundry. Covers contract layout and checks-effects-interactions, reentrancy including cross-function and read-onl",
+      "description": "Develops and audits Solidity smart contracts with Foundry security testing.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -433,7 +433,7 @@
     },
     {
       "name": "sqlite",
-      "description": "Guides embedded SQLite work: connection and transaction lifetime, single-writer concurrency, SQLITE_BUSY and SQLITE_BUSY_SNAPSHOT, WAL checkpoints and database file sets, consistent backup and restore",
+      "description": "Designs and operates embedded SQLite databases, transactions, WAL and backups.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -442,7 +442,7 @@
     },
     {
       "name": "supabase",
-      "description": "Guides work on Supabase projects: Auth sessions and JWTs, the publishable/secret key split and the legacy anon/service_role pair, @supabase/ssr cookie flows, getClaims versus getUser versus getSession",
+      "description": "Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -451,7 +451,7 @@
     },
     {
       "name": "svelte",
-      "description": "Engineers Svelte 5 and SvelteKit 2 code: runes and the reactivity model ($state, $state.raw, $derived, and the ways $effect gets misused), snippets and {@render}, props and $bindable, attachments, rou",
+      "description": "Develops Svelte and SvelteKit applications with runes, routing and server data flows.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -460,7 +460,7 @@
     },
     {
       "name": "tauri",
-      "description": "Guides Tauri v2 desktop and mobile application work end to end: tauri.conf.json and platform-specific config overrides, the capabilities and permissions model with command scopes and the runtime autho",
+      "description": "Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -469,7 +469,7 @@
     },
     {
       "name": "technical-writing",
-      "description": "Writes and repairs the documents a project ships to human readers: READMEs, documentation pages, tutorials, how-to guides, reference pages, architecture decision records and changelogs. Classifies a p",
+      "description": "Writes and edits READMEs, documentation, tutorials, architecture decisions and changelogs.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -478,7 +478,7 @@
     },
     {
       "name": "terraform",
-      "description": "Guides Terraform and OpenTofu configuration work: HCL style and expressions, variable, output and local design, module interfaces and version pinning, count versus for_each and resource identity, stat",
+      "description": "Manages infrastructure as code with Terraform or OpenTofu modules, state and providers.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -487,7 +487,7 @@
     },
     {
       "name": "test-driven-development",
-      "description": "Drives implementation and bug fixes test-first in any language or framework: discovers the repository's own test commands before writing anything, agrees the seam under test, then runs one red-green-r",
+      "description": "Drives implementation and bug fixes through test-first red-green-refactor cycles.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -496,7 +496,7 @@
     },
     {
       "name": "typescript",
-      "description": "Engineers TypeScript at the type layer and the build layer: modelling a domain so illegal states do not compile (discriminated unions, branded types, exhaustive switches, errors as data), designing de",
+      "description": "Designs TypeScript types, fixes type errors and configures typed package builds.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -505,7 +505,7 @@
     },
     {
       "name": "unity",
-      "description": "Guides Unity 6 game work in C#: MonoBehaviour lifecycle and execution order, what Unity's serializer stores and silently drops (Dictionary only from 6.6, [SerializeReference], [FormerlySerializedAs]),",
+      "description": "Develops Unity games with C#, engine APIs, rendering and asset workflows.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -514,7 +514,7 @@
     },
     {
       "name": "unreal",
-      "description": "Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCLASS/UPROPERTY/UFUNCTION reflection contract and what the garbage collector can and cannot see (TObjectPtr, TWeakObjectPtr::Pin, TStron",
+      "description": "Develops Unreal Engine gameplay with C++, Blueprints and engine APIs.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -523,7 +523,7 @@
     },
     {
       "name": "vue",
-      "description": "Engineers Vue 3 applications: the Composition API with `script setup` SFCs, the reactivity system and every way it silently detaches (reactive destructuring, reassigned proxies, missing `.value`, prop",
+      "description": "Develops Vue and Nuxt applications with Composition API, Pinia and routing.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -532,7 +532,7 @@
     },
     {
       "name": "web-testing",
-      "description": "Guides end-to-end testing of web applications in real browsers with Playwright: accessibility-first locators and strict mode, auto-waiting and why a fixed wait is a bug, web-first retrying assertions,",
+      "description": "Tests web applications in real browsers with Playwright end-to-end automation.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -541,7 +541,7 @@
     },
     {
       "name": "wechat-miniprogram",
-      "description": "Guides WeChat Mini Program work: the two-thread runtime, exparser vs glass-easel frameworks, WebView vs Skyline renderers, the data-update cost model (the calling component's Shadow tree before payloa",
+      "description": "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro.",
       "source": "./",
       "strict": false,
       "skills": [
