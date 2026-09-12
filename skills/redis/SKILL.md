@@ -1,10 +1,10 @@
 ---
 name: redis
-description: "Guides Redis itself: choosing a data structure from the access pattern, key-space and TTL design, what each maxmemory-policy really does when memory runs out, RDB and AOF durability windows, the atomicity MULTI and Lua do and do not provide, distributed-lock limits, Pub/Sub versus Stream consumer groups, Cluster hash slots and hash tags, connection pooling and pipelining, cache-aside with stampede, penetration and avalanche fixes, the Redis Query Engine and vector search, ACLs, and INFO/SLOWLOG/LATENCY diagnosis. Use when picking or fixing a Redis structure, when keys disappear or writes fail with OOM, when a CROSSSLOT error blocks a multi-key call, when a queue loses messages, when FT.SEARCH silently returns nothing, or when reviewing redis.conf and a client setup. Do not use for application-level cache architecture decisions, Memcached, or tuning a relational or document database."
+description: "Designs and operates Redis data structures, caching, streams and clusters."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: framework
 ---
 
