@@ -1,10 +1,10 @@
 ---
 name: cloudflare
-description: "Guides building and operating on the Cloudflare developer platform: the Workers isolate model and its CPU and memory limits, waitUntil and request-scoped I/O, wrangler configuration, compatibility dates, bindings, environments, secrets, local versus remote dev, versions and rollbacks, Durable Objects (single-instance consistency, SQLite storage, alarms, hibernated WebSockets, the declarative exports lifecycle), choosing between KV, R2, D1, Queues and Hyperdrive on consistency and quota grounds, Workers static assets and migrating off Pages, Workers Logs and Tail Workers, and Cloudflare One Access, Gateway and Tunnel. Use when writing or reviewing Worker code, wrangler.jsonc, _headers/_redirects or Durable Object classes, when a deploy is rejected, or when production differs from wrangler dev. Do not use for web performance or visual design (frontend-design), React or Next.js itself (react), other clouds (aws, azure, gcp), or OpenTelemetry pipelines and alerting (observability)."
+description: "Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: platform
 ---
 
