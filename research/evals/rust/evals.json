@@ -1,0 +1,44 @@
+[
+  {
+    "skills": ["rust"],
+    "query": "This queue-admission helper loses a job when cancellation races a full queue. Run the supplied Cargo.toml/cancel.rs reproduction and repair the API and callers. A job owns a non-cloneable resource; on cancellation or channel closure before admission, the caller must receive that exact unsent Job back for recovery. Once accepted it belongs to the queue. Keep bounded admission, do not spawn detached tasks or clone payloads, and define the outcome when readiness and cancellation are simultaneous. Add focused checks for cancellation with a full queue, a closed receiver, and successful admission. Show what was actually exercised.",
+    "files": ["evals/files/Cargo.toml", "evals/files/cancel.rs"],
+    "expected_behavior": [
+      "Locates the resource loss in the ownership transfer into Sender::send: cancellation drops the pending send future and its Job; explains why channel cancellation safety does not mean the moved Job is returned.",
+      "Returns the original unsent Job for both cancellation and channel-closed outcomes, retaining ownership until capacity is acquired (for example select on reserve, then synchronously send with a permit). It does not reconstruct, clone, or detach the resource.",
+      "Defines a consistent simultaneous-readiness policy without an await between the admission decision and ownership transfer; does not promise transactional rollback after acceptance.",
+      "Exercises full-queue cancellation, receiver closure and successful admission, checking that Job 2 remains available to the caller before recovery in the first two cases and is delivered exactly once in the success case. Reports genuine command results or the specific unavailable prerequisite."
+    ]
+  },
+  {
+    "skills": ["rust"],
+    "query": "Review ffi.rs against packet.h before we publish the Rust adapter. It currently compiles, and a colleague proposes adding a null check and a SAFETY comment before calling it safe. The callback must expose validated data to ordinary safe Rust consumers, but the C allocation may be reused as soon as the callback returns. Identify concrete unsoundness and supply a corrected boundary/API. No C implementation is supplied: do not claim to have exercised the actual foreign library or execute invalid-pointer cases as normal tests. Show how you would test the Rust-side conversion, including disabled packets and empty payloads.",
+    "files": ["evals/files/ffi.rs", "evals/files/packet.h"],
+    "expected_behavior": [
+      "Rejects binding the C uint8_t field as Rust bool: validation must happen on a raw u8 before forming a bool or a reference to a type requiring valid bool values, including when a later branch would ignore the payload.",
+      "Removes the safe arbitrary raw-pointer entry and unconstrained returned lifetime, using an unsafe lower boundary with explicit caller obligations and a safe owner-tied view or owned copy inside the callback; the returned API cannot outlive C storage.",
+      "Handles NULL with zero length without forming a null slice, rejects invalid nonempty null data before slice construction, and distinguishes checkable size/flag constraints from allocation, initialization, aliasing and lifetime obligations that a numeric address check cannot prove.",
+      "Preserves the 4096-byte bound and disabled-packet semantics, proposes or implements legitimate backing-allocation cases for flags 0/1/invalid and empty/nonempty data, and accurately limits Miri claims to supported Rust-side paths rather than arbitrary external C execution."
+    ]
+  },
+  {
+    "skills": ["rust"],
+    "query": "Run materialize_workspace.py to unpack this small Rust workspace, then investigate why cargo check --workspace is green while cargo check -p sdk fails. The SDK is independently consumed by no_std + alloc users and promises Rust 1.74; its encode_request API is always available. Someone suggested resolver = 3 or cargo check --all-features as the permanent fix. Fix the actual dependency declaration without changing that public contract or raising MSRV, and propose a minimal CI matrix that prevents recurrence. Verify the fixed isolated SDK and workspace paths, and distinguish a current-toolchain check from real MSRV verification.",
+    "files": ["evals/files/materialize_workspace.py"],
+    "expected_behavior": [
+      "Traces codec's alloc feature to the client-cli normal-dependency edge and explains that selecting the workspace unifies it into the SDK build, masking the SDK's missing direct feature requirement even under resolver 2.",
+      "Makes sdk explicitly request codec/alloc on its own dependency edge, without enabling std, making the always-available API conditional, changing default-members or relying on a sibling package to activate the feature.",
+      "Rejects resolver 3 as feature isolation and as an unexamined change to a Rust 1.74 support promise; recognizes that all-features coverage cannot prove isolated/minimal-feature compilation.",
+      "Verifies sdk in isolation and the workspace after the fix and includes the promised 1.74 toolchain in the compatibility matrix. Does not claim current stable, edition 2021 or rust-version metadata proves that old toolchain passed."
+    ]
+  },
+  {
+    "skills": [],
+    "query": "My Tauri v2 app uses Rust commands, but the problem is only the capability JSON: the secondary window cannot call the shell plugin to open a URL, while the main window can. Explain how to scope the existing plugin permission to that window and permitted URLs without granting every command. Do not change Rust code or Cargo dependencies.",
+    "files": [],
+    "expected_behavior": [
+      "Does not read the rust skill; treats this as Tauri capabilities and plugin permission configuration rather than general Rust ownership, async or unsafe work.",
+      "Keeps the answer scoped to the target window and allowed URL operations, without suggesting a wildcard permission grant or unrelated Rust refactoring."
+    ]
+  }
+]
