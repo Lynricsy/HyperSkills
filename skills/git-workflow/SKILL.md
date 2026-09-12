@@ -1,10 +1,10 @@
 ---
 name: git-workflow
-description: "Guides local git work: branch strategy and naming, worktrees for parallel development, choosing between rebase and merge and paying for the choice, resolving merge and rebase conflicts, commit granularity and messages, guardrails around rewriting history and force-pushing, recovering lost commits through reflog and fsck, bisecting for the commit that broke something, hooks and commit signing, submodules and subtrees, sparse and partial clones, and finishing or deleting a branch. Use when a push is rejected, a force-push is being considered, conflict markers or unmerged paths are in the tree, a branch needs tidying before review, a commit or stash has gone missing, a worktree needs creating or cleaning up, or several agents must work in one repository at once. Do not use for pull requests, issues, GitHub Actions, CI pipelines, repository settings or the `gh` CLI, which are the `github` skill's subject; or for judging whether a diff is correct, which is `code-review`."
+description: "Manages local Git branches, worktrees, commits, merges, conflicts and history recovery."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
