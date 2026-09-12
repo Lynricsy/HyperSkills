@@ -1,10 +1,10 @@
 ---
 name: web-testing
-description: "Guides end-to-end testing of web applications in real browsers with Playwright: accessibility-first locators and strict mode, auto-waiting and why a fixed wait is a bug, web-first retrying assertions, authentication reused through setup projects and storageState, network interception and clock control, traces and how to read a failure after the fact, flakiness triage (reproduction, retry budgets, isolation, locks), parallelism, sharding and report merging, browsers in CI containers and caches, and the trust boundary when an agent drives a real browser. Use when writing or reviewing a spec file, a playwright.config.ts or an e2e CI job, when a suite is flaky or green-but-untrusted, or when choosing between component and end-to-end tests. Do not use for unit-testing methodology or the TDD cycle (test-driven-development), Lighthouse audits or visual design (frontend-design), building browser extensions (chrome-extension), or React, Vue and Svelte component internals."
+description: "Tests web applications in real browsers with Playwright end-to-end automation."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.11"
+  version: "2026.09.12"
   category: task
 ---
 
