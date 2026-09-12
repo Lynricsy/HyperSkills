@@ -1,6 +1,6 @@
 ---
 name: unreal
-description: "Guides Unreal Engine 5 gameplay work in C++ and Blueprint: the UCLASS/UPROPERTY/UFUNCTION reflection contract and what the garbage collector can and cannot see (TObjectPtr, TWeakObjectPtr::Pin, TStrongObjectPtr, AddToRoot), Gameplay Framework class roles, actor lifecycle, tick groups and intervals, Enhanced Input contexts and priorities, network authority with GetLifetimeReplicatedProps, DOREPLIFETIME conditions, RepNotify and the four RPC types, Gameplay Ability System boundaries, Lumen and Nanite limits, UMG update strategy, Chaos sub-stepping, Niagara, modules and .Build.cs dependencies, Live Coding, packaging, and automation tests. Use when reading or writing .h/.cpp under a Source tree that uses UCLASS or a .Build.cs, or when the user names UE5, Unreal, GENERATED_BODY, GameMode, ACharacter, UMG, Lumen, Nanite, Chaos or GAS. Do not use for general C++ or std/CMake ownership questions, for Unity or Godot projects, for visual design principles, or for TDD methodology."
+description: "Develops Unreal Engine gameplay with C++, Blueprints and engine APIs."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
