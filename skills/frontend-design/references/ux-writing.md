@@ -94,6 +94,22 @@ Before shipping, re-read every visible string and flag:
 
 Replace each with a plain functional sentence. Boring but correct beats cute but wrong.
 
+**Reviewing someone else's copy is where this rule inverts.** Flagging `92% fill` or `4.1x pass` as
+invented precision is correct; replacing it with `ultrasonically tested to 90% fill` or a measurement
+protocol of your own is the same defect with better prose. The same holds for a name-only attribution
+(`- Sarah`): the fix is `name, role, organisation`, not a plausible chef at a plausible restaurant. In
+a review, the replacement gives the shape and says who has to supply the fact:
+
+```text
+Hero.tsx:31 - "4.1x pass" is invented precision. Either cite the real figure with its method, or
+              cut the number: "Hand-polished" says as much. Needs: the actual pass count.
+Quote.tsx:18 - attribution is a first name only, which reads as placeholder. Needs: full name, role
+              and organisation from the customer, with permission to use them.
+```
+
+Facts a reviewer cannot know are measurement conditions, people, organisations, dates, prices and
+lead times. Name them as required inputs; never fill them in.
+
 ## Checkable rules
 
 - `...` instead of `…`; straight quotes in prose.
@@ -104,6 +120,7 @@ Replace each with a plain functional sentence. Boring but correct beats cute but
 - Error message with no fix or next step.
 - Hardcoded date or number format.
 - Placeholder name, brand or number left in place.
+- A review finding whose replacement invents a fact the reviewer cannot know.
 - Loading text without a trailing ellipsis.
 - Inconsistent casing across headings or buttons.
 - Two adjacent elements carrying the same message.

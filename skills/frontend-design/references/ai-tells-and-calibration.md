@@ -71,6 +71,13 @@ default until the brief justifies it.
   is the blunt instrument.
 - **Fake product UI built from `<div>` rectangles** (mock terminals, mock dashboards, mock task
   lists). Use a real screenshot, a real component preview, or nothing.
+- **Every image slot filled with the same grey or gradient rectangle.** Identical aspect ratios and
+  identical fills across a page are a placement diagram, not a design. Vary the ratios the way a
+  photographer would, and if real assets are unavailable, leave labelled placeholder slots and say
+  which placements need art rather than filling them with CSS.
+- **A text-only page presented as minimalism.** Restraint is a small number of deliberate elements,
+  not the absence of imagery. A restrained brief still needs its hero visual and a couple of
+  supporting images.
 
 ## Text and data tells
 
@@ -91,6 +98,25 @@ default until the brief justifies it.
   with weight or italic of the same family; never splice a serif word into a sans headline.
 - **All-caps labels** as the standard label treatment, and typographic labels stacked above content
   that already says what it is.
+- **Category labels printed under a logo wall.** A logo wall is logos. `Stripe` with `payments`
+  underneath adds nothing the reader does not already know. Brand name as `alt` text, optionally a
+  link, nothing else. Real marks come from a single-color icon CDN or the brand's own asset page; for
+  an invented brand, draw a simple monogram rather than setting the name as text. Either way the mark
+  has to read in both themes.
+- **Generic step labels.** `Stage 1 / Stage 2 / Stage 3`, `Step 1 / 2 / 3`, `Phase 01 / 02 / 03`. The
+  step content is the label: `Install`, `Configure`, `Ship`.
+- **A micro-meta sentence under a section heading**, explaining the section's own restraint ("Each of
+  these is something we ship today, not a roadmap promise"). Heading plus body is enough.
+- **Performative-craftsman section labels.** `From the field`, `Field notes`, `Currently on the
+  bench`, `On our desks`. Use the functional label (`Testimonials`, `Latest writing`) or none.
+- **Coy social-proof headings.** `Quietly in use at`, `Quietly trusted by`. Say `Trusted by`, `Used
+  at`, or let the logos speak with no heading.
+- **Status or stage labels in the hero** (`V0.6`, `BETA`, `EARLY ACCESS`, `INVITE-ONLY PREVIEW`) and
+  `Brand · No. 01`-style sub-eyebrows, on briefs that are not about a launch or a numbered edition.
+- **Live-scarcity counters as decoration** (`Reservation 412 of 800`). Only with real data behind
+  them, on a brief that really is a limited run.
+- **Headlines hard-broken with `<br>` and part-italicised** as a design move. A headline reads
+  naturally first; the break belongs to the measure, not to the markup.
 
 ## Decoration tells
 
@@ -104,6 +130,15 @@ default until the brief justifies it.
 - The middle dot as the universal separator. At most one per metadata line.
 - Custom mouse cursors.
 - Generic avatar glyphs (the default user silhouette, the SVG "egg").
+- Pills, tags or labels overlaid on a photograph. Let the image carry itself, or caption it below.
+- Decorative photo credits (`Field study no. 12 · Ines Caetano`, `Frame XII · 35mm`) under stock or
+  placeholder imagery. Credit a real photographer for a real photo, otherwise caption functionally or
+  not at all.
+- Comparison bars with a filled background track. A number, or a bar with no track, carries the same
+  information without importing dashboard furniture.
+- Text rotated 90 degrees as an agency-portfolio flourish.
+- Crosshairs and hairline grid lines drawn to make a page "feel designed". Rules organize content or
+  they come out.
 
 ## Motion tells
 

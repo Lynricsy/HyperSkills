@@ -4,7 +4,7 @@ description: "Designs and audits web interfaces for visual quality, usability an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.15"
   category: task
 ---
 
@@ -28,6 +28,7 @@ Not covered, and do not improvise here:
 - Native mobile UI (UIKit, SwiftUI, Jetpack Compose, React Native). Platform target sizes and idioms differ; the `apple` skill covers Apple platforms, `android` and `react-native` cover theirs.
 - Print, poster and canvas design, and brand identity systems.
 - Backend, data modelling, and query performance.
+- Search engine optimization: crawling, indexing, sitemaps, canonical URLs, structured data and search metadata. Those are content and crawler concerns rather than interface quality.
 
 ## Core rules
 
@@ -37,6 +38,10 @@ Not covered, and do not improvise here:
 - Where the brief pins a direction, the brief wins, including when it asks for one of those clusters. Only free axes get calibrated.
 - One accent color and one neutral temperature per project. A second accent reads as a decision nobody made.
 - One radius scale, concentric when nested (outer radius = inner radius + padding). A single radius on every element erases hierarchy.
+- One layout family per section, reused at most once per page, and never three consecutive image-and-text splits. Eight sections need at least four distinct families.
+- Small uppercase tracked labels above headings stay within `ceil(sections / 3)`, hero included. One above every section is the most reliable template signature there is.
+- Past about five items, a bulleted list or a row-per-item divider stack is the wrong component rather than a long one. Tidying the hairlines does not fix a ten-row spec table.
+- One theme for the whole page. Sections do not invert; tints within the same family are how a page varies.
 - Semantic tokens in components (`--surface`, `--text-muted`, `--accent`), never raw hex. Raw values make dark mode and rebrands impossible.
 - Design light and dark together and re-check contrast in both. An inverted palette is not a dark theme.
 - Text contrast at least 4.5:1, large text 3:1, non-text UI and state indicators 3:1 `[official]` (WCAG 2.2 SC 1.4.3, 1.4.11).
@@ -75,13 +80,15 @@ Use when UI code already exists.
 
 - [ ] Fix the file set and read each file end to end. Guessing from names produces wrong line numbers.
 - [ ] Walk `references/review-checklist.md` category by category. Do not stop after accessibility; the later categories (content handling, locale, touch) are where most real defects hide.
+- [ ] Count before judging: eyebrow labels against `ceil(sections / 3)`, layout families against the section count, grid cells against items, and runs of consecutive same-split sections. These are the findings a read-through misses, because each section looks fine on its own.
 - [ ] Walk `references/ai-tells-and-calibration.md` as a separate axis. No linter sees this one, so it is the axis worth your attention.
 - [ ] Skip what the project's own tooling already enforces (formatter, `eslint-plugin-jsx-a11y`, stylelint). Say once that it was skipped.
 - [ ] Write each finding as `path:line - problem` plus the concrete replacement. A finding without a replacement is not actionable.
+- [ ] Keep replacements to shape, never to fact. Flagging invented precision and then supplying a measurement protocol, a full name and employer, or a delivery date is the same defect rewritten. Give the form and name the input the project has to supply.
 - [ ] Order findings by impact within each file: broken for keyboard or assistive tech, then broken on small screens, then visual-tell, then polish.
 - [ ] Give a file with no findings a `✓ pass` line so the reader knows it was checked.
 
-Gate: every finding carries a `path:line` and a replacement, every reviewed file appears in the output, and the output opens with the first file heading rather than a summary.
+Gate: every finding carries a `path:line` and a replacement, every reviewed file appears in the output, the output opens with the first file heading rather than a summary, and no replacement asserts a fact that could only come from the project.
 
 ### modernize-css
 
@@ -95,6 +102,19 @@ Use when picking or replacing a CSS or HTML platform feature.
 - [ ] Do not adopt a feature the goal did not ask for. The guides describe options, not requirements.
 
 Gate: every modern feature introduced is either Baseline Widely available or ships the guide's fallback, and the change description cites the retrieved guide id.
+
+### redesign-ui
+
+Use when a UI already exists and the deliverable is a new look rather than a list of defects.
+
+- [ ] Classify the mode first: **preserve** (modernize without breaking the brand) or **overhaul** (new visual language over existing content and information architecture). If the brief does not settle it, ask exactly once.
+- [ ] Audit in writing before proposing anything: existing brand tokens (accent, neutrals, type stack, radii, logo treatment), the page tree and primary conversion paths, which content blocks carry load and which are filler, and the dial reading of the site as it stands. That reading is the starting point, not the baseline for its kind.
+- [ ] State what will not change without explicit approval: URL and slug structure, anchor ids, primary navigation labels, form field names and their order, the logo, and legal or consent copy. Renaming a field or a section id breaks analytics and autofill silently.
+- [ ] Extract the brand accent before applying any palette rule. A brand that is already purple stays purple; the reflex-accent tell is about unbriefed choices, not about existing brand equity.
+- [ ] Apply the levers in order of visual lift per unit of risk and stop when the brief is satisfied: type, then spacing and rhythm, then color recalibration that keeps the brand accent, then a motion layer, then recomposition of the hero and key sections, then block replacement. Full replacement is the last lever rather than the opening move.
+- [ ] Keep every accessibility behavior that already works: focus visibility, alt text, keyboard paths, contrast. A redesign that regresses these has failed whatever it looks like.
+
+Gate: the mode is named, the audit exists in writing, the do-not-change list is stated, and the proposed work is ordered by lever rather than by section.
 
 ## Topic router
 
@@ -147,8 +167,8 @@ themselves a default now, so a plan that arrives at them for the same brief has 
 Reading this as: a portfolio-shaped product page for buyers who need proof of craft,
 with a workshop-document language, leaning toward drawing-office typography.
 
-Color   #EFEAE0 paper ground / #14120F ink text / #6B665D muted / #8A6A2B brass accent /
-        #7A2E1B oxide, single CTA only
+Color   #E9EAE6 drafting paper / #17191A ink text / #565C59 muted / #78858B hairline rules /
+        #2B5566 blueprint accent, single CTA only
 Type    Display: a compressed grotesque with drawing-office roots (reason: the subject's own
         documents are engineering drawings, not editorial pages).
         Body: the same family at 400. Numbers: a mono face with tabular figures, because the
@@ -169,10 +189,12 @@ Layout  Left-aligned throughout on an exposed 12-column grid, hairline rules as 
 Principles  Evidence over atmosphere. One accent, used once. No card containers.
 
 Cliché gate  The first pass had a #F4F1EA ground with a high-contrast serif display and a
-             terracotta accent, which is cluster 1 almost exactly. Changed the ground to a
-             cooler paper tone, replaced the serif with the grotesque above, and moved the
-             warm accent to brass so it reads as material rather than as a default. The
-             centered hero became a left-aligned split, since variance sits at 6 here.
+             terracotta accent, which is cluster 1 almost exactly. The second pass moved the
+             accent to brass over an oxide CTA, which is its own default: beige plus brass plus
+             oxblood is what every premium-consumer brief gets. Third pass keeps the cooler
+             paper ground and the grotesque, and takes the accent to a blueprint blue drawn from
+             the subject's own drawings, with no second accent behind it. The centered hero
+             became a left-aligned split, since variance sits at 6 here.
 ```
 
 ## Environment

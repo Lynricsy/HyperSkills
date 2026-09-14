@@ -26,6 +26,52 @@
 3. **`emilkowalski/skills`（36 568★、2026-08-21、MIT）与 `leonxlnx/taste-skill`（85 902★、2026-08-24、MIT）
    两个 `unverified` 候选核实通过**，均在 6 个月推送窗口内且许可明确，因此计划中「放弃动效上游」的应急方案不触发。
 
+### 2026-09-15 同步复核
+
+本次走**更新流程**（`docs/workflow.md` 第 186 行起）而非新建。触发原因：用户询问三个上游是否已合入，
+复核时发现其中两个可以多取，并顺带兑现了 `docs/roadmap.md:251` 挂着的一个候选评估。
+
+1. **`claude.com/plugins/frontend-design` 与 `anthropics/skills` `skills/frontend-design/` 是同一份源码，已核实。**
+   前一轮只证明了 `anthropics/skills` 的 `example-skills` plugin 含该 skill，并没有证明官网插件页指向同一处；
+   这一步此前是推断。本次用已登录 `gh api` 读 `anthropics/claude-plugins-official` 的
+   `.claude-plugin/marketplace.json`，其 `frontend-design` 条目 `source` 为 `./plugins/frontend-design`，
+   再比对两处 git tree：
+
+   | 位置 | tree sha |
+   |---|---|
+   | `anthropics/claude-plugins-official` `plugins/frontend-design/skills/frontend-design` | `d79e2a5bb4df4a386c2adcdd9ab8709bba28c3f6` |
+   | `anthropics/skills` `skills/frontend-design`（HEAD 与 pin `41bbe19` 同值） | `d79e2a5bb4df4a386c2adcdd9ab8709bba28c3f6` |
+
+   其下 `SKILL.md` blob `a5333457…` 与 `LICENSE.txt` blob `f433b1a5…` 亦逐个相同，因此 pin 未漂移。
+   `claude-plugins-official` **不**新增为上游条目：它是同一内容的分发包装，加进来会让 `SOURCES.yaml`
+   出现两条指向同一 blob 的记录。
+
+2. **`design-taste-frontend` 是 `leonxlnx/taste-skill` 的安装名，不是另一个上游。** 上游 README 第 146–147 行
+   把目录 `skills/taste-skill` 对应到安装名 `design-taste-frontend`、`skills/taste-skill-v1` 对应到
+   `design-taste-frontend-v1`。`SOURCES.yaml` 记的 `paths: [skills/taste-skill]` 即此。同时确认 pin
+   `ccbc156` 就是当前 HEAD，而该 HEAD 上的 `skills/taste-skill/SKILL.md` 已是上游自述的 **v2 实验版重写**
+   （87 253 字节，14 章 + 3 附录）——这正是本次能多取的原因：前一轮只取了两条语义。
+
+3. **三个上游 pin 全部等于当前 HEAD。** `anthropics/skills` 的仓库 HEAD 已前进到 `34040c9`，但
+   `skills/frontend-design` 的 tree sha 未变（见第 1 条），属「repo moved, tracked paths unchanged」；
+   `emilkowalski/skills` HEAD = `d23d7f8` = pin；`leonxlnx/taste-skill` HEAD = `ccbc156` = pin。
+
+### 本次自行核对的平台数据
+
+上游对 Baseline 的转述一律不采信，逐项查 `api.webstatus.dev/v1/features/<id>`：
+
+| 特性 | Baseline | 实现情况 | 对本 skill 的影响 |
+|---|---|---|---|
+| `backdrop-filter` | **newly**（2024-09-16） | Safari 18 补齐 | 磨砂/玻璃方向按 R9 必须带回退，见 R13 |
+| `prefers-reduced-transparency` | **limited** | 仅 Chromium 119+（2023-10-31）；Safari / Firefox 无实现，MDN 标 Experimental | 不能当作唯一的降级触发器，见 R13 |
+| View transitions | **newly**（2025-10-14） | Firefox 144 补齐 | 纠正 web-quality-skills 的「Baseline 2026」，见 R12 |
+| Trusted types | **newly**（2026-02-24） | Firefox 148 补齐 | 上游表述正确，但落点是 `security-review`，不进本 skill |
+| Font metric overrides（`ascent-override` / `descent-override` / `line-gap-override`） | **limited** | Chromium 87+ / Firefox 89+；Safari 无实现 | 字体回退调参写成渐进增强：不支持即忽略，退回未匹配行为，无需另写回退 |
+
+FAQ 结构化数据：Google 搜索中心更新日志 2026-05-08 条目「Deprecating the FAQ rich result feature」记该特性
+自 **2026-05-07** 起不再出现在 Google 搜索结果中，2026-06-15 条目进一步说明相关文档已移除。这是拒绝
+`addyosmani/web-quality-skills` `skills/seo/` 的直接依据之一。
+
 ## 候选表
 
 评分：权威 0–3 / 新鲜 0–3 / 具体 0–3 / 正确 0–3 / 许可 0–2。总分 ≥8 INCLUDE，5–7 MAYBE，≤4 REJECT。
@@ -55,6 +101,26 @@ Stars / 推送 / 许可均为 2026-09-10 当日 GitHub API 值。
 | 20 | PyModel/react-frontend-skills | https://github.com/PyModel/react-frontend-skills | 3 | 2026-09-10 | MIT | 18 个 React 19 / Next 16 / Tailwind v4 / shadcn skill | 0 | 3 | 1 | 0 | 2 | 6 | REJECT | 3★ / 1 fork / 0 watcher 而 README 高度 SEO 化；匿名作者、无任何评测证据，正确性无法抽查（正确 0 → 按量表直接 REJECT）；且全是版本快照，会腐坏 |
 | 21 | Impertio-Studio/{shadcn,TailwindCSS}-Claude-Skill-Package、grixalai/shadcn-ui__skill、supercent-io/skills-template、magnus919/agent-skills、gohypergiant/agent-skills、EnderPuentes/ai-agent-skills、gocallum/nextjs16-agent-skills、fusengine/agents | — | 22–302（skills.sh 报数，未经 API 核对） | 未核对 | 未核对 | 各类 shadcn / tailwind / nextjs / a11y skill | 0 | — | 1 | 0 | 0 | ≤4 | REJECT | 单作者小仓库、许可与新鲜度不可核；多为框架版本快照。视觉/UX 层已被候选 1/2/5/9 完全覆盖 |
 | 22 | vercel-labs/next-skills | https://github.com/vercel-labs/next-skills | n/a | 已废弃（README 声明迁移） | — | — | — | 0 | — | — | — | — | REJECT | 上游自己声明迁移到 `vercel/next.js`；且属于 `react` skill 范围 |
+
+2026-09-15 追加评估（兑现 `docs/roadmap.md:251` 的挂账）。Stars / 推送 / 许可为 2026-09-15 当日 `gh api` 值：
+`addyosmani/web-quality-skills` 2787★、pushed 2026-08-24、MIT、246 forks。
+同一仓库六个 skill 各占一行，因为它们的结论并不相同。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 23 | addyosmani/web-quality-skills `skills/performance/` | https://github.com/addyosmani/web-quality-skills | 2787 | 2026-08-24 | MIT | 性能预算、关键渲染路径、Early Hints、Speculation Rules、View Transitions、缓存、第三方；`references/MEASUREMENT.md` + `references/RUM.md` | 2 | 3 | 3 | 1 | 2 | 11 | INCLUDE (merged，仅 `references/MEASUREMENT.md` 与 `references/RUM.md`) | 两份 reference 带来本 skill 完全没有的一层：证据分类、lab×field 调和矩阵、CrUX 读法、按路由 p75。SKILL.md 本体不取：View Transitions 写成「Baseline 2026」（实为 2025-10-14）、LCP 图建议 `decoding="sync"`，另含 AVIF 92%/WebP 97% 这类会腐坏的支持度快照 |
+| 24 | addyosmani/web-quality-skills `skills/core-web-vitals/` | ↑ | 2787 | 2026-08-24 | MIT | LCP/INP/CLS 阈值、Speculation Rules eagerness、三份 metric reference | 2 | 3 | 3 | 3 | 2 | 13 | INCLUDE (merged，仅 `references/INP.md` 的相分解与 `references/CLS.md` 的字体 metric override) | 阈值与 p75 是 `web-dev-vitals` 的再版，零增量；增量是 INP 的 input delay / processing / presentation 三相归因与 CLS 的字体回退调参。框架速查（Next/React/Vue）越界 |
+| 25 | addyosmani/web-quality-skills `skills/accessibility/` | ↑ | 2787 | 2026-08-24 | MIT | WCAG 2.2 POUR 全覆盖 + `references/WCAG.md` 条款表 + `references/A11Y-PATTERNS.md` 代码样板 | 2 | 3 | 2 | 1 | 2 | 10 | MAYBE（不合入，已被覆盖） | `references/WCAG.md` 的条款分级逐条正确，且把同作者旧仓库那条「Touch targets ≥ 44x44px 属 WCAG 2.1 AA」改对了（见 R2）——但 `references/accessibility.md` 已是其超集并写全 SC 2.5.8 的五项例外（上游只写三项）。SKILL.md 把 large text 定义成 `≥ 18px`（正确是 18pt ≈ 24px），是 R2 同类的 pt/px 混淆。`A11Y-PATTERNS.md` 全是模型已知 API |
+| 26 | addyosmani/web-quality-skills `skills/best-practices/` | ↑ | 2787 | 2026-08-24 | MIT | CSP/Trusted Types/SRI/安全头/原型污染/source map + 兼容性 + 弃用 API | 2 | 3 | 3 | 3 | 2 | 13 | INCLUDE（落点是 `security-review`；本 skill 仅取 2 行） | `references/SECURITY.md` 是该仓库质量最高的单文件，抽查 3 条全对（polyfill.io 2024 供应链事件、X-XSS-Protection 随 Chrome 78 / Edge 17 移除、Trusted Types 2026-02 跨浏览器）。但 CSP/SRI/原型污染/cookie 属 `security-review` 既有落点；本 skill 只取「HTTPS 页面上的 `http://` 或协议相对子资源」与「`touchstart`/`wheel` 监听器应 passive」两条行级可判定项 |
+| 27 | addyosmani/web-quality-skills `skills/seo/` | ↑ | 2787 | 2026-08-24 | MIT | robots/sitemap/canonical/title/meta/hreflang + `references/STRUCTURED-DATA.md` + AI 爬虫控制表 | 2 | 3 | 2 | 1 | 2 | 10 | REJECT（范围外 + 过期） | 爬取与索引与本 skill `## Scope` 四项无交集（详见 R15）。且 `FAQPage` 富媒体自 2026-05-07 起已从 Google 搜索下线，仍是 `STRUCTURED-DATA.md` 五大主打示例之一；sitemap 示例仍带 `changefreq`/`priority` 而不提 Google 早已忽略。只取其中一条越界外的事实更正：多个 `<h1>` 不应判失败（见 R11） |
+| 28 | addyosmani/web-quality-skills `skills/web-quality-audit/`（含 `scripts/analyze.sh`） | ↑ | 2787 | 2026-08-24 | MIT | 五类目审计编排、工具路由表、严重度分级、审计输出模板、bash 静态检查器 | 2 | 3 | 2 | 2 | 2 | 11 | MAYBE（只取两条） | 取「不要把聚合分数当质量证明」与「无可运行页面时结论必须标为假设」。审计流程绑定 Chrome DevTools MCP 工具名（标准 1.3 节剥离），类目清单是模型已知常识。`scripts/analyze.sh` 不移植：bash + jq 硬依赖无法按标准第 5 节声明，只扫 `.html`/`.htm`——对组件代码仓库返回 0 文件并输出 `success: true`，是静默假通过 |
+
+评分口径说明：量表「正确」一项的原文是抽查 3 条全对记 3。本次每个 skill 实际抽查 4–6 条，按错误率折算——
+`performance` 6 抽 2 错记 1（不记 0，否则会连带否掉两份确实无错的 reference）、`accessibility` 5 抽 1 错记 1、
+`seo` 4 抽 2 过期记 1，`best-practices` 与 `core-web-vitals` 抽查全对记 3。
+「权威」统一记 2，与既有 `addy-frontend-ui`/`addy-performance` 一致：Addy Osmani 是公认专家，但这是个人仓库
+而非 GoogleChrome 组织的官方产物。
+`AGENTS.md`、`CLAUDE.md`、`docs/*-setup.md`、`gemini-extension.json` 未评审——harness 接线文件，按标准 1.2/1.3 节剥离。
 
 ## 深度审查
 
@@ -188,6 +254,11 @@ Stars / 推送 / 许可均为 2026-09-10 当日 GitHub API 值。
 | R8 | 圆角 | addyosmani：`rounded-2xl` 一刀切是 AI 默认；Anthropic：所有元素同一圆角不分层级是 SaaS 卡片套件的特征；antfu：形状一致性锁 + 同心圆角（外半径 = 内半径 + padding） | 三条合成一条可判定规则：**一套圆角刻度 + 嵌套时同心**。违反判据是「圆角值只有一个」或「父子圆角相等而父有 padding」 | 三方同向，antfu 提供了唯一可计算的判据 |
 | R9 | Baseline 与回退 | modern-web-guidance：Baseline Widely available 默认免回退；非 Widely available 必须按指南给回退，除非用户声明策略；其他上游完全没有这一层 | 直接采用，并把「先 `search` 再 `retrieve`，不要凭记忆断言某特性能不能用」写成 `modernize-css` workflow 的第一步 | 唯一来源且是官方厂商（Google Chrome）；这条正是本仓库「不让旧知识误导模型」的核心手段 |
 | R10 | ui-ux-pro-max 的移动/原生条目 | 其 10 类中大量条目是 iOS/Android 原生（Tab Bar、Top App Bar、haptic、Dynamic Type、safe area）；本 skill 范围是 web | 只取 web 适用条目；原生条目全部丢弃（Apple 平台内容归 `apple` skill） | 本 skill 的 `## Scope` 已明确排除原生移动 UI，正文混入原生条目会诱发跨平台编造 |
+| R11 | 每页是否只能有一个 `<h1>` | 本 skill 原先的 `references/accessibility.md`「Heading level skipped, or more than one `h1`」与 `review-checklist.md`「Headings are hierarchical, one `h1`」；addyosmani/web-quality-skills `skills/seo/SKILL.md` 与 `skills/web-quality-audit/SKILL.md`：`do not fail valid HTML solely for using more than one <h1>` | **采用上游表述**。层级不可跳级仍是硬规则；`<h1>` 数量不是失败判据，只在「页面没有单一主标题」时报 | WCAG 无任何条款限制 `h1` 数量，HTML 规范允许多个。「一个 h1」是风格惯例被写成了规则，会让 `review-ui` 产出假阳性发现。两处必须同改，否则 skill 内部自相矛盾 |
+| R12 | 平台特性的 Baseline 事实写不写进正文 | addyosmani/web-quality-skills `skills/performance/SKILL.md` 把 View Transitions 标成 `Baseline 2026`、给出 `AVIF 92%+ / WebP 97%+` 支持率表；本 skill `references/modern-css-platform.md`：`Support moves, and any list written down here would be wrong within months` | **维持现行做法**：Baseline 判定一律交给 `modern-web-guidance` 的 `search` / `retrieve`，正文不写年份、不写支持率 | 实测该特性 Baseline 为 **newly、2025-10-14**（`api.webstatus.dev`），上游在一年内就写错了年份，并混淆了 newly 与 widely——而这两者的区别正好决定要不要写回退。这是该政策最直接的实证 |
+| R13 | 磨砂玻璃方向怎么降级 | leonxlnx/taste-skill v2 §2.B：`backdrop-filter`、分层边框、高光叠层，并「为 `prefers-reduced-transparency` 提供实色回退」 | **反过来写**：不透明变体是默认，玻璃是增强。`prefers-reduced-transparency` 不能作为降级的触发器 | 实测 `prefers-reduced-transparency` Baseline = **limited**，仅 Chromium 119+ 有实现（Safari / Firefox 皆无，MDN 标 Experimental）。把降级挂在一个两家浏览器都不支持的查询上，等于绝大多数用户永远拿不到回退。`backdrop-filter` 本身是 newly 而非 widely，按 R9 也必须带回退 |
+| R14 | 上游规则与模型既有能力如何划界 | leonxlnx/taste-skill v2 与 addyosmani/web-quality-skills 都提供大量「正确但模型可能已知」的内容（证据分类、INP 相分解、CrUX 语义、Lighthouse 分数局限、brief→设计系统映射） | **以基线实测划界，不以内容质量划界**：2026-09-15 新增场景 5–9 并跑无 skill 基线，基线已达成的整块不合入，只合入基线未达成的部分 | 标准第 3 节要求只写模型不知道的那部分。实测结果很干净：场景 6（证据分类）、7（INP 三相）、9（Shopify → Polaris）基线**全部达成且比上游更细**，因此这三块整体不取；场景 5（可数的版面预算）与 8（改造前的审计与不可静默改清单）有明确缺口，因此取。详见「2026-09-15 基线缺口」 |
+| R15 | SEO 是 `frontend-design` 的子集还是范围外 | `docs/roadmap.md:251` 原记「`seo` 不立项，理由：`frontend-design` 子集」；addyosmani/web-quality-skills `skills/seo/` 的实际内容 | **改判为范围外，不是子集**，并在 `## Scope` 的否定列表写明不覆盖 | 通读上游后确认：其主体是 `robots.txt`、meta robots、canonical、XML sitemap、hreflang、结构化数据、AI 爬虫控制——全属爬取与索引，与本 skill Scope 四项无一相交。真正相交的（描述性 anchor、`alt`、`lang`、viewport、CWV）本 skill 早已覆盖，取「只取交集」实际只能取到 R11 一条。且若为路由到 SEO 而往 160 字符的 `description` 里塞 `search`/`SEO`，会让「优化落地页」这类纯视觉请求误触发爬虫建议 |
 
 ## 最终合入清单
 
@@ -198,13 +269,14 @@ Stars / 推送 / 许可均为 2026-09-10 当日 GitHub API 值。
 | `addy-frontend-ui` | addyosmani/agent-skills `skills/frontend-ui-engineering/` + 仓库级 `references/accessibility-checklist.md` (MIT) | merged | AI 默认 → 为什么是问题 → 生产质量对照表、间距刻度纪律、语义色 token、a11y 模式与 live region 表、空/错误态 |
 | `addy-performance` | addyosmani/agent-skills `skills/performance-optimization/` + 仓库级 `references/performance-checklist.md` (MIT) | merged | Core Web Vitals 目标与五步 measure-first 流程、按症状分诊、回归守卫 |
 | `antfu-design` | antfu/skills `skills/antfu-design/`（框架无关的 5 份 reference，MIT） | merged | 三拨盘与 design read、anti-slop 硬清单、偏差纠正（排版/色彩/布局/材质）、微交互打磨（同心圆角、光学对齐、边框 vs 阴影）、模式词汇表 |
-| `leonx-taste` | leonxlnx/taste-skill `skills/taste-skill/` (MIT) | merged | VARIANCE / MOTION / DENSITY 三拨盘与一句式 design read 的**语义源头**（antfu 三份 reference 均署名它）。未采用其正文、GSAP 骨架或任何代码 |
+| `leonx-taste` | leonxlnx/taste-skill `skills/taste-skill/` (MIT) | merged | 三拨盘与一句式 design read 的**语义源头**（antfu 三份 reference 均署名它）；2026-09-15 追加：可数的版面预算（eyebrow 配额 `ceil(sections/3)`、layout family 至多复用一次、连续图文分栏 ≤2、marquee ≤1、grid 格数 = 内容数、hero 四个文本元素）、hero 字号与上边距上限、桌面导航单行、bento 背景多样性、split-header 否定、page theme lock、>5 项换组件、一批生产测试 tells。未采用其正文散文、GSAP 骨架、技术栈章、block library 契约与三个附录 |
 | `emil-animations` | emilkowalski/skills `skills/review-animations/`（含 `STANDARDS.md`）与 `skills/emil-design-eng/` (MIT) | merged | 「该不该动」频率决策表、easing 决策序、分档时长与 300ms 上限、物理性（永不 `scale(0)`、原点感知）、可中断性与 `@starting-style`、stagger 30–80ms |
 | `uiux-pro-max` | nextlevelbuilder/ui-ux-pro-max-skill `references/{quick-reference,pro-rules}.md` (MIT) | merged | 去重后补入 Vercel 未覆盖的 UX 判断题（溢出摘要可操作、只读 vs 禁用、错误摘要可聚焦、图表的文本替代与色盲安全） |
 | `chrome-mwg` | GoogleChrome/modern-web-guidance (Apache-2.0) | merged | Baseline 分级与回退策略协商、自定义浏览器支持策略的判定规则、`search` / `retrieve` / `list` 工作流（本机实测） |
 | `w3c-wcag22` | W3C WCAG 2.2 (W3C Document License, kind=docs) | merged | 全部 a11y 数值与条款级别的裁决来源（2.5.8 AA 24×24、2.5.5 AAA 44×44、1.4.3、1.4.11、1.4.10、1.4.12、2.4.7、2.4.11、2.4.13、2.5.7、3.2.6、3.3.7、3.3.8、2.2.2、2.3.3、1.4.13） |
 | `web-dev-vitals` | web.dev `articles/vitals` (CC-BY-4.0, kind=docs) | merged | Core Web Vitals 阈值与「75 分位、按移动/桌面分段」的判定方法 |
 | `wshobson-a11y` | wshobson/agents `plugins/ui-design/skills/accessibility-compliance/` (MIT) | reference | 仅作对照：其触控目标表述混淆促成了 R2 的核对，未采用其任何内容 |
+| `addy-web-quality` | addyosmani/web-quality-skills `skills/core-web-vitals/references/CLS.md`、`skills/best-practices/SKILL.md` (MIT) | merged（窄） | 字体 metric override（`size-adjust` / `ascent-override` / `descent-override` / `line-gap-override`）作为「swap 本身就是抖动」时的手段，并附「百分比必须由实际字体对推导、不可照抄示例」；`touchstart`/`touchmove`/`wheel` 的 passive 判据。另促成本 skill 两处自我更正（field data 定义、R11 的多 `h1`），其余整块经基线实测后不取（见 R14） |
 
 ## 基线缺口
 
@@ -226,6 +298,79 @@ Stars / 推送 / 许可均为 2026-09-10 当日 GitHub API 值。
 | 2 | **对照俗套簇复核并说明改了什么** | 两个模型都没有这一步，而且都**落在簇 1 里**：默认模型 `#F4F1EA` 纸白 + Fraunces 衬线 display + 铁锈橙/黄铜；`@smol` `#F4F1EA` + Newsreader 衬线 + `#B0812F` 黄铜，正文还用了 Inter Tight。两者都自己列了「反模式清单」（渐变紫、玻璃拟态、库存图），却都没检查自己刚选的方向 |
 | 3 target size | 无缺口 | 两个模型基线都答对了 24×24 AA / 44×44 AAA / Apple 44pt 与五项例外。此场景无区分度，保留作回归护栏 |
 | 4 负例 | 无缺口 | 两个模型基线都 `skill_read: false` 且纯按 SQL 作答（扇出、`LOWER()` + 前导 `%`、`NOT IN`、缺 `order_items(order_id)` 索引），并建议 `EXPLAIN (ANALYZE, BUFFERS)` |
+
+### 2026-09-15 基线缺口（新增场景 5–9）
+
+本次为新增内容单独写了 5 个场景并跑无 skill 基线（`--baseline --only N`，Claude Opus 5 / medium），
+全部 `status: ok`、`skill_read: false`。场景 5 配新夹具 `evals/files/sections.html`（九节营销页，
+密集植入可数规则能判定的缺陷）；场景 1–4 与其旧基线保持不变，未被本次改动污染。
+
+**这一轮基线的结论改变了合入范围**，因此单列。它是 R14 的证据。
+
+| 场景 | 基线达成 | 未达成的行为 | 处理 |
+|---|---|---|---|
+| 5 版面纪律（`sections.html`） | 通过 3 / 部分 7 / 未达成 4（共 14 条） | **完全未达成**：eyebrow 的机械计数上限（基线删 4 留 4，无配额概念）；连续三段同构图文分栏（基线注意到句式雷同与占位图同比例，却建议保留三段并列）；layout family 去重；page theme lock（基线**反向**建议把唯一浅色段做成通栏章节分隔）。**部分达成**：编号眉（删了但理由是「没有序列语义」而非该形制本身是 tell）、split-header（只处理元句子、未标 `col-span-7/5` 结构）、bento（删空卡但未要求白卡视觉变化）、hero 栈（说「什么都塞」但无可数阈值）、导航（只标绿点，未提换行与 `py-10` 高度）、logo 墙（提了客户名与地理不匹配，未提类别标签）、规格表（识别双线但建议「只留 `border-b`」，即更整齐的表，恰是上游明说不管用的那条） | **合入**。这是本次唯一有明确缺口的一组 |
+| 6 性能证据分类 | 5.5 / 6 | 几乎无缺口。基线自行指出 `onLCP(console.log)` 是 N=1 lab 观测、Lighthouse 98 是加权和可掩盖单项、checkout 页结构上进不了 CrUX（比上游更细）、要按设备/网络/地区切片看 p75。只差「源码结论要显式标为假设」这一句措辞 | **不合入**。证据分类、lab×field 四象限、CrUX 语义、Lighthouse 分数局限全部撤回 |
+| 7 INP 三相 | 5 / 5 | 无缺口。基线自行给出 input delay / processing / presentation 三段拆分、`PerformanceObserver` 取三段的代码、并明确「2ms handler 落在长任务后面是 input delay 问题，改 handler 无效」 | **不合入**。相分解撤回 |
+| 8 改造既有站 | 3 / 6 | **不可静默改的完整清单**（基线只冻结了 URL 与正文，漏锚点 id、表单字段名与顺序、logo、法务/consent 文案）；**杠杆按风险排序并适时停手**（基线直接选了最大改造：完全移除 Bootstrap 3）；**既有 a11y 成果不回退**（完全未提）；**现有站的拨盘读数作为起点** | **合入**，并新增 `redesign-ui` workflow。这里还有结构性缺口：改造任务原本会落到 `design-direction`，而后者的 gate 要求 4–6 个 hex 与线框，对改造是错的门 |
+| 9 设计系统选择 | 5 / 5 | 无缺口。基线自行指出嵌入式 admin 无视觉自由度、Polaris v13 + App Bridge v4、全 token 化零自定义 CSS、`<TitleBar>` 与 `<Page title>` 同时给值会出现两个标题 | **不合入**。v2 §2 的 brief→设计系统映射整块撤回 |
+
+### 2026-09-15 评测结果
+
+九个场景 × 有/无 skill（场景 1–4 沿用既有基线）= 本轮 14 次运行，全部 `status: ok`。
+结果目录 `/tmp/hs-evals/frontend-design/anthropic-claude-opus-5-medium/<baseline|skill>/<n>/`。
+
+| 场景 | 有/无 skill | skill_read | 达成 | 备注 |
+|---|---|---|---|---|
+| 1 review landing.html | 有 | true | 9 / 9 | 回归通过。输出即 `landing.html:5 - …` 分组格式，无前言无总结 |
+| 2 design direction | 有 | true | 7 / 7 | 回归通过，且**示例的自我否证生效**：模型开口就指出 SKILL.md 的 worked example 用的正是同一个 brief、其配色已是默认值，于是主动排除了 `#E9EAE6` + `#2B5566` + 压缩 grotesque + geometry table 英雄区，另起一套深绿方案 |
+| 3 target size | 有 | true | 4 / 4 | 回归护栏，无区分度 |
+| 4 负例（SQL） | 有 | **false** | 3 / 3 | 负例通过，未误触发 |
+| 5 版面纪律 | 无 | false | 通过 3 / 部分 7 / 未达成 4 | 见上表 |
+| 5 | 有 | true | **通过 10 / 部分 4**（无完全未达成） | 四条基线完全未达成的行为全部转为通过：明写「九个编号眉加 header 两条共 11 条，上限 `ceil(9/3)=3`」、「三个连续同构图文分栏，规范明令禁止」并给出替代家族、amber 段判为整体反色并改同族深色微差、白卡改无容器发丝线行列表。另有三条从部分转通过：logo 墙类别标签删除、十行规格表「本身就是错组件」并折成两列定义组、填充底轨对比条删除。**仍为部分的四条**：导航换行与 `py-10` 高度未点名；hero 的 20 词与 `pt-24` 上限未点名（只删了 `INVITE-ONLY` 与子眉，CTA 下方 trust strip 亦未标）；split-header 只删元句子、保留了右栏结构；假精度数字虽被识别，替换建议却引入了新的编造事实（见下方「一处由本轮评测暴露的缺陷」） |
+| 6 性能证据 | 无 / 有 | false / true | 5.5 / 6 → 6 / 6 | 差值来自措辞，不来自知识。已据此撤回该批内容 |
+| 7 INP | 无 / 有 | false / true | 5 / 5 → 5 / 5 | 零区分度。已撤回 |
+| 8 改造 | 无 | false | 3 / 6 | 见上表 |
+| 8 | 有 | true | 6 / 6 | 明确二选一问模式、书面审计含拨盘读数、不可静默改清单列全五项（含锚点 id 与表单字段顺序）、lever 顺序推进、质量底线含 `:focus-visible` 与双主题对比度 |
+| 9 设计系统 | 无 / 有 | false / true | 5 / 5 → 5 / 5 | 零区分度，且有 skill 时未泄漏 hero / accent palette / display typeface 到嵌入式 admin 场景。已撤回 |
+
+**通过判定**：场景 5 有四条、场景 8 有四条基线完全未达成的行为在有 skill 时达成，满足
+`docs/workflow.md:149` 的通过标准。场景 6、7、9 零区分度，按标准第 3 节把对应内容撤出正文，
+只保留它们促成的两处自我更正。
+
+**未达成项不计入通过**：场景 5 首轮有四条部分达成。第四条（编造替换）是真缺陷，已修并已重跑验证，
+见下。前三条中 split-header 在验证轮已转为通过（`删掉整个 col-span-5 块，标题独立成立`），
+导航换行与 `py-10` 高度、hero 的 20 词与 `pt-24` 上限**两轮都未被触发**：规则在
+`references/layout-density-motion.md` 的 `## Section budgets` 与 `SKILL.md` 的 Core rules 里写着，
+但模型两次都没走到它们。这是清单覆盖面问题而非规则缺失，留作下次同步的观察项，**不宣称已解决**。
+
+### 一处由本轮评测暴露的缺陷（已修，并已验证）
+
+场景 5 首轮有 skill 的输出里，`review-ui` 的「每条 finding 都要给出具体替换」与「用真实内容、
+不要假精度」发生了冲突：模型正确识别出 `92% fill`、`4.1x pass`、`Reservation 412 of 800`、
+名字署名 `— Sarah` 是编造的，却把它们替换成了**另一套同样编造的具体事实**——
+`same burner, 200 ml water, 20 min` 的测量口径、`Sara Mendonça, head chef, Taberna Alma, Lisbon`
+这个完整的人物与机构、`Autumn run closes 31 October. Current lead time is six weeks.` 这个交期。
+评审别人的页面时，这些数字与身份是本方无从知晓的。识别出假数据再换一套假数据，不是修好，
+是同一个缺陷换了副措辞。
+
+这不是随机失误，是两条规则的交叉点没有写明。已在 `SKILL.md` 的 `review-ui`（新增一条 checklist
+行，并把「替换不得断言只有项目方才知道的事实」写进该 workflow 的 gate）与
+`references/ux-writing.md`（`## The copy self-audit` 增设「评审他人文案时此规则反转」一段 +
+一条 checkable rule）补上判据。
+
+**验证**：改完后只重跑场景 5，输出到独立目录 `/tmp/hs-evals-r2/`（保留首轮证据不被覆盖），
+`skill_read: true`、`status: ok`、125.7 s。逐项核对：
+
+| 首轮的编造 | 验证轮的处理 |
+|---|---|
+| `Sara Mendonça, head chef, Taberna Alma, Lisbon` | `改成 <figcaption>姓名，职位，餐厅名</figcaption> 结构，具体署名需要项目方提供真实受访者信息` |
+| `4.1x pass` → `Hand-polished, four passes` 外加自造测量口径 | `改成真实工序描述（如"手工抛光，四道"），具体道数需车间给数` |
+| `92% fill` → `超声检测 ≥90% 填充率` | `除非有真实填充率检测报告，改成 钎焊黄铜` |
+| `Reservation 412 of 800` → 自造交期 `31 October` / `six weeks` | `除非真有限量批次数据支撑，删掉` |
+
+`Mendon`、`Taberna`、`head chef`、`200 ml`、`same burner`、`31 October`、`lead time is`、`six weeks`
+在验证轮的输出里全部零命中。同时确认 eyebrow 配额判定未退化（验证轮写「共 12 条；九区块的上限是 3」）。
 
 ## 评测结果
 

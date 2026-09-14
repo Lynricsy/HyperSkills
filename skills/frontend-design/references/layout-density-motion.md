@@ -3,6 +3,7 @@
 ## Contents
 
 - [Layout](#layout)
+- [Section budgets](#section-budgets)
 - [Density](#density)
 - [Micro-detail that decides whether a UI feels made](#micro-detail-that-decides-whether-a-ui-feels-made)
 - [Should it animate at all](#should-it-animate-at-all)
@@ -35,6 +36,39 @@
 - Avoid unwanted horizontal scrollbars by fixing the overflowing content, not by hiding overflow on
   an ancestor.
 
+## Section budgets
+
+These are counts, not preferences. A page can satisfy every rule above and still read as generated,
+because the same device recurs at every scroll position. Count, then cut.
+
+| Budget | Ceiling | How it is counted |
+|---|---|---|
+| Eyebrows: small uppercase tracked labels above a heading | `ceil(sections / 3)`, hero included | Count the `uppercase` plus `tracking` labels sitting above headings. One per section is the most reliable template signature there is. |
+| Consecutive sections sharing the image-and-text split | 2 | The third consecutive split is where a reader stops seeing sections and starts seeing a loop. |
+| Reuse of any one layout family | Once | Eight sections need at least four distinct families. "Selected work" must not be built like "What we do". |
+| Marquees per page | 1 | A second marquee is decoration rather than rhythm. |
+| Grid cells against items | Exactly equal | Five items means five cells. An empty trailing or middle cell means the grid was picked before the content was counted. |
+| Text elements in a hero | 4 | Eyebrow or brand strip (zero or one), headline, subtext, CTAs. A tagline under the CTAs, a trust micro-strip, a pricing teaser or an avatar row each belong in their own section below. |
+
+The remaining layout counts:
+
+- Hero subtext stays around 20 words and under four lines; the headline stays under two lines at
+  desktop. A four-line hero headline is a font-scale error rather than a copy-length error, so plan
+  type size and asset size together.
+- Hero top padding stays at or under about 6rem at desktop. More than that reads as content floating
+  halfway down the viewport, which registers as a layout bug rather than as deliberate space.
+- Desktop navigation renders on one line and stays at or under about 80px tall. Where the items do
+  not fit, shorten the labels, drop the secondary ones, or collapse to a menu; a wrapped desktop nav
+  is not a responsive win.
+- A multi-cell grid needs real visual variation in two or three of its cells: an image, a tint, a
+  pattern, a gradient that belongs to the brand. Six white cards containing only text is the default
+  even when the rest of the page is not.
+- A section header built as a large left headline plus a small explainer paragraph floating in the
+  opposite corner is not a default. Stack the two vertically within about 65 characters of measure.
+  Reach for the split only where the second column carries a visual or interactive element rather
+  than filler prose.
+- Every multi-column section declares its own sub-768px fallback where it declares the columns.
+
 ## Density
 
 Density is a dial, not a constant. Pick it from the design read set out in this skill's
@@ -47,6 +81,17 @@ calibration reference, then be consistent.
 
 Equal generous padding on everything is not "spacious", it is undifferentiated. Vary within the
 spacing scale so grouping carries meaning.
+
+Length is a component choice, not a scroll problem:
+
+- Past about five items, a default bulleted list or a row-per-item divider stack is the wrong
+  component. Group into two or three labelled clusters, or move to a card grid, tabs, an accordion,
+  scroll-snap pills, or a featured-few plus a disclosure for the rest.
+- A specification or comparison table carrying a hairline under every row is the laziest available
+  layout. Tidying the borders does not fix it: the row-per-fact shape is what fails once there are
+  ten facts.
+- A twenty-row data dump on a page whose job is a first impression belongs on its own page, with the
+  top three to five surfaced where it was.
 
 ## Micro-detail that decides whether a UI feels made
 
@@ -253,5 +298,11 @@ only for genuine scroll choreography, isolated in one leaf with cleanup.
 - Fixed or sticky chrome that can cover the focused element.
 - `100vh` on a mobile layout.
 - A flex row of variable-height items with no `gap` and no `flex-wrap`.
+- More eyebrow labels than `ceil(sections / 3)`.
+- Three or more consecutive sections built as the same image-and-text split.
+- A grid declaring more cells than there are items.
+- A wrapped desktop navigation, or one taller than about 80px.
+- A section header built as a big headline plus a small paragraph floating in the opposite corner.
+- A default `<ul>` or divider stack carrying more than about five items.
 
 <!-- sources: anthropic-frontend-design, vercel-wig, antfu-design, emil-animations, uiux-pro-max, w3c-wcag22, leonx-taste -->

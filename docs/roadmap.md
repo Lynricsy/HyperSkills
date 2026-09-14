@@ -248,7 +248,8 @@ Linux场景只读诊断和方案，没有执行主机变更或生产恢复演练
 | `data-analysis` | 已正式构建 | 旧结论为活跃上游多属数据库产品包装；波次11采用本地DuckDB/Polars与通用分析任务上游，正文及对照见本批记录 |
 | `google-workspace` | 暂缓 | 用户暂不需要（Batch 1 决定，保留） |
 | `incident-response`、`refactoring`、`performance-profiling`、`prompt-engineering`、`database-migration`、`dependency-upgrade` | 不立项 | 既有/本轮 skill 的子集（分别 → `observability`+`debugging`、`code-review`+`test-driven-development`、`frontend-design`/`ml-training`、`ai-engineering`、各数据库 skill、各生态 skill） |
-| `web-accessibility`、`web-performance`、`seo`、`tailwind`、`animation` | 不立项 | `frontend-design` 子集；下次同步 `frontend-design` 时评估追加 addyosmani/web-quality-skills |
+| `web-accessibility`、`web-performance`、`tailwind`、`animation` | 不立项 | `frontend-design` 子集。addyosmani/web-quality-skills 已于 2026-09-15 同步 `frontend-design` 时评估完毕（该 skill 的 `research` 候选表 23–28 行），结论：窄合入两条，其余因模型已具备或越界而不取 |
+| `seo` | 不立项 | **不是 `frontend-design` 子集，而是与其不相交**（2026-09-15 通读 addyosmani/web-quality-skills `skills/seo/` 后改判，见该 skill 的裁决 R15）。其主体是爬取与索引（`robots.txt`、canonical、sitemap、hreflang、结构化数据），`frontend-design` 已在 `## Scope` 写明不覆盖。若将来立项须独立成 skill，不得并入 |
 | `kotlin-multiplatform`、`prisma`、`agent-building`、`github-actions` | 并入 | 分别 → `android`、`postgres`、`ai-engineering`、`github` |
 | `linux-ops`、`cpp` | 已正式构建 | 旧“无合格上游”结论已由波次11重新实读与筛选替代；正文、安装及原样行为对照完成，不宣称已证明增益 |
 | `sql-general`、`shell-scripting`、`ruby-rails`、`htmx`、`wasm`、`embedded`、`cli-tooling`、`web-scraping`、`ecommerce`、`vector-db` | 无合格上游 | 无权威活跃上游，或属产品包装 |

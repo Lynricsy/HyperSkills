@@ -47,5 +47,72 @@
       "Answers as a SQL/database question: the LOWER(c.email) LIKE predicate defeating the index, the NOT IN subquery, the LEFT JOIN made inner by the WHERE clause on o.placed_at, and the item-level fan-out inflating SUM",
       "Recommends EXPLAIN (ANALYZE, BUFFERS) and concrete index or rewrite options"
     ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Review sections.html as a design pass, not a code-quality pass. It is a nine-section marketing page. Tell me which parts read as machine-generated and give me the specific fix for each, with locations.",
+    "files": ["evals/files/sections.html"],
+    "expected_behavior": [
+      "Counts the small uppercase/tracking eyebrows mechanically and states that the page exceeds the budget: nine sections carry nine such labels, against a ceiling of roughly one per three sections",
+      "Rejects the enumerated eyebrows themselves ('001 · QUIETLY IN USE AT', '002 · THE HARDWARE' through '009 · HOW IT WORKS') as section-numbering labels, and prescribes dropping them rather than renaming them",
+      "Flags the run of three consecutive image-and-text split sections (spinning, brazing, tempering) as exceeding the alternation cap, and names a different layout family to break the run",
+      "Flags the col-span-7 headline plus col-span-5 floating explainer as the split-header pattern, and the 'Each of these is a process we run today, not a roadmap promise' line as a micro-meta sentence to delete",
+      "Flags the six-cell grid holding five items (the trailing empty white card) and requires the grid be reshaped to the content count rather than padded, and notes the all-white-on-white cells need real visual variation",
+      "Flags the bg-amber-50 quote section sitting inside an otherwise zinc-950 page as a mid-page theme inversion",
+      "Flags the div-built order-desk panel in the hero as a fake product screenshot, including its fake version footer ('v0.6.2-rc.1 · last sync 4s ago · main')",
+      "Flags the hero stack as overloaded: the 'INVITE-ONLY PREVIEW' version label, the 'Marrow · No. 01 · The 6-quart' sub-eyebrow, the subtext far past roughly 20 words, the pt-40 top padding, and the trust strip under the CTAs",
+      "Flags the decoration strip 'STEEL. FIRE. PATIENCE.', the '↓ Scroll to explore' cue, the 'LIS 14:23 · 18°C' locale strip, and the footer 'Build 0048 · v1.4.2' version stamp",
+      "Flags the wrapping seven-item navigation and its py-10 height, and the decorative status dot repeated before every nav link",
+      "Flags the logo wall printing a category label under each wordmark, and that the wordmarks are plain text rather than real marks",
+      "Flags the ten-row specification table carrying both border-t and border-b on every row and proposes a different component (grouped clusters, spec cards, or featured-plus-disclosure) rather than a tidier table",
+      "Flags the filled-track comparison bars, the 'Stage 1 / Stage 2 / Stage 3' generic step labels, and the duplicate-intent CTAs ('Get in touch' and \"Let's talk\")",
+      "Flags the quote running well past three lines and its name-only attribution, and the invented precise numbers (92% fill, 4.1x pass, 5.8 mm, 13.4 lb) presented as specifications"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Our checkout page gets complaints that it is slow. Lighthouse gives it a performance score of 98 on my laptop. I also added `onLCP(v => console.log(v))` from the web-vitals package and the numbers look fine in my browser, so I have field data too. CrUX has no record for the URL. I cannot run the page locally, I only have the source. Tell me what I actually know and what I should do next.",
+    "expected_behavior": [
+      "States that the in-browser `onLCP(console.log)` reading is a single-session lab observation, not field data, and that it becomes field data only when values are reported to a collector and aggregated across real sessions",
+      "States that a Lighthouse category score is not the evidence: cites metric values instead, and notes the score's weighting and audit set change between versions",
+      "Treats the missing CrUX record as unavailable rather than passing, and does not conclude the page is fine",
+      "Resolves the good-lab / complaints split by looking for the failing segment (device, route, cache state, connection) rather than accepting the passing local run as a defence",
+      "States that findings read from source alone are hypotheses, names the measurement that would confirm each, and does not assert that LCP, INP or CLS is failing",
+      "Recommends per-route p75 reporting rather than a site-wide average when field collection is set up"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Clicking a filter chip on our product grid feels frozen for about half a second. INP measures 550ms. My onClick handler is one line, it just sets a state flag, and I profiled the handler itself at under 2ms. Why is INP still bad and what do I change?",
+    "expected_behavior": [
+      "Splits INP into input delay, processing time and presentation delay, and states that the dominant phase must be identified from a trace before changing the handler",
+      "Explains that a 2ms handler behind an already-busy main thread is an input-delay problem, so rewriting the handler cannot move the metric",
+      "Identifies presentation delay (style, layout, paint of the re-rendered grid before the next frame) as the other candidate, distinct from the handler's own cost",
+      "Recommends painting the visible feedback first and yielding between chunks of the expensive work rather than doing it all in one task",
+      "Does not answer only with generic advice to debounce the handler or to virtualize the list"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Here is our company site: a 2016-era Bootstrap 3 marketing site, about 20 pages, decent search traffic. It looks dated. Modernize it.",
+    "expected_behavior": [
+      "Classifies the job before proposing visuals: preserve the existing brand versus start visually from scratch, and asks once if the brief does not settle it",
+      "Requires an audit before any change: existing brand tokens (color, type, radii, logo treatment), information architecture and conversion paths, which content blocks are doing work, and a dial reading of the current site as the starting point rather than the baseline",
+      "Names what must not change silently: URL and slug structure, primary navigation labels, form field names and order, the logo, and legal or consent copy",
+      "Orders the work by visual lift per unit of risk, typography and spacing before recomposition, and stops when the brief is satisfied instead of proposing a full rebuild by default",
+      "States that existing accessibility behaviour (focus states, alt text, keyboard paths, contrast) must not regress",
+      "Does not open with a list of visual treatments to apply (new font, gradients, animations) as the first action"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "I am building the settings surface for a Shopify app that merchants open inside the Shopify admin. Give me the visual direction and the component approach.",
+    "expected_behavior": [
+      "Names Polaris as the required foundation for Shopify admin surfaces rather than proposing a hand-built or generic component set",
+      "States the honesty rule: install and use the official package instead of recreating its CSS, and do not import its tokens only to override most of them",
+      "States that one design system governs the project, and does not mix a second component system into the same tree",
+      "Recognizes that an embedded admin surface constrains the visual direction: the host application's conventions win over a distinctive marketing aesthetic",
+      "Does not produce a landing-page style design plan (hero, accent palette, display typeface) for an embedded admin form"
+    ]
   }
 ]

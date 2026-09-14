@@ -82,6 +82,14 @@ Design both themes together. A dark theme is not an inverted light theme.
   `#111`.
 - Image and media edges need a light outline in dark mode and a dark one in light mode, at low
   opacity, never a tinted neutral (which reads as dirt on the edge).
+- **One theme per page.** Sections do not invert. A warm-paper section between two near-black
+  sections reads as a styling mistake, not as a change of pace, and background tints within the same
+  family (`zinc-950` beside `zinc-900`) are how the page varies instead. A full theme switch is
+  allowed once per page where the brief asks for that device, and only if it spans the full bleed and
+  carries a real transition. A light band constrained to the content container, with the dark ground
+  showing either side, is the layer bug this rule exists to catch.
+- Where a component system owns the theme, set it once at the page root and let no section override
+  it.
 
 ## Contrast
 
@@ -137,6 +145,7 @@ pattern. This covers color-vision deficiency and also grayscale printing and low
 - Native `<select>` without explicit colors.
 - `#000` or `#fff` used as the surface or text color.
 - Required, error or success state expressed by color alone.
+- A section whose theme is inverted relative to the page, with no brief asking for the switch.
 - Contrast below the table above, checked in both themes.
 
 <!-- sources: anthropic-frontend-design, vercel-wig, addy-frontend-ui, antfu-design, w3c-wcag22, uiux-pro-max -->

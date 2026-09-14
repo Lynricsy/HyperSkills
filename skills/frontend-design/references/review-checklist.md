@@ -37,7 +37,8 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - Async updates (toasts, validation results, counts) land in a live region: `aria-live="polite"` or
   `role="status"`, `role="alert"` for errors.
 - Semantic HTML before ARIA.
-- Headings are hierarchical, one `h1`, no skipped levels; a skip link reaches the main content.
+- Headings are hierarchical with no skipped levels; a skip link reaches the main content. Several
+  `h1` elements are allowed, but the page needs one unmistakable primary heading.
 - Heading and anchor targets have `scroll-margin-top` so fixed chrome does not cover them.
 - Meaningful media has captions, a transcript or a description; media controls work by keyboard;
   decorative media is hidden from assistive technology.
@@ -140,6 +141,8 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - Drag, swipe, pinch and path gestures have tap or click and keyboard alternatives.
 - `autoFocus` sparingly: desktop only, one primary input, never on small screens.
 - Adjacent targets have enough clear space that the 24 CSS px spacing test passes.
+- `touchstart`, `touchmove` and `wheel` listeners are `{ passive: true }` unless they genuinely call
+  `preventDefault`. A non-passive listener makes the browser wait for JavaScript before it scrolls.
 
 ## 11. Safe areas and layout
 

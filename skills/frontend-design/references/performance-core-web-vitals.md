@@ -32,18 +32,44 @@ proves nothing.
 
 ## Measure before changing anything
 
-Two kinds of measurement, both needed:
+Type the evidence before acting on it. Four kinds, and they are not interchangeable:
 
 - **Synthetic** (Lighthouse, the browser's performance panel): controlled and reproducible. Good for
   isolating a specific issue and for regression detection in CI.
-- **Field** (the `web-vitals` library, CrUX): real conditions. Required to confirm that a change
-  actually helped, because synthetic runs miss the device and network distribution that produced the
-  complaint.
+- **Single-session observation**: a `PerformanceObserver` reading taken from one page in one
+  browser. It is a lab measurement with a sample size of one, whichever API produced it.
+- **Field (RUM)**: values from real sessions, reported to a collector and aggregated.
+- **CrUX**: field data already aggregated for the origin or the URL.
 
 ```js
 import { onLCP, onINP, onCLS } from 'web-vitals';
 onLCP(report); onINP(report); onCLS(report);
 ```
+
+That snippet is field data only where `report` ships the value to a collector and the values are
+aggregated across real sessions. Run once in your own browser it is a single-session lab reading,
+and treating it as field evidence is the most common way a performance claim goes wrong.
+
+Cite metric values, never a Lighthouse category score. The score is a weighted summary whose
+weights and audit set change between versions: an accessibility score of 100 is not WCAG
+conformance, and a performance score of 100 is not a passing field metric.
+
+Prefer page-level CrUX for the audited URL. Origin-level CrUX is context for a route, never proof
+about it, and **missing CrUX data means unavailable, never passing**: localhost, staging, new and
+low-traffic pages routinely have no record.
+
+When lab and field disagree, the reading is fixed rather than a matter of preference.
+
+| Lab | Field | Reading |
+|---|---|---|
+| Poor | Good | The local run missed the real device, route and cache distribution. Segment the field data before optimizing the synthetic case. |
+| Good | Poor | Users are failing on conditions the synthetic run did not reproduce. Find the failing segment; a passing lab run is not a defence. |
+| Poor | Poor | Diagnose in the lab, confirm in the field. |
+| Any | Unavailable | Diagnose in the lab and say so. Recommend field collection before claiming production impact either way. |
+
+Without a runnable page, static inspection produces hypotheses, not measurements. Label each one a
+hypothesis and name the measurement that would confirm it. Stating that LCP, INP or CLS is failing
+from source alone is fabrication, not review.
 
 The loop is fixed: measure, identify the actual bottleneck, fix that one thing, measure again, keep
 or revert, then add a guard. Skipping to the fix is how a codebase acquires three optimizations that
@@ -76,7 +102,13 @@ The three causes, in order of how often they occur:
 1. **Media without intrinsic size.** Every `<img>`, `<video>`, `<iframe>` and embed carries `width`
    and `height` attributes, or an `aspect-ratio` in CSS. This single rule removes most CLS.
 2. **Late fonts.** Use `font-display: swap` and reserve the space, so the swap changes glyphs but not
-   line count. A fallback face with mismatched metrics reflows the whole page on arrival.
+   line count. A fallback face with mismatched metrics reflows the whole page on arrival. Where the
+   swap itself is the shift, match the fallback to the real face with `size-adjust`,
+   `ascent-override`, `descent-override` and `line-gap-override`, deriving the percentages from the
+   actual font pair: values copied from an example describe a different pair and reintroduce the
+   shift. These descriptors are not Baseline Widely available; where unsupported they are ignored,
+   which degrades to the unmatched-metrics behaviour rather than breaking, so they need no separate
+   fallback.
 3. **Async content injected into flow.** Reserve space for anything that arrives late: ad slots,
    consent banners, skeletons, "N new items" bars. A skeleton that is not the same size as the
    content it replaces causes the shift it was supposed to prevent.
@@ -145,5 +177,7 @@ Also: never animate a layout property. Anything that moves uses `transform`.
 - Animated GIF where a compressed video would do.
 - An animation on `width`, `height`, `top`, `left`, `margin` or `padding`.
 - A third-party script loaded synchronously in `<head>`.
+- `decoding="sync"` or `decoding="async"` introduced as a performance fix. It schedules when the
+  image is presented relative to other content; it does not make decoding faster.
 
-<!-- sources: addy-performance, web-dev-vitals, vercel-wig, uiux-pro-max, chrome-mwg -->
+<!-- sources: addy-performance, addy-web-quality, web-dev-vitals, vercel-wig, uiux-pro-max, chrome-mwg -->

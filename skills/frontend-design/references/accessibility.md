@@ -184,11 +184,12 @@ npx pa11y <url>         # CLI checker
 - `:focus` used where `:focus-visible` is meant.
 - Image with no `alt`, or decorative image without `alt=""`.
 - Positive `tabindex`.
-- Heading level skipped, or more than one `h1`.
+- Heading level skipped. More than one `h1` is not itself a defect: no WCAG criterion limits the
+  count and valid HTML permits several. Flag it only where the page has no single primary heading.
 - Async status change with no live region.
 - Zoom disabled in the viewport meta tag.
 - Target under 24x24 CSS px with no applicable exception.
 - Gesture with no single-pointer alternative.
 - Missing `<html lang>`.
 
-<!-- sources: w3c-wcag22, vercel-wig, addy-frontend-ui, uiux-pro-max, wshobson-a11y -->
+<!-- sources: w3c-wcag22, vercel-wig, addy-frontend-ui, addy-web-quality, uiux-pro-max, wshobson-a11y -->

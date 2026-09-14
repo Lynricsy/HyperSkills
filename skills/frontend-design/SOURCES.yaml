@@ -1,5 +1,5 @@
 skill: frontend-design
-version: "2026.09.12"
+version: "2026.09.15"
 upstreams:
   - id: anthropic-frontend-design
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/anthropics/skills
     paths: [skills/frontend-design]
     ref: main
-    commit: 41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f
+    commit: 34040c9c568585f6929bedeaad110ad08f079624
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "Five generated-design clusters, the two-pass design process (plan, review against the brief, build, self-critique), typographic direction principles, and the interface-copy doctrine."
     notes: "License verified on 2026-09-10 by reading skills/frontend-design/LICENSE.txt: Apache License 2.0, not the proprietary text shipped with the docx/pptx/xlsx/pdf skills."
   - id: vercel-wig
@@ -22,7 +22,7 @@ upstreams:
     commit: e3d624baaf29dc1fc645aff3e38f03e564d2d6b1
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "The mechanically checkable UI review rule set across accessibility, focus, forms, animation, typography, content handling, images, performance, navigation, touch, theming, locale and copy, plus the group-by-file `path:line` output contract."
     notes: "Upstream frontmatter is command-shaped (description, argument-hint) and its body opens with a $ARGUMENTS placeholder; both were dropped when repackaging as a skill."
   - id: addy-frontend-ui
@@ -31,10 +31,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/frontend-ui-engineering, references/accessibility-checklist.md]
     ref: main
-    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    commit: be4e44a9fbc5e8df0beaefadbb28bd22ee61cc39
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "The AI-default to production-quality mapping for palette, radius, shadow, padding and card grids; spacing-scale discipline; semantic color tokens; ARIA live-region table; empty and error state patterns."
     notes: "Repo-level references/ is not copied by a per-skill install (upstream issue 361), so the checklist was pulled explicitly. Its 'Touch targets >= 44x44px' line sits under a WCAG 2.1 AA heading and was not adopted; W3C text is used instead."
   - id: addy-performance
@@ -43,10 +43,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/performance-optimization, references/performance-checklist.md]
     ref: main
-    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    commit: be4e44a9fbc5e8df0beaefadbb28bd22ee61cc39
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "The measure, identify, fix, verify, guard loop; the by-symptom bottleneck triage tree; synthetic versus field measurement split; regression guarding."
   - id: antfu-design
     kind: repo
@@ -57,7 +57,7 @@ upstreams:
     commit: a74f281a27dadc02397bc1a174b0f2c97531b6ae
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "Design read plus tooling and marketing dial baselines, the anti-slop hard list (dash ban, generic names, fake-perfect numbers, filler verbs, decoration tells), bias correction for type, color, layout and materiality, micro-interaction polish (concentric radius, optical alignment, borders versus shadows), and the pattern vocabulary."
     notes: "Only the framework-agnostic references were used. The UnoCSS-coupled files (starter kit, token combinations, class-over-attributify, Floating Vue overrides) and all shortcut config blocks were left out."
   - id: leonx-taste
@@ -69,9 +69,9 @@ upstreams:
     commit: ccbc15639c97057cbfcf32ecebc38ef716e4bb37
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
-    contributes: "Origin of the VARIANCE / MOTION / DENSITY dial system and the one-line design read, which the antfu-design references credit to it."
-    notes: "Only those two semantics were taken and fully rewritten. Its 87 KB single-file body, GSAP skeletons and landing-page-only scope were not used; it is credited because attributing the dials solely to antfu-design would misstate their origin."
+    synced_at: "2026-09-15"
+    contributes: "Origin of the VARIANCE / MOTION / DENSITY dial system and the one-line design read. From the v2 body: the countable section budgets (eyebrow labels within ceil(sections/3), one layout family reused at most once, at most two consecutive image-and-text splits, one marquee, grid cells equal to items, four text elements in a hero), hero measure and top-padding ceilings, single-line desktop navigation, bento background diversity, the split-header rejection, page theme lock, the component-not-a-longer-list rule for more than five items, and the production-test tells (logo-wall category labels, generic step labels, micro-meta sentences, performative-craftsman and coy social-proof labels, hero status stamps, live-scarcity counters, image-overlay pills, decorative photo credits, filled-track comparison bars, rotated text, decorative hairline grids)."
+    notes: "Everything taken was rewritten as decidable statements and stripped of its landing-page framing. Not used: the 87 KB body's prose, the GSAP sticky-stack and horizontal-pan skeletons, the Tailwind and Motion stack chapter, the self-referential block-library contract, Appendix A install commands and Appendix C's Liquid Glass CSS. Its section 2 design-system map (brief to Polaris, Fluent, Carbon, GOV.UK) was dropped after the 2026-09-15 baseline: scenario 9 showed the model already picks Polaris for a Shopify admin surface and states the one-system rule unprompted. Its prefers-reduced-transparency fallback advice was not carried over as written: that query is Baseline limited (Chromium only), so the opaque variant is the default and the glass effect is the enhancement."
   - id: emil-animations
     kind: repo
     repo: emilkowalski/skills
@@ -81,7 +81,7 @@ upstreams:
     commit: d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "The should-it-animate frequency table, easing decision order with strong custom curves, per-element duration bands and the sub-300ms ceiling, physicality rules (never scale(0), origin-aware popovers, press feedback), interruptibility and @starting-style, stagger range, and reduced-motion nuance."
     notes: "React and Framer Motion specific items (useSpring, initial={false}, non-accelerated shorthands) were left to the react skill."
   - id: uiux-pro-max
@@ -93,7 +93,7 @@ upstreams:
     commit: 7f69fed6a2717900085f1bc3b263721f8ba025e2
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "Deduplicated UX judgement calls that the Vercel rule set does not cover: compact-label and overflow semantics, disabled versus read-only, focusable error summaries, waiting-feedback matching, and the chart accessibility set."
     notes: "Only the two static markdown references were used. The search runtime, CSV corpora and design-system persistence machinery depend on a harness-specific plugin root and were excluded, as were all native mobile platform items."
   - id: chrome-mwg
@@ -102,10 +102,10 @@ upstreams:
     url: https://github.com/GoogleChrome/modern-web-guidance
     paths: [skills/modern-web-guidance]
     ref: main
-    commit: bfd8c8dded770f3ba07a518e28991a32df40f902
+    commit: 8dd064139b76a47d960c8e4422b73755d33bf6a0
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "Baseline verdict interpretation and fallback policy negotiation, the search / retrieve / list workflow, and the goal-to-guide mapping over the published guide corpus."
     notes: "CLI verified on 2026-09-10: search returned scored results in under two seconds and list returned 143 guides across 14 categories. The upstream --skill-version pin was deliberately not carried over, since it only produces a stale warning against a self-updating package."
   - id: w3c-wcag22
@@ -129,8 +129,20 @@ upstreams:
     url: https://github.com/wshobson/agents
     paths: [plugins/ui-design/skills/accessibility-compliance]
     ref: main
-    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    commit: 4236bb91f8395b0435f1d8b8baf9e8e4c69a8620
     license: MIT
     relation: reference
-    synced_at: "2026-09-10"
+    synced_at: "2026-09-15"
     contributes: "Read for comparison only. Its conflation of the 44 by 44 platform figure with the WCAG AA minimum prompted the W3C verification behind references/accessibility.md; no content was taken."
+  - id: addy-web-quality
+    kind: repo
+    repo: addyosmani/web-quality-skills
+    url: https://github.com/addyosmani/web-quality-skills
+    paths: [skills/core-web-vitals/references/CLS.md, skills/best-practices/SKILL.md]
+    ref: main
+    commit: afa8da942115f2961fdbfa80807ea0b232ff6c00
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "Font metric overrides (size-adjust, ascent-override, descent-override, line-gap-override) as the fix when the font swap itself is the layout shift, with the warning that the percentages must be derived from the actual pair rather than copied. The passive-listener check for touchstart, touchmove and wheel."
+    notes: "Deliberately narrow. Its measurement and RUM references, the INP phase split, CrUX scope semantics, the lab-versus-field matrix and the Lighthouse-score caveat were all dropped after the 2026-09-15 baseline: scenarios 6 and 7 showed Claude Opus 5 already produces them unprompted, in more detail than the upstream text. What the same references did earn is a correction inside this skill: the field-data definition in references/performance-core-web-vitals.md had a bare onLCP(report) snippet standing in for field data, and now states that aggregation is what makes it field data. Its seo and web-quality-audit bodies also prompted the one-h1 correction recorded as R11. Not used: skills/seo entirely (out of scope, and its FAQPage example has been dead in Google Search since 2026-05-07), the CSP, Trusted Types, SRI and prototype-pollution material (security-review owns those), scripts/analyze.sh (bash plus jq, only globs .html, and reports success with zero files scanned on a component codebase), and two upstream errors: View Transitions labelled Baseline 2026 (webstatus.dev: newly, 2025-10-14) and decoding=\"sync\" recommended for the LCP image."
