@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rerank
+  labels:
+    app: rerank
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: rerank
+  template:
+    metadata:
+      labels:
+        app: rerank
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: rerank
+          image: registry.internal/ml/rerank:latest
+          args: ["--model", "/models/reranker", "--port", "8080"]
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              nvidia.com/gpu: 2
+              cpu: "4"
+              memory: 8Gi
+            limits:
+              cpu: "8"
+              memory: 24Gi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: models-pvc

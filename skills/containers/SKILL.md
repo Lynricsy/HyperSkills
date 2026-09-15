@@ -252,6 +252,38 @@ ago, and a removed version is a hard rejection, not a warning.
       `kubeconform -strict`, plus `helm lint` for a chart. Compare the rendered diff, not
       the template diff, when reviewing a change.
 
+### deploy-a-gpu-workload
+
+Read `references/kubernetes-gpu.md`. Everything the serving process does with the
+card once it has one - KV cache sizing, batching, parallelism, benchmarking,
+scaling signals - is the `model-serving` skill.
+
+- [ ] Prove the device is offered before reading anything else: the discriminator is
+      whether the resource key exists in `allocatable` at all, not whether its value is
+      low. `Capacity` above `Allocatable` means unhealthy devices, not quota.
+- [ ] Establish whether the pool is shared, and how. A count that is a multiple of the
+      physical card count is the time-slicing replica multiplier; check whether
+      `renameByDefault` moved the resource to `nvidia.com/gpu.shared`, or a MIG strategy
+      to `nvidia.com/mig-<n>g.<m>gb`. A wrong resource name is a permanently Pending pod
+      with no error.
+- [ ] State the isolation the sharing method actually provides. Time-slicing gives
+      neither memory nor fault isolation, so a memory floor per replica cannot be met
+      that way - that needs MIG or an exclusive card.
+- [ ] Declare the GPU in `limits` (integer, no overcommit), then select the *right* card:
+      the extended resource keeps the pod off CPU nodes but nothing keeps it off the
+      smaller GPU without a `nodeSelector`/`nodeAffinity` on a GPU label.
+- [ ] Check the driver against the image's CUDA family, and keep driver packages out of
+      the image - driver user-space is injected from the host at container creation.
+- [ ] Confirm the runtime path: `runtimeClassName` when the nvidia runtime is not the
+      cluster default, and the NVIDIA environment variables that a non-CUDA runtime base
+      image drops.
+- [ ] Size the startup probe from a measured GPU cold start, not from the CPU service's
+      budget; driver init, device memory allocation and PTX JIT all land before the first
+      successful probe.
+- [ ] **Gate:** `kubectl apply --dry-run=server` or `kubeconform -strict`, and name which
+      claims are unverifiable without the cluster (device plugin state, labels, driver
+      version) rather than asserting them.
+
 ## Topic router
 
 | Topic | Read when | File |
@@ -262,6 +294,7 @@ ago, and a removed version is a hard rejection, not a warning.
 | Compose file shape without `version:`, healthchecks and dependency conditions, profiles, `develop.watch`, volumes and bind-mount shadowing, networks and ports, `include`/`extends` | Building or fixing a local development environment | `references/compose.md` |
 | Deployment, StatefulSet, Job and CronJob shape, Service types and Ingress, ConfigMap and Secret wiring, probes, lifecycle and graceful shutdown, rollout strategy and rollback, sidecars | Writing or reviewing a workload manifest | `references/kubernetes-workloads.md` |
 | Requests, limits and QoS, OOMKill and CFS throttling, LimitRange and ResourceQuota, HPA, PodDisruptionBudget, node affinity, taints and topology spread, in-place resize | Sizing a workload, or scheduling and disruption behave oddly | `references/kubernetes-resources.md` |
+| Extended-resource contract for GPUs, device plugin state, time-slicing/MPS/MIG and their isolation, RuntimeClass and the NVIDIA environment variables, driver/CUDA compatibility, GPU node selection, DRA, driver-upgrade drains | A workload needs a GPU, or has one and cannot see it | `references/kubernetes-gpu.md` |
 | securityContext field by field, Pod Security Standards and Pod Security Admission labels, ServiceAccount and RBAC, secret handling, NetworkPolicy, user namespaces | Hardening a workload or reviewing its blast radius | `references/kubernetes-security.md` |
 | When each tool fits, chart layout and values design, capability guards and hooks, overlay and patch strategy, generators and hash suffixes, the combinations that go wrong | Packaging manifests for more than one environment | `references/helm-and-kustomize.md` |
 | Pending, CrashLoopBackOff, ImagePullBackOff, OOMKilled, Terminating, 502 from an Ingress, DNS failures — the evidence that separates their causes | A workload is broken and you need the cause, not a guess | `references/troubleshooting.md` |

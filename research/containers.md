@@ -421,3 +421,194 @@ leak 的 OCI 导出、nosecret 的 OCI 导出、leak 再用普通 `docker build`
   没有守护进程、`podman generate kube`）不足以支撑一章，需要时在 Dockerfile 章里一句话即可。
 - **不覆盖 Gateway API 细节**。只在 Ingress 一节写了「它是标准化的后继方向」，
   展开需要控制器实现层的知识，且与未来可能的网络类 skill 边界未定。
+
+---
+
+## GPU 扩展（2026-09-15）
+
+用户在 `model-serving` 立项过程中追加要求：「container skill 也需要有与 GPU 相关的内容」。
+本节记录这次扩展的调研、分界与基线，正文落点是新增 `references/kubernetes-gpu.md`
++ 一个 workflow + 一行 topic router。
+
+### 为什么不新增 core rule
+
+`## Core rules` 已有 25 条，正好是 `docs/skill-standard.md` 第 3 节规定的上限。
+逐条核对 25 条后确认：**没有任何一条与 GPU 事实矛盾，也没有任何一条弱到该被 GPU 规则替换**。
+
+- Rule 1（先确定版本再套版本门）对 GPU 尤其成立，且 GPU 还多两个版本轴（驱动、插件），
+  这属于 reference 内容而非新 rule。
+- Rule 8（按 digest 固定镜像）与 CUDA 镜像的强耦合同向，不需要 GPU 变体。
+- Rule 17（总设内存 limit / CPU 尽量不限）与 GPU 工作负载不冲突。
+- Rule 18（PDB 与 drain 卡死）与驱动升级的 `maxUnavailable` 把 cordon 计入是不同机制，
+  但结论同向，reference 引用即可。
+- Rule 25（从对象诊断而非症状名）正是 GPU 诊断章的组织原则。
+
+结论：core rules 保持 25 条不变。
+
+### 与 `model-serving` 的分界
+
+两边 SKILL.md 写入字面一致的分界句（英文原文照抄，见两边 `## Scope`）：
+
+> Getting a GPU into a container — device plugin resource names, MIG and time-slicing,
+> driver and CUDA compatibility, topology-aware scheduling — belongs to the `containers`
+> skill; what a serving process does with the GPU once it has one — KV cache sizing,
+> batching, parallelism, benchmarking and scaling signals — belongs to the `model-serving`
+> skill.
+
+`containers` 侧只写到「Pod 拿到了正确数量与正确形态的设备」为止，验证门是
+`nvidia-smi -L` 输出正确。刻意**不**提取而移交对面的内容：`ComputeDomain` 之上的并行策略、
+NCCL 调优参数取值、按 GPU 利用率扩缩的对错、`gpu_count × num_nodes` 的容量规划方法论。
+
+### 版本事实纠偏（写正文前必须定的）
+
+调研时的先验判断有两处错，已按官方文档更正：
+
+| 先验 | 实际 | 依据 |
+|---|---|---|
+| DRA 在 1.37 仍是 alpha/beta | **Stable since v1.35**，gate `DynamicResourceAllocation` 已锁定（显式设置被忽略且不报错）；API 组是 `resource.k8s.io/v1`，不是 `v1alpha3`/`v1beta1` | kubernetes.io DRA 概念页 |
+| DRA 文档在 `/concepts/scheduling-eviction/` | 已迁至 `/concepts/resource-management/dynamic-resource-allocation/` | 同上（旧链接重定向） |
+| `nvidia.com/gpu` 写进 `requests` 会被静默同值化 | 静默同值化只发生在**只写 limits** 的方向（Kubernetes 把 limit 复制为 request）；**只写 requests 不写 limits 是非法的**；两边都写则必须相等 | kubernetes.io `scheduling-gpus` |
+
+其余需要写进正文的版本门：Device taints/`DeviceTaintRule` **Stable since 1.37**；
+prioritized list **Stable since 1.36**；`DRAPartitionableDevices` 与 consumable capacity
+**1.36 beta 默认开**；`DRADeviceCompatibilityGroups` **1.37 alpha 默认关**；
+`DRAWorkloadResourceClaims` **1.37 beta 默认关**；`allocatedResourcesStatus` **1.36 beta**；
+CDI 设备名处理 **1.31 GA**。
+
+NVIDIA 的 DRA 驱动仓库**已迁到 `kubernetes-sigs/dra-driver-nvidia-gpu`**，其中
+`compute-domain-kubelet-plugin`（多节点 NVLink 的 ComputeDomain）是官方支持的，而
+`gpu-kubelet-plugin`（用 DRA 分配 GPU）**Helm chart 默认禁用、尚未正式支持**——
+写「用 DRA 分配 GPU」的建议时必须带这个 caveat。
+
+### 上游来源
+
+全部为 `relation: reference`（只阅读对齐，未复制内容）。Kubernetes 官方文档、
+NVIDIA k8s-device-plugin、GPU Operator 文档、Container Toolkit 文档、
+CUDA Compatibility 文档、ROCm k8s-device-plugin、`kubernetes-sigs/dra-driver-nvidia-gpu`。
+repo 型来源的 HEAD commit 已核实并写入 `SOURCES.yaml`。
+
+两个 skill 型候选经实读后判为**不可合入**，留档以免后续批次重复讨论：
+
+| 候选 | 判定 | 理由 |
+|---|---|---|
+| `NVIDIA/skills` `tao-run-on-kubernetes` | reference，不 merge | 95% 是 TAO SDK 的 Python API 契约与 NGC 凭据；可提取的只有 Pending 事件原文、allocatable 探针命令、Indexed Job + headless Service 的 rendezvous 构造 |
+| `NVIDIA/skills` `tao-setup-nvidia-gpu-host` | reference，不 merge | 主体是宿主机发行版包管理安装流程，属节点准备而非本 skill Scope。它给的最小栈（driver ≥580 / CUDA ≥13.0 / Toolkit ≥1.19.0）是 **TAO 自己的要求**，**不得**写成普适下限 |
+| `google/skills` `gke-compute-classes` | reference，不 merge | 整份是 GKE ComputeClass/CapacityQuota 的 CRD 语义与 GKE 版本门，正落在本 skill 明确排除的「托管集群控制面」，应归 `gcp`。其中「GKE 自动给 GPU 节点打 `nvidia.com/gpu:NoSchedule`」是 GKE 特有行为，**不得**写成通用事实。只取「加速器启动延迟严重」一条 |
+
+### 与既有 reference 的重叠处理
+
+| 既有内容 | 处理 |
+|---|---|
+| `kubernetes-resources.md` 的 requests/limits 与 QoS | **引用不重写**。但要补一条它没覆盖的：GPU Pod 即使 `nvidia.com/gpu` 两边相等，**QoS 类仍由 CPU/内存决定**，只写了 GPU limit 的 Pod 仍可能是 Burstable 甚至 BestEffort，节点压力下先被驱逐 |
+| `kubernetes-resources.md:223-225`「容忍不等于吸引…GPU 工作负载落到 CPU 节点」 | **不复述**。GPU 侧的增量是「用什么标签做那个 affinity」：NFD/GFD 标签目录、`Gt` 数值比较，以及 **MIG single 策略会把 `gpu.product` 改写成 `…-MIG-1g.10gb` 从而让按型号写死的 affinity 失配** |
+| `troubleshooting.md` 的 Pending 原因表 | 该表已含 `Insufficient cpu/memory` 与 untolerated taint（且已点名 GPU 池），**无需改动**；GPU reference 补三条它覆盖不到的：allocatable 里根本没有该资源 key、`Capacity` 8 / `Allocatable` 5 的差值、`UnexpectedAdmissionError`（既非 Pending 也非 CrashLoopBackOff 且不自愈）。另在该表加一行交叉引用 |
+| `kubernetes-workloads.md` 的 Probes | **只补预算**，不重讲三探针语义 |
+
+### 基线缺口
+
+新增第 4 个场景（GPU 推理 Deployment + Dockerfile 双文件评审）。
+基线：`uv run tools/run_evals.py containers --baseline --only 4`，
+Claude Opus 5 / thinking=medium，`status=ok`、`skill_read=false`。
+
+**夹具修正记录**：第一版夹具把 GPU 只写在 `requests`，同时让 query 声称出现了
+`UnexpectedAdmissionError`。这是因果矛盾——只写 requests 的 Pod 会被 API server 直接拒绝，
+根本到不了 kubelet 调用 device plugin `Allocate` 的阶段；而合法的 GPU 请求本身就是调度约束，
+也不会「因为缺 affinity 而落到没有 GPU 的节点」。已把 query 改写为显式的三步时间线
+（apply 被拒 → 补上 limits 后 admission 失败 → 改成 1 后 Running 但容器内无设备），
+并把「落到 CPU 节点」改为异构池下的型号/显存选择。第一版基线已作废重跑。
+
+基线 13 条 `expected_behavior`：**达成 6、部分 6、未达成 1**。
+
+| 未达成/部分的行为 | 说明 |
+|---|---|
+| **`renameByDefault` / `.shared` 资源名（未达成）** | 完全未提。基线改用 `nvidia.com/gpu.sharing-strategy` 标签排除共享池（也是正确做法），但没意识到共享池可以把资源名改成 `nvidia.com/gpu.shared`，也没提 mixed MIG 策略下的 `nvidia.com/mig-<n>g.<m>gb` |
+| time-slicing 的故障域共享（部分） | 多处正确说了「不做显存隔离」，但没说**故障域也共享**（同卡一个容器崩会带走全部），也没提 MIG（Ampere+ 硬件分区）与 MPS 作为替代 |
+| `UnexpectedAdmissionError` 的机制（部分） | 基线给了一条很深刻的反向洞察——「把 `failRequestsGreaterThanOne` 关掉会让 Pod 顺利启动但只拿到同一张卡的两个引用，故障从明确的 admission 错误变成隐蔽的显存 OOM」——但没解释报错本身的机制，也没说 **Pod 不自愈必须手工删除**、没说该开关默认 `false` |
+| 扩展资源的其余约束（部分） | 正确写出「只写 limits，kubelet 自动令 requests == limits；显式写 requests 且与 limits 不等会被 API server 拒绝」；但没提整数、不可超卖、不可跨同 Pod 的两个容器共享 |
+| `NVIDIA_DRIVER_CAPABILITIES` 缺 `compute` 的诊断症状（部分） | 显式设了 `compute,utility`（正确），但没描述「`nvidia-smi` 能跑而框架看不到卡」这个诊断入口 |
+| CUDA/驱动不匹配的报错与逃生阀（部分） | 给出驱动下限 **580.65.06**（比调研记录的 580 更精确）并选择降到 CUDA 12.4；但没提 `cudaGetDeviceCount returned 3 -> initialization error` 这个实际报错文本，也没提 forward-compatibility 包这条路 |
+| RuntimeClass handler 不存在的后果（部分） | 正确加了 `runtimeClassName: nvidia` 并把「缺它」与「slim 基础镜像丢 ENV」并列为两个独立根因（正是期望的）；但没提 handler 不存在会让 Pod 直接进 `Failed` 终态 |
+
+**基线超出预期之处**（如实记录，避免正文重复写模型已会的）：
+
+- 抓到了夹具里我自己没注意到的真实缺陷：`models-pvc` 若是 `ReadWriteOnce`，
+  4 个副本落在不同节点时无法同时挂载，必须 `ReadOnlyMany`/`ReadWriteMany`。
+- 指出「40GB/副本」这个约束**无法在 Kubernetes 资源模型里表达**，只能靠 nodeAffinity
+  翻译成「整张 H100」——这是对扩展资源表达力边界的准确认识。
+- Dockerfile 的修法完整且理由正确：build/runtime 两段都用 CUDA 镜像、注释写明
+  「不安装任何 nvidia 驱动包，内核驱动与 libcuda 由宿主经 nvidia-container-runtime 注入」、
+  runtime stage 必须是 CUDA runtime 镜像否则 toolkit 不注入 compute 能力所需的库。
+
+**评测设计的一处教训**：query 结尾写「What is wrong and what do we change?」导致基线
+直接改文件 + 只在 `answer.md` 里写「还要改的两处」，主体诊断落在 workspace 的文件注释里。
+判定时必须连 workspace 产物一起读（`result.json` 的 `workspace` 字段），
+否则会把已达成误判为未达成。现有场景 2 的措辞「Review deployment.yaml before we roll it out」
+更能稳定引出评审文本，后续新增 review 型场景应沿用该措辞。
+
+### 评测结果
+
+被测模型在本轮中途统一改为 `openai/gpt-5.6-sol --thinking medium`（见
+`research/model-serving.md` 第二轮说明），两侧基线用同一模型重跑；Opus 5 那行只作背景。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 4（GPU） | anthropic/claude-opus-5 medium | 无（基线） | false | 6/13 达成、6 部分、1 未达成 | 背景，不参与增益判定；判定需连 workspace 产物一起读 |
+| 4（GPU） | openai/gpt-5.6-sol medium | 无（基线） | false | **3/13 达成、6 部分、4 未达成** | 见下表 |
+| 4（GPU） | openai/gpt-5.6-sol medium | 有 skill | **true** | **6/13 达成、5 部分、2 未达成** | 见「有 skill 对照」 |
+
+`gpt-5.6-sol` 基线逐条（`/tmp/hs-gpu-sol/.../baseline/4/answer.md`）：
+
+| EB | 判定 | 依据 |
+|---|---|---|
+| 1 Capacity 80 = 副本乘数 | 达成 | 「不代表突然拥有 80 张 GPU，而是设备插件将共享副本计入扩展资源容量」+「调度器只看见整数资源，没有看见背后的物理显存」 |
+| 2 时间切片无隔离 + MIG/MPS | 部分 | 有「不提供显存隔离或预留」与 MIG 方案；**缺故障域**（一个容器崩则同卡全崩）与 **MPS 完全未提** |
+| 3 共享请求上限 | 部分 | 说了「单次请求最大只能是 1」「Allocate 阶段拒绝」；**缺 Pod 不自愈须手删**、**缺 `failRequestsGreaterThanOne` 默认 false** |
+| 4 GPU 必须在 limits | 部分 | 只说「两者必须相等」；**没说只写 `limits` 会自动复制而只写 `requests` 非法**，也缺整数/不可超卖/不可跨容器共享 |
+| 5 `renameByDefault` 改名 | **未达成** | 完全未提 `nvidia.com/gpu.shared`，也未提错名 = 永久 Pending 无错误 |
+| 6 删镜像内驱动 | 达成 | 「驱动属于宿主机，并且该构建阶段随后被丢弃」 |
+| 7 runtime stage 丢 NVIDIA 变量 | 部分 | 归因为「没有 CUDA 用户态运行库」，**未点明丢失 `NVIDIA_VISIBLE_DEVICES`**，也未说 unset 时 runtime 退化为 runc |
+| 8 只有 `utility` 的症状 | **未达成** | 未提 `nvidia-smi` 可用而框架看不到设备这一诊断 |
+| 9 CUDA/驱动版本失配 | 部分 | 指出 CUDA 13 与 550 代际不匹配并换 12.4.1；**缺 580/525 地板值**、**缺 `cudaGetDeviceCount returned 3` 症状**、缺另两条修法 |
+| 10 两个独立原因 | 部分 | 两个原因都给了且都修；**缺** RuntimeClass 不存在会直接 `Failed` 的反面辨析 |
+| 11 异构池节点选择 | 达成 | 正是 `nvidia.com/gpu.memory` + `Gt` + `40959`，未重复泛化 taint 建议 |
+| 12 startup probe | **未达成** | 探针完全未提；readiness 约 25 s 的预算问题未触及 |
+| 13 `:latest` 换 digest | **未达成** | 只钉了基础镜像 `12.4.1`，部署镜像的 `:latest` 未处理 |
+
+缺口与 `references/kubernetes-gpu.md` 的对应：EB5 -> 「Sharing a GPU」的
+`renameByDefault`；EB8 -> 「The variables that decide what the container sees」把
+「`nvidia-smi` 能用但框架看不到设备」直接写成诊断结论；EB12 -> 「Startup budget」
+（只给预算定法，探针语义仍留在 `kubernetes-workloads.md`）；EB13 已由既有
+`image-security.md` 覆盖，不重复。EB2/3/4/7/9/10 的缺失半边分别落在
+「Sharing a GPU」的故障域与 MPS 行、`failRequestsGreaterThanOne` 段、
+「The resource contract」、`NVIDIA_VISIBLE_DEVICES` 取值表、
+「Driver and CUDA version coupling」的地板表与诊断表。
+### 有 skill 对照（`/tmp/hs-gpu-skill/.../skill/4/`，`skill_read=true`）
+
+| EB | 基线 -> 有 skill | 变化依据 |
+|---|---|---|
+| 1 Capacity 80 | 达成 -> 达成 | 有 skill 版把它算成「8 张 × 10 份」并补上「多个份额可能仍指向同一张物理卡」 |
+| 2 无隔离 + MIG/MPS | 部分 -> 部分 | 补齐了「不提供显存、故障或性能隔离」三项（基线只有显存）；**MPS 仍未提** |
+| 3 共享请求上限 | 部分 -> **达成** | 点名 `failRequestsGreaterThanOne` 并写出「不会自动恢复，删除 Pod 是必要操作」 |
+| 4 GPU 必须在 limits | 部分 -> **达成** | 正是基线缺的那半句：「不能只写 `requests`；可以只写 `limits`」+「Kubernetes 会自动把该值复制为 request」 |
+| 5 `renameByDefault` | 未达成 -> 部分 | 要求「以 `node.status.allocatable` 中的实际资源名为准」并给出 MIG 资源名，但仍未点名 `renameByDefault` / `.shared`，也未说错名是静默 Pending |
+| 6 删镜像内驱动 | 达成 -> 达成 | 补上「内核驱动必须来自节点，用户态驱动组件由 NVIDIA runtime 注入」 |
+| 7 runtime stage 丢变量 | 部分 -> 部分 | 「由普通 runtime 创建，没有设备、驱动库或工具注入」等于说出了 runc 语义，但仍未点名两个环境变量 |
+| 8 显式设置两个环境变量（判据已改写） | 未达成 -> **未达成** | 连 workspace 产物一起查：`gpu-rerank.Dockerfile` 里没有 `NVIDIA_VISIBLE_DEVICES` / `NVIDIA_DRIVER_CAPABILITIES`，仍依赖基础镜像携带 |
+| 9 CUDA/驱动版本 | 部分 -> 部分 | 新增了「CUDA 13.x 需要至少 580 驱动」这个地板值；仍缺 525、缺 `cudaGetDeviceCount returned 3` 症状、缺 forward-compat 修法 |
+| 10 两个独立原因 | 部分 -> 部分 | 两原因都修，并补「CRI 中确实配置了同名 handler」；仍缺 RuntimeClass 不存在会直接 `Failed` 的辨析 |
+| 11 异构池节点选择 | 达成 -> 达成 | 除 `nvidia.com/gpu.memory` + `Gt` 外，还用上了 `nvidia.com/gpu.sharing-strategy=none`（基线未用） |
+| 12 startup probe | 未达成 -> **未达成** | workspace 的 `gpu-inference.yaml` 只有 readiness/liveness，无 `startupProbe`，预算也未调整 |
+| 13 `:latest` -> digest | 未达成 -> **达成** | 明确要求换成不可变 digest |
+
+净变化：达成 3 -> 6，未达成 4 -> 2。
+
+**两条未达成如实记录，不改判据掩盖**：EB8 与 EB12 对应的内容
+（`references/kubernetes-gpu.md` 的「The variables that decide what the container sees」
+与「Startup budget」，以及 `deploy-a-gpu-workload` 清单里的探针那条）都存在于 skill 中，
+模型读了 skill 仍未用上。原因是场景 query 把注意力锚定在「三次失败，按顺序解释」，
+而环境变量的显式设置与探针预算都不属于那三次失败--它们是夹具里**未被提问的隐含缺陷**。
+这说明该场景对这两条的判别力弱，而不是 skill 缺内容。后续若要测这两条,
+应另设一个以「这个 Deployment 为什么启动就被重启」为问句的场景,而不是把它们
+挂在一个资源契约场景的尾巴上。
+
+结论：GPU 扩展有真实缺口，13 条里 10 条需要 reference 才能稳定答对，`references/kubernetes-gpu.md` 立得住。

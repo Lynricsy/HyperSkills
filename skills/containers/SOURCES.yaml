@@ -30,7 +30,7 @@ upstreams:
     commit: fee041b381ffd4aad263410980bdce0cdf4beb7d
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The normative Compose semantics: the three `depends_on` conditions and what each actually waits for, `restart: true` in the long form, the five `develop.watch` actions (sync, restart, sync+restart, sync+exec, rebuild) and when Compose applies each, profiles, healthcheck fields, and merge behaviour across files."
     notes: "Used to settle the difference between what the short and long `depends_on` forms guarantee, which the community upstreams state inconsistently."
   - id: lukasniessen-k8s
@@ -50,10 +50,10 @@ upstreams:
       - references/kustomize-patterns.md
       - references/validation-and-policy.md
     ref: main
-    commit: f85547fb3a1ec909b2cbe4dc68f831590ac385ea
+    commit: 34f93c1e409156958cc7c410ab1aa88ab512f10f
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The failure-mode framing this skill's review workflow is built on (insecure defaults, resource starvation, network exposure, privilege sprawl, fragile rollouts, API drift), the causal argument for why a dependency check in a liveness probe turns one outage into a restart storm across every replica, the position that most workloads should carry a memory limit and no CPU limit because a CPU limit is enforced as a CFS quota, the probe-timing budget arithmetic, and the Helm and Kustomize anti-pattern lists."
     notes: "Its `references/conditional/{eks,gke,aks,openshift}-patterns.md`, `gitops-controllers.md` and `observability-stacks.md` were deliberately not used - managed control planes, GitOps controllers and observability stacks are outside this skill's scope. Its writing conventions (全大写 ALWAYS/NEVER directives, a duplicated docs/ copy of every reference) were not adopted. Its recommendation of `kubectl apply --dry-run=server` is kept, but its `--dry-run=client` suggestion was corrected after measuring that the client dry run still requires a reachable API server."
   - id: awesome-copilot
@@ -67,10 +67,10 @@ upstreams:
       - instructions/containerization-docker-best-practices.instructions.md
       - skills/multi-stage-dockerfile/SKILL.md
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: fb4eb04fcbd30de50052b1155d81167393dfb5aa
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The whole devcontainer chapter's spine: the image-metadata merge rule that makes a property's absence unprovable and therefore unreportable, the prebuild boundary that puts cacheable installs in onCreateCommand/updateContentCommand rather than postCreateCommand, the parallel execution of the object form, the two rules that must not be over-applied (localEnv references in remoteEnv, updateRemoteUserUID), and the deprecated-property list. Separately, the `app.kubernetes.io/*` recommended label set and the securityContext default list from instructions/kubernetes-manifests."
     notes: "The `applyTo:` frontmatter key and the 'Your Mission / As GitHub Copilot' persona framing were stripped as agent-specific. The three broad instruction files were used only as a coverage checklist, not for wording; the multi-stage-dockerfile skill's claim that a multi-stage build avoids including build secrets was rejected as false and is contradicted in references/image-security.md with a measured counter-example."
   - id: netresearch-docker
@@ -84,10 +84,10 @@ upstreams:
       - skills/docker-development/references/bind-mount-ownership.md
       - skills/docker-development/references/registry-catalogue-and-pin-rot.md
     ref: main
-    commit: da6be1a139a83dc654f8c4b7b034280534f741ff
+    commit: b1f54204b323203511242702c6503730c3513031
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The single most valuable correction in this skill: that `docker history` is the wrong check for a build-credential leak because BuildKit records build arguments verbatim in the provenance attestation, the `docker buildx imagetools inspect --format '{{json .Provenance}}'` forensic command, the instruction to grep for the credential pattern rather than the argument name (the name matches the attestation's own embedded commit text and produces false positives), the pre-fix/post-fix count as the only proof that can fail, and bind-mount ownership and registry pin-rot as review items."
     notes: "The GitHub API reports NOASSERTION because the repository ships two licence files. Its README splits them explicitly: code is MIT, content (skill definitions, documentation, references) is CC-BY-SA-4.0. Treated as CC-BY-SA: only the structure and the checklist semantics were taken and everything is rewritten in this skill's own words, with the provenance claim independently reproduced locally before being written down. The `allowed-tools` and `metadata.repository` frontmatter keys were stripped."
   - id: google-skills
@@ -99,10 +99,10 @@ upstreams:
       - skills/cloud/gke-app-onboarding/assets/deployment.yaml
       - skills/cloud/gke-app-onboarding/assets/Dockerfile
     ref: main
-    commit: fd2bd41f0106962cc1a89d64844773dbaaef1905
+    commit: 5a14f112793c118ba576559a2b46f7efa78290f5
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The complete hardened-Deployment field set used as this skill's default manifest: automountServiceAccountToken false, runAsNonRoot with a numeric uid, seccompProfile RuntimeDefault, readOnlyRootFilesystem, capabilities drop ALL, an image referenced by digest, and separate /healthz and /readyz endpoints wired to liveness and readiness respectively."
     notes: "GKE-specific material was stripped: Artifact Registry image paths, gcloud and `pack build` commands, Cloud Native Buildpacks as the default, Cloud Logging collection, Workload Identity, Autopilot constraints, and the MCP tool-name block (apply_k8s_manifest, get_k8s_resource, …). What remains holds on any conformant cluster. The non-standard `metadata.category: Containers` frontmatter key was stripped."
   - id: azure-aks-skills
@@ -117,7 +117,7 @@ upstreams:
     commit: 20bf35201a79b324d2ca3e00e5c82020ff362024
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The troubleshooting contract - read-only until remediation is asked for, and evidence quoted before a root cause is named, because 'pod is Pending' and 'node is NotReady' are symptoms - and the symptom inventory that structures references/troubleshooting.md (Pending, CrashLoopBackOff, OOMKilled, ImagePullBackOff, NotReady, ingress 502/503, DNS)."
     notes: "All Azure-specific material was stripped: every `az aks` command, the AppLens and Resource Health detectors, the Azure MCP capability-discovery section, Azure CNI and SNAT port exhaustion, AGIC, Entra Workload ID, and spot eviction / zone rebalance causes. Its 'gather platform-side state first, then cluster state' ordering was re-expressed as an in-cluster ordering (events and nodes, then pod and container) because the platform layer is out of this skill's scope."
   - id: helm-docs
@@ -134,10 +134,10 @@ upstreams:
     url: https://github.com/kubernetes-sigs/kustomize
     paths: [site/content/en/docs]
     ref: master
-    commit: 19002092f6df6a0bb602a5f241fba17bce74fe15
+    commit: f046d36815fef17364b0d38202adc1561e06512d
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "Overlay and base structure, the typed transformers (images, replicas, namespace, namePrefix) as the preferred form over free-form patches, strategic-merge versus JSON-6902 patch semantics including merge keys on lists, the current single `patches:` field replacing patchesStrategicMerge/patchesJson6902, commonLabels reaching selectors, and the generator name hash that makes a config change roll the pods."
     notes: "The kustomize CLI version embedded in kubectl lags the standalone binary; this skill states the behaviour of v5.7 as embedded in kubectl 1.34, which is what most users actually run."
   - id: devcontainers-spec
@@ -159,7 +159,7 @@ upstreams:
     commit: 993be7933ece050ff8c57002a6ff976549aebbe1
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "The ordered review structure for container artefacts (Dockerfile, then Compose, then security, then production readiness, then anti-patterns) and the PASS/FAIL contrast form used to state each check, which is clearer for a review workflow than a prose checklist."
     notes: "Its `compatibility: \"Designed for Claude Code\"` frontmatter and its agent-specific metadata were stripped. Content is entry-level (mutable tags, HEALTHCHECK, non-root) and overlaps netresearch-docker on every point where both speak; only the review structure was taken."
   - id: bagelhole-devops
@@ -173,6 +173,86 @@ upstreams:
     commit: 0365f57a079b1332f95cf26e31dd2d5332a8399f
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-15"
     contributes: "Read only as a coverage check that no major container topic was missed (registries, Podman, Compose, Helm command surface)."
     notes: "No content merged. Its material is command reference and tutorial prose ('Prerequisites: Docker Engine 20.10+', tables of docker CLI flags) that a capable model already knows, which is exactly the dead weight docs/skill-standard.md section 3 forbids."
+  - id: nvidia-device-plugin
+    kind: repo
+    repo: NVIDIA/k8s-device-plugin
+    url: https://github.com/NVIDIA/k8s-device-plugin
+    paths:
+      - README.md
+      - api/config/v1/config.go
+      - api/config/v1/replicas.go
+      - api/config/v1/sharing.go
+      - deployments/helm/nvidia-device-plugin/values.yaml
+    ref: main
+    commit: 971c9554a7080d820252ea540f3203f60a4f8a24
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The sharing contract and its defaults, read from the config types rather than from prose: `renameByDefault` is a plain bool defaulting to false (so a sliced card is indistinguishable from a whole one unless it is set), `failRequestsGreaterThanOne` is a `*bool` that time-slicing leaves unset (effective false) while MPS forces true when unset, the replica multiplier semantics of the advertised count, the statement that time-slicing provides no memory or fault isolation, MPS being experimental and unsupported on MIG devices, per-node rather than per-GPU sharing configuration, the MIG strategy names and the resource names each produces, `DEVICE_LIST_STRATEGY` values, `FAIL_ON_INIT_ERROR` defaulting to true, and the IMEX channel injection limits."
+    notes: "Defaults were verified by reading the Go structs and the chart values, not the README: `api/config/v1/config.go` sets MPS's `FailRequestsGreaterThanOne` to true when nil ('preserve the historical MPS behavior'), and `disableResoureRenaming` was checked to confirm it clears only per-resource `Rename` fields and leaves `RenameByDefault` in effect, which is what makes the `nvidia.com/gpu.shared` advice valid. The chart's `migStrategy: null` was the evidence that the plugin's own default is `none` while the GPU Operator chart ships `single`."
+  - id: nvidia-gpu-operator
+    kind: repo
+    repo: NVIDIA/gpu-operator
+    url: https://github.com/NVIDIA/gpu-operator
+    paths:
+      - deployments/gpu-operator/values.yaml
+    ref: main
+    commit: 42f92e7f4a12a8e853e6b71a11826d609fd30ba1
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The driver-upgrade defaults that decide whether an upgrade is disruptive, each read from the chart values: `autoUpgrade: true`, `maxParallelUpgrades: 1`, `maxUnavailable: 25%`, `drain.enable: false`, `gpuPodDeletion.force: false` with `timeoutSeconds: 300`, and the MIG Manager's `config.default: all-disabled`. Also the operator component names used when deciding which pod to read during diagnosis, and `mig.strategy: single` as the chart-level default."
+    notes: "Only the chart values file was merged. The upgrade state-machine label sequence and the requirement that MIG reconfiguration terminates GPU pods come from NVIDIA's product documentation (see nvidia-cuda-docs) and are stated as behaviour, with no wording taken."
+  - id: nvidia-container-toolkit
+    kind: repo
+    repo: NVIDIA/nvidia-container-toolkit
+    url: https://github.com/NVIDIA/nvidia-container-toolkit
+    paths:
+      - internal/config/image/devices.go
+      - internal/config/image/capabilities.go
+      - internal/config/image/cuda_image.go
+      - cmd/nvidia-container-runtime/README.md
+    ref: main
+    commit: 3c435c9048e19b09fcc924f25e4630b8f3a2b7b8
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "What the container actually sees: the four `NVIDIA_VISIBLE_DEVICES` cases (`all`, a device list, `none`, and empty/`void` which degrades the runtime to plain runc), the supported `NVIDIA_DRIVER_CAPABILITIES` set including `ngx`, and `DefaultDriverCapabilities` being `utility,compute` when unset - which is what turns 'nvidia-smi works but the framework sees no device' into a one-line diagnosis."
+    notes: "Verified in source: `NewVisibleDevices` distinguishes `none` from `void`, and `capabilities.go` declares `DefaultDriverCapabilities = NewDriverCapabilities(\"utility,compute\")`. The `NVIDIA_REQUIRE_*` matching rules and the CUDA base images' baked-in values were cross-checked against the runtime README rather than asserted from the images."
+  - id: nvidia-dra-driver
+    kind: repo
+    repo: kubernetes-sigs/dra-driver-nvidia-gpu
+    url: https://github.com/kubernetes-sigs/dra-driver-nvidia-gpu
+    paths:
+      - README.md
+    ref: main
+    commit: 5baf08f63bd266129dbdd27b28e77bb0ad91fd28
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The current state of DRA for NVIDIA GPUs: the driver's move to kubernetes-sigs, the ComputeDomain abstraction as the supported way to guarantee multi-node NVLink reachability and isolation, and the fact that the GPU allocation kubelet plugin is disabled by default in the chart and not yet supported - the caveat that any 'allocate GPUs with DRA' advice needs."
+    notes: "Used for the vendor-side support status only; the DRA API itself (resource.k8s.io/v1, the kinds, the feature stages in 1.35-1.37, device taints and the no-preemption rule) comes from kubernetes-docs."
+  - id: rocm-device-plugin
+    kind: repo
+    repo: ROCm/k8s-device-plugin
+    url: https://github.com/ROCm/k8s-device-plugin
+    paths:
+      - README.md
+    ref: master
+    commit: 1de1681805713fab36576c9f647a61c36aa1cb74
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The AMD side of the same contract: `amd.com/gpu` as the resource name, health checks needing a privileged pod for `/dev/kfd` and the conflict that creates with the restricted Pod Security Standard, and node labels coming from a separate k8s-node-labeller DaemonSet rather than the plugin."
+    notes: "Included so the skill states the vendor-neutral shape of the device-plugin contract rather than implying NVIDIA is the only implementation. Kept to one short section - AMD-specific tuning is out of scope."
+  - id: nvidia-cuda-docs
+    kind: docs
+    url: https://docs.nvidia.com/deploy/cuda-compatibility/
+    license: proprietary
+    relation: reference
+    synced_at: "2026-09-15"
+    contributes: "Consulted for the driver/CUDA compatibility facts that are not in any Apache-2.0 repository: the minimum driver per CUDA family (13.x >= 580, 12.x >= 525, 11.x >= 450, none for 10.x), the three boundaries that void minor-version compatibility including the PTX-JIT restriction, the forward-compatibility package's hardware limits and its need for an explicit loader path, and the error codes 803 and 804 - plus the GPU Operator upgrade state-machine labels and the MIG reconfiguration interruption."
+    notes: "Proprietary licence, so reference only per AGENTS.md: no text, table or data file was copied. Only version numbers, field names, error codes and behaviour were taken as facts and rewritten; the tables in references/kubernetes-gpu.md are our own organisation of them. Where the same fact existed in an Apache-2.0 repository (sharing defaults, upgrade defaults, environment-variable semantics) that repository was used instead and the value verified there."
