@@ -1,0 +1,165 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin model-serving
+skill: model-serving
+version: "2026.09.15"           # must equal SKILL.md metadata.version
+upstreams:
+  - id: vllm-source
+    kind: repo
+    repo: vllm-project/vllm
+    url: https://github.com/vllm-project/vllm
+    paths:
+      - vllm/benchmarks/serve.py
+      - vllm/benchmarks/datasets/datasets.py
+      - vllm/v1/metrics/loggers.py
+      - vllm/config/cache.py
+      - vllm/config/scheduler.py
+      - vllm/engine/arg_utils.py
+      - vllm/v1/core/sched/scheduler.py
+    ref: v0.29.0
+    commit: 98dff2a81d747d1dba01a47f939f48c3526d4206
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "Every CLI flag, default and metric name in this skill was read from this release rather than from prose: the `--ready-check-timeout-sec` argparse default of 0 against the function default of 600, `--num-warmups` defaulting to 0, `--percentile-metrics` resolving to `ttft,tpot,itl` for generative models when unset and the reporting code emitting only selected metrics, `--metric-percentiles` defaulting to 99, `--goodput` taking space-separated `KEY:VALUE` pairs because it is `nargs=\"+\"`, `--random-range-ratio` defaulting to 0, the `--random-prefix-len` and `prefix_repetition` parameters, the full `--dataset-name` choice list including `timed_trace`, `--no-oversample` and `--disable-shuffle`, the counter/gauge declarations behind `vllm:prefix_cache_queries`, `vllm:prefix_cache_hits`, `vllm:num_preemptions` and `vllm:num_requests_waiting`, `gpu_memory_utilization` defaulting to 0.92, chunked prefill and prefix caching resolving from the model's own capability flags, the `ValueError` raised when `max_num_batched_tokens < max_model_len` with chunked prefill off, and the PRIORITY-policy preemption victim selection."
+    notes: "Pinned to the v0.29.0 tag, not main, because several of these defaults differ between the two - `--ready-check-timeout-sec` reversed across releases and `client_queue_time` exists only on main. The `_total` suffix on counter time series was reproduced locally against prometheus_client rather than assumed, which is what makes the PromQL guidance in references/kv-reuse-and-routing.md correct."
+  - id: vllm-docs
+    kind: docs
+    url: https://docs.vllm.ai/
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The prose-level mechanisms behind the flags: what a closed-loop client measures, chunked prefill's scheduler priority for decodes, preemption by recomputation as a capacity signal, the metrics endpoint living on the API server port with no separate metrics flag for `vllm serve`, and the latency-versus-throughput tradeoff table."
+    notes: "Used for mechanism and intent; every number quoted alongside was verified against vllm-source at v0.29.0."
+  - id: dynamo
+    kind: repo
+    repo: ai-dynamo/dynamo
+    url: https://github.com/ai-dynamo/dynamo
+    paths:
+      - .agents/skills/dynamo-frontend-benchmark
+      - .agents/skills/analyze-aiperf-results
+      - .agents/skills/configure-aiperf-benchmark
+      - .agents/skills/run-aiperf-benchmark
+      - .agents/skills/consult-perf-knowledge
+      - .agents/skills/dynamo-router-starter
+      - .agents/skills/dynamo-interconnect-check
+      - agent-docs/rules/benchmarking/comparison-uncertainty.md
+      - agent-docs/guides/rate-matching/matching.md
+      - agent-docs/guides/knob-tuning/tuning-hierarchy.md
+      - agent-docs/guides/knob-tuning/dynamo.md
+    ref: main
+    commit: c52945c13eba34faa9437326b4377c474e2843f6
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The densest benchmarking methodology of any upstream reviewed: open versus closed loop and why a closed-loop client measures its own concurrency, the load generator becoming the bottleneck, the congestion-collapse knee, reporting median with interleaved repeats, the noise-floor pilot and minimum detectable effect, separating confidence intervals before attributing a difference, re-measuring finalists, warmup stripping and ISL/OSL reconciliation as a results-credibility audit, comparing configuration families on their own SLO frontiers rather than at one shared operating point, the prefill/decode proxy-rate balance, the inference-side data-parallel versus tensor-parallel criterion, KV-event-loss fallback to approximate routing, and the interconnect variables whose absence silently falls back to TCP or host staging."
+    notes: "Several of these SKILL.md files carry an in-body SPDX header of CC-BY-4.0 while the repository LICENSE is Apache-2.0; the LICENSE and NOTICE files were read directly to settle it (Apache-2.0, with MIT test data from DeepSeek-V3.2 noted in NOTICE). Only judgement criteria were taken; the Dynamo-specific artefact pipelines, backlog ledgers and replay harness were left behind, and the router mode list was corrected against the upstream's own docs where it omitted `power-of-two`."
+  - id: trtllm
+    kind: repo
+    repo: NVIDIA/TensorRT-LLM
+    url: https://github.com/NVIDIA/TensorRT-LLM
+    paths:
+      - docs/source/features/parallel-strategy.md
+      - docs/source/features/attention.md
+      - .claude/skills/perf-optimization-casebook
+      - .claude/skills/perf-workload-profiling
+      - .claude/skills/perf-host-analysis
+      - .claude/skills/perf-host-optimization
+      - .claude/skills/perf-torch-cuda-graphs
+      - .claude/skills/perf-torch-sync-free
+      - .claude/skills/perf-nsight-compute-analysis/references/roofline-analysis.md
+      - .claude/skills/trtllm-serve-config-guide/references/knob-heuristics.md
+    ref: main
+    commit: a494ef678a97430f448f164ada58d6cb02810a57
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The authority for inference-side parallelism: tensor parallelism dividing the attention head count, KV being replicated in full when `num_heads < TP`, the `moe_tp * moe_ep == tp` constraint, speculative decoding being incompatible with pipeline parallelism, and the lossless-versus-lossy precision gate. Also the roofline reading that explains why decode is memory-bandwidth-bound (arithmetic intensity below 1, and a point far under both roofs meaning a latency or occupancy problem), the CUDA-graph benefit criterion and its hard constraints, the host-side analysis metrics that separate 'the GPU is idle because of the host' from a real GPU bottleneck, and benchmarking antipatterns with numeric thresholds."
+    notes: "The Nsight Systems skill was read but its command lines were not taken: two flags in it contradict the current nsys CLI. The API license field reads NOASSERTION because the repository contains third-party code under other licences; the LICENSE file itself was read and is Apache-2.0."
+  - id: vllm-skills
+    kind: repo
+    repo: vllm-project/vllm-skills
+    url: https://github.com/vllm-project/vllm-skills
+    paths:
+      - plugins/vllm-skills/skills/vllm-bench-serve
+      - plugins/vllm-skills/skills/vllm-prefix-cache-bench
+      - plugins/vllm-skills/skills/vllm-deploy-k8s
+    ref: main
+    commit: c99623410c1531148ff9b39fe1dcb27efbf4bf23
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The organised flag surface for `vllm bench serve` and the `prefix_repetition` parameter set, which gave the structure for references/benchmarking.md, plus a real startup-probe budget for a serving deployment (30 x 10 s) that makes the cold-start argument concrete."
+    notes: "Its `vllm-bench-random-synthetic` sibling was rejected: four default values in it contradict the upstream source. `vllm-deploy-simple` is a wrapper manual for the repository's own quickstart script and contributed nothing. Every default taken from this upstream was re-verified against vllm-source at v0.29.0 before use."
+  - id: sglang
+    kind: repo
+    repo: sgl-project/sglang
+    url: https://github.com/sgl-project/sglang
+    paths:
+      - .claude/skills/sglang-prod-incident-triage
+      - .claude/skills/llm-torch-profiler-analysis
+      - .claude/skills/clean-startup-log
+      - python/sglang/srt/entrypoints/http_server.py
+    ref: main
+    commit: a2a261963f7698a730ac94f2ebd8b41cc44123c8
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The second engine's view of the same problems: `cache_hit_rate` as a first-class metric and a `/v1/loads` field, which is what makes 'check the hit rate before touching kernels' actionable, the `/health_generate` endpoint that actually runs a generation rather than answering from the HTTP layer, the token-usage and waiting-queue saturation reading, a cross-engine profiler capability matrix, and which lines of a startup log are performance signals."
+    notes: "Endpoint and field names were verified to exist in http_server.py rather than taken from the skill prose. The `sglang-runtime-context` skill was rejected as out of scope: it documents SGLang's internal config plumbing for contributors, not serving operations."
+  - id: nvidia-skills
+    kind: repo
+    repo: NVIDIA/skills
+    url: https://github.com/NVIDIA/skills
+    paths:
+      - skills/jetson-speculative-decoding
+      - skills/jetson-llm-benchmark
+      - skills/jetson-inference-mem-tune
+    ref: main
+    commit: c9e2ce9f76ec1a2a8a5df919bd28b6a8fdf4cf56
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The quantitative acceptance rules for speculative decoding that no other upstream states: it wins at concurrency of about 2 or below and loses from about 8 upward because continuous batching already saturates the device, acceptance above roughly 0.6 is the threshold for raising the draft-token count, and a withdrawal gate of under 10% improvement at production concurrency. Also the bandwidth-saturation test (throughput at concurrency 8 barely exceeding single-stream means bandwidth-bound), warmup necessity, the dual measurement points at concurrency 1 and production, and the four-engine memory-knob correspondence table."
+    notes: "The Jetson framing was dropped; only the criteria that are properties of the workload rather than of the device were taken. Concurrency thresholds are reproduced as the order of magnitude they are, not as exact cutoffs for a datacentre GPU."
+  - id: amd-skills
+    kind: repo
+    repo: amd/skills
+    url: https://github.com/amd/skills
+    paths:
+      - skills/serving-llms-on-instinct
+      - skills/serving-llms-on-epyc
+    ref: main
+    commit: 6916fb371d1cba40757b223cf16b4cd4912b202f
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "The non-NVIDIA boundary conditions: ROCm-specific serving traps including the HIP visible-devices variable and the first request additionally paying HIP kernel compilation, which is a warmup fact that changes how a benchmark must be structured, and the conditions under which CPU inference is a legitimate escape hatch rather than a downgrade."
+    notes: "Included so the skill's benchmarking advice is not silently CUDA-only. AMD-specific tuning beyond the warmup and memory-budget facts is out of scope."
+  - id: google-skills
+    kind: repo
+    repo: google/skills
+    url: https://github.com/google/skills
+    paths:
+      - skills/cloud/gke-ai-troubleshooting-handle-disruption-gpu-tpu
+      - skills/cloud/gke-inference
+    ref: main
+    commit: 5a14f112793c118ba576559a2b46f7efa78290f5
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "Accelerator cold-start latency being severe enough to change placement and scaling decisions, and the disruption-handling signals for a GPU workload."
+    notes: "Its autoscaling section was NOT merged: it recommends scaling on GPU utilization, which contradicts Google's own inference guidance and is the exact antipattern this skill's baseline evaluation showed models already falling into. The ruling is recorded in research/model-serving.md; only the orchestration and cold-start material was used. `gke-workload-scaling` was additionally rejected for stating a wrong HPA stabilization-window default."
+  - id: hf-skills
+    kind: repo
+    repo: huggingface/skills
+    url: https://github.com/huggingface/skills
+    paths:
+      - skills/hf-cloud-serving-image-selection
+      - skills/hf-cloud-sagemaker-production-defaults
+    ref: main
+    commit: f3186efbbc322121eb5d0f31e8a1d669ee961159
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-15"
+    contributes: "Engine-selection boundaries (when a reranker or embedding workload wants a different server than a generative one, and TGI's archived status) and a measured scale-to-zero cold-start chain showing the first successful request arriving minutes after the platform reports the endpoint healthy - the 'InService is not servable' trap that generalises to any readiness probe."
+    notes: "The SageMaker, ECR and AMI specifics were dropped as managed-platform material belonging to the cloud skills; only the vendor-neutral selection criteria and the cold-start measurement were kept."

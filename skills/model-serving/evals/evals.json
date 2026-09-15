@@ -1,0 +1,62 @@
+[
+  {
+    "skills": ["model-serving"],
+    "query": "Platform wants sign-off on this serving benchmark before we replace the 7B behind /v1/chat with the new model. Is the report sound, and is the capacity conclusion (7x H100 for 30 req/s) safe to plan against?",
+    "files": ["evals/files/bench/bench-report.md"],
+    "expected_behavior": [
+      "States that `--request-rate inf` is the default and means all 200 requests are issued at t=0, so the run measures the saturation throughput ceiling and every latency percentile in it is a queueing artefact — the 8.1 s mean TTFT against a 7B baseline of 1.9 s p99 is that queue, not the model — and therefore cannot be turned into a TTFT SLO",
+      "Identifies the absent warmup: `--num-warmups` defaults to 0 and the script opens load 45 s after `vllm serve` starts, so the first requests carry weight-load, torch.compile and CUDA-graph-capture cost, inflating TTFT; a `--ready-check-timeout-sec` or an explicit warmup is required because the ready check is skipped by default",
+      "Points out the report has no end-to-end latency at all: when `--percentile-metrics` is unset it resolves to `ttft,tpot,itl` for a generative model, and the reporting code only emits a metric that is in that selected set, so E2EL is silently absent unless requested — and E2EL is the number a waiting human actually experiences",
+      "Rejects the synthetic load as unrepresentative on two independent grounds: `--random-range-ratio` was not set so it defaults to zero variance (fixed 512/512 lengths) against production p50 5.9k / p99 11.4k prompts, and the 512-in/512-out shape inverts the real prefill:decode ratio (5.9k prompt, 180 completion), so neither the TTFT nor the TPOT number transfers",
+      "Notes that without `--ignore-eos` the 512 output length is only a ceiling, so generated-token counts and the output-throughput figure are not comparable across configurations",
+      "Rejects `nvidia-smi` 95-99% utilization as evidence of saturation, explaining that it reports the fraction of time kernels were resident and decode is memory-bandwidth-bound, and names the signals that do indicate capacity: `vllm:gpu_cache_usage_perc`, `vllm:num_requests_waiting` and `vllm:num_preemptions_total`",
+      "Prescribes the correct measurement instead of only criticising: sweep finite `--request-rate` values (or `--ramp-up-strategy linear` with `--ramp-up-start-rps`/`--ramp-up-end-rps`) with `--goodput ttft:<slo> tpot:<slo>` to find the rate where goodput collapses, holding `--burstiness` fixed since it only takes effect at finite request rates and alone can move p99 severalfold",
+      "Flags that the identical 1.2k-token system prompt on every production request makes prefix caching the first-order lever, and that the `random` dataset cannot measure it — `prefix_repetition` or a real ShareGPT/`timed_trace` dataset is needed, with `--disable-shuffle` and `--no-oversample` so repeat sampling does not fabricate cache hits",
+      "Says the single un-repeated 42 s run gives no noise floor, so the difference between two configurations cannot be attributed, and that results need `--save-result`/`--metadata` to be comparable later",
+      "Refuses the 7-card capacity conclusion and additionally notes `--max-model-len 8192` is below the production p99 prompt length of 11.4k, so long requests are rejected outright rather than served slowly"
+    ]
+  },
+  {
+    "skills": ["model-serving"],
+    "query": "We turned on speculative decoding and latency got worse. Should we raise num_speculative_tokens to 8, or raise --gpu-memory-utilization to 0.97 to win back the KV cache we lost?",
+    "files": ["evals/files/spec/spec-decoding.md"],
+    "expected_behavior": [
+      "Answers that both proposals are wrong and speculative decoding should be removed for this workload, because at 32-58 concurrent requests continuous batching already keeps the GPU busy and speculation competes with it for the same resources instead of filling idle decode capacity — speculation is a low-concurrency tool",
+      "Explains the regression mechanism from the numbers given: the 1B draft model occupies memory that came out of the KV cache, so `vllm:gpu_cache_usage_perc` went 0.61 to 0.94 and `vllm:num_preemptions_total` went from flat zero to 14200 and climbing; preemption-driven recompute is what doubled TTFT p99 and cut output throughput from 4120 to 2980 tok/s",
+      "Separates the two latency observations rather than treating the report as contradictory: TPOT p50 improved slightly (26 to 24 ms) while TPOT p99 nearly doubled (41 to 77 ms), so the manual `curl` feeling faster is a single-stream observation that says nothing about queue behaviour under load",
+      "States that raising `num_speculative_tokens` from 5 to 8 is unjustified without first measuring the draft acceptance rate, and that higher token counts only pay off at acceptance above roughly 0.6 — otherwise the rejected tokens are wasted verification work",
+      "Rejects raising `--gpu-memory-utilization` to 0.97, explaining that 0.90 is already aggressive and the remaining headroom covers the profiled activation peak and CUDA-graph capture buffers, so this trades a preemption warning for a start-up or burst-time crash",
+      "Points out that speculative decoding only shortens decode and cannot help TTFT, while TTFT p99 (2.4 to 4.9 s) is the largest regression here, so the intervention was aimed at the wrong metric for a chat UI where users wait for the first token",
+      "Names the 700-token fixed system prompt as the actual lever for this workload — prefix caching makes the shared prefill free on cache hits — and contrasts that with speculation, which cannot reduce prefill at all",
+      "Gives an acceptance rule for any future speculation attempt rather than a one-off verdict: measure at both concurrency 1 and production concurrency, and withdraw it if the production-concurrency improvement is under about 10% or throughput regresses",
+      "If it suggests keeping speculation at all, confines it to a separate low-concurrency deployment rather than the shared 32-concurrency fleet"
+    ]
+  },
+  {
+    "skills": ["model-serving"],
+    "query": "Our HPA thrashes between 2 and 8 replicas and TTFT p99 is 31 s against a 5 s SLO. We are about to raise maxReplicas to 16 and drop the HPA target to 60. Will that fix it?",
+    "files": ["evals/files/scale/hpa-and-startup.md"],
+    "expected_behavior": [
+      "Says raising maxReplicas and lowering the target will not fix it and will thrash harder, because the scaling signal itself is wrong, and gives the reason: `DCGM_FI_DEV_GPU_UTIL` measures the fraction of time kernels were resident on the SMs, and decode is memory-bandwidth-bound, so it reads 88-96% both at peak and off-peak with 3 requests in flight — a metric that is nearly constant cannot drive an autoscaler",
+      "Names the signals that do track saturation for a serving workload and are already being exported on these replicas: `vllm:gpu_cache_usage_perc` at 0.97, `vllm:num_requests_waiting` at 40-70, and `vllm:num_preemptions_total` climbing; queue depth or TTFT-against-SLO is the correct scaling input",
+      "Derives the cold-start budget from the startup log — roughly 4 minutes 41 seconds total, of which about 2m51s is checkpoint load and a further ~1m26s is KV profiling plus CUDA graph capture — and states that an HPA whose decisions arrive every 90 s cannot converge when new capacity needs ~5 minutes to serve",
+      "Corrects the premise that the HPA is thrashing: every `SuccessfulRescale` is a scale-up and the metric sits permanently above the target, so the HPA only ever wants more replicas - the fall back to 2 is capacity disappearing underneath it, evidenced by RESTARTS of 3-7 on the Running pods, while `maxReplicas: 8` against a 4-node pool leaves 4 pods permanently Pending. Concludes that tuning HPA numbers changes nothing until the probes and the node pool are fixed",
+      "Identifies the missing startup probe as the cause of the liveness restarts: `readinessProbe.initialDelaySeconds: 10` with `failureThreshold: 3` grants about 25 s against a 281 s real startup, and liveness begins probing during weight load, so the kubelet kills the container mid-load and the symptom looks like a crash loop rather than a probe budget error",
+      "Explains the 503-after-Ready observation as the readiness endpoint answering before the engine can accept work, and fixes it by sizing a startup probe to cover the whole startup or by probing an endpoint that reflects engine readiness rather than only that the HTTP server is listening",
+      "Addresses the 140 GB weight load from the S3-backed PVC as the dominant cold-start term and gives concrete directions - local NVMe or node-local cache, baking weights into the image, or keeping a warm replica pool - rather than only tuning probe numbers",
+      "Notes that KV cache at 0.97 with rising preemptions means the existing replicas are genuinely out of KV capacity, so this is both a scaling-signal problem and a per-replica capacity problem, and that adding replicas without fixing the signal leaves the SLO breach in place during every cold start"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "我们的 SFT 跑到第 200 步左右就 OOM，per_device_train_batch_size 已经是 1 了，不能再降。是不是只能换 H200？",
+    "files": ["evals/files/train/train-oom.md"],
+    "expected_behavior": [
+      "Answers as a training-memory question: explains that surviving 190 steps then failing is characteristic of a long-tail sequence-length distribution, because activation memory scales with the sequence length of the batch actually sampled, and the p99 7800-token samples had not been drawn yet",
+      "Names training-side remedies rather than serving ones: enable `gradient_checkpointing`, reduce `max_length` toward the real length distribution, use activation offloading, or use length-grouped batching so long samples do not land in the same step - and notes that `gradient_accumulation_steps` does not change peak activation memory. Does not reach for `packing` here: with `per_device_train_batch_size=1` there is no intra-batch padding to reclaim, and packing short samples up to 8192 would raise the number of peak-memory steps rather than lower the peak",
+      "Addresses the allocator evidence in the traceback (4.61 GiB reserved but unallocated) as fragmentation and mentions `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`, while keeping it secondary: the process is already at 77.26 of 79.15 GiB, so the true activation peak has to come down and an allocator flag alone cannot do it",
+      "Rejects buying H200s as the first answer, and does not propose inference-side levers such as KV cache sizing, `--max-model-len`, continuous batching, prefix caching or a serving benchmark, because no model is being served here",
+      "skill_read is false for the `model-serving` skill"
+    ]
+  }
+]

@@ -306,6 +306,15 @@
       ]
     },
     {
+      "name": "model-serving",
+      "description": "Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/model-serving"
+      ]
+    },
+    {
       "name": "mongodb",
       "description": "Designs and tunes MongoDB documents, aggregations, indexes and cluster operations.",
       "source": "./",
@@ -587,6 +596,7 @@
         "./skills/mcp-server",
         "./skills/media-processing",
         "./skills/ml-training",
+        "./skills/model-serving",
         "./skills/mongodb",
         "./skills/nodejs-backend",
         "./skills/observability",

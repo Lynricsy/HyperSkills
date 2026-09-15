@@ -11,7 +11,7 @@
 `apple`、`flutter`、`office`、`frontend-design`、`react`、`skill-authoring`、
 `test-driven-development`、`debugging`、`code-review`。
 
-## 全面扩展：波次 1–11（51 个 skill，终态共 60 个）
+## 全面扩展：波次 1–11（51 个 skill，终态共 60 个）+ 追加立项 1 个（`model-serving`，见「裁决变更记录」），现有 61 个
 
 每波 ≤5 个 skill（AGENTS.md：不得同时让 5 个以上 subagent 工作）。顺序为
 平台/语言 → Web/后端 → 数据/云 → 任务/AI → 游戏/Web3/中文生态。
@@ -247,7 +247,7 @@ Linux场景只读诊断和方案，没有执行主机变更或生产恢复演练
 | `wordpress` | 暂缓 | 官方仓 NOASSERTION，第二上游 GPL-2.0 且面向核心贡献者 |
 | `data-analysis` | 已正式构建 | 旧结论为活跃上游多属数据库产品包装；波次11采用本地DuckDB/Polars与通用分析任务上游，正文及对照见本批记录 |
 | `google-workspace` | 暂缓 | 用户暂不需要（Batch 1 决定，保留） |
-| `incident-response`、`refactoring`、`performance-profiling`、`prompt-engineering`、`database-migration`、`dependency-upgrade` | 不立项 | 既有/本轮 skill 的子集（分别 → `observability`+`debugging`、`code-review`+`test-driven-development`、`frontend-design`/`ml-training`、`ai-engineering`、各数据库 skill、各生态 skill） |
+| `incident-response`、`refactoring`、`performance-profiling`、`prompt-engineering`、`database-migration`、`dependency-upgrade` | 不立项 | 既有/本轮 skill 的子集（分别 → `observability`+`debugging`、`code-review`+`test-driven-development`、`frontend-design`/各生态 skill、`ai-engineering`、各数据库 skill、各生态 skill）。`performance-profiling` 里的**推理服务性能调优**已于 2026-09-15 改判并独立立项为 `model-serving`（见下「裁决变更记录」）；通用跨语言 profiling 仍不立项 |
 | `web-accessibility`、`web-performance`、`tailwind`、`animation` | 不立项 | `frontend-design` 子集。addyosmani/web-quality-skills 已于 2026-09-15 同步 `frontend-design` 时评估完毕（该 skill 的 `research` 候选表 23–28 行），结论：窄合入两条，其余因模型已具备或越界而不取 |
 | `seo` | 不立项 | **不是 `frontend-design` 子集，而是与其不相交**（2026-09-15 通读 addyosmani/web-quality-skills `skills/seo/` 后改判，见该 skill 的裁决 R15）。其主体是爬取与索引（`robots.txt`、canonical、sitemap、hreflang、结构化数据），`frontend-design` 已在 `## Scope` 写明不覆盖。若将来立项须独立成 skill，不得并入 |
 | `kotlin-multiplatform`、`prisma`、`agent-building`、`github-actions` | 并入 | 分别 → `android`、`postgres`、`ai-engineering`、`github` |
@@ -273,6 +273,13 @@ Linux场景只读诊断和方案，没有执行主机变更或生产恢复演练
 | getsentry/skills `languages/python.md` | 已不在仓库树中 | 从 `python` 种子中删除，改用 trailofbits + awesome-copilot |
 | getsentry/skills `infrastructure/` | 不存在 | 从 `containers` 种子中删除 |
 | `java-spring`「尚未找到合格上游」 | 已有 rrezartprebreza/spring-boot-skills 等多个合格上游 | 更新为正式立项 |
+
+## 裁决变更记录
+
+| 原裁决 | 改判 | 依据 |
+|---|---|---|
+| `performance-profiling` 不立项，推理服务调优归 `ml-training` | **`model-serving` 正式立项**（task 类） | `ml-training` 的 `## Scope` 定位是「改权重」，其 `references/inference-serving.md` 只覆盖单机 vLLM 引擎配置，压测方法论为零。按判据第 2 条复核：`ai-dynamo/dynamo`(8082★)、`NVIDIA/TensorRT-LLM`(14626★)、`sgl-project/sglang`(35979★)、`NVIDIA/skills`(3294★)、`amd/skills`、`vllm-project/vllm-skills`、`google/skills`、`huggingface/skills` 共 51 个候选、22 个 INCLUDE，远超「3 个活跃且 ≥8 分」。按判据第 3 条：它不是 `ml-training` 子集--基线评测 32 条里 13 条需要压测方法论与 KV/prefix 机制才能答对，而这些在「改权重」的任务上下文里不会被加载。原 `inference-serving.md` 已按清洁切换瘦身为 `references/serving-handoff.md`（只保留 chat template / tokenizer / stop strings 三处静默失配与 bf16 基线），引擎配置全部迁入 `model-serving/references/engine-configuration.md`，迁移过程顺带修正两处过期事实（`gpu_memory_utilization` 默认已是 0.92;`max_num_batched_tokens < max_model_len` 是明确 `ValueError` 而非「日志像 OOM 的静默崩溃」） |
+| `containers` 不含 GPU 内容 | **新增 `references/kubernetes-gpu.md` + `deploy-a-gpu-workload` workflow** | 用户在 `model-serving` 立项过程中追加要求。原 `containers` 只在 taint/toleration 与调度失败表里把 GPU 当普通资源提过两次。GPU 场景基线 13 条只达成 3 条，`renameByDefault`、`NVIDIA_DRIVER_CAPABILITIES` 只给 `utility` 的症状、GPU 冷启动探针预算、`:latest` digest 四条完全未达成。两个 skill 的分界写进各自 `## Scope`：进卡（device plugin、MIG/时间切片、RuntimeClass、驱动/CUDA 兼容、清单与探针形状）属 `containers`，卡拿到之后的事（KV、批处理、并行、压测、扩缩信号）属 `model-serving` |
 
 ## 新增主题的判据
 

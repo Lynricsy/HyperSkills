@@ -133,7 +133,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`chrome-extension`](skills/chrome-extension/) | 平台 | Builds Chrome extensions with Manifest V3, service workers and content scripts | 2026.09.12 | 10 |
 | [`cloudflare`](skills/cloudflare/) | 平台 | Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler | 2026.09.12 | 8 |
 | [`code-review`](skills/code-review/) | 任务 | Reviews code changes and pull-request diffs, or evaluates review feedback | 2026.09.12 | 9 |
-| [`containers`](skills/containers/) | 平台 | Builds Docker images and configures Compose, Kubernetes, Helm and container security | 2026.09.12 | 13 |
+| [`containers`](skills/containers/) | 平台 | Builds Docker images and configures Compose, Kubernetes, Helm and container security | 2026.09.12 | 19 |
 | [`cpp`](skills/cpp/) | 框架 | Develops C++ code with CMake, ownership, concurrency and memory safety | 2026.09.12 | 10 |
 | [`csharp-dotnet`](skills/csharp-dotnet/) | 框架 | Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework | 2026.09.12 | 10 |
 | [`data-analysis`](skills/data-analysis/) | 任务 | Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions | 2026.09.12 | 14 |
@@ -156,6 +156,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`mcp-server`](skills/mcp-server/) | 任务 | Builds Model Context Protocol servers with tools, resources, transports and authorization | 2026.09.12 | 9 |
 | [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg and deterministic image tools | 2026.09.12 | 24 |
 | [`ml-training`](skills/ml-training/) | 任务 | Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization | 2026.09.12 | 9 |
+| [`model-serving`](skills/model-serving/) | 任务 | Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity | 2026.09.15 | 10 |
 | [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB documents, aggregations, indexes and cluster operations | 2026.09.12 | 6 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Builds Node.js HTTP services with Fastify, NestJS, Hono or Express | 2026.09.12 | 13 |
 | [`observability`](skills/observability/) | 任务 | Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts | 2026.09.12 | 15 |

@@ -33,6 +33,11 @@ Not covered — do not answer from this skill:
   `python` skill. Training code is Python, but its problems here are
   numerical and memory-shaped.
 - Dockerfiles, Kubernetes, job schedulers: the `containers` skill.
+- Inference-serving performance: benchmarking a deployment, KV cache and
+  `max-model-len` sizing, batching and chunked prefill, prefix caching,
+  inference-side parallelism, and replica scaling: the `model-serving` skill.
+  The handoff of a checkpoint to a server belongs here; everything the server
+  does with it afterwards does not.
 - GPU instance types, quota requests, spot interruption, storage classes:
   the `aws`, `azure` and `gcp` skills.
 - Vector stores and index tuning: the `redis`, `mongodb`, `postgres` and
@@ -270,7 +275,7 @@ shipped without a bf16 number to compare against.
 | The fixed OOM order, reading the allocator message, OOM-at-step-200 causes, throughput thieves | Something is out of memory or slower than it should be | `references/oom-and-throughput.md` |
 | What a resumable checkpoint contains, distributed checkpoints, adapter provenance, seeding, irreducible nondeterminism | Setting up saving/resume, or a result will not reproduce | `references/checkpointing-and-reproducibility.md` |
 | PTQ vs QAT vs QLoRA, format choice, what quantization actually buys, measuring the damage | Shrinking a model for training or serving | `references/quantization.md` |
-| KV cache sizing, `max-model-len`, chunked prefill, preemption, CUDA graphs, metrics, adapters, latency vs throughput | Serving the trained model | `references/inference-serving.md` |
+| The three silent mismatches at the handoff (chat template, tokenizer, stop strings), establishing the bf16 baseline, adapter provenance | Handing a trained checkpoint to an inference server | `references/serving-handoff.md` |
 
 ## Output format
 
