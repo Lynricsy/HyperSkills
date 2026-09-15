@@ -433,157 +433,80 @@ prefix caching 作为一阶杠杆与命中率读法(`kv-reuse-and-routing.md`)�
 0.97 的余量风险、单流观测不能代表队列行为、探针语义拆分与 readiness 假阳性、
 权重存储是冷启动主项、以及负例边界(训练 OOM 不越界到推理服务,两轮 5/5)。
 
-## 评测结果
+## 评测工具缺陷：夹具存在但未在提示中指明（2026-09-15，已修）
 
-### 第一轮「有 skill」--暴露 skill 本身的缺陷，已修并重跑
+`tools/run_evals.py` 原实现把 `scenario.files` 里的夹具 `shutil.copy2` 到工作目录，
+但 `omp -p` 的提示只有 `scenario["query"]`--**文件名与内容都不在提示里**。
+于是「模型有没有自己去翻工作目录」成了一个隐藏随机变量，而它单独决定了答案形态：
+读到夹具的轮次能引用真实数值，没读到的只能给条件分支式回答，
+两者却被当成同一个输入下的对照来比较。
 
-`/tmp/hs-ms-skill`，`skill_read` 在场景 1/2/3 为 true，场景 4（负例）为 false（正确）。
+逐轮审计（`events.jsonl` 里对夹具文件名的引用次数）：
 
-| 场景 | 基线 | 有 skill（第一轮） | 判定 |
-|---|---|---|---|
-| 1 压测报告（10） | 3 / 6 / 1 | **6 / 3 / 1** | 增益明确 |
-| 2 推测解码（9） | 5 / 2 / 2 | 4 / 4 / 1 | 机制增益、案例归因退步 |
-| 3 HPA 与冷启动（8） | 6 / 2 / 0 | **3 / 4 / 1** | **回归** |
-| 4 训练 OOM 负例（5） | 5 / 0 / 0 | 4 / 1 / 0 | `skill_read=false`，退步来自采样而非 skill |
-
-场景 1 的增益是真的，而且正是 reference 的直接效果：
-`--goodput ttft:<ms> tpot:<ms>` 写成了**空格分隔**（基线从未写对过）、
-`--ready-check-timeout-sec` + 「预热数百请求并丢弃首次启动后的测量」、
-「decode 受显存带宽约束」+ 三个 vLLM 指标点名、`n=3` pilot 与 finalist 独立确认。
-
-**但场景 3 回归，而且是 skill 造成的。** 基线（无 skill）正确推出了
-「`SuccessfulRescale` 全是扩容 + 指标恒高于 target -> HPA 没有在缩容，副本回落是
-liveness 杀容器」这条链；有 skill 的答案反而套用了通用的「控制周期与冷启动不匹配 ->
-HPA 过早缩容」震荡模型，与夹具证据直接矛盾（EB4 从达成变未达成）。
-同时 EB5/EB7/EB8 从达成退到部分：140 GB 权重与 S3-backed PVC **完全没提**，
-KV 0.97 与上升的 preemption 被写成「待检查项」而不是已给证据。
-
-根因（第一性原理，不是措辞问题）：**`## Workflows` 的 `- [ ]` 清单被当成了输出模板。**
-模型读了 `size-and-scale-a-deployment` 的清单，照着清单逐条作答，于是把
-「读这份工件的证据」这一步跳过了；`## Output format` 虽然写了
-`Evidence: <metric or flag, with the value from the artefact>`，但清单形式比它强势。
-场景 2 的同一模式更轻：答案变成「若有 preemption 则…若无 preemption 则…」的决策树，
-夹具里的 0.61/0.94/14200/4120/2980 一个都没引用。
-并且 Core rule 12 的原措辞（「damp the autoscaler past the real cold start」）
-**直接把模型推向了错误结论**--它提供了一个现成的、与证据不符的解释。
-
-修法（三处，针对根因而非分数）：
-
-1. Core rule 1 改为「先从工件确立情况，说出它的数字/事件/日志实际说了什么--**包括与问题前提矛盾时**--再谈目标与任何处方」，并写明「不引用本部署数值的通用清单不是诊断」。规则上限 25 条，因此与原「先说明工作负载目标」合并而非新增第 26 条。
-2. Core rule 12 与 `size-and-scale-a-deployment` 清单都改为「先读 scaling 事件与 pod 状态，区分『环在震荡』与『容量被抽走』（重启、撞节点上限的 Pending），只有确认是环的问题才谈阻尼」。
-3. `## Output format` 硬化为拒绝条件：「每条 claim 必须带工件里的值；Evidence 行如果会写成『检查 X 是否偏高』，那它不是 finding--要么引用工件已给的值，要么移到单独的『下一步要测什么』列表」。
-
-### 第二轮「有 skill」（Core rule 1 + Output format 修正后，`/tmp/hs-ms-skill2`）
-
-| 场景 | 基线 | 有 skill 一轮 | 有 skill 二轮 | 判定 |
+| 运行 | 模式 | 场景 | fixture-refs | 判定可用性 |
 |---|---|---|---|---|
-| 1 压测报告（10） | 3 / 6 / 1 | 6 / 3 / 1 | **6 / 3 / 1** | 增益稳定 |
-| 2 推测解码（9） | 5 / 2 / 2 | 4 / 4 / 1 | **9 / 0 / 0** | 一轮退步被修正，现在满分 |
-| 3 HPA 与冷启动（8） | **6 / 2 / 0** | 3 / 4 / 1 | 3 / 5 / 0 | 未达成清零，但达成数仍低于基线 |
-| 4 训练 OOM 负例（5） | 5 / 0 / 0 | 4 / 1 / 0 | 2 / 2 / 1 | `skill_read` 从 false 变 **true**，负例被误触发 |
+| `hs-ms-sol2` | 基线 | 1 / 2 / 3 / 4 | 23 / 27 / 19 / 29 | 全部有效 |
+| `hs-ms-sol3` | 基线 | 3 | 20 | 有效 |
+| `hs-ms-skill` | 有 skill | 1 / 2 / 3 / 4 | 38 / **0** / **0** / **0** | 只有场景 1 有效 |
+| `hs-ms-skill2` | 有 skill | 1 / 2 / 3 / 4 | 23 / 19 / **0** / **0** | 场景 1、2 有效 |
+| `hs-ms-skill3` | 有 skill | 3 | **0** | 无效 |
+| `hs-ms-skill5` | 有 skill | 3 | 2 | 基本无效 |
+| `hs-gpu-sol` | 基线 | 4 | 75 | 有效 |
+| `hs-gpu-skill` | 有 skill | 4 | 113 | 有效 |
 
-场景 2 的满分直接来自 Output format 的硬化。它把夹具里的每个数字都引用了
-（0.61→0.94、0→14200、4120→2980、26→24、41→77、2.4→4.9），并补上了一轮全部缺失的三条：
-「continuous batching 已经填满 GPU，推测解码不是利用闲置算力而是与正常批处理竞争」、
-「推测解码只优化 decode，无法降低 TTFT」（两轮基线均未达成）、
-「针对固定 700-token system prompt 启用 prefix caching，按命中 token 数计算命中率，
-这才是 TTFT 的正确杠杆」（两轮基线均未达成），以及量化撤回门（并发 1 与生产并发双测、
-改善 <10% 或吞吐下降即撤）与「只放到独立的低并发部署」。
+**所有基线轮次都读了夹具**（19-75 次）；**有 skill 的轮次里，场景 3 一次都没读到过**。
 
-场景 1 同样完整遵守了 Output format，逐条带 `bench-report.md:<行号>`。
+因此我先前写下的两处因果结论都被推翻，此处如实作废：
 
-**仍未解决的两处，以及第三轮的针对性修改：**
+| 我的结论 | 为什么错 |
+|---|---|
+| 「场景 2 从 4/4/1 变 9/0/0 是 `## Output format` 硬化生效」 | 第一轮 fixture-refs=**0**、第二轮=**19**。真实变量是第二轮读到了夹具，因此能引用 0.61→0.94、0→14200、4120→2980。Output format 的改动可能有贡献，但这两轮不构成能分离它的对照 |
+| 「场景 3 三轮回归是 workflow 清单化诱导『待办清单』，且任务形态与 skill 形态不匹配」 | 场景 3 的三轮有 skill 全部 fixture-refs=0/0/2。答案之所以只能给「如果是振荡…如果是容量消失…」的条件分支，是因为模型**手里没有那份材料**。与 workflow 措辞、任务形态都无关 |
 
-1. **场景 3 仍不如基线。** 二轮答案给的是「两项改动何时有效」的条件表与
-   「先确认 thrash 究竟是什么」的三分支判别框架--框架本身正确（第 2 分支
-   「HPA 一直要求扩容但 Ready 副本下降 = 容量消失」正是夹具的实际情况），
-   但它**没有落定到本案证据**（`SuccessfulRescale` 全为扩容、`4 Running + 4 Pending`、
-   `RESTARTS 3-7` 一个都没引用），也仍未提 140 GB 权重与 S3-backed PVC。
-   对比场景 1/2 遵守了 Output format 而场景 3 用了自己的表格：差别在于
-   `size-and-scale-a-deployment` 清单的第一条原本是「先从 rate sweep 得出每副本容量」，
-   模型照着清单起手，于是「读证据」被挤到第五条。
-   修改：把「说出现在正在发生什么，并指出你从哪些值读出来的」提为该 workflow 的**第一条**，
-   并写明「回答『取决于是哪种情况』等于没读证据」；冷启动那条改为要求**逐项给出数字并指出主项**。
-2. **场景 4 负例被误触发**（`skill_read` true）。这是路由边界问题而非正文问题：
-   原 description `Benchmarks and tunes LLM inference serving for latency, throughput and capacity`
-   里的 `tunes` + `capacity` 与「训练显存不够要不要换 H200」构成真实歧义。
-   按 `docs/skill-standard.md`「仅在真实歧义下取极短限定词」，改为
-   `Benchmarks and tunes **deployed** LLM inference **servers** for latency, throughput and capacity`，
-   用 deployed/servers 双重限定推理服务，不加禁用句式。
-   附带一个正面结论：即使读了 skill，场景 4 的答案**全程留在训练侧**
-   （eval logits、长序列离群批次、引用泄漏、碎片、checkpointing/LoRA/FSDP），
-   没有出现 KV cache、`--max-model-len`、prefix caching 或压测--`## Scope` 的否定范围有效。
+一并作废的还有由此推出的建议（「后续应改 query 措辞而非 skill」）与
+第三轮那次 workflow 回滚的依据。回滚本身保留：回滚后的措辞
+（冷启动逐项给数字、autoscaler 那条要求说出本部署属于哪种情况）
+独立判断更好，不依赖那次被污染的对照。
 
-### 第三轮（场景 3、4，workflow 顺序与 description 修正后）--**workflow 改动被实测否证，已回滚**
+`containers` 场景 4 的增益判定**不受影响**：基线 75、有 skill 113，双方都实读了两份夹具。
 
-| 场景 | 基线 | 二轮 | 三轮 | 判定 |
-|---|---|---|---|---|
-| 3 HPA 与冷启动（8） | 6 / 2 / 0 | 3 / 5 / 0 | **2 / 5 / 1** | 更差,改动否证 |
-| 4 负例（5） | 5 / 0 / 0 | 2 / 2 / 1 | 2 / 2 / 1 | `skill_read` 仍 true |
+修法（`tools/run_evals.py`）：把复制进工作目录的文件名追加到提示尾部
+（`Files in the working directory: \`a\`, \`b\``）。只加文件名、不加内容，
+这样「会不会读」不再是随机变量，而「读了之后怎么用」仍然是被测能力。
 
-**把「先读证据」提为 workflow 第一条是错的,而且错得可预测**：模型把清单当输出内容,
-于是「读证据」这一条变成了答案里的「立即检查的证据」小节--一份**要去查什么**的清单,
-而不是**查到了什么**的结论。EB7（140 GB 权重与 S3-backed PVC）从「部分」掉到完全未提,
-EB6 也从达成掉到部分。清单形式本身就在诱导「列举待办」而非「下结论」。
+一个附带观察，需在新对照里重新检验而不是现在下结论：
+四次 fixture-refs=0 全部发生在**有 skill** 的轮次，基线一次都没有。
+`skill://model-serving` 是有 skill 轮次唯一的额外读取动作，
+**读 skill 可能替代了「去看看工作目录里有什么」这个动作**。如果新对照下仍然出现
+有 skill 不读工件的情况，那是 skill 的真实风险（`## Core rules` 第 1 条正是为此写的），
+需要在 skill 侧解决;如果不再出现，则纯粹是旧提示缺文件名所致。
 
-已回滚到二轮结构，只保留其中两处经判断确实更好的措辞：
-冷启动那条要求「逐项给出数字并指出主项」（EB3/EB7 都需要），
-autoscaler 那条要求「从你读到的值说出本部署属于哪种情况」（放在原位置，不做第一条）。
+## 评测结果（夹具命名修复后的对照）
 
-`description` 的改动（`deployed ... servers` 双重限定）保留：它更精确且无副作用。
-但必须承认它**没有**把场景 4 的 `skill_read` 压回 false，而三轮观测为
-false / true / true，`n=1` 的采样噪声无法支持「改动有效」或「无效」任一结论。
-EB5（`skill_read is false`）这条判据依赖模型的工具调用决策，判别力本身就弱。
-
-### 场景 3 的诚实结论：该场景上 skill 不优于基线
-
-三轮分别 3/4/1、3/5/0、2/5/1，均低于基线的 6/2/0。原因不是内容缺失--
-`references/engine-configuration.md` 与 Core rules 10-14 覆盖了全部 8 条判据所需事实--
-而是**任务形态与 skill 形态不匹配**：
-
-该场景要求的是「读一份已经把证据给全的事故材料并下结论」；
-skill 提供的是「如何做容量规划与扩缩容设计」的流程与清单。
-流程知识在这个任务上是干扰项：它给了模型一个现成的、看起来更专业的输出骨架
-（判别框架、检查清单、条件表），而基线在没有骨架时只能直接读材料做诊断。
-场景 1 与场景 2 不受此影响，因为它们的 query 本身就是「评审这份报告 / 该不该调这个参数」，
-`## Output format` 的评审契约正好匹配,于是二轮拿到 6/3/1 与 **9/0/0**。
-
-不为这一个场景继续扭曲 skill：已尝试的两类修法（硬化 Output format、重排 workflow）
-一个有效于场景 1/2、一个在场景 3 上反向生效，继续加约束会损害已经正确的路径。
-后续如要提升该场景，应改**评测设计**而非 skill--把 query 从
-「Will that fix it?」改成明确要求评审结论的措辞（`containers` 场景 2 的
-「Review deployment.yaml before we roll it out」已被证实更能稳定引出评审文本），
-这样才测得出 skill 的诊断能力而不是它的清单复述能力。
-
-**回滚后的验证跑**（`/tmp/hs-ms-skill5`）：场景 3 得 **3 达成 / 4 部分 / 1 未达成**，
-回到二轮水平。该场景三次采样的达成数为 3、2、3，未达成数为 0、1、1--
-波动落在采样噪声内，基线的 6/2/0 始终更高。据此停止迭代：
-已试的两类修法一个有效于场景 1/2（Output format 硬化）、一个在场景 3 上反向生效
-（workflow 重排），再加约束只会损害已经正确的路径。
-回滚后的答案确实带上了 `Decision:` 与「证据：」并引用了 31 s / 5 s / 8 / 2，
-也答对了 EB1/EB2/EB6，但 140 GB 权重与 S3-backed PVC（EB7）三轮都没提到过。
-
-## 评测结果（最终）
-
-| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+| 场景 | 模型 | 有/无 skill | skill_read | fixture-refs | 达成的 expected_behavior |
 |---|---|---|---|---|---|
-| 1 压测报告签核（10） | openai/gpt-5.6-sol medium | 无（基线） | false | 3 达成 / 6 部分 / 1 未达成 | |
-| 1 压测报告签核（10） | openai/gpt-5.6-sol medium | 有 skill | true | **6 达成 / 3 部分 / 1 未达成** | `--goodput` 空格分隔语法、readiness gate + 数百请求 warmup、memory-bound 机制 + 三指标、`n=3` pilot 全部填补 |
-| 2 推测解码回归（9） | openai/gpt-5.6-sol medium | 无（基线） | false | 5 达成 / 2 部分 / 2 未达成 | |
-| 2 推测解码回归（9） | openai/gpt-5.6-sol medium | 有 skill | true | **9 达成 / 0 / 0** | 补齐两轮基线均未达成的两条核心机制（推测解码不作用于 TTFT、prefix caching 才是杠杆）+ 量化撤回门 |
-| 3 HPA 与冷启动（8） | openai/gpt-5.6-sol medium | 无（基线） | false | **6 达成 / 2 部分 / 0** | 基线更强,原因见上 |
-| 3 HPA 与冷启动（8） | openai/gpt-5.6-sol medium | 有 skill | true | 3 达成 / 5 部分 / 0 | 未达成清零但达成数低于基线 |
-| 4 训练 OOM 负例（5） | openai/gpt-5.6-sol medium | 无（基线） | false | 5 达成 / 0 / 0 | |
-| 4 训练 OOM 负例（5） | openai/gpt-5.6-sol medium | 有 skill | true | 2 达成 / 2 部分 / 1 未达成 | 未越界到推理服务侧,`## Scope` 否定范围有效;`skill_read` 未压回 false |
+| 待填 | openai/gpt-5.6-sol medium | 无（基线） | | | `/tmp/hs-ms-base-fix` |
+| 待填 | openai/gpt-5.6-sol medium | 有 skill | | | `/tmp/hs-ms-skill-fix` |
 
-结论：32 条上,基线 19 达成 / 10 部分 / 3 未达成,有 skill 20 达成 / 10 部分 / 2 未达成。
-**增益集中在评审型场景（场景 1 +3 达成、场景 2 +4 达成且满分），在「诊断一份已给全证据的
-事故材料」型场景（场景 3）与负例路由（场景 4）上没有增益。** 不宣称整体增益显著--
-总计仅 +1 达成,其中场景 3 的 -3 与场景 4 的 -3 抵掉了场景 1/2 的 +7。
-可以确证的是四条具体机制从「基线两轮都答不出」变成「有 skill 稳定答出」：
-`--goodput` 的空格分隔语法、推测解码不作用于 prefill/TTFT、
-prefix caching 作为共享前缀负载的一阶杠杆并按命中 token 计算命中率、
-以及 decode 受显存带宽约束因此 utilization 不是饱和信号。
+结论：<!-- 新对照判定后填 -->
+
+### 仍然成立的记录
+
+以下不依赖被污染的对照，保留：
+
+- **基线缺口**（上文「第二次跑」，4 场景 fixture-refs 19-29 全部实读）：
+  32 条里 19 达成 / 10 部分 / 3 未达成，以及稳定缺口清单。
+- **三处夹具/判据缺陷**：`bench-report.md` 的 duration 与延迟自相矛盾、
+  `hpa-and-startup.md` 的「HPA 双向 rescale」与「指标恒高于 target」不可能同时成立、
+  四条我自己写错的 `expected_behavior`。这些是文件与判据本身的问题，
+  与模型是否读取无关，修正全部有效。
+- **场景 1 的增益**：两轮有 skill 都实读夹具（38、23），两轮都得 6/3/1，基线 3/6/1。
+  填补的四项可核验：`--goodput` 空格分隔语法、readiness gate + 数百请求 warmup、
+  decode 受显存带宽约束 + 三个 vLLM 指标点名、`n=3` pilot 与 finalist 独立确认。
+- **场景 4 的负例边界**：两轮有 skill 虽然都没读夹具，但都没有越界到 KV cache /
+  `--max-model-len` / prefix caching / 压测，全程留在训练侧。这条不依赖夹具内容，
+  测的是 `## Scope` 否定范围，结论有效。`skill_read` 三轮为 false / true / true，
+  `n=1` 的采样无法支持任何结论。
 
 ## 备注
 

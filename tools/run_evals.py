@@ -173,6 +173,7 @@ def run_scenario(
     if work_dir.exists():
         shutil.rmtree(work_dir)
     work_dir.mkdir(parents=True)
+    copied: list[str] = []
     for rel in scenario.get("files") or []:
         src = skill_path / str(rel)
         if not src.exists():
@@ -181,11 +182,25 @@ def run_scenario(
                 f"Expected under {skill_path / 'evals' / 'files'}"
             )
         shutil.copy2(src, work_dir / src.name)
+        copied.append(src.name)
+
+    # The fixture files must be NAMED in the prompt, not merely present in cwd.
+    # Copying them and saying nothing makes "did the model go looking?" a random
+    # variable that silently decides the outcome: a run that reads the fixture
+    # quotes real values, a run that does not can only answer in conditionals,
+    # and the two are then compared as if they measured the same thing. Observed
+    # directly - a with-skill scenario whose only tool calls were `skill://` and
+    # the logging tool produced a checklist answer, while the baseline for the
+    # same scenario read the file and cited its numbers.
+    prompt = scenario["query"]
+    if copied:
+        listing = ", ".join(f"`{name}`" for name in copied)
+        prompt = f"{prompt}\n\nFiles in the working directory: {listing}"
 
     cmd = [
         "omp",
         "-p",
-        scenario["query"],
+        prompt,
         "--mode",
         "json",
         "--no-session",
