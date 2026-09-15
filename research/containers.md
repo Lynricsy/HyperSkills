@@ -556,6 +556,38 @@ Claude Opus 5 / thinking=medium，`status=ok`、`skill_read=false`。
 | 4（GPU） | openai/gpt-5.6-sol medium | 无（基线） | false | **3/13 达成、6 部分、4 未达成** | 见下表 |
 | 4（GPU） | openai/gpt-5.6-sol medium | 有 skill | **true** | **6/13 达成、5 部分、2 未达成** | 见「有 skill 对照」 |
 
+#### 夹具命名修复后的干净对照（2026-09-15）
+
+旧对照（上面两行）是在 `tools/run_evals.py` 把夹具复制进工作目录但**不在提示里点名**
+的情况下跑的，详见 `research/model-serving.md` 的「评测工具缺陷」一节。
+本场景的旧对照双方都实读了夹具（基线 75 次、有 skill 113 次引用），所以旧结论方向没错，
+但输入已变，重跑取干净数据：
+
+| 场景 | 模型 | 有/无 skill | skill_read | fixture-refs | 达成的 expected_behavior |
+|---|---|---|---|---|---|
+| 4（GPU） | openai/gpt-5.6-sol medium | 无（基线） | false | 94 | 3 达成 / 8 部分 / 2 未达成 |
+| 4（GPU） | openai/gpt-5.6-sol medium | 有 skill | **true** | — | **7 达成 / 5 部分 / 1 未达成** |
+
+净变化：达成 3 -> 7，未达成 2 -> 1。逐条差异：
+
+| EB | 基线 -> 有 skill | 依据 |
+|---|---|---|
+| 3 共享请求上限 | 部分 -> **达成** | 点名 `failRequestsGreaterThanOne` 并写出「该 Pod 不会自行恢复」 |
+| 4 GPU 必须在 limits | 部分 -> **达成** | 「只能写 `limits`，或同时写相等的 `requests`/`limits`；原文件只在 `requests` 中声明 2，因此校验失败」 |
+| 7 runtime stage 丢变量 | 部分 -> **达成** | 明确写出「`python:3.12-slim` 运行阶段丢掉了 CUDA 镜像自带的 NVIDIA 环境配置」 |
+| 12 startup probe | 未达成 -> **达成** | 「添加最长 5 分钟的 `startupProbe`，避免模型加载和 CUDA 初始化期间被 liveness probe 杀掉」--`## Startup budget` 一节首次生效 |
+| 2 无隔离 | 部分 -> 部分 | 补齐「没有显存隔离、算力隔离或故障隔离」三项（基线只有显存与预留）；MPS 两边都未提 |
+| 8 显式设两个环境变量 | 部分 -> 部分 | 有 skill 版把 `NVIDIA_VISIBLE_DEVICES` 与 `NVIDIA_DRIVER_CAPABILITIES` 都显式写入（基线只写了后者），但没解释 `compute` 才是注入 CUDA 库的那一项 |
+| 10 两个独立原因 | 部分 -> 部分 | 有 skill 版主动补了 `RuntimeClass` 资源定义；两边都缺「RuntimeClass 不存在会直接 `Failed`」的反面辨析 |
+| 5 / 9 / 13 | 不变 | `renameByDefault` 两边都未点名；CUDA 地板只给 580 不给 525、无 `returned 3` 症状；`:latest` 两边都未处理 |
+
+`renameByDefault`（EB5）与 `:latest`（EB13）在干净对照下**仍未达成**，而 reference 两处都写了。
+EB13 的内容在 `references/image-security.md`（不在 GPU reference 里），
+说明跨 reference 的要点不会因为读了一份 reference 就被带出来；
+EB5 的失败更值得注意：答案选择了用 `nvidia.com/gpu.sharing-strategy In ["none"]`
+绕开共享节点，这在工程上有效，于是它没有必要去查资源名是否被改过--
+判据要求的行为被一个同样正确的替代方案掩盖了。这是判据设计问题，记录备后续修订。
+
 `gpt-5.6-sol` 基线逐条（`/tmp/hs-gpu-sol/.../baseline/4/answer.md`）：
 
 | EB | 判定 | 依据 |

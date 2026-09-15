@@ -474,21 +474,85 @@ prefix caching 作为一阶杠杆与命中率读法(`kv-reuse-and-routing.md`)�
 （`Files in the working directory: \`a\`, \`b\``）。只加文件名、不加内容，
 这样「会不会读」不再是随机变量，而「读了之后怎么用」仍然是被测能力。
 
-一个附带观察，需在新对照里重新检验而不是现在下结论：
-四次 fixture-refs=0 全部发生在**有 skill** 的轮次，基线一次都没有。
-`skill://model-serving` 是有 skill 轮次唯一的额外读取动作，
-**读 skill 可能替代了「去看看工作目录里有什么」这个动作**。如果新对照下仍然出现
-有 skill 不读工件的情况，那是 skill 的真实风险（`## Core rules` 第 1 条正是为此写的），
-需要在 skill 侧解决;如果不再出现，则纯粹是旧提示缺文件名所致。
+一个附带观察，已由新对照给出答案：污染轮次里四次 fixture-refs=0 全部发生在
+**有 skill** 的轮次，基线一次都没有，当时怀疑「读 skill 替代了去看工作目录」。
+夹具命名修复后，有 skill 四个场景的 fixture-refs 为 22 / 21 / 21 / 21--
+**该现象完全消失**。所以它纯粹是旧提示缺文件名所致：在没有任何指引时，
+多读了一份 skill 的那一侧更容易认为上下文已经够了而不再探索工作目录。
+这不是 skill 的缺陷，但它说明**评测提示里的缺省项会被 skill 的存在放大**--
+以后新增场景时，凡是要求模型使用工件的判据，都必须在提示里点名该工件。
 
-## 评测结果（夹具命名修复后的对照）
+## 评测结果（夹具命名修复后的干净对照）
 
-| 场景 | 模型 | 有/无 skill | skill_read | fixture-refs | 达成的 expected_behavior |
-|---|---|---|---|---|---|
-| 待填 | openai/gpt-5.6-sol medium | 无（基线） | | | `/tmp/hs-ms-base-fix` |
-| 待填 | openai/gpt-5.6-sol medium | 有 skill | | | `/tmp/hs-ms-skill-fix` |
+同一被测模型 `openai/gpt-5.6-sol --thinking medium`，同一输入（提示尾部点名工作目录里的
+夹具文件），基线 `/tmp/hs-ms-base-fix`、有 skill `/tmp/hs-ms-skill-fix`。
+有 skill 四个场景的 fixture-refs 为 22 / 21 / 21 / 21，基线四个场景也全部实读--
+「会不会读工件」这个变量已被消除。
 
-结论：<!-- 新对照判定后填 -->
+| 场景 | 基线 | 有 skill | 净变化 |
+|---|---|---|---|
+| 1 压测报告签核（10） | 4 / 5 / 1 | **7 / 3 / 0** | +3 达成，未达成清零 |
+| 2 推测解码回归（9） | 4 / 3 / 2 | **6 / 3 / 0** | +2 达成，未达成清零 |
+| 3 HPA 与冷启动（8） | 6 / 2 / 0 | **8 / 0 / 0** | +2 达成，部分清零 |
+| 4 训练 OOM 负例（5） | 4 / 1 / 0 | 4 / 0 / 1 | 未达成的是 `skill_read is false` |
+| **合计 32 条** | **18 / 11 / 3** | **25 / 6 / 1** | **+7 达成，未达成 3 -> 1** |
+
+### 场景 3：污染对照下的「回归」在干净对照下变成满分
+
+这是整轮评测最重要的一次翻转，也是 advisory 的直接价值。
+污染对照下有 skill 三轮 3/4/1、3/5/0、2/5/1 均低于基线 6/2/0，我据此写了两页
+「任务形态与 skill 形态不匹配」的分析。干净对照下有 skill **8/8 全达成**，
+而且完全按 `## Output format` 的 Evidence / Consequence / Fix 组织，逐条带
+`hpa-and-startup.md:<行号>`：
+
+- EB4（本轮最难的一条）：「`SuccessfulRescale` 事件全部是 scale up，约每 90 秒一次；
+  峰值时 4 Running、4 Pending，Running Pod 的重启次数为 3-7」，并下了结论
+  「这不是 HPA 在扩容和缩容之间来回摆动」「不要用 `scaleDown.stabilizationWindowSeconds`
+  掩盖一个没有发生 scale-down 的问题」。基线也纠正了前提，但把它放在答案末尾
+  作为一条「另外」，且归因为「图表可能展示的是 Ready/Running 副本数」。
+- EB3：给出完整分项表（2 分 51 秒权重加载、21 秒内存分析、86 秒 CUDA Graph、
+  总 281 秒）并点名主项，基线只给 `04:41` 总量。
+- EB5：算出 liveness 的 30 秒预算对 281 秒启动，并指出「形成正反馈」。
+
+基线在该场景本来就强（6/2/0），两项缺口正是 skill 补上的：
+decode 受显存带宽约束这一机制（基线归因为「连续批处理/CUDA graph 让 utilization 长期满载」，
+方向对但机制错），以及冷启动的分项数字。
+
+### 其余三个场景
+
+- **场景 1**：有 skill 补上 `--ignore-eos`（此前所有轮次、所有模式都未出现过）、
+  `--num-warmups` / readiness gate 的版本锚定（「0.29.0 默认不执行 benchmark readiness gate」）、
+  三个 vLLM 指标点名、`n=3` pilot。基线的 EB9 反而给出了比判据更细的论证
+  （「200 个样本的 nearest-rank p99 大致是第 198 个观测值」）。
+- **场景 2**：有 skill 补上 prefix caching 作为 700-token 固定前缀的一阶杠杆并按命中 token
+  计算命中率、acceptance >0.6 阈值；并额外发现了一个不在任何判据里的夹具真实缺陷--
+  `--max-model-len 16384` 对 900 输入 + 300 输出的典型请求过大，应按真实 p99 收紧，
+  这比把显存比例推到 0.97 更安全。基线两条未达成（EB6 推测解码不改善 TTFT、EB7 prefix caching）
+  在有 skill 下一条达成一条部分。
+- **场景 4（负例）**：两侧都正确留在训练侧，都正确否定了 `packing` 与 `group_by_length`
+  （「不会降低 8192-token 样本的峰值，反而可能让更多训练步都接近 8192 tokens」）。
+  唯一差别是 `skill_read`：有 skill 侧为 true，EB5 未达成。
+  基线侧因 `--no-skills` 必然为 false，这条判据实际只对有 skill 侧有判别力。
+
+### 仍未达成与仍为部分的条目
+
+| 条目 | 状态 | 说明 |
+|---|---|---|
+| 场景 4 EB5 `skill_read is false` | 未达成 | 四轮观测 false / true / true / true。`description` 已加 `deployed ... servers` 双重限定，仍被触发。这条依赖模型的工具调用决策，判别力弱；若要真正约束，应在评测侧记录「是否因读 skill 而改变了答案内容」，而不是「是否读了」 |
+| 场景 1 EB3 E2EL | 部分 | 两侧都指出报告缺 E2EL，都没说出「`--percentile-metrics` 未设时解析为 `ttft,tpot,itl`，所以 E2EL 是被默认排除的」 |
+| 场景 1 EB4 零方差 | 部分 | 都指出「固定 512/512」，都没点名 `--random-range-ratio` 默认 0 |
+| 场景 1 EB8 / 场景 2 EB8 | 部分 | prefix caching 被识别为杠杆，但都没给出测量手段（`prefix_repetition` 数据集、`--disable-shuffle`、`--no-oversample`）；撤回门给了准则但没给量化阈值 |
+| 场景 2 EB6 | 部分 | 有 skill 说「推测解码只改善低并发解码」，没有明写「不可能改善 TTFT」这一步 |
+
+这五条都是「reference 里写了、答案没用上」，不是内容缺失。它们的共同特征是**参数层细节**
+（默认值、数据集名、flag 组合），而答案在有限篇幅下优先写机制与结论。
+这是 skill 形态的真实上限，如实记录，不再通过加约束去追逐。
+
+结论：**干净对照下增益明确--32 条上基线 18 达成、有 skill 25 达成，未达成从 3 降到 1。**
+四个场景里三个有净增益，负例侧不越界。最能确证的增益是四条具体机制
+（`--ignore-eos` 与跨配置可比性、推测解码只作用于 decode、prefix caching 作为共享前缀的
+一阶杠杆并按 token 计命中率、decode 受显存带宽约束因此 utilization 不是饱和信号），
+以及把「先读工件证据、逐条带值」变成稳定行为。
 
 ### 仍然成立的记录
 
