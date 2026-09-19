@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deck</title>
+<!--
+  Starting point for a single-file deck. Copy it, replace the slides, keep the
+  invariants: fixed 1920x1080 stage, one transform that scales the whole stage,
+  visibility-based slide switching, notes in <template>, print rules that
+  unstack the slides. Delete what a given deck does not use.
+-->
+<style>
+  :root {
+    /* Author canvas. Every size below is a px on this canvas; the stage is
+       scaled as a whole, so nothing inside may use vw/vh/clamp. */
+    --canvas-w: 1920px;
+    --canvas-h: 1080px;
+    --margin: 96px;          /* safe area; nothing crosses it */
+    --gutter: 32px;
+
+    /* Type scale on a 1080-high canvas: 12/16-20/28-32/40-54 pt, doubled.
+       24px is the floor, not a suggestion. */
+    --t-floor: 24px;
+    --t-body: 36px;
+    --t-title: 60px;
+    --t-statement: 96px;
+
+    --bg: #0b1020;
+    --surface: #161c33;
+    --ink: #f4f4f5;
+    --muted: #a1a1aa;
+    --accent: #7dd3fc;
+    --accent-ink: #0b1020;
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+
+  html, body {
+    height: 100%;
+    background: #000;
+    color: var(--ink);
+    font: var(--t-body)/1.45 Arial, Helvetica, sans-serif;
+    overflow: hidden;
+    /* Without this the print pipeline may optimise the background away even
+       when the exporter asks for background graphics. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--canvas-w);
+    height: var(--canvas-h);
+    background: var(--bg);
+    transform: translate(-50%, -50%) scale(var(--scale, 1));
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: var(--margin);
+    display: flex;             /* layout, never visibility: see .is-current */
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--gutter);
+    /* Switching with `display` collides with this rule and with the print
+       rules below; visibility keeps both layers independent. */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .slide.is-current { visibility: visible; opacity: 1; pointer-events: auto; }
+
+  h1 { font-size: var(--t-statement); line-height: 1.05; }
+  h2 { font-size: var(--t-title); line-height: 1.1; }
+  p, li { max-width: 24em; }
+  .muted { color: var(--muted); }
+  .kpi { font-size: var(--t-statement); color: var(--accent); }
+  .caption { font-size: var(--t-floor); color: var(--muted); margin-top: auto; }
+
+  #progress {
+    position: absolute;
+    right: var(--margin);
+    bottom: 48px;
+    font-size: var(--t-floor);
+    color: var(--muted);
+  }
+
+  /* Exported pages come from print media, so the stage must un-stack here or
+     the PDF holds exactly one slide. */
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { overflow: visible; background: var(--bg); }
+    #stage { position: static; transform: none; overflow: visible; }
+    #progress { display: none; }
+    .slide {
+      position: relative;
+      visibility: visible;
+      opacity: 1;
+      width: var(--canvas-w);
+      height: var(--canvas-h);
+      break-after: page;
+    }
+    .slide:last-of-type { break-after: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <section class="slide" data-slide>
+    <h1>Deck title</h1>
+    <p class="muted">Speaker, venue, date</p>
+    <template data-notes>Opening line. Why this room should care. 20 seconds.</template>
+  </section>
+
+  <section class="slide" data-slide>
+    <h2>One claim per slide, stated as a claim</h2>
+    <p>Supporting sentence that does not repeat the heading.</p>
+    <p class="caption">Source, window, as-of date.</p>
+    <template data-notes>Purpose, two talking points, transition. 2 minutes.</template>
+  </section>
+</div>
+<div id="progress"><span id="page">1</span> / <span id="total">1</span></div>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('[data-slide]')];
+  const canvas = { w: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--canvas-w')),
+                   h: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--canvas-h')) };
+  let index = 0;
+  let audience = null;
+
+  // One transform for the whole stage. Letterboxing, not reflow: the slide
+  // keeps its authored geometry at every window size, so what the QA render
+  // measured is what the projector shows.
+  const fit = () => {
+    const scale = Math.min(innerWidth / canvas.w, innerHeight / canvas.h);
+    document.documentElement.style.setProperty('--scale', scale);
+  };
+
+  const paintAudience = () => {
+    if (!audience || audience.closed) return;
+    audience.document.body.replaceChildren(slides[index].cloneNode(true));
+  };
+
+  const goto = (n) => {
+    index = Math.min(Math.max(n, 0), slides.length - 1);
+    slides.forEach((s, i) => s.classList.toggle('is-current', i === index));
+    document.getElementById('page').textContent = index + 1;
+    if (location.hash !== '#' + (index + 1)) history.replaceState(null, '', '#' + (index + 1));
+    paintAudience();
+  };
+
+  // The audience window is an about:blank child: it inherits this document's
+  // origin, so the deck can paint it directly and it works from file://.
+  // Opening the deck URL in a second window does not - a second local file is
+  // a different document for DOM access and every read throws.
+  const openAudience = () => {
+    audience = window.open('', 'deck-audience');
+    if (!audience) return;
+    audience.document.title = 'Audience';
+    for (const sheet of document.querySelectorAll('style, link[rel=stylesheet]')) {
+      audience.document.head.append(sheet.cloneNode(true));
+    }
+    audience.document.body.style.cssText = 'margin:0;background:var(--bg)';
+    paintAudience();
+  };
+
+  addEventListener('resize', fit);
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') goto(index + 1);
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') goto(index - 1);
+    else if (e.key === 'Home') goto(0);
+    else if (e.key === 'End') goto(slides.length - 1);
+    else if (e.key === 'p' || e.key === 'P') openAudience();  // needs a user gesture
+    else return;
+    e.preventDefault();
+  });
+
+  document.getElementById('total').textContent = slides.length;
+  fit();
+  goto(Number(location.hash.slice(1)) - 1 || 0);
+
+  // Contract the QA script navigates by: exact slide addressing beats sending
+  // arrow keys and hoping the runtime kept up.
+  globalThis.deck = { get count() { return slides.length; }, get index() { return index; }, goto };
+})();
+</script>
+</body>
+</html>

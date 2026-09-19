@@ -1,0 +1,54 @@
+[
+  {
+    "skills": ["html-deck"],
+    "query": "把 quarterly-brief.md 做成一份网页 PPT，我要在会上投影讲，讲完直接把文件发群里给别人双击打开看。做完告诉我文件在哪、你怎么确认它没问题。",
+    "files": ["evals/files/quarterly-brief.md"],
+    "expected_behavior": [
+      "产物是一个自包含的 HTML 文件，固定 16:9 舞台整体等比缩放，幻灯片内部不使用 vw/vh/clamp 或响应式断点来定字号",
+      "用无头浏览器实际渲染每一页并度量版式，而不是只靠阅读自己写的代码就宣布完成；度量同时包含元素越界（getBoundingClientRect 超出舞台矩形）与被裁切容器（scrollHeight > clientHeight）",
+      "1080p 画布下任何文字不低于 24px，正文在 32-40px 区间，并在报告里给出实际使用的字号",
+      "切页不用 display:none/block 开关，因为版式类的 display 会覆盖它",
+      "报告里区分「已验证的」与「未验证的」，没有实际看过渲染结果就不声称交付完成"
+    ]
+  },
+  {
+    "skills": ["html-deck"],
+    "query": "把 sample-deck.html 导出成 PDF，每页一张、深色背景必须保留，另外再给我一套逐页 PNG。导出完确认一下颜色真的在。",
+    "files": ["evals/files/sample-deck.html"],
+    "expected_behavior": [
+      "同时处理背景丢失的两个独立原因：导出端显式开 printBackground（默认为 false），以及在 deck 的 CSS 里写 print-color-adjust: exact（含 -webkit- 前缀）",
+      "指出纸张尺寸不会自动等于舞台尺寸：要么用 @page size 配合 preferCSSPageSize，要么显式传 width/height，否则按 Letter 出图并缩放",
+      "导出后对产物做像素级确认（例如把 PDF 首页转成位图采样背景色），而不是只检查文件存在或文件大小",
+      "逐页 PNG 的页码遍历依赖 deck 自己的翻页机制，截图前等待字体就绪（document.fonts.ready 或 fonts.check）再拍"
+    ]
+  },
+  {
+    "skills": ["html-deck"],
+    "query": "给 sample-deck.html 加演讲者模式：我这边看备注和计时，投影那块只显示幻灯片。备注内容你按现有页面内容替我写。",
+    "files": ["evals/files/sample-deck.html"],
+    "expected_behavior": [
+      "交代该实现能不能双击使用：用同源子窗口直接绘制时 file:// 可用；若第二个窗口去加载 deck 自身的 URL，则必须起本地 HTTP 服务，不得笼统承诺或笼统否定",
+      "备注不出现在观众窗口里，观众视图与演讲者预览渲染的是同一份幻灯片而不是另做一套",
+      "跨窗口的当前页只有一个状态来源，并能检测观众窗口被关闭或失联、恢复后落回当前页",
+      "备注写成提示信号而不是逐字朗读稿，并给出每页的讲述时长估算"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "帮我做一份 Q3 季度汇报的 PPT，要发给客户，客户那边会在 PowerPoint 里改数字和加两页，所以必须是能编辑的。",
+    "expected_behavior": [
+      "不应读取 html-deck 技能：交付物是可在 PowerPoint 中编辑的 .pptx，不是浏览器放映的 HTML deck",
+      "走二进制 pptx 路线（pptxgenjs 或 python-pptx），并指出把 HTML deck 导成 pptx 只会得到每页一张位图、文本不可编辑",
+      "明确说明该请求属于 office 这类文档技能的范围"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "给我们产品官网做一个全屏分段滚动的首页：首屏一句主张配一张大图，往下四段功能介绍，最后一段留邮箱订阅。响应式，手机上也要好看。",
+    "expected_behavior": [
+      "不应读取 html-deck 技能：这是响应式网页界面，不是固定画布上按页放映的幻灯片",
+      "按响应式网页处理——随视口重排的布局、移动端断点、可访问的表单与焦点状态，而不是固定 16:9 舞台加整体等比缩放",
+      "不引入翻页键位、演讲者备注或逐页 PDF 导出这类只对放映产物才有意义的机制"
+    ]
+  }
+]

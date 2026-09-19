@@ -1,0 +1,9 @@
+{
+  "name": "html-deck-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Dependency manifest for deck_qa.mjs. Install it beside the deck, not here: copy this file into the deck's directory and run `npm install`, or just `npm install playwright` there. deck_qa.mjs resolves playwright from the working directory. Installing into this skill directory puts playwright-core's own SKILL.md files inside the skill, and recursive skill scanners register them as extra skills.",
+  "dependencies": {
+    "playwright": "^1.56.0"
+  }
+}

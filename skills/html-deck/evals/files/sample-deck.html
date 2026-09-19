@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Runner Migration</title>
+<style>
+  :root { --ink: #f4f4f5; --muted: #a1a1aa; --accent: #7dd3fc; }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: #0b1020;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+  }
+  #stage { width: 1280px; height: 720px; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 64px;
+    display: none;
+    background: linear-gradient(135deg, #1b2140, #3a1d5c);
+  }
+  .slide.active { display: block; }
+  h1 { font-size: 64px; line-height: 1.1; }
+  h2 { font-size: 40px; margin-bottom: 24px; }
+  p, li { font-size: 22px; line-height: 1.5; color: var(--muted); }
+  ul { margin-top: 16px; padding-left: 28px; }
+  .kpi { font-size: 96px; color: var(--accent); }
+  .caption { font-size: 13px; color: #71717a; position: absolute; bottom: 24px; left: 64px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <section class="slide active">
+    <h1>Self-hosted runners</h1>
+    <p>Q3 platform review</p>
+  </section>
+
+  <section class="slide">
+    <h2>Queue time collapsed</h2>
+    <p class="kpi">14 min &rarr; 1.2 min</p>
+    <p>Median queue time, last 30 days.</p>
+    <p class="caption">Source: CI metrics export, 2026-09-01 to 2026-09-30.</p>
+  </section>
+
+  <section class="slide">
+    <h2>What we hit on the way</h2>
+    <ul>
+      <li>Cache lived on the container layer, so every scale-out event dropped it. Hit rate was 31% in week one; moving the cache to a persistent volume took it to 88%.</li>
+      <li>No artifact retention policy existed on the new runners. Disks filled in week two and every build failed for three hours before anyone noticed the pattern.</li>
+      <li>Credentials moved from job scope to repository scope. One deploy key ended up shared across jobs, and a test job reached a production secret before we caught it.</li>
+      <li>Windows builds are still on the old system because the runner image was never built.</li>
+      <li>Cross-repository cache sharing is unfinished, so anything outside the monorepo still cold-starts on every run.</li>
+      <li>Autoscaling thresholds were tuned by hand and still need a real policy.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = 0;
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+  }
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') show(i + 1);
+    if (e.key === 'ArrowLeft') show(i - 1);
+  });
+  show(0);
+</script>
+</body>
+</html>

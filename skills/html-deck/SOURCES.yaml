@@ -1,0 +1,249 @@
+# Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
+# `commit` is filled automatically by: uv run tools/check_upstream.py --pin html-deck
+skill: html-deck
+version: "2026.09.19"
+upstreams:
+  - id: lewislulu-html-ppt
+    kind: repo
+    repo: lewislulu/html-ppt-skill
+    url: https://github.com/lewislulu/html-ppt-skill
+    paths: [SKILL.md, references]
+    ref: main
+    commit: fd1629067909ff55b36b905476de4e5f26062a1f
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Presenter-mode shape: audience and presenter render the same deck, notes never reach the audience surface, and notes are written as cue signals of roughly 150-300 words per slide rather than a script."
+    notes: "Its 36 themes, 31 layouts and template packs were not taken; a skill should not ship an asset library. Its render script hard-codes a macOS Chrome path, replaced here by Playwright."
+  - id: zarazhangrui-frontend-slides
+    kind: repo
+    repo: zarazhangrui/frontend-slides
+    url: https://github.com/zarazhangrui/frontend-slides
+    paths: [SKILL.md, STYLE_PRESETS.md, viewport-base.css, scripts]
+    ref: main
+    commit: 9906a34d640d2111f724544cbc50f7f130569ae1
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Fixed-stage invariants for a zero-dependency single-file deck, content density modes, the display-based slide-switching trap, and export selector pitfalls."
+    notes: "Its Vercel deployment chapter is out of scope (hosting) and its template pack was not copied. The pptx extraction path belongs to the office skill."
+  - id: event4u-html-deck
+    kind: repo
+    repo: event4u-app/agent-config
+    url: https://github.com/event4u-app/agent-config
+    paths: [dist/agent-src/skills/html-deck]
+    ref: main
+    commit: 107a21051f659aea4b9f362ecc7bd2d03903376d
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The three-way definition separating a fixed-canvas deck from responsive UI and from a static poster, the type floor and layout-budget discipline, and the shared-origin localStorage collision."
+    notes: "Cross-references into its own agent system (surface contracts, numbered checkpoints) were dropped; its deck shell template was not read line by line."
+  - id: flabs-slideshow-deck
+    kind: repo
+    repo: f-labs-io/agent-html-skills
+    url: https://github.com/f-labs-io/agent-html-skills
+    paths: [plugins/html-skills/skills/html-slideshow-deck]
+    ref: main
+    commit: d4f259ea4959aecd1240a10c60a950dfb6d1a3f5
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Slide types with numeric limits, the five-part deck structure and page budget, and the SVG text no-wrap failure."
+    notes: "Its host-coupled section (plugin-root asset paths and a publish button) was excluded; this repository's validator rejects those tokens outright."
+  - id: slidespeak-design
+    kind: repo
+    repo: SlideSpeak/slide-design-skill
+    url: https://github.com/SlideSpeak/slide-design-skill
+    paths: [SKILL.md, engine, scripts]
+    ref: main
+    commit: 5e87d8ae71f6306e0c88f4910e6c09114581d91b
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Design limits expressed as checkable quantities rather than adjectives: eyebrow-label quota, density mixing, title restatement detection, and placing the measurement gate before export."
+    notes: "Its whitespace threshold was implemented and then removed: measured against this skill's own shell it flagged a centred cover and a bottom-pinned source line, both deliberate. Its type floor is a web-component floor and was replaced by a projection floor derived from the office skill's point scale."
+  - id: ohmyagent-oma-slide
+    kind: repo
+    repo: first-fluke/oh-my-agent
+    url: https://github.com/first-fluke/oh-my-agent
+    paths: [.agents/skills/oma-slide]
+    ref: main
+    commit: f81c5a4c661b314d721a57a95fa952c9ea4b8b00
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The split between judgement work and deterministic verification, the bounded three-round repair loop, and the reduced-motion and visible-focus guardrails."
+    notes: "Its CLI commands and environment variables are specific to that harness and were not carried over."
+  - id: antfu-skills-slidev
+    kind: repo
+    repo: antfu/skills
+    url: https://github.com/antfu/skills
+    paths: [skills/slidev]
+    ref: main
+    commit: a74f281a27dadc02397bc1a174b0f2c97531b6ae
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The escape-hatch trigger list for leaving a hand-written deck, and the habit of pairing every command with an observable acceptance check."
+    notes: "Its reference directory mirrors the Slidev documentation site; none of it was inlined here."
+  - id: revealjs
+    kind: repo
+    repo: hakimel/reveal.js
+    url: https://github.com/hakimel/reveal.js
+    paths: [index.html, js, css]
+    ref: master
+    commit: f8c9ec3bb3b288e061b166fba5e4975920dd5cd4
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Fixed-canvas scaling defaults, the r-fit-text and r-stretch limits, print-pdf export behaviour including automatic page splitting, and the local HTTP requirement of its speaker view."
+    notes: "Behaviour cross-checked against the project documentation site at https://revealjs.com/."
+  - id: slidev
+    kind: repo
+    repo: slidevjs/slidev
+    url: https://github.com/slidevjs/slidev
+    paths: [packages/client]
+    ref: main
+    commit: 30a0a54c8739b4b395d9b336a6304cc8ebcc3947
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The canvas-size and scale model read from SlideContainer.vue, its hard-clipping overflow behaviour, the presenter route, and the export command surface."
+    notes: "Behaviour cross-checked against https://sli.dev/. Its pptx export is the office skill's territory and is only mentioned as a limitation."
+  - id: marp-cli
+    kind: repo
+    repo: marp-team/marp-cli
+    url: https://github.com/marp-team/marp-cli
+    paths: [README.md, src/templates]
+    ref: main
+    commit: ffc4128626cbc64965fe1cc805717c6d4438c384
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Single-file HTML output by inlining theme CSS and runtime, the PDF notes and outlines switches, the local-file security gate, and the storage dependency of its presenter shortcut."
+  - id: marp-core
+    kind: repo
+    repo: marp-team/marp-core
+    url: https://github.com/marp-team/marp-core
+    paths: [docs]
+    ref: main
+    commit: 01ef3a4ef0888403097e2c8f7988ea71c460cf97
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The documented fact that auto-scaling is horizontal only, that it is off unless the theme declares it, and that it dies without inline SVG."
+  - id: marpit
+    kind: repo
+    repo: marp-team/marpit
+    url: https://github.com/marp-team/marpit
+    paths: [docs]
+    ref: main
+    commit: 0d4ad4ef3074abb3fba80957908c8bff31e724bd
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The theme size contract: absolute units only, one size per theme, the slide size doubling as the PDF page size, and rem resolving against the slide rather than the document root."
+  - id: playwright
+    kind: repo
+    repo: microsoft/playwright
+    url: https://github.com/microsoft/playwright
+    paths: [packages/playwright-core/types/types.d.ts]
+    ref: main
+    commit: 07f1a6154795f055f341b8972086533e8e48b36f
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Screenshot, PDF and evaluation semantics used by scripts/deck_qa.mjs, including the printBackground and preferCSSPageSize defaults and the print media type of page.pdf()."
+    notes: "The animations:'disabled' screenshot option was tested locally and does not stabilise canvas or rAF content; the skill says so instead of repeating the common claim."
+  - id: decktape
+    kind: repo
+    repo: astefanutti/decktape
+    url: https://github.com/astefanutti/decktape
+    paths: [README.adoc, plugins]
+    ref: master
+    commit: 0ab408fe71a5ead3874ceea57b16f89a4c1efb0f
+    license: MIT
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "Key-driven export of a deck project that cannot be modified, plus three reproduced traps: browser discovery, screenshot path joining, and the DOM-mutation halting condition."
+  - id: chromium-headless
+    kind: docs
+    url: https://developer.chrome.com/docs/chromium/headless
+    license: NONE
+    relation: merged
+    synced_at: "2026-09-19"
+    contributes: "The no-Node export fallback: sandbox flag requirement, paper size coming only from the page's own @page rule, and virtual time replacing arbitrary sleeps."
+    notes: "Flag behaviour was verified locally against Chromium rather than quoted; the documentation has no single reference page for these switches."
+  - id: guizang-ppt
+    kind: repo
+    repo: op7418/guizang-ppt-skill
+    url: https://github.com/op7418/guizang-ppt-skill
+    paths: [SKILL.md, references]
+    ref: main
+    commit: c91369c449d34755d320a8b81d0734000d99d1ab
+    license: AGPL-3.0
+    relation: reference
+    synced_at: "2026-09-19"
+    contributes: "Read as a topic-coverage checklist for what a mature HTML deck skill must cover: dual visual systems, locked layouts, presenter mode with rehearsal, and companion imagery."
+    notes: "AGPL-3.0 is a copyleft licence incompatible with this repository's MIT terms, so nothing was copied: no prose, no template HTML, no assets, no references and no scripts. Every layout and threshold here is derived from another source or from local measurement."
+  - id: open-design-deck-qa
+    kind: repo
+    repo: nexu-io/open-design
+    url: https://github.com/nexu-io/open-design
+    paths: [apps/daemon/src/qa]
+    ref: main
+    commit: f5707c8cae7b61014c5e91e114b9aa07826df725
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-19"
+    contributes: "Audited as evidence that deck layout QA can be made deterministic; contributed no text."
+    notes: "Not a skill. Its deck surfaces are application source, so there was nothing to merge."
+  - id: impress-js
+    kind: repo
+    repo: impress/impress.js
+    url: https://github.com/impress/impress.js
+    paths: [DOCUMENTATION.md]
+    ref: master
+    commit: b44b9694b41fd2c076c3d1ad7a0c3e0cea9eb262
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-19"
+    contributes: "The absolute-coordinate, relative-scale canvas model, recorded as the non-linear alternative and its cost."
+    notes: "No slide size contract, no speaker notes and no export path, so it cannot be a main route."
+  - id: visual-cognition-slides
+    kind: repo
+    repo: edu-ai-builders/visual-cognition-slides
+    url: https://github.com/edu-ai-builders/visual-cognition-slides
+    paths: [SKILL.md, FORMATS.md]
+    ref: main
+    commit: 83fc4b55f409b6564c9c1b8aee93d3015af2da9c
+    license: MIT
+    relation: reference
+    synced_at: "2026-09-19"
+    contributes: "Canvas enumeration as a concept; its numbers were not adopted."
+    notes: "Its clamp and viewport-unit type ladder conflicts with a uniformly scaled stage, and its 9px caption floor is unreadable when projected. Both were rejected after review."
+  - id: carbon-grid
+    kind: repo
+    repo: carbon-design-system/carbon
+    url: https://github.com/carbon-design-system/carbon
+    paths: [packages/grid/scss]
+    ref: main
+    commit: 8472ccac7c2150ef317617063da6b82058812319
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-19"
+    contributes: "Corroboration that gutters should be a small enumeration rather than an arbitrary value."
+    notes: "A breakpoint-driven responsive grid; the deck grid here is derived for a fixed canvas instead."
+  - id: puppeteer
+    kind: repo
+    repo: puppeteer/puppeteer
+    url: https://github.com/puppeteer/puppeteer
+    paths: [docs/api]
+    ref: main
+    commit: 5cf7e20998ab53ffa0a040d47f644eb82fa3e92a
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-09-19"
+    contributes: "Explains decktape failure output, since decktape launches through it."
+    notes: "Its API overlaps Playwright completely; the skill deliberately documents one automation surface."
