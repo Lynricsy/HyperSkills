@@ -42,7 +42,7 @@ Three habits follow.
 |---|---|---|
 | OpenAI Chat Completions | `role: "system"` or `"developer"` | `developer` is the newer name; both are above `user` in the instruction hierarchy |
 | OpenAI Responses | `instructions` parameter | Not part of the item list; not replayed by `previous_response_id` unless you pass it again |
-| Anthropic Messages | top-level `system` parameter | There is no `system` role inside `messages`; a `{"role": "system"}` entry is rejected |
+| Anthropic Messages | top-level `system` parameter | The initial instruction lives only there: a `{"role": "system"}` entry as `messages[0]` is rejected. Recent models also accept a `role: "system"` message later in `messages` (after a user turn) for an instruction that arrives mid-conversation; older models return 400 for it |
 | Google Gemini | `system_instruction` in the config | Separate from `contents` |
 
 Two consequences worth remembering. First, porting a prompt by moving the
@@ -146,14 +146,31 @@ Prompt caching bills the prefix once and reuses it, but it matches on an
 - A timestamp, a random request id, or a "today is …" line near the top
   invalidates the cache on every single call. The prompt looks harmless and
   the bill is the full uncached rate forever.
-- Anthropic requires an explicit `cache_control` breakpoint on the last block
-  you want cached; OpenAI and Google cache automatically above a minimum
-  prefix length. Either way, reordering the prompt to put a tool schema after
-  the user message throws away every cached token that followed it.
+- Anthropic caches only up to a breakpoint: an explicit `cache_control`
+  marker on a block, or a request-level `cache_control` that places the
+  breakpoint on the last cacheable block for you; with neither, nothing is
+  cached. OpenAI and Google cache automatically above a minimum prefix
+  length. Either way, reordering the prompt to put a tool schema after the
+  user message throws away every cached token that followed it.
 
 Editing a tool description also invalidates the cache for every request, so
 batch tool-schema changes rather than tuning them one at a time in
 production.
+
+An operator instruction that changes partway through a conversation — a
+mode switch, an escalation, a supervisor taking over — is volatile content
+too, but it sits *ahead* of the history if you put it in the system prompt.
+Concatenating it onto the top-level instruction, or adding a second system
+block, changes the prefix in front of every earlier turn, so the whole
+cached history is re-billed from the switch onward. Where the model accepts
+a system message inside the conversation (the Anthropic row above), append
+the instruction there, after the latest user turn, and leave the top-level
+instruction byte-identical. Support is per model, not per provider: a model
+without it rejects the request with a 400, and so does a system message
+placed first. Branch on the model — or catch that 400 — instead of assuming;
+the fallback is a delimited operator note in the next user turn, accepting
+that it carries user-turn authority, so gate the consequential part in code
+(rule 2 in `SKILL.md`), not in the note.
 
 ## Prompt versioning
 

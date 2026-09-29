@@ -236,3 +236,59 @@ LLM01 场景 2（页面里的隐藏指令让模型插入一张图片链接，从
 - **不写多厂商路由 / 网关（litellm 类）。** 许可与内容都不合格，且属于产品选型而非工程判据。
 - **不写 trace 采集与告警。** 归 `observability`；本 skill 只定义「一条 trajectory 必须包含什么才叫可调试」（规则 25）。
 - **`scripts/` 只留一个。** 考虑过再写一个 tool-set 审计脚本，但它的产出就是 SKILL.md 里那张表，脚本化没有增量；`token_budget.py` 留下是因为它产出的是**本机实测数字**，那是读文档得不到的。
+
+## 2026-09-29 上游同步
+
+依据 `/tmp/upstream-report.txt`（2026-09-29 `check_upstream.py`）。too-large 条目按完整区间归因：`git clone --filter=blob:none` 后 `git log/diff <旧pin>..<HEAD> -- <paths>`，命中提交再逐个读 diff；pin 后核对写入的 commit 与审阅的 HEAD 一致。
+
+### 逐上游判定
+
+| 上游 | 区间 | paths 内变更 | 判定 | 理由 |
+|---|---|---|---|---|
+| vercel-ai-sdk | d5e3024..91345da | c739d37 `skills/use-ai-sdk/SKILL.md` +3/-3 | 噪声 | 只补了 monorepo 下 `node_modules/ai` 的定位写法；本 skill 未合入「读 node_modules 文档」的具体步骤，贡献面不变 |
+| langchain-skills | b7a2a8f..a76fef3 | 657ca08 `langgraph-fundamentals` 把示例拆到 `references/python.md`、`typescript.md` | 噪声（重构）；**许可重新裁决** | 逐行比对旧 SKILL.md 与新三文件，丢失的只有标签行与「What You Should NOT Do」四条（改写为 Core boundaries，语义不变）。上游 2026-09-23 `e22f72f` 新增 MIT LICENSE，`license` 由 NONE 改为 MIT，notes 同步 |
+| google-skills | 26bbc42..a063fbf | f4ed3d0 gemini-api 模型 id 3.6→3.8-flash；becc4b8 semver 元数据；748af9b/aaca4a8 eval-flywheel 每次评测单独确认、项目/区域不得改写、judge 默认模型，rag-engine 去掉 venv；3863d56 Gemini 1.5 Pro→2.5 Pro | 噪声 | 本 skill 不含 Gemini 模型 id；确认策略的收紧属于 Agent Platform 产品交互规范（「本条 contributes 已排除产品打包」），不改变跨厂商判据 |
+| openai-agents-python | 1705dd6..7b27134 | `docs/tools.md`：667c615 本地 shell/patch 工具默认 `needs_approval=False`、审批不是沙箱；9c5a5e8 可变参数描述写法 | 噪声 | 均为 SDK API 细节；「审批/可见性不是授权」已由 `tool-calling.md` 的 Gating 节覆盖。`running_agents.md`/`guardrails.md`/`multi_agent.md` 区间内无变更 |
+| anthropics-claude-api | 34040c9..8a1541c | 3337550 拒绝计费改链到文档；8a1541c Opus 5.5 默认、Sonnet 5.5、error-codes（402、模型不可用=404、beta 未开=400）、prompt-caching 模型列表与自动缓存 TTL、tool-use eager input streaming、新增 `shared/evals/`（build-eval / eval-audit / eval-hillclimb / cost-hillclimb） | **更正** + 新增（以基线划界后未合入） | 见下两节 |
+| obra-superpowers | b36e082..8ca22db | 5bf4e78 SDD：脚本改 `bash scripts/...` 调用、与 executing-plans 的对比改写 | 噪声 | 打包/调用方式变更，与「child 用构造的 brief、按角色选模型、核 diff 不核报告」无关 |
+| github-awesome-copilot | 7568a48..997e95a | 无（完整区间 `git log -- paths` 为空） | 仅 re-pin | — |
+| promptfoo | c2b1a2f..f8ba0bc | 23 个提交改 `site/docs/configuration/expected-outputs`：RAG 断言默认阈值 0→0.5、`not-` 前缀不再把评分器错误反转成通过（e049702/8a1d6a7/26e8f2f）、webhook/自定义评分结果校验、模型名刷新等 | 噪声 + 新增（以基线划界后未合入） | 阈值默认值是工具参数；「否定式断言吞掉评分器故障」是规则 23 的延伸，放进场景 6 测基线 |
+| owasp / murat / huggingface | — | OK | — | 报告为 up to date / tracked paths unchanged，随 `--pin` 一并更新 |
+
+说明：报告里 promptfoo 的 HEAD 是 7fb3b52，完整区间归因时上游已前进到 f8ba0bc，审阅与 pin 均以 f8ba0bc 为准。
+
+### 更正：Anthropic 的 system 角色与缓存断点（`references/prompt-structure.md`）
+
+旧正文两处与上游 `shared/prompt-caching.md` 当前版本及官方文档（platform.claude.com「Mid-conversation system messages」「Prompt caching」）冲突：
+
+1. 角色表写「`messages` 里没有 system 角色，`{"role":"system"}` 一律被拒」。实际：初始指令只能放顶层 `system`，`messages[0]` 为 system 会被拒；但 Opus 5 / 5.5 / 4.8、Fable、Mythos、Sonnet 5.5 接受对话中途追加的 `role: "system"`（需跟在 user 回合之后），不支持的模型返回 400。已改表。
+2. 「Anthropic 需要在最后一块显式打 `cache_control`」。实际还有请求级 `cache_control`（自动断点，落在最后一个可缓存块）；两者都没有才完全不缓存。已改。
+
+同时 SOURCES.yaml 中该条 `contributes` 改写以反映这两点。
+
+### 新增内容：以基线实测划界
+
+- **场景 6（新增，`evals/files/askdesk/compare_models.py`）** 覆盖 claude-api `shared/evals/` 与 promptfoo 否定式断言里本 skill 尚未写的五点：金标来自现任模型输出（迁移比较偏向现任）、评测脚本自己重写 prompt 而非调用生产入口、记录请求模型而非 `response.model`（网关回退）、`$0.00` 成本是字段名拼错被默认 0 吞掉、`not judge_says_yes(...)` 把评分器异常翻成通过。
+  基线（无 skill）5/5 全部达成（逐条见下表）→ **全部撤回，不写入正文**；场景与夹具保留为划界证据。
+- **场景 7（新增，`evals/files/askdesk/escalation_mode.py`）** 覆盖上面的更正：升级模式把说明拼进顶层 `system`、全文件无 `cache_control`。
+  第 1 轮（仅更正角色表与缓存断点两句）：有 skill 反而没用 mid-conversation system 消息，改成「断点后第二个 system 块」，E3 未达成，基线却达成 → 判为正文引导偏差。
+  回改：在 Cache-boundary layout 节补一段「对话中途变化的操作员指令也是易变内容：拼进顶层或加第二个 system 块会让其后全部历史重计费；模型支持时追加为对话内 system 消息；支持是按模型的，不支持时 400，按模型分支或捕获 400，回退为 user 回合里的定界说明并在代码侧管控」。
+  第 3 轮（`--out /tmp/hs-evals-sync/SyncG1-r3`）有 skill 达成 E4（按模型判断支持、给出 400 回退），基线未达成（基线假定 claude-opus-5-5 原生支持，只提放置规则，无回退）→ 通过。第 2 轮（回改初稿，未写 400/按模型分支）E4 仍未达成，保留在 `/tmp/hs-evals-sync/SyncG1-r2`。
+
+### 评测结果（workbuddy/deepseek-v4.1-flash，thinking max）
+
+| 场景 | 模式 | skill_read | E1 | E2 | E3 | E4 | E5 | 备注 |
+|---|---|---|---|---|---|---|---|---|
+| 6 | 基线 | false | ✅ | ✅ | ✅ | ✅ | ✅ | 自行指出现任金标、`decide()` 未被调用、`response.model`、`total_token` 拼错、judge 异常即「干净」 → 撤回新增 |
+| 7 | 基线 | false | ✅ | ✅ | ✅ | ◐ 只提放置规则，未提不支持的模型 400/回退 | ✅ | 基线自行查到官方文档 |
+| 7 | 有 skill r1 | true | ✅ | ✅ | ❌ 改用第二个 system 块 | ❌ | ✅ | 仅含更正两句 |
+| 7 | 有 skill r2 | true | ✅ | ✅ | ✅ | ❌ | ✅ | 回改初稿 |
+| 7 | 有 skill r3 | true | ✅ | ✅ | ✅ | ✅ 不支持时 400、回退方案写进 `escalate()` | ✅ | 最终正文 |
+
+D2 通过判定：场景 7 的 E4 基线未达成、有 skill（最终正文）达成。负例场景 5 未改 description/Scope，未重跑。
+
+### 遗留风险
+
+- 场景 7 各模式只跑 1 次，r1→r3 的差异含随机性；E4 的「`messages[0]` 不能是 system」一半在 r3 里没有明说。
+- claude-api 新增的 eval-audit / hillclimb 流程整体未合入；若换更弱的基线模型，场景 6 的结论可能不同。
+- `anthropic-docs`（manual check）本次只为核实上面两处更正查阅，未做全量人工比对，`synced_at` 未动。

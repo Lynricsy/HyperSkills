@@ -84,5 +84,29 @@
       "Answers as a Postgres index problem: the `EXPLAIN ANALYZE` shows the HNSW index being scanned but returning in 2.8 s, the index was built with default `m`/`ef_construction` before the bulk load and spilled to disk with `maintenance_work_mem` at 64 MB, and `hnsw.ef_search` is unset — so it prescribes raising `maintenance_work_mem` and rebuilding (or `REINDEX`) with tuned `m`/`ef_construction`, and tuning `hnsw.ef_search` for the recall/latency trade-off",
       "Does not restructure the retrieval pipeline, propose reranking, chunking changes, prompt changes or an evaluation harness"
     ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "We're deciding whether to move the refund extractor from gpt-5.1 to gpt-5.5. The comparison script printed `gpt-5.1: agreement 0.97, PII check 300/300, cost $0.00` and `gpt-5.5: agreement 0.71, PII check 300/300, cost $0.00`, so the plan is to stay on gpt-5.1. Is this comparison sound enough to base the decision on? There are no API credentials here — review the script and tell me what to change.",
+    "files": ["evals/files/askdesk/compare_models.py", "evals/files/askdesk/extract_refund.py"],
+    "expected_behavior": [
+      "Identifies that `expected.jsonl` holds the decisions the production extractor logged, and production runs `gpt-5.1` (`MODEL` in `extract_refund.py`), so the reference answers are the incumbent's own outputs: agreement measures how closely a model imitates `gpt-5.1`, the incumbent wins by construction and the successor is penalised for every difference including correct ones; requires human-verified labels (or a human-verified sample) or per-field decidable criteria instead of the incumbent as gold",
+      "Identifies that the script sends its own trimmed `PROMPT` instead of calling the production entry point (`extract_refund.decide`), so it measures a different system from the one being migrated; requires the runner to call the real code path with the model as a parameter",
+      "Identifies that each row records the requested model name, not the model that served it, while the gateway silently serves saturated requests from `gpt-5.1`; requires reading `response.model` for every row and flagging or excluding rows where it differs from the requested model",
+      "Treats the `$0.00` cost for both models as a measurement defect rather than a result: `getattr(response.usage, \"total_token\", 0)` misspells `total_tokens` and silently defaults to zero; requires reading the real usage field and failing loudly when a field that can never be zero is missing or zero",
+      "Identifies that `no_pii = not judge_says_yes(...)` turns a judge error or unreadable reply into a pass, because `judge_says_yes` returns `False` on any exception and the negation inverts it; a 300/300 PII result is therefore also what a judge outage produces; requires a three-way outcome where a judge failure fails the check in both the positive and the negated form"
+    ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "Our Anthropic bill for the support chat tripled after we added escalation mode, and latency on long threads is bad. Here's the code. How should the mode switch be done, and how do we make sure the big system prompt is actually cached?",
+    "files": ["evals/files/askdesk/escalation_mode.py"],
+    "expected_behavior": [
+      "Identifies that the request carries no `cache_control` at all — neither a marker on a block nor the request-level field — so nothing is cached and every turn pays the full ~30k-token system prompt plus history; prescribes a breakpoint (explicit marker on the stable system block and/or request-level automatic caching) and checking `cache_read_input_tokens` to prove hits",
+      "Identifies that appending `ESCALATION_NOTE` to the top-level `system` changes the very start of the prefix, so from the switch onward the whole cached system prompt and history are reprocessed uncached",
+      "Prescribes keeping the top-level `system` byte-identical and sending the escalation instruction as a `role: \"system\"` message appended to `messages` after the user turn (supported on `claude-opus-5-5`), and does not claim that a system role inside `messages` is always rejected",
+      "Notes the constraints of that message: it cannot be `messages[0]`, and models that do not support it return a 400, so the code needs a fallback or a model check rather than assuming every model accepts it",
+      "Does not move the escalation instruction into a user turn as the primary fix, since that gives an operator instruction the authority of customer-writable text"
+    ]
   }
 ]
