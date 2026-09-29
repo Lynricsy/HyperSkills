@@ -4,7 +4,7 @@ description: "Trains and fine-tunes model weights with LoRA, distributed trainin
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: task
 ---
 

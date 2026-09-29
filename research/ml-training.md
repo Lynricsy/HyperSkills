@@ -295,3 +295,44 @@ opus-5 基线下已饱和，保留它们是为了防止 skill 引入回归。
 - `vllm-project/vllm`：V1 的默认值（chunked prefill、优化级别 `-O0..-O3`）变动频繁。
 - `NVIDIA/skills`：该仓库每日从各产品仓库同步，`pushed_at` 天天在动；盯 `paths` 下的
   `nemo-mbridge-perf-*` 即可。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `check_upstream.py` 报告。`orchestra-ai-research` 为 up to date，`hf-skills`、
+`lm-eval-harness` 为 repo moved / tracked paths unchanged，不处理内容；其余 6 个 behind 条目逐一归因。
+too-large 的四个仓库用 `gh api "repos/O/R/commits?sha=<ref>&path=<path>&since=2026-09-11T00:00:00Z"`
+逐 path 归因，只读命中提交在该 path 下的 diff。
+
+| 上游 | 区间 | 命中 paths 的提交 | 判定 | 理由 |
+|---|---|---|---|---|
+| `nvidia-skills` | `be3d1a4..d8519c5`（72 提交，too large） | 4 个 `nemo-mbridge-*` 目录均无命中 | 噪声（paths 实际未变） | 仅 re-pin |
+| `pytorch-docs` | `353bbb7..55ee341`（1315 提交，too large） | `randomness.md`、`amp_examples.md` 均无命中 | 噪声（paths 实际未变） | 仅 re-pin |
+| `vllm-docs` | `8c1d1c2..998490c`（988 提交，too large） | `docs/usage/metrics.md`：`cd1daf5`（#57251）；另两个 path 无命中 | 新增但越界，不合入 | 见下 |
+| `deepspeed-docs` | `b726f4e..a80df94`（95 提交，too large） | `docs/_tutorials/zero.md` 无命中 | 噪声（paths 实际未变） | 仅 re-pin |
+| `trl-docs` | `f622980..0e7bb36` | `7da90a0`、`cc5bb3f`、`a98fa6a`、`db1c1a3`、`e4a1c15` | 噪声（与合入面无关的更正） | 见下 |
+| `peft-docs` | `78bce7c..73f9a1a` | `src/peft/tuners/lora/config.py`：`73f9a1a`（#3725） | 新增但越界，不合入 | 见下 |
+
+**vllm-docs**：`cd1daf5` 在 `metrics.md` 新增 `SimpleCPUOffloadConnector` 的 KV 卸载指标一节
+（启用方式、「完成」写入不等于 fsync 持久、`used_blocks` 不含可驱逐的热块等解读注意事项）。
+本 skill 从该文件只取「指标挂在 API server 端口的 `/metrics` 上」，该事实未被改动；
+KV 卸载到 CPU/磁盘属于推理服务调优（`model-serving` 的范围），不是训练侧交接内容，不合入。
+
+**trl-docs**：
+
+- `7da90a0`：`reducing_memory_usage.md` 删除实验性 GKD 的 `use_liger_kernel=True` 示例（融合 Liger JSD 路径下线）。
+- `cc5bb3f`：`grpo_trainer.md` 中 `log_extra` / `log_metric` 去掉「分布式下各进程须记录同一组 key」的提醒（框架已在 flush 前跨 rank 对齐 key）。
+- `a98fa6a`：`grpo_trainer.md` 删除 Liger 融合 GRPO loss 专用的 `clip_ratio` 指标说明。
+- `db1c1a3`：`dpo_trainer.md` 标注 `use_liger_kernel=True` 时不输出 `mean_token_accuracy`、`logits/chosen`、`logits/rejected`，并更新 Liger 路径的不兼容组合（新增 `use_weighting`、`lm_head` 适配器、MoE 辅助损失不支持；移除「只支持单一 `loss_type`」与 `precompute_ref_log_probs` 限制）。
+- `e4a1c15`：删除实验性 `BCOTrainer`，`bco_pair` 行不再指向它。
+
+本 skill 从这三份文档取的是内存削减清单、DPO `beta` 作为 KL 锚的语义与 GRPO 的 vLLM colocate
+默认模式；全文不涉及 Liger、GKD、BCO、上述指标或 DPO 的参数组合限制（已 grep 核实），
+GRPO/DPO 的默认值也未在这些提交中变动。均为噪声。
+
+**peft-docs**：`73f9a1a` 新增 Astra 初始化（`init_lora_weights="astra"` 与 `AstraConfig`，
+需在 `get_peft_model` 前调用 `preprocess_astra`）。本条目是 reference-only，只用于交叉核对
+`r`、`lora_alpha`、`target_modules`、`use_rslora`、`use_dora` 的语义，这些字段在该 diff 中未改；
+skill 未列举 LoRA 初始化方式，新增的初始化选项不在合入面内，不合入。
+
+**正文与评测**：`SKILL.md` 与 `references/` 正文未变（只改 `metadata.version`），`SOURCES.yaml`
+仅 re-pin 全部 repo 条目，`contributes`/`notes` 不变。正文未变，未跑 D2。
