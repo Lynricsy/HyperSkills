@@ -150,3 +150,19 @@
 - **许可注意**：`onmax/nuxt-skills` 无 LICENSE 文件（`license: NONE`），按仓库许可政策合入，一字未抄。`vuejs/docs` 的 GitHub API 返回 `NOASSERTION`，实读 LICENSE 为 CC BY 4.0（图片除外），故 `license: CC-BY-4.0` 并在 `notes` 写署名。`Patrity/nuxt-skills` 为 GPL-3.0，按规则不得 merged，且内容无 reference 价值，直接 REJECT 未列入 `SOURCES.yaml`。
 - **未来同步要盯**：Vue 3.6 转 GA 后需复核 Vapor mode 与新响应式实现是否改变 `shallowRef`/`v-memo` 相关建议；Nuxt 5 的 Nitro v3 变更（`nuxt/server` 导入路径、`createError` 返回值、route rules `status` 重命名）目前只在 Nuxt 5 升级文档中，Nuxt 5 GA 后需重写 Nuxt reference 的 server 一节。
 - **放弃的方向**：Options API 与 JSX/render function 两条线（vuejs-ai 有专门 skill）不写默认路径，只在迁移语境提及；VueUse 函数目录（antfu `vueuse-functions`，300+ 文件）不收——它是 API 目录而非陷阱集，且 `frontend-design` 与本 skill 都不需要逐函数索引。
+
+## 2026-09-29 上游同步
+
+漂移报告（`tools/check_upstream.py`，2026-09-29）中本 skill 有 3 条 `behind`，均为 too-large，其余 `OK` / `manual check`。
+按完整区间用 blobless clone 归因（`git log/diff <旧pin>..<HEAD> -- <paths>`），不用日期窗口。
+pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
+
+| 上游 | 区间 | paths 内变更 | 判定 | 理由 |
+|---|---|---|---|---|
+| `onmax-nuxt-skills` | `50878f5..3bbba5a` | `9b069d6`「bundle ecosystem skills」及其后 `bc438e5` / `aa40aa0` / `de09c7b`（lint 修复与 bundle 重生成来回）：`skills/nuxt`、`skills/vue` 两棵树整体被替换，原手写文件（`nuxt-composables.md`、`gotchas.md` 等）全部删除，40 文件 +6370/−3207 | 重新裁决（不改正文） | 实读 `ecosystem-skills.json`：`nuxt` 与 `vue` 映射到 `antfu/skills`，由每周 CI 物化为副本（`skills/vue` 为 antfu 2026-01-31 生成版，`skills/nuxt` 为 2026-06-22 生成版）。本 skill 从该上游取用的全部内容来自 `50878f5` 的手写版本，HEAD 已不存在；今后该路径下的变化都是 `antfu-skills` 条目的重复。条目保留为已合入内容的署名，`notes` 写明取材提交是 `50878f5`、HEAD 的 pin 只是工具行为 |
+| `antfu-skills` | `a74f281..d02c484` | `d02c484`（按最新上游文档重生成）：`skills/vue` 新增 `GlobalDirectives` 全局指令类型、`isShallow()`、`defineProps` 使用导入类型三小段；`skills/nuxt` 整体改为基于 **Nuxt 5.x（5.0.0-0）**：Nitro v3 / h3 v2、`nuxt/server` 显式导入、`createError` 改 `status`/`statusText`、typed routes、大小写敏感路由、`clearNuxtState` 重置语义等；另补「`await` 不改变 SSR HTML、只影响客户端导航」与「`useFetch` key 含调用位置」 | 新增（不合入） | Vue 侧三项是 API 参考条目，不在本 skill 的陷阱/失败模式定位（`contributes`）内。Nuxt 侧：releases API 实查当前 GA 仍为 `v4.5.2`（2026-08-05），Nuxt 5 属预发布，本 skill 既定不写 Nuxt 5（见上文「未来同步要盯」）；与 Nuxt 4 共通的两点（`await` 与 `lazy` 相互独立、key 含调用位置）正文已有（规则 25 与 `references/nuxt.md`），无需改 |
+| `awesome-copilot` | `7568a48..997e95a` | 完整区间内 `instructions/vue.instructions.md`、`skills/unit-test-vue-pinia` 无提交、无 diff | 噪声（实际未变更） | 仅 re-pin |
+
+**正文未变**（仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin / notes），因此未跑 D2 行为评测。
+
+遗留：Nuxt 5 GA 后需按 antfu 已跟进的 Nitro v3 变更重写 `references/nuxt.md` 的 server routes 一节（`createError({ statusCode, statusMessage })` 在 Nuxt 5 下改为 `status` / `statusText`）。

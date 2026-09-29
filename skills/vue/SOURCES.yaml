@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin vue
 skill: vue
-version: "2026.09.12"
+version: "2026.09.29"
 upstreams:
   - id: vuejs-ai-skills
     kind: repo
@@ -17,7 +17,7 @@ upstreams:
     commit: c9d355ff23f654309dd02006be671859df0a134c
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The trunk failure-mode inventory: each path by which reactivity detaches (destructured reactive, reassigned proxy, refs inside collections, proxy identity), object mutation through defineModel not emitting, defineExpose dropped after an await, deep watch handing back the same reference, lifecycle and provide registration having to be synchronous, Pinia setup stores having to return all state, a route param change not re-running the component, return-based navigation guards replacing next(), composables with lifecycle hooks needing a host component in tests, and snapshot-only tests proving nothing. Also the workflow ordering rule that performance is a separate pass after behaviour is correct."
     notes: "Upstream frontmatter (metadata.version 18.0.0, author github.com/vuejs-ai, MUST/ALWAYS phrasing) and its Claude Code marketplace files were stripped. Its skills/vue-options-api-best-practices and skills/vue-jsx-best-practices trees were read and deliberately not merged: this skill documents one default authoring style. Its blanket rule 'always use shallowRef() instead of ref() for primitive values' contradicts the official documentation and was rejected (research/vue.md ruling 1). hyf0/vue-skills redirects to this repository and is not a separate upstream."
   - id: onmax-nuxt-skills
@@ -28,12 +28,12 @@ upstreams:
       - skills/nuxt
       - skills/vue
     ref: main
-    commit: 50878f5d40687d7617d6b26e1469006c771176f4
+    commit: 3bbba5aa4f3c2ddf093b5f8baa0c604e335a27d3
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Nuxt data-primitive selection (useFetch versus useAsyncData versus $fetch versus callOnce) and the option-consistency contract for calls sharing a key; useState as request-isolated payload state; useRequestFetch and the header-forwarding boundary; the ownership-based way of writing a Scope section. On the Vue side: defineModel({ required: true }) to avoid the initialisation double-emit, useTemplateRef, useId, data-allow-mismatch and deferred Teleport."
-    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its agent-specific 'Loading Files' checklists and cross-references to its own nuxt-ui / reka-ui / vueuse skills were stripped. Its skills/vue/references/gotchas.md is itself derived from vuejs-ai/skills; overlapping facts were re-verified against the official documentation before being written here."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its agent-specific 'Loading Files' checklists and cross-references to its own nuxt-ui / reka-ui / vueuse skills were stripped. Its skills/vue/references/gotchas.md is itself derived from vuejs-ai/skills; overlapping facts were re-verified against the official documentation before being written here. Re-ruled at the 2026-09-29 sync: everything listed under contributes was taken from the hand-written skills/nuxt and skills/vue trees as they stood at 50878f5. Since 9b069d6 (2026-09-18) upstream's weekly bundle job replaces both trees with materialised copies of antfu/skills (its ecosystem-skills.json maps nuxt and vue to antfu/skills), so the original material is no longer at HEAD and further changes under these paths duplicate the antfu-skills entry. The entry stays as attribution for what was merged; the commit tracks HEAD only because the pin tool records every repo entry, and 50878f5 remains the commit the contributed material came from."
   - id: antfu-skills
     kind: repo
     repo: antfu/skills
@@ -42,12 +42,12 @@ upstreams:
       - skills/vue
       - skills/nuxt
     ref: main
-    commit: a74f281a27dadc02397bc1a174b0f2c97531b6ae
+    commit: d02c48452d782231e4c32d7069cde731a4c7db42
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The SSR and context failure catalogue: the four valid contexts for a Nuxt composable, module-level state leaking across server requests, Nuxt context being lost after an await in setup, browser-only libraries needing a dynamic import inside onMounted, and the error-message-to-cause table. On the Vue side: effectScope, watcher flush timing, the toValue / MaybeRefOrGetter composable input contract, and returning refs rather than a reactive object."
-    notes: "paths are deliberately narrowed to skills/vue and skills/nuxt: this repository is already an upstream of this library's frontend-design skill (skills/antfu-design), and its skills/pinia content is fully covered by vuejs-ai-skills plus the official Pinia documentation, which is the higher authority. Its skills/vue-best-practices, vue-router-best-practices and vue-testing-best-practices directories are synchronised copies of vuejs-ai/skills (each carries its own LICENSE.md and SYNC.md) and are attributed there instead. metadata.source and metadata.author were stripped. Its claims 'prefer shallowRef over ref', 'discourage Reactive Props Destructure' and 'avoid auto-generated useAsyncData keys' were each rejected against the official documentation (research/vue.md rulings 1, 2 and 4)."
+    notes: "paths are deliberately narrowed to skills/vue and skills/nuxt: this repository is already an upstream of this library's frontend-design skill (skills/antfu-design), and its skills/pinia content is fully covered by vuejs-ai-skills plus the official Pinia documentation, which is the higher authority. Its skills/vue-best-practices, vue-router-best-practices and vue-testing-best-practices directories are synchronised copies of vuejs-ai/skills (each carries its own LICENSE.md and SYNC.md) and are attributed there instead. metadata.source and metadata.author were stripped. Its claims 'prefer shallowRef over ref', 'discourage Reactive Props Destructure' and 'avoid auto-generated useAsyncData keys' were each rejected against the official documentation (research/vue.md rulings 1, 2 and 4). From d02c484 (2026-09-28) its generated skills/nuxt targets Nuxt 5 prerelease (5.0.0-0: Nitro v3, nuxt/server imports, status/statusText error fields, typed routes); Nuxt 4.5.2 is still the GA line, so none of that is stated here until Nuxt 5 ships."
   - id: awesome-copilot
     kind: repo
     repo: github/awesome-copilot
@@ -56,10 +56,10 @@ upstreams:
       - instructions/vue.instructions.md
       - skills/unit-test-vue-pinia
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 997e95a6e42869c350f8ca6ec4c066287697c9f0
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The coverage checklist used to find this skill's gaps, which added defineSlots and defineOptions, customRef, scoped-style :deep() and v-bind(), and effectScope. And the testing decision table: createTestingPinia as a mount plugin with createSpy: vi.fn, stubActions: false only when an action's real behaviour is the subject, initialState for seeding, setActivePinia(createPinia()) for pure store tests, and wrapper.vm as an exception rather than a default."
     notes: "The instructions/*.instructions.md frontmatter field applyTo is an agent-specific glob and was stripped. The instruction file is a breadth checklist rather than a trap list, so it was used for coverage rather than as a source of rules."
   - id: awesome-skills-code-review
@@ -72,7 +72,7 @@ upstreams:
     commit: 4850184dfd7765ea7b3c5c4e9b6cf8e0815ee7cb
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The review-oriented topic grouping behind this skill's Output format, and the shallowRef plus triggerRef pairing for deliberate deep mutations of an opted-out ref."
     notes: "Upstream reference is written in Chinese; only its structure and rule semantics were taken and everything here is written from scratch in English."
   - id: vue-docs

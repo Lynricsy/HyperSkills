@@ -4,7 +4,7 @@ description: "Develops Vue and Nuxt applications with Composition API, Pinia and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: framework
 ---
 
