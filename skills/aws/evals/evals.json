@@ -68,5 +68,45 @@
       "Stays inside Terraform's own vocabulary - `moved` blocks, state addresses, an empty plan as the acceptance gate - without drifting into AWS VPC architecture, subnet sizing, or AWS CLI commands",
       "skill_read is false for the `aws` skill: this is HCL and state mechanics, which belong to the `terraform` skill even though every resource in the file is an AWS resource"
     ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "reservation_service.py is our stock reservation module. We move the database from Aurora PostgreSQL to Aurora DSQL next sprint and the plan is to change only the connection string. Review the module for what will break or behave differently on DSQL and give me the corrected code.",
+    "files": ["evals/files/reservation_service.py"],
+    "expected_behavior": [
+      "States that on DSQL `SELECT ... FOR UPDATE` does not take a blocking row lock: a second buyer is not made to wait; instead the selected rows are checked for conflicts at commit time and the transaction that commits second fails with SQLSTATE `40001` (OCC data conflict, `OC000`), so the comment 'No retry needed' is wrong",
+      "Wraps the whole transaction - from the `FOR UPDATE` read through the writes - in a retry loop on `40001` with backoff, re-reading the stock on each attempt, rather than retrying only the failing statement",
+      "Moves `charge_card` (an external, non-transactional side effect) out of the retried transaction or makes it idempotent keyed on `order_id`, because a retry would otherwise charge the card twice",
+      "Flags `FOR SHARE` in `check_price` as unsupported on DSQL (only `FOR UPDATE` and `FOR KEY SHARE` are), and replaces it with `FOR KEY SHARE` or a plain read according to what the code needs, noting that `FOR KEY SHARE` does not conflict with updates to non-key columns such as `price_cents`",
+      "Flags `nightly_expire` as exceeding DSQL's per-transaction limits - 3,000 modified rows and 10 MiB, which the `FOR UPDATE`-selected rows also count against - and rewrites it as batches of well under 3,000 row modifications, each its own retried transaction",
+      "Does not claim the `FOR UPDATE` must be an equality lookup on the full primary key or that the join makes it unsupported; non-key predicates and joins are accepted"
+    ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "bedrock-access.json has the context, the identity policy of our support-bot role and the org's region SCP. About two thirds of the bot's Bedrock calls fail with the AccessDenied shown there. Explain exactly why, give me the fixed identity policy and SCP, and tell me what changes when we move to the global profile next quarter - including how to stop the EU workloads account from using global routing.",
+    "files": ["evals/files/bedrock-access.json"],
+    "expected_behavior": [
+      "Explains that a geographic (`us.`) inference profile makes Bedrock authorize the profile ARN, the foundation model in the source Region, and the foundation model in each destination Region the profile can route to, so the failures are the requests routed to `us-east-2`/`us-west-2`; the intermittency is the routing, not throttling",
+      "Fixes the identity policy by allowing the foundation-model ARN in every destination Region (foundation-model ARNs carry an empty account field) scoped with a `bedrock:InferenceProfileArn` condition to this profile, and tells the user to read the destination list with `aws bedrock get-inference-profile` rather than guessing it",
+      "Adds `bedrock:InvokeModelWithResponseStream` alongside `bedrock:InvokeModel`, because `ConverseStream` is authorized as the streaming action and the policy grants only `InvokeModel`",
+      "Fixes the SCP with a narrow exception keyed on `bedrock:InferenceProfileArn` (or by allowing the destination Regions) rather than opening the Region allowlist for every service, and notes the exception cannot bypass the Region check on the originating call",
+      "For the global profile, states that authorization also covers the Region-agnostic `arn:aws:bedrock:::foundation-model/<model>` ARN evaluated with `aws:RequestedRegion` = `unspecified`, so both the identity policy and the Region SCP need to account for it",
+      "Blocks global routing for the EU account with an SCP deny on `aws:RequestedRegion` = `unspecified` combined with an `ArnLike` on `bedrock:InferenceProfileArn` matching `inference-profile/global.*`, not with a Region-name deny, which does not match the global evaluation"
+    ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "alerting-runbook.md is how payments-api alerting works today. Fix it: I want the error alarm, the per-endpoint latency paging and the maintenance procedure done properly with CloudWatch itself, with the exact CLI calls.",
+    "files": ["evals/files/alerting-runbook.md"],
+    "expected_behavior": [
+      "Rejects the ~900-value `endpoint` metric-filter dimension as a custom-metric cardinality and cost problem (each distinct dimension combination bills as a metric) and 900 per-endpoint alarms as unmanageable",
+      "Uses a CloudWatch log alarm (`aws cloudwatch put-log-alarm`) that evaluates a Logs Insights query on a schedule with a `by endpoint` aggregation so each endpoint is its own contributor in one alarm, and names the scheduled-query role (`ScheduledQueryRoleARN`) the alarm needs to run the query on the log group",
+      "Handles the log-alarm limits that bite here: the aggregation expression accepts only `count(*)`, `avg`, `sum`, `min` and `max` (no `pct`, so p90 cannot be the aggregation as asked and the substitute is stated), and with ~900 endpoints above the 500 contributors returned per execution the expression needs `| sort desc` so the slowest endpoints are the ones evaluated",
+      "Describes the log alarm's M-of-N evaluation over query results (`--query-results-to-alarm` / `--query-results-to-evaluate`) and that `describe-alarms` returns only metric alarms unless `--alarm-types LogAlarm` is passed",
+      "Replaces `disable-alarm-actions`/`enable-alarm-actions` with an alarm mute rule (`aws cloudwatch put-alarm-mute-rule`) using `cron(0 2 * * SUN)`, a `PT4H` duration and the `America/New_York` time zone, so nothing has to be re-enabled by hand",
+      "States that a mute rule only suppresses actions while the alarms keep evaluating, and that when the window ends an alarm still in the muted state has its actions re-triggered - which is exactly the 06:00 paging requirement - whereas disabled actions stay off until someone re-enables them",
+      "Notes the mute-rule constraints that affect this runbook: at most 100 target alarms per rule, targets named explicitly (no wildcards) in the same account and Region, and `cloudwatch:PutAlarmMuteRule` needed on both the rule and every targeted alarm"
+    ]
   }
 ]

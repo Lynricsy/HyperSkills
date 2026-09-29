@@ -309,3 +309,109 @@ HTTP API 30s 不可提与 REST 29s 的可提范围及其节流配额代价；Clo
 - **逐条抄 Well-Architected 问题清单**：aws-samples 那份把六支柱拆成一个问题一个文件，
   照搬会得到一份 400 行的勾选表。`references/well-architected.md` 改成「每个支柱真正逼出的
   决策 + 跨支柱权衡表 + 一份四行 ADR 模板」，这是对基线唯一可能有增量的形态。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `check_upstream.py` 报告。`aws-builder-samples`、`zxkane-aws` 为 up to date，
+`aws-docs` 为 manual check，均未处理；其余 5 个 behind 条目逐一归因如下。两个 too-large 仓库按
+完整区间归因：`git clone --filter=blob:none --no-checkout` 后跑
+`git log <旧pin>..<HEAD> -- <paths>` 与 `git diff --stat <旧pin> <HEAD> -- <paths>`，不用日期窗口。
+pin 后核对：写入的 commit 与审阅的 HEAD 一致（`097fe8a`、`8164a8f`、`e81835b`、`997e95a`、`e786d25`）。
+
+| 上游 | 区间 | 命中 paths 的提交 | 判定 | 处理 |
+|---|---|---|---|---|
+| `awslabs-agent-plugins` | `9898ddc..097fe8a` | `097fe8a`（#271，dsql） | 更正 + 新增 | 更正合入；新增经基线实测撤回，见下 |
+| `aws-agent-toolkit` | `1c0dfd4..8164a8f`（29 提交，too large） | `9dd9d8b`（CloudFormation 校验工具指南）、`c709fea`/`bb272a8`（aws-observability v5/v6，CloudWatch Omni）、`c126e44`（aws-database 路由）；90 文件 | 新增，不合入 | 见下 |
+| `aws-wa-samples` | `276eccf..e81835b` | `35042c1`（弃用通告）、`1ae6729`（CI 指标守卫）、`cab7e03`（删除自报测量数字） | 重新裁决 | 保留署名，继任者改由 `aws-agent-toolkit` 跟踪 |
+| `awesome-copilot-aws` | `7568a48..997e95a`（62 提交，too large） | 5 个 path 在完整区间内 `git log` 无提交、`diff --stat` 为空 | 噪声（paths 实际未变） | 仅 re-pin |
+| `itsmostafa-aws`（reference） | `4ab904a..e786d25` | bedrock / cloudwatch / ecs 三组共 8 个提交 | 新增（线索） | 按官方文档写 CloudWatch 两处；bedrock、ecs 不合入 |
+
+**awslabs-agent-plugins（dsql）**：`097fe8a` 把事务上限的措辞从 "rows" 改为 "row modifications"，
+并新增 `SELECT ... FOR UPDATE` 指南（非阻塞、提交时 OCC 判定、支持非主键谓词与 join、`FOR UPDATE`
+与 `FOR KEY SHARE` 支持而 `FOR SHARE`/`FOR NO KEY UPDATE` 不支持、被锁行主键计入 10 MiB）。
+对照官方：`CHAP_quotas` 原文是「Maximum number of table rows that can be mutated in a transaction
+block: 3,000」；`working-with-concurrency-control` 给出 `FOR UPDATE`/`FOR KEY SHARE` 冲突矩阵；
+`supported-sql-features` 对 `FOR { UPDATE | KEY SHARE }` 注「Transaction limits apply」。
+
+- 更正：`references/data-services.md` 表格「Rows per transaction」改为「Rows modified
+  (`INSERT`/`UPDATE`/`DELETE`) per transaction」，下文「3,000-row transaction limit」同步改为
+  「modification limit」。这是事实更正，不走基线划界。
+- 新增：写了 `FOR UPDATE`/`FOR KEY SHARE` 一段并用场景 6 实测。基线（无 skill，能联网查文档）已自行
+  给出非阻塞语义、整事务重试、扣款移出重试块、`FOR SHARE` 不支持、分批；有 skill 时只多点名了
+  `FOR KEY SHARE`，仍未说出其「不与非键列更新冲突」的语义，也未提被锁行计入 10 MiB。
+  没有任何一条基线未达成的行为在有 skill 时完整达成，按 R14 **撤回该段**，正文只保留更正。
+
+**aws-agent-toolkit**：
+
+- `aws-cloudformation`：新增 `cloudformation-validate`（`cfn-validate` CLI 与各语言库）作为与
+  cfn-lint 二选一的本地校验器、CloudFormation Language Server 指南、「cfn-guard 默认执行」、
+  `troubleshoot-failed-stack` SOP。本 skill 合入的是校验分层与 `describe-events --filters
+  FailedEvents=true`、级联 `Resource creation cancelled` 的判读，这些在新版中原样保留（迁到
+  SOP）；cfn-lint 仍是有效默认，新工具只是并列选项，不改正文。
+- `aws-observability` v5/v6：新增 CloudWatch Omni（Space、SQL/PromQL、Alerts、context graph、
+  agent 评估）与 `setting-up-cloudwatch-observability`，旧 `references/*` 迁到 `references/cloudwatch/`。
+  Omni 是独立的新产品面，体量大（新增约 9,000 行），本 skill 的 CloudWatch 事实（计费维度、
+  Logs Insights、保留期、配额）未被推翻；是否为 Omni 单开内容留待后续评估，本次不合入。
+- `aws-database`：Timestream 更名为 Timestream for InfluxDB、DynamoDB 原生向量检索（`SearchVectors`）、
+  DSQL 卡片措辞（「有 cluster 资源但无实例」）、迁移建议不再宣称补丁自动化。本 skill 的
+  `data-services.md` 未涉及这些断言，不改。
+- 新增 path：`skills/core-skills/aws-well-architected-review`（`764fd35`，2026-09-21 加入），
+  理由见 aws-wa-samples 的重新裁决。
+
+**aws-wa-samples 重新裁决**：`35042c1`（issue #147）宣布其 `aws-well-architected-framework-review`
+skill 弃用，继任者为 `aws/agent-toolkit-for-aws` 的 `aws-well-architected-review`，并冻结新功能；
+仓库本身保留（未归档）作兼容/回归套件，被跟踪的 steering 内容「不受影响」。`gh api` 复核：
+仓库 `archived: false`，MIT-0，最近推送 2026-09-24。实读继任 skill：它是依赖实时抓取 AWS 文档、
+按 BP 逐条出台账的门控评审流程，绑定 `aws___read_documentation` 等 MCP 工具；可复用的判断只有
+「按业务关键度校准严重度、不为成熟工作负载制造 Critical」，`references/well-architected.md` 的
+「How to run a review」第 1、3 条已覆盖。裁决：
+
+1. 已合入的问题语义仍然正确，`aws-wa-samples` 保持 `merged` 与署名（MIT-0 无署名义务，但如实记录来源），
+   `notes` 写明弃用与继任关系。
+2. 继任者加入 `aws-agent-toolkit` 的 `paths`，以后 Well-Architected 的变化从这里暴露；本次不合入内容。
+3. `cab7e03` 删除了上游自报的数字（REST vs HTTP「70%」、Graviton「40%」、gp3「20%」、网关端点「免费」），
+   原因是上游「不发布测量结果」的政策而非事实更正。本 skill 引用的「HTTP API roughly 70% lower
+   cost」与「gateway endpoints carry no hourly and no per-GB charge」出自 AWS 官方定价与文档，
+   保留不改。
+
+**itsmostafa-aws（reference）**：只作覆盖面线索。三组改动逐项对照官方文档后：
+
+- cloudwatch：log alarm（`PutLogAlarm`）与 alarm mute rule 是本 skill `cloudwatch.md` 缺的产品面。
+  按官方 `alarm-log`、`API_PutLogAlarm`、`alarm-mute-rules`、`put-alarm-mute-rule`、`describe-alarms`
+  页面自行撰写，并用场景 8 划界（见下）。上游提到的 `WallClockWindow`、warm-up 等未评估，不合入。
+- bedrock：跨区域推理画像的多资源授权（目的区域 FM ARN、global 的 `unspecified`、SCP 例外键
+  `bedrock:InferenceProfileArn`、`ConverseStream` 需 `InvokeModelWithResponseStream`）已按官方页面
+  核实，写成 `iam.md` 一节后用场景 7 实测：**基线 6/6 全部达成**，按 R14 撤回。
+- ecs：部署熔断阈值、early success criteria、20 秒指标、action logs、AL2023 cgroup v2 OOM 等属
+  ECS 工作负载运维细节，本 skill 的 `eks-control-plane.md` 只覆盖 ECS 控制面等价物，不合入。
+
+### 评测结果（2026-09-29，D2）
+
+模型固定 `workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同模型；
+`--out /tmp/hs-evals-sync/SyncG6/aws-s<N>`。新增场景 6–8 及夹具 `reservation_service.py`、
+`bedrock-access.json`、`alerting-runbook.md`。负例场景 5 未跑：本次未改 description 与 `## Scope`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 DSQL 迁移审查 | deepseek-v4.1-flash · max | 无 | false | 4 / 6（1、2、3、6 达成；4、5 部分） | 联网查文档后自行给出非阻塞、整事务重试、扣款移出、`FOR SHARE` 不支持、分批。未提 `FOR KEY SHARE` 语义与被锁行计入 10 MiB |
+| 6 DSQL 迁移审查 | deepseek-v4.1-flash · max | 有（撤回前正文） | true | 4 / 6（同上；4 仍为部分） | 多点名了 `FOR KEY SHARE` 并按「值不能变才用 `FOR UPDATE`」取舍，但没有一条基线未达成的行为变为达成 → 撤回新增段落 |
+| 7 Bedrock 跨区域推理授权 | deepseek-v4.1-flash · max | 无 | false | 6 / 6 | 自行查到三段授权、目的区域 FM ARN、`InvokeModelWithResponseStream`、`bedrock:InferenceProfileArn` 例外、global 的 `unspecified` 与 `ArnLike global.*` 的 deny → 撤回，未跑有 skill |
+| 8 CloudWatch 告警整改 | deepseek-v4.1-flash · max | 无 | false | 3 / 7（1、5、6 达成；7 部分） | 仍用 metric filter + 每路由一个告警（改为有界路由模板）；完全未提 log alarm；mute rule 的 cron/PT4H/时区与窗口结束重触发均答对，但未提 `PutAlarmMuteRule` 双资源授权 |
+| 8 CloudWatch 告警整改 | deepseek-v4.1-flash · max | 有 | true | 7 / 7 | 改用单个多 contributor 的 `put-log-alarm`：百分位放进 query、`max(p90_ms) by route \| sort desc`、500 contributor 上限、2/3 的 M-of-N、`describe-alarms --alarm-types LogAlarm`、查询角色；mute rule 注明 rule 与每个目标告警都需 `cloudwatch:PutAlarmMuteRule` |
+
+结论：**通过**。场景 8 的 2、3、4 三条基线未达成、有 skill 达成，7 由部分变为达成。据此，
+`cloudwatch.md` 中基线已会的 mute rule 机制（cron/duration/时区、窗口结束重触发、
+`disable-alarm-actions` 的对比）在跑有 skill 之前已压缩为只剩双资源授权一句，正文只保留 log alarm
+一条与该授权一句。场景 6、7 按 R14 撤回，场景与夹具保留作划界记录。
+
+改动文件：`references/cloudwatch.md`（metric filter 一条补高基数与 log alarm 指引；Alarms 新增 log alarm
+与 mute rule 授权两条）、`references/data-services.md`（DSQL 行修改上限的措辞更正）、`SKILL.md`
+（CloudWatch 路由行补「log alarms and mute rules」、版本号）、`SOURCES.yaml`、`evals/`。
+
+遗留风险：
+
+- log alarm 的计费（每次定时查询是否按 Logs Insights 扫描字节计费）未在官方页面上找到明确说明，
+  正文没有写成本结论；场景 8 有 skill 答案里的「≈ $6/月」是模型自行按 Price List 估算的，未核实。
+- CloudWatch Omni 是新产品面，本次未评估是否需要进入本 skill；下次同步 `aws-agent-toolkit`
+  的 `aws-observability` 时应重新判断。
+- `aws-wa-samples` 已冻结，今后大概率只剩噪声提交；若其仓库被归档，可考虑把 relation 降为 reference。

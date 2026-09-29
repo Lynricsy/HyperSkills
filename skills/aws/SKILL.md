@@ -4,7 +4,7 @@ description: "Manages AWS architecture, IAM, cloud services, deployments and cos
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: platform
 ---
 
@@ -263,7 +263,7 @@ Paths below are relative to this skill's directory.
 | Cost Explorer and CUR, the Price List API, Budgets and Cost Anomaly Detection, Compute Optimizer, Savings Plans versus Reserved Instances, and the per-service cost traps | Investigating a cost spike or building a reduction plan | `references/cost.md` |
 | The six pillars turned into concrete trade-offs, the questions worth asking per pillar, multi-AZ versus multi-region, RTO/RPO choices, and how to record a decision | Running a design review, or justifying an architecture to someone who will inherit it | `references/well-architected.md` |
 | EKS cluster creation and versions, standard versus extended support, node groups versus Karpenter versus Auto Mode, EKS Pod Identity versus IRSA, the VPC CNI and IP exhaustion, add-ons and upgrades; ECS and Fargate control-plane equivalents | Creating, upgrading or diagnosing a managed cluster — not the workloads on it | `references/eks-control-plane.md` |
-| CloudWatch metrics, alarms and composite alarms, Logs groups and retention, Logs Insights query syntax, the quotas and the billing dimensions, and what belongs in the `observability` skill instead | Working with CloudWatch itself, or explaining a CloudWatch bill | `references/cloudwatch.md` |
+| CloudWatch metrics, alarms, composite alarms, log alarms and mute rules, Logs groups and retention, Logs Insights query syntax, the quotas and the billing dimensions, and what belongs in the `observability` skill instead | Working with CloudWatch itself, or explaining a CloudWatch bill | `references/cloudwatch.md` |
 
 ## Output format
 

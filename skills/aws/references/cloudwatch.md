@@ -97,7 +97,9 @@ the cost you were avoiding, just from inside a log line.
   investigation — check the current feature matrix before moving an operational log group.
 - **Metric filters** turn a log pattern into a metric without changing the application. That
   is the cheap way to alarm on "ERROR appeared in the log" — but the resulting metric is a
-  custom metric and bills like one.
+  custom metric and bills like one, and a high-cardinality field used as a dimension
+  multiplies it. When the condition is naturally a query — "per endpoint", "per tenant" — use
+  a log alarm instead (see Alarms).
 - **Subscription filters** stream log events to Kinesis, Firehose or Lambda in near real time.
   This is how logs leave CloudWatch for a data lake or a third-party backend; there is a
   limit on subscription filters per log group, so a fan-out needs Firehose in the middle.
@@ -149,6 +151,20 @@ Operational notes:
   on CPU. CPU alarms fire during healthy load and stay quiet during a deadlock.
 - Route actions to SNS and let the routing live downstream. An alarm wired directly to one
   email address is an alarm that stops working when that person leaves.
+- **Log alarms** (`aws cloudwatch put-log-alarm`) evaluate a Logs Insights query that runs on
+  a schedule, with no metric filter in between. CloudWatch creates and owns the scheduled
+  query; the alarm needs a `ScheduledQueryRoleARN` that can run it on the named log groups.
+  Each run is reduced by an `AggregationExpression` — `count(*)`, `avg`, `sum`, `min` or `max`
+  only, so no percentiles — and the alarm fires on M of the last N runs
+  (`--query-results-to-alarm` / `--query-results-to-evaluate`). A `by` clause makes each
+  group a contributor inside one alarm (up to 5 fields, 100 contributors in `ALARM`), but
+  only 500 contributors are returned per run and by default alphabetically — append
+  `| sort desc` so the worst ones are the ones evaluated. Scheduled-query executions are
+  capped at 100 concurrent per account, so stagger the schedules of many log alarms.
+  `describe-alarms` returns metric alarms only unless you pass `--alarm-types LogAlarm`.
+- An alarm mute rule (`put-alarm-mute-rule`) is authorised twice: the caller needs
+  `cloudwatch:PutAlarmMuteRule` on the rule **and** on every alarm it targets, so a
+  maintenance role scoped to the rule ARN alone fails.
 
 ## Investigating with CloudWatch
 

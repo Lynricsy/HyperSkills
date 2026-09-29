@@ -1,0 +1,40 @@
+{
+  "context": {
+    "account": "111122223333",
+    "source_region": "us-east-1",
+    "caller": "arn:aws:iam::111122223333:role/support-bot",
+    "model_id_used_in_code": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "api": "ConverseStream",
+    "error": "AccessDeniedException: User: arn:aws:sts::111122223333:assumed-role/support-bot/i-0abc is not authorized to perform: bedrock:InvokeModelWithResponseStream on resource: arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0 with an explicit deny in a service control policy",
+    "frequency": "roughly two thirds of requests fail; the rest succeed"
+  },
+  "identity_policy_support_bot": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "InvokeClaude",
+        "Effect": "Allow",
+        "Action": "bedrock:InvokeModel",
+        "Resource": [
+          "arn:aws:bedrock:us-east-1:111122223333:inference-profile/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+          "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0"
+        ]
+      }
+    ]
+  },
+  "scp_region_allowlist": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "DenyOutsideUsEast1",
+        "Effect": "Deny",
+        "NotAction": ["iam:*", "sts:*", "organizations:*", "support:*", "cloudfront:*", "route53:*"],
+        "Resource": "*",
+        "Condition": {
+          "StringNotEquals": { "aws:RequestedRegion": ["us-east-1"] }
+        }
+      }
+    ]
+  },
+  "next_quarter_plan": "Switch the model id to global.anthropic.claude-sonnet-4-5-20250929-v1:0 for the ~10% discount. Compliance also asked us to make sure no team in the org can use global routing for the EU workloads account."
+}

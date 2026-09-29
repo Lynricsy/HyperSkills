@@ -85,7 +85,7 @@ writes. Its constraints are unusual enough that "PostgreSQL-compatible" misleads
 
 | Limit | Default |
 |---|---|
-| Rows per transaction | 3,000 |
+| Rows modified (`INSERT`/`UPDATE`/`DELETE`) per transaction | 3,000 |
 | Data per transaction | 10 MiB |
 | Transaction duration | 5 minutes |
 | Connections per cluster | 10,000 |
@@ -101,7 +101,7 @@ Concurrency control is optimistic, so a committing transaction can fail with `40
 normal control flow, and code written against single-writer PostgreSQL will not have it.
 Foreign-key violations (`23503`) are not retryable and must be handled differently.
 
-The 3,000-row transaction limit means bulk loading is a batching problem, and the 60-minute
+The 3,000-row modification limit means bulk loading is a batching problem, and the 60-minute
 connection cap means long-lived pools need rotation. DDL runs one statement per transaction,
 and indexes are built with `CREATE INDEX ASYNC`.
 
