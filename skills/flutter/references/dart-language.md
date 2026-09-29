@@ -33,6 +33,14 @@ Rules that bite: both branches of `||` must bind exactly the same variables;
 `&&` branches must not bind overlapping ones; `when` guards run after the
 pattern matches and may reference the bound variables.
 
+Patterns validate; they must not silently filter. `if (raw case {...})` inside a parsing
+loop drops every malformed element without a trace, so a truncated manifest or API
+response "parses" into a shorter list. When bad input is an error, check the shape and
+throw `FormatException('expected …, got $raw')` (or report the element) instead of
+skipping it. A map pattern also requires every listed key to be present — `'hash':
+String? hash` does not make an omitted key optional — so match the required keys and
+read optional ones from the matched map.
+
 ## Switch statements vs expressions
 
 ```dart
@@ -129,6 +137,22 @@ class Rect(final double width, final double height) {
   `extensions.dart` per feature so they are discoverable.
 - `Object.hash(a, b, c)` for hand-written `hashCode`; better, generate value
   types with `freezed` or extend `Equatable`.
+
+File paths in package, tool and build code go through `package:path` (`as p`), never
+string operations — `/` and `\` differ across hosts, and string code passes tests on the
+CI's OS only:
+
+| Instead of | Use |
+|---|---|
+| `'$dir/$name'` | `p.join(dir, name)` |
+| `path.startsWith('assets/')`, `path.split('/')` | `p.split(path)` with a list pattern (`case ['assets', final bucket, ...]`), or `p.isWithin(root, path)` |
+| `path.endsWith('.png')`, `lastIndexOf('.')` | `p.extension(path)`, `p.withoutExtension(path)` |
+| `substring(root.length + 1).replaceAll(r'\', '/')` for a manifest, URL or Git key | `p.posix.joinAll(p.split(p.relative(path, from: root)))` (or `p.url`) |
+| `Uri.parse(path)`, `uri.path` | `p.toUri(path)`, `p.fromUri(uri)` |
+
+Code that takes a `package:file` `FileSystem` must use that file system's `path` context:
+the global `p` functions follow the host OS, so a Windows-style `MemoryFileSystem` test
+breaks on a Linux runner.
 
 ## Failure catalogue
 

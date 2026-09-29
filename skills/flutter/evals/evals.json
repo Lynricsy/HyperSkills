@@ -43,5 +43,17 @@
       "Reviews the file as SwiftUI code and does not suggest Flutter, Dart or Riverpod changes",
       "Flags that @State should not be seeded from a value passed into the view (profile should be a plain let, or the view should take a binding)"
     ]
+  },
+  {
+    "skills": ["flutter"],
+    "query": "Review asset_manifest.dart in this directory. It's part of a Dart package our build tooling runs on Windows, macOS and Linux. Fix the bugs and modernise it with Dart 3 where that actually helps. Show the revised code.",
+    "files": ["evals/files/asset_manifest.dart"],
+    "expected_behavior": [
+      "Explains that the map pattern {'hash': String? hash} only matches when the key is present (map patterns check containsKey), so entries from older generators that omit hash are silently dropped despite the nullable type, and reads the optional field from the matched map instead",
+      "Replaces the if-case filter that silently skips malformed entries with fast-fail handling (throwing a FormatException or reporting the bad entry) rather than ignoring it",
+      "Uses package:path: p.join for fileFor, and p.split with a list pattern such as ['assets', ...] / ['assets', final bucket, ...] (or p.isWithin) instead of startsWith('assets/') and split('/').skip(1).first",
+      "Builds webKey with p.relative plus p.posix.joinAll(p.split(...)) (or p.url) instead of substring arithmetic and replaceAll('\\\\', '/'), and uses p.extension for isImage",
+      "Replaces the switch over a bool with a conditional expression and the standalone if (code case >= 200 && < 300) with a plain boolean comparison, rather than adding more patterns"
+    ]
   }
 ]

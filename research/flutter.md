@@ -233,3 +233,48 @@ key 命名约定、pump vs pumpAndSettle、对话框与 GoRouter 导航测试）
   以及「不 vendor 官方 Dart skills 而只做引用」这一方案——引用方案在离线或未安装官方 skill 的
   环境下直接失效，与本仓库「单 skill 自足」的定位冲突。
 - **未来可选附加**：`FlutterFlow/shadertoy_to_flutter_skill`（shader 移植）如需可单独立项。
+
+## 2026-09-29 上游同步
+
+漂移报告中本 skill 有三条 `behind`：`flutter-official`、`dart-official`、`evanca-rules`，都列出了 paths 下的具体
+提交（非 too-large 归因）；其余 repo 条目 OK，`flutter-docs` 为 manual check。`--pin` 后核对：写入的 commit
+（8da8c54、0d9f1c4、7b9cce2）与本次审阅的 HEAD 一致。
+
+### dart-official（c530d2c → 0d9f1c4，paths: `skills`）
+
+| 提交 | 变更 | 判定 |
+|---|---|---|
+| ff1a88a、82a4960 `dart-use-pattern-matching` | 新增「务实边界与反模式」：`is` 提升优于 `if-case` 别名、可空类型合并、**不要用 `if-case` 在解析中静默丢弃坏数据**、避免单分支 / 布尔 switch、避免无谓解构、独立标量比较不用 `case`；map pattern 要求 key 存在（`containsKey`）；路径段 / `split` 结果用带 rest 的 list pattern | 新增 → 基线实测：key 存在语义与布尔 switch / 标量 `case` 基线已会，不合入；**静默丢弃** 基线未达成，合入 |
+| 26b2dcc、82a4960 `dart-use-path-package` | 新 skill：`package:path` 取代字符串拼接 / 前缀 / 扩展名 / 分隔符替换，`p.posix.joinAll(p.split(p.relative(…)))` 生成 POSIX/URL 键，`package:file` 需用其自带 path context | 新增 → 基线未达成，合入（Dart package / 工具代码属本 skill Scope） |
+| 0f958a5 `dart-build-cli-app` | CLI 应用架构、退出码、信号、AOT | 不合入：Dart CLI 应用不在本 skill Scope（Flutter 应用与 Dart package），上游自身也声明不用于 Flutter UI |
+| 4a50c62、0d9f1c4 | CI、lint 工具 | 噪声 |
+
+事实核对：map pattern 的 key 存在语义在本机 Dart 3.13.2 实测（`{'name': 'x'}` 不匹配 `{'name': String _, 'hash': String? _}`，
+`{'name': 'x', 'hash': null}` 匹配）；`package:path` 表格用 `path.windows` 上下文冒烟
+（`C:\build\out\assets\img\logo.PNG` → `assets/img/logo.PNG`、list pattern 取到 `img`、`p.extension` 为 `.PNG`、`p.isWithin` 为 true）。
+
+### flutter-official（9b8106d → 8da8c54，paths: `skills`）
+
+三个 `chore: auto-sync skills directory from dart-lang/skills` 提交把上面 dart-official 的同一批变更同步进来，
+另带入 `dart-use-doc-examples`（Dartdoc `{@example}` 指令）。判定：与 dart-official 同源，按上表处理；
+`dart-use-doc-examples` 属文档工具，不在 contributes 范围，不合入。其余提交为插件配置 / lint 工具，噪声。
+
+### evanca-rules（b75d631 → 7b9cce2，paths: `skills`）
+
+7b9cce2 只改 `developing-genkit-dart/SKILL.md`：安装步骤去掉 `curl … | bash`，改为 npm 并要求用户自行执行远程脚本。
+Genkit / Firebase 属本 skill Scope 外、从未合入，判定噪声，仅 re-pin。
+
+### 评测（`workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同模型）
+
+新增场景 5（夹具 `asset_manifest.dart`：跨平台 Dart package 里的清单解析与路径处理）。
+
+| 场景 | 模式 | skill_read | 结果 | 证据摘录 |
+|---|---|---|---|---|
+| 5 | 基线 | false | EB1 ✔ EB2 ✘ EB3 ✘ EB4 ✘ EB5 ✔ | 识别出省略 `hash` 被丢弃；但坏条目仍静默跳过、坏文档返回 `const []`；手写 `_toNative`/`_toPosix`（`replaceAll(r'\', '/')`）、`startsWith`、`toLowerCase().endsWith` |
+| 5 | 有 skill（首轮，仅 reference 内有规则） | true | EB1 ✔ EB2 ✘ EB3 ✘ EB4 ✘ EB5 ✔ | 只读了 `SKILL.md`，未进入 `dart-language.md`，结果与基线相同 |
+| 5 | 有 skill（SKILL.md 增加 Core rule 13 后） | **true** | EB1 ✔ **EB2 ✔ EB3 ✔ EB4 ✔** EB5 ✔ | 读了 `dart-language.md`；「抛 FormatException 并指名坏元素」、`p.join(root, entry.name)`、`switch (p.split(path)) { ['assets', ...] => … }`、`p.posix.joinAll(p.split(p.relative(nativePath, from: root)))`、`p.extension` |
+
+首轮失败的原因是规则只放在 reference 里、`review` 路径没有把模型引到那里；据此把「解析快速失败 + `package:path`」
+提为 Core rule 13（原 gate 规则顺延为 14），并在 Topic router 的 Dart 3 行加上 `package:path`。第二轮通过 D2：
+基线未达成的三条在有 skill 时全部达成。负例（场景 4）未改 description / Scope，未重跑。
+输出目录：`/tmp/hs-evals-sync/SyncG3/flutter-b5`（基线）、`flutter-s5`（首轮）、`flutter-s5r2`（终版）。

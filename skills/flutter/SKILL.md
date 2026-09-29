@@ -4,7 +4,7 @@ description: "Develops cross-platform Flutter apps with Dart, widgets and state 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: platform
 ---
 
@@ -62,7 +62,13 @@ Paths below are relative to this skill's directory.
 12. Base layout decisions on constraints (`LayoutBuilder`) or window size
     (`MediaQuery.sizeOf`), never on device type or `orientationOf` — apps run in split
     screen, on foldables and in resizable desktop windows.
-13. Finish every change with the gate: `dart format .`, then `flutter analyze` with zero
+13. Parsing fails fast and paths stay portable. An `if (raw case …)` inside a parsing loop
+    silently drops malformed input — throw `FormatException` naming the bad element
+    instead. File paths go through `package:path`: `p.join`, `p.split` with a list
+    pattern (or `p.isWithin`), `p.extension`, and `p.posix.joinAll(p.split(p.relative(…)))`
+    for manifest or URL keys — never `'$a/$b'`, `startsWith('x/')`, `split('/')` or
+    `replaceAll(r'\', '/')` (`references/dart-language.md`).
+14. Finish every change with the gate: `dart format .`, then `flutter analyze` with zero
     issues, then `flutter test`. Analyzer info-level lints count; silence one only with
     `// ignore: <code> — <reason>`.
 
@@ -160,7 +166,7 @@ Paths below are relative to this skill's directory.
 | Tests | Writing or reviewing unit, widget, integration or E2E tests | `references/testing.md` |
 | Widgets and layout | Building UI, adaptive layouts, or debugging constraints | `references/widgets-layout.md` |
 | Performance | Jank, dropped frames, slow lists, memory growth | `references/performance.md` |
-| Dart 3 language | Patterns, records, sealed classes, primary constructors | `references/dart-language.md` |
+| Dart 3 language | Patterns, records, sealed classes, primary constructors, `package:path` | `references/dart-language.md` |
 | Tooling | Analyzer config, `dart fix`, coverage, pub conflicts | `references/dart-tooling.md` |
 | Localization | Adding `.arb` strings, plurals, locale handling | `references/localization.md` |
 | JSON and HTTP | Models, parsing, network calls, isolates | `references/json-http.md` |

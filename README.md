@@ -140,7 +140,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`debugging`](skills/debugging/) | 任务 | Diagnoses and fixes reproducible bugs, regressions, failures and performance problems | 2026.09.12 | 4 |
 | [`elasticsearch`](skills/elasticsearch/) | 框架 | Designs and tunes Elasticsearch mappings, queries, search relevance and indexes | 2026.09.12 | 9 |
 | [`fastapi`](skills/fastapi/) | 框架 | Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling | 2026.09.12 | 12 |
-| [`flutter`](skills/flutter/) | 平台 | Develops cross-platform Flutter apps with Dart, widgets and state management | 2026.09.12 | 7 |
+| [`flutter`](skills/flutter/) | 平台 | Develops cross-platform Flutter apps with Dart, widgets and state management | 2026.09.29 | 7 |
 | [`frontend-design`](skills/frontend-design/) | 任务 | Designs and audits web interfaces for visual quality, usability and accessibility | 2026.09.15 | 13 |
 | [`gcp`](skills/gcp/) | 平台 | Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services | 2026.09.12 | 7 |
 | [`generative-media`](skills/generative-media/) | 任务 | Integrates AI image, video, speech and music generation or transcription models | 2026.09.12 | 14 |
