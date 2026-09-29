@@ -292,3 +292,19 @@
 - 未做 Firefox / Safari 的 WebExtensions 差异章节：`manifest_version` 与 API 差异由 WXT 的
   跨浏览器构建承担，正文只在 WXT 一节点出「用 `#imports` 的 `browser`，不要直接写
   `chrome.*`」，并补上 Chrome 148 起 `browser.*` 已原生可用这一事实。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。两个 `behind` 条目均用 blobless 克隆按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`）。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| quangpl-ext | d37bdf0 → 249886c | 仅 6c3c0b4「replace Plasmo with CRXJS and add premium upsell」；16 个文件 +559/−346（三个 SKILL.md 与 13 个 references） | 噪声 | 去掉空白、引号、分号、表格对齐后逐文件比对，实质改动只有三处：三个 SKILL.md 顶部加付费升级横幅；extension-manifest 把 `plasmo.config.ts` 换成 `crxjs.config.ts`；extension-migration 把框架推荐里的 Plasmo 换成 CRXJS。其余全是 Prettier 重排。本 skill 从未提 Plasmo，构建工具选择本就是 WXT 默认 + 保留既有 Vite + CRXJS；`crxjs.config.ts` 在 `crxjs/chrome-extension-tools` 中不存在（`gh api search/code` 命中 0；清单写在 `manifest.config.ts` 并经 `defineManifest` 导出），不采纳。合入面（三层测试划分、service_worker target 取扩展 id、MV2→MV3 变更清单、权限→警告映射）未变。`SOURCES.yaml` notes 补记这两点 |
+| chrome-samples（reference） | f3f94ac → 8de5dee | 6 个提交、17 个文件：5 个为 dependabot 依赖升级（`package.json` / `package-lock.json`：rollup、puppeteer、selenium-webdriver、js-yaml 等）；44de594 把 `sample.page-redder/service-worker.js` 的受限页判断从 `!tab.url.includes('chrome://')` 改为 `if (tab.url)`，注释说明受限页上 `tab.url` 不存在 | 噪声 | 仅作交叉核对的 reference 源。page-redder 的改动与正文「无 `tabs` 权限时 `tab.url` 静默为 `undefined`」一致（activeTab 不授予受限页），不引入新规则；offscreen 与 sidePanel 样例未改 |
+
+其余仓库上游（chrome-modern-web-guidance、rsc-harness、tenequm-wxt 为 `repo moved, tracked paths unchanged`；
+samber-cc-skills、dot-skills 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 一致
+（249886c、8de5dee）。`kind: docs` 条目不在本次范围。
+
+结论：正文未变，仅 re-pin、quangpl-ext notes 补记与版本号改为 2026.09.29；正文未变，未跑 D2。
