@@ -1,7 +1,7 @@
 # Navigation
 
-Verified against: Navigation 2.8+ (type-safe routes) and Navigation 3 (`NavDisplay`,
-`NavKey`).
+Verified against: Navigation 2.8+ (type-safe routes) and Navigation 3 1.2 (`NavDisplay`,
+`NavKey`, result bus, deep-link matchers).
 
 ## Contents
 
@@ -92,6 +92,16 @@ Return a result by lifting the shared state above both screens — a repository,
 previous entry's saved state handle works but couples the two screens and breaks when the
 caller is not where you expected.
 
+Navigation 3 (1.2+) also ships a result event bus: add
+`rememberResultEventBusNavEntryDecorator()` to `NavDisplay`'s `entryDecorators`, send with
+`LocalResultEventBus.current.sendResult(...)`, receive with `ResultEffect` (or
+`conflateAsState()` for state-style reads). It is the direct replacement when migrating
+Navigation 2's `previousBackStackEntry.savedStateHandle` hand-off, with one semantic loss:
+the bus lives in memory, so a result sent just before process death is gone, whereas the
+Navigation 2 handle was saved state. When the result must survive, persist it —
+`rememberSaveable`, a `SavedStateHandle`-backed `ViewModel` on the receiver, or data
+carried in the `NavKey` — and say so in the migration.
+
 ## Conditional navigation
 
 Model auth and onboarding as *state that selects the back stack*, not as a redirect
@@ -122,9 +132,12 @@ SHA-256 fingerprint of every signing key you ship with — including the Play Ap
 key, which is the fingerprint people forget.
 
 On the Compose side, Navigation 2 attaches `deepLinks = listOf(navDeepLink<Profile>(...))`
-to the destination; Navigation 3 matches the incoming `Uri` yourself and pushes the
-resulting keys, which is also how you build a synthetic back stack so the user can go
-"up" into a screen they never visited.
+to the destination. Navigation 3 keeps deep links out of the UI: from 1.2 a
+`UriDeepLinkMatcher(DeepLinkUri("https://…/{id}"), serializer<Profile>())` is matched
+against a `DeepLinkRequest` built from the incoming `Intent`, in `onCreate` *and*
+`onNewIntent`, and the result becomes the initial back stack. The same step is where you
+build a synthetic back stack so the user can go "up" into a screen they never visited;
+custom argument types need a `DeepLinkSerializer`.
 
 Test with an explicit intent rather than by tapping a link:
 

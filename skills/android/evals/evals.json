@@ -49,5 +49,17 @@
       "Treats the file as React Native and gives React Native fixes (memoised renderItem, keyExtractor, hoisted styles, hoisted Intl.NumberFormat, FlashList sizing props) instead of Jetpack Compose, Kotlin or Gradle advice",
       "Does not recommend Android-native tooling such as Compose compiler stability reports, Baseline Profiles from Macrobenchmark, or R8 keep rules as the fix"
     ]
+  },
+  {
+    "skills": ["android"],
+    "query": "Migrate ContactsNavHost.kt in this directory from Navigation 2 to Navigation 3. Show the migrated code, including how the picked contact gets back to the compose screen and how the thread deep link keeps working.",
+    "files": ["evals/files/ContactsNavHost.kt"],
+    "expected_behavior": [
+      "Replaces the savedStateHandle result hand-off with the Navigation 3 result event bus: adds rememberResultEventBusNavEntryDecorator() to NavDisplay's entryDecorators, sends with LocalResultEventBus.current.sendResult(...) in the picker entry, and receives with ResultEffect (or conflateAsState for state-style observation)",
+      "Warns that the Navigation 3 result bus is in memory, so unlike SavedStateHandle the picked contact does not survive process death, and names a way to persist it if needed (rememberSaveable, a SavedStateHandle-backed ViewModel, or carrying the data in the NavKey)",
+      "Replaces navDeepLink with a UriDeepLinkMatcher built from DeepLinkUri(\"https://messages.example.com/thread/{threadId}\") and the route's serializer, matched against a DeepLinkRequest made from the incoming Intent to build the initial back stack",
+      "Handles the deep link in onNewIntent as well as onCreate, rather than only at launch",
+      "Uses rememberNavBackStack with @Serializable routes that implement NavKey, and replaces popBackStack with removing the last key from the back stack"
+    ]
   }
 ]

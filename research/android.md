@@ -224,3 +224,54 @@ Composable，两次运行都合理地判断「本任务不需要 Compose 行为�
   Kotlin/kotlin-agent-skills（AGP 10 时会再改一次 KMP 插件形态）、skydoves/compose-performance-skills。
 - **放弃的方向**：Compose Styles API（alpha，见裁决 #6）、Compose Hot Reload（工具面）、
   `android` CLI 说明书（工具说明书，且需要外部安装脚本）、Paging/Ktor/DataStore 等库说明书（库文档而非平台规则）。
+
+## 2026-09-29 上游同步
+
+漂移报告（`/tmp/upstream-report.txt`）中本 skill 有两条 `behind`：`android-official`、`maxrave-footguns`；
+两条都列出了 paths 下的具体提交，不属于 too-large 归因，无需完整区间克隆。其余 repo 条目为 OK
+（`jetbrains-kotlin` 为 repo moved / tracked paths unchanged），两条 docs 为 manual check，本次未处理。
+`--pin` 后核对：写入的 commit 与本次审阅的 HEAD 一致（`android-official` 42dc227、`maxrave-footguns` f5f0b49）。
+
+### android-official（bac232f → 42dc227，5 个提交，paths 内实际改动来自 76b0fba、400ee93）
+
+| 文件（paths 内） | 变更 | 判定 |
+|---|---|---|
+| `build-system/agp/agp-9-upgrade/SKILL.md` 与 release notes | last-updated；兼容表新增 KGP 2.2.10 行 | 噪声（`gradle-build.md` 已写 AGP 9 运行时依赖 KGP 2.2.10） |
+| `jetpack-compose/adaptive/*`、`migration/.../setup-compose-dependencies-and-compiler.md` | 日期；Compose alpha、BOM 2026.09.00、Kotlin 2.4.10、lifecycle 2.11.0 版本号 | 噪声（本 skill 不钉版本号） |
+| `jetpack-compose/theming/styles/*` | 代码片段截断修复 | 噪声（Styles API 仍 alpha，原裁决 #6 未采用） |
+| `navigation/navigation-3/.../index.md` | 措辞、链接 | 噪声 |
+| `navigation/navigation-3/.../migration-guide.md` | nav3 1.2.0；新增「迁移结果回传」（`ResultEventBus`、`ResultEffect`、`rememberResultEventBusNavEntryDecorator`，并警示结果不跨进程死亡）与「迁移深链」（`UriDeepLinkMatcher` + `DeepLinkRequest`，`onCreate`/`onNewIntent`，`DeepLinkSerializer`）；深链从「不支持的迁移特性」中移除 | **更正 + 新增**：原 `navigation.md` 写「Navigation 3 自己匹配 Uri」已过时，改为 1.2 的 matcher；结果总线按基线实测只合入进程死亡语义（见下） |
+| `performance/r8-analyzer/*` | 日期、链接修正 | 噪声 |
+| `profilers/android-profiler/references/perfetto/*` | 改为随 skill 分发 `trace_processor` 包装脚本 | 噪声（工具打包方式；本 skill 只取 Perfetto 分诊顺序） |
+| `security/android-intent-security/SKILL.md` | `ContextCompat.registerReceiver` + `RECEIVER_NOT_EXPORTED` 在 minSdk < 33 时须有 `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | 新增 → 基线已会，**未合入** |
+| `testing/testing-setup/*` | AGP ≥ 9.5.0-alpha03 用 AGP test suites 配置 Compose 截图测试，独立插件 `com.android.compose.screenshot` 弃用；新增 test suites 参考文件；措辞整理 | 新增 → 基线已会，**未合入** |
+| `jetpack-compose/migration/.../views-in-compose.md` | Fragment 1.9.0 `AndroidFragment(maxLifecycle=)` 限制 pager 离屏页生命周期 | 新增 → 基线已会，**未合入** |
+
+事实核对：`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` 一条用 `gh api` 读 `androidx/androidx` 源码核实——
+`core/core/src/main/AndroidManifest.xml` 自带 `<permission … protectionLevel="signature">` 与 `<uses-permission>`，
+`ContextCompat.obtainAndCheckReceiverPermission` 在 API < 33 缺权限时抛
+`RuntimeException("Permission … is required by your application to receive broadcasts…")`。
+
+### maxrave-footguns（01d9e37 → f5f0b49，paths: `CATALOG.md`）
+
+v2.0.0 把陷阱集拆成九个 area skill，`CATALOG.md` 仍在原路径，改为由 `scripts/build_index.py` 生成的索引。
+比对前后两版的陷阱名集合：旧版 224 个与新版完全一致，新增的只有工具 skill `footgun-scan`。许可仍为 GPL-3.0。
+判定：**重组，无新题材** → 仍为 `reference`，仅 re-pin，并把 `contributes`/`notes` 中过时的「~280 条」改为 224。
+
+### 评测（`workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同模型）
+
+按「以基线实测划界」先为三类新增写了场景并跑无 skill 基线：
+
+| 场景 | 模式 | skill_read | 结果 | 证据摘录 |
+|---|---|---|---|---|
+| 5 Nav2→Nav3 迁移（结果回传 + 深链） | 基线 | false | EB1 ✔ EB2 ✘ EB3 ✔ EB4 ✔ EB5 ✔ | 基线下载 nav3 1.2.0 AAR 编译验证，写出 `ResultEventBus` 与 `UriDeepLinkMatcher`，但称回传「queue 语义，不丢」，未提进程死亡 |
+| 5 同上 | 有 skill | **true** | EB1 ✔ **EB2 ✔** EB3 ✔ EB4 ✔ EB5 ✔ | 「回传不再跨进程死亡：`ResultEventBus` 是纯内存的（Nav2 的 `SavedStateHandle` 会被保存）。若必须保活，把 `Contact` 落到接收方 ViewModel 自己的 `SavedStateHandle`」 |
+| 截图测试 test suites（临时场景） | 基线 | false | 6 条中 5 ✔（仅「屏幕尺寸矩阵」✘，属既有内容） | 基线直接给出 `testOptions { screenshotTests.create(...) }`、两个实验开关、`update…TestSuite`/`test…TestSuite` 任务名，并指出独立插件已弃用、两者不可同开 |
+| `maxLifecycle` + 动态接收器权限（临时场景） | 基线 | false | 5 条中 4 ✔（仅 `batch_id` 校验 ✘，属既有内容） | 基线解包 fragment-compose 1.9.0 / core 1.17.0 AAR，给出 `settledPage` 切 `RESUMED`/`STARTED` 与 API 24–32 抛 `RuntimeException` 的结论 |
+
+结论：只合入基线未达成的「结果总线进程死亡语义」与深链 matcher 的事实更正；截图 test suites、
+`maxLifecycle`、动态接收器权限三项基线已会，按 R14 不合入。两个临时场景无区分度，已从 `evals.json`
+删除（连同夹具），证据保留在本节。场景 5 通过 D2：基线未达成的 EB2 在有 skill 时达成，`skill_read` 为 true。
+负例（场景 4）未改 description / Scope，未重跑。
+
+输出目录：`/tmp/hs-evals-sync/SyncG3/android-b5`、`android-b6`、`android-b7`（基线）、`android-s5`（有 skill）。
