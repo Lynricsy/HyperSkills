@@ -307,3 +307,71 @@ $0.50/小时扩展支持附加费。这些全部对 cloud.google.com 对应页�
 - `gemini-cli-extensions/google-cloud-storage` 与 `google/skills` 的 GCS skill 是同源双发布。
   若上游把 `-diagnostic`/`gcs-security-assessment` 并入 `google/skills`，本 skill 的
   `gcs-extension` 条目可以合并掉。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `check_upstream.py` 报告。`bagelhole-devops` 为 up to date，`cloud-run-mcp` 为
+repo moved / tracked paths unchanged，`gcp-docs` 为 manual check，均未按报告处理；其余 4 个 behind
+条目逐一归因如下。`google-skills` 为 too large，按完整区间归因：`git clone --filter=blob:none
+--no-checkout` 后 `git log fd2bd41..a063fbf -- <20 个 paths>` 与 `git diff --stat`（24 文件，
++153/-89），并确认 20 个 path 在 HEAD 上都仍存在。pin 后核对：写入的 commit 与审阅的 HEAD 一致
+（`a063fbf`、`7dbed13`、`92627f5`、`e556c95`）。
+
+| 上游 | 区间 | 命中 paths 的提交 | 判定 | 处理 |
+|---|---|---|---|---|
+| `google-skills` | `fd2bd41..a063fbf`（53 提交，too large） | `becc4b8`（全部 frontmatter 加 SemVer `version`）、`6e3838f`/`6359c7c`（solution-architecture 的最佳实践链接表与 WAF 路由改写）、`18152e0`/`b10d1f0`/`f004524`（storage-basics 的 MCP 服务器设置、`CLOUDSDK_METRICS_ENVIRONMENT` 追加式写法、路由措辞） | 噪声 | 仅 re-pin |
+| `gcs-extension` | `db08d0f..7dbed13` | `affa229`：`google-cloud-storage-diagnostic` 的 `resources/` 纯重命名为 `references/`（rename 无内容差异），表格重排 | 噪声 | 仅 re-pin；path 仍在跟踪目录内，`SOURCES.yaml` 无需改 |
+| `optimnow-finops` | `db48149..92627f5` | `00dbfb1`（GCP Incentives 页面、多云新条目）、`b04b6d6`（Gemini/Vertex 计费、Flexible Savings Plans、项目级支出上限） | 新增（线索）→ 触发一处**更正** | 见下 |
+| `google-agents-cli`（reference） | `5597738..e556c95` | `607e29f`、`e556c95`（v1.6.1/v1.7.0 发布：Go 模板、Agent Identity GA、`--timeout`、`--framework`） | 噪声（agents CLI 产品脚手架） | 仅 re-pin；其 Cloud Run `--timeout` 300 s 默认 / 3600 s 上限与本 skill 一致 |
+
+**google-skills 细节**：本 skill 从这些 path 合入的是 CLI 纪律、IAM 两范式、GKE 硬化 flag、LQL 规则、
+Cloud Run 形态划分与 WAF 结构。区间内改动只有版本号、MCP 服务器/遥测环境变量写法、最佳实践
+URL 表与 WAF skill 路由措辞，没有触及任何已合入的事实。
+
+**optimnow-finops → 更正**：`b04b6d6` 提到 Gemini 的「project-level monthly spend limits … pause
+API calls」。该上游是 CC-BY-SA，本 skill 只取结构，GCP 数字一律取官方页面，所以按线索去读
+Cloud Billing「Manage spend cap budgets」原文：spend cap budget（Preview）按「单项目 × 单服务」
+生效，可选服务为 Gemini API、Gemini Enterprise Agent Platform（原 Vertex AI）、Cloud Run、
+Cloud Run functions；按月、按 gross 估算成本触发；触发后阻断该服务新用量直至人工 lift；
+在途请求与持久资源继续计费、执行非瞬时；alerts-only 预算不能改造成 spend cap；需要
+`billing.budgets.configureSpendCap`；不适用于经销商账户与文件夹/组织/标签/多项目范围。
+
+这与正文「Budgets do not cap spend」一节以及「the budget does not stop anything」的断言冲突——
+不再完全成立。按「事实更正 → 改正文使其正确」处理：
+
+- `references/cost-and-quotas.md`：节名改为「Budgets alert; spend caps stop only a few API services」
+  （目录锚点同步），首段限定为 alerts-only 预算；新增一段 spend cap 的范围、触发与不触发的
+  内容，以及两处易错点（不可原地改造、专用权限）；「Quota as a blast-radius control」一句同步改写。
+- `references/architecture-framework.md`：生产就绪清单里「a budget does not cap spend」改为区分
+  alerts-only 与 spend cap。
+
+初稿是一段逐条列举的 spend cap 说明。场景 6 基线（能联网）自行查到了 spend cap 并答对大部分形态，
+只漏「不可原地改造」与 `configureSpendCap` 权限，于是在跑有 skill 之前按 R14 精神把新增段落压缩到
+「更正所必需的事实 + 基线漏掉的两点」。新增的其余 GCP 计费内容（Incentives 页、Flexible Savings
+Plans、Gemini 计费档位）属 FinOps/AI 计费细节，不合入。
+
+### 评测结果（2026-09-29，D2）
+
+模型固定 `workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同模型；
+`--out /tmp/hs-evals-sync/SyncG6/gcp-s6`。新增场景 6 与夹具 `evals/files/spend-incident.md`。
+负例场景 5 未跑：本次未改 description 与 `## Scope`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 演示项目超支后的硬上限 | deepseek-v4.1-flash · max | 无 | false | 5 / 6（4 未达成） | 自行查到 spend cap 的单项目单服务、四个可选服务、gross 估算、人工解除、持久资源照收；另建了 Pub/Sub → 函数的 kill switch（停 API、删 Cloud Run 服务），并正确拒绝解绑计费。未提 alerts-only 预算不可改造与 `configureSpendCap` |
+| 6 演示项目超支后的硬上限 | deepseek-v4.1-flash · max | 有（压缩后正文） | true | 5 / 6（3 为部分） | 4 达成：「现有 alert-only budget 无法改造，必须新建（权限 `billing.budgets.configureSpendCap`）」；两个 cap 分别给 Agent Platform 与 Cloud Run，并按固定底账算出最坏值。3 未提 gross/不含 credits，其余子项齐全 |
+
+结论：**通过**（行为 4 由基线未达成变为达成）。本次正文改动的主因是更正：旧正文断言预算
+「does not stop anything」，[INFERENCE] 有 skill 时会把模型推向「GCP 没有原生硬上限」的错误结论；
+旧正文未单独跑评测，此点未经实测。
+
+改动文件：`references/cost-and-quotas.md`、`references/architecture-framework.md`、`SKILL.md`（版本号）、
+`SOURCES.yaml`（`gcp-docs` 的 contributes 补 spend cap 事实来源、`optimnow-finops` notes 记录线索来源、
+全部 repo 条目 re-pin）、`evals/`。
+
+遗留风险：
+
+- spend cap 仍是 Preview，可选服务列表写的是「including」，日后可能扩大；正文已要求使用前核对
+  launch stage，列表以官方页为准。
+- 本机没有 gcloud，未能确认 `gcloud billing budgets` 是否已有 spend cap 相关 flag，正文只描述控制台
+  路径之外的语义，不给 CLI。

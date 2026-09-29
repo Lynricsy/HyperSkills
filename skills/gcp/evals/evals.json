@@ -56,5 +56,18 @@
       "Answers with Kubernetes manifest content - probe definitions, resources.requests and resources.limits, and a securityContext - rather than gcloud commands, GKE cluster settings or Google Cloud IAM.",
       "Does not invent a GKE, Autopilot, Workload Identity or Artifact Registry dimension that the manifest and the request never mention."
     ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "spend-incident.md describes what happened to our demo project last weekend. Answer the CTO's ask at the bottom: give me the concrete setup, what it will and will not stop, and what I must not do.",
+    "files": ["evals/files/spend-incident.md"],
+    "expected_behavior": [
+      "Explains that the existing budget is alerts-only: threshold rules send notifications and never stop usage, which is why spend ran past 100% all weekend",
+      "Proposes a Cloud Billing spend cap budget (Preview) as the native hard stop, and states its shape: one project and one eligible service per cap budget (Gemini API, Gemini Enterprise Agent Platform / Vertex AI, Cloud Run, Cloud Run functions), a monthly period, so this project needs separate cap budgets for the Gemini usage and for Cloud Run, and none for Cloud SQL or Cloud Storage",
+      "States what enforcement does and does not do: new usage of the capped service is blocked until someone manually lifts the cap, in-flight requests finish and still bill, persistent resources such as `demo-db` and the bucket keep accruing charges, enforcement is not instant and overages are still billed, and the cap is computed on gross estimated cost without credits - so it is not a guaranteed $500 ceiling",
+      "Notes that the existing alerts-only budget cannot be converted in place (it is replaced by a new spend cap budget) and that configuring or lifting a cap needs `billing.budgets.configureSpendCap`",
+      "Adds the quota and service-level limits that bound the blast radius independently of billing - `max-instances` on `summarizer`, a lower Vertex AI / Gemini quota for the project, and closing or authenticating the public endpoint",
+      "Warns against the budget → Pub/Sub → function that disables billing on the project as the answer here, because detaching billing stops every service including `demo-db` and risks the resources the CTO wants kept"
+    ]
   }
 ]

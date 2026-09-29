@@ -111,8 +111,8 @@ deliberate decision, not a default.
 
 - Costs are attributable: one project per application per environment, labels enforced at
   creation, BigQuery billing export enabled (it is not retroactive).
-- Budgets exist with forecast-based thresholds, and everyone involved knows a budget does not
-  cap spend.
+- Budgets exist with forecast-based thresholds, and everyone involved knows an alerts-only
+  budget does not cap spend and a spend cap budget covers only a few API services.
 - Idle resources are swept regularly — unattached disks, reserved-but-unused IPs, stopped VMs
   still paying for disks, old snapshots, orphaned load balancers.
 - Storage classes and lifecycle rules match object lifetimes, with the minimum-duration

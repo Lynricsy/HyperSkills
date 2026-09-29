@@ -4,7 +4,7 @@ description: "Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud s
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: platform
 ---
 

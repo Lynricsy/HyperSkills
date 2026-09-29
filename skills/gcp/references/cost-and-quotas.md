@@ -8,7 +8,7 @@ pricing mechanics from cloud.google.com/billing and the per-product pricing page
 - [Quotas are three different things](#quotas-are-three-different-things)
 - [Finding and raising a quota](#finding-and-raising-a-quota)
 - [Quota as a blast-radius control](#quota-as-a-blast-radius-control)
-- [Budgets do not cap spend](#budgets-do-not-cap-spend)
+- [Budgets alert; spend caps stop only a few API services](#budgets-alert-spend-caps-stop-only-a-few-api-services)
 - [Where the numbers actually come from](#where-the-numbers-actually-come-from)
 - [Attribution: labels, projects, tags](#attribution-labels-projects-tags)
 - [Discounts](#discounts)
@@ -56,17 +56,19 @@ where the project is older is not evidence.
 
 `gcloud quotas preferences create` also *lowers* quotas, and that is an underused safety
 mechanism. A runaway loop creating VMs, a misconfigured autoscaler, or a compromised service
-account is bounded by the quota, not by the budget — because the budget does not stop
-anything. Deliberately low quotas in development projects convert an unbounded bill into a
+account is bounded by the quota, not by the budget — an alerts-only budget stops nothing, and
+a spend cap budget covers only a few API services and none of the persistent resources.
+Deliberately low quotas in development projects convert an unbounded bill into a
 failed API call.
 
 `--allow-quota-decrease-below-usage` exists precisely because lowering below current usage is
 dangerous; requiring the flag is the guard.
 
-## Budgets do not cap spend
+## Budgets alert; spend caps stop only a few API services
 
-A Cloud Billing budget with alert thresholds **does not automatically cap usage or
-spending**. It sends notifications. Google Cloud keeps serving and keeps charging past 100%.
+A Cloud Billing budget with alert thresholds — the default kind, and the one the command
+below creates — **does not cap usage or spending**. It sends notifications. Google Cloud
+keeps serving and keeps charging past 100%.
 
 ```bash
 gcloud billing budgets create --billing-account=BILLING_ACCOUNT_ID \
@@ -84,6 +86,16 @@ that detaches the billing account. That stops every billable service in the proj
 immediately, including the database. It is a legitimate control for a sandbox and a
 self-inflicted outage anywhere else; the safer automated response is to lower quotas or scale
 a specific service to zero.
+
+The one kind of budget that does stop usage is a **spend cap budget** (Preview — check its
+launch stage before relying on it). It is scoped to one project and one eligible service —
+Gemini API, Gemini Enterprise Agent Platform (formerly Vertex AI), Cloud Run, Cloud Run
+functions — and once the service's gross estimated monthly cost passes the amount it blocks
+new usage of that service until a human lifts the cap. In-flight requests and persistent
+resources (Cloud SQL, disks, stored objects) keep billing and enforcement lags, so it is a
+brake, not a ceiling. Two details catch people: an existing alerts-only budget cannot be
+converted — create a new spend cap budget — and configuring or lifting a cap needs
+`billing.budgets.configureSpendCap`, which ordinary budget editors may not hold.
 
 ## Where the numbers actually come from
 
