@@ -30,7 +30,7 @@ Quotas are per subscription per region. "We are out of vCPU" is solved by anothe
 subscription, or an increase - never by a bigger resource group.
 
 Adjustable quotas (VM vCPUs by family, public IPs, storage accounts) can be raised, usually with
-automatic approval. Non-adjustable ones are architectural facts; the 4000 role assignments per
+automatic approval. Non-adjustable ones are architectural facts; the 5000 role assignments per
 subscription is the one most likely to surprise a platform team.
 
 ## Finding the right quota name

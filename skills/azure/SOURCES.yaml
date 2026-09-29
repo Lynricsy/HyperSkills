@@ -1,5 +1,5 @@
 skill: azure
-version: "2026.09.12"
+version: "2026.09.29"
 upstreams:
   - id: microsoft-azure-skills
     kind: repo
@@ -11,17 +11,17 @@ upstreams:
       - skills/azure-deploy
       - skills/azure-diagnostics
       - skills/azure-quotas
-      - skills/azure-cost
+      - .github/plugins/azure-cost/skills
       - skills/azure-reliability
       - skills/azure-kubernetes
       - skills/entra-app-registration
     ref: main
-    commit: 6be6587fe52e6e5bfbb5a1d37fef68f0a81bb181
+    commit: f07c05364353925f7c8b0e474aa95afa291bce54
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Quota discovery workflow and the ARM-type-to-quota-name mapping trap, the diagnosis ordering (resource health before logs), the prepare/validate/deploy release gate, and Entra app registration credential shapes."
-    notes: "Official Microsoft agent plugin. MCP tool names, ALL-CAPS 'AUTHORITATIVE GUIDANCE' banners and the microsoft-foundry / azure-ai / azure-kusto skill groups were stripped: LLM application development and KQL analytics are outside this skill's scope."
+    notes: "Official Microsoft agent plugin. MCP tool names, ALL-CAPS 'AUTHORITATIVE GUIDANCE' banners and the microsoft-foundry / azure-ai / azure-kusto skill groups were stripped: LLM application development and KQL analytics are outside this skill's scope. The azure-cost skill moved out of skills/ into the separately installed azure-cost plugin (.github/plugins/azure-cost/skills: cost-analysis, cost-estimation, cost-governance, cost-optimization) in 9184881; the tracked path follows it. Its workflows are driven by Cost Management MCP tools and add no fact this skill lacks, so nothing from it is merged."
 
   - id: awesome-copilot
     kind: repo
@@ -38,10 +38,10 @@ upstreams:
       - skills/azure-resource-health-diagnose
       - skills/azure-pricing
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 997e95a6e42869c350f8ca6ec4c066287697c9f0
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "CAF resource naming rules per resource type, Azure Verified Modules and Bicep authoring conventions, the targetScope-to-what-if command matrix with its change symbols, azd project layout and guardrails, and the Well-Architected review checklist."
     notes: "Repository LICENSE is MIT; skills/azure-role-selector/LICENSE.txt was read separately and is also MIT (Microsoft Corporation). Emoji checklists, Copilot-specific tool names and the embedded pricing tables were dropped."
 
@@ -58,7 +58,7 @@ upstreams:
     commit: 20bf35201a79b324d2ca3e00e5c82020ff362024
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The Day-0 versus Day-1 split for AKS cluster decisions, node pool and reliability defaults, and Entra plus Azure RBAC cluster access."
     notes: "Official Azure organisation despite low star count. Kubernetes workload guidance was left out; it belongs to the containers skill."
 
@@ -72,10 +72,10 @@ upstreams:
       - templates/skills/azure-functions-deploy
       - templates/skills/azure-functions-diagnostics
     ref: main
-    commit: 8242319658d4e887a5ee66872276692c16efc066
+    commit: 56dc5cefe93523f509151de4bdcd90f25e72de6d
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The Function App review contract: collect evidence before recommending, report before remediating, report setting names without values, and gate every write on explicit approval."
     notes: "Factual claims (plan capabilities, runtime versions, extension bundle ranges) were re-sourced from MicrosoftDocs/azure-docs because this repository defers them to an MCP server."
 
@@ -84,15 +84,14 @@ upstreams:
     repo: Azure/bicep
     url: https://github.com/Azure/bicep
     paths:
-      - docs/linter-rules
       - src/Bicep.Core/Analyzers
     ref: main
-    commit: 6cff656e29547654af36e260634cf2de9ce63820
+    commit: c4c04db4bf48d190f1c92af2283308aa8287d35d
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Linter rule names, their default severities, and bicepconfig.json rule escalation semantics."
-    notes: "Every linter claim in this skill was reproduced locally against the bicep-linux-x64 0.47.16 release binary rather than read from documentation."
+    notes: "Every linter claim in this skill was reproduced locally against the bicep-linux-x64 0.47.16 release binary rather than read from documentation. The repository has had no docs/linter-rules directory since #5590; linter rule pages live in MicrosoftDocs/azure-docs under articles/azure-resource-manager/bicep, which the azure-docs entry already tracks."
 
   - id: avm
     kind: repo
@@ -102,10 +101,10 @@ upstreams:
       - docs/static/module-indexes/BicepResourceModules.csv
       - docs/static/module-indexes/BicepPatternModules.csv
     ref: main
-    commit: 6142d822b65db7013818d717519a562e67ce664f
+    commit: c8c556220b70d3b11f1ea513ccbcafdd9168ac4c
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "AVM module naming and versioning rules, and the ModuleStatus column (Available versus Orphaned) that has to be checked before pinning a module."
     notes: ""
 
@@ -119,11 +118,11 @@ upstreams:
       - articles/azure-functions
       - articles/azure-resource-manager/bicep
     ref: main
-    commit: 742489772a64e5b97e33fd993d98b32bea753e9a
+    commit: 747fd258b5cff78f715f34ba0b74bf50088f431a
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "The numeric facts: subscription and resource group limits, the fixed 4000 role assignments per subscription ceiling, Flex Consumption instance sizes and regional core quota, deployment history behaviour, and federated identity credential constraints."
+    synced_at: "2026-09-29"
+    contributes: "The numeric facts: subscription and resource group limits, the fixed 5000 role assignments per subscription ceiling, Flex Consumption instance sizes and regional core quota, deployment history behaviour, and federated identity credential constraints."
     notes: "Attribution: (c) Microsoft Corporation, licensed CC BY 4.0 (LICENSE read in full; LICENSE-CODE is MIT). This is the open-source source repository for learn.microsoft.com/azure articles; the learn.microsoft.com site itself is under proprietary terms and is reference-only here."
 
   - id: sre-agent-skills
@@ -137,7 +136,7 @@ upstreams:
     commit: 86845f3647247b2f1dddc6184d647012ca023c66
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Scoreable shape of a Well-Architected review and the catalogue of recurring cost waste shapes (unattached disks, idle public IPs, stopped-not-deallocated VMs, oversized SKUs)."
     notes: "Written for the Azure SRE Agent platform; its proactive-trigger conventions and fixed report schema were dropped."
 
@@ -148,10 +147,10 @@ upstreams:
     paths:
       - avm/res
     ref: main
-    commit: ff91fabe4014cd2dd5b67b5ae15f8db968d92ef9
+    commit: a1d42ab7c6a4becbc116300507fb140b220f68f4
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Verification of the br/public:avm/res/{service}/{resource} module path shape and version form."
     notes: "No module code copied."
 
@@ -163,10 +162,10 @@ upstreams:
       - schemas
       - cli/azd/docs
     ref: main
-    commit: 57ca1f6425606c27e84347c97a849a729ccf5444
+    commit: 973ffa9c86cee0c1377767b34ea6f6cf546f088b
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Confirmation that the azure.yaml fields and azd commands named in this skill still exist."
     notes: ""
 
@@ -179,10 +178,10 @@ upstreams:
       - skills/azure-resource-manager
       - skills/azure-container-apps
     ref: main
-    commit: 90ec55f3dc95837df8b9f7bd6265fb5935ccdca6
+    commit: 326540fbb5cc3c629ba90ad2afd24bff06ed759a
     license: CC-BY-4.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Service coverage map and authoritative documentation URLs used to cross-check this skill's scope boundaries."
     notes: "LICENSE read in full: CC BY 4.0 for content, LICENSE-CODE is MIT. Content is generated by docs2skills as categorised link indexes with no standalone judgements, so nothing was copied and the relation is reference rather than merged."
 
@@ -196,7 +195,7 @@ upstreams:
     commit: 72ebd8210e310f3da476bd9029a39b5b98fb061d
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Cross-check of what to establish before dropping a workload into an existing enterprise landing zone."
     notes: ""
 

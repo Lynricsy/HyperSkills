@@ -4,7 +4,7 @@ description: "Manages Azure architecture, Bicep deployments, identity and cloud 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: platform
 ---
 
@@ -83,7 +83,7 @@ Paths below are relative to this skill's directory.
     not read blobs and `Key Vault Contributor` does not read secrets; they only let the caller
     fetch the account keys, which is the failure, not the workaround
     (`references/entra-and-rbac.md`).
-11. A subscription supports **4000 role assignments** and the limit cannot be raised. Assignments
+11. A subscription supports **5000 role assignments** and the limit cannot be raised. Assignments
     at management-group scope and PIM-eligible assignments do not count, so group-based and
     management-group-scope assignments are the way out of a full subscription.
 12. Prefer workload identity federation over any long-lived secret for CI. A federated credential
@@ -258,7 +258,7 @@ Paths below are relative to this skill's directory.
 | What the compiler checks versus what ARM checks, linter rule severities and `bicepconfig.json`, symbolic references, secrets, parameters and `.bicepparam`, scopes and modules, AVM discovery and pinning, migrating hand-written resources to AVM | Writing or reviewing `.bicep` / `.bicepparam`, or deciding whether to adopt a module | `references/bicep-and-avm.md` |
 | The release gate, `what-if` per scope and validation levels, change symbols, Complete mode versus deployment stacks, deployment history limits, `azure.yaml` shape, azd environments, hooks, CI authentication, reading a failed deployment | Deploying, reviewing a deployment, or debugging one that failed | `references/deployment-and-azd.md` |
 | CAF naming pattern and per-resource name rules, resources that forbid hyphens, generating names in IaC, the management group / subscription / resource group hierarchy, hard limits, tags, locks, resource moves, Azure Policy, joining an existing landing zone | Naming anything, structuring subscriptions, or working inside an enterprise landing zone | `references/naming-and-structure.md` |
-| Entra roles versus Azure RBAC, control plane versus data plane, built-in role GUIDs, scope and the 4000 ceiling, role assignments in Bicep, managed identity types, workload identity federation constraints, app registrations, custom roles, ABAC, PIM, diagnosing `AuthorizationFailed` | Granting access, reviewing an access export, or debugging a permission failure | `references/entra-and-rbac.md` |
+| Entra roles versus Azure RBAC, control plane versus data plane, built-in role GUIDs, scope and the 5000 ceiling, role assignments in Bicep, managed identity types, workload identity federation constraints, app registrations, custom roles, ABAC, PIM, diagnosing `AuthorizationFailed` | Granting access, reviewing an access export, or debugging a permission failure | `references/entra-and-rbac.md` |
 | The four constraints that decide hosting, App Service versus Container Apps versus Functions versus AKS versus Container Instances, plan tiers, revisions and slots, networking per service, zone redundancy, what a migration actually costs | Choosing where a workload runs, or planning a move between services | `references/hosting-selection.md` |
 | Functions hosting plans, Flex Consumption specifics and its regional core quota, runtime and extension bundle versions, identity-based connections, `host.json` settings and the Service Bus schema shift, cold starts, deployment, migrating off Consumption | Working on a Function App | `references/functions.md` |
 | AKS Day-0 versus Day-1 decisions, tiers and SLAs, pod IP models and reserved CIDRs, API server access, the three cluster identities, node pools, version support and upgrades, registry access, a production `az aks create`, cost levers | Creating, reviewing or upgrading an AKS cluster | `references/aks-control-plane.md` |

@@ -9,7 +9,7 @@ Verified against: Azure RBAC and Microsoft Entra Workload ID documentation as pu
 - [Two different permission systems](#two-different-permission-systems)
 - [Control plane versus data plane](#control-plane-versus-data-plane)
 - [Built-in role IDs worth memorising](#built-in-role-ids-worth-memorising)
-- [Scope and the 4000 ceiling](#scope-and-the-4000-ceiling)
+- [Scope and the 5000 ceiling](#scope-and-the-5000-ceiling)
 - [Role assignments in Bicep](#role-assignments-in-bicep)
 - [Managed identity](#managed-identity)
 - [Workload identity federation](#workload-identity-federation)
@@ -81,13 +81,13 @@ names, which are localised and occasionally renamed.
 When you need one that is not here, `az role definition list --name "<role>" --query "[].name"`
 returns the GUID; do not guess it.
 
-## Scope and the 4000 ceiling
+## Scope and the 5000 ceiling
 
 Assignments inherit downward: management group → subscription → resource group → resource. An
 assignment at a lower scope can only add, never subtract - there is no deny by omission. (Deny
 assignments exist but are created only by Azure Blueprints and deployment stacks, not by users.)
 
-**A subscription supports 4000 role assignments. The limit is fixed and cannot be raised by a
+**A subscription supports 5000 role assignments. The limit is fixed and cannot be raised by a
 support request.** Assignments at subscription, resource group and resource scope all count;
 management-group-scope assignments and PIM-eligible (not-yet-activated) assignments do not. When a
 subscription approaches it, the three ways out, in order of leverage:
@@ -228,12 +228,12 @@ grant blob access to one container without a per-container assignment:
 ```
 
 Conditions are supported on storage and a growing set of providers; unsupported providers accept no
-condition. They also count as one assignment, which helps against the 4000 ceiling.
+condition. They also count as one assignment, which helps against the 5000 ceiling.
 
 Privileged Identity Management makes an assignment *eligible* rather than active: the human
 activates it for a bounded window, with approval and justification. Any standing human assignment
 to Owner or User Access Administrator at subscription scope should be eligible instead. Eligible
-assignments do not count toward the 4000 limit.
+assignments do not count toward the 5000 limit.
 
 ## Diagnosing an authorization failure
 

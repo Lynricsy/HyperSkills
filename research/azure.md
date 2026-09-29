@@ -205,3 +205,49 @@ Resource Health 与活动日志的实际内容、Cost Management 与 Retail Pric
   - `OptimNow/cloud-finops-skills`：API 报 `NOASSERTION`，实读 `LICENSE.md` 为 **CC-BY-SA-4.0**（署名 OptimNow / Jean Latière）。未采用。
 - **下次同步要盯的上游**：`microsoft/azure-skills`（每日在动，`skills/` 下 29 个 skill 的版本号在 frontmatter `metadata.version`）、`Azure/Azure-Verified-Modules` 的 `BicepResourceModules.csv`（模块可能从 `Available` 变 `Orphaned`）、`MicrosoftDocs/azure-docs` 中 Flex Consumption 与 AKS 网络两篇（规格与退役日期会变）。
 - **放弃的方向**：Azure DevOps（属 CI 平台）、Cosmos DB 与 Azure SQL 的数据建模（属数据类 skill）、Microsoft Foundry / Azure OpenAI 的应用开发（本库尚无 `ai-engineering`，正文明说「no skill in this library covers it yet」而不是硬转交）、Azure Managed Grafana（属 `observability`）。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。报告中 9 个 `behind` 条目里 8 个是「diff too large」，
+全部按完整 `<旧 pin>..<审阅 HEAD>` 区间用本地 blobless 克隆（azure-docs 用 `--filter=tree:0`）执行
+`git log --oneline` 与 `git diff --stat`，只看 `SOURCES.yaml` 中该条目的 `paths`；未用日期窗口。
+同时逐条核对了所有 tracked path 在新旧两端是否存在。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| microsoft-azure-skills | 6be6587 → f07c053 | 9184881（Sync plugin files #239）：25 文件 +2/−2410。`skills/azure-cost` 整体移出到 `.github/plugins/azure-cost/skills/{cost-analysis,cost-estimation,cost-governance,cost-optimization}`（独立安装的 azure-cost 插件）；`azure-prepare` 版本 1.3.3→1.3.4，路由表一行改指 `cost-estimation` | 重新裁决（路径迁移） | 旧路径在 HEAD 已不存在，tracked path 改为新位置以免下次漏报。新插件内容均以 Cost Management MCP 工具（`query_costs`、`list_benefit_utilization` 等）驱动，按原裁决剥离；其中可独立成立的判断（预算只告警不止损、预留与节省计划区分、Advisor 先行）正文 `cost-and-quotas.md` 已有，无新增合入。`notes` 记录迁移 |
+| awesome-copilot | 7568a48 → 997e95a（62 提交） | 无命中；9 个 tracked path 的 blob/tree SHA 两端一致 | 未变更 | 仅 re-pin |
+| azure-functions-skills | 8242319 → 56dc5ce | 73deff3（#260）：`azure-functions-deploy/SKILL.md` +20，新增部署成功后运行内部遥测采集器的一步 | 噪声 | 厂商内部遥测步骤，与评审契约无关 |
+| bicep | 6cff656 → c4c04db | ceb645d9f（#20324）：`Analyzers/Linter/Common/ModuleReferenceEnumeration.cs` +66，为未来的版本约束类 linter 规则建跨文件模块引用图；未新增或改动任何规则 | 噪声 | 规则名、默认等级不变。另发现 tracked path `docs/linter-rules` 在旧 pin 与 HEAD 都不存在（#5590 已删），从 `paths` 移除；linter 规则文档在 azure-docs 条目已跟踪的 `articles/azure-resource-manager/bicep`（`linter-rule-*.md` 52 篇） |
+| avm | 6142d82 → c8c5562 | f6a9eeb、4e82382、6088ee0、b58f535、0ac8225（chore: synchronize AVM module catalogs）：2 个 CSV +622/−606 | 噪声 | 列结构不变。Resource 索引 537→553 行（新增 16 个子模块，无删除）；`ModuleStatus` 取值仍为 Available/Proposed/Orphaned/Deprecated，Orphaned 20→52。改动字段以 `TelemetryIdPrefix`、`ModuleOwnersGHTeam`、负责人为主。正文唯一点名的 `avm/res/storage/storage-account` 仍为 Available，`br/public:avm/res/...:X.Y.Z` 形态不变；「pin 前确认 ModuleStatus 为 Available」规则仍成立。research 初版举作 Orphaned 例子的 `analysis-services/server` 已转为 Available（正文未引用） |
+| bicep-registry-modules（reference） | ff91fab → a1d42ab | 24 个提交、1670 文件 +16321/−5219：每个模块新增 `metadata.json`、遥测前缀回填、API 版本更新；0a2689ec 退役 `ORPHANED.md` 标记改由 `metadata.json` owners 表达 | 噪声 | 仅用于核对模块路径与版本形态，二者不变（storage-account `version.json` 两端均为 0.33）。正文不依赖 `ORPHANED.md`，孤儿状态仍以索引 CSV 的 `ModuleStatus` 为准 |
+| azure-dev（reference） | 57ca1f6 → 973ffa9 | 16 个提交、11 文件 +1429/−234：`schemas/v1.0/azure.yaml.json` 语义比对无属性增删（主要是 c77aa335 格式化，另 `remoteBuild` 描述改写、新增 `azure.ai.eval` host）；alpha schema 新增 `layers`；`cli/azd/docs` 为扩展框架与并发限制文档 | 噪声 | 正文点名的 `infra.provider/path/module`、`services.*.project/language/host`、`hooks` 均仍在 v1.0 schema |
+| microsoftdocs-agent-skills（reference） | 90ec55f → 326540f | 326540f、1e593dd、d5ad464（docs2skills 周更）：3 个 tracked SKILL.md +32/−33，链接标题与行号区间重排 | 噪声 | 生成式链接索引，无独立判断 |
+| azure-docs | 7424897 → 37c2989（审阅），pin 747fd25 | 51 个提交、124 文件 +3579/−2446。关键：**4e003115d536（#320392）把每订阅角色分配上限从 4000 改为 5000**（`role-assignments-steps.md`、`troubleshoot-limits.md`、`role-assignments-list-portal.md`；`troubleshoot-limits.md` 仍注明该上限固定、不可提升；未跟踪的 `includes/role-based-access-control/limits.md` 在 HEAD 亦为 5,000）；256e3c41c64a（PowerShell 7.6 GA）：Flex Consumption 支持栈加入 PowerShell 7.6（与 7.4 并列）；5bb7e160a50d 删除 Flex 滚动更新的 preview 提示；b9d7153f040d（部署文章重构）后 `functions-deployment-slots.md` 写明 Consumption 计划有 2 个槽（生产 + 1 个 staging）；其余为 runtime 1.x 内容退役（7bfcd897b30a）、Service Bus trigger `cardinality`（9a08b45e2841）、部署与网络文章重构等 | 更正 | 见下「正文改动」。`pin` 时 HEAD 已前进到 747fd25，补审 `37c2989..747fd25` 的 paths：无命中，保留该 pin |
+
+其余仓库上游（aks-skills、sre-agent-skills、azure-landing-zone）为 up to date，随 `--pin` 对齐。`kind: docs`
+（learn-azure）不在本次范围。
+
+### 正文改动
+
+- 角色分配上限 4000 → **5000**：`SKILL.md` 第 11 条与路由表、`references/entra-and-rbac.md`（小节标题、锚点、正文三处）、
+  `references/cost-and-quotas.md`、`SOURCES.yaml` azure-docs `contributes`。
+- `references/functions.md`：Flex Consumption 支持栈补 PowerShell 7.6；部署槽改为「Premium、Dedicated 与
+  Consumption（生产外 1 个 staging 槽）」。后者在旧 pin 的文档表格里已写 Consumption 为 2，属旧有遗漏，本次文档改写时一并更正。
+- 评测夹具 `evals/files/role-assignments.json` 的 `roleAssignmentsInSubscription` 3872 → 4872（保持距上限 128 条），
+  场景 3 的两条 expected_behavior 同步改为 5000。
+- `SOURCES.yaml`：microsoft-azure-skills 的 `skills/azure-cost` 改为 `.github/plugins/azure-cost/skills`；bicep 删去不存在的
+  `docs/linter-rules`；两条 `notes` 记录原因。
+
+### 评测结果（D2，场景 3）
+
+模型 `workbuddy/deepseek-v4.1-flash`，thinking `max`，基线与有 skill 同模型；输出在
+`/tmp/hs-evals-sync/SyncG7/azure/workbuddy-deepseek-v4.1-flash-max/{baseline,skill}/3/answer.md`。
+
+| 场景 | 模式 | skill_read | 达成 | 说明 |
+|---|---|---|---|---|
+| 3 RBAC 导出（9 条） | 基线 | false | 5/9 | 把 4872 只当成「导出不全」，**未识别 5000 硬上限**；冗余分配只说冗余、未联系上限；未点名 Role Based Access Control Administrator；未给角色定义 GUID |
+| 3 RBAC 导出（9 条） | 有 skill | true | 9/9 | 单列「4872/5000 固定上限、不可提额、剩 128 槽」，出路为组授权、上移管理组、删冗余；冗余 Contributor「白占配额」；给出 `ba92f5b4-…`、`4633458b-…`；Key Vault 写明需 `enableRbacAuthorization`。两处偏弱：未提 PIM eligible 不计入上限；RBAC Administrator 是在 CI 主体处点名而非 alice 处 |
+
+结论：本次改动覆盖的行为（按 5000 读上限）基线未达成、有 skill 达成，通过。PowerShell 7.6 与部署槽两处为小事实更正，
+无对应场景，未单独跑；负例场景 5 未改 description/Scope，未跑。

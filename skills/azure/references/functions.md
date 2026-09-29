@@ -60,7 +60,7 @@ The decision usually reduces to two questions:
 - Azure Files shares can be mounted (SMB only, authenticated with a storage account key) for large
   binaries or shared models.
 - Supported stacks: .NET 8/9/10 isolated worker (the in-process model is **not** supported), Node
-  22/24, Python 3.10-3.14, Java 8/11/17/21/25, PowerShell 7.4.
+  22/24, Python 3.10-3.14, Java 8/11/17/21/25, PowerShell 7.4/7.6.
 
 ## Runtime, worker and bundle versions
 
@@ -157,9 +157,9 @@ container, and the host runs from that package on startup. `WEBSITE_RUN_FROM_PAC
 plans are ignored and should be deleted during migration - leaving them creates the impression of
 configuration that is doing nothing.
 
-Deployment slots exist on Premium and Dedicated plans and are the standard way to get a warm
-target before a swap. Flex Consumption has no slots; it provides rolling updates as the site
-update strategy instead.
+Deployment slots exist on Premium, Dedicated and Consumption (one staging slot beside production)
+plans and are the standard way to get a warm target before a swap. Flex Consumption has no slots;
+it provides rolling updates as the site update strategy instead.
 
 ## Migrating Consumption to Flex Consumption
 
