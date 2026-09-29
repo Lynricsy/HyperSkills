@@ -588,3 +588,56 @@ decode 受显存带宽约束这一机制（基线归因为「连续批处理/CUD
   有 GPU 相关内容」。两边的分界与字面一致的分界句见 `docs/roadmap.md` 的跨 skill 分界句表；
   `containers` 侧的调研记录在该 skill 的 `SOURCES.yaml` 与 `docs/roadmap.md`，
   不在本文件内（本文件只记 `model-serving` 的立项与裁决）。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `check_upstream.py` 报告。`vllm-source`、`vllm-skills` 为 up to date，
+`hf-skills` 为 repo moved / tracked paths unchanged，`vllm-docs` 为 manual check（本次不在范围内），
+均未处理内容；其余 6 个 behind 条目逐一归因如下。too-large 的四个仓库用
+`gh api "repos/O/R/commits?sha=<ref>&path=<path>&since=2026-09-15T00:00:00Z"` 逐 path 归因，
+再只读命中提交在该 path 下的 diff；`synced_at` 当天的命中提交用 compare 核对是否已含在旧 pin 里。
+
+| 上游 | 区间 | 命中 paths 的提交 | 判定 | 理由 |
+|---|---|---|---|---|
+| `dynamo` | `c52945c..51b83df`（215 提交，too large） | 11 个 path 均无命中 | 噪声（paths 实际未变） | 仅 re-pin |
+| `trtllm` | `a494ef6..d949656`（346 提交，too large） | `perf-optimization-casebook`：`845a141`、`22eea29`（MoE C++ 源码搬到 `moe/` 目录） | 噪声 | casebook 各条目只把 "Prior art" 里的源码路径改成新目录（如 `thop/moe/cutlass/moeOp.cpp`）；本 skill 从 casebook 只取了基准测试反模式与判据，不引用任何 TRT-LLM 源码路径 |
+| `sglang` | `a2a2619..8b3a4ca`（801 提交，too large） | 3 个 skill 目录：`34a1234`（#40515）、`6dad152`、`78980a3`、`11ecdbf`；`http_server.py`：`d58342d`..`16d1c93` 共 11 个（`c0b8725` 经 compare 确认已在旧 pin 内） | 路径迁移 + 噪声 | 见下 |
+| `nvidia-skills` | `c9e2ce9..d8519c5`（54 提交，too large） | 3 个 jetson skill 目录均无命中 | 噪声（paths 实际未变） | 仅 re-pin |
+| `amd-skills` | `6916fb3..abbf30e` | `skills/serving-llms-on-epyc`：`52821fa`（#223） | 新增但越界，不合入 | 见下 |
+| `google-skills` | `5a14f11..a063fbf` | 两个 path 均只有 `becc4b8` | 噪声 | 只在 frontmatter 加 `version: "1.0.0"`（上游强制 SemVer），正文无变化 |
+
+**sglang 细节**
+
+- `34a1234`（#40515）把全部 skill 从 `.claude/skills/` 纯重命名到 `.agents/skills/`
+  （增删行数均为 0），`.claude/skills` 现为指向 `../.agents/skills` 的 symlink。
+  继续跟踪 `.claude/skills/...` 将永远看不到后续变更，因此 `SOURCES.yaml` 中三个 skill
+  path 改为 `.agents/skills/...`，并在 `notes` 记录原因。
+- `78980a3`（#40795）删除过期两个版本的弃用端点：`/get_load`、`/get_weight_version`
+  与 `/weight_version`、`/clear_hicache_storage_backend`。本 skill 引用的是 `/v1/loads`、
+  `/health_generate` 与 `sglang:cache_hit_rate`，已在新 HEAD 核实：`/health_generate` 仍在
+  `http_server.py`，`/v1/loads` 仍由 `entrypoints/v1_loads.py` 的 router 注册并在
+  `http_server.py` 中 `include_router`，`cache_hit_rate` 仍在 `load_snapshot.py` 与
+  `metrics_collector.py`。skill 全文不含被删端点名。同一提交对 profiler catalog 的改动是
+  NSA→DSA 的文件/环境变量改名，与本 skill 无关。
+- `6dad152`：profiler catalog 中 all-reduce 融合的源码路径迁到 `layer_boundary/`，噪声。
+- `11ecdbf`：`clean-startup-log` 重写为「审计启动日志、存证、给用户审阅」的流程并新增
+  `noise-sources.md`（噪声签名表）。这是清理 SGLang 自身启动日志噪声的贡献者流程，
+  本 skill 用到的只是「启动日志里哪些行是性能信号」（resolved 的 chunked-prefill 值、
+  图捕获阶段在冷启动中的位置），未受影响；新增内容属于 SGLang 开发维护，越界不合入。
+- `http_server.py` 其余提交（`/v1/systemone` 路由、PD 角色切换与优雅退出、RL 权重更新会话、
+  gRPC 超时/暂停状态、OTLP service name、`/server_info` 暴露前端身份、NCCL 退出释放）
+  逐个用 `health|loads|cache_hit|token_usage|metrics` 过滤各提交 diff 的增删行，均无命中，噪声。
+
+**amd-skills 细节**
+
+`52821fa` 把 `serving-llms-on-epyc` 的三道硬门改为路由：无 AVX-512 BF16 的 pre-Zen4 EPYC
+不再直接停止，而是在用户确认后改走官方 stock vLLM CPU 镜像（上游称已在 EPYC 7763 上实测
+vLLM 0.29.0 bf16 可用）；另加 `--cap-add=SYS_NICE`（缺失时 NUMA membind 静默失效）、
+HF cache 在 NFS/symlink 下挂载失败、`--network=host` 端口冲突三条容器陷阱，以及
+`detect.py`/`validate.py` 的对应实现。`SOURCES.yaml` 对该上游的合入边界是「warmup 与
+内存预算事实」，notes 明确「AMD-specific tuning beyond the warmup and memory-budget facts is
+out of scope」，这些都是 EPYC 部署流程细节，不合入。本 skill 取自该文件的唯一事实
+「CPU first-token compile can take a minute or two」在新旧两版中逐字相同，已核实未变。
+
+**正文与评测**：`SKILL.md` 与 `references/` 正文未变（只改 `metadata.version`），
+`SOURCES.yaml` 改了 sglang 的三个 path 与 notes 并 re-pin 全部 repo 条目。正文未变，未跑 D2。

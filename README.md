@@ -157,7 +157,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`mcp-server`](skills/mcp-server/) | 任务 | Builds Model Context Protocol servers with tools, resources, transports and authorization | 2026.09.12 | 9 |
 | [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg and deterministic image tools | 2026.09.12 | 24 |
 | [`ml-training`](skills/ml-training/) | 任务 | Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization | 2026.09.12 | 9 |
-| [`model-serving`](skills/model-serving/) | 任务 | Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity | 2026.09.15 | 10 |
+| [`model-serving`](skills/model-serving/) | 任务 | Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity | 2026.09.29 | 10 |
 | [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB documents, aggregations, indexes and cluster operations | 2026.09.12 | 6 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Builds Node.js HTTP services with Fastify, NestJS, Hono or Express | 2026.09.12 | 13 |
 | [`observability`](skills/observability/) | 任务 | Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts | 2026.09.12 | 15 |
