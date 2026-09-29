@@ -235,3 +235,27 @@ $ npx -y @sveltejs/mcp@latest svelte-autofixer ./autofix-test/Bad.svelte
 - **Storybook / MSW**：`fubits1` 有专门 skill，但属测试工具选型而非 Svelte 语义，且会把测试节撑成工具目录。`references/testing.md` 只写官方 `sv add vitest` / `sv add playwright` 一条默认路径。
 - **`svelte-package` / 组件库发布**：`spences10-svelte` 的 `svelte-deployment/references/library-authoring.md` 与 kit 的 `packaging` 文档都有，但受众是库作者而非应用开发者，本波不做。
 - **流程编排类**（`jporre/sveltekit-verticalslices`）：属 `planning` / `github` 范围。
+
+## 2026-09-29 上游同步
+
+漂移报告（`tools/check_upstream.py`，2026-09-29）中本 skill 有 4 条 `behind`，其余 `OK` / `manual check`。
+too-large 条目按完整区间用 blobless clone 归因（`git log/diff <旧pin>..<HEAD> -- <paths>`），不用日期窗口。
+pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
+
+| 上游 | 区间 | paths 内变更 | 判定 | 理由 |
+|---|---|---|---|---|
+| `svelte-core` | `ce89035..020242d` | `a956c2b` 仅改 `98-reference/.generated/compile-errors.md`：新增编译错误 `let_directive_snippet_conflict` | 新增（经基线划界后**不合入**） | 组件上同时有 `let:` 与显式 `{#snippet children()}` 时，`let:` 的值从未传入 snippet（运行时 `x is not defined`），该提交把它升为编译错误。提交晚于最新发布版 `svelte@5.57.1`（2026-09-18），尚未发版。新增场景 5 跑基线后模型已能完整做到（见下），按「以基线实测划界」不写入正文 |
+| `sveltekit-core` | `228baee..c6f9a78` | `849a258` 在 adapter-node 页加 Railway 模板链接；`beff737` 修正同页一个 blockquote 格式 | 噪声 | 平台推广链接与 Markdown 格式，与 `contributes` 无关 |
+| `awesome-copilot` | `7568a48..997e95a`（too-large） | 完整区间内 `instructions/svelte.instructions.md` 无提交、无 diff | 噪声（实际未变更） | 仅 re-pin |
+| `full-stack-skills-svelte` | `7dcf773..afd483a` | `a30d993` 给 16 个 skill 的 frontmatter 加 `license: Apache-2.0`；`db75b5f` 给 `svelte-runes` 加 Capability Boundaries / Data Privacy / Workflow / Reference Library 四段（中文，元结构）；区间内 `7800b48` 把仓库根 `LICENSE` 换成 Apache-2.0 全文、第三方声明移到 `THIRD-PARTY-NOTICES.md` | 许可重新裁决；内容噪声 | 原裁决「LICENSE 是第三方声明而非授权 → 按无许可处理」的事实前提已不成立：API 现报 `apache-2.0`，每个 skill 也显式声明。`license` 改为 `Apache-2.0`。`relation` 仍为 `reference`：内容是由 svelte.dev 逐节机器生成的中文材料，本 skill 的事实全部取自 MIT 的一手文档，未合入任何内容；新增四段是 skill 自身的元结构，无新 Svelte 事实 |
+
+**正文未变**（仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin / 许可字段），因此未跑 D2 有 skill 评测。
+
+**基线划界证据**（新增场景 5：`evals/files/slot-props/`，Svelte 4 的 `DataList.svelte` 用 `<slot item index>`，
+已迁移的 `Users.svelte` 同时写了 `let:item let:index` 与 `{#snippet children()}`，报 `item is not defined`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 `let:` 与 `children` snippet 冲突 | workbuddy/deepseek-v4.1-flash:max | 无（baseline） | false | **4 / 4** | 自行用 svelte 5.57.1 编译复现：snippet 编译为无参函数、`let:` 被静默丢弃、编译 0 warning、运行时 `ReferenceError`；删掉 `let:`，改为 `{#snippet children(item, index)}` 对 `{@render children?.(row, i)}`；`DataList` 迁移到 `$props()` 保留 `emptyText` 默认值；保留 `class:odd` 未误称移除；还做了对照实验证明隐式 slot 内容下 `let:` 仍可用 |
+
+结论：基线已完整掌握该陷阱，**不合入正文**；场景 5 保留在 `evals.json` 作为本次划界证据与回归哨兵（沿用 R14 先例保留撤回场景的做法）。

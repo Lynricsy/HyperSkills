@@ -4,7 +4,7 @@ description: "Develops Svelte and SvelteKit applications with runes, routing and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: framework
 ---
 

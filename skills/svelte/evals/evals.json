@@ -70,5 +70,19 @@
       "Answers as Vue 3 work: reassigning the `state` variable replaces the reactive proxy that the template and `computed` were tracking, so it must mutate the existing object (or use `ref` and assign to `.value`)",
       "Gives no Svelte, runes or SvelteKit advice"
     ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "We are migrating to Svelte 5 one component at a time. Users.svelte is already converted, but the page now crashes with \"item is not defined\" when the list renders. DataList.svelte is still Svelte 4. Fix Users.svelte, then migrate DataList.svelte to Svelte 5 too, and explain what went wrong.",
+    "files": [
+      "evals/files/slot-props/DataList.svelte",
+      "evals/files/slot-props/Users.svelte"
+    ],
+    "expected_behavior": [
+      "Explains that a `let:` directive only feeds the implicit default slot content, so once the content is an explicit `{#snippet children()}` block the `let:` values are never provided — which is why `item` is undefined at runtime",
+      "Fixes Users.svelte by deleting the `let:item` / `let:index` directives and taking the values as snippet parameters instead of keeping any `let:`",
+      "Migrates DataList.svelte to `$props()` (with the `emptyText` fallback) and replaces `<slot item={row} index={i} />` with `{@render children?.(…)}`, and makes the snippet parameters in Users.svelte match the new call shape (positional `children(item, index)` pairs with `{#snippet children(item, index)}`; while DataList is still on slots, the slot props arrive as one object, `{#snippet children({ item, index })}`)",
+      "Replaces `class:odd={…}` only if it chooses to, without claiming it is removed — `class:` still works in Svelte 5"
+    ]
   }
 ]
