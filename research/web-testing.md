@@ -712,3 +712,31 @@ SKILL.md 第 23 条与 `references/artifacts-and-debugging.md` 都写了这个�
 略超既有 skill 的 320 行水位（其余七个在 179–304 行）。超出的部分都是 `[verified]` 实测原文
 （超时测量、分片计数、trace 归档清单），压缩只能删证据，故保留；`validate_skills.py` 的
 建议上限 400 / 硬上限 600 均未触及，0 warning。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。所有 `behind` 条目（含两个 diff too large 的）都用
+blobless 克隆按完整 `<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat`
++ `git diff`）。版本背景：npm `@playwright/test` 的 `latest` 仍是 1.63.0（2026-09-04），`next` 为
+`1.64.0-alpha-2026-09-29`；`playwright.dev` 的 `nodejs/docs` 是 ToT（next）文档，稳定版在 `nodejs/versioned_docs`。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| playwright-runtime（too large） | 9cee427 → d67c16e | 19 个提交；`types.d.ts` + `test.d.ts` 共 +345/−44。新增：`test.describe.configure({ lock })`（04e547b）、`project.default`（f424484）、`locator.within()`（b8edc07）、`page.content({ includeShadow })`（7de2227）、`evaluate` 的 Map/Set 序列化开关（118ee44）、视频 `fps` 与 `show.actions.style`（8bb2c09、d7ce229）、`toHaveScreenshot.type`（7b4b3b0）、list reporter `printWorkerIndex`（91eeb0c）、`screen` 选项转发（3c83625）、istanbul coverage（05c126b）、webmcp（c2c87a2，已被 d67c16e 回滚）；修正：`Temporal.Now` 跟随 `page.clock`（0facd92）、WebKit 可见性判定（814dbe7）；文档：`isMobile` 自 1.61 起支持 Firefox（f1d33b5）、reporter/trace 联合类型补全（e17dffa） | 新增（未发布，不合入） | 全部属 1.64 alpha，尚未进入 `latest`。本 skill 的事实锚定在 1.63.0 并只对已发布版本挂 `(Playwright 1.63+)` 门；为 alpha API 写规则违反该口径。正文引用的原文（`networkidle` DISCOURAGED、`waitForTimeout` inherently flaky）在 HEAD 中仍在（两端各 15 处命中）；`isMobile` 的 Firefox 更正不影响正文（正文未写 isMobile 的引擎限制）。1.64 GA 后按「未来同步要盯」重跑本机实验，届时评估 describe 级 `lock` 与 `updateSnapshots: 'default'` |
+| playwright-docs | b456bc3 → 1cc5be9 | d6e5138、b9d1bcb 两次 roll to ToT；28 个文件 +449/−45。API 页为上面 1.64 新增面的文档；指南页：`test-parallel`（describe 级 lock）、`test-snapshots`（webp）、`test-cli` / `aria-snapshots` / `class-testconfig`（`updateSnapshots` 默认值由 `missing` 改为新增的 `default`，新快照会让测试失败）、`clock`（Temporal.Now）、`getting-started-cli/mcp`（WebMCP、空闲会话自动关闭）；`network.mdx` 新增「How request interception works」一节（da3553d 纯文档：网络栈附加 `Cookie`/`Host`/`Sec-Fetch-*` 在路由之后、`route.continue` 里的 `cookie` 被忽略、重定向链作为一个单元只调一次 handler、fulfill 3xx 不会再次进入路由） | 新增：1.64 部分不合入；network 一节按基线实测划界后不合入 | 1.64 部分理由同上。network 一节描述的是已发布版本的既有行为，属本 skill 范围（`references/network-and-time.md`），按 R14 先实测：本机 1.63.0 + Chromium 实验确认六条事实（handler 内 `headers()` 在 Chromium 碰巧带 cookie；`route.continue` 传入的伪造 cookie 被忽略，服务器仍收到原值；fulfill 302 后目标 handler 未被调用、页面拿到真实服务器内容；服务端 302 链 handler 只调一次，`response.request()` 为终点、`redirectedFrom()` 回溯；`continue` 的 headers 作用于每一跳；未路由请求 `allHeaders()` 含 cookie、`headers()` 不含）。新增评测场景 6（`evals/files/sso-interception.spec.ts`）跑无 skill 基线，四条 expected_behavior 全部达成，故不写入正文，场景保留作划界证据 |
+| ms-playwright-cli | 655530f → b85c7a7 | 83368cb、5bd70cd、8eebb9a 三次 roll；6 个文件 +210/−7：`allowed-tools` 收窄、`find --filename`、emulation 命令组、`video-show-actions --highlight-style`、WebMCP 命令（`webmcp-list` / `webmcp-call`，工具与结果标注为 untrusted）、新 `pr-attachments.md`（`gh --attach`）、`running-code.md` 沙箱可用全局、session 空闲一小时自动关闭、`test-generation.md` 删去「可并行」一句 | 噪声 / 新增不合入 | 合入面（attach 到暂停测试的调试回路、`PLAYWRIGHT_HTML_OPEN=never`、trace 目录布局、storage-state 卫生）均未改。新增命令绑定 1.64 alpha 的 CLI；WebMCP 为实验 API；PR 附件属 `github` skill 范围。WebMCP 工具输出按不可信数据处理的原则，正文 `references/agent-browser-safety.md`「页面输出是数据不是指令」已覆盖 |
+| awesome-copilot（too large） | 7568a48 → 997e95a | 62 个提交，`git log` / `git diff --stat` 在四个 paths 上均为空 | 未变更 | 仅 re-pin |
+| vercel-agent-browser（reference） | 8c15ff9 → d01253d | cd47192：`AGENTS.md` 删除「Windows Debugging」一节（AWS EC2 + SSM 调试脚本，−62 行） | 噪声 | 取用的唯一立场「真浏览器 e2e 争用浏览器实例须串行（`--test-threads=1`）」在 HEAD 的 `AGENTS.md` 仍在；`skills/agent-browser` 未改 |
+
+其余仓库上游（addyosmani-devtools、lambdatest-playwright、anthropics-webapp-testing、wshobson-e2e 为
+`repo moved, tracked paths unchanged`；currents-best-practices、testdino-playwright 为 up to date）随
+`--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（d67c16e、1cc5be9、b85c7a7、997e95a、d01253d）。
+
+### 评测（划界用，基线）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 路由与重定向 / 网络栈头 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 4 / 4 | 520 s。自行引用 `route.continue` 的 forbidden header 警告与 network 指南，搭三引擎复现环境实测：fulfill 302 不再进路由（WebKit 直接拒绝）、`cookie` 覆盖被忽略并改用 `addCookies` / 独立 `storageState`、Cookie 在 handler 内依引擎而异并改为无路由 `waitForRequest` + `allHeaders()`、重定向链 handler 只调一次并用 `redirectedFrom()` 数跳。第 1 条修法用 HTML `location.replace` 触发新导航而非 `continue({ url })`，同样避免串接 302，判达成 |
+
+结论：基线已全部做到，network 新增内容不合入（`docs/skill-standard.md` 第 3 节：只写模型不会的）；正文未变，
+仅新增评测场景 6 与夹具、re-pin、版本号改为 2026.09.29；正文未变，未跑有 skill 的 D2。

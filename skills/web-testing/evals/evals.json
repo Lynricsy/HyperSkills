@@ -81,5 +81,20 @@
       "Decides which artefact is wrong before editing, and changes exactly one of them — here the implementation, since the test states the business rule — rather than adjusting the expected number to match the output",
       "Discusses the rounding semantics themselves (half-away-from-zero versus banker's rounding, ties only arising in integer minor units, and where else `round()` is used) rather than anything about locators, waiting, browsers or CI browser installs"
     ]
+  },
+  {
+    "skills": [
+      "web-testing"
+    ],
+    "query": "sso-interception.spec.ts mocks our IdP and pokes at requests with page.route, and all four tests misbehave as described in the comments. For each test, explain why Playwright behaves that way and give the corrected test.",
+    "files": [
+      "evals/files/sso-interception.spec.ts"
+    ],
+    "expected_behavior": [
+      "Explains that fulfilling a route with a 3xx status does not send the redirect target back through routing: Chromium and Firefox follow the Location to the real server without calling the `/sso/callback` handler (WebKit rejects the call), so the fix is to fulfill the final content directly or to redirect with `route.continue({ url })` / `route.fallback({ url })`, not to chain a fulfilled 302 into a second route",
+      "Explains that a `cookie` header passed to `route.continue()` is ignored in favour of the browser's cookie store, so the viewer is still sent the admin cookie; switches identity through the context instead (a separate viewer `storageState` / project, or `context.clearCookies()` + `context.addCookies()`) rather than rewriting headers",
+      "Explains that `Cookie` (like `Host`, `Content-Length`, `Sec-Fetch-*`) is attached by the browser's network stack after the route handler runs, so it is not reliably present in `route.request().headers()` and differs by engine; asserts on it without routing — `request.allHeaders()` on an observed request (e.g. `page.waitForRequest`) or `context.cookies()` — instead of reading it inside the handler",
+      "Explains that a request and its redirects are one unit to routing: the handler runs once for `/account` and the browser follows the 301 itself, so `['/account']` is correct; checks the hop with `response.request()` (the final `/settings/profile` request) and `request.redirectedFrom()` rather than expecting a second handler call"
+    ]
   }
 ]

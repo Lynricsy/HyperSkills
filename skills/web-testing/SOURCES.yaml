@@ -1,5 +1,5 @@
 skill: web-testing
-version: "2026.09.12"
+version: "2026.09.29"
 upstreams:
   - id: playwright-runtime
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/microsoft/playwright
     paths: [packages/playwright-core/types/types.d.ts, packages/playwright/types/test.d.ts]
     ref: main
-    commit: 9cee4279065cf4f57ef372aead33c221d29f7711
+    commit: d67c16ec4e210d4d8652da7bb25dfe11b72deb97
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Source of record for every [verified] claim: the shipped type definitions of 1.63.0 state networkidle as DISCOURAGED, ElementHandle use as discouraged and waitForTimeout as inherently flaky; the CLI --help fixes the --trace mode set, --fail-on-flaky-tests, --repeat-each and --shard, and shows --retry-strategy does not exist while the retryStrategy config option does."
     notes: "Read from the locally installed @playwright/test 1.63.0 rather than the web docs, so the quoted text matches the runtime that produced the measurements in research/web-testing.md."
   - id: playwright-docs
@@ -19,10 +19,10 @@ upstreams:
     url: https://github.com/microsoft/playwright.dev
     paths: [nodejs/docs]
     ref: main
-    commit: b456bc30e1db931863e2bac54f20c300c497b1da
+    commit: 1cc5be996c1785fde93e6ba075ab83e271173008
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Official semantics for auto-waiting and actionability, web-first assertions, storageState and setup-project dependencies, parallelism and sharding, blob reports and merge-reports, page.clock, and the version-tagged container image."
     notes: "Source repository behind playwright.dev. Two licence files were read: LICENSE is 'Attribution 4.0 International' (CC-BY-4.0) and covers the documentation prose reused here; LICENSE-CODE is MIT and covers the site code, which is not used. Attribution: Playwright documentation by the Playwright authors, reused under CC-BY-4.0."
   - id: ms-playwright-cli
@@ -31,10 +31,10 @@ upstreams:
     url: https://github.com/microsoft/playwright-cli
     paths: [skills/playwright-cli]
     ref: main
-    commit: 655530f6d0dc71a0d6bf46ae165877d3c7311099
+    commit: b85c7a736bb473bf55b584e54a09ffa698d6d871
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The attach-to-a-paused-test debugging loop, PLAYWRIGHT_HTML_OPEN=never as the fix for automated runs hanging on the report server, the on-disk trace/network/resources layout, and storage-state artifact hygiene."
     notes: "Frontmatter allowed-tools stripped per this repository's key whitelist. Its credit-card example was not reused - it contradicts its own secret-hygiene section."
   - id: currents-best-practices
@@ -46,7 +46,7 @@ upstreams:
     commit: 283d5cbc5d11aac1abda058b16ad22c317d54dc0
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Quantified decisions: the 5-interactions-and-3-files threshold for a page object, default-versus-recommended timeouts, the globalSetup / setup-project / fixture / globalTeardown routing, per-worker storageState, the four-shape flakiness taxonomy and its reproduction commands."
     notes: "LICENSE.md has no 'MIT License' title line; it opens with 'Copyright (c) 2026 Currents Software Inc.' followed by the standard MIT grant. Its unannotated listing of waitForLoadState('networkidle') was treated as a gap and overridden by the official position."
   - id: testdino-playwright
@@ -58,7 +58,7 @@ upstreams:
     commit: 400e4256cd22669ad69c18d31d3e5541e4e1c2a3
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The per-action actionability matrix, not.toBeAttached versus not.toBeVisible, the rule that event waiters must exist before their trigger, the fullyParallel truth table, blob reports with merge-reports, retain-on-failure-and-retries for flake triage, and the AbortSignal-is-not-a-timeout distinction."
     notes: "Its claim of a --retry-strategy CLI flag was rejected: absent from 1.63.0 --help, though retryStrategy exists as a config option. Nested core/SKILL.md and ci/SKILL.md sub-skills were flattened."
   - id: awesome-copilot
@@ -67,10 +67,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot
     paths: [instructions/playwright-typescript.instructions.md, skills/playwright-generate-test, skills/playwright-explore-website, skills/chrome-devtools]
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 997e95a6e42869c350f8ca6ec4c066287697c9f0
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "toMatchAriaSnapshot as the structural assertion, test.step as a default structuring device, the explore-then-generate ordering that forbids writing a spec before driving the browser, and the accessibility-snapshot-before-screenshot rule for element discovery."
     notes: "Copilot-specific applyTo frontmatter stripped. Two positions rejected: its skills/webapp-testing directory is pre-locator-era throughout, and its instructions file's advice to avoid expect(locator).toBeVisible() is an outlier against three other upstreams."
   - id: addyosmani-devtools
@@ -79,10 +79,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/browser-testing-with-devtools]
     ref: main
-    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    commit: 2686b620fc1fed2e8f60c704839c766b8594c6b6
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The trusted-versus-untrusted boundary for agent-driven browsers, page content as data rather than instruction, read-only evaluation and the no-credential-access rule, browser-profile isolation and its blast radius, and the common-rationalisations rebuttals."
     notes: "Its tool table uses prose names rather than real MCP tool ids, and its --autoConnect flag name could not be verified, so no specific flag names were carried over."
   - id: lambdatest-playwright
@@ -91,10 +91,10 @@ upstreams:
     url: https://github.com/LambdaTest/agent-skills
     paths: [playwright-skill]
     ref: main
-    commit: 0491a3a29aa18558d2c3c64ff09367adb976c56f
+    commit: e2d7423a899f2bef8ccf53b3a6edd15465075684
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The stop-at-the-first-match ordered flaky checklist, the correction that locators re-resolve after a reload while raw ElementHandles go stale, and the discipline of asserting the URL before the heading after a navigating click."
     notes: "Cloud-grid and product sections excluded. Two recipes rejected against 1.63.0: contextOptions.reducedMotion (reducedMotion is a top-level use option and does not stop animations) and a hand-rolled Date subclass (page.clock exists). Its workers: CI ? 1 was rejected in favour of a percentage."
   - id: anthropics-webapp-testing
@@ -103,10 +103,10 @@ upstreams:
     url: https://github.com/anthropics/skills
     paths: [skills/webapp-testing]
     ref: main
-    commit: 34040c9c568585f6929bedeaad110ad08f079624
+    commit: 8a1541c4a3ffa5a20a5a91de0dcf3f0bab1d1ef4
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Read only to align on scope and to confirm that server lifecycle should be owned by tooling rather than a sleep; that judgement is realised here through Playwright's own webServer option."
     notes: "skills/webapp-testing/LICENSE.txt was read directly and is Apache-2.0, Copyright 2026 Anthropic, PBC - identical to mcp-builder and skill-creator, while the pdf and docx directories carry a proprietary licence. The licence therefore permits merging, but the content was rejected on correctness: it lists page.wait_for_timeout() under Best Practices and marks page.wait_for_load_state('networkidle') as CRITICAL, both contradicted verbatim by Playwright 1.63.0. No text, script or data file from this directory was copied."
   - id: vercel-agent-browser
@@ -115,10 +115,10 @@ upstreams:
     url: https://github.com/vercel-labs/agent-browser
     paths: [skills/agent-browser, AGENTS.md]
     ref: main
-    commit: 8c15ff9f71ae60c7e99e66afe1e2d4b9bf414fe2
+    commit: d01253d9db28d75080e36da3c1c31ef89454731e
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Read only for its position that real-browser end-to-end tests contend over browser instances and must be serialised, which is contrasted here with test.lock and single-worker projects."
     notes: "Licence read from LICENSE and is Apache-2.0, so merging would be permitted, but its shipped SKILL.md declares itself 'a discovery stub, not the usage guide' and its AGENTS.md forbids feature content there - a generated pointer index with nothing to merge. Its description also ends with a tool-capture instruction that was deliberately not carried over."
   - id: wshobson-e2e
@@ -127,9 +127,9 @@ upstreams:
     url: https://github.com/wshobson/agents
     paths: [plugins/developer-essentials/skills/e2e-testing-patterns]
     ref: main
-    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    commit: 156b7a5e7a8b93642628a339ee4039c925b34c7f
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Read only to calibrate the negative scope of an end-to-end suite: unit-level logic, API contracts and edge-case permutations do not belong in a browser test."
     notes: "Tutorial-level otherwise, mixes Playwright with Cypress, and ranks data-testid above getByRole against the other upstreams. No content reused."
