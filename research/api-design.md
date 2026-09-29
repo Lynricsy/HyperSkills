@@ -366,3 +366,20 @@ $ npx --yes @stoplight/prism-cli@latest mock openapi.yaml --port 4010
   但做的是 spec → 框架代码，正属本 skill 明确排除的框架实现，应归各生态 skill。
 - **GraphQL**：Jeffallan、wshobson、orchestkit 三个上游都把 REST 与 GraphQL 混在一个 skill 里，
   本 skill 一律不取，归 `graphql`。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。逐上游核对区间内真实改动（`gh api`），
+只看 `SOURCES.yaml` 中该条目的 `paths`。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| wshobson-openapi-spec-generation | a30778f → 156b7a5 | 51b6e0b：`openapi-spec-generation/references/details.md` 一处相对链接 `references/x.md` → `./x.md` | 噪声 | 仅修死链，不涉及 design-first/code-first 取舍、`$ref` 纪律或陷阱清单 |
+| redocly-cli（reference） | 2586b31 → 95a8e7d | 794d5f1：新增 Overlay 1.x 的 `spec-ref-siblings` 规则及 struct 测试；da6df3b：Arazzo `workflow-dependsOn` 误报修复（`seenWorkflow` 改为按 workflow 作用域）；dbd97f5：`operation-2xx-response` 新增 `disallowDefault` 选项（默认 false，行为不变）。报告之后多出的 95a8e7d 只改 docs 与链接检查 CI，未碰 `packages/core/src/rules` | 噪声 | 本条目只用于核定 lint 门措辞（exit 0 / 警告不影响退出码 / 断 `$ref` exit 1 / 接受 3.2）。三项均为新增可选能力或非 OpenAPI 规则的误报修复，默认行为与退出码语义不变，正文不需改 |
+| orchestkit-api-design | b945f70 → 62a32ad（diff 过大，按路径归因） | 220adb4：自有 frontmatter 键移到 `metadata` 下；02cb935：`compatibility` 地板 2.1.251 → 2.1.277；9390c8d：`scripts/fastapi-versioned-router.py` 的 ruff 修正（`datetime.UTC`、`raise ... from None`） | 噪声 | 均不涉及弃用窗口与契约层常见错误；FastAPI 脚本本就不在范围内；frontmatter 字段本就剥离 |
+| borghei-api-design-reviewer（reference） | ddca910 → 5318eda（diff 过大，按路径归因） | 无命中；`engineering/api-design-reviewer` 树 SHA 前后一致（a870f50） | 未变更 | 仅 re-pin |
+
+其余仓库上游（prism-cli、bm629、lambdatest 为 `repo moved, tracked paths unchanged`；其余 up to date）
+随 `--pin` 一并对齐。`kind: docs` 条目（OpenAPI 规范与各 RFC）不在本次范围。
+
+结论：正文未变，仅 re-pin 与版本号改为 2026.09.29；正文未变，未跑 D2。
