@@ -55,5 +55,31 @@
       "Does not read skills/apple/SKILL.md or any of its references",
       "Answers about Flutter/Dart widget practices from general knowledge, without applying SwiftUI or Apple-platform rules"
     ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "We're adding iPhone Duo support with the Xcode 27.1 beta; deployment target stays iOS 26. Adapt LibraryScreens.swift so each screen works well on the large inner display and when folded. Show the code.",
+    "files": ["evals/files/LibraryScreens.swift"],
+    "expected_behavior": [
+      "Classifies the screens by structure before picking a technique: the settings list that pushes pages becomes a NavigationSplitView (no iPhone Duo-specific code; it collapses on compact width), rather than an ArrangementView or reserved-region code",
+      "Reflows the dashboard cards into two columns when width allows (custom Layout or AnyLayout chosen by size class, keeping single-column reading order), instead of stretching the single column or putting cards in an ArrangementView",
+      "Uses ArrangementView with a split style for the artwork/controls pair, inside an @available/#available(iOS 27.1, *) check with an equivalent pre-27.1 fallback, and does not place it inside a ScrollView or List",
+      "Removes the UIDevice idiom check and UIScreen.main.bounds reads from layout decisions and uses size classes or the proposed size, without detecting the device or fold pose",
+      "Reads @Environment(\\.displayScale) in the SwiftUI view and passes it into the thumbnail actor instead of reading UIScreen.main.scale from the actor",
+      "If it mentions hinge APIs at all, uses onHingeChange only for optional effects and not to drive layout"
+    ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "We're switching to Xcode 27 (iOS 27 SDK) and keeping the iOS 17 deployment target. Review Legacy27.swift: what is deprecated or behaves differently now, and what should each piece become? Show the fixes.",
+    "files": ["evals/files/Legacy27.swift"],
+    "expected_behavior": [
+      "Flags AnimatableModifier as soft-deprecated in the 27 SDK and changes PulseModifier to conform to ViewModifier and Animatable directly (not the @Animatable macro, which needs iOS 26)",
+      "Replaces statusBarHidden(true) with toolbarVisibility(.hidden, for: .statusBar) behind #available(iOS 27, *) and keeps statusBarHidden in the fallback branch",
+      "Does not emit toolbarVisibility(_:for:) unguarded for the navigation bar at an iOS 17 target, because it is iOS 18+; uses toolbar(.hidden, for: .navigationBar) or gates the newer spelling",
+      "Fixes QuantityStepper by removing the declaration default from @State count and assigning it once in init as an intentional one-time seed, and explains that assigning to state that already has a declaration default does not take effect (and is the pattern the @State macro diagnostics surface) rather than suggesting reordering assignments",
+      "Replaces the isPresented plus presenting: pair with confirmationDialog(_:item:titleVisibility:actions:message:) and states that the item overload back-deploys to iOS 15, so no #available gate is needed",
+      "Replaces presentationMode with @Environment(\\.dismiss)"
+    ]
   }
 ]

@@ -98,6 +98,14 @@ conventions:
 
 - **iPadOS**: multitasking means the window is resizable at any moment; size classes, not
   device checks. Pointer and keyboard support are expected, not optional.
+- **Large and foldable iPhones** (iPhone Duo's inner display; iOS 27.1 SDK, beta): an
+  iPhone can offer regular width. Choose by screen structure — rows that push pages →
+  `NavigationSplitView`; a scrolling card feed → reflow into two columns; two peer regions
+  → `ArrangementView` (`@available(iOS 27.1, *)`, never inside `ScrollView`, `List` or
+  `NavigationSplitView`). A reflow keeps reading and VoiceOver order identical to the
+  single-column order (use accessibility sort priority where the visual order differs) and
+  returns to one column at accessibility Dynamic Type sizes. Hinge callbacks drive
+  optional effects, never layout.
 - **macOS**: menu bar commands, multiple windows, `Settings` scene, hover states, smaller
   control metrics, and no assumption that a view is ever full-screen.
 - **watchOS**: extremely short interactions, Digital Crown input, no Liquid Glass.

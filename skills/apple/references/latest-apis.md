@@ -38,7 +38,7 @@ Scope every observation to the code you were asked to touch.
 |---|---|---|
 | `navigationBarTitle(_:)` | `navigationTitle(_:)` | iOS 15 |
 | `navigationBarItems(...)` | `toolbar { ToolbarItem(...) }` | iOS 15 |
-| `navigationBarHidden(_:)` | `toolbarVisibility(.hidden, for: .navigationBar)` | iOS 15 |
+| `navigationBarHidden(_:)`, and the `toolbar(_:for:)` visibility overload | `toolbarVisibility(.hidden, for: .navigationBar)` | iOS 18 — below that, keep `toolbar(.hidden, for:)` (iOS 16) in the fallback |
 | `.navigationBarLeading` / `.navigationBarTrailing` | `.topBarLeading` / `.topBarTrailing` | iOS 15 |
 | `edgesIgnoringSafeArea(_:)` | `ignoresSafeArea(_:edges:)` | iOS 15 |
 | `colorScheme(_:)` | `preferredColorScheme(_:)` | iOS 15 |
@@ -63,8 +63,8 @@ Scope every observation to the code you were asked to touch.
 | `ObservableObject` + `@Published` | `@Observable` | iOS 17 |
 | `tabItem(_:)` | `Tab(_:systemImage:value:)` | iOS 18 |
 | `PreviewProvider` | `#Preview` macro | iOS 17 |
-| manual `animatableData` | `@Animatable` macro | iOS 26 |
-| `toolbarBackground(_:for:)` | `toolbarBackgroundVisibility(_:for:)` | iOS 18 |
+| manual `animatableData` that only forwards stored properties | `@Animatable` macro (keep a hand-written `animatableData` that clamps or normalises) | iOS 26 |
+| `toolbarBackground(_:for:)` given a `Visibility` | `toolbarBackgroundVisibility(_:for:)` (the `ShapeStyle` overload is not deprecated) | iOS 18 |
 | `Task.sleep(nanoseconds:)` | `Task.sleep(for:)` | iOS 16 |
 | `String(format: "%.2f", x)` | `Text(x, format: .number.precision(.fractionLength(2)))` | any |
 | `UIScreen.main.bounds` for available space | `containerRelativeFrame()`, `visualEffect`, or `GeometryReader` | any |
@@ -111,7 +111,7 @@ iOS 16. `[verified]`
 ## iOS 27 additions and breakages
 
 iOS 27 is the newer SDK; iOS 26 remains the default deployment target for new apps. Gate
-everything here and keep an iOS 26 path.
+everything here and keep an iOS 26 path, except where an item says it back-deploys.
 
 - `@State` became a **macro**. Views that compiled before can now fail with "variable used
   before being initialized", "invalid redeclaration of synthesized property", or "extraneous
@@ -130,7 +130,9 @@ everything here and keep an iOS 26 path.
 - `swipeActionsContainer()` extends swipe actions to any scrollable container, not just
   `List`. iOS/macOS/watchOS/visionOS 27; unavailable on tvOS.
 - `confirmationDialog` and `alert` gained `item: Binding<T?>` overloads matching the
-  `sheet(item:)` shape.
+  `sheet(item:)` shape. They need the 27 SDK to compile but back-deploy to iOS 15 /
+  macOS 12 / tvOS 15 / watchOS 8 / visionOS 1, so no `#available` gate. Prefer them over an
+  `isPresented:` Boolean paired with `presenting:`. `[verified]`
 - `AsyncImage(request:)` takes a `URLRequest` for a per-request cache policy;
   `asyncImageURLSession(_:)` supplies a custom session.
 - `ReadableDocument` / `WritableDocument` replace `FileDocument` /

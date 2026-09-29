@@ -47,8 +47,9 @@ Every iOS 26+ API is `#available`-gated per platform with a real fallback.
    duplicates the subtree and swaps view identity. `[verified]`
 2. **Never wrap `glassEffect` in a `.if` conditional-modifier helper.** The two branches are
    different view types, so structural identity breaks, descendant `@State` resets, and
-   animation degrades to remove-and-insert. Use `glassEffect(cond ? .regular : .identity)`
-   or the `isEnabled:` parameter. The helper also stops compiling against the 27 SDK.
+   animation degrades to remove-and-insert. Use `glassEffect(cond ? .regular : .identity)`;
+   `glassEffect(_:in:)` has no `isEnabled:` parameter, and `.identity` is the no-effect
+   value. The helper also stops compiling against the 27 SDK.
    `[verified]`
 3. **Apply `glassEffect` after layout and appearance modifiers.** The effect needs final
    geometry: `.padding().frame(…).glassEffect(…)`, never the reverse. `[community]`
@@ -103,7 +104,9 @@ Tint only when the colour carries meaning: primary action, live state, alert. Ti
 hierarchy signal, and tinting everything destroys it. `.tint(_:)` and `.interactive(_:)`
 chain in either order; both build the same `Glass` value.
 
-The default shape is a capsule. Pass `in:` for anything else. Inside a sheet, card, or
+The default shape is a capsule: the signature is
+`glassEffect(_ glass: Glass = .regular, in shape: some Shape = DefaultGlassEffectShape())`,
+so omit `in:` for it and pass `in:` for anything else. Inside a sheet, card, or
 window corner, prefer concentric corners (`ConcentricRectangle`, or
 `.rect(cornerRadius: .containerConcentric)`) over a guessed radius so inner and outer radii
 stay parallel across device geometries. `ConcentricRectangle` is iOS 26.0+, macOS 26.0+, and
@@ -181,7 +184,6 @@ Never emit these; flag them on sight.
 |---|---|
 | `scrollExtensionMode(.underSidebar)` | Fabricated. Real API: `backgroundExtensionEffect()`. It appears with a plausible code sample inside Xcode 27's own bundled model-context documentation, which is therefore not authoritative. `[verified]` |
 | `.background(.secondaryBackground)` | No such `ShapeStyle`. Use `.background(.secondary)`, `Color(.secondarySystemBackground)` on iOS, or `.windowBackground` on macOS. |
-| `DefaultGlassEffectShape` | Not a type. The default shape is a capsule — omit `in:`. |
 | `ScrollEdgeEffectStyle.sharp` / `.subtle` | Cases are `.automatic` / `.hard` / `.soft`. `[verified]` |
 | `.searchToolbarBehavior(.minimized)` | The case is `.minimize`. |
 | `UIGlassEffect(glass:isInteractive:)` | Fabricated initialiser. Use `UIGlassEffect()` and set `isInteractive`. |

@@ -4,7 +4,7 @@ description: "Develops Apple platform apps with Swift, SwiftUI and UIKit."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: platform
 ---
 

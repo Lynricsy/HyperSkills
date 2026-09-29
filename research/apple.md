@@ -223,3 +223,49 @@ twostraws（528★，2026-05-17）：参考拆分最干净的一份。`hotspots.
 - **脚本谱系**：`scripts/instruments_parser/` 是 AvdLee 解析器的重写精简版（11 模块 → 4 模块：`xctrace` / `xml` / `lanes` / `report`），保留 `--list-devices`、`--attach`、`--stop-file`、`--template` 与 `--window`、`--fanin-for`、`--json-only`、`--list-runs`、`--list-logs`、`--list-signposts` 的全部语义，并补上了上游没有的可执行前置检查（`xctrace` 不在 PATH、输出路径已存在、stop-file 已存在、系统级录制未确认）。本机为 Linux，无 `xctrace`，只做 `py_compile` 与 `--help` 冒烟 + 错误路径冒烟；SKILL.md 与 `swiftui-performance.md` 均注明仅 macOS 可运行。
 - **未来同步要盯的上游**：`apple-xcode27`（Apple 每个 Xcode 大版本会更新导出内容，是弃用索引与 iOS 新版本破坏性变更的第一来源）、`avdlee-swiftui`（`latest-apis.md` 与 Instruments 脚本）、`yordi-liquid-glass`（版本钉死的 bug 条目需随 OS 更新复查）。
 - **放弃的方向**：App Store / ASO、模拟器与设备交互、Xcode 构建设置安全审计、C `-fbounds-safety`、App Intents / WidgetKit 等单框架主题 —— 均见路线图，不进本 skill。
+
+## 2026-09-29 上游同步
+
+漂移报告中本 skill 只有 `avdlee-swiftui` 一条 `behind`（列出了 paths 下的具体提交，非 too-large 归因）；
+`avdlee-update-apis`、`avdlee-concurrency` 为 repo moved / tracked paths unchanged，其余 OK，`apple-docs` 为
+manual check。`--pin` 后核对：`avdlee-swiftui` 写入 9808b06，与本次审阅的 HEAD 一致。
+
+### avdlee-swiftui（4c6a97d → 9808b06，paths: `skills/swiftui-expert-skill`）
+
+区间内 11 个触及 paths 的提交：58fbb4d（弃用 API / ForEach / typo 修复）、94fac4e 与 eb2c49d（Xcode 27 指南及按主题重组）、
+dbe7b3a / ee97b1f（Xcode 27.1）、6702cf7（可缩放布局）、6572a7f（iPhone Duo）、d074948 / 1e522cf / e4fb5a4（大屏分类与重排）、
+065d3ba（合并 PR #81）。变更文件 24 个，新增 `document-apps.md`、`environment-patterns.md`、`iphone-duo.md`、
+`modifier-patterns.md`、`styled-text-editing.md`、`toolbar-patterns.md`、`webkit-integration.md`。
+
+所有 API 事实均用 Apple 文档 JSON（`developer.apple.com/tutorials/data/documentation/swiftui/…`）逐条核对，不采信上游转述：
+
+| 上游变更 | 判定 | 处理 |
+|---|---|---|
+| `liquid-glass.md`：签名改为 `glassEffect(_:in: some Shape = DefaultGlassEffectShape())`，删去 `isEnabled:` | **更正** | 文档确认 `DefaultGlassEffectShape` 是 iOS 26 的真实 struct，且只有 `glassEffect(_:in:)` 一个重载。本 skill 原把 `DefaultGlassEffectShape` 列入「不存在的 API」、并建议用 `isEnabled:` 参数——两处都是错的，已改：删除该行，写明签名；关闭玻璃改用 `.identity` |
+| `latest-apis.md`：`navigationBarHidden` → `toolbarVisibility` 标 iOS 18，旧版保留在回退分支 | **更正** | 文档：`toolbarVisibility(_:for:)` iOS 18，`toolbar(_:for:)` iOS 16（27 SDK 已标弃用）。原表 floor 写 iOS 15，已改 |
+| `latest-apis.md`：`toolbarBackground(_:for:)` 仅 `Visibility` 重载弃用 | **更正** | 文档：`ShapeStyle` 重载未弃用。原表未区分，已改 |
+| `latest-apis.md`：`@Animatable` 仅替代 1:1 转发的 `animatableData`，含钳制/归一化的保留手写 | 更正（细化） | 已改表格该行 |
+| `sheet-navigation-patterns.md`：SDK 27 `alert`/`confirmationDialog` 的 `item:` 重载回部署到 iOS 15，无需运行时门控 | **更正** | 文档两者 introducedAt 均为 iOS 15 / macOS 12 / tvOS 15 / watchOS 8 / visionOS 1。原文把它放在「iOS 27 一律 gate」的列表里，已加例外说明 |
+| `iphone-duo.md`、`layout-best-practices.md`、`sheet-navigation-patterns.md`：大屏/可折叠屏按屏幕结构选技术、双列重排、`ArrangementView`（27.1 beta）、`reservedRegions`、`onHingeChange` 只做效果 | 新增 | 基线实测大部分已会，只合入基线未达成的「重排保持单列阅读 / VoiceOver 顺序、辅助功能字号回单列」及嵌套限制、hinge 仅效果的简短规则（`design-hig.md` 一条） |
+| `latest-apis.md` 等：SDK 27 软弃用补充（`AnimatableModifier`、`statusBarHidden` → `toolbarVisibility(_:for: .statusBar)`、`PresentationMode` 等） | 新增 | 基线全部已会（场景 6 EB1–EB3、EB6），**未合入** |
+| `state-management.md`：`@State` 宏的一次性播种写法 | 新增 | 基线已会（场景 6 EB4），未合入；原「按迁移诊断修」表述保留 |
+| `document-apps.md`、`webkit-integration.md`、`styled-text-editing.md`、`toolbar-patterns.md`、`environment-patterns.md`、`modifier-patterns.md`、`list-patterns.md`（reorder / swipeActionsContainer）、`image-optimization.md`（displayScale、AsyncImage 缓存） | 新增 / 重组 | 本 skill 已由 `apple-xcode27` 等覆盖 `ReadableDocument`、`WebView`、`reorderable`、`swipeActionsContainer`、`AsyncImage(request:)`、`@Entry` 默认值、`.if` 修饰符等；displayScale 基线已会（场景 5 EB5）。未合入新文件 |
+| 其余：`focus-patterns.md`、`macos-*.md`、`performance-patterns.md`、`view-structure.md` 措辞、`agents/openai.yaml` | 噪声 / 重组 | 不改 |
+
+### 评测（`workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同模型）
+
+新增场景 5（iPhone Duo 适配，夹具 `LibraryScreens.swift`）与场景 6（Xcode 27 迁移评审，夹具 `Legacy27.swift`）。
+
+| 场景 | 模式 | skill_read | 结果 | 证据摘录 |
+|---|---|---|---|---|
+| 5 iPhone Duo | 基线 | false | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 基线查了 Apple 文档与 Tech Talk；卡片用按容器宽度的 `LazyVGrid`（折痕时偶数列），未考虑阅读 / VoiceOver 顺序与辅助功能字号 |
+| 5 iPhone Duo | 有 skill | **true** | EB1 ✔ **EB2 ✔** EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 自定义 `CardColumnsLayout`，「视觉顺序 = 阅读顺序 = VoiceOver 顺序 = 单列顺序」，`dynamicTypeSize.isAccessibilitySize` 时强制一列；「`onHingeChange` 只该驱动可选效果，绝不能拿来算布局」 |
+| 6 Xcode 27 迁移 | 基线 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ◐ EB6 ✔ | `item:` 重载只作「可选简化」，并称「文档页标 iOS 15+，但 … 仍写 27 → 采纳前在本地 SDK 核对」，保留 `isPresented` + `presenting:` |
+| 6 Xcode 27 迁移 | 有 skill | **true** | EB1–EB4 ✔ **EB5 ✔** EB6 ✔ | 「`confirmationDialog(_:item:…)` … 需要 27 SDK 才能编译，但回部署到 iOS 15，所以 iOS 17 目标不需 gate」 |
+
+结论：两个场景都通过 D2（基线未达成 / 部分达成的一条在有 skill 时达成）。负例（场景 4）未改 description / Scope，未重跑。
+输出目录：`/tmp/hs-evals-sync/SyncG3/apple-b5`、`apple-b6`（基线）、`apple-s5`、`apple-s6`（有 skill）。
+
+遗留风险：`ArrangementView`、`ReservedRegion`、iPhone Duo 相关 API 在 Apple 文档中仍标 beta（iOS 27.1），
+正式版语义可能变化，下次同步需复核；液态玻璃两处更正只删除了错误说法、补写签名，覆盖该主题的场景 2
+本次未重跑。
