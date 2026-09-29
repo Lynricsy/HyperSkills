@@ -529,3 +529,47 @@ mock 可以用在 `command = apply`、`-filter` 过滤的是文件不是 run 块
   外面再包一层脚本只会多一个要维护的间接层，没有可运行价值。
 - 不覆盖 HCP Terraform / TFE 的平台面（Stacks 只留一句「Terraform 独有、需要该平台」）、
   不覆盖任何 provider 的资源字段、不推荐 Terragrunt/Terramate 这类第三方编排器。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。三条 `behind` 均用本地 blobless 克隆按完整
+`<旧 pin>..<审阅 HEAD>` 区间执行 `git log --oneline` / `git diff --stat`，只看该条目 `paths`。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| hashicorp-agent-skills | c2d65df → f706481 | 516354c（#101，terraform-policy 适配 tfpolicy 0.3）与 f706481（#102，版权头）：`terraform-policy/` 下 37 文件 +163/−1074。实质改动：版本分支从「0.1.x / 0.2.0+」改为维护「0.2.x / 0.3.x」两条线；0.3.0 起新增 `core::alltrue()`/`core::anytrue()`、`.policytest.hcl` 中每个 mock `resource {}` 必须带 `attrs`/`prior_attrs`、`tfpolicy test` 复用 `.policy.hcl` 的 `required_providers` 做 schema 预检、`meta.tfe_stack.*` 与 `meta.tfe_workspace.tags` 扩到 module/provider policy；`required_providers` 仅对含 resource/provider policy 的文件强制；`tfpolicy-test.md` 大幅精简；`examples/conversion/*` 只加版权头 | 与合入面无关 + 噪声 | 本 skill 从 terraform-policy 只取「policy 引擎选型与在流水线中的位置」（`policy-and-security.md`），从未收录 tfpolicy 的 DSL、函数表或测试文件语法，正文中也没有 `tfpolicy`/`.policy.hcl` 字样；这些变更全在未合入的层面。版权头为噪声 |
+| opentofu | ae4c179 → 1d2a117 | a16adac（#4532）：`mock_provider` 新增 `source` 参数，可从文件或目录加载 mock 数据；430746a（#4600 条目）：`terraform` 块内的 `provider_meta` 改为静默忽略。二者都记在 `## 1.14.0 (Unreleased)` 下 | 新增（按 R14 以基线实测划界后不合入） | 见下 |
+| awesome-copilot-terraform | 7568a48 → 997e95a（62 提交） | 无命中；`instructions/terraform.instructions.md` blob 两端均为 681c6b69612f | 未变更 | 仅 re-pin |
+
+其余仓库上游：antonbabenko-terraform up to date；hashicorp-terraform、terrashark、nitinjain-platform-skills、
+wshobson-terraform-specialist、tflint 为 `repo moved, tracked paths unchanged`，随 `--pin` 对齐。
+`kind: docs`（opentofu-docs、terraform-docs-site）不在本次范围。pin 后三条 behind 条目的 commit
+（f706481、1d2a117、997e95a）与审阅 HEAD 一致。
+
+### opentofu `mock_provider` `source`：实测与划界
+
+本机实跑（Terraform 1.16.2 / OpenTofu 1.12.6，模块 + `tests/*.tftest.hcl` + `testing/aws/aws.tfmock.hcl`）：
+
+- Terraform 1.16.2：`mock_provider "aws" { source = "./testing/aws" }` 加载 `.tfmock.hcl`，`command = apply` 两个 run 均通过，
+  未创建任何真实对象。Terraform v1.7 分支 CHANGELOG 在 1.7.2 已提到 `.tfmock.hcl`（mock data files），即该能力随 1.7 线提供。
+- OpenTofu 1.12.6：`tofu init` 与 `tofu test` 都在解析测试文件时报 `Unsupported argument ... An argument named "source" is
+  not expected here`，一个 run 都不执行。把 `mock_resource` 默认值内联进 `mock_provider` 块后两个 run 均通过；
+  另验证同名 `.tofutest.hcl`（内联 mock）会被 OpenTofu 优先采用。
+- 也就是说，这条差异在当前两个稳定版之间真实存在，OpenTofu 侧的支持只在未发布的 1.14 线。
+
+按 R14 先写了评测场景（队列模块 + 用 `source` 的测试套件 + `.tfmock.hcl`，问能否在 OpenTofu 1.12 CI 通过、如何改成一套两边都能跑），
+跑无 skill 基线（`workbuddy/deepseek-v4.1-flash`，thinking `max`，
+`/tmp/hs-evals-sync/SyncG7/terraform/workbuddy-deepseek-v4.1-flash-max/baseline/5/answer.md`）：
+
+| 行为 | 基线 |
+|---|---|
+| 判定 OpenTofu 1.12 不通过，因 `mock_provider` `source` 为 Terraform 独有、解析阶段即报 unsupported argument | 达成（自行下载 OpenTofu 1.12.6 复现了同一报错） |
+| 给出可移植改法：`mock_resource` 默认值内联进 `mock_provider`（或 `.tofutest.hcl`） | 达成（内联，并实测两边通过） |
+| 其余部分保持不动，不声称 mock 仅限 plan | 达成 |
+| 双运行时的 mock 下限 Terraform 1.7 / OpenTofu 1.8，`required_version = ">= 1.7"` 对 OpenTofu 放行 1.7 | 未达成（这是正文已有内容，不属本次新增） |
+
+覆盖新增内容的三条行为基线全部自行达成，按 R14 **不合入**：正文不加 `source` 差异条目，场景与夹具一并撤回
+（夹具副本留在 `/tmp/hs-up/SyncG7/`，未入库）。基线答案里把 OpenTofu 支持版本说成「≥1.13」，与 CHANGELOG 的
+`1.14.0 (Unreleased)` 不符，属小错，不足以改变结论。`provider_meta` 被静默忽略与本 skill 无关（正文未涉及）。
+
+结论：正文未变，仅 re-pin 与版本号改为 2026.09.29；正文未变，未跑 D2（上面的基线运行是 R14 划界用，不是 D2）。
