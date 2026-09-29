@@ -4,7 +4,7 @@ description: "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: framework
 ---
 

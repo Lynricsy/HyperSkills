@@ -159,7 +159,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`ml-training`](skills/ml-training/) | 任务 | Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization | 2026.09.29 | 9 |
 | [`model-serving`](skills/model-serving/) | 任务 | Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity | 2026.09.29 | 10 |
 | [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB documents, aggregations, indexes and cluster operations | 2026.09.12 | 6 |
-| [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Builds Node.js HTTP services with Fastify, NestJS, Hono or Express | 2026.09.12 | 13 |
+| [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Builds Node.js HTTP services with Fastify, NestJS, Hono or Express | 2026.09.29 | 13 |
 | [`observability`](skills/observability/) | 任务 | Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts | 2026.09.12 | 15 |
 | [`office`](skills/office/) | 任务 | Creates, edits and converts Word, PowerPoint, Excel and PDF documents | 2026.09.12 | 19 |
 | [`planning`](skills/planning/) | 任务 | Turns requirements into executable plans with dependencies and verifiable acceptance criteria | 2026.09.12 | 8 |

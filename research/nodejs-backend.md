@@ -214,3 +214,19 @@ pino `10.3.1`。
 - **放弃的方向**：OAuth/OIDC 流程（候选 4 质量足够但属协议实现）、WebSocket 与 SSE 之外的实时协议、
   `@fastify/http-proxy` 之类的网关模式、消息队列与 outbox 的完整实现（正文只写「后台循环必须处理 rejection
   且不可重入」这一层）。
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。唯一 `behind` 的是 awesome-copilot（62 提交，compare 超限）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| awesome-copilot | 7568a48 → 997e95a | 无 | 未变更，仅 re-pin |
+
+归因按完整区间做：`git clone --filter=blob:none` 后
+`git log 7568a48..997e95a -- instructions/nestjs.instructions.md` 与 `git diff --stat` 均为空；
+`gh api contents` 取该文件 blob SHA 前后一致（f9ef64f）。`--pin` 写入的 commit 与审阅的 HEAD 一致。
+secondsky-hono（`repo moved, tracked paths unchanged`）与其余 up to date 的仓库条目随 `--pin` 一并对齐；
+`kind: docs` 条目不在本次范围。
+
+结论：正文未变，仅 re-pin 与版本号改为 2026.09.29；正文未变，未跑 D2。
