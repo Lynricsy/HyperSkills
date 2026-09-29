@@ -4,7 +4,7 @@ description: "Builds Model Context Protocol servers with tools, resources, trans
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: task
 ---
 
@@ -79,8 +79,8 @@ scope entirely.
    `isError: true` and text the model can act on; only request-structure and server faults are
    JSON-RPC errors. Clients are only obliged to show the model the first kind.
 10. **Do not rely on throwing.** Measured: `mcp` 2.2.0 discards the exception message and gives the
-    model `Error executing tool <name>`; `@modelcontextprotocol/sdk` 1.30.0 and
-    `@modelcontextprotocol/server` 2.0.0 forward `Error.message` verbatim, secrets included. Catch,
+    model `Error executing tool <name>`; `@modelcontextprotocol/sdk` 1.30.0–1.31.0 and
+    `@modelcontextprotocol/server` 2.0.0–2.2.0 forward `Error.message` verbatim, secrets included. Catch,
     decide what the model may know, and construct the result.
 11. **Every error ends with the next action.** Naming the tool or parameter that recovers turns a
     dead end into a retry that differs. Without it the model retries identically.
@@ -248,7 +248,7 @@ Verified on Linux with Node v26.7.0, Python 3.12 and uv 0.11.21.
 
 ```bash
 # TypeScript, v2 line
-npm i @modelcontextprotocol/server @modelcontextprotocol/core zod ajv ajv-formats
+npm i @modelcontextprotocol/server @modelcontextprotocol/core zod
 
 # Python, official SDK
 uv pip install mcp

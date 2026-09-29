@@ -456,3 +456,59 @@ $ npx @modelcontextprotocol/inspector --version
 - 没有写 `scripts/`：本 skill 的可执行内容都是一行命令（Inspector CLI、`npm view`、`gh api`、
   `curl` 探针），包成脚本只会多一层间接；这些命令直接内联在 SKILL.md 与
   `references/{sdk-versions,testing}.md` 里。
+
+## 2026-09-29 上游同步
+
+依据 `/tmp/upstream-report.txt`。too-large / 超 compare 上限的条目按完整区间归因（`git clone --filter=blob:none` + `git log/diff <旧pin>..<HEAD> -- <paths>`），pin 后核对写入的 commit 与审阅的 HEAD 一致。
+
+### 逐上游判定
+
+| 上游 | 区间 | paths 内变更 | 判定 | 理由 |
+|---|---|---|---|---|
+| mcp-spec | aa8ce04..046fa30 | 3f6e5e1 `server/resources.mdx` 把 "Serves" 改成 "Servers"、"or" 改 "nor" | 噪声 | 错别字；`schema/2026-07-28` 无变更 |
+| mcp-typescript-sdk | 5ecc791..dd22ba2 | 2.1.0 / 2.2.0 两次发版：请求时 OAuth scope challenge（`scopeChallenge` / `requireScopes`）、`StdioServerTransport` 在 stdin EOF 时自行关闭、`createMcpHandler` 同一实例复用栈溢出修复、listen 流无可推送时立即结束、通知发送失败不再短暂 unhandled、client 侧 `expectedIssuer` 弃用；CHANGELOG 另列 4 MiB 请求体上限、缺 `MCP-Protocol-Version` 头改判 `-32020` 等 | 新增（未合入）+ 触发**重测与更正** | scope challenge 是 SDK 便利 API，skill 已写协议层行为（403 + `WWW-Authenticate` 指明所需 scope，规则 22 / `auth.md`），不属于 contributes 的「实测 TS 行为」面；其余为缺陷修复，与正文陈述一致（正文本来就要求头部必填、stdin EOF 即退出）。版本号前进促使按 `sdk-versions.md` 的重测步骤重跑，发现两处旧结论不成立，见下节 |
+| awesome-copilot-mcp | 7568a48..997e95a | 无（5 个 paths 的完整区间 `git log` 为空） | 仅 re-pin | — |
+| mcp-inspector | 795b1bb..1e31c78 | 15 个提交：`--protocol-era` 启动参数、连接超时默认 30 s、skills 目录预算可配、环境变量文档、测试门限；c0c2a20 新增根目录 LICENSE | 噪声 + **许可重新裁决** | 正文用到的 `--cli ... --method tools/list / tools/call` 在 inspector 2.8.0 上实跑结果不变（见下）。LICENSE 为 MCP 许可过渡声明（Apache-2.0 / MIT / CC-BY-4.0），`license` 改记 Apache-2.0；内容上仍只记录实跑观察，relation 保持 reference |
+| python-sdk / mcp-server-dev / mcp-builder / microsoft / cloudflare | — | OK | — | 报告为 tracked paths unchanged，随 `--pin` 一并更新；`anthropics/skills` 的 `skills/mcp-builder` 完整区间亦无变更 |
+
+### 重测（本机 Node v26.9.0；`/tmp/syncg1/mcpm` 下装 `@modelcontextprotocol/server` 2.2.0 与 2.0.0、`@modelcontextprotocol/sdk` 1.31.0 与 1.30.0，逐行发原始 JSON-RPC）
+
+| 探针 | v1 1.30.0 / 1.31.0 | v2 2.0.0 / 2.2.0 |
+|---|---|---|
+| `LATEST_PROTOCOL_VERSION` | `2025-11-25` / `2025-11-25` | `2025-11-25` / `2025-11-25` |
+| `server/discover`（modern `_meta`） | `-32601 Method not found`（1.31.0 实测） | `supportedVersions: ["2026-07-28"]`（两版一致） |
+| legacy `initialize` 请求 `2026-07-28` | 回 `protocolVersion: "2025-11-25"`，静默降级（1.31.0） | — |
+| 工具抛 `Error("db password hunter2 rejected")` | 原文转发给模型（1.31.0） | 原文转发（两版一致） |
+| handler 内 `console.log` | 裸行进入 stdout（1.31.0） | 裸行进入 stdout（两版一致） |
+| 不传 `jsonSchemaValidator`，zod 输入 schema | — | **请求全部成功**（两版一致，未装 `ajv` 亦然） |
+| 裸 JSON Schema 字面量作 `inputSchema` | — | **每个请求 `-32603`，含 `server/discover`**；显式传 `AjvJsonSchemaValidator` 也一样；`fromJsonSchema(...)` 包一层即正常 |
+| 同上，`serveStdio` 带 `onerror` | — | stderr 打出 `inputSchema/outputSchema/argsSchema must be a Standard Schema ...`；传实例而非工厂时打出 `factory is not a function` |
+| inspector 2.8.0 `--cli node v2.mjs --method tools/list` / `tools/call` | — | 正常；stdout 混入裸行时仍按宽松方式跳过 |
+
+npm 当日版本：`@modelcontextprotocol/sdk` 1.31.0（2026-09-28 发布，1.30.1 为 09-23）、`server`/`core`/`client`/`codemod` 2.2.0、`node` 2.1.0、`express`/`hono` 2.0.1、`fastify` 2.0.0、inspector 2.8.0。
+
+### 更正（`references/sdk-versions.md`、`SKILL.md`）
+
+1. 「v1 止于 1.30.0」「v2 各包都在 2.0.0」不成立：v1 仍在发版（1.31.0），上限仍是 `2025-11-25`；v2 各包独立版本。已改 `sdk-versions.md` 的版本表与正文（数值见上面重测表）。
+2. 「v2 陷阱 2：`jsonSchemaValidator` 必填、无默认值」不成立（2.0.0 与 2.2.0 均复现不了）。真正让每个请求 `-32603` 的是 v1 习惯的裸 JSON Schema 字面量 `inputSchema`；validator 可选，运行时有默认实现。E6 当时的归因有误——[INFERENCE] 当时的示例很可能同时用了裸字面量。已改示例（zod schema）与说明，并把「stderr 什么都没有」限定为未传 `onerror` 的情形。
+3. `SKILL.md` 规则 10 的版本范围扩到 1.30.0–1.31.0 / 2.0.0–2.2.0；Environment 的安装命令去掉 `ajv ajv-formats`（不再需要）。
+4. `SOURCES.yaml`：mcp-typescript-sdk 的 `contributes` 去掉「validator 必填」，改写为 Standard Schema 要求；mcp-inspector 许可改记。
+
+### 评测（workbuddy/deepseek-v4.1-flash，thinking max）
+
+新增场景 6（夹具 `evals/files/notes-server-v2.mjs`，已本机确认可复现 `-32603` 与 stderr 报错）；场景 2 的第 4 条期望把「retired v1」改为「v1 仍发版但上限 2025-11-25」。
+
+| 场景 | 模式 | skill_read | E1 | E2 | E3 | E4 | 备注 |
+|---|---|---|---|---|---|---|---|
+| 6 | 基线 | false | ✅ | ✅ | ✅ | ✅ | 基线自行装 2.2.0、读 dist、实跑复现并修复 |
+| 6 | 有 skill | true | ✅ | ✅ | ✅ | ✅ | 同样实跑；另补 annotations / 错误契约两条建议 |
+| 2 | 基线 | false | — | — | — | ◐ | 只判 E4：说 v1 无该修订支持，但未以导出常量 + `server/discover` 实测定案 |
+| 2 | 有 skill | true | — | — | — | ✅ | 读出 v1 1.31.0 常量 `2025-11-25`、dist 无 `server/discover`，并指出 v2 常量只描述 legacy 时代 |
+
+判定：场景 6 基线已全部达成，按「以基线实测划界」没有新增可合入的内容；本次对 sdk-versions.md 的改动是**事实更正**（旧文写错且会误导排障方向），保留，但说明压到最短。场景 2 的 E4 基线未完整达成、有 skill 达成，D2 通过。负例场景 5 未改 description/Scope，未重跑。
+
+### 遗留风险
+
+- 旧版「validator 必填」结论已写进过 E6 与基线缺口表；本节更正了结论，但未回改那两处历史记录（保留为当时的证据）。
+- scope challenge（TS 2.1.0）与 inspector `--protocol-era` 未合入；若后续发现模型在 v2 上手写 scope 预检，可再以基线实测决定是否补进 `auth.md` / `testing.md`。
+- 其他 reference 头部的「Verified against」仍写 2.0.0 / 1.30.0 / inspector 2.6.0：那些文件里的结论本次只抽测了错误转发、stdout 泄漏、inspector CLI 三项。

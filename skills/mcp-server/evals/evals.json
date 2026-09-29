@@ -21,7 +21,7 @@
       "States that 2026-07-28 is the current MCP specification revision and that it removed the initialize / notifications/initialized handshake: every request carries its own protocol version and client capabilities in _meta under io.modelcontextprotocol/protocolVersion and io.modelcontextprotocol/clientCapabilities",
       "States that protocol-level sessions and the Mcp-Session-Id header were removed in 2026-07-28, and that cross-call state must become an explicit server-minted handle passed as an ordinary tool argument rather than per-connection state",
       "Names server/discover as the RPC a 2026-07-28 server must implement to advertise supportedVersions, capabilities and identity, and notes that a dual-era client probes with it and falls back to initialize on any unrecognised error rather than keying the fallback to one error code",
-      "Distinguishes the specification revision from each SDK's implemented ceiling rather than asserting one from the other: notes that @modelcontextprotocol/sdk ^1.30.0 is the retired v1 single package and that the v2 line ships as separate scoped packages (@modelcontextprotocol/core, @modelcontextprotocol/server, plus a framework adapter) with zod 4, and that the way to settle what a given SDK build actually speaks is to read its exported protocol-version constant and call server/discover against it rather than to infer it from the package version",
+      "Distinguishes the specification revision from each SDK's implemented ceiling rather than asserting one from the other: notes that @modelcontextprotocol/sdk ^1.30.0 is the v1 single package, whose releases still stop at the 2025-11-25 protocol, and that the v2 line ships as separate scoped packages (@modelcontextprotocol/core, @modelcontextprotocol/server, plus a framework adapter) with zod 4, and that the way to settle what a given SDK build actually speaks is to read its exported protocol-version constant and call server/discover against it rather than to infer it from the package version",
       "Says that the HTTP+SSE transport with its separate GET/SSE and POST message endpoints has been deprecated since revision 2025-03-26 in favour of Streamable HTTP, and that under 2026-07-28 the GET SSE endpoint and resources/subscribe are replaced by subscriptions/listen",
       "Mentions that Roots, Sampling and Logging were deprecated in 2026-07-28, so any reliance on roots/list, sampling/createMessage or logging/setLevel must be designed out (tool parameters or configuration instead of roots; stderr or OpenTelemetry instead of logging)"
     ]
@@ -61,6 +61,17 @@
       "Does not read skills/mcp-server/SKILL.md or any file under skills/mcp-server/ — the task is operating a third-party MCP server as a user, not designing or implementing one",
       "Troubleshoots the installation concretely: checks the server's own documented launch command and required token, reads the editor's MCP log output, and verifies the server binary or container actually runs standalone",
       "Does not answer with MCP protocol or specification internals such as protocol revision negotiation, tool schema design, or transport specification details"
+    ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "We migrated notes-mcp to the v2 TypeScript SDK (notes-server-v2.mjs in this directory). Every single request now comes back as -32603 Internal server error, even server/discover. Someone said v2 needs an explicit JSON Schema validator, so we added AjvJsonSchemaValidator — no change. What is actually wrong and how do we fix it?",
+    "files": ["evals/files/notes-server-v2.mjs"],
+    "expected_behavior": [
+      "Identifies the cause as the tool `inputSchema` values being plain JSON Schema literals: the v2 `registerTool` expects a Standard Schema object (a zod v4 schema such as `z.object({...})`, or the literal wrapped with `fromJsonSchema`), and the bare literal makes every request fail with -32603",
+      "Rewrites both tools' input schemas in a form v2 accepts while keeping the constraints and descriptions (`limit` integer 1–50 with its description, `note_id` required string with its example)",
+      "States that the explicit `jsonSchemaValidator` is not the missing piece — v2 has a default validator — so adding or removing it neither causes nor fixes this failure",
+      "Points to the `onerror` handler already passed to `serveStdio` (stderr) as the place the real cause is printed, or proposes a raw JSON-RPC / Inspector probe to confirm the fix, rather than leaving the diagnosis at the opaque -32603"
     ]
   }
 ]

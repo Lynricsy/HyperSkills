@@ -1,8 +1,8 @@
 # SDK versions versus the specification revision
 
-Verified against: `mcp` (PyPI) 2.2.0, `@modelcontextprotocol/sdk` 1.30.0,
-`@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.0.0,
-`@modelcontextprotocol/inspector` 2.6.0, Node v26.7.0.
+Verified against: `mcp` (PyPI) 2.2.0, `@modelcontextprotocol/sdk` 1.31.0 (and 1.30.0),
+`@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.2.0 (and 2.0.0),
+`@modelcontextprotocol/inspector` 2.8.0, Node v26.7.0 and v26.9.0.
 
 ## Contents
 
@@ -22,8 +22,8 @@ The current specification revision is `2026-07-28`. The SDKs do not all implemen
 | Runtime | Package | Version | `LATEST_PROTOCOL_VERSION` | `server/discover` |
 |---|---|---|---|---|
 | Python | `mcp` | 2.2.0 | `2026-07-28` | answers `supportedVersions: ["2026-07-28"]` |
-| Node | `@modelcontextprotocol/sdk` (v1) | 1.30.0 | `2025-11-25` | `-32601 Method not found` |
-| Node | `@modelcontextprotocol/server` (v2) | 2.0.0 | `2025-11-25` | answers `supportedVersions: ["2026-07-28"]` |
+| Node | `@modelcontextprotocol/sdk` (v1) | 1.31.0 | `2025-11-25` | `-32601 Method not found` |
+| Node | `@modelcontextprotocol/server` (v2) | 2.2.0 | `2025-11-25` | answers `supportedVersions: ["2026-07-28"]` |
 
 Two things follow, and both are easy to get wrong:
 
@@ -101,8 +101,10 @@ in the project's dependency file; the default for a new server is `mcp`. `[verif
 
 ## TypeScript: v1 is a single package, v2 is scoped packages
 
-`@modelcontextprotocol/sdk` is the v1 line and stops at 1.30.0. The v2 line ships as separate
-packages, all at 2.0.0: `[verified]`
+`@modelcontextprotocol/sdk` is the v1 line; it still receives releases (1.31.0 at the time of
+measurement) but keeps the `2025-11-25` ceiling above. The v2 line ships as separate packages that
+are versioned independently — `server`, `core`, `client` and `codemod` at 2.2.0, `node` at 2.1.0,
+the framework adapters at 2.0.x when measured: `[verified]`
 
 | Package | Contents |
 |---|---|
@@ -126,22 +128,27 @@ One measurable difference in emitted schemas: v1 stamps
 
 ## TypeScript: two v2 traps that both surface as `-32603`
 
-Both of these make *every* request fail with an opaque `{"code":-32603,"message":"Internal server
-error"}` and nothing on stderr. `[verified]`
+Both of these make *every* request fail — `server/discover` and `tools/list` included — with an
+opaque `{"code":-32603,"message":"Internal server error"}`. Without an `onerror` option nothing
+reaches stderr; with the handler below the cause is printed (`factory is not a function`, or
+`inputSchema/outputSchema/argsSchema must be a Standard Schema …`), so always pass one. Measured on
+2.0.0 and 2.2.0. `[verified]`
 
 ```javascript
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { AjvJsonSchemaValidator } from "@modelcontextprotocol/server/validators/ajv";
+import * as z from "zod";
 
 serveStdio(
   () => {                                           // trap 1: a FACTORY, not a server instance
-    const server = new McpServer(
-      { name: "notes", version: "1.0.0" },
+    const server = new McpServer({ name: "notes", version: "1.0.0" }, { capabilities: { tools: {} } });
+    server.registerTool(
+      "get_note",
       {
-        capabilities: { tools: {} },
-        jsonSchemaValidator: new AjvJsonSchemaValidator(),   // trap 2: required, no default
+        description: "Return one note's body as markdown.",
+        inputSchema: z.object({ note_id: z.string() }),  // trap 2: a schema object, not bare JSON Schema
       },
+      async ({ note_id }) => ({ content: [{ type: "text", text: await readNote(note_id) }] }),
     );
     // register tools here — the same factory serves both protocol eras
     return server;
@@ -149,6 +156,13 @@ serveStdio(
   { onerror: (e) => process.stderr.write(`mcp: ${e.message}\n`) },
 );
 ```
+
+Trap 2 is the v1 habit of passing a plain JSON Schema literal as `inputSchema`. v2 expects a
+Standard Schema object — a `zod` v4 schema, or a JSON Schema literal wrapped in `fromJsonSchema(…)`
+from `@modelcontextprotocol/server`. The bare literal fails every request even when a
+`jsonSchemaValidator` is passed. The validator itself is optional: when omitted the server uses a
+runtime-selected default (AJV on Node, `@cfworker/json-schema` on workerd), and requests succeed
+without it. `[verified]`
 
 `serveStdio` owns the era decision for the connection and pins one instance from the factory for
 its lifetime. Pass `legacy: 'reject'` to refuse handshake-era clients outright instead of serving
