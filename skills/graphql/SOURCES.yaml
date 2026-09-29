@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin graphql
 skill: graphql
-version: "2026.09.12"           # must equal SKILL.md metadata.version
+version: "2026.09.29"           # must equal SKILL.md metadata.version
 upstreams:
   - id: apollo-skills-graphql
     kind: repo
@@ -13,10 +13,10 @@ upstreams:
       - skills/apollo-federation
       - skills/apollo-server
     ref: main
-    commit: c288eb80629dd2309eed81f23d693f66a452d043
+    commit: 322da824b2845f42e21b30465c5ea71f3196b849
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Topic skeleton for schema design and operation authoring (naming conventions, input-type-per-mutation, interface versus union, fragment co-location, variables, operation naming), the payload-versus-result-union framing for errors, connection arguments and cursor opacity, and the full Apollo Federation 2 directive semantics: @key field-set rules, compound and multiple keys, resolvable:false, @shareable agreement rules, @override constraints, @inaccessible staged rollout, @interfaceObject, and the @link floor-versus-composition-version distinction."
     notes: "Frontmatter stripped on merge: allowed-tools, compatibility, metadata.author/version are upstream-specific. skills/apollo-router and skills/apollo-client were reviewed and rejected as product surface outside this skill's scope. Two upstream rules were overruled against graphql.org and the specification - 'ALWAYS use non-null for fields that cannot be null' and the omission of non-null error propagation; see research/graphql.md conflicts 1 and 2."
   - id: graphql-org-learn
@@ -46,7 +46,7 @@ upstreams:
     commit: ee5ce41d4b68d1852306d3b56dba2cbbb6c43fea
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Reference-implementation facts read from source at v17.0.2: the executor's errorPropagation flag and the operation-level @experimental_disableErrorPropagation directive that sets it, @oneOf shipping as a specified directive, the @defer and @stream directives existing ahead of specification, and the hideSuggestions execution option behind the various servers' schema-hint settings."
     notes: "Default branch is 17.x.x, not main. Facts taken from source rather than prose so the version-sensitive claims in references/servers.md are checkable."
   - id: graphql-yoga
@@ -57,10 +57,10 @@ upstreams:
       - website/content/docs/features/error-masking.mdx
       - packages/graphql-yoga/src/index.ts
     ref: main
-    commit: 88923f60aa6478ce9f70c3ca25ea75bcd4079d5e
+    commit: 6b8d0b677b6c4135db60eb86223fc72ec1f12c22
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The non-Apollo half of the server-defaults comparison: error masking is on by default and turns any unexpected error into `Unexpected error.`, originalError reaches extensions only under NODE_ENV=development, maskedErrors.isDev suppresses even that, an intended client-visible message must be thrown as GraphQLError, and disabling masking outright is discouraged because it makes development diverge from production."
     notes: "Used specifically to prove that error masking is an implementation default rather than a GraphQL rule, which several community upstreams state incorrectly."
   - id: apollo-server-defaults
@@ -70,10 +70,10 @@ upstreams:
     paths:
       - packages/server/src/ApolloServer.ts
     ref: main
-    commit: 6193ea909389d61d10f893e6b66b8080ea201aa8
+    commit: 0c22029c2af47d3829e730e9820c01cef0557627
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Apollo Server 5's security-relevant defaults, each checked one by one: introspection true unless NODE_ENV=production, includeStacktraceInErrorResponses true unless NODE_ENV is production or test, hideSchemaDetailsFromClientErrors false, allowBatchedHttpRequests false, csrfPrevention enabled and its interaction with GET-based caching, maxRecursiveSelections off, maxCoercionErrors 50, and formatError as the single normalisation point."
     notes: "Values were read from the official API reference at https://www.apollographql.com/docs/apollo-server/api/apollo-server, which documents this MIT-licensed package; only factual default values were extracted and no documentation text was copied."
   - id: pothos
@@ -84,21 +84,22 @@ upstreams:
       - packages/core/src/index.ts
       - packages/plugin-relay/src/index.ts
     ref: main
-    commit: db656b2425ccc2731d4ec3a8aeb4e5b58c2c7255
+    commit: 4c8bc28d0402c4054821c9419d51cf691ba6414d
     license: ISC
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "The code-first side of the SDL-first versus code-first comparison: the schema is TypeScript that emits a graphql-js schema, resolver types are compiler-checked against it, generated SDL must be committed for review and schema-diff gates to work, plugin-relay generates the Connection types and Node interface, and the builder's field default is non-null - the opposite of SDL - which makes the nullability audit more important, not less."
+    synced_at: "2026-09-29"
+    contributes: "The code-first side of the SDL-first versus code-first comparison: the schema is TypeScript that emits a graphql-js schema, resolver types are compiler-checked against it, generated SDL must be committed for review and schema-diff gates to work, and plugin-relay generates the Connection types and Node interface. Nullability defaults read from packages/core/src/builder.ts and the fields and default-nullability guides, then confirmed by printing a schema from @pothos/core 4.15.1: output fields nullable and inputs optional by default as in SDL, list items non-null by default with the nullable list/items object form, and the builder-wide switches that can flip both defaults."
+    notes: "The 2026-09-12 build stated the builder's field default was non-null; for Pothos 4 that is only the opt-in behaviour (defaultFieldNullability: false). Corrected on 2026-09-29 (research/graphql.md, section 2026-09-29 上游同步)."
   - id: dataloader
     kind: repo
     repo: graphql/dataloader
     url: https://github.com/graphql/dataloader
     paths: [README.md, src/index.js]
     ref: main
-    commit: f7a04fcfbde05120f5638bcbae0e9e851a39ed63
+    commit: 65be452f5ffad3eede2d862dc26c96003fa87ef3
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The two batching contracts this skill treats as hard rules: a batch function must return exactly keys.length values in the same order as keys with null or an Error for misses, and a loader's cache lives for the loader's lifetime so loaders belong on a per-request context. Also loadMany's error-in-result behaviour, per-key caching within a request, the need to clear after a mutation, and maxBatchSize for backends with parameter limits."
   - id: relay-connections
     kind: docs
@@ -117,7 +118,7 @@ upstreams:
     commit: a28c4ce9366b5a8540577bed8f70b6a60f8fde27
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Operational numbers and lifecycle rules absent from the official material: DataLoader instances constructed per request because a shared loader leaks one user's rows into another's response, a hard server-side maximum page size with a 20-25 default, the field-weight cost model where a list costs child cost times requested page size, rejecting over-budget operations at validation time before any resolver runs, and rate limiting denominated in cost points rather than request count."
     notes: "Small repository (12 stars) but the densest community source found. Two of its rules were overruled: 'prefer non-null by default' contradicts graphql.org, and 'errors mid-list return partial results' contradicts the specification's list propagation rule. Its cross-references to non-existent skills (n-plus-one-hunter, database-schema, api-versioning-strategist) were dropped."
   - id: wshobson-graphql
@@ -127,10 +128,10 @@ upstreams:
     paths:
       - plugins/backend-development/skills/api-design-principles/references/graphql-schema-design.md
     ref: main
-    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    commit: 156b7a5e7a8b93642628a339ee4039c925b34c7f
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "Modular SDL organisation - one file per domain aggregate with each file using `extend type Query` and `extend type Mutation` rather than one central root type - plus subscription shapes, and a coverage cross-check against a 583-line independently assembled pattern list."
   - id: graphql-hive-tooling
     kind: repo
@@ -138,9 +139,9 @@ upstreams:
     url: https://github.com/graphql-hive/graphql-inspector
     paths: [packages/commands/diff]
     ref: master
-    commit: a97ed29b4e39a39dd7faa74a34072c52af60faad
+    commit: fb3eef42f8d87d1f7f854e6120af995ce75586f6
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-29"
     contributes: "The named verification gate for schema evolution: `npx @graphql-inspector/cli diff <old> <new>` accepting a file, a URL or a git: reference and exiting non-zero on breaking changes. The companion @graphql-eslint/eslint-plugin (graphql-hive/graphql-eslint, MIT) supplies the schema and operation lint gate used in the other workflows."
     notes: "CLI contract only; no documentation text or rule content was taken from either repository."

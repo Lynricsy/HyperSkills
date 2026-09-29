@@ -67,5 +67,17 @@
       "Does not propose a GraphQL schema, Connection/edges/pageInfo shapes, resolvers or a `userErrors` payload for what is an HTTP endpoint",
       "skill_read is false for the `graphql` skill"
     ]
+  },
+  {
+    "skills": ["graphql"],
+    "query": "Our home feed comes back as `feed: null` every time the ranking service hiccups. The schema is code-first in feed-builder.ts (Pothos 4). A teammate says the cause is that Pothos makes every field non-null by default, and wants to add `nullable: true` to every field in the file. Is that right? Tell me what SDL this file actually generates and what the smallest correct fix is.",
+    "files": ["evals/files/feed-builder.ts"],
+    "expected_behavior": [
+      "Rejects the teammate's premise: in Pothos 4 output fields are nullable by default and only `nullable: false` makes one non-null, so adding `nullable: true` everywhere changes nothing for most fields",
+      "Gives the generated SDL correctly for the fields that matter: `relevanceScore: Float!`, `id: ID!`, `title: String!`, `heroImage: Image` (nullable), `tags: [String!]`, and `feed(first: Int): [Post!]` - i.e. the list is nullable but its items are non-null",
+      "Explains the chain: the ranking error at the explicitly non-null `relevanceScore` propagates to its `Post`, and because Pothos list items default to non-null the failing `Post` nulls the entire `feed` list",
+      "Proposes a targeted fix - remove `nullable: false` from `relevanceScore`, and/or make the feed items nullable with `nullable: { list: ..., items: true }` - rather than a blanket `nullable: true`",
+      "Recommends checking the printed SDL (`printSchema(builder.toSchema())` or the committed generated SDL) or reproducing with the ranking service failing, rather than reasoning from the builder calls alone"
+    ]
   }
 ]

@@ -315,3 +315,55 @@ github/awesome-copilot（无相关内容）。
   若进规范，`references/schema-design.md` 与 `references/operations.md` 各有一段要改。
 - `apollographql/apollo-server`：`references/servers.md` 的默认值表逐行依赖它，任何默认值变更都要同步。
 
+
+## 2026-09-29 上游同步
+
+依据 2026-09-29 `tools/check_upstream.py` 报告。唯一 `behind` 的是 pothos（702 提交，compare 超限）。
+归因按完整区间做：`git clone --filter=blob:none` 后
+`git log db656b2..4c8bc28 -- packages/core/src/index.ts packages/plugin-relay/src/index.ts`
+与 `git diff --stat` 均为空；`gh api contents` 取两个文件的 blob SHA 前后一致
+（0c8fa67 / 9d99834）。报告里其余仓库条目均为 up to date 或 `repo moved, tracked paths unchanged`，
+随 `--pin` 一并对齐。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| pothos | db656b2 → 4c8bc28 | 无 | paths 未变更；但复核时发现正文一处**既有事实错误**，见下 |
+
+### 顺带发现的事实更正：Pothos 默认可空性
+
+复核 pothos 的 `contributes` 时读了 `packages/core/src/builder.ts`（pin 与 HEAD 相同）：
+`defaultFieldNullability = options.defaultFieldNullability ?? options.defaults !== 'v3'`，
+字段层 `nullable: options.nullable ?? builder.defaultFieldNullability`。即 Pothos 4 输出字段
+**默认可空**，参数与输入字段默认可选；只有列表项默认非空。官方文档
+`website/content/docs/guide/fields.mdx`（「Fields in Pothos are nullable by default」）与
+`changing-default-nullability.mdx` 在 pin 时就是这样写的，所以这是 2026-09-12 构建时就写错的，
+不是上游变更。实测：`@pothos/core@4.15.1` 打印 schema，未设置的字段得 `String`，
+`nullable: false` 得 `String!`，`t.stringList()` 得 `[String!]`，
+`nullable: { list: false, items: true }` 得 `[String]!`，未设 `required` 的参数得 `String`。
+
+处理：`references/servers.md` 的 Pothos 小节把「builder 默认非空、与 SDL 相反」改为正确的默认值，
+补上列表项例外与 list/items 对象写法、builder 级开关（`defaultFieldNullability` /
+`defaultInputFieldRequiredness`）；版本号 4.13.1 → 4.15.1（`npm view` 核实，plugin-relay 4.8.1）。
+`SOURCES.yaml` 中 pothos 的 `contributes`/`notes` 同步修正。本节第 259 行「Pothos 的字段默认非空」
+一句即为当时的错误结论，以本节为准。
+
+### 评测（D2）
+
+新增场景 6（`evals/files/feed-builder.ts`：Pothos 4 feed，同事声称「Pothos 默认非空」并要全加
+`nullable: true`）。模型 `workbuddy/deepseek-v4.1-flash`，thinking `max`，基线与有 skill 同模型。
+
+| 期望行为 | 基线 | 有 skill |
+|---|---|---|
+| 1 驳回前提：Pothos 4 输出字段默认可空 | ✅ | ✅ |
+| 2 正确给出生成的 SDL（含 `feed(first: Int): [Post!]`） | ✅ | ✅ |
+| 3 讲清链路：`relevanceScore!` → 非空列表项 `Post!` → 整个 `feed` 为 null | ✅ | ✅ |
+| 4 定点修复（去掉 `relevanceScore` 的 `nullable: false` 等），不全量放宽 | ✅ | ✅ |
+| 5 以打印 SDL 或复现故障核验，而非只看 builder 代码 | ✅ | ✅ |
+
+基线 5/5：它在工作区装了 `@pothos/core`，读 `builder.js` 源码并实跑 `printSchema`。按 R14，
+模型已会的内容不应新增合入，因此初版更正里「审计打印出的 SDL」等额外建议已删去，只保留把错误事实改对
+所需的最小内容（默认值、列表项例外、builder 级开关）。这一改动是**更正**而非新增：旧文本会给出
+与源码相反的结论，留着就会误导有 skill 的运行 `[INFERENCE：未用旧文本跑有 skill 对照]`。
+删减后重跑有 skill：5/5，`skill_read=true`，同样实跑 `printSchema` 并复现修复前后响应；
+与基线打平，结论是更正不造成回退，且消除了旧文本与源码的冲突。
+负例场景 5 未跑：description 与 Scope 未改。

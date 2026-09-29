@@ -107,10 +107,15 @@ schema; the SDL is an output, not the source.
   diffs have something to look at.
 - `@pothos/plugin-relay` generates Connection types and the `Node` interface, which is the
   fastest correct route to the pagination shape in `references/pagination.md`.
-- Field nullability is explicit per field (`nullable: true`); the builder's default is non-null,
-  which is the opposite of SDL's default. That makes the nullability audit *more* important in a
-  Pothos codebase, not less, because the safe choice needs a keystroke.
-- Version 4 is current (`@pothos/core@4.13.1`).
+- Output fields are nullable by default, as in SDL; `nullable: false` makes one non-null.
+  Arguments and input fields are optional by default; `required: true` makes one required.
+  The exception is list items: `t.stringList()` or `type: ['String']` emits `[String!]`, so
+  one failing element nulls the whole list. Use `nullable: { list: false, items: true }` for a
+  non-null list of nullable items.
+- A builder can flip both defaults (`defaultFieldNullability` and
+  `defaultInputFieldRequiredness`, set in the constructor and in the `SchemaTypes` generic), so
+  read the builder constructor before auditing nullability.
+- Version 4 is current (`@pothos/core@4.15.1`, `@pothos/plugin-relay@4.8.1`).
 
 ## SDL-first versus code-first
 
