@@ -283,7 +283,7 @@ and feed the route cache without hand-written headers (Astro 7+).
 | Types missing right after editing the config | `.astro/types.d.ts` is stale; run `astro sync` |
 | `entry.slug` is `undefined` | Use `entry.id` |
 | `post.render is not a function` | Use the standalone `render(post)` |
-| Zod error on `z.string().email()` | Zod 4 moved formats to `z.email()` |
+| Editor strikes through `z.string().email()` as deprecated | Zod 4 moved formats to `z.email()`; the old chain still validates but is on its way out |
 | Build out of memory on a large Markdown collection | Eager render during sync; set `deferRender: true` |
 | Deployed data store over the platform size limit | Set `retainBody: false` |
 | Pages ordered differently between machines | `getCollection()` order is unspecified; sort explicitly |

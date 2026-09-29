@@ -4,7 +4,7 @@ description: "Builds Astro sites with islands, content collections and server re
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.29"
   category: framework
 ---
 
@@ -52,9 +52,11 @@ Not covered — do not answer from this skill:
 `references/removed-and-changed-apis.md` before writing or reviewing any Astro
 API from memory. Most incorrect Astro output is a correct Astro 4 or 5 answer:
 `output: 'hybrid'`, `entry.slug`, `post.render()`, `Astro.glob()`,
-`<ViewTransitions />`, `z` from `astro:content`, `type: 'content'`. Each of
-those is removed, and each one fails at build time in a project that has
-upgraded.
+`<ViewTransitions />`, `type: 'content'`. Each of those is removed, and each
+one fails at build time in a project that has upgraded. A second group —
+`z` from `astro:content`, `astro:schema`, a session driver given as a string —
+is deprecated but still loads in Astro 7, so a passing build does not make it
+correct; never write it into new code.
 
 ## Core rules
 

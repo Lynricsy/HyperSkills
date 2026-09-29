@@ -23,6 +23,7 @@
       "Moves the config from src/content/config.ts to src/content.config.ts and states that the legacy location is no longer recognised",
       "Replaces type: 'content' / type: 'data' with a required loader, using glob({ pattern, base }) for the Markdown blog and file() or glob() for the authors data, and says collections without a loader now error",
       "Changes the Zod import from astro:content to astro/zod, and updates the Zod 4 forms (z.email(), z.url(), z.coerce.date()) instead of z.string().email() / z.string().url()",
+      "Distinguishes the removed APIs that actually break the Astro 7 build (legacy config location, type: without a loader, entry.slug, getEntryBySlug(), post.render(), Astro.glob()) from the deprecated ones that still load (z from astro:content, z.string().email()/url(), Astro.site in getStaticPaths), rather than presenting every item as a build failure",
       "Replaces entry.slug with entry.id in getStaticPaths params and in the reference lookup, and replaces getEntryBySlug() with getEntry()",
       "Replaces post.render() with the standalone render(post) imported from astro:content",
       "Replaces Astro.glob() with import.meta.glob() and notes that import.meta.glob() does not return a promise",
@@ -46,7 +47,7 @@
       "Adds accept: 'form' to defineAction, since the action otherwise expects JSON and will not parse the form submission",
       "Adds enctype=\"multipart/form-data\" to the <form> so the file input validates against z.instanceof(File)",
       "Reads the submission result on the server with Astro.getActionResult(actions.signup) and handles error / redirect, rather than leaving the form with no feedback path",
-      "Changes the Zod import in the action from astro:content to astro/zod and uses z.email() plus z.coerce.boolean() for the checkbox",
+      "Changes the Zod import in the action from astro:content to astro/zod and uses z.email() plus z.coerce.boolean() for the checkbox, describing the astro:content import as deprecated rather than as the cause of the build error",
       "Notes that actions are reachable as public endpoints under /_actions/<name>, so the handler must do its own authorization",
       "Moves vite.build.rollupOptions.output to vite.environments.client.build.rollupOptions.output for Vite's Environments API"
     ]

@@ -9,6 +9,7 @@ invented — it is a correct Astro 4 or 5 answer that no longer runs.
 
 - [Version floors](#version-floors)
 - [Removed: replace on sight](#removed-replace-on-sight)
+- [Deprecated: still loads, never write it](#deprecated-still-loads-never-write-it)
 - [Changed defaults](#changed-defaults)
 - [Experimental flags that no longer exist](#experimental-flags-that-no-longer-exist)
 - [Integration and adapter APIs](#integration-and-adapter-apis)
@@ -35,26 +36,38 @@ invented — it is a correct Astro 4 or 5 answer that no longer runs.
 | `entry.slug` | `entry.id` |
 | `getEntryBySlug()`, `getDataEntryById()` | `getEntry()` |
 | `entry.render()` | `render(entry)` from `astro:content` |
-| `z` from `astro:content`, `astro:schema` | `z` from `astro/zod` |
-| `z.string().email()`, `z.string().url()` | `z.email()`, `z.url()` (Zod 4) |
-| `{ message: "…" }` in a Zod validator | `{ error: "…" }` |
 | `Astro.glob()` | `import.meta.glob()` — returns an object, not a promise |
 | `<ViewTransitions />` | `<ClientRouter />` from `astro:transitions` |
 | `handleForms` prop on the router | Nothing; form handling is always on |
 | `TRANSITION_*` constants, `isTransitionBeforePreparationEvent()`, `createAnimationScope()` | Compare `event.type` to `'astro:before-preparation'` etc.; drop the scope helper |
-| `Astro.site` / `Astro.generator` inside `getStaticPaths()` | `import.meta.env.SITE`; no replacement for `generator` |
 | `getStaticPaths()` returning numeric `params` | Strings only |
 | `serializeActionResult()` / `deserializeActionResult()` imports | Obtain both from `getActionContext()` |
 | `rewrite()` on the action context | Rewrite from the page with `Astro.rewrite()` |
-| Session driver as a bare string | `sessionDrivers.<driver>(…)` from `astro/config` |
 | Session `test` driver | Nothing |
-| `import.meta.env.ASSETS_PREFIX` | `build.assetsPrefix` from `astro:config/server` |
 | `emitESMImage()` | `emitImageMetadata()` |
 | `prefetch()` `with` option | Nothing |
 | `@astrojs/db`, `astro db/login/logout/link/init` | `node:sqlite`, Drizzle, or a hosted database |
 | `@astrojs/tailwind` | `@tailwindcss/vite` plus `@import "tailwindcss"` |
 | `%25` in a route filename | Rename the route |
 | `experimental.rustCompiler`, `queuedRendering`, `advancedRouting`, `cache`, `routeRules`, `logger` | Remove the flag; see below |
+| Cloudflare Pages as a deploy target for `@astrojs/cloudflare` | Cloudflare Workers |
+
+## Deprecated: still loads, never write it
+
+These still work in Astro 7 — some log a warning, some are silent — so a green
+build is not evidence they are right. They are scheduled for removal and are
+undocumented; replace them whenever the file is touched.
+
+| Deprecated | Current |
+|---|---|
+| `z` from `astro:content`, or `astro:schema` | `z` from `astro/zod` |
+| `z.string().email()`, `z.string().url()` and the other string formats (deprecated by Zod 4) | `z.email()`, `z.url()` |
+| `{ message: "…" }` in a Zod validator (deprecated by Zod 4) | `{ error: "…" }` |
+| `Astro.site` / `Astro.generator` inside `getStaticPaths()` (warns; any other `Astro` property there throws) | `import.meta.env.SITE`; no replacement for `generator` |
+| Session driver as a bare string plus options on `session` | `sessionDrivers.<driver>(…)` from `astro/config`, only when the adapter has no default or it must be overridden |
+| `import.meta.env.ASSETS_PREFIX` | `build.assetsPrefix` from `astro:config/server` |
+| `getContainerRenderer()` from an integration's package root | The same import from `@astrojs/<renderer>/container-renderer` (7.0+) |
+| `markdown.remarkPlugins` / `rehypePlugins` / `remarkRehype` | `markdown.processor: unified(…)`, or Sätteri plugins; the old options also require `@astrojs/markdown-remark` |
 
 ## Changed defaults
 
@@ -125,7 +138,8 @@ before assuming a config still applies.
       `render()`. Nothing else typechecks until collection types regenerate, so
       run `astro sync` after this step.
 - [ ] Sweep the Removed table across the repo; each row is a mechanical
-      substitution.
+      substitution. Then sweep the Deprecated table — the build will not
+      flag most of those rows for you.
 - [ ] Build and fix compiler errors: unclosed tags, then invalid nesting.
 - [ ] Compare rendered output for whitespace between inline elements
       (`compressHTML: 'jsx'`) and for Markdown rendered by Sätteri.
