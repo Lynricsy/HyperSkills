@@ -4,7 +4,7 @@ description: "Develops C++ code with CMake, ownership, concurrency and memory sa
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: framework
 ---
 

@@ -318,3 +318,18 @@ E191还实际读取Epic RPC页面。
 两批并非同时运行，且每配置每场单次；没有重复方差或其他模型数据，
 也不从本次单模型结果外推跨模型稳定性。本轮交付完整skill内容及可复核保持证据，
 按用户继续决定完成建设，不再重启知识题迫使差异；本审阅没有提交或推送。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 1 条 `behind`（`ecc-cpp-testing`，
+`diff too large`）。按完整区间归因：blobless 克隆到 `/tmp/hs-up/affaan-m__everything-claude-code`，对
+`c4904e3..d30588f` 跑 `git log --oneline -- skills/cpp-testing/SKILL.md LICENSE` 与 `git diff --stat`，并用
+`git rev-parse <commit>:<path>` 比对两端 blob；另查区间 `--name-status` 中无任何 cpp 相关路径新增或改名。
+`--pin` 后核对：写入的 commit 与审阅 HEAD 一致（ECC d30588f；repo moved、tracked paths unchanged 的 cppcheatsheet
+前移到 a10cee6）。六条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| ecc-cpp-testing | c4904e3 → d30588f（345 提交，719 文件） | `skills/cpp-testing/SKILL.md`（blob `a996a23`）与 `LICENSE`（blob `b832b6f`）0 提交，两端 blob 相同 | 噪声 | 区间改动全在其他目录；too-large 只是 compare 上限 |
+
+未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。

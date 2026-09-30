@@ -249,9 +249,9 @@ Reference-only sources (no content copied):
 
 This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
 
-- crazyguitar/cppcheatsheet (MIT) — https://github.com/crazyguitar/cppcheatsheet @ a33b7e756f6c2811e80ae73165bd2a053289bac3 — paths: docs/notes/cpp/cpp_raii.rst, LICENSE — Rewritten construction-failure ownership and exception-guarantee analysis in SKILL.md and references/lifetime-and-exceptions.md.
+- crazyguitar/cppcheatsheet (MIT) — https://github.com/crazyguitar/cppcheatsheet @ a10cee6d1b9d451c9cbb6f36b01d37be65901fa6 — paths: docs/notes/cpp/cpp_raii.rst, LICENSE — Rewritten construction-failure ownership and exception-guarantee analysis in SKILL.md and references/lifetime-and-exceptions.md.
 - margelo/react-native-skills (NONE) — https://github.com/margelo/react-native-skills @ 1e9e17be6f41c838db472d6a4b943fc26355a3be — paths: skills/cpp/SKILL.md — Independently rewritten ownership, deferred-callback, reentrancy and thread-boundary guidance across SKILL.md and the lifetime, deferred-work and concurrency references.
-- affaan-m/everything-claude-code (MIT) — https://github.com/affaan-m/everything-claude-code @ c4904e3f6381df934fc00bffb0afa7a1f8dae0e3 — paths: skills/cpp-testing/SKILL.md, LICENSE — Rewritten deterministic scheduling, target diagnostic coverage and actual-test-execution checks in SKILL.md and the deferred-work, concurrency and build references.
+- affaan-m/everything-claude-code (MIT) — https://github.com/affaan-m/everything-claude-code @ d30588f90a82e49e3d4c18c072c9f1e9f1c294f6 — paths: skills/cpp-testing/SKILL.md, LICENSE — Rewritten deterministic scheduling, target diagnostic coverage and actual-test-execution checks in SKILL.md and the deferred-work, concurrency and build references.
 
 Reference-only sources (no content copied):
 
