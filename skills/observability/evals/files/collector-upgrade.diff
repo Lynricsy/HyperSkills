@@ -1,0 +1,15 @@
+diff --git a/deploy/otel-gateway/values.yaml b/deploy/otel-gateway/values.yaml
+--- a/deploy/otel-gateway/values.yaml
++++ b/deploy/otel-gateway/values.yaml
+@@ -1,9 +1,9 @@
+ mode: deployment
+ replicaCount: 3
+ image:
+   repository: otel/opentelemetry-collector-contrib
+-  tag: "0.160.0"
++  tag: "0.161.0"
+ command:
+   name: otelcol-contrib
+ configMap:
+   create: false
+   existingName: otel-gateway-config   # rendered from otel-gateway.yaml, unchanged in this PR

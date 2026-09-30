@@ -78,5 +78,17 @@
       "Does not bring in OpenTelemetry, traces, metrics, structured logging, cardinality, alerting or SLOs",
       "skill_read is false for the `observability` skill"
     ]
+  },
+  {
+    "skills": ["observability"],
+    "query": "We're bumping the gateway Collector from 0.160.0 to 0.161.0 - collector-upgrade.diff is the whole PR, and the pipeline config in otel-gateway.yaml stays exactly as it is. `otelcol-contrib validate` passes on both versions and I skimmed the release notes without spotting anything that touches us. Will anything about our telemetry change after the rollout? Give me a go/no-go and what to change first if it's a no-go.",
+    "files": ["evals/files/otel-gateway.yaml", "evals/files/collector-upgrade.diff"],
+    "expected_behavior": [
+      "States that from 0.161.0 the `k8s_attributes` processor emits the stable Kubernetes semantic-convention names by default (its `processor.k8sattributes.EmitV1K8sConventions` and `processor.k8sattributes.DontEmitV0K8sConventions` feature gates moved to beta, enabled): a label extracted without `tag_name` becomes `k8s.pod.label.<key>` instead of `k8s.pod.labels.<key>`, and `container.image.tag` is replaced by `container.image.tags`, with the legacy names no longer emitted",
+      "Traces the consequence through this config: the `filter/drop-loadtest` condition and the `routing/by-team` condition both key on `k8s.pod.labels.team`, so after the upgrade they silently stop matching - load-test spans are no longer dropped and payments traces fall through to `traces/shared` - with no validation error or startup failure to warn about it; also notes that the `container.image.tag` metadata entry stops producing that attribute",
+      "Recognises that the `app.kubernetes.io/version` extraction is unaffected because it sets an explicit `tag_name: service.version`",
+      "Gives a migration that cannot silently drop data: pin the names with explicit `tag_name` or move the conditions to the new keys (optionally matching both keys during the rollout), and/or run dual emission with `--feature-gates=-processor.k8sattributes.DontEmitV0K8sConventions`; warns that turning off only `EmitV1K8sConventions` while `DontEmitV0K8sConventions` stays on is an invalid combination that stops the processor from starting",
+      "Concludes no-go for the PR as written, and names downstream queries, dashboards and alerts on the old attribute keys as the other thing to migrate"
+    ]
   }
 ]

@@ -4,7 +4,7 @@ description: "Instruments production systems with OpenTelemetry traces, metrics,
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: task
 ---
 
@@ -172,7 +172,9 @@ Paths below are relative to this skill's directory.
       enrichment, drops and transforms last.
 - [ ] Check identity: nothing `upsert`s `service.*`; `k8s_attributes` associates on
       `k8s.pod.uid` first with connection only as fallback; the ServiceAccount actually has the
-      RBAC the processor needs, since it fails silently without it.
+      RBAC the processor needs, since it fails silently without it. Across an upgrade to 0.161+,
+      anything keyed on `k8s.*.labels.*`, `k8s.*.annotations.*` or `container.image.tag` stops
+      matching without an error, because the processor switched to the stable names.
 - [ ] Check the sampling topology: where the decision is made, whether whole traces converge
       there, whether `decision_wait` exceeds the slowest operation, and whether RED metrics are
       materialised upstream of it (`references/sampling.md`).

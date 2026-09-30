@@ -158,6 +158,20 @@ API. Three things decide whether it works:
   multi-cluster setup, extract both `*.name` and `*.uid`, and set `k8s.cluster.name` — a cluster
   has no built-in notion of its own name, so nothing supplies it unless the Collector does.
 
+**The attribute names changed in 0.161.0 (Collector 0.161+).** Its
+`processor.k8sattributes.EmitV1K8sConventions` and `processor.k8sattributes.DontEmitV0K8sConventions`
+gates went from alpha (off) on 0.160.0 to beta (on) on 0.161.0, so an unchanged config now emits the
+stable names and stops emitting the legacy ones: `k8s.{pod,node,namespace}.labels.<key>` →
+`.label.<key>`, `.annotations.<key>` → `.annotation.<key>`, `container.image.tag` →
+`container.image.tags` [official]. Only extractions that rely on the default name move; an explicit
+`tag_name` is unaffected. `validate` passes on both versions and nothing fails at runtime — every
+`filter`, routing condition, dashboard and alert keyed on an old name simply stops matching, and
+0.161.0 logs no warning for the label rename. Before upgrading, either pin the names with `tag_name`
+or move the consumers to the new keys, using dual emission
+(`--feature-gates=-processor.k8sattributes.DontEmitV0K8sConventions`) for the transition. Disabling
+only `EmitV1K8sConventions` leaves an invalid combination and the processor refuses to start
+(`Invalid feature gate combination`). [verified]
+
 The `resource` processor is the right place for genuinely Collector-side facts
 (`k8s.cluster.name`, `deployment.environment.name`) and the wrong place for service identity:
 `upsert` on `service.name` overwrites what every SDK set and collapses the whole fleet into one

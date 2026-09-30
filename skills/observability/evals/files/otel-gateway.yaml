@@ -1,0 +1,69 @@
+# Gateway Collector (Deployment, 3 replicas) in front of both tenants' backends.
+# Deployed with the Helm values in collector-upgrade.diff.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1600
+    spike_limit_mib: 400
+  k8s_attributes:
+    auth_type: serviceAccount
+    pod_association:
+      - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+      - sources:
+          - from: connection
+    extract:
+      metadata:
+        - k8s.namespace.name
+        - k8s.deployment.name
+        - k8s.pod.name
+        - container.image.name
+        - container.image.tag
+      labels:
+        - key: team
+          from: pod
+        - key: app.kubernetes.io/version
+          from: pod
+          tag_name: service.version
+  # Load-test traffic is tagged by the load generator's pods; never ship it to a backend.
+  filter/drop-loadtest:
+    error_mode: ignore
+    traces:
+      span:
+        - resource.attributes["k8s.pod.labels.team"] == "loadtest"
+  batch: {}
+
+connectors:
+  routing/by-team:
+    default_pipelines: [traces/shared]
+    table:
+      - condition: resource.attributes["k8s.pod.labels.team"] == "payments"
+        pipelines: [traces/payments]
+
+exporters:
+  otlp_grpc/payments:
+    endpoint: payments-traces.observability.svc:4317
+  otlp_grpc/shared:
+    endpoint: shared-traces.observability.svc:4317
+
+service:
+  pipelines:
+    traces/in:
+      receivers: [otlp]
+      processors: [memory_limiter, k8s_attributes, filter/drop-loadtest]
+      exporters: [routing/by-team]
+    traces/payments:
+      receivers: [routing/by-team]
+      processors: [batch]
+      exporters: [otlp_grpc/payments]
+    traces/shared:
+      receivers: [routing/by-team]
+      processors: [batch]
+      exporters: [otlp_grpc/shared]

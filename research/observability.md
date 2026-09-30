@@ -334,3 +334,49 @@ dash0 还注了单位 ms → s，但都没说**默认桶边界也一并重算并
 `docs/non-normative/http-migration.md` 才拿到这一条，并据此把"迁移 duration 指标要重新推导阈值
 **和桶**"写进 `references/semantic-conventions.md`。同一份文档也给出 HTTP 稳定约定的发布版本
 v1.23.1。这条后来成了 S3 改写后的判据之一。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告（6 个 `behind`）。每条都用 blobless 克隆（`/tmp/hs-up/SyncG17/`）按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`）。otel-collector-contrib 区间
+（475 个提交，paths 内 360 个、1683 个文件）跨 v0.161.0 与 v0.162.0 两次发布：按 `CHANGELOG.md` 在区间内新增的
+两节逐条过滤出本 skill 涉及的组件，再对命中条目读源码并本机实跑；区间末尾未发布的 `.chloggen` 4 条（remotetap、
+OTTL `%Z`、file exporter、yang_grpc）与本 skill 无关。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| ollygarden-otel-skills | a6517bf → bf82138 | 8e6ed41/7cf8f0d/ca9b07e/78f750c/bf82138：`otel-sdk-versions` 生成的版本索引（.NET 1.19.1、C++ 1.29.0、Java 1.66.0 等）；c83c208：`otel-declarative-config` 补 JS `startNodeSDK()` 与 Python `opentelemetry-configuration` 的引导方式，`otel-span-events-to-logs-migration` 日期刷新并更正 Go 示例（`log.Record.AddAttributes` 收 `attribute.KeyValue`）；0d3f4e2：`otel-telemetry-emissions` 的 k8sclusterreceiver v0.156.0 清单刷新（`k8s.node.allocatable_<type>`、`k8s.node.condition_<type>`、实体事件字段） | 噪声 / 不合入 | 本 skill 语言中立、不收 SDK 版本号与各语言引导代码，也不收 receiver 发射清单；「异常作为日志记录」的立场与 OTEP 4430 状态未变 |
+| otel-semconv | 22b6cbb → 7055027 | e895fd6、838e414：只动 `docs/non-normative/k8s-migration.md`（新增 Pod CPU limit/request 利用率指标迁移表；`k8s.node.paging.faults` 的属性由 `system.paging.type` 改为 `system.paging.fault.type`）；`CHANGELOG.md` 未变，最新 tag 仍为 v1.44.0 | 不合入 | skill 不收 k8s 指标迁移表；「当前发布 v1.44.0」仍成立 |
+| rampstack-monitoring（too large） | a67dd34 → 3d4510a | 2 个提交（Codex 分发）；`skills/monitoring-and-alerting` 未变，新增的 `dist/codex/.agents/skills/monitoring-and-alerting` 与源目录相比只删 3 个目录前言键并挪进 `_claude-frontmatter-extras.yaml` | 噪声 | 生成副本，内容无变化 |
+| otel-collector-contrib（too large） | 8047180 → af47528 | v0.161.0：`processor/k8s_attributes` 的 `EmitV1K8sConventions` / `DontEmitV0K8sConventions` 两个 gate 由 alpha 升 beta（默认开）；`ottl.set.allowNil` 升 beta 后 v0.162.0 升 stable；`load_balancing` k8s resolver 排除 `conditions.ready: false` 的端点。v0.162.0：`transform` 删除已 stable 的 `defaultErrorModeIgnore` gate，`load_balancing` 新增 `randomness` 路由键，`tail_sampling` 迟到 span 复用原阈值，`k8s_attributes` 修复不可达的弃用告警（#51188）。其余命中为 resource_detection 新探测器、prometheus receiver 与 kubelet_stats 细节 | **需合入**（k8s_attributes 改名）；其余不合入 | 改名会让按旧键写的 filter / routing / 看板静默失配，`validate` 与启动都不报错。实跑 `featuregate`：0.160.0 两 gate 为 `false Alpha`，0.161.0 为 `true Beta`；0.161.0 只关 `EmitV1K8sConventions` 启动报 `Invalid feature gate combination`；默认与双发两种状态下均无改名 warning。改名清单取自 `processor/k8sattributesprocessor/README.md`「Semantic Conventions Compatibility」与 `config.go` 的 `tag_name` 注释。其余条目：skill 示例的 `transform` 已显式写 `error_mode: ignore`；只用 DNS resolver 与 trace ID 路由键；`allowNil` 不影响示例中带 `!= nil` 守卫的 `set` |
+| prometheus | 10f6962 → c45b13b | 2f6ca49：`anchored` / `smoothed` 扩展区间选择器默认开启，`--enable-feature=promql-extended-range-selectors` 变 no-op；76dce27/e71425d：实验函数 `integral()`；46ef370：按查询开关 start timestamp（`X-Prometheus-Use-Start-Timestamps`）；fa0e970：search API limit 上限 1000；a5bdcc1：CHANGELOG 记 exporter-toolkit HTTP/2 ALPN 修复 | 不合入 | 全部在 `main / unreleased`（最新发布仍为 3.14.0，2026-08-17）；skill 引用的 native histograms、`_created`、exemplars、`info()` 实验开关均未变。待 3.15 发布后再看 `smoothed` 用于告警规则需配 `query_offset` 的约束是否值得写入 |
+| awesome-copilot-appinsights（too large） | 7568a48 → 15ed97c | 64 个提交；`skills/appinsights-instrumentation` 上 `git log` / `git diff --stat` 为空 | 未变更 | 仅 re-pin |
+
+其余仓库上游（grafana-skills、addyosmani-agent-skills、otel-spec 为 `repo moved, tracked paths unchanged`；dash0-agent-skills、
+o11y-dev-otel、getsentry-sdk-skills、dotnet-claude-kit 为 up to date）随 `--pin` 一并对齐。6 个 behind 条目 pin 写入的 commit 与审阅
+HEAD 逐条一致（bf82138、7055027、3d4510a、af47528、c45b13b、15ed97c）。
+
+### 合入内容
+
+`references/collector-pipelines.md`「Enrichment processors」节新增一段（Collector 0.161+）：两 gate 的翻转、改名清单、只影响默认
+名而 `tag_name` 不受影响、按旧键的消费方静默失配且 0.161.0 无告警、迁移做法（`tag_name` 钉名或迁移消费方，过渡期用
+`--feature-gates=-processor.k8sattributes.DontEmitV0K8sConventions` 双发），以及只关 `EmitV1K8sConventions` 会启动失败。
+`SKILL.md` Collector 审查清单的 identity 一条补一句升级到 0.161+ 时的静默失配。`SOURCES.yaml` 的 otel-collector-contrib
+`notes` 记下这次 0.161.0 实测。
+
+### 评测
+
+新增场景 6：`otel-gateway.yaml`（`k8s_attributes` 抽 `team` 标签不写 `tag_name`、另一条带 `tag_name: service.version`，
+metadata 含 `container.image.tag`；`filter/drop-loadtest` 与 `routing/by-team` 都以 `k8s.pod.labels.team` 为条件）+
+`collector-upgrade.diff`（只把镜像 0.160.0 → 0.161.0），要 go/no-go。夹具在 0.160.0 与 0.161.0 上 `validate` 均通过。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 Collector 0.161 升级 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 4 / 5 | 183 s。靠联网读 v0.161.0 源码、README 与发布说明查到改名，判出两处条件静默失效、`service.version` 不受影响、`container.image.tag` 不再产出，给出 no-go、`extraArgs` 关双 gate 回退与双发迁移、提到同步看板。第 4 条部分未达成：没有指出只关 `EmitV1K8sConventions` 是非法组合会启动失败 |
+| 6 Collector 0.161 升级 | workbuddy/deepseek-v4.1-flash（thinking max） | 有 | true | 5 / 5 | 480 s。直接依 reference 定位，并在本机用两版镜像加 mock apiserver 端到端实测四种配置（0.160 / 0.161 原样 / 0.161 双发 / `tag_name` 钉名）的分流结果；明确警告只关 `EmitV1K8sConventions` 启动即死（实测报错原文），另测出 `container.image.tags` 值类型为 Slice |
+
+结论：基线在第 4 条有缺口，且其余结论依赖现场联网读源码；合入后同场景 5/5、`skill_read=True`，缺口被填补。
+版本号改为 2026.09.30。
+
+D1：`validate_skills.py` 0 error / 0 warning，`build_catalog.py --check` 通过；`npx skills@latest add … --skill observability
+--agent universal --copy` 安装冒烟，`.agents/skills/observability/` 下 `SKILL.md` 与 9 个 references 与工作树逐字一致。
