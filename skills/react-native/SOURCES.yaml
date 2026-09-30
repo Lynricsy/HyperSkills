@@ -1,5 +1,5 @@
 skill: react-native
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: expo-official
     kind: repo
@@ -9,10 +9,10 @@ upstreams:
       - plugins/expo/skills
       - plugins/expo-experiments/skills/expo-migrate-module
     ref: main
-    commit: ea892a7d1421fea5ecdf8c00a4550867fdf8c423
+    commit: c0dadf355d4caa4e1720de372f0f8766df1a8978
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Expo Router route conventions and the SDK 56+ expo-router/react-navigation import rule; app config, prebuild/CNG and config plugins; development builds versus Expo Go; the EAS Update object model (build/update/branch/channel/runtime version), the up-to-two-cold-launches verification and the did-not-update checklist; EAS Build profiles and embedded channels; store-submission constraints; the Expo brownfield track; web-to-native idiom mismatches."
     notes: "Vendor-maintained. Its per-skill telemetry and feedback sections, allowed-tools frontmatter and paid-service banners were stripped; EAS facts were re-checked against docs.expo.dev."
   - id: callstack-rn
@@ -27,10 +27,10 @@ upstreams:
       - skills/create-react-native-library
       - skills/assess-react-native-migration
     ref: main
-    commit: 2766baa46ca0fe7c16cc5ab4d0077ccec2e95fb9
+    commit: 61e6e7dfdf3a8ee862254c200d751fcb1fb863dc
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Measure/fix/re-measure performance discipline and the per-layer rule set (lists, uncontrolled TextInput, view flattening, barrel imports, Intl polyfills, Hermes bundle mmap, memory leaks, Turbo Module threading); the FlashList v1-versus-v2 version guardrail; the upgrade procedure built on the version-pair template diff with placeholder remapping, a single install pass and a both-platforms build gate; React Navigation 7 static-API and native-navigator guidance; the bare brownfield track with XCFramework/AAR packaging; create-react-native-library scaffolding."
     notes: "Its verification steps depend on Callstack's own agent-device CLI and @callstack/inspector; rewritten here against React Native DevTools and platform profilers so the skill needs no vendor tool. The TV and GitHub Actions skills in the same repository are out of scope and were not used."
   - id: vercel-rn-rules
@@ -43,7 +43,7 @@ upstreams:
     commit: 063bee94c3f4df8453406c830b0a7df0f2860278
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "List-performance rule semantics (virtualize, memoize the row, stable callback and key identity, no inline style objects, per-item-type recycling, image cost in rows); onLayout over imperative measure(); strings must render inside Text; native navigators over JavaScript ones; monorepo native-dependency placement and single-version policy; React Compiler interaction with Reanimated shared values."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. The skill's own frontmatter declares MIT but the repository ships no LICENSE, so it is recorded as NONE. secondsky/claude-skills vendors this same content and was rejected as a duplicate."
   - id: rn-community
@@ -57,7 +57,7 @@ upstreams:
     commit: 1fb0e0848fc7f4bbf42fec490338613cbc6f6b08
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Strict TypeScript API migration: the 0.87 default and 0.80-0.86 opt-in, the replace-not-merge semantics of customConditions, the deep-import to root-import mapping including the CodegenTypes namespace, the no-deep-imports ESLint autofix, types_generated/index.d.ts as the authoritative export map, and the handling of type errors raised inside node_modules."
     notes: "Officially pointed at from the React Native 0.84 release announcement. Slash-command invocation lines and metadata frontmatter were stripped; the library-compatibility list is referenced by existence only, not copied, because it changes continuously."
   - id: rn-docs
@@ -88,6 +88,6 @@ upstreams:
     commit: eb79a1eb2a156e65b761fead02ed03f770c562a3
     license: GPL-3.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Topic-inventory cross-check only: its core/testing/ecosystem breakdown was used to confirm this skill's coverage of testing and of the Reanimated plus gesture-handler surface."
     notes: "GPL-3.0, so reference only - no content was copied or adapted. Its brownfield and GitHub Actions skills are redistributions of callstackincubator/agent-skills and add nothing."

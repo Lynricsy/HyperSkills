@@ -212,3 +212,29 @@
 - **放弃的方向**：TV（callstack 的 `skills/react-native-tv-best-practices`、`react-native-tvos/skills`）、
   CI workflow（callstack 的 `skills/github-actions`）、C++/JSI HostObject 写法（ospfranco）——
   前两者越界，第三者落在原生实现侧。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：只有 `expo-official` 一条 `behind`（8 个提交）。用 blobless 克隆按完整
+`ea892a7..c0dadf3` 区间、只限该条目两个 `paths` 核对（`git log` + `git diff --stat` + `git diff`）：10 个文件
++506/−83，另有 4 个 `plugin.json` 版本号改动不在 paths 内。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| expo-official：`eas-simulator` | ea892a7 → c0dadf3 | c0dadf3、efa52f0、cd75214、3970866、c180b05、9042013；`eas-simulator/SKILL.md` 与 `references/{controllers,run-your-app,troubleshooting}.md` 修改、新增 `references/logs-and-crashes.md`，共 +234/−37：iOS 会话读设备日志与崩溃报告、用 `agent-device` 无头启动 Android 模拟器、隧道授权延续到 live development、CLI 新 flag、费用与授权说明、录屏恢复 | 范围外 | EAS Simulator 是付费托管服务，`simulator:*` 命令上游自述为实验性且隐藏，操作面绑定 `agent-device` 厂商 CLI。本 skill 从未取用该 skill（`contributes` 无此项），且调研时已定「厂商工具降级为可选项、付费横幅剥离」 |
+| expo-official：`expo-animation` | ea892a7 → c0dadf3 | be95528：Reanimated CSS 过渡的 `transitionTimingFunction` 由 `'cubic-bezier(...)'` 字符串改为 `cubicBezier(...)`，并加一句「Reanimated 4.1.1 与 4.5.1 拒收原始 `cubic-bezier` 字符串；CSS transition/animation 用 `cubicBezier`，`withTiming` / `.easing` 用 `Easing.bezier`」，SKILL.md 与 RECIPES.md 共 +10/−3 | 按基线实测划界后不合入 | 事实先对照官方：Reanimated 文档 `docs/css-transitions/transition-timing-function.mdx` 的类型为「预定义关键字 \| `cubicBezier()` / `linear()` / `steps()` 返回的参数化对象」，不含 CSS 字符串形式，上游更正成立。本 skill 的动画规则（`performance-lists.md`「Animations and gestures」）不涉及 Reanimated CSS API，是否要补按 R14 先实测：新增场景 6（夹具 `evals/files/reanimated-css/`：Expo SDK 54 + reanimated ~4.1.1，按压缩放与展开用 CSS 过渡、曲线照搬 web token 字符串，徽标用 `withTiming` + `Easing.bezier`），无 skill 基线在两条上游相关项上全部达成（见下表），不合入 |
+| expo-official：`expo-migrate-module` | ea892a7 → c0dadf3 | f27959a：`SKILL.md` + `references/{compatibility,migration-map}.md` 共 +262/−43：`expo` 下限由 57.0.7 提到 57.0.21 且示例 app 也要满足；说明 SDK 57 的宏为实验性、未文档化、SDK 58 才进 beta；1.0 `AsyncFunction` 在 JS 线程外执行而 2.0 `async @JS` 在首个 `await` 前占用 JS 线程；`expo-module.config.json` 的 `apple.modules` 类名在改名后会静默脱钩；静态成员与 free-form `Any` 参数须核对 core 支持；宏插件 0.10.0 能力表 | 范围外 | Expo Modules API 2.0 Swift 宏是 SDK 57 的实验性、未文档化接口。本 skill 的 `architecture-and-native-modules.md` 只写「何时选 Expo module」，不教 Expo 模块 DSL 或 Swift 实现（Scope 把原生语言内部实现划在界外），为实验 API 写迁移规则会随 SDK 58 过期 |
+
+其余仓库上游（callstack-rn 为 `repo moved, tracked paths unchanged`；vercel-rn-rules、rn-community、
+maiko-awesome-rn 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（c0dadf3、61e6e7d、
+063bee9、1fb0e08、eb79a1e）。`rn-docs` / `expo-docs` 为 `kind: docs`，未改。
+
+### 评测（划界用，基线）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 Reanimated CSS 过渡的曲线与动画属性 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 2 / 3 | 445 s。第 1、2 条（上游相关）达成且有实证：从 npm 解出 reanimated 4.1.1 源码调用真实 `normalizeCSSTransitionProperties()`，原值抛 `Invalid predefined timing function "cubic-bezier(...)"`，`tsc` 亦报 TS2322；改为 `cubicBezier(0.23, 1, 0.32, 1)`，并实测反向误用 `Easing.bezier` 作 `transitionTimingFunction` 同样抛错，`withTiming` 处保持 `Easing.bezier`。第 3 条未达成：认为过渡 `height` 可行、未改为 transform——该项属本 skill 既有规则（SKILL.md 规则 16、`performance-lists.md` 首条「Animate `transform` and `opacity`」），不是本次上游带来的缺口 |
+
+结论：上游带来的 `cubicBezier` 更正，基线已自行查源码实测做到，不合入（`docs/skill-standard.md` 第 3 节：
+只写模型不会的）；场景 6 保留作哨兵，第 3 条同时守既有的「只动 transform/opacity」规则。正文未变，仅新增
+评测场景 6 与夹具、re-pin、版本号改为 2026.09.30；未跑有 skill 的 D2。

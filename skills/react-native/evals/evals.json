@@ -60,5 +60,15 @@
       "Treats the file as React DOM code and never suggests React Native, Expo, FlashList or a native list component",
       "Fixes it the React way - pushing the query state down into a small input+results leaf, or keeping the expensive siblings out of the state's render subtree, and/or useDeferredValue for the filtering"
     ]
+  },
+  {
+    "skills": ["react-native"],
+    "query": "PressableCard.tsx is a card in our Expo SDK 54 app (dependencies in package.json). It uses Reanimated 4 CSS transitions for the press-down scale and the expand, with the easing curve copied from our web design tokens. Review it for anything that will break or misbehave on device, and give me the corrected code.",
+    "files": ["evals/files/reanimated-css/package.json", "evals/files/reanimated-css/PressableCard.tsx"],
+    "expected_behavior": [
+      "Flags transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' as unsupported: Reanimated CSS transitions accept only the predefined keywords or a parametrized function, so the web string must become cubicBezier(0.23, 1, 0.32, 1) imported from react-native-reanimated",
+      "Keeps Easing.bezier(...) for the withTiming easing and says the two APIs take different curve forms (cubicBezier for CSS transition/animation props, Easing.bezier for withTiming/.easing), rather than switching both to the same one",
+      "Flags transitioning height as a per-frame layout animation and moves the expand to transform (or a layout animation) instead, keeping transform and opacity as the animated properties"
+    ]
   }
 ]

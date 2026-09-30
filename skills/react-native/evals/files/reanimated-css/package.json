@@ -1,0 +1,16 @@
+{
+  "name": "acme-cards",
+  "version": "2.4.0",
+  "private": true,
+  "dependencies": {
+    "expo": "~54.0.0",
+    "expo-router": "~6.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.6",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-worklets": "~0.5.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2"
+  }
+}
