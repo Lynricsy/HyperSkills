@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin csharp-dotnet
 skill: csharp-dotnet
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: dotnet-official
     kind: repo
@@ -15,7 +15,6 @@ upstreams:
       - plugins/dotnet-msbuild/skills/binlog-failure-analysis
       - plugins/dotnet-nuget/skills/convert-to-cpm
       - plugins/dotnet-aspnetcore/skills/dotnet-webapi
-      - plugins/dotnet-aspnetcore/skills/configuring-opentelemetry-dotnet
       - plugins/dotnet-blazor/skills/create-blazor-project
       - plugins/dotnet-blazor/skills/author-component
       - plugins/dotnet-blazor/skills/support-prerendering
@@ -40,12 +39,12 @@ upstreams:
       - plugins/dotnet-data/skills/optimizing-ef-core-queries
       - plugins/dotnet-advanced/skills/vectorization
     ref: main
-    commit: 9beca0b0be339affea6420c2a2721293f2e9dcdb
+    commit: ff66f963fb82944910814f91e4aead62ff5c69eb
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "MSBuild evaluation order and the property/item/target anti-pattern catalogue, the silent failure of $(TargetFramework) conditions in .props, Central Package Management conversion and NU1008, incremental-build causes and binlog attribution, Web API and minimal API structure, Blazor component contract, prerendering with [PersistentState] and JS interop lifetime, MAUI lifecycle/compiled bindings/Shell/CollectionView/DI lifetimes, test anti-patterns and dotnet test command shapes, the .NET 9 to 10 to 11 migration sequence with its breaking changes, nullable and AOT/trim migration, diagnostic tool selection with dump and trace collection, EF Core query pitfalls, and SIMD guardrails."
-    notes: "The repository has over 100 skills; only the 31 directories above are used. Whole-repo tracking would report this skill behind on every unrelated template-engine or skill-authoring commit. Upstream frontmatter fields metadata.portability, metadata.binding and metadata.binding-revision were stripped, as were the repository-overlay and bundled-path loading conventions, which are that repository's own distribution mechanism."
+    notes: "The repository has over 100 skills; only the 30 directories above are used. Whole-repo tracking would report this skill behind on every unrelated template-engine or skill-authoring commit. plugins/dotnet-aspnetcore/skills/configuring-opentelemetry-dotnet was tracked until upstream deleted it in 8599a06 (2026-09-28, 'Remove weak dotnet-aspnetcore skills'); nothing from it had been merged, so the path was dropped. Upstream frontmatter fields metadata.portability, metadata.binding and metadata.binding-revision were stripped, as were the repository-overlay and bundled-path loading conventions, which are that repository's own distribution mechanism."
   - id: awesome-copilot
     kind: repo
     repo: github/awesome-copilot
@@ -69,10 +68,10 @@ upstreams:
       - instructions/aspnet-rest-apis.instructions.md
       - instructions/dotnet-upgrade.instructions.md
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The minimal API shape combining MapGroup, TypedResults and Results<T1,T2> unions with OpenAPI document and schema transformers; the test-framework comparison matrix across xUnit v3, NUnit, MSTest and TUnit; layering and DDD review checkpoints; and the current language-version baseline."
     notes: "Its editor-formatting preferences and single-team conventions (Semantic Kernel, ResourceManager localisation, a fixed MSTest+Moq+FluentAssertions stack) were deliberately not adopted. Where it overlaps dotnet/skills on CPM, upgrades or Blazor it is the shallower source and lost every conflict."
   - id: aaronontheweb
@@ -92,10 +91,10 @@ upstreams:
       - skills/serialization
       - skills/aot-trimming
     ref: master
-    commit: f4d0d393b431ed0d7130d1b3711d5dfc6b1744cf
+    commit: e426ed93a9f3215cd21b277fdfa6bfccd3457945
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The nullability attribute catalogue and the ordering that puts control-flow narrowing before the null-forgiving operator; the concurrency escalation ladder from async/await through Parallel.ForEachAsync and Channel<T> to locks; organising registrations as Add{Feature} extension methods that tests reuse; shared version properties for a package family under CPM; and the public-API and AOT/trim constraints."
     notes: "Its Akka.NET, Aspire and MJML directories are its own stack and were not used, including the four Akka.NET branches of its concurrency decision tree. Its rule that package versions must only ever be changed through the dotnet CLI was overruled: see research/csharp-dotnet.md ruling 1."
   - id: kevintsengtw-testing
@@ -115,7 +114,7 @@ upstreams:
     commit: 4e34a9776431f3f189ae8ec72840a415bfaad0e0
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Replacing ambient state with injectable abstractions (TimeProvider for time, System.IO.Abstractions for the file system), the boundary of what an integration test may replace under WebApplicationFactory, and test naming plus arrange-act-assert structure."
     notes: "Upstream prose is Traditional Chinese; only the semantics were taken and everything here is original English. Its broad library menu (AutoFixture, Bogus, NSubstitute, AwesomeAssertions) was narrowed to one default plus one escape hatch per this repository's writing rules, and its `/skill <name>` loading directives were stripped."
   - id: soltes-perf
@@ -133,7 +132,7 @@ upstreams:
     commit: cef013dc2cadc48f29457172c6f5a5daf6cd0791
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The evidence discipline for performance work: optimised build in the real deployment form, recorded environment and commands, a deterministic reproduction before any change, separating cold start from steady state, never inferring managed retention from RSS, and requiring equivalent before/after runs with spread before claiming a fix. Also the structure of a diagnosis report."
     notes: "Its GPU, WebGPU and shader references are outside this skill's scope and were not used."
   - id: csharpguidelines
@@ -146,7 +145,7 @@ upstreams:
     commit: 697a0244cf890f935e93264a8242189b084d609c
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Structure and checklist semantics only: its rule categories (class design, member design, exceptions and events, maintainability, testability, naming, performance, framework usage, layout) were used as a coverage self-check, which surfaced two gaps that were then written from official documentation — exception design and the IDisposable/finalizer contract."
     notes: "The GitHub API reports NOASSERTION; the LICENSE.md file is the full CC BY-SA 4.0 text. Under this repository's licence policy only the structure and checklist semantics were taken; no sentence, example or rule text was copied."
   - id: rider-skills
@@ -158,10 +157,10 @@ upstreams:
       - skills/finding-tests
       - skills/refactoring-code
     ref: master
-    commit: 638e23b1aefce73476682176b70a689325c0614f
+    commit: 26b24048b71d4a44b3c310953961a813785ea76b
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Coverage self-check only: confirmed that its debugger-first triage criteria belong to the debugging skill rather than here, so this skill's diagnostics section stays on runtime evidence from counters, traces and dumps."
     notes: "Apache-2.0 would permit merging, but every skill there is bound to the Rider MCP tooling through an allowed-tools frontmatter field and an execute_tool indirection, an agent binding this repository forbids. Nothing was copied."
   - id: dotnet-docs

@@ -276,3 +276,28 @@ template-engine、AI plugin、skill-authoring 目录的任何提交都把本 ski
 - 不写 Aspire：dotnet/skills 与 Aaron 都有大量 Aspire 内容，但 Aspire 是编排/托管面，
   与「Azure 资源编排不覆盖」的边界同源，且尚无对应 skill 可转交，正文只在 `## Scope` 直述不覆盖。
 - 不写 WinForms/WPF：仅在升级破坏性变更清单里作为「桌面项目也要检查」的一行提示出现。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 3 条 `behind`，其中
+awesome-copilot 为 `diff too large`。全部按完整区间归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对
+`<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`，并用
+`git cat-file -e <HEAD>:<path>` 核对每个 tracked path 在 HEAD 上是否仍存在。`--pin` 后逐条核对：写入的 commit
+与审阅 HEAD 一致（ff66f96、15ed97c、26b2404）；aaronontheweb 为 repo moved / tracked paths unchanged，顺带前移到
+e426ed9。三条 docs 为 manual check；其中 dotnet-releases 按其 notes「每次同步重读」用 `gh api` 读了
+`releases-index.json`：11.0 go-live STS（11.0.0-rc.1）、10.0 active LTS、9.0 与 8.0 maintenance，与正文「.NET 10 为
+当前 LTS、.NET 11 为下一个 STS」一致，无需改动。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| dotnet-official | 9beca0b → ff66f96（203 提交） | 8599a06（#1210）：删除 `plugins/dotnet-aspnetcore/skills/configuring-opentelemetry-dotnet`（连同 eval） | 上游移除，删 path | 本 skill 从未取其内容（正文与 references 无任何 OpenTelemetry 段落，上一轮合入清单也未列它），删后无继任内容；从 `paths` 去掉，`notes` 记删除提交 |
+| dotnet-official | 同上 | a824bbb（#1206，面向 GPT-5 的提示优化）：`test-anti-patterns` 改为先清点再读、ledger 增加「并发安全」「前置条件/断言顺序」两列，并点名「无同步的静态集合既顺序耦合又并行不安全」「断言非空之前先解引用」；`platform-detection` 只改 description 的路由措辞 | 已覆盖 / 噪声 | `references/testing.md` 已有「无顺序依赖、无共享可变静态状态」的确定性规则；断言顺序属通用常识；其余是该仓库 agent 工作流与路由措辞 |
+| awesome-copilot | 7568a48 → 15ed97c（64 提交） | 17 个 tracked 路径 0 提交 | 噪声 | 区间改动全在其他 skill/instructions；too-large 只是 compare 上限 |
+| rider-skills | 638e23b → 26b2404（13 提交） | `debugging-code`：断点工具批量化（`xdebug_set_breakpoints`/`xdebug_remove_breakpoints`）、新增静音/附加进程/进程输出/忽略异常工具参考；三个 skill 加 `metadata.json`；`refactoring-code` 工具参考措辞刷新 | 噪声 | relation 为 reference，只作覆盖自检；变更全是 Rider MCP 工具契约，本仓库禁止的 agent 绑定面 |
+
+### 未合入原因与评测
+
+三条 behind 均为噪声、已覆盖或上游删除，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+本次提交只含 re-pin、版本号、dotnet-official 的 `paths`/`notes` 与本节。
