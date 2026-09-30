@@ -251,3 +251,20 @@ Resource Health 与活动日志的实际内容、Cost Management 与 Retail Pric
 
 结论：本次改动覆盖的行为（按 5000 读上限）基线未达成、有 skill 达成，通过。PowerShell 7.6 与部署槽两处为小事实更正，
 无对应场景，未单独跑；负例场景 5 未改 description/Scope，未跑。
+
+## 2026-09-30 上游同步（增量）
+
+依据：在 worktree 重跑 `uv run tools/check_upstream.py azure`（2026-09-30），2 条 `behind`。按完整区间归因：blobless 克隆到
+`/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`。
+`--pin` 后核对写入的 commit 与审阅 HEAD 一致（bicep-registry-modules bd4ef88）；repo moved、tracked paths unchanged 的
+awesome-copilot（997e95a → e7c25a4）、bicep（c4c04db → cec7951）、azure-docs（747fd25 → a3dfc42）随 `--pin` 前移。
+收尾重跑时上游又前进：avm 到 50ff01c（又一次目录同步，两个被跟踪的 CSV 无变更）、azure-dev 到 0755722（见下表），补审后再次 `--pin`，写入值与之一致。
+learn-azure 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| avm | c8c5562 → b9a9b9d（4 提交） | b9a9b9d：`BicepPatternModules.csv` 1 行——`avm/ptn/app/function-app` 由 Proposed 改为 Available（首发 2026-09）；`BicepResourceModules.csv` 无变更 | 噪声 | 目录数据的例行同步；本 skill 取的是「固定模块前先查 ModuleStatus」的规则本身，不列举具体模块状态，正文无该模块 |
+| bicep-registry-modules | a1d42ab → bd4ef88（5 提交） | 9fff5c0：`avm/res/dev-test-lab/lab/tests/e2e/max/main.test.bicep` 存储账户名改用 `uniqueString(resourceGroup.id, serviceShort)` 隔离测试夹具 | 噪声 | 上游 e2e 测试夹具命名修正，不涉及 `br/public:avm/res/...` 路径形态与版本形式 |
+| azure-dev | 973ffa9 → 95a1f83（首次 pin，tracked paths unchanged）→ 0755722（1 提交） | 0755722：`cli/azd/docs/environment-variables.md` 1 行——`AGENT_DEFINITION_PATH` 改为 AI agent 运行时不再支持、定义须写在 `azure.yaml` 的 `azure.ai.agent` 服务上 | 噪声 | azd 的 AI agent 扩展变量，本 skill 排除 AI/Foundry 范围，正文不含该变量 |
+
+未合入原因：三条均无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。

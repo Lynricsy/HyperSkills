@@ -129,7 +129,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`apple`](skills/apple/) | 平台 | Develops Apple platform apps with Swift, SwiftUI and UIKit | 2026.09.29 | 15 |
 | [`astro`](skills/astro/) | 框架 | Builds Astro sites with islands, content collections and server rendering | 2026.09.29 | 6 |
 | [`aws`](skills/aws/) | 平台 | Manages AWS architecture, IAM, cloud services, deployments and costs | 2026.09.30 | 8 |
-| [`azure`](skills/azure/) | 平台 | Manages Azure architecture, Bicep deployments, identity and cloud services | 2026.09.29 | 13 |
+| [`azure`](skills/azure/) | 平台 | Manages Azure architecture, Bicep deployments, identity and cloud services | 2026.09.30 | 13 |
 | [`chrome-extension`](skills/chrome-extension/) | 平台 | Builds Chrome extensions with Manifest V3, service workers and content scripts | 2026.09.29 | 10 |
 | [`cloudflare`](skills/cloudflare/) | 平台 | Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler | 2026.09.30 | 8 |
 | [`code-review`](skills/code-review/) | 任务 | Reviews code changes and pull-request diffs, or evaluates review feedback | 2026.09.30 | 9 |

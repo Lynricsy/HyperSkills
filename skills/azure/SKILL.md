@@ -4,7 +4,7 @@ description: "Manages Azure architecture, Bicep deployments, identity and cloud 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: platform
 ---
 
