@@ -296,3 +296,37 @@ SKILL.md 的 workflow 清单里已各留一条指向。不构成阻塞，记为�
 - `github/awesome-copilot`：每天都在推送，`paths` 只列本 skill 实际用到的三个目录 + 一个
   instruction 文件，靠 `check_upstream.py` 的路径过滤压掉噪声。
 - `probabl-ai/skills`：若 `python-code-style` 的内容进一步绑定其数据科学栈，可能降为 reference。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 6 条 `behind`，其中 4 条为
+`diff too large`。全部按完整区间归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑
+`git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`，并用 `git cat-file -e HEAD:<path>` 确认每个
+tracked path 在 HEAD 上是否仍存在。`--pin` 后逐条核对：写入的 commit 与审阅 HEAD 一致（见下表「区间」列右端）。
+其余 repo 条目为 OK（`getsentry-*` repo moved / tracked paths unchanged，`--pin` 顺带前移到 d18b7aa），
+六条 docs 为 manual check，本次未处理。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| trailofbits-modern-python | 321ccfe → 82fe822（11 提交） | 123037e：`agents/openai.yaml` 加 `display_name`、`short_description` | 噪声 | ChatGPT 导入用的界面元数据；本 skill 未取其任何文件 |
+| awesome-copilot-python | 7568a48 → 15ed97c（64 提交，329 文件） | 三个 tracked 目录 0 提交 | 噪声 | 区间改动全在其他 skill/instructions；报告的 too-large 只是 compare 上限 |
+| laurigates-python | 06c5453 → 45d1d7d（109 提交，490 文件） | 四个 tracked 目录 0 提交 | 噪声 | 同上 |
+| wshobson-python | a30778f → 156b7a5（29 提交） | 51b6e0b：`python-testing-patterns/references/details.md` 一处相对链接改为 `./advanced-patterns.md` | 噪声 | 死链修复，无内容变化 |
+| probabl-python-style | a7ce9fa → e6ed40d（15 提交，307 文件） | 1500748：SKILL.md 加「未触碰文件只列码并询问」「BLOCKED 仅限缺输入」等评测驱动的措辞与 numpydoc 细化；1098b17（Skills v2）：**删除整个 `skills/python-code-style`**，改由其 CLI 的 `style.py` 包装 ruff，README 写明该 catalog id 已移除 | 已覆盖 + 上游移除 | 1500748 的新增是本 skill 已有「只修本次触碰行、其余报告不扫」规则的强化措辞，其余绑定其 pixi/numpydoc 栈；删除后无继任内容可同步（`data-science-python-stack/references/ruff.md` 只剩通用简介） |
+| awesome-copilot-mcp-python | 7568a48 → 15ed97c（64 提交） | `instructions/python-mcp-server.instructions.md` 0 提交 | 噪声 | 同 awesome-copilot-python |
+
+### 裁决：probabl-python-style 路径消失
+
+按 MISSING/diverged 规则重新裁决：仓库本身仍在（未改名，`gh api` 查到的 HEAD 即 e6ed40d），只是 tracked
+path 在 1098b17 被删，最后一个含该路径的修订是 ea30bd7（1098b17 的父提交）。本 skill 从中取的只是 lint 作用域
+三条规则的语义（原创表述），仍源自该历史版本，因此**保留条目、relation 仍为 merged**；`url` 改为指向本 skill
+实际读过的 a7ce9fa 修订的永久链接，`notes` 注明删除提交与现状；`commit` 记录本次审阅的仓库 HEAD e6ed40d
+（不伪造为路径仍存在的提交）。此后该路径不会再有提交，`check_upstream.py` 将报 tracked paths unchanged。
+上一节「未来同步时要盯的上游」中「可能降为 reference」一条就此了结：上游已不再维护该内容。
+
+### 未合入原因与评测
+
+六条 behind 均为噪声或已覆盖，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+本次提交只含 re-pin、版本号、probabl 条目的 url/notes 与本节。

@@ -1,5 +1,5 @@
 skill: python
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: trailofbits-modern-python
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/modern-python/skills/modern-python
     paths: [plugins/modern-python/skills/modern-python]
     ref: main
-    commit: 321ccfe628eca0d314b0ee4eaffcdd8a05639aaf
+    commit: 82fe8226252622fa807643bdca1710901198553a
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Structure and checklist semantics only: the split between a single-file script, a non-distributed project and a distributable package; the argument for declaring development tooling in dependency groups rather than extras; the four migration paths (requirements.txt plus pip, setup.py, flake8 plus black plus isort, and a change of type checker) and their phase ordering; and the post-migration cleanup checklist — stale linter pragmas, orphaned tool config sections, old commands left in CI and docs."
     notes: "CC-BY-SA-4.0 is share-alike and incompatible with this repository's MIT licensing, so no prose, table, template or script was copied. Only the checklist semantics and the phase structure were taken and every sentence was written from scratch. Its templates/ and hooks/ (pre-commit config, Dependabot config, shell shims that redirect pip and python to uv) were deliberately not used. Three of its recommendations were overruled against official documentation and are not reproduced here: ty as the default type checker (Astral's own README calls ty beta), ruff `select = [\"ALL\"]` (ruff's documentation says to use ALL with discretion), and prek in place of pre-commit (single-source claim, no cross-check)."
 
@@ -23,10 +23,10 @@ upstreams:
       - skills/ruff-recursive-fix
       - skills/pytest-coverage
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The packaging and release chain: src versus flat layout and the reason a flat layout hides broken installs, build backend selection, the separation of PyPI distribution name from import name, PEP 561 `py.typed`, static versus git-derived versioning, TestPyPI rehearsal, and Trusted Publishing over stored API tokens. Also the graded ruff fix loop — resolve the runner, apply safe fixes, read the diff, only then consider unsafe fixes — with the requirement that any `noqa` carries a justification, and coverage thresholds as a named verification gate."
     notes: "Its agent-binding instructions (\"read this entire file before writing code\") and its parameterised Inputs table were dropped: this repository triggers on the description and loads references on demand. The paths list covers only the three directories actually used, so `check_upstream.py` filters out this monorepo's daily churn."
 
@@ -36,10 +36,10 @@ upstreams:
     url: https://github.com/getsentry/skills/tree/main/skills/typing-exclusion-worker
     paths: [skills/typing-exclusion-worker]
     ref: main
-    commit: c2f99a5b04b4cd992ec3022d7c2c3e23e938d241
+    commit: d18b7aa8ba878354e5c348310230e652f7690f9c
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The whole strictness-ratchet workflow: remove one assigned module from the checker's exclusion list per batch, keep the change inside the owned scope, run the checker on the touched paths first for fast feedback, refuse blanket suppressions and narrow every unavoidable one to `ignore[code]` with a stated reason, validate types plus tests plus hooks separately, and split the batch instead of widening it when the error count grows."
     notes: "Its structured Batch Summary output template targets an orchestrator protocol this repository does not have; only the requirement to report each validation command's result separately was kept."
 
@@ -54,7 +54,7 @@ upstreams:
     commit: d1a74899fbfec74974d1818e4cac7c3d54d44b65
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The inverse checklist — legitimate patterns that must not be reported as findings (`cast()` after a runtime check, an empty `__init__.py`, `Any` at the boundary with an untyped dependency, a justified suppression) and rules that only apply under stated conditions. From its pytest half: `patch` targets the namespace that resolves the name, awaited dependencies need `AsyncMock` rather than `Mock`, yield-fixture cleanup, fixture scope, and test isolation as the explanation for a file that passes alone and fails in the suite."
     notes: "Its cross-skill relative links to a sibling verification-protocol skill were stripped. Its PEP 8 79-column rule was overruled: with ruff configured, line length is the project's setting and defaults to 88."
 
@@ -68,10 +68,10 @@ upstreams:
       - python-plugin/skills/uv-project-management
       - python-plugin/skills/basedpyright-type-checking
     ref: main
-    commit: 06c5453a265caf6bf12152218e2237815edcbb3f
+    commit: 45d1d7dcf67a63acd6abde1c3fec868e9d8d01c5
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Accurate configuration shapes for pytest and coverage (`ini_options`, `--strict-markers`, `--strict-config`, `filterwarnings`, branch coverage, the `exclude_lines` set including `if TYPE_CHECKING:`), the plugin matrix (cov, xdist, asyncio, mock, timeout, randomly) with what each is actually for, the agent-oriented pytest invocations for fast feedback and for bisecting an ordering failure, and the fact that ruff lint and ruff format are two separate commands."
     notes: "Its `user-invocable`, `allowed-tools` and created/modified/reviewed frontmatter fields are agent-specific and were stripped. Its skills are split one per uv subcommand; the content was consolidated into one reference."
 
@@ -87,10 +87,10 @@ upstreams:
       - plugins/python-development/skills/python-resource-management
       - plugins/python-development/skills/uv-package-manager
     ref: main
-    commit: a30778f8c4e6b0a87567941b7cca4f534bf642b6
+    commit: 156b7a5e7a8b93642628a339ee4039c925b34c7f
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The sync-versus-async decision table (CPU-bound work belongs in a process pool, mixed workloads offload with `to_thread`, small scripts stay synchronous) and the rule that one call path is either wholly sync or wholly async; the non-obvious entries from its anti-pattern list — retry logic layered at both the application and the client, a batch that silently swallows partial failures, ORM models exposed as response types; and the inventory of typing constructs worth covering (Protocol, generics, narrowing, type aliases)."
     notes: "The bulk of these skills teaches the asyncio and typing APIs themselves, which this repository's standard excludes as knowledge the model already has; those sections were dropped. Its `Result[T, E]` example carries two `# type: ignore[return-value]` comments — exactly the pattern forbidden here — and was not used."
 
@@ -107,22 +107,22 @@ upstreams:
     commit: fe73fb33a09ee6562eeec7415a3f9a3bcf795177
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Data-modelling selection by ownership of the data — a validating model at a trust boundary, a frozen dataclass for an internal value object, a NamedTuple for a lightweight immutable record — plus keyword-only parameters once a signature grows, `pathlib` over `os.path`, built-in generics over the `typing` aliases, and exception chaining with `raise ... from`."
     notes: "Its rule files carry a `paths` glob header for editor rule engines, which was stripped. Its two bundled skills (AWS Lambda, clean architecture) are outside this skill's scope and were not used."
 
   - id: probabl-python-style
     kind: repo
     repo: probabl-ai/skills
-    url: https://github.com/probabl-ai/skills/tree/main/skills/python-code-style
+    url: https://github.com/probabl-ai/skills/tree/a7ce9fadd92ce132d8eff8f72eb25f7eb60d230d/skills/python-code-style
     paths: [skills/python-code-style]
     ref: main
-    commit: a7ce9fadd92ce132d8eff8f72eb25f7eb60d230d
+    commit: e6ed40db5312daa9cbeda594c839378a7de8e80b
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The working scope of a lint pass: fix only the diagnostics on lines this change touched, report pre-existing violations elsewhere instead of sweeping them in, and stop after one honest fix attempt on a file rather than looping — a repeated auto-fix means the rule and the code disagree, which is a decision for the user."
-    notes: "Its data-science stack bindings (numpydoc convention, sibling environment-manager and workspace skills, the discussion of a formatter hook) were dropped as specific to that repository's own toolchain."
+    notes: "Its data-science stack bindings (numpydoc convention, sibling environment-manager and workspace skills, the discussion of a formatter hook) were dropped as specific to that repository's own toolchain. Upstream deleted skills/python-code-style in 1098b17 (Skills v2) and replaced it with a ruff wrapper in its own CLI; the url is therefore a permalink to the revision this skill was built from. The entry stays because the lint-scope rules above still derive from that revision; `commit` records the repository HEAD at the last review, where the path no longer exists."
 
   - id: gvre-python
     kind: repo
@@ -133,7 +133,7 @@ upstreams:
     commit: 3165900f9e9a00ea49a4c547b248f1d6d7064d25
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The precedence rule that opens this skill: on an existing project the declared configuration in pyproject.toml is the source of truth for Python version, line length, type checker, test layout and rule set, and the skill's defaults apply only to a new project or an unset field."
     notes: "Its version-feature matrix was re-derived from the CPython documentation rather than copied, and its dated tool-status comparison (\"ty beta 0.0.22, Mar 2026\") was not reproduced: this repository forbids time-sensitive claims. Its `disable-model-invocation` frontmatter field was stripped."
 
@@ -143,10 +143,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot/blob/main/instructions/python-mcp-server.instructions.md
     paths: [instructions/python-mcp-server.instructions.md]
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Read to cross-check the asyncio lifecycle guidance — server lifespan setup and teardown, long-lived clients entered once rather than per request — against a real async application shape. Its MCP protocol material belongs to a different skill and no content was copied."
 
   - id: getsentry-findbugs
@@ -155,10 +155,10 @@ upstreams:
     url: https://github.com/getsentry/skills/tree/main/skills/find-bugs
     paths: [skills/find-bugs]
     ref: main
-    commit: c2f99a5b04b4cd992ec3022d7c2c3e23e938d241
+    commit: d18b7aa8ba878354e5c348310230e652f7690f9c
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Read to draw the boundary: its checklist (injection, IDOR, TOCTOU, session handling) is language-neutral audit work owned by this repository's code-review skill, so this skill keeps only language-level runtime traps. No content copied."
 
   - id: uv-docs
