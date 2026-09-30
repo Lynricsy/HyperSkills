@@ -299,5 +299,9 @@ the damage, and the validation is machine-checkable rather than a judgement.
   does not exist.
 - **No host runtime dependency.** Relative paths, no provider template
   variables.
+- **Invoked through its interpreter** in the body — `bash scripts/tool.sh`,
+  `python3 scripts/tool.py` — never as a bare path. Some packagers and archive
+  extractors drop the executable bit, and a bare `scripts/tool.sh` then fails
+  with `Permission denied` for exactly the users who installed that way.
 
 <!-- sources: anthropic-best-practices, obra-writing-skills, anthropic-skill-creator, getsentry-skill-writer, grafana-skill-authoring, mgechev-skill-creator, openai-aspnet-core, agentskills-spec -->

@@ -1,0 +1,44 @@
+[
+  {
+    "skills": ["changelog-writer"],
+    "query": "Write the CHANGELOG entry for 2.4.0 in our usual format.",
+    "files": ["evals/files/CHANGELOG.md", "evals/files/commits-2.4.0.txt"],
+    "expected_behavior": [
+      "Adds a 2.4.0 section dated 2026-09-18 under Unreleased's former position",
+      "Classifies the Retry-After fix (a1f9c02) under Fixed, not Changed",
+      "Marks the removal of --legacy-auth as breaking and names the flag",
+      "Omits the three chore(ci) commits",
+      "Links 2.4.0 with a compare URL in the reference-style link block",
+      "Does not invent entries that are not in commits-2.4.0.txt"
+    ]
+  },
+  {
+    "skills": ["changelog-writer"],
+    "query": "Is it Fixed or Changed when we make the client respect Retry-After, which it used to ignore?",
+    "files": [],
+    "expected_behavior": [
+      "Answers Fixed, because the old behaviour was a bug",
+      "Says a behaviour change that callers relied on would be Changed instead"
+    ]
+  },
+  {
+    "skills": ["changelog-writer"],
+    "query": "Our 2.3.0 entry lists 'Security: bumped deps'. Is that acceptable?",
+    "files": [],
+    "expected_behavior": [
+      "Says a Security entry leads with the advisory or CVE identifier",
+      "Says 'bumped deps' does not tell a reader whether they are affected",
+      "Asks for or looks up which dependency and which advisory",
+      "Suggests the concrete rewritten line shape"
+    ]
+  },
+  {
+    "skills": [],
+    "query": "Write a GitHub Actions job that creates a release when a v* tag is pushed.",
+    "files": [],
+    "expected_behavior": [
+      "Does not load the changelog-writer skill",
+      "Answers with a workflow triggered on push tags v*"
+    ]
+  }
+]

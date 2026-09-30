@@ -374,3 +374,75 @@ Git / GitHub、Agent Skills / MCP / 文档、模型调用 / 训练 / 媒体、
   `60 skill(s): 0 error(s), 0 warning(s)`；`catalog is current (60 skill(s))`。
 - Ruff 检查另报告三项既有规则问题（`RUF100`、`PIE810`、`PLW1510`），未修改无关旧代码；
   只对本轮变更的校验语句执行局部格式化，不宣称全文件 lint / 格式检查通过。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）skill-authoring 段 2 条 `behind`
+（obra-writing-skills、vercel-skills-cli）与 1 条 `FAIL`（hyperskills-self：`main` 不再包含 pin）。
+归因在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里用 `git log <旧pin>..<HEAD> -- <paths>` 与 `git diff`
+读实际改动。`--pin` 后核对 SOURCES.yaml：obra `8ca22db`、vercel-labs `3694740`、hyperskills-self
+`cc9720d`（origin/main，`gh api repos/Lynricsy/HyperSkills/commits/main` 与克隆 `origin/main` 一致），与审阅
+HEAD 逐条一致；anthropic-skill-creator `8a1541c`、grafana `1ccacf2`、getsentry `d18b7aa` 为「repo moved,
+tracked paths unchanged」随 `--pin` 前移。anthropic-skill-creator 按 notes 要求复查
+`skills/skill-creator/LICENSE.txt`（`gh api`）：仍为 Apache License 2.0。
+
+### hyperskills-self 分叉裁决
+
+- 旧 pin `4fe810f`（2026-09-10 22:14:34，作者 Claude Code）不是当前 `origin/main` 的祖先；当前历史中同一
+  时刻、同一标题「修正上游路径归因的区间边界，并改用 gh 传输」的提交是 `3983cb4`（作者 Lynricsy）。
+  `git rev-parse 4fe810f^{tree} 3983cb4^{tree}` 均为 `48d633e…`，树完全相同——是改写作者信息的历史重写，
+  我们合入的内容没有丢失。
+- 因此按 Phase B 从等价点重审：`git log 3983cb4..cc9720d -- docs/skill-standard.md docs/workflow.md tools`
+  共 10 个提交，逐条判定见下表。重新 pin 到 `cc9720d`：它在 origin/main 上（不是本地未推送提交），
+  后续 `check_upstream.py` 可正常求祖先关系。worktree 里主代理 cherry-pick 的 `6458890`（run_evals 关闭
+  advisor）不在 origin，不作为 pin。
+- `relation` 仍为 merged，`paths` 不变。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| obra-writing-skills | b36e082..8ca22db | 5bf4e78 `writing-skills/SKILL.md`：bundled 脚本在正文里经解释器调用（`bash scripts/tool.sh`），不写裸路径——部分插件打包器会丢执行位，裸路径报 `Permission denied`；`render-graphs.js` 示例加 `node` | 需更正（事实） | 本 skill `client-extensions-and-paths.md` 原文「写相对路径让 agent 执行，处处可用」与该事实相反。本机实证：Python `zipfile` 打包 0700 的脚本，解包为 0600，裸调用 `Permission denied`（rc=126），`bash` 调用成功。改该段、规则 17 与 `structure-and-writing.md` 脚本规则各一句 |
+| vercel-skills-cli | 80feb48..3694740 | 2a286c7 README：Pi 由 `.pi/skills` 改列入 `.agents/skills` 通用组 | 需更正（事实） | 经 `gh api` 读 Pi 官方文档 `badlogic/pi-mono/packages/coding-agent/docs/skills.md`：「Pi also supports the Agent Skills locations `~/.agents/skills/` and `.agents/skills/`，项目级从工作目录向上直到仓库根」。原表把 Pi 列在「仅厂商目录」行，改为单独一行 |
+| vercel-skills-cli | 同上 | 2128a53/de5f163/d6b37f6 README：新增 Azure Repos `/_git/` URL 示例 | 已覆盖 | `publishing.md` 已写「any git host」示例；Azure 修复只是让该说法对 Azure 也成立 |
+| vercel-skills-cli | 同上 | 2d9c755/d4de6c0/98c7217 README 徽章 | 噪声 | 仅展示 |
+| hyperskills-self | 3983cb4..cc9720d | de92641 `tools/run_evals.py`：夹具必须在提示里点名，否则「模型有没有去翻工作目录」成为隐藏变量，对照无效 | 需合入 | 新增场景 5（`evals/files/eval-audit/`）基线两次均未指出 query 没点名夹具（EB1/EB2 ✘），有 skill 时达成 |
+| hyperskills-self | 同上 | 8a5fca8/16c2934 `run_evals.py`：`skill_read` 改按成功的读取工具调用事件判定；评测工作目录与产物树分离 | 基线已会，不合入 | 场景 5 EB4 两次基线均达成（隔离工作区）；EB3（事件判定）首次基线达成、第二次部分 |
+| hyperskills-self | 同上 | 7284863/7355162 `run_evals.py`：子进程 stdin 继承导致 omp 挂起、stderr 落盘、固定评测模型与 thinking | 已覆盖 / 不合入 | 前者是 omp 专属 runner 工程问题；固定模型即「基线与有 skill 同条件」，`evaluation.md` 已要求两配置同批同条件 |
+| hyperskills-self | 同上 | 84d9b44 `docs/skill-standard.md`、`validate_skills.py`：description 改为 1–160 字符单句路由 | 已覆盖 | 2026-09-12 本地 description 收敛已同步进本 skill 规则 3–5 与 description-optimization.md |
+| hyperskills-self | 同上 | 068b8f9 `check_repository.py`、`validate_skills.py`、`skill-standard.md`：YAML 重复键报错、evals 字段类型、夹具路径不越界、全量校验遇无 SKILL.md 目录或空集合即失败、CI `--strict` | 不合入 | 本仓库校验器实现细节；未做基线评测，不据以扩写 `publishing.md` 的 CI 清单。「夹具目录内不得出现 SKILL.md」已在本 skill 自身夹具命名（`widget-builder-SKILL.md`）上执行 |
+| hyperskills-self | 同上 | 1f24d91/d36a3c2 `docs/workflow.md` 路线图与检索源、徽章 | 噪声 | 仓库流程 |
+| obra 其余、grafana、getsentry、anthropic-skill-creator | 各自区间 | 跟踪路径无提交 | 噪声 | 仅 repo 前进 |
+
+### 正文改动
+
+- `references/evaluation.md`「The evaluation file」：`query` 须按文件名点名它依赖的每个夹具（不粘贴内容），
+  并补一段说明未点名夹具如何让对照测到的是「好奇心」而非 skill；`SKILL.md` scope-and-draft 的 evals.json 一项同步。
+- `references/client-extensions-and-paths.md`：脚本经解释器调用的更正；Pi 单列一行（`.agents/skills/` 向上到仓库根 +
+  自身目录；用户级 `~/.agents/skills/` + 自身目录）。
+- `references/structure-and-writing.md` 脚本规则新增「Invoked through its interpreter」；`SKILL.md` 规则 17 同步。
+- `SOURCES.yaml`：obra-writing-skills、vercel-skills-cli 的 `contributes`/`notes`，hyperskills-self 的分叉裁决记录。
+- 新增评测场景 5 与夹具 `evals/files/eval-audit/`（`run_evals.py`、`evals.json`、`eval-report.md`：一个
+  changelog skill 的评测，含未点名夹具、子串式 skill_read、工作目录在仓库内三处缺陷）。
+
+### 评测
+
+模型 `workbuddy/deepseek-v4.1-flash`、thinking `max`。以下各轮均在主代理关闭评测 advisor 之前运行（advisor 开启，
+旧口径），配对（r4 基线与 r4 有 skill）已完成，按主代理规则不重跑。
+
+场景 5 的 query 改过两次：初版「Our changelog-writer skill's evaluation …」下有 skill 两轮都没有加载 skill
+（`skill_read=False`，第二轮 24 秒返回逐字相同的答案，疑为响应缓存），第二版加「Agent Skill」仍未加载；终版以
+「Review the evaluation of our changelog-writer Agent Skill …」开头后加载。未加载的三轮实际等同无 skill，
+仅作缺口佐证。终版有 skill 轮次 `events.jsonl` 读取 `skill://skill-authoring` 与
+`skill://skill-authoring/references/evaluation.md`，答案复述了本次新增的「隐藏变量」段落，确认读的是 worktree 版本。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5（终版 query） | deepseek-v4.1-flash / max | 无 | False | EB1 ✘ EB2 ✘ EB3 ✘ EB4 ✔ EB5 ✔ | 把 baseline 0 次夹具读取归因为「文件可能不在」，修法写成「基线不复制夹具」（反向）；skill_read 只说「标志可能错」，未指出子串匹配把提及算加载。advisor 开启（旧口径）。`/tmp/hs-evals-sync/SyncG24/skill-authoring-b5-r4/…/baseline/5` |
+| 5（终版 query） | deepseek-v4.1-flash / max | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 第 5 条「query 没点名 fixture……隐藏变量，baseline 0 vs skill 14 不可归因」，修法「query 点名每个 fixture 后重测」；第 6 条子串匹配→解析真实读文件事件；第 2 条工作目录移出仓库。advisor 开启（旧口径）。`…/skill-authoring-s5-r4/…/skill/5` |
+| 5（初版 query） | deepseek-v4.1-flash / max | 无 | False | EB1 ✘ EB2 ✘ EB3 ✔ EB4 ✔ EB5 ✔ | 只说「这 4 分差里混着 baseline 没看 cwd 的行为差」，未指出 query 未点名。advisor 开启（旧口径）。`…/skill-authoring-b5/…/baseline/5` |
+| 5（初版 query） | deepseek-v4.1-flash / max | 有（未加载） | False | EB1 ✘ EB2 ✘ | 两轮答案逐字相同，skill 未被读取，不计为有 skill 结果。`…/skill-authoring-s5/`、`…/skill-authoring-s5-r2/` |
+| 5（第二版 query） | deepseek-v4.1-flash / max | 有（未加载） | False | EB1 ✘ EB2 ✘ | 仍把 14 次读取解释为「skill 促使 agent 去读随附材料」。`…/skill-authoring-s5-r3/` |
+
+结论：夹具点名是唯一跨所有未加载/基线轮次都缺失、加载后达成的行为，合入成立；EB4/EB5 为非区分项。
+Pi 与脚本执行位两处为事实更正，证据见归因表，未单独评测。

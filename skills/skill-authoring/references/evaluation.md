@@ -57,12 +57,22 @@ One scenario per entry. The shape that works across runners:
 ```
 
 - `skills` names what should be loaded; an empty list marks a negative scenario.
-- `query` is what a real user would type, with the texture of a real request.
+- `query` is what a real user would type, with the texture of a real request,
+  and it names every fixture the task depends on — by file name, not by pasting
+  the content.
 - `files` are small fixtures, kept with the evaluations, not fetched at run time.
 - `expected_behavior` items are observable, one claim each.
 
 Fixtures stay small — a runner copies them for every scenario, every
 configuration and every model, so a large fixture multiplies.
+
+A fixture copied into the working directory but never named in the query turns
+"did the agent go and look?" into a hidden variable. A run that happens to open
+the file answers with the real values; one that does not answers in
+conditionals or with a template; and the two are then graded as if they had
+the same input. Name the files, and record per run whether each fixture was
+actually read: a baseline and a with-skill run that differ there measured the
+agent's curiosity, not the skill.
 
 ## Writing an expectation
 

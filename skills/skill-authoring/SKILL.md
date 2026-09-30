@@ -4,7 +4,7 @@ description: "Authors, reviews and evaluates Agent Skills and their SKILL.md fil
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: meta
 ---
 
@@ -102,8 +102,10 @@ Violations of these are bugs, not preferences.
     alone.
 17. Nothing in the body may depend on one host's runtime: no template variables
     it substitutes, no dynamic shell injection, no forced file attachment.
-    Call bundled scripts by relative path, and name MCP tools fully qualified
-    as `Server:tool` so they resolve when several servers are connected.
+    Call bundled scripts by relative path through their interpreter (`bash`
+    or `python3` before the path), since some packagers drop the executable bit, and
+    name MCP tools fully qualified as `Server:tool` so they resolve when
+    several servers are connected.
 18. Bundle a script only once transcripts show runs rewriting the same code.
     Then it solves rather than defers (actionable message naming the available
     options, not a raw traceback), carries no unexplained constant, declares
@@ -132,7 +134,8 @@ For a new skill. Do not start with the prose.
       omitted element, or state-dependent. The classification picks the form of
       the fix, and the wrong form measurably backfires.
 - [ ] Write `evals/evals.json` — at least three scenarios, each with observable
-      expected behaviour, plus one near-miss that must *not* trigger the skill
+      expected behaviour and a query that names every fixture file it relies
+      on, plus one near-miss that must *not* trigger the skill
       (`references/evaluation.md`).
 - [ ] Write the description with the formula in
       `references/description-optimization.md`.

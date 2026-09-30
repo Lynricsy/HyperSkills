@@ -44,5 +44,21 @@
       "Does not read the skill-authoring skill because implementing an MCP protocol server is outside the task of authoring Agent Skills",
       "Answers with MCP server implementation work — server construction, tool registration with input schemas, and stdio transport wiring — without discussing SKILL.md frontmatter, progressive disclosure or skill descriptions"
     ]
+  },
+  {
+    "skills": ["skill-authoring"],
+    "query": "Review the evaluation of our changelog-writer Agent Skill before we publish the skill. The evaluation says its SKILL.md closed the gap: 2/6 without the skill, 6/6 with it on scenario 1. The runner (run_evals.py), the scenarios (evals.json) and the results (eval-report.md) are in this folder. Before I cite this in the PR as proof the skill works, tell me whether the comparison is sound and what, if anything, has to change before it counts. Answer in this conversation; do not rerun anything.",
+    "files": [
+      "evals/files/eval-audit/run_evals.py",
+      "evals/files/eval-audit/evals.json",
+      "evals/files/eval-audit/eval-report.md"
+    ],
+    "expected_behavior": [
+      "Identifies that the runner sends only `query` as the prompt and scenario 1's query never names CHANGELOG.md or commits-2.4.0.txt, so whether a run reads the fixtures is left to chance; with fixture_reads 0 in the baseline and 14 with the skill, the two runs had different inputs and the 2/6 to 6/6 difference cannot be attributed to the skill",
+      "Fixes that by naming the fixture files in the prompt (not pasting their content) and re-running both modes",
+      "Identifies that skill_read is a substring match on the transcript, so a directory listing or an answer that merely mentions changelog-writer/SKILL.md counts as a load (scenario 4's True is such a mention), and says a load must be judged from a successful read tool call of SKILL.md or a reference file",
+      "Identifies that each scenario runs with its working directory inside the repository checkout (evals-out under REPO), where the skill's source and earlier transcripts are reachable, so the no-skill baseline can read the skill anyway — scenario 3's baseline did — and says to run in a scratch workspace outside the repository and the output tree",
+      "Concludes the result is not yet citable as a closed gap and must be re-run under the corrected conditions before it counts"
+    ]
   }
 ]

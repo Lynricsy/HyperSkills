@@ -134,8 +134,11 @@ they are the ones that most often make a vendored skill unusable:
 - **Argument placeholders** — positional and named substitution tokens. Only
   meaningful for explicitly invoked skills on hosts that implement them.
 
-A skill that must run a bundled script writes the relative path and lets the
-agent execute it. That works everywhere and costs nothing.
+A skill that must run a bundled script writes the relative path, invoked
+through its interpreter (`bash scripts/check.sh`, `python3 scripts/check.py`),
+and lets the agent execute it. That works everywhere and costs nothing; a bare
+`scripts/check.sh` does not, because some packagers and archive extractors
+drop the executable bit and the call then fails with `Permission denied`.
 
 ## Discovery paths per host
 
@@ -148,7 +151,8 @@ shared `.agents/skills/` convention. The shared one is the portable target.
 | Codex / ChatGPT | `.agents/skills/` in the working directory, its parent, and the repository root | `~/.agents/skills/`; admin `/etc/codex/skills` |
 | Cursor | `.agents/skills/`, `.cursor/skills/`, recursively including nested project directories, auto-scoped to their directory; also reads the Claude Code and Codex directories | `~/.cursor/skills/`, `~/.agents/skills/` |
 | Gemini CLI, GitHub Copilot, OpenCode, Amp, Cline, Zed, Warp, Droid, Kilo, Antigravity | `.agents/skills/` | Vendor-specific, e.g. `~/.gemini/skills/`, `~/.copilot/skills/`, `~/.config/opencode/skills/` |
-| Goose, Windsurf, Crush, OpenHands, Pi, Kiro CLI, Devin | Vendor-specific, e.g. `.goose/skills/`, `.windsurf/skills/`, `.kiro/skills/` | Vendor-specific |
+| Pi | `.agents/skills/` from the working directory up to the repository root, plus its own project directory | `~/.agents/skills/`, plus its own user directory |
+| Goose, Windsurf, Crush, OpenHands, Kiro CLI, Devin | Vendor-specific, e.g. `.goose/skills/`, `.windsurf/skills/`, `.kiro/skills/` | Vendor-specific |
 
 For a new host, the specification recommends supporting both
 `<project>/.<client>/skills/` and `<project>/.agents/skills/`, and the user-level
