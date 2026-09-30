@@ -343,3 +343,32 @@ done
 的同一页对照（本次用 `docs.unity3d.com/6000.3/Documentation/Manual/...` 与不带版本前缀的
 当前页确定了 `Dictionary` 序列化与 UI 推荐表两条），精度低于声明源，但对纯策略性内容
 （官方推荐哪个 UI 系统）是唯一来源。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 3 条 `behind`。全部按完整区间
+归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`（UnityCsReference 为 `--depth 3 --branch 6000.3`，覆盖
+343494d..2f6cef6），对 `<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`；三个仓库
+区间内均无 LICENSE 变更。unity-official-skills 为 reference 且按原裁决只用目录清单，未读正文。`--pin` 后核对：写入的
+commit 与审阅 HEAD 一致（d4b0e35、36e1a6a、2f6cef6）；nicewolf-unity、wshobson-unity-ecs 为「repo moved, tracked
+paths unchanged」，随 pin 前进到 a149d3e、156b7a5。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| gamedev-unity | b105e1c → d4b0e35（13 提交，tracked 1 提交） | 77c2600 `unity-physics`：`SyncTransforms` 同帧查询、CharacterController 只走 `OnControllerColliderHit`、射线默认不命中 trigger、移动静态碰撞体不唤醒休眠刚体、CCD 三种模式、凹 MeshCollider | 大多已覆盖 / 其余评测后不合入 | `unity-physics.md` 已有 SyncTransforms、`OnControllerColliderHit`、`queriesHitTriggers`/`queryTriggerInteraction`、起点在碰撞体内不命中、Continuous 与 ContinuousDynamic、非凸 MeshCollider 不可动；唯一未写的「休眠刚体不被移动的静态碰撞体唤醒」写成场景 6，基线已会，不合入；`ContinuousSpeculative` 未列属不完整而非错误，未改 |
+| 同上 | 同上 | 77c2600 `unity-navmesh`（OffMeshLink 在 AI Navigation 2.0 弃用、NavMeshLink）、`unity-tilemap-2d`（Hex/Iso 布局、Tilemap Extras @6.0 文档链接）、`unity-build-pipeline`（CoreCLR 后端实验性、非生产） | 不合入 | 导航与 Tilemap 不在本 skill 范围；上游自己把 CoreCLR 标为实验性、仅桌面、不可用于生产（本次未另行核实），本 skill 基线 6.3 LTS 的后端选择仍是 Mono / IL2CPP，`unity-build.md` 无需改 |
+| unity-official-skills | d54932a → 36e1a6a（19 提交） | 目录由 31 增至 34：新增 asset-transformer-toolkit、build-gtk（Graph Toolkit，6.6+，仅读 frontmatter 分类）、project-auditor-fixes；其余提交为描述缩写、CLI 文档对齐 beta.9/10、URP 模板默认、Vivox 评测删除等 | 不合入 | 本上游只作覆盖清单；三个新目录为特定产品/编辑器工具构建，不构成本 skill 的覆盖缺口 |
+| unity-cs-reference | 343494d → 2f6cef6（1 提交，Unity 6000.3.25f1） | tracked 路径 15 文件：TextCore FontEngine 改用 `FontFaceHandle`、FontAsset 图集填充、UI Toolkit 焦点环、ProfilerRoleProvider、`QueueGameViewInputEvent` 参数加 `[NotNull]` | 噪声 | 补丁版内部实现；diff 中无 `[Obsolete]` 变化，也不涉及本 skill 引用的任何 API 形状或版本边界 |
+
+### 评测
+
+新增场景 6（夹具 `TrapdoorFloor.cs`）：静态碰撞体靠 Transform 下落，久置木箱因休眠悬空；同帧 Transform 改动后射线仍命中旧位置。
+在主代理关闭评测 advisor 的提交之后运行。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3（3/3） | 解释休眠阈值与静态碰撞体不唤醒；改 kinematic Rigidbody + FixedUpdate 中 `MovePosition`；查询前 `Physics.SyncTransforms()` 并指出 autoSyncTransforms 默认关闭 |
+
+结论：候选缺口基线已会，按规则不合入，场景 6 保留作哨兵；正文与 references 未改动，故未做安装冒烟。

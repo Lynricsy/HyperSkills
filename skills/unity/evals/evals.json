@@ -61,5 +61,15 @@
       "Answers with dotnet-counters counter names, the runtimeconfig.json / csproj ServerGarbageCollection property, and the BenchmarkDotNet [MemoryDiagnoser] attribute",
       "If it points at another skill at all, it points at csharp-dotnet rather than at a game engine"
     ]
+  },
+  {
+    "skills": ["unity"],
+    "query": "TrapdoorFloor.cs drives the trapdoor in our Unity 6000.3 warehouse level. Explain both bug reports in the file header - why only the crates that have been sitting on the slab for a while float in mid-air, and why LandingCheck sees a slab that has already moved - and give the corrected component.",
+    "files": ["evals/files/TrapdoorFloor.cs"],
+    "expected_behavior": [
+      "Explains the floating crates as Rigidbody sleeping: crates resting below the sleep threshold are put to sleep, and moving a static collider (a collider with no Rigidbody) through its Transform does not wake sleeping bodies, whereas a crate that landed a moment ago is still awake - which is exactly why only the long-resting crates float",
+      "Fixes it by giving the slab a kinematic Rigidbody and moving it with MovePosition in FixedUpdate, so the physics system treats it as a moving body that wakes and carries what rests on it, or by calling Rigidbody.WakeUp() on the resting crates when the trapdoor opens; also notes that moving a static collider every frame is itself unsupported/expensive",
+      "Explains LandingCheck: with automatic transform syncing off by default, a Transform change made in Update is not visible to physics queries until the next simulation step, so the raycast still hits the slab at its old position; Physics.SyncTransforms() before the same-frame query (once, not every frame) fixes it"
+    ]
   }
 ]
