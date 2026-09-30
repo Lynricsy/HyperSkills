@@ -161,7 +161,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB documents, aggregations, indexes and cluster operations | 2026.09.30 | 6 |
 | [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Builds Node.js HTTP services with Fastify, NestJS, Hono or Express | 2026.09.29 | 13 |
 | [`observability`](skills/observability/) | 任务 | Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts | 2026.09.30 | 15 |
-| [`office`](skills/office/) | 任务 | Creates, edits and converts Word, PowerPoint, Excel and PDF documents | 2026.09.12 | 19 |
+| [`office`](skills/office/) | 任务 | Creates, edits and converts Word, PowerPoint, Excel and PDF documents | 2026.09.30 | 19 |
 | [`planning`](skills/planning/) | 任务 | Turns requirements into executable plans with dependencies and verifiable acceptance criteria | 2026.09.30 | 8 |
 | [`postgres`](skills/postgres/) | 框架 | Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations | 2026.09.30 | 12 |
 | [`python`](skills/python/) | 框架 | Develops Python code with uv, pytest, typing, asyncio and packaging | 2026.09.30 | 17 |

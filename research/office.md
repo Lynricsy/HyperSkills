@@ -352,3 +352,21 @@ FAIL office / 1 skill(s): 1 error(s)   # 仅剩 NOTICE.md is missing（由主代
 - 自写 OOXML XSD 校验器（C4）：成本远高于收益，三层门 + 重算 + 修订双向核对已覆盖实测中出现的全部失败模式。
 - `google-workspace`：本 skill 的否定边界，独立主题。
 - docxtpl / 自有 CLI（`officecli`、`bowenliang123`）：与既有两条 Markdown→Word 路径重复。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 2 条 `behind`，均为 `diff too large`。
+按完整区间归因：blobless 克隆到 `/tmp/hs-up/github__awesome-copilot`、`/tmp/hs-up/nexu-io__open-design`，对
+`<旧pin>..<审阅HEAD>` 只限条目 `paths` 跑 `git log --oneline` 与 `git diff --stat`，并用 `git rev-parse <commit>:<path>`
+比对两端 tree。四条 Anthropic 条目报 `repo moved, tracked paths unchanged`，另用已登录 `gh api .../compare` 复核区间文件清单。
+`--pin` 后核对：写入的 commit 与审阅 HEAD 逐条一致（awesome-copilot 15ed97c、open-design 5b19dfa、anthropics/skills 8a1541c；
+openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| copilot-md-to-docx | 7568a48 → 15ed97c（64 提交，329 文件） | `skills/md-to-docx` 0 提交；两端 tree 同为 `e72aa67` | 噪声 | too-large 只是 compare 上限，区间改动全在其他目录 |
+| open-design-pptx | 712b0db → 5b19dfa（112 提交，1068 文件） | `skills/pptx` 0 提交；两端 tree 同为 `be126bc` | 噪声 | 同上；该条目本就是只作审计记录的 reference |
+| anthropic-docx/pptx/xlsx/pdf（reference，专有许可） | 41bbe19 → 8a1541c（3 提交） | 全部落在 `skills/claude-api/**`（claude-api skill 的模型默认值与 Managed Agents 文档） | 噪声 | 四个 tracked paths 未变；专有许可只作 reference，本次未读取也未复制任何内容 |
+
+未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟；仅 re-pin，
+版本号改为 2026.09.30。
