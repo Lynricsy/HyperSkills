@@ -118,7 +118,7 @@ upstreams:
     url: https://github.com/Lynricsy/HyperSkills
     paths: [docs/skill-standard.md, docs/workflow.md, tools]
     ref: main
-    commit: cc9720d937fca17b37e6c763b6ae1907244b0bae
+    commit: 179c8dcaf3383714a388b6100e094838df58f1c3
     license: MIT
     relation: merged
     synced_at: "2026-09-30"

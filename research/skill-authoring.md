@@ -446,3 +446,11 @@ tracked paths unchanged」随 `--pin` 前移。anthropic-skill-creator 按 notes
 
 结论：夹具点名是唯一跨所有未加载/基线轮次都缺失、加载后达成的行为，合入成立；EB4/EB5 为非区分项。
 Pi 与脚本执行位两处为事实更正，证据见归因表，未单独评测。
+
+### 收尾复查（同日）
+
+hyperskills-self 的 `cc9720d..179c8dc` 区间里，只有 eb63f00 命中 tracked paths：`tools/run_evals.py` 的 overlay
+关掉了 advisor。原因是用户级配置开启的 advisor 会被评测子进程继承，它是第二个模型，会往会话里注入建议，
+而且它的服务方会拦截安全审计类提示词。这条经验针对的是 omp 这一种宿主的 advisor 功能，按标准第 1.3 节属于
+agent 绑定面，不合入正文；「两批之间变动的东西与 skill 效果不可区分」在 `references/evaluation.md` 已有通用表述。
+re-pin 到 179c8dc。
