@@ -114,5 +114,17 @@
       "Recognizes that an embedded admin surface constrains the visual direction: the host application's conventions win over a distinctive marketing aesthetic",
       "Does not produce a landing-page style design plan (hero, accent palette, display typeface) for an embedded admin form"
     ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "We are redesigning the team members settings screen in our product. members-brief.md has our product context, the problems with today's screen, and our notes on two reference products the team likes. Before anyone builds it, give me the design direction and everything the screen has to handle.",
+    "files": ["evals/files/members-brief.md"],
+    "expected_behavior": [
+      "Uses the two references as evidence: extracts specific decisions about hierarchy, density, navigation, controls, responsive behavior and interaction states and ties each to this screen's job, rather than restating or merging the reference screens",
+      "Rebuilds in Fieldnote's own tokens, type and components and explicitly does not carry over the references' branding, proprietary copy or exact layout (no Linear purple, no Vercel black-and-white or Geist, no copied strings)",
+      "States a short design contract before any build: the screen's job, its primary action, the required states, responsive rules, and patterns to reject",
+      "Covers the states beyond loading, empty and error: a success confirmation for invite, role change and removal, and a permission state for Members and Guests who can view but not manage, including the last-Owner constraint",
+      "Where the brief does not settle something, states the assumption explicitly instead of inventing specifics"
+    ]
   }
 ]

@@ -455,3 +455,33 @@ Stars / 推送 / 许可均为 2026-09-10 当日 GitHub API 值。
 - **不合入 `anthropics/skills` 的 `canvas-design` 与 `web-artifacts-builder`**，范围外。
 - **不做完整设计系统生成器**（`ui-ux-pro-max` 的 `--persist` 机制、192 个调色板 CSV）。
   那是搜索语料而不是判断规则，且依赖 harness 专属路径。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：`addy-frontend-ui`、`antfu-design`（diff too large）、
+`emil-animations`、`chrome-mwg` 四条 `behind`。沿用 2026-09-15 同步复核的口径（以基线实测划界，R14），
+四条都用 blobless 克隆按完整 `<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` +
+`git diff --stat` + `git diff`）。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| addy-frontend-ui | be4e44a → 2686b62 | 90d7d14、e778fc6（经 3ee24fa 合并）；仅 `skills/frontend-ui-engineering/SKILL.md` +13/−1：新增「Reference-led UI quality」四步（从可信参考库或团队给的参考取 2–3 屏 → 记录层级、密度、导航、控件、响应式、交互状态的决策 → 实现前写短设计契约：屏幕职责、主操作、必需状态、响应式规则、要拒绝的模式 → 用自家组件与 token 重建，不抄品牌、专有文案、图片与精确版式；无参考时写明假设）；验收清单三态扩为「loading, empty, error, success, permission (when applicable)」，并加「渲染结果过一次 UI 专项 finish-gate 复核」。`references/accessibility-checklist.md` 区间内未改 | 按基线实测划界后不合入 | finish-gate 已由 `design-direction` 的 self-critique 步与 `review-ui` 覆盖。参考驱动流程与两态扩充按 R14 先实测：新增场景 10（夹具 `evals/files/members-brief.md`：自家 token 与组件 + Linear、Vercel 两份参考笔记 + 当前成员页的工单问题），无 skill 基线 5 / 5 全部达成，产出的「取 / 弃」表比上游四步更细 |
+| addy-performance（同仓库） | be4e44a → 2686b62 | `skills/performance-optimization`、`references/performance-checklist.md` 区间内 `git log` 为空 | 未变更 | 仅 re-pin |
+| antfu-design（too large） | a74f281 → d02c484 | e98e476（删除全部 vendored skill）、d02c484（生成类 skill 升级），两提交合计 `skills/` 下 543 个文件 +2367/−53 072；`skills/antfu-design` 区间内 `git log` 为空，两端 tree 均为 `5b3b9e2` | 未变更 | 仅 re-pin。删除的是 `skills/web-design-guidelines`、`skills/vue-best-practices` 等 vendored 副本，本 skill 从一开始就按候选 19 拒收、只从原始源同步 |
+| emil-animations | d23d7f8 → d16ebe6 | 85e8e23：`emil-design-eng` 初始问候删去课程链接；0b85d4b：`review-animations` 加「Initial Response」问候段（同提交新增的 `/mobile-native` skill 不在 paths 内）；9a5852a、d16ebe6 只改 README | 噪声 | 首次调用时的固定问候与课程推广都是 harness 交互话术；本 skill 取用的频率表、easing 决策序、时长带、物理性与可中断性规则未改 |
+| chrome-mwg | 8dd0641 → 84ae725 | 22ab18d（v0.0.190）、84ae725（v0.0.191）；`skills/modern-web-guidance/guides/` 下 40 个文件 +2328/−178：新增 web components 七篇、`contrast-color`、`responsive-table`、`local-network-access`、`trusted-types`、`sanitize-untrusted-html`、`out-of-order-html-streaming`、`cpp-on-the-web` 等 19 篇，删除 `prevent-text-wrapping`；customizable select、anchor positioning、grid lanes 的支持度更新为 Safari 27 / 26.4；WebMCP 篇补 `exposedTo`、执行 signal 与 annotations。`SKILL.md` 未改 | 已覆盖 | 语料由 `npx -y modern-web-guidance@latest` 在运行时取用，本 skill 不固化支持度。按本文「未来同步时要盯的上游」要求核对 goal → id 映射：本机 `list`（npm 0.0.191）返回 161 篇、16 类，`references/modern-css-platform.md` 引用的全部 guide id 仍存在，被删的 `prevent-text-wrapping` 未被引用。该文件第 3 行的「143 guides across 14 categories」是 2026-09-10 的核对快照，不作为事实使用，本次不改 |
+
+其余仓库上游（anthropic-frontend-design、leonx-taste、uiux-pro-max、wshobson-a11y 为
+`repo moved, tracked paths unchanged`；vercel-wig、addy-web-quality 为 up to date）随 `--pin` 一并对齐；pin 写入的
+commit 与审阅 HEAD 逐条一致（8a1541c、2686b62 ×2、d02c484、ce26fc2、d16ebe6、09170ee、84ae725、156b7a5）。
+`w3c-wcag22` / `web-dev-vitals` 为 `kind: docs`，未改。
+
+### 评测（划界用，基线）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10 参考驱动的设计方向与状态覆盖 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 5 / 5 | 205 s。写出 392 行规格：逐条「Take / Reject / Why」表（取 44 px 行密度、独立待定邀请区、多地址邀请；弃 Linear 紫、Vercel 黑白 + Geist、标签页）；屏幕职责一句话 + 主操作 + 分级确认；成功 toast 逐操作点名当事人、四角色 × 14 操作权限矩阵、Guest 只读与会话中被降权、最后一个 Owner 的预防路径；响应式三断点；9 项待拍板假设各带推荐默认值 |
+
+结论：基线已全部做到，参考驱动流程与 success / permission 两态不合入（`docs/skill-standard.md` 第 3 节：
+只写模型不会的），场景 10 保留作哨兵。正文未变，仅新增评测场景 10 与夹具、re-pin、版本号改为 2026.09.30；
+未跑有 skill 的 D2。
