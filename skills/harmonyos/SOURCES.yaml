@@ -1,5 +1,5 @@
 skill: harmonyos
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: openharmony-sdk-js
     kind: repo
@@ -12,10 +12,10 @@ upstreams:
       - api/@ohos.taskpool.d.ts
       - api/@ohos.app.ability.UIAbility.d.ts
     ref: master
-    commit: 8eba85dbad23d4d94c2ae6c1a8c817e7ef95274f
+    commit: 56ef801d7cd8e78cf857bc6fb40a4244f2d7fb4a
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Machine-checkable API availability: the @since / @deprecated / @useinstead annotations on the public SDK declarations, which is what lets an API-version claim in this skill be [verified] rather than [official]. Established that every global router function carries @deprecated since 18 with @useinstead @ohos.arkui.UIContext:Router, that UIContext.getRouter and getPromptAction are @since 10 while UIContext.isAvailable is @since 20, and that AtManager.checkAccessToken is @since 9."
     notes: "Licence read in full: Apache License Version 2.0. This is the authoritative source for API shape and availability and it corrected the prose guide: ui/arkts-global-interface.md reads as though the UIContext replacements arrived at API 18, while the declarations show the accessors at API 10 and API 18 as the deprecation point for the global forms. When the two disagree, the declaration wins."
   - id: openharmony-docs
@@ -37,7 +37,7 @@ upstreams:
     commit: f41b9345badd47c7ab0c263344cd7f4b5a549afb
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Primary fact source: the arkts-* language restriction set with severities and error codes, state management V1/V2 decorator semantics and constraints, the API-gated V1/V2 interop rules, UIAbility and WindowStage lifecycles, UIContext replacements for global ArkUI APIs, TaskPool/Worker comparison, module.json5 and permission declaration schema, Preferences/RelationalStore limits, hdc and uitest."
     notes: "Licence read in full: LICENSE is Creative Commons Attribution 4.0 International, no NonCommercial or NoDerivatives clause, so merged with attribution. This is the OpenHarmony documentation, not HarmonyOS NEXT's: platform contracts are shared and taken from here, while HarmonyOS-only facts (API version strings, DevEco Studio, AppGallery, Huawei Kits) come from huawei-docs and are marked [official]."
 
@@ -52,7 +52,7 @@ upstreams:
     commit: cd2be39e242aac053dcefc8517ae9564c6faffcb
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Evidence-first working method: read build-profile.json5 / oh-package.json5 / module.json5 before choosing an API, keep one state-management generation per component boundary, assign an owner to every subscription and ResultSet, and the five-part evidence bar plus severity definitions used by the review workflow and Output format."
     notes: "Reconnaissance commands were PowerShell-specific upstream and were rewritten platform-neutrally."
 
@@ -67,7 +67,7 @@ upstreams:
     commit: f08c86e97147077695395597620c1d39e7a75f61
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Task routing between ArkTS/ArkUI work and the Native/NDK workflow, the signal list that identifies native work, and the discipline of establishing the ArkTS facade to .d.ts to Node-API registration to CMake/ABI chain top-down before editing."
     notes: "Upstream depends on a harmonyos_developer_knowledge MCP server and on resolving a bundled script root; both were dropped as agent-specific."
 
@@ -81,7 +81,7 @@ upstreams:
     commit: 4aab51a79612acd825d4cfded0af4bc427910b1c
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Structure for pairing OS version, API level and DevEco Studio build into one table that a reader can check a project against."
     notes: "Two claims rejected. Upstream calls ArkTS a statically-checked superset of TypeScript; the official definition is that ArkTS restricts TypeScript, and SKILL.md rule 1 states the opposite of the upstream claim. Upstream release dates also disagree with Huawei's release notes, so no dates were carried over. The dist/ directory holds per-agent generated copies and was ignored."
 
@@ -95,7 +95,7 @@ upstreams:
     commit: 93bc8b7cbb30a0a4e604f2b56e7f6f76c43cfc91
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Known bad-pattern catalogue reworked into falsifiable rules: @Prop receiving a callback, side effects inside build(), throwing a non-Error, dynamic $r(variable), @StorageLink bound to an @ObservedV2 class, and spread used to force a list refresh."
     notes: "Upstream scan script hardcodes a .codex/skills path; only the rule semantics were taken."
 
@@ -109,7 +109,7 @@ upstreams:
     commit: dec1d1c55252ecb1a90c4ecbcfd0d2cb3ce0ac7b
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Vision-driven device verification: the @midscene/harmony CLI, its hdc prerequisite, the serial one-command-at-a-time loop constraint, and the HarmonyOS capability boundary that multi-touch gestures are unavailable."
     notes: "Directory is skills/harmony-automation; the roadmap seed named it harmonyos-device-automation, which is the frontmatter name rather than the path. allowed-tools was stripped per this repository's frontmatter whitelist."
 
@@ -123,7 +123,7 @@ upstreams:
     commit: 5ae988cab6fdb8d75ac8add21e01e32dca2b1022
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Per-concern Android to HarmonyOS mapping skeleton for UI components, storage, context and framework entry points."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. The upstream navigation mapping routes through @ohos.router and Bundle-style params; rewritten to Navigation/NavPathStack per the conflict ruling. The other 96 skills in the repository target OpenHarmony OS contributors (C++, XTS, gitcode PR flows) and are out of scope."
 
@@ -143,10 +143,10 @@ upstreams:
     paths:
       - harmony-next
     ref: master
-    commit: 880420ccaede758845daa3e86154c4e02e6f2249
+    commit: 0243a77451a2ffa97a43114c6b39232544704101
     license: NONE
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Coverage cross-check for the DevEco / emulator / hdc / uitest surface, and the convention that a missing tool returns a structured blocked result rather than a pretend success."
     notes: "No LICENSE file, and a separate content ruling applies: references/ is an offline mirror of developer.huawei.com documentation, which the repository cannot relicense. Reference only; the playbooks also bind to author-private DevEco interfaces and macOS paths."
 
@@ -157,10 +157,10 @@ upstreams:
     paths:
       - harmonyos
     ref: master
-    commit: 8f252f3e2a3a450017679910773e64adc10b1343
+    commit: eb849db8060b47699f1789e96ca8a147e7e850d2
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Used to confirm that a given rule or constraint really exists in Huawei's published documentation set."
     notes: "Content ruling, not a licence ruling: the repository LICENSE is MIT but it covers liasica's retrieval tooling, not the roughly 16800 mirrored developer.huawei.com pages under references/. A repository cannot relicense the third-party documentation it mirrors, so reference only."
 
@@ -174,6 +174,6 @@ upstreams:
     commit: 76b420d7e99c410971e46e278d83369d7de71c4f
     license: NONE
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Cross-check on how ArkTS compilation errors are indexed for lookup."
     notes: "No LICENSE file, and its arkts_code_check_references/ tree is a scrape of Huawei's ArkTS guides. Reference only on both grounds."

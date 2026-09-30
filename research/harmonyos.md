@@ -448,3 +448,30 @@ Android library 模块做验证）。
 - **`wechat-miniprogram`、`unity`、`godot`、`unreal`** 在本波次尚不存在，正文遇到相关边界时
   按约定写「no skill in this library covers it yet」——实际上本 skill 的否定范围没有落到这四个
   主题上，所以正文里并未出现这句话。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）harmonyos 段 3 条 `behind`，三条均为
+`diff too large`：openharmony-sdk-js、linhay-harmony-next、liasica-harmonyos。在 worktree 重跑
+`check_upstream.py harmonyos`，HEAD 与报告一致。归因在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里完成：
+先确认旧 pin 是审阅 HEAD 的祖先（`merge-base --is-ancestor`，区间分别为 606 / 23 / 21 个提交），再用
+`git log <旧pin>..<HEAD> -- <paths>`、`git diff --stat` 与 `git diff` 读跟踪路径的实际改动。`--pin` 后核对
+SOURCES.yaml：interface_sdk-js `56ef801`、harmony-next.skills `0243a77`、liasica/harmonyos-skills `eb849db`，
+与审阅 HEAD 逐条一致；其余 repo 上游未前进，只刷新 `synced_at`。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| openharmony-sdk-js | 8eba85d..56ef801（全仓 606，跟踪的 5 个 d.ts 命中 16 个提交） | 2e5892b「版本号切换 26.1.0 到 26.0.1」：`abilityAccessCtrl` 的 `set/getPermissionRequestToggleStatus`（`@systemapi`）、`UIContext.getDialogPresenter` 与 `DialogPresenter` 的 `@since 26.1.0` 改为 `26.0.1` | 噪声 | 均为 26.0.0 之后未发布版本的新 API，本 skill 不涉及；改号只说明 26.0.0 之后的下一个版本号是 `26.0.1`，与 build-sign-verify.md「26.0.0 起统一为 X.Y.Z、无 `(n)` 后缀」一致 |
+| openharmony-sdk-js | 同上 | f7bfb24 `UIContext.applyDefaultImmersiveStrategy(...types)`，`@since 26.2.0` | 噪声 | 未发布版本的新增 API，超出本 skill 以 API 20 为保守基线的指导范围 |
+| openharmony-sdk-js | 同上 | 111a889/f19f80d `@file` 描述（router 标「Not Recommended」）、836dec8/92cff41/a83ac38 等 JSDoc 文字对齐文档（`getKeyboardAvoidMode` 自 API 18 返回枚举的 NOTE、TextMenuController 说明、taskpool 可选参数标注与 `@returns` 合并、UIAbility 回调措辞、断链修复） | 噪声 | 只改注释文字；router 全局函数 `@deprecated since 18 / @useinstead UIContext:Router`、`getRouter`/`getPromptAction` `@since 10`、`isAvailable` `@since 20`、`checkAccessToken` `@since 9` 等本 skill 引用的注解均未变（`git diff -U0` 过滤 `@since/@deprecated/@useinstead` 只剩上述改号） |
+| linhay-harmony-next | 880420c..0243a77 | 3497ead..4935b66：新增 `references/JsEtsAPIReference/api26/`（约 530 个从本地 DevEco SDK 导出的 d.ts 快照页）、`harmonyos-releases/api-26-release.md`、`scripts/sync_api26_snapshot.py`；SKILL.md 版本号 1.3.35→1.3.37 并注明 SDK 26.0.0 于 2026-08-29 Release | 已覆盖 | api-26-release.md 的结论（26.0.0 Release、底座 `Ohos_sdk_public 26.0.0.105`、自 26.0.0 起 SemVer `X.Y.Z` 取代括号 API level）与 build-sign-verify.md「API versions」一节一致；快照是华为 SDK 声明的镜像，内容裁决仍为 reference；同步脚本绑定 macOS DevEco 路径 |
+| linhay-harmony-next | 同上 | 83b6cd8/6529fc1/b255f7e 安装路径可移植性修复与测试；6a77b4c..0243a77 README 重写 | 噪声 | 上游自身分发机制 |
+| liasica-harmonyos | 8f252f3..eb849db | 19 个每日「同步 HarmonyOS 文档」提交，5179 个镜像页，绝大多数只改 `scraped_at`/`doc_updated_at`/`content_hash` 与图片 CDN 链接 | 噪声 | 抓取元数据 |
+| liasica-harmonyos | 同上 | `harmonyos-releases/overview-2600.md`：新增 DevEco Studio 26.0.0 Release Patch（26.0.0.851，2026/09/23）；`sdk-version-percentage.md`：存量设备分布刷新（OS 7.0.0 ↔ API 26.0.0 占 10.84%，6.1.1(24) 占 82.42%） | 已覆盖 / 不合入 | 版本排序与格式未变；设备占比是随时间变化的运营数据，正文不记录；表中「7.0.0」是系统版本列，API 列仍是 `26.0.0`，与正文「不存在 `7.0.0(26)` 形式的 API 字符串」一致 |
+| liasica-harmonyos | 同上 | 与本 skill 主题相关的 guides（`arkts-new-*`、`arkts-v1-v2-*`、`arkts-router-to-navigation`、`taskpool-vs-worker`、`hdc`、`typescript-to-arkts-migration-guide`、`restricted-permissions`、`rdbstore` 等）去掉元数据后逐页比对 | 噪声 / 已覆盖 | 示例代码重写（PersistenceV2 collections.Array 演示）、列表编号与分号格式；迁移指南把错误码笔误 `106050102` 改为 `10605102`，正文 arkts-language.md 一直使用 8 位码；hdc 新增「最多 16 个连接」、受限权限 26.0.0 起扩展到平板/PC/TV，均为冷门运维/权限细节，不影响本 skill 的规则 |
+
+### 正文
+
+未改。只改 SOURCES.yaml（re-pin）与版本号 `2026.09.30`。没有「需合入」条目，因此未新增评测。
