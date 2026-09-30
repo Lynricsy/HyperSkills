@@ -383,3 +383,27 @@ $ npx --yes @stoplight/prism-cli@latest mock openapi.yaml --port 4010
 随 `--pin` 一并对齐。`kind: docs` 条目（OpenAPI 规范与各 RFC）不在本次范围。
 
 结论：正文未变，仅 re-pin 与版本号改为 2026.09.29；正文未变，未跑 D2。
+
+## 2026-09-30 上游同步（增量）
+
+依据：在 worktree 重跑 `uv run tools/check_upstream.py api-design`（2026-09-30），2 条 `behind`。按完整区间归因：blobless 克隆到
+`/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`。
+`--pin` 后核对写入的 commit 与审阅 HEAD 一致（zalando-guidelines 19a1905、orchestkit-api-design 05967c2）；repo moved、tracked paths unchanged 的
+redocly-cli（95a8e7d → 78f5a32）、prism-cli（2426fc0 → e7553fe）随 `--pin` 前移。七条 RFC/规范 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| zalando-guidelines | 41b74fa → 19a1905（1 提交） | 19a1905 `chapters/http-status-codes-and-errors.adoc` +70/-9：新增规则 #256「中间件（sidecar、代理、网关、负载均衡）必须保持状态码端到端语义，缺路由/后端不可用时回 502/503/504，绝不代答 404」（以 Skipper 需配 catch-all 回 503 为例）、#257「客户端对 404 要谨慎，不可仓促下定论」，客户端错误节补「4xx 可视为权威，中间件可代答 401/403 但不得回 404/410」，404 条目改写并加提示；其余为换行与错字 | 新增，以基线划界后**不合入** | 见下方评测：无 skill 基线在场景 6 中自行识别 Skipper 无路由 404 → 伙伴对账删光订阅，并给出 503 兜底路由、404/410 须以 problem+json `type` 判别、客户端对不可逆动作加熔断/软删，四项核心期望全部达成 |
+| orchestkit-api-design | 62a32ad → 05967c2（6 提交） | 105a980：`plugins/ork/skills/api-design/SKILL.md` frontmatter 的 `allowed-tools` 由 YAML 列表改为空格分隔字符串 | 噪声 | 仅元数据格式，不涉及弃用窗口或常见错误清单 |
+
+### 新增场景：以基线实测划界
+
+- **场景 6（新增）**：`evals/files/status-codes-draft.md`（草拟的状态码表，404/410 → 「从记录中删除」）、`subscription_sync.py`（伙伴对账脚本，404/410 即取消计费并删除）、`ingress-routes.yaml`（Skipper Ingress，蓝绿切换先删旧再建新）。
+  覆盖 zalando #256/#257 的全部要点：基础设施代答 404、502/503/504 兜底、4xx 权威性写进契约、客户端不对裸 404 做不可逆动作。
+- 基线（无 skill）全部核心期望达成 → 按标准第 3 节不写入正文；场景与夹具保留为哨兵。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | E1 ✅ E2 ✅ E3 ✅ E4 ✅ E5 ◐ | 自行查 Skipper 文档确认无路由默认 404 并写 stub 复现 5/5 误删；建议 catch-all 503 + problem+json、稳定 Service 名切 selector、404/410 以注册 `type` 判别、批量删除熔断与软删。E5 额外改了 401/403/5xx/`Retry-After` 行，但理由都落在夹具上（伙伴 `RETRYABLE` 不含 401、`float()` 解析 HTTP-date 抛错），记半分。advisor 关闭，输出 `/tmp/hs-evals-sync/SyncG28/api-design-b6` |
+
+未合入原因：zalando 新规则的内容基线已会；orchestkit 为噪声。正文与 references 未改，未跑有 skill 的同场景，也不需要安装冒烟。

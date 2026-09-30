@@ -64,5 +64,22 @@
       "Does not read the api-design skill — this is framework test wiring, not HTTP contract design (`skill_read == false`)",
       "Does not turn the answer into a REST contract review of the router's URIs, status codes or error format"
     ]
+  },
+  {
+    "skills": [
+      "api-design"
+    ],
+    "query": "We are about to publish status-codes-draft.md to partners. subscription_sync.py is the reconciler our biggest partner already runs against the API from that draft, and ingress-routes.yaml is the ingress in front of it. Review the three together: what should change in the contract, on our side, and in what we tell the partner, before we publish?",
+    "files": ["evals/files/status-codes-draft.md",
+      "evals/files/subscription_sync.py",
+      "evals/files/ingress-routes.yaml"
+    ],
+    "expected_behavior": [
+      "Identifies that a 404 can come from the ingress rather than the subscriptions service — Skipper answers 404 when no route matches, which happens in the blue/green gap when the old Ingress is deleted before the new one exists — and that the reconciler would then cancel billing and delete every subscription it checks",
+      "Requires the infrastructure side to preserve end-to-end status semantics: a missing or unavailable route must be answered with a non-authoritative 502/503/504 (for example a catch-all route or default backend returning 503, or creating the new Ingress before deleting the old one), never with 404/410 on the service's behalf",
+      "Changes the contract so 404/410 are documented as authoritative only when issued by the service, with a recognisable problem+json body (a specific `type` for subscription-not-found/deleted) that clients check before acting, and drops or qualifies \"Remove it from your records\" for a bare 404",
+      "Tells the partner not to take an irreversible action (cancel billing, delete) on a single 404: verify the response came from the service (problem+json type, response headers) and treat an unrecognised 404 as a transient failure to retry, or quarantine before deleting",
+      "Keeps the rest of the review proportional: does not replace the whole contract or recommend changing unrelated codes (200/401/403/429) without a reason tied to these files"
+    ]
   }
 ]

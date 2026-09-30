@@ -1,0 +1,40 @@
+# Skipper ingress in front of api.example.com (Kubernetes). The subscriptions service is
+# deployed blue/green; during a switch the Ingress for the old colour is deleted before the
+# new colour's Ingress is created.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: subscriptions-green
+  annotations:
+    kubernetes.io/ingress.class: skipper
+spec:
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /v1/subscriptions
+            pathType: Prefix
+            backend:
+              service:
+                name: subscriptions-green
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: invoices
+  annotations:
+    kubernetes.io/ingress.class: skipper
+spec:
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /v1/invoices
+            pathType: Prefix
+            backend:
+              service:
+                name: invoices
+                port:
+                  number: 8080

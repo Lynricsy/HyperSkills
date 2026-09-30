@@ -125,7 +125,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 |---|---|---|---|---|
 | [`ai-engineering`](skills/ai-engineering/) | 任务 | Builds LLM applications, prompts, tool-using agents, RAG pipelines and model evaluations | 2026.09.30 | 13 |
 | [`android`](skills/android/) | 平台 | Develops native Android apps with Kotlin, Jetpack Compose and Gradle | 2026.09.29 | 11 |
-| [`api-design`](skills/api-design/) | 任务 | Designs REST API contracts, resource models, pagination and OpenAPI specifications | 2026.09.29 | 19 |
+| [`api-design`](skills/api-design/) | 任务 | Designs REST API contracts, resource models, pagination and OpenAPI specifications | 2026.09.30 | 19 |
 | [`apple`](skills/apple/) | 平台 | Develops Apple platform apps with Swift, SwiftUI and UIKit | 2026.09.29 | 15 |
 | [`astro`](skills/astro/) | 框架 | Builds Astro sites with islands, content collections and server rendering | 2026.09.29 | 6 |
 | [`aws`](skills/aws/) | 平台 | Manages AWS architecture, IAM, cloud services, deployments and costs | 2026.09.30 | 8 |
