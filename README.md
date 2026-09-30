@@ -146,7 +146,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`generative-media`](skills/generative-media/) | 任务 | Integrates AI image, video, speech and music generation or transcription models | 2026.09.12 | 14 |
 | [`git-workflow`](skills/git-workflow/) | 任务 | Manages local Git branches, worktrees, commits, merges, conflicts and history recovery | 2026.09.12 | 12 |
 | [`github`](skills/github/) | 平台 | Manages GitHub pull requests, issues, Actions workflows, releases and repository settings | 2026.09.12 | 15 |
-| [`go`](skills/go/) | 框架 | Develops Go code with goroutines, modules, testing and performance profiling | 2026.09.12 | 12 |
+| [`go`](skills/go/) | 框架 | Develops Go code with goroutines, modules, testing and performance profiling | 2026.09.30 | 12 |
 | [`godot`](skills/godot/) | 平台 | Develops Godot games with GDScript, scenes, nodes and engine APIs | 2026.09.12 | 11 |
 | [`graphql`](skills/graphql/) | 框架 | Designs GraphQL schemas, operations, resolvers, federation and query controls | 2026.09.29 | 12 |
 | [`harmonyos`](skills/harmonyos/) | 平台 | Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling | 2026.09.12 | 12 |

@@ -257,3 +257,17 @@ goroutine 泄漏、`time.Sleep` 当同步、`http.DefaultClient` 无超时、`fo
   一个文件以滤掉噪声。
 - **`cxuu/golang-skills` 有一个逐字 fork**（`h0rn3t/golang-skills`，3★，推送更新）。
   下次复核时不要把它当成第二个独立上游。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 1 条 `behind`（`awesome-copilot-go`，
+`diff too large`）。按完整区间归因：blobless 克隆到 `/tmp/hs-up/github__awesome-copilot`，对 `7568a48..15ed97c`
+跑 `git log --oneline -- instructions/go.instructions.md` 与 `git diff --stat`，并用 `git rev-parse <commit>:<path>`
+比对两端 blob。`--pin` 后核对：写入的 commit 与审阅 HEAD 一致（awesome-copilot 15ed97c；repo moved、tracked paths
+unchanged 的 spf13-go 前移到 9ac6eca、ashwin-go 前移到 d071a92）。五条 go.dev docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| awesome-copilot-go | 7568a48 → 15ed97c（64 提交，329 文件） | `instructions/go.instructions.md` 0 提交，两端 blob 同为 `83a24b7` | 噪声 | 区间改动全在其他目录；too-large 只是 compare 上限 |
+
+未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
