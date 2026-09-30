@@ -69,5 +69,16 @@
       "Treats this as GitHub pull-request and Actions work — reading the run logs, the checks and the PR — rather than local branch, worktree or history-rewrite mechanics",
       "Does not open with conflict-style, rerere, reflog or force-with-lease guidance"
     ]
+  },
+  {
+    "skills": ["git-workflow"],
+    "query": "I'm backporting Priya's TTL fix from release/2.4 onto main and hit a conflict. backport-session.txt is my terminal so far. Before I touch src/rates.ts I want to see exactly what the picked commit was trying to do; I also want a clean way to back out if this turns ugly, without losing my unrelated runbook edit; and when it's done the commit should still credit Priya. Give me the commands — the repository is not checked out here.",
+    "files": ["evals/files/backport-session.txt"],
+    "expected_behavior": [
+      "Notices the pick was run with `-n` / `--no-commit` and says that therefore no `CHERRY_PICK_HEAD` was recorded and git does not consider a cherry-pick in progress (the status output has no 'You are currently cherry-picking' line), so the incoming side is read through the explicit SHA — `git show 4e1f0a2 -- src/rates.ts`, `git log -1 4e1f0a2` — not through `CHERRY_PICK_HEAD`",
+      "Does not offer `git cherry-pick --abort`, `--continue` or `--skip` as the way out or through, since they fail with 'no cherry-pick or revert in progress' after a `--no-commit` pick; backs out with `git reset --merge` (or by restoring only the picked paths) and warns that `git reset --hard` would also destroy the unstaged docs/ops-runbook.md edit",
+      "Says a plain `git commit` after the resolution records the user as the author because nothing carries the original authorship, and finishes with `git commit -C 4e1f0a2` / `-c 4e1f0a2` (or an explicit `--author`) so Priya stays the author, optionally adding the `(cherry picked from commit 4e1f0a2)` provenance line",
+      "Keeps docs/ops-runbook.md out of the backport commit — commits only the picked paths"
+    ]
   }
 ]

@@ -444,3 +444,56 @@ fatal: Not a valid object name      # 这一步才真删
 - **夹具路径泄漏**：第一版夹具里含 `/tmp/gwlab/fx/payments-api` 绝对路径，导致基线场景 4
   跑去读了本机真实仓库。已改为 `/home/dev/src/payments-api` 并重跑该场景。
   以后造夹具一律不要写本机真实路径。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告（5 个 `behind`、1 个 `MISSING`）。每个 behind 条目都用 blobless 克隆
+（`/tmp/hs-up/<owner>__<repo>`）按完整 `<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`），
+先确认旧 pin 是审阅 HEAD 的祖先；awesome-copilot 与 melodic 的 diff too large 同样按 paths 逐一核对。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| mattpocock-conflicts | 3cca18b → d81f3a1 | daa01d8：删除 `skills/engineering/resolving-merge-conflicts`（SKILL.md 与 `agents/openai.yaml`），无替代；deb4a9c：`docs/engineering/resolving-merge-conflicts.md` 顶部加「Archived，v1.3.0 起移除、不再维护」 | 上游删除，保留条目 | 取用的纪律（先读两侧原始意图、兼容则两者都留、不发明第三种行为、提交前跑项目自身检查）不依赖上游是否继续维护，且有 melodic-resolve 独立支撑；上游原文「Always resolve; never `--abort`」本就被本 skill 改写为「`--abort` 是对集成本身的决定」。按 python/probabl-python-style 的先例：`url` 改为指向 3cca18b 的永久链接，notes 记录删除；`commit` 记审阅时的仓库 HEAD，`paths` 保留（归档文档页仍在） |
+| melodic-resolve（too large） | 4785e62 → 15058ac | 735 个提交中只有 2 个命中：c392b4f1 把 Purpose 段的破折号改写为逗号句（ai-slop 规则清理）；7ea6aba7（#4545）新增「插件版本号冲突」例外：`plugin.json`/`CHANGELOG.md` 冲突时跑仓库自带的 `resolve-version-bump-conflict.sh`，版本取默认分支版本 + 一次 bump | 噪声 / 不合入 | 前者纯措辞；后者绑定该仓库的 `${CLAUDE_PLUGIN_ROOT}` 脚本与插件发布约定，且恰是「写出两侧都没有的值」的仓库特例，不是通用 git 知识 |
+| awesome-copilot-commit / awesome-copilot-branch（too large） | 7568a48 → 15ed97c | 64 个提交；4 个 paths 上 `git log` / `git diff --stat` 均为空；区间内 `skills/` 下也没有新增名称含 git/commit/branch/worktree/merge/rebase/conflict 的目录 | 未变更 | 仅 re-pin |
+| git-docs | fa7f929 → a018953 | 147 个提交中 20 个触及 `Documentation`（2.56-rc1/rc2 周期）。实质改动：81c1e0b `git-cherry-pick`：`--no-commit` 刻意不记 `CHERRY_PICK_HEAD`（冲突停下时亦然）；786fc39 `git-stash` 新增 EXIT STATUS（`apply`/`pop`/`branch` 冲突退 1、条目保留）；e77f412 `maintenance.rerere-gc.auto` 改为按估计陈旧条目数触发、默认 512；fd6c4dc `rev-list --missing-only`；609d2a8 `imap-send --draft`；RelNotes 另记 `checkout -m` 的 autostash 回退只在有本地改动时触发（hn/checkout-m-autostash-refine）。其余为 `gitdatamodel(7)` 互链、`git-refs`/`pack-refs` 标记风格、lint 脚本；0f8e75a 回退 en/no-amend-during-conflicts 后 `git-commit` 文档相对旧 pin 无净变化 | 1 条经评测判为基线已会、其余噪声 | `--no-commit` 一条直接关系到 `references/conflict-resolution.md` 的「操作 → 对侧 ref」表，按流程先做评测（见下）。stash 退出码、rerere-gc 阈值、`--missing-only`、`imap-send` 属 2.56（尚为 rc）的新行为或本 skill 不涉及的命令；本 skill 以 git 2.55.0 实测为准，不写这些 |
+
+`git-docs` 为 GPL-2.0、永久 reference-only：上表只记事实，未复制任何文字。
+
+其余仓库上游（obra-worktrees、obra-finishing、addyosmani-git、getsentry-commit、mattpocock-guardrails、fvadicamo-commit 为
+`repo moved, tracked paths unchanged`）随 `--pin` 一并对齐。5 个 behind 条目 pin 写入的 commit 与审阅 HEAD 逐条一致
+（d81f3a1、15058ac、15ed97c ×2、a018953）。
+
+### parham-worktree（MISSING）重新裁决
+
+上一轮已是 MISSING，本轮按 Phase B 重新裁决，全部用已登录 `gh api`：
+
+- `gh api repos/1995parham/parham-plugins -i` → `404 Not Found`，无改名重定向；`repos/1995parham/parham-plugins/forks` 同样 404。
+- `users/1995parham` 仍在（99 个公开仓库）；逐页列出其公开仓库，名称含 plugin/skill/claude/agent/worktree 的只有
+  `dotfiles`、`dotfiles.lib`、`dotdroid`，其中 `dotfiles` 的 `.claude/` 只有两个 agent，无 git-worktree skill。
+- `search/repositories?q=parham-plugins` 为 0；`search/code?q="parham-plugins"` 只命中本仓库自己的 NOTICE/research/SOURCES
+  与一个无关的趋势统计 CSV；`search/commits?q=hash:97a62c4…` 为 0。
+
+裁决：上游已删除或转私有，找不到新位置。SOURCES.yaml 保留条目（`relation: merged` 不变，MIT 署名义务不因上游消失而消失），
+`commit` 保持 97a62c4——这是唯一审阅过的提交，不是当前 HEAD；`check_upstream.py --pin` 对无 `head` 的结果不写 `commit`/`synced_at`，
+本轮 pin 后该条仍为 97a62c4 / 2026-09-11，未写入任何伪造值。状态写进该条 notes。取用的事实（`refs/stash` 跨 worktree 共享、
+一分支一 worktree 锁、脏 worktree 拒绝 `worktree remove`）早在 E4 本机实测；「untracked/ignored 文件不会跟进新 worktree」本轮在
+git 2.55.0 一次性仓库补测：主检出里的 `.env`（ignored）与 `notes.txt`（untracked）在 `git worktree add` 出的新目录中都不存在。
+因此正文不依赖已消失的原文，无需改动。以后若该仓库重现，按新位置更新 `repo`/`url` 并审区间。
+
+### 评测（`--no-commit` 缺口探测，基线）
+
+先在 git 2.55.0 一次性仓库实测：`git cherry-pick -n <sha>` 冲突后 `.git` 里只有 `AUTO_MERGE`、`MERGE_MSG`、`ORIG_HEAD`，
+无 `CHERRY_PICK_HEAD`；`git status` 没有「You are currently cherry-picking」；`git cherry-pick --abort` →
+`error: no cherry-pick or revert in progress`（exit 128）；`git reset --merge` 回退且保留无关的未暂存改动；解决后
+`git commit` 作者是当前用户，`git commit -C <sha>` 恢复原作者与原消息。
+
+据此新增场景 6：夹具 `evals/files/backport-session.txt`（`git cherry-pick -n 4e1f0a2` 冲突、`status` 无横幅、另有未暂存的
+`docs/ops-runbook.md`），问如何看被摘提交的意图、如何干净回退且保住 runbook 改动、如何收尾仍署名 Priya。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 `cherry-pick -n` 回港冲突 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 4 / 4 | 380 s。自行在 `/tmp` 复现：点明 `-n` 不写 `CHERRY_PICK_HEAD`、无横幅、`--abort` 报错；用 `git show 4e1f0a2` 与 `:1:/:2:/:3:` 读意图；`git reset --merge` 回退并警告 `reset --hard` 会吞 runbook；`git commit -C 4e1f0a2` 保留 Priya 署名、只 `git add` 冲突文件 |
+
+结论：基线已全部做到，`--no-commit` 一条不合入正文，场景 6 保留作哨兵。正文与 references 未改，仅新增评测场景与夹具、
+re-pin、mattpocock-conflicts 改永久链接与 notes、parham-worktree 记录裁决，版本号改为 2026.09.30；未跑有 skill 的 D2。

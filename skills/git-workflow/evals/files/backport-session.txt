@@ -1,0 +1,37 @@
+$ git log --format='%h %an  %s' -3 release/2.4
+4e1f0a2 Priya Raman  fix(rates): clamp negative TTL returned by the provider
+b77c1d0 Priya Raman  test(rates): cover provider TTL edge cases
+91aa3e4 Tomas Weber  chore(release): 2.4.3
+
+$ git switch main
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+
+$ git cherry-pick -n 4e1f0a2
+Auto-merging src/rates.ts
+CONFLICT (content): Merge conflict in src/rates.ts
+error: could not apply 4e1f0a2... fix(rates): clamp negative TTL returned by the provider
+hint: after resolving the conflicts, mark the corrected paths
+hint: with 'git add <paths>' or 'git rm <paths>'
+hint: Disable this message with "git config set advice.mergeConflict false"
+
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   src/rates.test.ts
+
+Unmerged paths:
+  (use "git restore --staged <file>..." to unstage)
+  (use "git add <file>..." to mark resolution)
+	both modified:   src/rates.ts
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   docs/ops-runbook.md
+
+$ git --version
+git version 2.55.0

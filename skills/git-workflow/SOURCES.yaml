@@ -1,5 +1,5 @@
 skill: git-workflow
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: obra-worktrees
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/obra/superpowers/tree/main/skills/using-git-worktrees
     paths: [skills/using-git-worktrees]
     ref: main
-    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    commit: 8ca22dba9a94f28898bbce59f2537ff4d87c747d
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The isolation-detection step before creating anything — comparing git-dir against git-common-dir, the submodule false positive that comparison produces and the `git rev-parse --show-superproject-working-tree` guard against it — plus the requirement that a project-local worktree directory is confirmed ignored before use, the prefer-the-harness's-own-worktree-tool rule, and the sandbox-denial fallback."
 
   - id: obra-finishing
@@ -19,23 +19,24 @@ upstreams:
     url: https://github.com/obra/superpowers/tree/main/skills/finishing-a-development-branch
     paths: [skills/finishing-a-development-branch]
     ref: main
-    commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+    commit: 8ca22dba9a94f28898bbce59f2537ff4d87c747d
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The whole finish-a-branch shape: capture the worktree path before changing directory, confirm the base branch instead of assuming main, present the integration choice rather than deciding it, verify the merged result before deleting anything, own cleanup only for worktrees this workflow created, and treat a refused `git worktree remove` as evidence that files exist nowhere else instead of reaching for --force."
 
   - id: mattpocock-conflicts
     kind: repo
     repo: mattpocock/skills
-    url: https://github.com/mattpocock/skills/tree/main/skills/engineering/resolving-merge-conflicts
+    url: https://github.com/mattpocock/skills/tree/3cca18b368ae95cdbdebbff572ccafa662551015/skills/engineering/resolving-merge-conflicts
     paths: [skills/engineering/resolving-merge-conflicts, docs/engineering/resolving-merge-conflicts.md]
     ref: main
-    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    commit: d81f3a183412e71a5b1e84ca21bc1a35eea03a60
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The core conflict discipline: read the primary sources behind both sides before touching a hunk so the choice is between two intents rather than two blocks of text, preserve both wherever they are compatible, invent no third behaviour, locate and run the project's own checks before committing the resolution, and treat `--abort` as a decision about the integration rather than an exit from a resolution that got hard."
+    notes: "Upstream deleted skills/engineering/resolving-merge-conflicts in daa01d8 (plugin v1.3.0) with no replacement, and deb4a9c kept docs/engineering/resolving-merge-conflicts.md as an archived page; the url is therefore a permalink to the revision this skill was built from. The entry stays because the discipline above still derives from that revision and is independently backed by melodic-resolve; `commit` records the repository HEAD at the last review, where the skill path no longer exists."
 
   - id: melodic-resolve
     kind: repo
@@ -43,10 +44,10 @@ upstreams:
     url: https://github.com/melodic-software/claude-code-plugins/tree/main/plugins/source-control/skills/resolve-conflicts
     paths: [plugins/source-control/skills/resolve-conflicts]
     ref: main
-    commit: 4785e629891de7e6ee71cdbd00be16e5860be9a6
+    commit: 15058ac7edb44dc88084a3a895bbf232575013fc
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The per-operation intent-recovery table keyed on MERGE_HEAD / REBASE_HEAD / CHERRY_PICK_HEAD / REVERT_HEAD, the warning that `git show <op-head> -- <path>` is silently empty when an earlier commit on the branch touched the path, the ours/theirs inversion between merge and rebase, and the rule that every unmerged path is enumerated up front and none is resolved in passing."
     notes: "Upstream frontmatter carries agent-specific keys (user-invocable, disable-model-invocation, argument-hint, metadata.workflow-stage) and cross-plugin relative links; all stripped. Its harness-specific advice about one-command-per-Bash-call was dropped as unrelated to git."
 
@@ -61,6 +62,7 @@ upstreams:
     relation: merged
     synced_at: "2026-09-11"
     contributes: "The per-worktree vs shared state inventory — including the surprising shared `refs/stash` — the one-worktree-per-branch lock, the fact that untracked and ignored files never come along so every worktree needs its own bootstrap, the situation table for when a worktree beats a stash, and the independent-work-splits / dependent-work-shares rule of thumb."
+    notes: "Upstream unavailable: repos/1995parham/parham-plugins returns 404 through the authenticated API (no rename redirect) since the 2026-09 sync. Re-adjudicated 2026-09-30: the owner account still exists but none of its public repositories carries the plugin, repository, code and commit search find no rename, fork or mirror, and the forks listing is 404 too. The entry is kept for attribution of the MIT content taken at 97a62c4, which is the last commit ever reviewed rather than a current HEAD; `check_upstream.py --pin` leaves it untouched. Its factual claims (shared `refs/stash`, the one-branch-one-worktree lock, untracked files not following, the refused removal of a dirty worktree) were re-verified locally against git 2.55.0 (research/git-workflow.md, E4), so none of them rests on the vanished text alone."
 
   - id: addyosmani-git
     kind: repo
@@ -68,10 +70,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills/tree/main/skills/git-workflow-and-versioning
     paths: [skills/git-workflow-and-versioning]
     ref: main
-    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    commit: 2686b620fc1fed2e8f60c704839c766b8594c6b6
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Trunk-based short-lived branches as the default with feature flags preferred over long-lived branches, commits as save points, atomic commits with formatting kept out of behaviour changes, change sizing thresholds, the branch-naming prefixes, and the pre-commit hygiene sequence including the staged-diff secret sweep."
     notes: "Its semantic-versioning, tagging and changelog material was deliberately left out: release mechanics belong to the `github` skill, and changelog prose has no skill in this library."
 
@@ -81,10 +83,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/git-commit
     paths: [skills/git-commit, skills/commit-message-storyteller]
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The Conventional Commits type table and the two breaking-change forms (`type!:` and the BREAKING CHANGE footer), the analyse-the-diff-then-choose-the-type order, the git safety protocol (never rewrite config, never --no-verify or force without being asked, a failed hook produces a new commit rather than an amend), and the narrative why-over-what shape for the message body."
 
   - id: awesome-copilot-branch
@@ -93,10 +95,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/conventional-branch
     paths: [skills/conventional-branch, skills/git-flow-branch-creator]
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The `<type>/<description>` branch grammar with its character rules — lowercase only, no underscores, no consecutive or trailing hyphens and dots, dots reserved for release versions — and the rule that trunk names take no prefix and are never re-created as topic branches."
 
   - id: getsentry-commit
@@ -105,10 +107,10 @@ upstreams:
     url: https://github.com/getsentry/skills/tree/main/skills/commit
     paths: [skills/commit, skills/create-branch]
     ref: main
-    commit: c2f99a5b04b4cd992ec3022d7c2c3e23e938d241
+    commit: d18b7aa8ba878354e5c348310230e652f7690f9c
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The mechanical commit rules that survive automation: one `-m` per paragraph instead of literal backslash-n, never open an interactive editor, subject length and line-length limits, no customer names or PII in a message, and the branch-creation details — detect the default branch through `git symbolic-ref refs/remotes/<remote>/HEAD`, fall back in a fixed order, and suffix the name on collision."
 
   - id: mattpocock-guardrails
@@ -117,10 +119,10 @@ upstreams:
     url: https://github.com/mattpocock/skills/tree/main/skills/misc/git-guardrails-claude-code
     paths: [skills/misc/git-guardrails-claude-code]
     ref: main
-    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    commit: d81f3a183412e71a5b1e84ca21bc1a35eea03a60
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Cross-checked this skill's inventory of commands an agent should not run unprompted (push and every force variant, `reset --hard`, `clean -f`, `branch -D`, `checkout .` / `restore .`). Read for alignment only; the skill itself installs harness-specific PreToolUse hooks, which this repository's standard forbids, so no content was copied."
 
   - id: fvadicamo-commit
@@ -129,10 +131,10 @@ upstreams:
     url: https://github.com/fvadicamo/dev-agent-skills/tree/main/plugins/github-workflow/skills/git-commit
     paths: [plugins/github-workflow/skills/git-commit]
     ref: main
-    commit: a753d36cf10063d38a1dc8f4d7c9c2936a451882
+    commit: 8e710c57b4aa34fec63752ccf04a47adb4a8be65
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Confirmed the project-conventions-first rule (read the repository's own commit style before applying a default) and the heredoc form for multi-line messages, both of which arrive here from better-attested sources. Read for alignment; its dynamic command injection is forbidden by this repository's standard, so nothing was copied."
 
   - id: git-docs
@@ -141,9 +143,9 @@ upstreams:
     url: https://github.com/git/git/tree/master/Documentation
     paths: [Documentation]
     ref: master
-    commit: fa7f9290efe2bd22dd736689597b474b93798e11
+    commit: a018953688f1b10bddf91bff8747068f5f4746a4
     license: GPL-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Used only as the topic index for deciding coverage and for naming the options this skill is allowed to mention. Every factual claim about behaviour was re-derived locally against git 2.55.0 in throwaway repositories and cross-checked against `git help <command>` output rather than taken from the text."
     notes: "COPYING in git/git is GPL-2.0 (read directly, not trusted from the API's NOASSERTION), which is incompatible with this repository's MIT licensing. Permanently reference-only: no sentence, table or example was copied."
