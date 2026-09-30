@@ -4,7 +4,7 @@ description: "Benchmarks and tunes deployed LLM inference servers for latency, t
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: task
 ---
 

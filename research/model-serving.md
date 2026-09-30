@@ -641,3 +641,20 @@ out of scope」，这些都是 EPYC 部署流程细节，不合入。本 skill �
 
 **正文与评测**：`SKILL.md` 与 `references/` 正文未变（只改 `metadata.version`），
 `SOURCES.yaml` 改了 sglang 的三个 path 与 notes 并 re-pin 全部 repo 条目。正文未变，未跑 D2。
+
+## 2026-09-30 上游同步（增量）
+
+依据 2026-09-30 在 worktree 重跑的 `uv run tools/check_upstream.py model-serving`：只有 `google-skills`
+为 behind；dynamo、trtllm、sglang、nvidia-skills、amd-skills 为 repo moved / tracked paths unchanged，
+vllm-source、vllm-skills、hf-skills 为 up to date，vllm-docs 为 manual check。只覆盖旧 pin → 当前 HEAD
+的增量区间：`/tmp/hs-up/google__skills` 上 `git log a063fbf..2964a69 -- skills/cloud/gke-ai-troubleshooting-handle-disruption-gpu-tpu skills/cloud/gke-inference`
+与 `git diff`。pin 后核对：`google-skills` 写入 `2964a69`，与审阅 HEAD 一致；repo moved 各条目的
+新 commit（`2de120f`、`bdd0125`、`fc9bdc8`、`70ccf7a`、`ed7b7e6`）与报告给出的 HEAD 一致，报告判定其
+paths 在区间内无改动。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| `google-skills` | `a063fbf..2964a69`（全仓 8 提交，命中 1 个） | `9ad3d2b`：`gke-inference/SKILL.md` +7/−3 | 噪声 | description 的「Don't use for」改为指向 `google-cloud-solution-guided-gke-ai-migration` 与 RAG-on-GKE skill，正文加一行路由说明，版本 1.0.0 → 1.0.1。纯 skill 间路由消歧；本 skill 取用的冷启动与中断处理事实未改，`gke-ai-troubleshooting-handle-disruption-gpu-tpu` 区间内无改动 |
+
+**正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
+（`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
