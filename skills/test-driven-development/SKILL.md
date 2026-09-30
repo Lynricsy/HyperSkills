@@ -4,7 +4,7 @@ description: "Drives implementation and bug fixes through test-first red-green-r
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: task
 ---
 

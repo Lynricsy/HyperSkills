@@ -1,0 +1,9 @@
+{
+  "name": "@acme/rounding",
+  "version": "1.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check rounding.js currency.js"
+  }
+}

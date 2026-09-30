@@ -228,3 +228,39 @@ Run (MUST FAIL) → Restore → Run (pass)`——是唯一规定了「怎么证�
 - **放弃的方向**：不写任何测试框架的 API 细节（vitest / pytest / jest），不写浏览器端验证流程；
   两者都在 `## Scope` 的不覆盖列表里点名并路由出去。glebis 的多代理编排 TDD 虽然量表过线，
   但整套依赖 Claude Code 的 Task 工具，属规范禁止的 harness 绑定，不采纳。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）test-driven-development 段 2 条
+`behind`（obra-tdd、mattpocock-tdd）。在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里确认旧 pin 是 HEAD
+的祖先后，用 `git log <旧pin>..<HEAD> -- <paths>` 与 `git diff` 读实际改动。`--pin` 后核对 SOURCES.yaml：
+obra `8ca22db`、mattpocock `d81f3a1`、addyosmani `2686b62`，与审阅 HEAD 逐条一致（obra-verification、
+mattpocock-grilling、addy-tdd 区间内跟踪路径无提交，随 `--pin` 前移）。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| obra-tdd | b36e082..8ca22db | 5bf4e78 `skills/test-driven-development/SKILL.md`：GREEN 后新增一段——「其他测试」指项目整套而非你的文件；任务只点名一个测试文件时也要跑项目的全量命令，范围声明约束交付物而不约束验证；全量里出现的失败（包括不是你造成的）要在报告里点名，看见却不提等于靠省略造假 | 基线已会，不合入 | 新增场景 5（夹具 `evals/files/rounding/`：ticket 只允许改 rounding.*，`currency.test.js` 有一个既有失败）。无 skill 基线 4 条全部达成：跑了 `make test`、点名 JPY 失败与实际输出、说明与本次改动无关且整包不能宣称全绿、未动 currency.*。场景保留作哨兵 |
+| obra-verification | b36e082..8ca22db | 路径无提交 | 噪声 | 仅 repo 前进 |
+| mattpocock-tdd | 3cca18b..d81f3a1 | d80fa0f `skills/engineering/tdd/SKILL.md`：`CONTEXT.md` 约定改名 `GLOSSARY.md` | 已覆盖 | 本 skill 按 SOURCES notes 已把它泛化为「项目上下文文档（如有）」，括号里的 CONTEXT.md 只是举例之一；改名不构成旧文错误，不改正文 |
+| mattpocock-grilling / addy-tdd | 各自区间 | 路径无提交 | 噪声 | 仅 repo 前进 |
+
+### 正文
+
+未改。新增哨兵场景 5 与夹具 `evals/files/rounding/`（package.json、Makefile、CONTRIBUTING.md、
+rounding.js、rounding.test.js、currency.js、currency.test.js；`make test` 在夹具目录实跑为 1 fail，
+即 `formatMinor renders JPY without a fractional part`）。
+
+### 评测
+
+模型 `workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同条件；逐条读 `answer.md` 人工判定。
+有 skill 轮次核对 `events.jsonl`：读取的是 `/tmp/hs-wt/SyncG24/skills/test-driven-development/SKILL.md`
+（worktree 版本），不是全局旧副本。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | deepseek-v4.1-flash / max | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | advisor 开启（旧口径）。改动前先跑 `make test` 记基线 4 pass / 1 fail；报告「整包不能合主干，因为套件仍是红的」，点名 `currency.test.js` JPY 断言 `'¥12.00' !== '¥1,200'`；currency.* mtime 未变。`/tmp/hs-evals-sync/SyncG24/test-driven-development-b5/…/baseline/5` |
+| 5 | deepseek-v4.1-flash / max | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | advisor 开启（旧口径）。回归检查：现有「全量须干净」措辞没有诱导它去修或跳过 currency 失败；单跑 currency.test.js 证明既有，区分「本 diff 可合」与「仓库整体非全绿」。`/tmp/hs-evals-sync/SyncG24/test-driven-development-s5/…/skill/5` |
+
+结论：该上游新增段落是基线已具备的行为，不构成缺口，不合入；有 skill 时无回归。
