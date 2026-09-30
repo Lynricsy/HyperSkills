@@ -219,3 +219,38 @@ scope 里读 `auth()` 的空指针都答出来了），场景 2 中等，场景 
   `reference/javascript-hooks.md` 值得每次同步都读一遍 diff。
 - `AsyrafHussin/agent-skills` 的 Performance / API Design 两类规则文件若补齐，可从 reference 升为
   merged 候选重估。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 4 条 `behind`，其中
+laravel-framework、awesome-copilot-laravel、php-src 三条为 `diff too large`。全部按完整区间归因：blobless 克隆到
+`/tmp/hs-up/<owner>__<repo>`（laravel/framework 只取 `13.x`、php-src 只取 `master`），对 `<旧 pin>..<HEAD>` 跑
+`git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`，并用 `git cat-file -e <HEAD>:<path>` 确认每个
+tracked path 在 HEAD 上仍存在。`--pin` 后逐条核对：写入的 commit 与审阅 HEAD 一致（a85db6b、6070a6d、15ed97c、
+cc7612b）。laravel-docs 为 manual check，只为核实 CountCrashesAsExceptions 用 `gh api` 读了 `queues.md@13.x`。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| laravel-boost | 2ea83b8 → a85db6b（18 提交） | d9565ca（#1027）：`laravel-best-practices/rules/config.md` 把示例里形似真密钥的 `sk_live_…`、`wJalr…` 换成 `<your-stripe-secret>` 占位符 | 噪声 | 只为躲密钥扫描器；本 skill 的 `runtime-config-and-upgrades.md` 不含该示例，规则本身（不提交 `.env`、`env:encrypt`）已覆盖 |
+| laravel-framework | 4180741 → 6070a6d（139 提交） | bddd064（#61737，随 v13.34.0 于 2026-09-29 发布）：新增 `Queue\Attributes\CountCrashesAsExceptions`，`Queue.php` 把它写进 payload；`Worker.php`（不在 tracked path，一并读了）在处理时往默认 cache 写 `job-processing:<uuid>` 标记，下次处理时标记仍在即按一次异常计入 `maxExceptions`；官方 `queues.md@13.x` 已写入同一语义 | 候选需合入 → 评测后不合入 | 模型训练截止后才发布的新 API，先按简报写评测。基线自己从 raw.githubusercontent 读了 13.x 的 `Worker.php`/`Queue.php`/属性源码与 `LuaScripts.php`，四条期望全部达成，按规则不合入；场景 5 保留作哨兵 |
+| awesome-copilot-laravel | 7568a48 → 15ed97c（64 提交） | 两个 tracked 文件 0 提交 | 噪声 | 区间改动全在其他目录；too-large 只是 compare 上限 |
+| php-src | ac53f14 → cc7612b（557 提交） | `UPGRADING` 24 提交：8.6 条目补 RFC 链接/枚举/Sodium 函数/数组迭代器说明，随后 7f8a74f（2026-09-22「master is now for PHP 8.7.0-dev」）把文件清空为 8.7 模板，之后只剩两条 8.7 BC（PDO `bindColumn()` 抛 `ValueError`、`php://filter` 链默认上限 16） | 噪声 | 本条只用于核实 8.4/8.5 特性版本与「8.5 为当前稳定版」。`git ls-remote --tags` 显示 8.6 最新为 `php-8.6.0RC2`，8.5 仍是当前稳定系列，`references/modern-php.md` 不需改；8.7 条目离发布一年以上。`notes` 记下 master 的 UPGRADING 已换成 8.7、8.5/8.6 说明改在各自分支 |
+
+### 未合入原因
+
+唯一的实质候选 `#[CountCrashesAsExceptions]` 在无 skill 基线下已全部答出（见评测表），不写入正文；正文与
+references 未改，因此不需要安装冒烟。若以后在不可联网或不读源码的条件下复测出现缺口，再按本节的核实结论合入
+`queues-events-and-scheduling.md`「Failure handling」：OOM/SIGKILL 结束的尝试不抛异常，只消耗一次 try；
+13.34+ 用 `#[CountCrashesAsExceptions]` 配合 `#[MaxExceptions]` 计入；标记与 `job-exceptions:<uuid>` 计数都在
+worker 的默认 cache store，多主机 worker 需要共享 store。
+
+### 评测
+
+新增场景 5（夹具 `ImportLedgerStatement.php`、`ledger-worker.log`）：大账单 OOM 反复杀 worker，要求崩溃也计入三次
+失败额度而保留 `Tries(25)`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3、4（4/4） | 从 GitHub 读 13.x 队列源码找到 `CountCrashesAsExceptions` 与 `job-processing:` 标记；指出 `CACHE_STORE=file` 让锁和计数按主机分裂；改成 `fgetcsv` 流式 + 500 行批量 `insert()` 并本地实测峰值内存 166 MB → 2 MB |

@@ -61,5 +61,19 @@
       "Does not answer with Laravel, PHP, Eloquent or `DB::transaction` advice",
       "skill_read is false for the `laravel` skill"
     ]
+  },
+  {
+    "skills": ["laravel"],
+    "query": "ImportLedgerStatement.php is one of our queue jobs (Laravel 13.34, Redis queue, three worker hosts). ledger-worker.log shows what happens on large statements and has our worker .env. We want a statement that keeps crashing the worker to give up after three bad attempts, the same as real exceptions do, but we need to keep the 25 tries because the WithoutOverlapping lock releases the job a lot. What is going on, and what exactly should change?",
+    "files": [
+      "evals/files/ImportLedgerStatement.php",
+      "evals/files/ledger-worker.log"
+    ],
+    "expected_behavior": [
+      "Explains that an attempt killed by the OOM killer (SIGKILL) never throws inside handle(), so `MaxExceptions(3)` never counts it; each crash only consumes a try, which is why the job cycled until `Tries(25)` ran out with MaxAttemptsExceededException",
+      "Adds `#[CountCrashesAsExceptions]` (Illuminate\\Queue\\Attributes, available from Laravel 13.34) next to `#[MaxExceptions(3)]` so a crashed attempt counts toward the exception limit while `#[Tries(25)]` stays for lock releases - instead of lowering Tries or hand-rolling a crash counter in the cache or a middleware",
+      "Says the exception counter and the crash marker (and the WithoutOverlapping lock) live in the worker's default cache store, so `CACHE_STORE=file` on three hosts counts and locks per host; the workers need a shared store such as Redis or the database",
+      "Fixes the memory cause: stream the CSV (SplFileObject/fgetcsv or a LazyCollection) and insert in chunks or batches instead of `file()` plus `array_map` holding the whole statement and one `create()` per row"
+    ]
   }
 ]
