@@ -1,0 +1,31 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "Home" } }
+  ],
+  "subPackages": [
+    {
+      "root": "packageA",
+      "pages": [
+        { "path": "stats/index", "style": { "navigationBarTitleText": "Stats" } }
+      ]
+    },
+    {
+      "root": "packageB",
+      "pages": [
+        {
+          "path": "report/index",
+          "style": {
+            "navigationBarTitleText": "Report",
+            "usingComponents": {
+              "chart-card": "/packageA/components/chart-card/index"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#F8F8F8"
+  }
+}

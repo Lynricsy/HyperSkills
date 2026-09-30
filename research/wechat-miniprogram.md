@@ -291,3 +291,38 @@ SKILL.md 与 references 中一律标 `[official]` 并注明出处：
   `ci-testing-release.md`。
 - 没有收 `didi/mpx` 与 `wechat-miniprogram/computed`：分数都够，但都会让「一个默认方案 + 一个逃生口」
   退化成选型清单。理由见候选表第 20、21 行。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）wechat-miniprogram 段 4 条 `behind`：
+dcloud-uni-app、taro〔`diff too large`〕、cloudbase-ai-toolkit〔`diff too large`〕、sonofmagic-skills。
+在 worktree 重跑 `check_upstream.py wechat-miniprogram`，HEAD 与报告一致。归因在 `/tmp/hs-up/<owner>__<repo>`
+blobless 克隆里完成：先确认旧 pin 是审阅 HEAD 的祖先（区间 63 / 17 / 192 / 8 个提交），再用
+`git log <旧pin>..<HEAD> -- <paths>`、`git diff --stat` 与 `git diff` 读跟踪路径的实际改动。`--pin` 后核对
+SOURCES.yaml：uni-app `ada5149`、taro `4a1ea09`、CloudBase-AI-Toolkit `6032e5d`、sonofmagic/skills `c4cfd3c`，
+与审阅 HEAD 逐条一致；wx-glass-easel 为「repo moved, tracked paths unchanged」，随 `--pin` 前移到 `83b1c44`。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| dcloud-uni-app | 8d4be0f..ada5149 | cf7ed4f/e9fa51b/8a3b223/0ed9859「update docs」：`docs/mp/README.md` 增「HBuilderX 5.31 起支持编译到支付宝小程序」、删 uts 小节、支付宝平台差异条目改写 | 噪声 | uni-app x 编译到支付宝小程序的差异，不在本 skill（mp-weixin）范围；`docs/compiler/platform.md` 区间内无改动 |
+| dcloud-uni-app | 同上 | 新增 `docs/mp/miniprogram-subcontract-asynchrony.md`：uni-app / uni-app x 的分包异步化——`componentPlaceholder` 目前只支持 `pages.json` 页面级配置；vue3 项目跨分包 JS 只能写小程序原生 `require(path, cb, errCb)`，不能用静态或动态 `import` | 候选 → 评测后不合入 | 本 skill 已写分包异步化与 `componentPlaceholder`（subpackages-startup.md），缺的是 uni-app 侧写法。新增场景 6 跑无 skill 基线：模型检索到 DCloud 与微信官方文档，三条 expected_behavior 全部达成，因此不改正文，场景留作哨兵 |
+| dcloud-uni-app | 同上 | 新增 `docs/mp/native-component-and-wxs.md`：uni-app x 用 `wxcomponents/` 放原生组件、`<script src="*.wxs" module lang="wxs">` 引 WXS | 已覆盖 | cross-platform.md「Escape hatches」已写 uni-app 通过 `wxcomponents/` 接原生组件；WXS 语法本身已在正文 |
+| taro | d6d69e3..4a1ea09 | 1b29770/4a1ea09：`packages/taro-cli/package.json` 4.2.1→4.3.0、`inspect.spec.ts` 断言放宽 | 噪声 | 发布版本号与测试；正文「Verified against: Taro 4.2.1」是验证记录，仍然准确 |
+| cloudbase-ai-toolkit | 3ec840b..6032e5d（全仓 192，跟踪路径 14 个提交） | 0a396c3 等：SKILL.md/cloudbase-integration.md/pitfalls.md 新增账号主体选择（个人主体不能开普通微信支付、虚拟支付对「工具」类目个人主体开放）、测试号不支持云开发、云开发入口置灰/环境看不到的五类成因；`envQuery`→`queryEnv`；部署后分享环节；维护者本地路径去除 | 不合入 | CloudBase、WeChat Pay 与商户能力在本 skill Scope 明确排除；内容裁决仍为 reference |
+| sonofmagic-skills | e0e4e51..c4cfd3c | a714e21..572f304、3eded16：weapp-vite 的 `wv upload/preview` SDK 与旧 IDE 方言分流、`projectConfigs` 多端映射、`weapp.wxml.transform/validate`、`import.meta.env.PLATFORM`；wevu Store 对齐 Pinia 4.0.3；weapp-tailwindcss 新增 evals 文件 | 噪声 | 均为作者自有工具链的 API 与迁移说明，按既有内容裁决不用来选择默认工具链 |
+
+### 评测
+
+场景 6（新增，夹具 `evals/files/uniapp-pages.json`、`evals/files/uniapp-report.vue`）：uni-app Vue 3 项目 packageB 页面引用
+packageA 的 JS 与组件，同事建议改用 `await import()`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 3/3 | advisor 关闭；模型联网读了微信 `subpackages/async` 与 DCloud `miniprogram-subcontract-asynchrony` 页面，否定静态 import 与 `import()`、改为 `require('../../packageA/utils/chart.js', resolve, reject)` 并处理失败回调、在 report 页 `style` 加 `componentPlaceholder: { "chart-card": "view" }`；第 2 条中「产物里该 .js 路径须存在」只以「以实际编译结果为准」带过 |
+
+### 正文
+
+未改。基线已达成场景 6 的全部 expected_behavior，按流程不合入，场景保留作哨兵。只改 SOURCES.yaml（re-pin）、
+版本号 `2026.09.30` 与 evals。

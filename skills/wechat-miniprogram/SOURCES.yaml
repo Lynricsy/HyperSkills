@@ -1,5 +1,5 @@
 skill: wechat-miniprogram
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: wx-api-typings
     kind: repo
@@ -10,7 +10,7 @@ upstreams:
     commit: 6092df9100c73b84e140c20b9a42a8e8799e0660
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Official TypeScript declarations for wx.*, Page, Component, Behavior; used as the machine-checkable source for API shapes, base-library version gates, setData/storage hard limits and deprecations."
     notes: "LICENSE read in full: MIT. Verified locally against npm miniprogram-api-typings@5.2.3, whose types/ directory is published from this repository."
 
@@ -20,10 +20,10 @@ upstreams:
     url: https://github.com/wechat-miniprogram/glass-easel
     paths: [glass-easel-skills/glass-easel, glass-easel/src]
     ref: master
-    commit: 4aeef5fbfa6100b37f331417a7da7a602840471b
+    commit: 83b1c44009d7e9ab4bb1f9fd6b8ff05de81db733
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Official component-framework skill and runtime source: advanced data-update APIs, observer semantics, deep-copy options, wx:key sub-algorithms, slot modes, virtualHost."
     notes: "LICENSE read in full: MIT text (header line is a bare copyright, not the string 'MIT License'). API names verified against npm glass-easel@1.2.0 dist/glass_easel.d.ts."
 
@@ -36,7 +36,7 @@ upstreams:
     commit: 050bb071e091c2d0f7ac3e294f1e1514382b3978
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Skyline renderer configuration triad, WebView-to-Skyline behavioural differences, local-scrolling layout pattern and progressive migration granularity."
     notes: "LICENSE read in full: MIT text under 'Copyright 2024 wechat-miniprogram'."
 
@@ -49,7 +49,7 @@ upstreams:
     commit: f6044fd0ab3183eb170f4f64aebe1a9576ba76f2
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Custom-component unit testing: load/render/attach flow and what the simulator does not emulate."
 
   - id: dcloud-uni-app
@@ -58,10 +58,10 @@ upstreams:
     url: https://github.com/dcloudio/uni-app
     paths: [docs/compiler/platform.md, docs/mp]
     ref: uni-app-x
-    commit: 8d4be0f32d23f4f142c53ed217d292c292e8372e
+    commit: ada51494f302104d0d0d34284071e14f8e36e162
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "uni-app conditional-compilation syntax and platform constants, the undefined-platform fallthrough rule, and the mp-weixin glass-easel switches."
 
   - id: taro
@@ -70,10 +70,10 @@ upstreams:
     url: https://github.com/NervJS/taro
     paths: [packages/taro-cli]
     ref: main
-    commit: d6d69e30f70d98e49aa9d0b6d4e149d7f4df2980
+    commit: 4a1ea09a1b06f408041205184548eb1d2a9d023b
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Taro project layout, per-platform build targets and the pxtransform/designWidth contract; verified by scaffolding a project with taro 4.2.1."
     notes: "GitHub API reports NOASSERTION; LICENSE read in full and is MIT (Copyright (c) 2018 O2Team)."
 
@@ -104,7 +104,7 @@ upstreams:
     commit: 9bd1f25a7051ff137206f15251f716536f8409e9
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Read to confirm coverage of the JSAPI whitelist and project-config integration; content ruling keeps it reference-only."
     notes: "Content ruling, not a licence ruling: the repository targets the wx.modelContext AI-mode product surface, which is product packaging rather than mini program engineering."
 
@@ -114,10 +114,10 @@ upstreams:
     url: https://github.com/TencentCloudBase/CloudBase-AI-Toolkit
     paths: [config/.claude/skills/miniprogram-development]
     ref: main
-    commit: 3ec840b552d20a164981d695eafaef70eb741aec
+    commit: 6032e5d15fab9d879b20f77a630e702c4084dc6d
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Cross-checked for project-structure and devtools/CI routing conventions."
     notes: "Content ruling: the normative core is CloudBase and the Nightly wechatide CLI, both outside this skill's scope, and the CLI claims could not be verified here."
 
@@ -127,9 +127,9 @@ upstreams:
     url: https://github.com/sonofmagic/skills
     paths: [skills/weapp-vite, skills/weapp-tailwindcss]
     ref: main
-    commit: e0e4e51e52d1ef799e97fe634c5d930197eed4ed
+    commit: c4cfd3ce613e4138d562a594bf05dd5264021975
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Cross-checked for third-party build-chain constraints (WXSS class-name escaping, rpx handling) when a project uses a non-official toolchain."
     notes: "Content ruling: the skills document the author's own weapp-vite / wevu / weapp-tailwindcss packages, so they are not used to pick a default toolchain."

@@ -68,5 +68,15 @@
       "Treats the problem in browser terms - the scroll listener is not passive and writes layout-reading getBoundingClientRect per event, the computed re-filters and re-sorts the whole array on every keystroke, `sort` mutates the filtered array, and `:key=\"i\"` by index destroys list reuse",
       "Does not introduce setData, wxml, wx:for, Page/Component constructors, subpackages or any other mini program concept into the answer"
     ]
+  },
+  {
+    "skills": ["wechat-miniprogram"],
+    "query": "Our uni-app project (Vue 3 + Vite, compiled with `npm run build:mp-weixin`) has two subpackages declared in uniapp-pages.json. The report page in packageB, uniapp-report.vue, needs the chart helpers in packageA/utils/chart.ts and the chart-card component in packageA/components/chart-card, but the WeChat build and devtools reject the cross-subpackage references. A colleague says switching the static import to `const { buildSeries, sum } = await import('../../packageA/utils/chart')` will fix it. We do not want to move the chart code into the main package. Fix uniapp-pages.json and uniapp-report.vue.",
+    "files": ["evals/files/uniapp-pages.json", "evals/files/uniapp-report.vue"],
+    "expected_behavior": [
+      "Keeps the chart helpers and chart-card in packageA and solves it with WeChat's async subpackage access, rather than moving or copying the code into the main package or packageB",
+      "Rejects both the static `import` and the colleague's `await import(...)`: in a uni-app Vue 3 project cross-subpackage JS must be written in the mini program's native form, `require('<path>.js', mod => ..., ({ mod, errMsg }) => ...)` (or `require.async`), with the failure callback handled and the required .js path existing in the compiled mp-weixin output",
+      "Adds a `componentPlaceholder` entry for `chart-card` (for example mapping it to `view`) in the report page's `style` block in uniapp-pages.json, next to its `usingComponents`, since uni-app takes this setting as page-level pages.json configuration"
+    ]
   }
 ]
