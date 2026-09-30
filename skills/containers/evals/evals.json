@@ -79,5 +79,16 @@
       "Does not answer with container, Dockerfile, Compose, Kubernetes or Helm advice",
       "skill_read is false for the `containers` skill"
     ]
+  },
+  {
+    "skills": ["containers"],
+    "query": "SonarCloud rule docker:S8431 flags both FROM lines in base-pins.Dockerfile for carrying a tag and a digest together. A teammate opened a PR that deletes the tags and keeps only the `@sha256:` digests so the scan goes green. Renovate keeps our pins current with renovate.json. pin-check.txt is what I ran this morning; the build and `docker build --check` are both clean. Should we merge the PR? Anything else wrong here?",
+    "files": ["evals/files/base-pins.Dockerfile", "evals/files/renovate.json", "evals/files/pin-check.txt"],
+    "expected_behavior": [
+      "Explains that when a reference carries both a tag and a digest, the digest alone decides what is pulled and the tag is ignored - a mismatched tag produces no error or warning from pull, build or `docker build --check` - so the tag is an unverified label",
+      "Uses pin-check.txt to show that the runtime stage's digest is alpine:3.24.1's rather than alpine:3.23's, so the shipped runtime is Alpine 3.24.1 and the release notes are wrong; fixes the line so tag and digest agree (re-resolve the digest for the intended tag, or change the tag to the version the digest really is)",
+      "Advises against merging the tag-stripping PR because Renovate treats a digest with no version as tracking `latest`, so later digest updates would move the base image across releases instead of staying on the pinned series, and with `automerge` on this would land unreviewed; keeping `tag@digest` is the shape Renovate maintains, updating tag and digest together",
+      "Handles the scanner finding without changing the reference form - e.g. documents it as accepted for Renovate-managed lines and adds a check that the tag and digest agree, rather than deleting the tag"
+    ]
   }
 ]

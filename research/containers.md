@@ -644,3 +644,33 @@ EB5 的失败更值得注意：答案选择了用 `nvidia.com/gpu.sharing-strate
 挂在一个资源契约场景的尾巴上。
 
 结论：GPU 扩展有真实缺口，13 条里 10 条需要 reference 才能稳定答对，`references/kubernetes-gpu.md` 立得住。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告（5 个 `behind`）。每条都用 blobless 克隆（`/tmp/hs-up/SyncG17/`）按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`）；awesome-copilot 的 diff too large
+同样按 paths 逐一核对。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| compose-spec | fee041b → 914ec15 | 6a1eb51：`spec.md` +14、`develop.md` +8，全部是 Compose 版本徽章（`develop.watch` v2.22.0、`sync+exec` 的 `exec` v2.32.0、`include` v2.34.0、`initial_sync` v2.39.4；`annotations` v2.18.0、`env_file.required` v2.24.0、`env_file.format` v2.30.0、网络 `mac_address` v2.24.0、`post_start`/`pre_stop` v2.30.0、`pre_start` v5.3.0）；ad9dc48（AGENTS.md）、914ec15（compose-spec.json）不在 paths | 噪声 | 只加最低版本元数据，无语义变化；`references/compose.md` 不写 Compose 版本下限，`depends_on`、`develop.watch` 五种 action 的语义未变 |
+| awesome-copilot（too large） | fb4eb04 → 15ed97c | 44 个提交；5 个 paths 上 `git log` / `git diff --stat` 均为空，文件均仍存在 | 未变更 | 仅 re-pin。区间内唯一相邻的 `skills/gem-devops-guidelines`（74bd771）不在 paths，且属 gem-team 插件自身约定 |
+| netresearch-docker | b1f5420 → 0d121a0 | 548474d/827755e/6f54a8f：`SKILL.md` 仅 `metadata.version` 1.16.0 → 1.16.3；bed5ab1 + 1722f8b：`registry-catalogue-and-pin-rot.md` 新增一节「`image:tag@digest` 中 digest 生效、tag 只是装饰」，并主张 Renovate 管理的行保留 tag | 已由基线覆盖，不合入 | 事实先核实：本机 `docker run alpine:3.23@<alpine:3.24.1 的 digest> cat /etc/alpine-release` 输出 `3.24.1`，`docker build` 同样静默接受、`docker build --check` 报 `no warnings`；Renovate 两处原文经 `gh api` 读取（`lib/modules/manager/kustomize/readme.md`「without a version, digests are tracked as :latest」，`docs/usage/docker.md`「retains the Docker tag … for readability」）。据此新增场景 6 跑无 skill 基线，4/4 达成（见下），按「只写模型不会的」不合入；场景与夹具保留作哨兵 |
+| google-skills | 5a14f11 → 2964a69 | becc4b8：`gke-app-onboarding/SKILL.md` 只加 `metadata.version: "1.0.0"`；两个 assets 未变 | 噪声 | 取用的加固字段集未变 |
+| nvidia-gpu-operator | 42f92e7 → 75210df | 11 个提交：renovate 依赖小版本（driver-manager v0.12.1、container-toolkit v1.20.1、device-plugin/gfd v0.20.1、mig-manager v0.15.1、vgpu-device-manager v0.5.1、dcgm 4.6.1、dcgm-exporter 4.6.1-4.8.4、cc-manager v0.4.4）；aaad332 新增 `daemonsets.podSecurityContext` 注释块（给全部 operand DaemonSet 设 SELinux 等 pod 级 securityContext） | 噪声 / 不合入 | skill 不写 operand 镜像版本；取用的升级默认值（`autoUpgrade`、`maxParallelUpgrades`、`maxUnavailable`、`drain.enable`、`gpuPodDeletion`、MIG `all-disabled`、`mig.strategy: single`）在 diff 中均未改；`podSecurityContext` 是 SELinux 平台的 chart 开关，超出本 skill 范围 |
+
+其余仓库上游（kustomize、nvidia-device-plugin、nvidia-container-toolkit、nvidia-dra-driver、rocm-device-plugin 为
+`repo moved, tracked paths unchanged`；lukasniessen-k8s、azure-aks-skills、impertio-docker、bagelhole-devops 为 up to date）随
+`--pin` 一并对齐。5 个 behind 条目 pin 写入的 commit 与审阅 HEAD 逐条一致（914ec15、15ed97c、0d121a0、2964a69、75210df）。
+
+### 评测（划界用，基线）
+
+新增场景 6：`base-pins.Dockerfile`（`alpine:3.23@` 配 alpine:3.24.1 的 digest）+ `renovate.json`（`docker:pinDigests`，digest/patch/minor
+automerge）+ `pin-check.txt`（`imagetools inspect` 实测 digest 与干净的 `docker build --check`），问要不要合并删 tag 只留 digest 的 PR。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 tag@digest 与 Renovate | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 4 / 4 | 215 s。指出 digest 优先、`--check` 不校验 tag↔digest；据 `pin-check.txt` 判出实际是 3.24.1 并给两种修法；从 Renovate 源码推出无 tag 的 digest 按 `latest` 跟踪、叠加 automerge 会静默跨版本；建议扫描告警按规则排除而非删 tag，并把 tag↔digest 一致性做成 CI 断言。另自行查到 Sonar 于 2026-09-08 调整 S8431（存在 Renovate/Dependabot 配置时不再报） |
+
+结论：基线已全部做到，netresearch 新增内容不合入；正文未变，仅新增评测场景 6 与夹具、re-pin、版本号改为
+2026.09.30，未跑有 skill 的 D2。

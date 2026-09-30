@@ -1,0 +1,8 @@
+$ docker buildx imagetools inspect alpine:3.23 --format '{{json .Manifest.Digest}}'
+"sha256:85fe1e81d6758c208f3e1eed4338a1997e19d4be002d4dd32d3100c9a8c010a0"
+$ docker buildx imagetools inspect alpine:3.24.1 --format '{{json .Manifest.Digest}}'
+"sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b"
+$ docker buildx imagetools inspect golang:1.26-alpine --format '{{json .Manifest.Digest}}'
+"sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c"
+$ docker build --check -f base-pins.Dockerfile .
+Check complete, no warnings found.
