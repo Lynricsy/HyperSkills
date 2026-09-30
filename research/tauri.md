@@ -246,3 +246,21 @@ Apache-2.0 文本双重声明，根 `LICENSE` 只是内容放错。`SOURCES.yaml
 不再让这类任务从Tauri规则推断。仅修改否定边界与本skill版本；Tauri平台规则、
 上游pin和既有评测保持不变，不冒称重新验证了各平台构建。对应Rust的Tauri近似负例
 仍由本批使用`openai/gpt-5.6-sol`、`medium`检验，结果记在`research/rust.md`。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 1 条 `behind`
+（`full-stack-skills-tauri`，8 提交）。按完整区间归因：blobless 克隆到 `/tmp/hs-up/full-stack-skills__tauri-skills`，
+对 `17c7356..5ecdcba` 跑 `git log --oneline -- skills`、`git diff --stat` 与逐提交 `git show`；区间外的 6 个提交
+（OpenSpec 初始化、lint 门、历史文档、根许可拆分）也逐一看了 stat。`--pin` 后核对：写入的 commit 与审阅 HEAD 一致
+（full-stack-skills 5ecdcba；repo moved、tracked paths unchanged 的 epicenter-tauri 前移到 f9441c8）。
+`tauri-docs` 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| full-stack-skills-tauri | 17c7356 → 5ecdcba（8 提交） | 9356c68：52 个 `skills/tauri*/SKILL.md` frontmatter `license: Complete terms in LICENSE.txt` → `Apache-2.0` | 噪声（许可事实更新） | 不涉及内容；与本仓库既有 Apache-2.0 裁决一致 |
+| 同上 | 同上 | 485765d：删除 `skills/tauri/SKILL.md` 等的中文模板小节（国内适配/能力边界/使用流程）与空行，只删不增 | 噪声 | 当初已判定这些模板无 Tauri 内容且未取 |
+| 同上 | 同上（区间内、tracked path 外） | aa4a70c：根 `LICENSE` 换成 Apache-2.0 全文，原第三方声明移到 `THIRD-PARTY-NOTICES.md`；`gh api repos/full-stack-skills/tauri-skills` 现报 `Apache-2.0` | 需更正（元数据） | `SOURCES.yaml` notes 原写「GitHub API 报 NOASSERTION、根 LICENSE 放错」已过时，改写为现状；许可结论不变，各 skill 目录 `LICENSE.txt` 仍在 |
+
+未合入原因：区间内无 Tauri 技术内容，正文与 references 未改，仅更正 `SOURCES.yaml` notes；未新增评测场景、
+未跑评测，也不需要安装冒烟。
