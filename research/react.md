@@ -253,3 +253,39 @@
   由 `shadcn-ui.md` 承担。
 - React 18 及更早的写法：只在 `composition-patterns.md` 与 `rules-js-advanced.md` 各留一处
   `<details>` 折叠块（`forwardRef` / handler-in-a-ref），主线一律只写当前做法。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：`addy-frontend-ui`、`nextjs-cache-components`（diff too large）两条
+`behind`。两者都用 blobless 克隆按完整 `<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` +
+`git diff --stat` + `git diff`）；`vercel/next.js` 为 `--single-branch -b canary --shallow-since=2026-09-05` 的
+blobless 克隆，旧 pin `1329212`（2026-09-10）在历史内，区间完整。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| addy-frontend-ui | 6ca0cd7 → 2686b62 | 90d7d14、e778fc6（经 3ee24fa 合并）；仅 `skills/frontend-ui-engineering/SKILL.md` +13/−1：Design System Adherence 下新增「Reference-led UI quality」四步（找参考 → 研究 2–3 屏 → 写设计契约 → 用自家组件重建、不抄品牌与版式）；验收清单「Loading, error, empty」扩为「loading, empty, error, success, permission (when applicable)」并加一条「最终 UI finish-gate 复核」 | 范围外 / 不合入 | 本 skill 只取该上游的架构与状态章节，设计章节归 `frontend-design`（该侧已按基线实测判定不合入，见 `research/frontend-design.md` 同日节）。清单里的 success / permission 两态由 `frontend-design` 场景 10 基线验证模型已主动覆盖（成功 toast、四角色权限矩阵、最后一个 Owner 约束），不需要在 `architecture-and-state.md` 的「loading, empty, error」三态要求上再加 |
+| nextjs-cache-components（too large） | 1329212 → 3854a98 | 5 个提交，6 个文件 +210/−120。7516b200 / 41ef17c6：`next-dev-loop` 新增「Report Next.js friction」（仅在托管反馈指令已加载时排队反馈）；56fca738：`next-dev-loop` 浏览器默认 headless，用户要看时再 headed 重开；43f54d52：`agents-md` codemod 只写 `AGENTS.md`（不再写 `CLAUDE.md`）；393de1eb：三个 SKILL.md 与 PR 清单新增「加了 / 扩大了缓存边界且数据可变 → 按 Revalidating 指南失效，并做一次 mutation 检查：更新后下一次读取返回新值；`instant()` 通过只证明 shell 就绪，不证明 mutation 后新鲜」，`next-cache-components-optimizer/rig-template.md` 由「六问」改写为按主题分节（生产构建与端口所有权、构建期开启 testing API、测试命令与 BASE_URL、测试上下文、drift、循环）；`next-partial-prefetching-adoption/rig-template.md` 加 `CONTRACTS` 字段 | 噪声 / 已覆盖 / 按基线实测划界后不合入 | dev-loop 的 headless/headed 切换、反馈队列、`AGENTS.md` 写入目标都是 harness 与遥测接线，按标准 1.3 节剥离（本 skill 从未取 `next-dev-loop` 的浏览器会话细节）。rig 改写没有新事实：「testing API 必须在 `next build` 时开启，否则 `instant()` 静默空转」「远端构建先核 commit」「rig 记录一次、提交入库」已在 `nextjs-cache-components.md`「The rig」节。唯一的新判断是 mutation 新鲜度，按 R14 先实测：新增场景 5（`evals/files/cache-mutation/` 四个夹具：加了 `'use cache'` 但无 `cacheTag` 的读、仍 `revalidatePath` 设置页的 Server Action、在 Route Handler 里调 `updateTag` 的 HR webhook、已绿的 `instant()` 测试），无 skill 基线 4 / 4 全部达成，因此不合入 |
+
+同区间 393de1eb 还在同一仓库新增了 `skills/next-partial-prefetching-optimizer`（不在本条目 `paths` 内）：
+Partial Prefetching 采纳之后按链接优化 `prefetch={true}` / viewport / intent 的 RED→GREEN 循环。本 skill
+`nextjs-cache-components.md`「After optimization」只讲采纳检查与何时考虑 `<Link prefetch={true}>`，是否把该
+skill 纳入 `paths` 留给下一次完整复核（需先有基线缺口证据），本次不加。
+
+其余仓库上游（openai-plugins-nextjs、shadcn-official、anthropic-web-artifacts 为
+`repo moved, tracked paths unchanged`；vercel-react-bp 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit
+与审阅 HEAD 逐条一致（2686b62、3854a98、5fd93af、08ab84f、8a1541c、063bee9）。`react-docs` / `nextjs-docs`
+为 `kind: docs`，未改。
+
+### 评测（划界用，基线）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 Cache Components 下 mutation 新鲜度 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 4 / 4 | 200 s。指出保存后 `/people/[id]` 与头像仍是旧值、`revalidatePath('/settings/profile')` 作用域内没有缓存读；给 `getProfile` 挂 `profile-${userId}`、目录挂 `team-directory`，Action 里用 `updateTag` 并说明是读己所写；Route Handler 的 `updateTag` 会抛错，改为两参 `revalidateTag`（选 `{ expire: 0 }`，并说明 `'max'` 的取舍与单参已废弃）；明确 `instant()` 只证 shell，另写「保存后 `page.goto` 重读断言新值」与 HR webhook 的新鲜度测试 |
+
+结论：基线已全部做到，mutation 新鲜度不合入（`docs/skill-standard.md` 第 3 节：只写模型不会的），场景 5
+保留作哨兵。正文未变，仅新增评测场景 5 与夹具、re-pin、版本号改为 2026.09.30；未跑有 skill 的 D2。
+
+遗留（与本次上游无关，未改）：`references/nextjs-app-router.md` 第 180–181 行写「See
+`nextjs-cache-components.md` for cache profiles, `cacheLife()` and `cacheTag()`」，但该文件只讲 `cacheLife`，
+全 skill 没有 `cacheTag` 的内容。场景 5 基线说明模型自己会用 `cacheTag`，因此不补内容；这句指引应在下一次
+正文修订时收窄为 `cacheLife()`。

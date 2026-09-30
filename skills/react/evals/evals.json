@@ -57,5 +57,21 @@
       "Reviews the file as Vue 3 composition-API code and does not apply React or Next.js rules to it",
       "Answers from general knowledge without invoking the react skill"
     ]
+  },
+  {
+    "skills": ["react"],
+    "query": "Next.js 16.3 App Router, cacheComponents: true. To make the people pages instant I added 'use cache' to the reads in profile-data.ts (it is lib/profile.ts), and the instant() test in profile-instant.spec.ts is green on our production rig. profile-actions.ts is app/settings/profile/actions.ts and hr-sync-route.ts is app/api/hr-sync/route.ts. Review these four files before I ship: what will go wrong in production, and exactly what should change in each file?",
+    "files": [
+      "evals/files/cache-mutation/profile-data.ts",
+      "evals/files/cache-mutation/profile-actions.ts",
+      "evals/files/cache-mutation/hr-sync-route.ts",
+      "evals/files/cache-mutation/profile-instant.spec.ts"
+    ],
+    "expected_behavior": [
+      "Says that after a user saves the profile form, /people/[id] and the header avatar keep showing the old profile, because getProfile is now cached with no tag that the action invalidates and revalidatePath('/settings/profile') targets a path that does not read the cached function",
+      "Tags the cached reads with cacheTag (a per-user tag for getProfile and a directory tag for getTeamDirectory) and invalidates them in updateProfile with updateTag, justified as read-your-own-writes, instead of relying on revalidatePath of the settings path",
+      "Flags updateTag in the hr-sync Route Handler as invalid because updateTag works only inside Server Actions, and replaces it with the two-argument revalidateTag(tag, 'max') (or an explicit expire profile), noting the single-argument form is deprecated",
+      "Says the green instant() test proves the shell commits, not that data is fresh after a mutation, and adds a mutation check: perform the update, then read the page again and assert the new value is shown"
+    ]
   }
 ]
