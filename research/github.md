@@ -262,3 +262,24 @@ OIDC 取代长期云密钥、场景 2 的封面信改写、场景 3 的 ruleset 
   包装成脚本只会在 `gh` 的字段漂移上再加一层需要维护的间接层——上游里凡是这么做的
   （`getsentry/skills` 的 4 个 `uv run` 脚本、`copilot-pr-autopilot` 的 10 个 PowerShell 脚本、
   `pr-dashboard` 的 `find ~/.copilot`）都因此绑死在自己的环境上。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告（5 个 `behind`）。每条都用 blobless 克隆（`/tmp/hs-up/<owner>__<repo>`）按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`），先确认旧 pin 是审阅 HEAD 的祖先；
+awesome-copilot 的 diff too large 同样按 paths 逐一核对。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| awesome-copilot（too large） | 7568a48 → 15ed97c | 64 个提交；9 个 paths 上 `git log` / `git diff --stat` 均为空 | 未变更 | 仅 re-pin |
+| getsentry-skills | c2f99a5 → d18b7aa | e99aa67：`gha-security-review/SKILL.md` 的 `allowed-tools` 由逗号分隔改为空格分隔；b38a1dc + b11ee51：`references/runner-infrastructure.md` 在 IMDS 示例行上加 `# nosemgrep` 抑制注释 | 噪声 | `allowed-tools` 在合入时已剥离；抑制注释只针对上游自身的 semgrep 扫描，示例语义未变 |
+| zizmor | a7112ad → 9a0b330 | daad2af（#2396）：`docs/audits.md` 的 `dangerous-triggers` 把 `issue_comment` 列为危险触发器（注明 v1.31.0 起）并建议改为由特权用户打标签触发；bb180c2（#2350）：`self-hosted-runner` 审计重写，文档加一句可识别 runs-on、namespace 等托管的自建 runner；8c9e271/b6684e1/c93306e/e5b9690：README 赞助商表 | 已覆盖 / 噪声 | SKILL.md 核心规则 2 与 `actions-triggers-and-injection.md` 的触发器矩阵早已把 `issue_comment` 当作特权触发器并要求 `author_association` 门；v1.31.0 尚未发布（最新 tag v1.30.1，release-notes 在 `Next (UNRELEASED)` 下）。bb180c2 源码中所有 finding 仍是 `Persona::Auditor`，与正文「`self-hosted-runner` 只产出 auditor 级结果」一致（文档里的 `--pedantic only` 注记与代码不符，以代码为准）。README 为赞助商噪声 |
+| citadel | 3673927 → e41ff1d | f58febd：`skills/triage/SKILL.md` 一行，把 `.claude/harness.json` 描述改为「含 Codex 在内所有运行时共享的配置」 | 噪声 | 属 Citadel 产品耦合，合入时已剥离 |
+| gh-cli | 7b2de63 → 1863cb7 | a4f0de0：Go 1.27.1，`errors.As` → `errors.AsType`、`slices.Backward` 等机械改写与测试重排；8fcd6a6（#14429）：`gh pr merge` 判断跨仓库 PR 改用 `isCrossRepository` 字段，修复 owner 大小写不一致时删错远端分支 | 噪声 | 无命令、旗标或输出变化；正文只引用 `gh pr merge --squash --delete-branch`，行为对同仓库 PR 不变 |
+
+其余仓库上游（scrutineer、coderabbit-skills、gh-pr-reviews、scorecard 为 `repo moved, tracked paths unchanged`；
+oz-for-oss、octocat、openai-skills、starter-workflows、secure-repo 为 up to date；github-docs 为 docs 条目）随 `--pin` 一并对齐。
+5 个 behind 条目 pin 写入的 commit 与审阅 HEAD 逐条一致（15ed97c、d18b7aa、9a0b330、e41ff1d、1863cb7）；gh-pr-reviews 在报告后又前进到
+aac58bc，`check_upstream.py` 复查 tracked paths 仍未变。
+
+结论：全部为噪声或已覆盖，正文未改、未新增评测；仅 re-pin，版本号改为 2026.09.30。
