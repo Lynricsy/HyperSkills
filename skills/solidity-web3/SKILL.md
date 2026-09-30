@@ -4,7 +4,7 @@ description: "Develops and audits Solidity smart contracts with Foundry security
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: framework
 ---
 

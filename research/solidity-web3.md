@@ -429,3 +429,33 @@ INFO:Slither:7 findings, 22 detectors run
 - **放弃的方向**：Echidna / Medusa 的实操细节（本机未装两个 fuzzer，相关内容一律 `[official]` 且只占一小节，避免写成没实测的操作手册）；Vyper 与非 EVM 链（Solana/Cairo/Move/CosmWasm）按 `## Scope` 明确交回「本库暂无对应 skill」；MEV 与链上套利按定性完全排除。
 - **与 `security-review` 的边界需要主代理补一刀**：`skills/security-review/SKILL.md:43` 目前写着「Smart-contract auditing has no skill in this library yet; say so rather than improvising one.」，本 skill 落地后这句已过期，应改为把合约特有漏洞类与 Foundry/Slither 工具链转交 `solidity-web3`。本任务不允许改其他 skill，故在此登记。
 - **评测夹具的密钥约定**：五个夹具里没有任何私钥字面量；正文与 reference 提到假密钥时统一用 `0xREDACTED` 形式，`references/foundry-testing.md` 明确要求用 keystore `--account` 而非 `PRIVATE_KEY` 环境变量。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告。所有 `behind` 条目都在 blobless 克隆里按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`），未用日期过滤。
+2026-09-29 那轮被中断，只留下场景 6 和夹具 `evals/files/FeeRouter.sol`，没有提交。当时的基线运行在 314 s 时被外层命令超时打断，
+`answer_path` 为空，不能复用，这次重跑了。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| pashov-auditor | c577eb7 → f6c7f0d | f6c7f0d「solidity-auditor v4」：loop 模式、`.solidity-auditor/memory.tsv` 扫描记忆、`assemble.sh` 拼报告、Simplified Technical English 报告语言、置信阈值写死为 75 | 噪声 | 全部是编排、报告拼装和打分机制，本 skill 当初合入时就明确丢弃了这些（见 SOURCES notes）；漏洞分类没有变化 |
+| pashov-fizz / pashov-xray | c577eb7 → f6c7f0d | 仓库有移动，追踪路径未变 | 噪声 | — |
+| tob-secure-contracts / tob-property-testing | 321ccfe → 82fe822 | a6d1b23、123037e：`plugin.json` 版本号和各技能 `agents/openai.yaml` 新增 `display_name`/`short_description` | 噪声 | 只是 ChatGPT 导入用的元数据 |
+| oz-contracts | 6bc7bf3 → 32b5b8c | 9a02119：`AccessManaged.setAuthority` 与 `AccessManager` 合约头新增 NOTE/WARNING，说明自 delegatecall 的目标（如 `Multicall`）可以从任意已授权 selector 走到 `setAuthority`，绕过 `ADMIN_ROLE` 和 target admin delay；dab7110：`EnumerableSet` 改用 `unsafeAccess` | 9a02119 已覆盖（基线达成），dab7110 噪声 | 9a02119 只改了注释，行为在 v5.7.0 里本来就这样（该提交尚未进入任何 tag）。本机用 forge 1.8.1、solc 0.8.37、OZ v5.7.0 跑 6 个测试全部通过：keeper 经 `execute(router, multicall([setAuthority(evil)]))` 一步换掉 authority，随后直接 `sweep`；直接 `execute(setAuthority)` 会 revert；multicall 里的 restricted 内层调用会 revert；改为在 manager 层做 `AccessManager.multicall` 包 `execute` 后，批量 harvest 可用，`setAuthority` 仍被拒。依据是场景 6：基线已达成与此相关的 b1、b2、b6，所以不合入正文，场景保留作哨兵。dab7110 只是内部读数组的 gas 优化 |
+| foundry-book | 7004a8c → da261b4 | eac8f79：新配置项 `decode_external_storage`（用区块浏览器的已验证源码解码 `vm.getStateDiff` 中外部合约的存储） | 噪声 | 本 skill 不涉及 state diff 录制，现有配置语义（fuzz/invariant 默认值）没有变化 |
+| layerghost-kit | 9ab80c6 → ad854ef | ad854ef：solidity-checklist 把「gitignored `.env` 里的 `PRIVATE_KEY`」列为与 keystore 并列的签名方式 | 不合入 | 与本 skill 的立场冲突（`forge script --account <keystore>`，`foundry-testing.md` 明确不用 `vm.envUint("PRIVATE_KEY")` 签真实密钥），已在 SOURCES notes 补记 |
+
+其余仓库上游（erc-7201、tenequm-foundry、wshobson-solsec 为 `repo moved, tracked paths unchanged`，其余 up to date）随 `--pin` 一并对齐。
+pin 写入的 commit 与审阅 HEAD 逐条一致（f6c7f0d、82fe822、32b5b8c、da261b4、ad854ef）。提交前重新 fetch，这五个仓库都没有再前进。
+`kind: docs` 条目（solidity-docs）不在本次范围。
+
+### 评测（场景 6：`evals/files/FeeRouter.sol`，AccessManager + Multicall 权限配置）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | workbuddy/deepseek-v4.1-flash / max | 无（基线） | false | b1 b2 b6；b3 部分；b4 部分 | 自己写了 PoC（10/10 通过）并给出完整接管链路，修法是移除 multicall 授权或删掉 `Multicall`，但没有要求加回归测试断言 `authority()` 不变；`setFeeBps` 无上限只算作治理自伤，没提在代码里加硬上限；b5（`transfer` 返回值未检查 / `SafeERC20`）未达成 |
+| 6 | 同上 | 有 | true | b1 b2 b3 b5 b6；b4 部分 | 同样完整复现，两种修法都附回归测试；另外发现部署后 5 天内 admin delay 还没生效（`minSetback`）以及 `configure` 没有鉴权；未检查的 `transfer` 列为 lead，并点名 `SafeERC20` |
+
+结论：与 9a02119 相关的行为（b1、b2、b6）基线已达成，正文不改，场景 6 留作哨兵。有 skill 时多出的 b3、b5 来自正文已有的
+「修复附带测试」和非标准 ERC-20 / SafeERC20 规则，与本次上游无关。正文未改，未跑 D1/安装冒烟。

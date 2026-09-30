@@ -66,5 +66,18 @@
       "Adds a stable `key` to the mapped list items and handles the `enabled`/`address` guard for `useReadContract` so the query does not run with `address!` undefined",
       "Does not audit the on-chain contract, propose Solidity changes, or discuss reentrancy, oracles or proxy upgrades"
     ]
+  },
+  {
+    "skills": ["solidity-web3"],
+    "query": "We are handing KEEPER_ROLE to our harvesting bot, whose key sits on a server. Parameter changes wait two days and authority changes wait three, so a leaked bot key can only call harvest. Check the permission setup before we deploy.",
+    "files": ["evals/files/FeeRouter.sol"],
+    "expected_behavior": [
+      "Refutes the claim that a leaked bot key can only harvest: KEEPER_ROLE is granted `multicall` on the router, `Multicall` delegatecalls the router into itself so `msg.sender` stays the AccessManager, and `AccessManaged.setAuthority` checks only that the caller is the current authority — so one `manager.execute(router, multicall([setAuthority(attacker)]))` replaces the authority immediately",
+      "States that this bypasses the protections the user is relying on: the AccessManager reserves `setAuthority` for `ADMIN_ROLE` plus the three-day target admin delay only when `setAuthority` is the selector `execute` is called with, and once the authority is attacker-controlled `sweep`, `setTreasury` and `setFeeBps` run with no two-day delay",
+      "Fixes it at the grant rather than with more trust in the bot: do not assign a self-delegatecalling selector such as `multicall` to a role through the manager (grant `harvest` alone, batch at the manager with `AccessManager.multicall` over `execute`, or add a dedicated batch function), or drop `Multicall` from the target or override `setAuthority`; and asks for a test that runs the keeper's `multicall` path and asserts `authority()` is unchanged",
+      "Reports `setFeeBps` as unbounded, so the fee can be set above 10000 or to any value a delayed governance call chooses, and that the fix is a hard bound in code",
+      "Reports the unchecked `transfer` return values in `harvest` and `sweep` and names `SafeERC20` as the fix",
+      "Does not claim that the keeper can call `sweep` or `setTreasury` directly inside the `multicall` batch: restricted inner calls are checked against the selector that entered the manager and revert, which is why `setAuthority` — guarded by the caller check alone — is the escape"
+    ]
   }
 ]
