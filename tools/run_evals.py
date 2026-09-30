@@ -69,11 +69,19 @@ THINKING_LEVELS = ("off", "minimal", "low", "medium", "high", "xhigh", "max", "a
 
 
 def write_overlay(out_root: Path, skills_dir: Path) -> Path:
-    """Config overlay that makes this repo's skills discoverable from any cwd."""
+    """Config overlay: this repo's skills discoverable from any cwd, advisor off.
+
+    The advisor is a second model that reviews each turn and injects notes, so
+    leaving a user-level `advisor.enabled: true` on would measure the pair, not
+    the eval model; and its provider may refuse some prompts (security audits
+    were flagged as cyber risk), so whether it helped differed run to run.
+    """
     out_root.mkdir(parents=True, exist_ok=True)
     overlay = out_root / OVERLAY_FILE
     overlay.write_text(
-        f'skills:\n  customDirectories: ["{skills_dir}"]\n', encoding="utf-8"
+        f'skills:\n  customDirectories: ["{skills_dir}"]\n'
+        "advisor:\n  enabled: false\n",
+        encoding="utf-8",
     )
     return overlay
 
