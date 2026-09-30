@@ -61,5 +61,23 @@
       "Handles the deep link in onNewIntent as well as onCreate, rather than only at launch",
       "Uses rememberNavBackStack with @Serializable routes that implement NavKey, and replaces popBackStack with removing the last key from the back stack"
     ]
+  },
+  {
+    "skills": [
+      "android"
+    ],
+    "query": "Since we switched the release build to what r8-release.build.gradle.kts shows (it is our app/build.gradle.kts; the catalog is ledger.libs.versions.toml), the release build crashes as soon as a user exports: ClassNotFoundException for com.example.ledger.export.CsvExporter, created by name in ExporterRegistry.kt. proguard-rules.pro sits next to the build file at app/proguard-rules.pro and clearly keeps that class. Why is it being stripped, and what exactly should we change? Show the files.",
+    "files": ["evals/files/r8-release.build.gradle.kts",
+      "evals/files/ledger.libs.versions.toml",
+      "evals/files/proguard-rules.pro",
+      "evals/files/ExporterRegistry.kt"
+    ],
+    "expected_behavior": [
+      "Explains that nothing wires `app/proguard-rules.pro` into R8 any more (the switch to the AGP 9.3 `optimization { enable = true }` block dropped the old `proguardFiles(...)` line, and the new DSL's home for project rules is the `src/<variant>/keepRules/` source set in `.keep` files), and moves the rules into a file such as `app/src/main/keepRules/exporters.keep`",
+      "Does not make the default fix re-adding `getDefaultProguardFile(...)`/`isMinifyEnabled` next to the new block (the defaults are already included); wiring `proguardFiles(\"proguard-rules.pro\")` works on AGP 9.3.1 but counts only as a secondary alternative, and a legacy-DSL rewrite, if mentioned, is presented as a separate alternative rather than mixed in",
+      "States that the new DSL already includes the default Android keep rules (the equivalent of proguard-android-optimize.txt, opt-out via `keepRules { includeDefault = false }`) and turns on resource shrinking, so neither needs to be added",
+      "Makes the rule keep the no-arg constructor (`{ <init>(); }`) because ExporterRegistry calls getDeclaredConstructor().newInstance() and AGP 9 strict full mode no longer implies it from `-keep class`, ideally narrowing to Exporter implementations instead of listing each class by hand",
+      "Gives a verification step on the release variant that proves the rule was applied, such as checking `build/outputs/mapping/release/configuration.txt`/`seeds.txt`, running `./gradlew :app:analyzeReleaseR8Config`, or exercising the export on an installed release build"
+    ]
   }
 ]

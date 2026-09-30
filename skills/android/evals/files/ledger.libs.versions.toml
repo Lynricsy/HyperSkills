@@ -1,0 +1,17 @@
+# gradle/libs.versions.toml
+[versions]
+agp = "9.3.1"
+kotlin = "2.3.20"
+ksp = "2.3.6"
+hilt = "2.59"
+coreKtx = "1.19.0"
+
+[libraries]
+androidx-core = { group = "androidx.core", name = "core", version.ref = "coreKtx" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

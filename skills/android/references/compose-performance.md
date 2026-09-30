@@ -293,8 +293,10 @@ R8 is not optional for a Compose app: lambda grouping, `sourceInformation` strip
 composable-argument constant folding and `ComposerImpl` devirtualisation only run when
 optimisation is on.
 
-- Use `getDefaultProguardFile("proguard-android-optimize.txt")`. From AGP 9 the
-  non-optimize file is rejected outright, because it carries `-dontoptimize`.
+- On the legacy DSL use `getDefaultProguardFile("proguard-android-optimize.txt")`; from
+  AGP 9 the non-optimize file is rejected outright, because it carries `-dontoptimize`.
+  AGP 9.3's `optimization { enable = true }` includes the optimize defaults itself; do
+  not add the file next to it.
 - Do not add wildcard keeps for `androidx.compose.**`. Compose ships correct consumer rules;
   a blanket keep undoes every optimisation above and bloats `classes.dex`.
 - Do not blanket-keep `kotlin.Metadata`. Find the reflective consumer

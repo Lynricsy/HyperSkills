@@ -4,7 +4,7 @@ description: "Develops native Android apps with Kotlin, Jetpack Compose and Grad
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: platform
 ---
 
@@ -73,9 +73,14 @@ Paths below are relative to this skill's directory.
     padding tappable, and `.background` after `.padding` paints only the inner bounds.
 15. Judge performance only on a release build with R8 enabled. Debug builds add Live
     Literals, which distorts Compose compiler reports and Layout Inspector counts.
-16. Base shrinking on `getDefaultProguardFile("proguard-android-optimize.txt")` — AGP 9
-    rejects `proguard-android.txt` because it carries `-dontoptimize` — then write keep
-    rules narrowly and let libraries ship their own. Under AGP 9's strict full mode,
+16. Read the AGP version and the release block before touching keep rules. AGP 9.3's
+    `optimization { enable = true }` already includes the default rules and resource
+    shrinking, and project rules belong in `src/<variant>/keepRules/*.keep`; nothing
+    picks up a module-root `proguard-rules.pro` on its own, so a DSL migration that
+    dropped `proguardFiles(...)` leaves those rules dead — move them into `keepRules/`.
+    On the legacy `isMinifyEnabled` DSL, base on `proguard-android-optimize.txt`: AGP 9
+    rejects `proguard-android.txt` because it carries `-dontoptimize`. Either way, write
+    keep rules narrowly and let libraries ship their own. Under AGP 9's strict full mode,
     `-keep class A` no longer implies `-keep class A { <init>(); }`, so blanket rules
     both over-keep and under-keep at the same time.
 17. Declare versions in `gradle/libs.versions.toml` and share build configuration through

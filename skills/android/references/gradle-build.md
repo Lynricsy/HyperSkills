@@ -1,7 +1,8 @@
 # Gradle, AGP and the build
 
 Verified against: AGP 9.0 (minimum Gradle 9.1, JDK 17, SDK Build Tools 36.0.0,
-maximum supported API level 36.1).
+maximum supported API level 36.1); the optimization DSL in "Keep rules and shrinking"
+against AGP 9.3 (minimum Gradle 9.5).
 
 ## Contents
 
@@ -150,8 +151,30 @@ Anything left over gets `com.android.legacy-kapt`, module by module, never proje
 
 ## Keep rules and shrinking
 
-- Release builds set `isMinifyEnabled = true` and `isShrinkResources = true`, with
-  `getDefaultProguardFile("proguard-android-optimize.txt")` as the base.
+- Read the AGP version in the catalog and the release block before touching rules; there
+  are two DSLs:
+  - **AGP 9.3+ `optimization { enable = true }`** turns on code optimization *and*
+    resource shrinking and already includes the default Android rules (the equivalent of
+    `proguard-android-optimize.txt`; opt out with `keepRules { includeDefault = false }`).
+    Project rules belong in the `src/<variant>/keepRules/` source set, in files ending in
+    `.keep` (`app/src/main/keepRules/app-rules.keep`). Nothing picks up a module-root
+    `proguard-rules.pro` automatically: a migration that deleted the old
+    `proguardFiles(...)` line leaves every rule in it dead — the usual cause of a keep
+    rule that "clearly exists" and has no effect. Fix it by moving the rules into
+    `keepRules/`. (AGP 9.3.1 still honours a `proguardFiles("proguard-rules.pro")` placed
+    next to the block — verified in `configuration.txt` — but the docs direct new-DSL
+    rules to the source set, and adding `getDefaultProguardFile(...)` there only
+    duplicates the defaults.)
+  - **Legacy DSL** (still supported on 9.3): `isMinifyEnabled = true` and
+    `isShrinkResources = true`, with `getDefaultProguardFile("proguard-android-optimize.txt")`
+    as the base plus your `proguardFiles`. The `keepRules/*.keep` source set works here too.
+  - Before AGP 9.3.3 the new block did not set `isMinifyEnabled` on the variant API, so a
+    plugin that gates on it (mapping upload, custom tasks) saw minification as off.
+- Prove a rule was applied rather than that it was written: it appears in
+  `build/outputs/mapping/<variant>/configuration.txt`, and neither the class nor its
+  `<init>` is listed in `usage.txt` (removed code). On 9.3,
+  `./gradlew :app:analyzeReleaseR8Config` runs the R8 Configuration Analyzer over the
+  merged rules without finishing a release build.
 - Libraries ship their own consumer rules. Add a project rule only for *your* reflective
   code, and write it narrowly: the class, the members you actually reflect on, and — under
   AGP 9 strict full mode — the constructor if you construct it reflectively.

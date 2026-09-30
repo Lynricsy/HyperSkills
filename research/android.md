@@ -275,3 +275,54 @@ v2.0.0 把陷阱集拆成九个 area skill，`CATALOG.md` 仍在原路径，改�
 负例（场景 4）未改 description / Scope，未重跑。
 
 输出目录：`/tmp/hs-evals-sync/SyncG3/android-b5`、`android-b6`、`android-b7`（基线）、`android-s5`（有 skill）。
+
+## 2026-09-30 上游同步（增量）
+
+依据：在 worktree 重跑 `uv run tools/check_upstream.py android`（2026-09-30），1 条 `behind`。按完整区间归因：blobless 克隆到
+`/tmp/hs-up/Drjacky__claude-android-ninja`，对 `baa6e88..5d40f86` 跑 `git log --oneline -- references assets/convention`、`git diff --stat` 与
+`git diff`（10 文件 +51/-36）。`--pin` 后核对写入的 commit 与审阅 HEAD 一致（5d40f86）。android-docs / kotlin-docs 为 manual check，只为核实下述
+AGP 9.3 事实查阅了相关页面，`synced_at` 未动。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| drjacky-ninja | baa6e88 → 5d40f86（2 提交） | 22476f6「Update aug-sep」：`gradle-setup.md` 模板 release 块由 `isMinifyEnabled`/`isShrinkResources`/`proguardFiles(...)` 改为 AGP 9.3 `optimization { enable = true }`，`dependencies.md`/`workflows.md` 的 keep 规则文件改放 `app/src/main/keepRules/app-rules.keep` | **需合入（事实更新）** | 本 skill 规则 16 与 `gradle-build.md` 只写了旧 DSL（「Release builds set isMinifyEnabled… getDefaultProguardFile as the base」）；有 skill 的首轮评测照此把 `proguardFiles` + `getDefaultProguardFile` 接回新块。事实以 developer.android.com 为准，见下 |
+| 〃 | 〃 | 同提交：Room 3 3.0.0→3.0.3、Media3 1.10.1→1.11.1（含 1.11 会话行为变化）、navigation3 1.2.0 与 material3-adaptive 1.3.0 转稳定、`palette-ktx` 合并只在 1.1.0-alpha 线的更正 | 噪声 | 本 skill 刻意不固定库版本（notes：pinned versions rot），正文不含这些版本号或 palette；Navigation 3 1.2 的结果总线与深链已在 navigation.md，按 1.2 写成 |
+| 〃 | 〃 | 同提交：`android-performance.md` 新增 Android 17 QPR2（SDK 37.2）`<memory-budget>` / `MemoryBudgetManager` 可选节；`workflows.md` 新增可选 Android CLI（`android info/describe/studio …`）用法 | 不合入 | 均为可选、默认不启用的新能力，上游自己也写「不要加进通用模板」；没有对应的默认失败模式，且超出该上游在本 skill 的贡献面（构建结构） |
+| 〃 | 〃 | 5d40f86：`INDEX-sections.md`/`INDEX.md` 行数与目录；`QUICK_REFERENCE.md` Room 版本号；`architecture.md` 末尾换行 | 噪声 | 索引维护 |
+
+### AGP 9.3 优化 DSL：事实核实
+
+- 官方页（R8 enable-app-optimization「For AGP versions 9.3 and higher」与版本表、keep-rules-overview、AGP 9.3.0 release notes）：9.3 新增 `optimization { enable = true }`，同时开启代码优化与资源收缩，默认包含 Android 规则（等价 `proguard-android-optimize.txt`，可 `keepRules { includeDefault = false }` 关闭）；新 DSL 的项目规则放 `src/<variant>/keepRules/*.keep`，该源集旧 DSL 也支持；旧 DSL 继续受支持；9.3 最低 Gradle 9.5.0；新增 `:app:analyzeReleaseR8Config`；9.3.3 修复「新块不在 variant API 上设置 isMinifyEnabled」（Issue 556343682）。
+- 本机实跑（AGP 9.3.1 + Gradle 9.5.0 离线，`/tmp/hs-r8-verify-SyncG28`，复用评测运行留下的 `/tmp/agp-e2e` 工程）：
+  1. 仅 `optimization { enable = true }`、规则在 `src/main/keepRules/exporters.keep`：`configuration.txt` 含 AGP 默认文件与该 `.keep`，无需任何接线；
+  2. 裸 `-keep class …CsvExporter`：`usage.txt` 列出 `CsvExporter: public void <init>()` 被删——strict full mode 结论成立；
+  3. 新块旁写 `proguardFiles("proguard-rules.pro")`：`configuration.txt` 出现该文件段，规则**生效**。因此首稿里「根目录 proguard-rules.pro 在新 DSL 下被忽略、`proguardFiles` 不是修复」的说法过强，已改为「没有东西会自动拾取它；文档把新 DSL 的规则指向源集，9.3.1 仍接受旁置的 `proguardFiles`，再加 `getDefaultProguardFile` 只是重复默认规则」，场景 6 的 E1/E2 措辞同步放宽；
+  4. 旧 DSL（`isMinifyEnabled` + `getDefaultProguardFile`）+ `keepRules/*.keep`：`.keep` 被纳入。
+
+### 合入内容
+
+- `SKILL.md` 规则 16：先读 AGP 版本与 release 块；9.3 新块已含默认规则与资源收缩，项目规则在 `keepRules/*.keep`，迁移时删掉 `proguardFiles(...)` 会让根目录规则失效，修法是搬进 `keepRules/`；旧 DSL 仍以 optimize 默认文件为基；保留 strict full mode `<init>` 一句。
+- `references/gradle-build.md`「Keep rules and shrinking」：两套 DSL 分述、`includeDefault`、9.3.1 仍接受旁置 `proguardFiles` 的实测、9.3.3 之前的 variant `isMinifyEnabled` 缺陷、用 `configuration.txt`/`usage.txt`/`analyzeReleaseR8Config` 证明规则生效；页首「Verified against」补 9.3（最低 Gradle 9.5）。
+- `references/compose-performance.md`：`getDefaultProguardFile` 一条限定为旧 DSL，新块已自带。
+- `SOURCES.yaml`：drjacky-ninja 与 android-docs 的 `contributes` 记录本次来源。
+
+### 评测（workbuddy/deepseek-v4.1-flash，thinking max，advisor 关闭）
+
+新增场景 6（`evals/files/r8-release.build.gradle.kts`、`ledger.libs.versions.toml`、`proguard-rules.pro`、`ExporterRegistry.kt`）：切到 9.3 新块后 release 导出 `ClassNotFoundException`。
+E1 规则进 `keepRules/`；E2 不把 `getDefaultProguardFile`/`isMinifyEnabled` 接回新块；E3 说明新块已含默认规则与资源收缩；E4 `{ <init>(); }`；E5 在 release 变体上证明规则生效的步骤。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | deepseek-v4.1-flash | 无 | false | E1 ✅ E2 ✅ E3 ◐ E4 ❌ E5 ✅ | 自行查官方文档找到 keepRules；断言裸 `-keep class` 足够 `newInstance()`（与上面实跑 2 相反）。`android-b6` |
+| 6 | 〃 | 有（改前正文） | true | E1 ❌ E2 ❌ E3 ❌ E4 ✅ E5 ✅ | 按旧规则 16 在新块旁加 `proguardFiles(getDefaultProguardFile(...), "proguard-rules.pro")`；实跑 3 证明能用，但未指出新 DSL 的规则位置与默认规则已含。`android-s6` |
+| 6 | 〃 | 有（r2–r4 首稿、r5–r9/r11 终稿） | false ×9 | E4 仅 r3/r7/r8/r11 达成；r7 同样把 `proguardFiles`+`getDefaultProguardFile` 接回新块 | 9 次模型均未读 skill，等同无 skill，只作随机性参考，不计入 D2 判定。`android-s6-r{2..9,11}` |
+| 6 | 〃 | 有（终稿）r10 | true | （作废） | 模型经 `skill://android` 读到了 `evals/evals.json` 与夹具，期望泄露，结果不采信 |
+| 6 | 〃 | 有（终稿）r12 | true | E1 ✅ E2 ✅ E3 ✅ E4 ✅ E5 ◐ | 读 SKILL.md；运行期间把 `skills/android/evals` 临时移出 worktree 防泄露，结束后原样移回。E5 只用独立 R8 CLI 复现，未给项目内 release 变体核验步骤。`android-s6-r12` |
+| 2 | 〃 | 有（首稿正文） | true | E1–E7 ✅ | 回归：AGP 9 迁移场景仍给出 optimize 默认文件，只把 9.3 新块作为可选说明。跑于实跑 3 修正措辞之前；终稿对规则 16 的改动只放宽了 `proguardFiles` 一句，未重跑。`android-s2` |
+
+D2 判定：场景 6 的缺口是「有 skill 时被旧规则 16 带回旧 DSL」和「无 skill 时漏掉 `<init>`」；改后读到正文的干净运行（r12）E1–E4 全部达成。已跑 D1 安装冒烟（`npx skills add … --skill android --copy`），`.agents/skills/android/` 的 SKILL.md、references 与 worktree 一致。
+
+### 遗留风险
+
+- 改后正文只有 1 次干净且读到 skill 的运行（r12）；该场景下模型读 skill 的比例很低（改后 11 次里 2 次，其中 1 次读到了 evals 被作废），E5 未满分。
+- 「9.3.1 仍接受旁置 `proguardFiles`」只在 9.3.1 实测，官方文档措辞为 must；未来版本可能收紧。
