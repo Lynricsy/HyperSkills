@@ -1,0 +1,17 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+
+config/name="Vault Runner"
+run/main_scene="res://levels/vault.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="forward_plus"

@@ -165,8 +165,9 @@ spawn_loot()
 
 There is no built-in timeout. For "whichever comes first", race the signal against a
 timer with a one-shot connection and a flag, or restructure to an explicit state machine.
-And check validity after the `await`: if the emitter was freed while suspended, the
-coroutine never resumes, and code that assumed it did silently stops running.
+If the emitter or the awaiting node is freed while suspended, the coroutine never resumes
+and nothing is logged, so code after the `await` silently stops running; re-check the
+validity of other nodes the resumed code uses, not of `self`. `[verified]`
 
 ## Event bus versus direct connection
 

@@ -4,7 +4,7 @@ description: "Develops Godot games with GDScript, scenes, nodes and engine APIs.
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: platform
 ---
 

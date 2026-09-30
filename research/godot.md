@@ -669,3 +669,58 @@ Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/a
 教训记一条：**改 `SOURCES.yaml` 的任何字段都会让 `NOTICE.md` 过期**，因为 NOTICE 是
 `contributes` 与 `notes` 的派生产物。后续同步时，先改完 `SOURCES.yaml` 再生成 NOTICE，
 不要反过来。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 5 条 `behind`（godot-docs 为
+`diff too large`）。全部按完整区间归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑
+`git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`；各仓库区间内均无 LICENSE 变更。可疑内容用
+`gh release download` 取得的官方 `Godot_v4.7.2-stable_linux.x86_64`（4.7.2.stable.official.ed1daf0bf）在临时工程里
+headless 实跑，class reference 用 `gh api` 读 godotengine/godot `4.7` 分支。`--pin` 后核对：写入的 commit 与审阅 HEAD
+一致（5f84895、d4b0e35、037c03e、156b7a5、3e8d0f0）；godot-engine 为「repo moved, tracked paths unchanged」，随 pin 从
+4.7.2-stable（ed1daf0）前进到 4.7 分支头 83dec14，notes 中「钉在 4.7.2-stable」一句同步改写。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| godot-docs | e1129cb → 5f84895（71 提交，tracked 路径 30 提交、18 文件） | b586509b `renderers.rst`：Forward+ ReflectionProbe 由「unlimited」改为「up to 256 in scene (64 by default)」 | 需更正 | 本 skill 的 renderer 矩阵照抄了旧的「unlimited」；4.7 `ProjectSettings.xml` 的 `rendering/reflections/reflection_atlas/reflection_count` 默认 64，`rendering_server.cpp` 的 hint 范围 `1,256,1` |
+| 同上 | 同上 | 77feae04 `viewports.rst`：更正「SubViewport 只捕获其下节点」，默认共享根 Viewport 的 world | 已覆盖/评测哨兵 | 本 skill 未作相反陈述；4.7.2 实测 `sv.find_world_3d() == root.find_world_3d()` 为 true、World2D 不共享；场景 8 基线全部达成，不合入 |
+| 同上 | 同上 | 0a68241b 接触阴影（Forward+ 独有）、900bea79 主题音效与 GUI Theme Bus、b03df7c9 4.8 Android SDK 自动安装、f4a0df02 visionOS 沉浸模式、f8966f71 Godot 4.8 需 .NET 10 / C# 14 | 不合入 | 均为 4.8（master）特性：4.7 的 `Light3D.xml` 无 contact 相关成员；本 skill 目标 4.7，`godot-csharp-interop.md` 的「.NET 8」对 4.7 仍正确 |
+| 同上 | 同上 | f1f362ea `custom_gui_controls.rst`：`NOTIFICATION_MOUSE_ENTER` 含子控件、新增 `_SELF` 变体与滚动通知；8e61c9a7 `String.format` 嵌套数组弃用；其余为措辞、Vector4 小节、lambda 即匿名函数、链接修复 | 噪声 | `_SELF` 自 4.2 分支的 `Control.xml` 即存在，本 skill 未涉及且无错误陈述；其余与本 skill 内容无关 |
+| awesome-gamedev-godot | b105e1c → d4b0e35（13 提交，tracked 5 提交） | e86bec9/568e08e/a57de6d 新增 `godot-gdscript-headless-testing`：`--import`、SceneTree runner 自计数并 `quit(1)`、`assert()` 失败挂起、`_initialize` 时 root 未入树致 Timer 不启动、CI `timeout-minutes` | 部分已覆盖 / 其余评测后不合入 | `--import` 与 runner 模板本 skill 已有（规则 26、`godot-build.md` Testing）；其余见场景 7。实跑发现上游「assert 失败即挂起」只在 assert **直接**位于 `_initialize` 时成立（EXIT=124），位于被调用的测试函数时只中止该函数、`_initialize` 继续到 `quit()`（EXIT=0） |
+| 同上 | 同上 | e4e9569 `godot-physics`：Jolt 差异（face_index 恒 -1、单刚体关节 node_a/node_b 约定相反、软限位参数不支持、冻结运动学刚体不产生对静态体的接触、margin 语义、Area3D 检测 SoftBody3D） | 已覆盖一项 / 其余评测后不合入 | SoftBody3D 一项本 skill 版本门表已有；其余在 4.7 `ProjectSettings.xml` 与 `using_jolt_physics.rst` 可证，实跑确认 face_index Jolt=-1 / GodotPhysics3D=1 / 开 `enable_ray_cast_face_index` 后=1，冻结 KINEMATIC 刚体 Jolt 下 body_entered=0、GodotPhysics3D=1、开 `generate_all_kinematic_contacts` 后=1；场景 6 基线全部达成 |
+| haxqer-godot | 8e0552b → 037c03e（4 提交，137 文件 +42.9k） | 1aec6d4 lint/help/文本回读工具；b895163 生成、校验与可重放文档（node_config 规则、音频/像素画/着色器工具、playbooks、模板）；e0341e7/037c03e CI 容器与帧缓冲闸门 | 噪声（工具链） | 上游围绕自带 dispatcher 与 Python 工具链，按原裁决不复制；散落的引擎事实（`get_configuration_warnings` 编辑器外未绑定、渲染回退后应读 `RenderingServer.get_current_rendering_method()`、Logger 捕获 SHADER ERROR）中后者本 skill 已有，其余价值低 |
+| wshobson-godot | a30778f → 156b7a5（29 提交，tracked 1 提交） | 51b6e0b 修 `references/details.md` 一个相对链接 | 噪声 | 仅链接修复 |
+| godot-prompter | eae755a → 3e8d0f0（57 提交，tracked 1 提交） | 9a08270 `godot-debugging/references/signal-tracing.md`：lambda 连接随创建者释放而移除、被捕获节点已释放时每次 emit 报 `Lambda capture at index 0 was freed`、被释放节点的协程不再恢复 | 需更正（await 段）/ 部分不合入 | 见下 |
+
+### 事实更正与实跑证据
+
+1. **ReflectionProbe（`godot-rendering.md` 矩阵）**：Forward+ 列由「unlimited」改为「默认每场景 64（反射图集大小），
+   `rendering/reflections/reflection_atlas/reflection_count` 可提到 256」。证据见上表。
+2. **await 与释放（`godot-scripting.md`「await」、`godot-signals.md`「Awaiting a signal」）**：旧文「在任何可能活得比
+   发射者久的 await 之后检查 `is_instance_valid()`」与「发射者被释放则协程不再恢复」自相矛盾——不恢复就执行不到检查。
+   4.7.2 实跑：① 节点在 await 自己不拥有的 SceneTreeTimer 期间被 `free()`，await 之后的代码不执行、无任何日志；
+   ② 被 await 的发射者被释放，同样静默不恢复；③ 恢复后对**另一个**已释放节点做 `is_instance_valid()` 守卫可正常走到
+   分支。据此改写为：任一方被释放都会静默结束协程，`is_instance_valid(self)` 永远不会触发，应复查恢复后要用的其他节点。
+   上游同提交的「lambda 连接随创建者释放而移除」只对引用了 `self` 的 lambda 成立（实测：不引用 self 的 lambda 在创建者
+   释放后连接数仍为 1 且照常执行；引用 self 的变为 0），本 skill 未作相关陈述，不合入，记入 godot-prompter notes。
+
+### 评测
+
+新增场景 6（`jolt-switch/`：project.godot、impact.gd、vault_door.tscn、press.gd）、场景 7（`ci-tests/`：
+run_tests.gd、godot-tests.yml）、场景 8（`subviewport-preview/`：inventory_screen.tscn/.gd）。三条均在主代理关闭
+评测 advisor 的提交之后运行。场景 7 的期望 2、3 在基线跑完后按上文实跑结果更正（原写「helper 内 assert 失败导致挂起」
+不成立）；判定按更正后的文本，基线答案本身已给出同样的实测结论。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3、4（4/4） | 引 using_jolt_physics 与 Jolt 模块源码，给出 face_index 设置与负索引读末元素、world_node、软限位不支持、generate_all_kinematic_contacts 或 ShapeCast3D |
+| 7 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3、4（4/4） | 自行下载 4.7.2 实跑复现：push_error/无参 quit 退出 0、helper 内 assert 只中止该函数、root 未入树 Timer 不启动致挂起；加 timeout-minutes 与哨兵 grep |
+| 8 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3（3/3） | own_world_3d 并补 WorldEnvironment，headless 探针验证 World3D 归属 |
+
+结论：三条候选缺口基线均已会，按规则不合入，场景 6–8 保留作哨兵；正文只做上面两处事实更正，未跑有 skill 评测。
+
+D1 静态门（`validate_skills.py` 0 error 0 warning、`build_catalog.py --check`）通过；安装冒烟
+（`npx skills@latest add <worktree> --skill godot --agent universal --copy --yes`）后 `.agents/skills/godot/` 的
+SKILL.md、SOURCES.yaml、NOTICE.md、evals 与 10 个 references 齐全，与源目录 `diff -r` 一致。

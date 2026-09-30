@@ -84,7 +84,7 @@ Absent from all three lists means available everywhere.
 | PCSS soft shadows, Omni/Spot | no | yes | yes |
 | PCSS soft shadows, Directional | no | no | yes |
 | Light projector textures | no | yes | yes |
-| ReflectionProbe | 2 per mesh | 8 per mesh | unlimited |
+| ReflectionProbe | 2 per mesh | 8 per mesh | 64 per scene by default (reflection atlas size); `rendering/reflections/reflection_atlas/reflection_count` raises it to 256 |
 | LightmapGI | renders baked lightmaps; baking needs RenderingDevice | yes | yes |
 | VoxelGI, SDFGI, SSIL | no | no | yes |
 | SSAO | **yes** | **no** | yes |

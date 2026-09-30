@@ -183,10 +183,13 @@ var result = await load_async()          # awaiting a coroutine returns its valu
 
 Two things to keep in mind. First, `await` inside `_ready()` means `_ready()` returns
 early: the rest of the tree continues, and `is_node_ready()` is already `true` while your
-initialisation is still pending. Second, awaiting a signal on a node that gets freed
-leaves the coroutine suspended forever — check `is_instance_valid()` after any `await`
-that could outlive the emitter, and remember that one `await get_tree().process_frame`
-after a `queue_free()` is not enough for the instance to be gone.
+initialisation is still pending. Second, freeing either side ends a suspended coroutine
+silently: if the emitter is freed, or the node running the coroutine is freed (even while
+it awaits a `SceneTreeTimer` it does not own), the code after the `await` never runs and
+nothing is logged. `is_instance_valid(self)` after an `await` therefore never fires — what
+needs re-checking is every *other* node the resumed code touches, which may have been freed
+while it was suspended. And one `await get_tree().process_frame` after a `queue_free()` is
+not enough for the instance to be gone. `[verified]`
 
 ## Script order and naming
 

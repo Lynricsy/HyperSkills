@@ -69,5 +69,37 @@
       "Replaces the per-frame GameObject.Find and FindWithTag lookups with references cached in Awake or assigned through serialized fields",
       "Does not introduce Godot concepts such as _physics_process, move_and_slide, queue_free, @onready, GDScript signals or PackedScene into the answer"
     ]
+  },
+  {
+    "skills": ["godot"],
+    "query": "We switched our Godot 4.7.2 project from GodotPhysics3D to Jolt Physics yesterday (see project.godot) and three things broke that nobody touched: every bullet impact now plays the metal sound and spawns the metal decal (impact.gd); the vault doors (vault_door.tscn) swing outwards through the frame instead of into the vault, and they slam into their stop instead of easing into it; and the hydraulic press (press.gd) drives straight through the anvil, so the puzzle never completes. We are not switching back. Explain the exact cause of each and the fix.",
+    "files": ["evals/files/jolt-switch/project.godot", "evals/files/jolt-switch/impact.gd", "evals/files/jolt-switch/vault_door.tscn", "evals/files/jolt-switch/press.gd"],
+    "expected_behavior": [
+      "Explains the all-metal impacts as a Jolt default rather than a data bug: under Jolt the face_index in intersect_ray() and RayCast3D results is always -1 unless the project setting physics/jolt_physics_3d/queries/enable_ray_cast_face_index is turned on (at roughly 25% extra memory for ConcavePolygonShape3D), and `surface_ids[-1]` does not error in GDScript but reads the last entry, which is why every hit gets the last triangle's surface; the fix enables the setting and guards face_index < 0",
+      "Explains the outward swing as the single-body joint convention: with only node_a set, GodotPhysics3D treats the lone body as node_a, while Jolt treats it as node_b with node_a as the world, so the angular limits are applied in the other body's frame and come out inverted; the fix moves the door to node_b (re-checking the limits) or sets physics/jolt_physics_3d/joints/world_node for compatibility",
+      "Rules that angular_limit/bias, softness and relaxation on HingeJoint3D are not supported by Jolt (Godot only warns when they are non-default), which is why the soft stop disappeared, and that tuning those values further will do nothing",
+      "Explains the press as a Jolt contact-reporting default: a RigidBody3D frozen with FREEZE_MODE_KINEMATIC does not generate contacts against static or kinematic bodies under Jolt even with contact_monitor and max_contacts_reported set, so body_entered never fires for the StaticBody3D anvil; the fix is physics/jolt_physics_3d/simulation/generate_all_kinematic_contacts (with its CPU and memory cost) or detecting the anvil with an Area3D or a shape query instead"
+    ]
+  },
+  {
+    "skills": ["godot"],
+    "query": "Our GitHub Actions job runs tests/run_tests.gd with the official Godot 4.7.2 editor build in headless mode (run_tests.gd and godot-tests.yml attached). Two complaints: the job has gone green on commits where the log clearly shows a failing test, and on other commits it sits there until GitHub kills it after six hours. Review both files and give every reason for each symptom and how to fix the runner.",
+    "files": ["evals/files/ci-tests/run_tests.gd", "evals/files/ci-tests/godot-tests.yml"],
+    "expected_behavior": [
+      "Explains the green-with-failures runs: push_error() only logs and never changes the process exit code, and quit() with no argument exits 0, so a runner must count failures itself and call quit(1) when any test failed",
+      "Explains that a failing assert() does not fail the process: with the editor build asserts are active, but a failed assert() inside a test function prints `SCRIPT ERROR: Assertion failed` and aborts only that function, so _initialize() carries on to quit() and the job exits 0 - another source of green runs; (an assert() failing directly in _initialize() would abort _initialize() itself and hang instead). assert() must be replaced by a recording check helper",
+      "Identifies the cooldown test as the hang: during _initialize() the root Window is not yet inside the tree, so the Timer added under root cannot start (the engine reports that it is not inside the scene tree), its timeout never fires, the await never returns and quit() is never reached; the runner must `await process_frame` before using the tree, or use a SceneTree timer",
+      "Adds a step-level timeout-minutes to the CI job as a backstop so a hung await fails in minutes instead of six hours, while stating that it is not a substitute for fixing the runner"
+    ]
+  },
+  {
+    "skills": ["godot"],
+    "query": "inventory_screen.tscn and inventory_screen.gd are the inventory overlay for our Godot 4.7 3D game. It is opened on top of the running level. Players report that the character preview panel shows walls, enemies and their own character from the level behind the preview model instead of a clean background, that the level itself gets a second shadow-casting sun while the inventory is open, and that a copy of the preview model is standing at the level's world origin. Why, and what is the correct fix?",
+    "files": ["evals/files/subviewport-preview/inventory_screen.tscn", "evals/files/subviewport-preview/inventory_screen.gd"],
+    "expected_behavior": [
+      "Identifies the single cause: a SubViewport shares the World3D of the viewport above it by default (own_world_3d is false), so the preview camera renders everything in the level's world, and the preview's model and DirectionalLight3D are part of that same world, which is why the model appears in the level and the level gets a second sun - a 3D SubViewport does not render only its own children",
+      "Gives own_world_3d = true on PreviewViewport (or assigning it a dedicated World3D) as the fix, rather than hiding level objects with visibility layers and camera cull masks",
+      "Notes the consequence of isolating the world: the level's WorldEnvironment and lighting no longer apply inside the preview, so the preview needs its own light and, if wanted, its own Environment"
+    ]
   }
 ]

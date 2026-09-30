@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://b8invscreen01"]
+
+[ext_resource type="Script" path="res://ui/inventory_screen.gd" id="1_inv"]
+
+[node name="InventoryScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_inv")
+
+[node name="PreviewFrame" type="SubViewportContainer" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 552.0
+offset_bottom = 552.0
+stretch = true
+
+[node name="PreviewViewport" type="SubViewport" parent="PreviewFrame"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(512, 512)
+render_target_update_mode = 4
+
+[node name="PreviewCamera" type="Camera3D" parent="PreviewFrame/PreviewViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 2.4)
+fov = 35.0
+
+[node name="PreviewSun" type="DirectionalLight3D" parent="PreviewFrame/PreviewViewport"]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 3, 0)
+shadow_enabled = true
+
+[node name="ModelRoot" type="Node3D" parent="PreviewFrame/PreviewViewport"]

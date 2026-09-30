@@ -1,0 +1,18 @@
+name: godot-tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.2
+        run: ./ci/install-godot.sh 4.7.2   # puts the official editor build on PATH as `godot`
+
+      - name: Unit tests
+        run: godot --headless --path . --script res://tests/run_tests.gd
