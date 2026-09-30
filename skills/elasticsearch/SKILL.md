@@ -4,7 +4,7 @@ description: "Designs and tunes Elasticsearch mappings, queries, search relevanc
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: framework
 ---
 

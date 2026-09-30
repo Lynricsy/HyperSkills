@@ -324,3 +324,20 @@ v9.4.6 与 **v8.19.21** 并行维护，8.19 是 8.x 末班车。分支列表到 
   波次 6 的 `observability` 会接手，本 skill 只在 `## Scope` 直述不覆盖，不写 `use the ... skill`。
 - 不做 OpenSearch 的独有 API：`neural` query、ml-commons、search pipeline、PPL 全部不进正文，
   只在 `## Scope` 末尾留一句「为 OpenSearch 写的建议必须在这里重新验证」。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：仅 `elasticsearch-repo`（824 commits，diff too large）一条 `behind`。
+用 blobless 克隆（`/tmp/hs-up/elastic__elasticsearch`）按完整 `47b36cb..dd5d366` 区间、限该条目 `paths` 核对
+（`git log --oneline` + `git diff --stat` + `git diff`），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| elasticsearch-repo | 47b36cb → dd5d366 | 无：`x-pack/plugin/rank-rrf/src/main/java/org/elasticsearch/xpack/rank/rrf/RRFRankPlugin.java` 未改动；`rank-rrf/src/main` 整个目录区间内也无提交（同插件仅 `RRFRetrieverBuilderIT` / `RRFRetrieverBuilderNestedDocsIT` 等测试文件各改 1–2 行） | 噪声 | HEAD 上 `RANK_RRF_FEATURE`、`LINEAR_RETRIEVER_FEATURE` 仍声明为 `License.OperationMode.ENTERPRISE`（第 30、36 行），正文「`rrf` / `linear` retriever 为 Enterprise 档、basic 上 403」依然成立。顺带复核 `gh api repos/elastic/elasticsearch/releases`：9.5 线已到 v9.5.4（2026-09-15），8.x 线到 v8.19.22（2026-09-23），SKILL.md 写的是「9.5.3 at time of writing; 8.19 is the last 8.x」，两点均未失效，实测版本记录不改 |
+
+其余仓库上游（`elastic-rally`、`wshobson-vector-tuning` 为 `repo moved, tracked paths unchanged`；
+`elastic-agent-skills`、`clawic-elasticsearch`、`opensearch-launchpad`、`vespa-es-migration`、`face0b1101-es` 为 up to date）
+随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（baa5111、f825206、5076c03、cb465ae、dd5d366、65b9ae3、
+156b7a5、850bfef）。`elastic-docs` 为 `kind: docs`，未改。
+
+结论：唯一 behind 无命中改动，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.09.30。
