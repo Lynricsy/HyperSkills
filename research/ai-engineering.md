@@ -292,3 +292,18 @@ D2 通过判定：场景 7 的 E4 基线未达成、有 skill（最终正文）�
 - 场景 7 各模式只跑 1 次，r1→r3 的差异含随机性；E4 的「`messages[0]` 不能是 system」一半在 r3 里没有明说。
 - claude-api 新增的 eval-audit / hillclimb 流程整体未合入；若换更弱的基线模型，场景 6 的结论可能不同。
 - `anthropic-docs`（manual check）本次只为核实上面两处更正查阅，未做全量人工比对，`synced_at` 未动。
+
+## 2026-09-30 上游同步（增量）
+
+依据：在 worktree 重跑 `uv run tools/check_upstream.py ai-engineering`（2026-09-30），2 条 `behind`，其中 `vercel-ai-sdk` 为 `diff too large`。
+区间只覆盖 09-29 同步写入的旧 pin 到当前 HEAD：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑
+`git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`，并确认 tracked path 在 HEAD 上仍存在。`--pin` 后核对写入的 commit
+与审阅 HEAD 一致（vercel-ai-sdk 4514fc1、promptfoo 4f57300）；repo moved、tracked paths unchanged 的 google-skills（a063fbf → 2964a69）、
+openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a → e7c25a4）随 `--pin` 前移。两条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| vercel-ai-sdk | 91345da → 4514fc1（18 提交） | `skills/use-ai-sdk` 0 提交（`git log -- skills/use-ai-sdk` 为空，HEAD 上 `SKILL.md` 仍在） | 噪声 | too-large 只是 compare 上限，区间改动全在 SDK 包与示例 |
+| promptfoo | f8ba0bc → 4f57300（9 提交） | 822caba：`model-graded/agent-rubric.md` +2（目标用 `copy_working_dir` 时评分器在被评调用的工作区里运行、看到代理留下的文件）；`model-graded/select-best.md` +2（凭据被脱敏的评测恢复时需匹配的 provider ID 与非机密配置，否则重跑） | 噪声 | 均为 promptfoo 自身 provider/恢复机制的产品细节；本 skill 取的是「确定性轨迹断言 + 模型评分分离、评分器故障判失败、检索三指标分开测」，与之无关。「评测对沙箱化副作用」已由规则 24 覆盖 |
+
+未合入原因：两条均无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。

@@ -1,5 +1,5 @@
 skill: ai-engineering
-version: "2026.09.29"
+version: "2026.09.30"
 upstreams:
   - id: vercel-ai-sdk
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/vercel/ai
     paths: [skills/use-ai-sdk]
     ref: main
-    commit: 91345da69958dc3587effe3121eb44e897d6ea09
+    commit: 4514fc1e3fcf2f4bdff13a0a6467f83e0691736b
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Never write model-calling code from remembered API shapes or model ids; read the installed version's own docs and enumerate models at request time."
     notes: "GitHub API reports NOASSERTION; the repository LICENSE file is verbatim Apache-2.0 with a Vercel copyright line. Product-specific AI Gateway and DevTools guidance was dropped as vendor packaging."
   - id: langchain-skills
@@ -27,7 +27,7 @@ upstreams:
     commit: a76fef33ed87f23a1508a5d4f119996dfe0cd2b0
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Eval-engineering discipline: leakage and fairness rules, hidden truth kept out of the agent's workspace, verifier tested against wrong and shortcut answers, invalid-run classification, never write to production during an eval. RAG failure catalogue (chunk sizing, missing overlap, index/query embedding mismatch, dimension mismatch). Human-in-the-loop approve/edit/reject semantics and thread-id persistence pitfalls."
     notes: "Licence ruling updated 2026-09-29: the repository added an MIT LICENSE (commit e22f72f, 2026-09-23); earlier syncs used it with no licence file under the permissive-attribution policy. No text copied verbatim. LangChain/LangGraph/Harbor API surface was stripped; only cross-vendor engineering judgements kept."
   - id: google-skills
@@ -40,10 +40,10 @@ upstreams:
       - skills/cloud/agent-platform-eval-flywheel
       - skills/cloud/agent-platform-rag-engine-management
     ref: main
-    commit: a063fbf3025fd02e8a775a71a31eb08d5b06238e
+    commit: 2964a69c4d4a27632a43d60dab5f4f645f2a82df
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Eval-flywheel sequencing (prepare data, run inference, always grade, analyse failures before optimising) and its list of shortcuts that waste time; confirmation tiers for destructive operations; cost confirmation before a scored model run."
     notes: "Vertex/Agent Platform resource-management procedure is product packaging and was excluded."
   - id: openai-agents-python
@@ -56,10 +56,10 @@ upstreams:
       - docs/guardrails.md
       - docs/multi_agent.md
     ref: main
-    commit: 7b27134b2da927c73ab9397100ad451eeead0f88
+    commit: 3590e5d949638b86fb402cdde42460e6ccbc4933
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Loop-termination semantics and the turn cap as an explicit exception; tool-failure routing (error function returns a message to the model, or re-raise separating model-behaviour errors from application bugs); the distinction that tool visibility controls dispatch and never replaces argument- or resource-level authorisation."
   - id: anthropics-claude-api
     kind: repo
@@ -70,7 +70,7 @@ upstreams:
     commit: 8a1541c4a3ffa5a20a5a91de0dcf3f0bab1d1ef4
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Message-API structure facts used for the provider-comparison tables: the initial system prompt as a top-level parameter (a system message inside messages only mid-conversation, on recent models), tool-result block pairing by id, prompt-cache breakpoint placement (explicit or request-level automatic) and invalidation."
     notes: "Repository has no top-level LICENSE; skills/claude-api/LICENSE.txt was read directly and is Apache-2.0. Sibling directories in the same repository are proprietary and were not used."
   - id: owasp-llm-top10
@@ -87,7 +87,7 @@ upstreams:
     commit: 99f4395589bdbd120ae961f9cd179e79d7f9b27f
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Direct versus indirect injection taxonomy and the explicit position that no prompt-level prevention is known; privilege control with the application holding its own credentials; excessive agency split into functionality, permissions and autonomy; embedding-store access and poisoning concerns; unbounded consumption as a cost failure."
     notes: "CC-BY-SA-4.0: only the structure and checklist semantics were taken, fully rewritten; derived reference carries an adaptation notice."
   - id: obra-superpowers
@@ -101,7 +101,7 @@ upstreams:
     commit: 8ca22dba9a94f28898bbce59f2537ff4d87c747d
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Child agents get a constructed brief rather than inherited history; one child per independent domain with batching of same-shape work; explicit model tier per role and the turn-count-beats-token-price correction; verify the child's diff rather than its report."
     notes: "Graphviz decision diagrams removed per the repository's diagram rule."
   - id: murat-context-engineering
@@ -117,7 +117,7 @@ upstreams:
     commit: 6dbe1a1d868eab51a3bc9011b0f55e2891513e40
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Compaction summaries need mandatory sections and a trigger chosen in advance; usable context is smaller than advertised context; a single distractor costs disproportionately more than later ones; tool consolidation over near-duplicate tools; externalising state to the filesystem instead of growing the window."
     notes: "Long-context degradation figures are the upstream's reading of published benchmarks, not measured here; carried as [community]."
   - id: github-awesome-copilot
@@ -128,10 +128,10 @@ upstreams:
       - skills/agentic-eval
       - skills/ai-prompt-engineering-safety-review
     ref: main
-    commit: 997e95a6e42869c350f8ca6ec4c066287697c9f0
+    commit: e7c25a4e9c440dde98cb704230c24026ad01e925
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Iteration limits and convergence detection on self-critique loops; structured judge output instead of scraped prose; the review axes for a prompt (injection surface, data handling, output contract) that the injection review checklist is built from."
     notes: "The generate/evaluate/refine code templates were not carried; they restate a loop the model already knows."
   - id: promptfoo
@@ -140,10 +140,10 @@ upstreams:
     url: https://github.com/promptfoo/promptfoo
     paths: [site/docs/configuration/expected-outputs]
     ref: main
-    commit: f8ba0bc90f8ee66d75cfe9b4a710dc1c7012c412
+    commit: 4f573002d4664fb49ab0dd862301874eb6c03918
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Deterministic trajectory assertions (tool used, tool arguments, tool sequence) paired with model-graded ones; context-recall, context-relevance and context-faithfulness as separate retrieval measurements; a judge transport or parse failure must report as a failure rather than passing."
   - id: huggingface-skills
     kind: repo
@@ -154,7 +154,7 @@ upstreams:
     commit: 80f9fa530e46f4ae642fcb9e1725bad0e1979395
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Read to check coverage of offline benchmark harnesses; content decision was to exclude it — it is about selecting and running published benchmarks on local or hosted inference, which measures models rather than an application, and the weights side belongs to the ml-training skill."
     notes: "Content ruling, not a licence ruling; the repository LICENSE was read and is Apache-2.0."
   - id: anthropic-docs
