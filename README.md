@@ -167,7 +167,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`python`](skills/python/) | 框架 | Develops Python code with uv, pytest, typing, asyncio and packaging | 2026.09.30 | 17 |
 | [`react`](skills/react/) | 框架 | Develops React and Next.js web applications, components and server rendering | 2026.09.30 | 8 |
 | [`react-native`](skills/react-native/) | 平台 | Develops React Native and Expo mobile apps, navigation and native integrations | 2026.09.30 | 7 |
-| [`redis`](skills/redis/) | 框架 | Designs and operates Redis data structures, caching, streams and clusters | 2026.09.12 | 7 |
+| [`redis`](skills/redis/) | 框架 | Designs and operates Redis data structures, caching, streams and clusters | 2026.09.30 | 7 |
 | [`rust`](skills/rust/) | 框架 | Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI | 2026.09.30 | 17 |
 | [`security-review`](skills/security-review/) | 任务 | Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks | 2026.09.30 | 17 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews and evaluates Agent Skills and their SKILL.md files | 2026.09.30 | 14 |

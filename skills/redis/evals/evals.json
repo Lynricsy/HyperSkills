@@ -45,6 +45,20 @@
     ]
   },
   {
+    "skills": ["redis"],
+    "query": "cluster-node.conf is the config every node of our new Redis Cluster runs with; the network and certificate setup are described in its header comment. We go live next week. Audit it for security: what can an attacker inside the VPC do today, and exactly which lines do we change?",
+    "files": ["evals/files/cluster-node.conf"],
+    "expected_behavior": [
+      "Identifies the cluster bus as the most serious exposure: with `tls-cluster no` the bus is plaintext and has no authentication of its own - ACL users, passwords and `tls-auth-clients` apply to the client port only - so any host in the VPC that can reach the bus port can speak the cluster protocol, get itself added as a node (a `CLUSTER MEET`/MEET handshake is enough) and have its gossip trusted, which threatens the whole cluster and its data",
+      "Gets the bus port right: it is 10000 plus the client port the bus advertises, and that is `tls-port` only when `tls-cluster yes` - with `port 0` and `tls-cluster no` the bus listens on 10000, so today's 16380 rule opens nothing while 16380 becomes the bus the moment `tls-cluster yes` is set (unless `cluster-port` pins it)",
+      "Prescribes `tls-cluster yes` as what actually authenticates the bus: every bus peer, in both directions, must then present a certificate that verifies against the configured CA, independent of `tls-auth-clients`",
+      "Notes that because the CA is the company-wide shared CA, `tls-cluster yes` alone admits any service certificate in the VPC, and adds `tls-expected-peer-name` (a cluster-identity SAN issued to every node) or a dedicated per-cluster CA",
+      "Recommends `cluster-bus-port-protected-mode yes` (new in 8.10.2, default `no`) so a node refuses to start while its bus is unauthenticated, and says it must be turned on together with or after `tls-cluster yes` - on its own it makes the node exit with a fatal config error, and `CONFIG SET` rejects it while `tls-cluster` is off",
+      "Narrows the security group so the bus port (16380 once `tls-cluster yes` is on) is reachable only from the six node addresses and 6380 only from the application subnets, rather than 10.0.0.0/8",
+      "Flags `bind 0.0.0.0` with `protected-mode no` and `tls-auth-clients optional` on the client port, noting that the ACL file (default user off, per-user passwords) is what currently protects the client port"
+    ]
+  },
+  {
     "skills": [],
     "query": "这条 Postgres 查询在千万行表上很慢，`EXPLAIN (ANALYZE, BUFFERS)` 如下（见 slow_orders_plan.sql），该建什么索引？",
     "files": ["evals/files/slow_orders_plan.sql"],

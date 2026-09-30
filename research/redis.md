@@ -384,3 +384,49 @@ reference 四个（`redis-io-docs`、`redis-oss`、`redis-py`、`lude-kit-redis`
 - **`scripts/`**：考虑过写一个「导出 `INFO` + `--bigkeys` + `CONFIG GET` 快照」的脚本，
   但它只是把三条 `redis-cli` 命令串起来，且需要连接串与凭据，没有超出正文的可运行价值，
   故不提供。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：`awesome-copilot-redis`（64 commits，diff too large）、`redis-oss`（6 commits）、
+`redis-py`（20 commits）三条 `behind`。三者都用 blobless 克隆（`/tmp/hs-up/github__awesome-copilot`、`/tmp/hs-up/redis__redis`、
+`/tmp/hs-up/redis__redis-py`）按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 核对（`git log --oneline` + `git diff --stat`
++ `git diff`），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| awesome-copilot-redis | 7568a48 → 15ed97c | 无：区间 329 个文件变更，`skills/upstash-redis` 未改动且在 HEAD 仍存在；全区间 `--name-status` 检索 redis 无新增条目 | 噪声 | 追踪目录逐字未变 |
+| redis-oss | 3399357 → 498ecd0（`8.10` 分支，即 8.10.2 发布点） | 19aabc8（#15722）只改 `redis.conf` +36/−2：`tls-auth-clients` 只管客户端口、总线在 `tls-cluster yes` 时双向强制对端证书；总线本身无认证、陌生主机 MEET 即可入群；新增 `cluster-bus-port-protected-mode`（默认 `no`，节点启动时告警，`yes` 则未开 `tls-cluster` 拒绝启动）；共享 CA 时配 `tls-expected-peer-name`。`LICENSE.txt` 未改 | 需合入（评测先行） | 8.10.2 新指令，模型训练数据不可能覆盖；基线实测漏掉（见下表）。`gh api` 读 8.10.2 发布说明：同批 8.8.3、8.6.7、8.4.7、8.2.10 都带 #15722，据此写版本门。区间内另一安全修复 e6bb855（#15673，EXEC 时未复查 ACL 键权限）不在 paths 内、无评测证据，不写入正文 |
+| redis-py | 4158554 → be8e807 | a1788da（`Connection` 拒绝 bool 与越界端口）、22f38fa（URL 中显式端口 0 不再丢弃）、5528872（`PubSub.listen()` 文档：无订阅时立即结束）、f5aa6d0（空 target 处理）、7543dfc（拼写）、27225cf（`client_list_iter`） | 范围外 / 噪声 | 本 skill 不教客户端 API（SOURCES notes 已声明），这些都是 redis-py 的 API 行为或文档；未改变任何服务端可见默认值（`socket_timeout` 等仍未设默认） |
+
+合入内容（全部经本机 `redis:8.10.2-alpine` 实测后用自己的话重写，未复制 redis.conf 注释）：
+
+- `references/security.md` 新增「The cluster bus」节：总线无自有认证，实测带 `requirepass` 的节点接受陌生节点的
+  `CLUSTER MEET` 并把它列为 master；`tls-cluster yes` 才是总线认证；**总线端口实测**：`port 0` + `tls-port 6380` +
+  `tls-cluster no` 时总线在 10000，`tls-cluster yes` 后移到 16380（旧文「`port + 10000`」在 TLS 部署下会被读成错的端口，
+  属更正）；`cluster-bus-port-protected-mode yes` 实测：`tls-cluster no` 下启动报 `FATAL CONFIG FILE ERROR` 退出、
+  `CONFIG SET` 被拒（错误信息要求先或同一命令开 `tls-cluster`），与 `tls-cluster yes` 同用正常启动，单机模式无影响；
+  8.10.1 遇到该指令直接中止（`Unresolved Configuration(s)… aborting`），因此提醒勿混入旧版本节点配置。
+- 同文件 TLS 节补 `tls-expected-peer-name`（8.10+，实测 8.10.2 `CONFIG GET` 存在；首次出现于 58d0fb9，`git tag --contains`
+  最早为 8.10.0），审计清单改为「计算总线端口」并加 protected-mode 一项；网络暴露节的端口表述改为指向新节。
+- `SKILL.md`：版本说明更新为 8.10.2 current、cluster-bus 规则按 8.10.2 实测；工作流审计项加一句总线认证；路由表
+  security 行加「cluster bus authentication and its real port」。
+
+其余仓库上游（`redisvl` 为 `repo moved, tracked paths unchanged`；`redis-agent-skills`、`lude-kit-redis` 为 up to date）随 `--pin`
+一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（a84871d、ebde7ea、15ed97c、498ecd0、be8e807、b41c7a6）。
+`redis-io-docs` 为 `kind: docs`，未改。
+
+### 评测
+
+新增场景 4（`evals/files/cluster-node.conf`：6 节点、`port 0` + `tls-port 6380`、`tls-cluster no`、公司共享 CA、SG 对 10/8 放
+6380 与 16380）。首版 `expected_behavior` 把总线端口写成 16380，基线实测指出 `tls-cluster no` 时总线在 10000，本机复测确认后
+改正该条并拆出独立的「端口算对」一条，其余不变；两次运行都按改正后的 7 条判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 4 Cluster 节点配置安全审计 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 6 / 7 | advisor 开启（旧口径）。首跑 900 s 超时（搭 6 节点实验环境，未产出 answer），重跑 638 s。实测 MEET 劫持全部 slot、总线实为 10000、建议 `tls-cluster yes` + 专用集群 CA + 收紧 SG + `tls-auth-clients yes`；**缺** `cluster-bus-port-protected-mode`；并错误断言「Redis 只做链校验、不校验 SAN」（8.10 已有 `tls-expected-peer-name`），专用 CA 这一备选仍使第 4 条成立 |
+| 4 Cluster 节点配置安全审计 | workbuddy/deepseek-v4.1-flash（thinking max） | 有 | true | 7 / 7 | advisor 开启（旧口径）。448 s。点出总线 10000 与 SG 16380 错位、`tls-cluster yes` 双向校验且与 `tls-auth-clients` 无关、专用 CA 或 `tls-expected-peer-name`（实测 SAN 不匹配 `bad certificate`）、`cluster-bus-port-protected-mode yes` 并说明 `tls-cluster no` 下 FATAL；未提 `CONFIG SET` 拒绝，不影响该条成立 |
+
+两次运行都在主代理关闭评测子进程 advisor（f2adc68）之前启动，同为旧口径，属已配对场景，按规则不重跑。
+
+D1：`validate_skills` / `build_catalog --check` 通过；`npx skills@latest add … --skill redis --agent universal --copy` 安装后
+`references/` 与源目录 `diff -r` 无差异，`SKILL.md` 逐字节一致。

@@ -4,7 +4,7 @@ description: "Designs and operates Redis data structures, caching, streams and c
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: framework
 ---
 
@@ -18,10 +18,11 @@ scripting, locks, Pub/Sub and Streams, Cluster, connections and pipelining, the 
 that keep a database alive, the Redis Query Engine including vector search and semantic
 caching, ACLs, and the commands that answer "what is this instance doing right now".
 
-The body is written against **Redis 8.10** (current stable; 8.10.1 at time of writing, with
+The body is written against **Redis 8.10** (current stable; 8.10.2 at time of writing, with
 8.8.x, 8.6.x, 8.4.x, 8.2.x, 7.4.x, 7.2.x and 6.2.x still maintained). Rules that need a server
 newer than 7.2 carry a gate such as `(7.4+)`. Confidence markers: `[verified]` measured here
-against 8.10.1, `[official]` from Redis documentation, `[community]` otherwise.
+against 8.10.1 (the cluster-bus rules against 8.10.2), `[official]` from Redis documentation,
+`[community]` otherwise.
 
 Not covered:
 
@@ -292,8 +293,9 @@ Paths below are relative to this skill's directory.
 - [ ] Check the replication and failover story: `INFO replication` for the role and lag, and
       whether anything actually promotes a replica. A replica alone is not high availability.
 - [ ] Audit access: `ACL LIST`, whether `default` still has `nopass`, whether TLS is on, what
-      `bind` and `protected-mode` are, and which commands the application user can reach
-      (`references/security.md`).
+      `bind` and `protected-mode` are, and which commands the application user can reach. On a
+      cluster, the bus port has no authentication unless `tls-cluster yes`; check that and
+      `cluster-bus-port-protected-mode` (`references/security.md`).
 - [ ] Check the connection ceiling: `maxclients` against pool size times instance count, and
       `INFO stats` for `rejected_connections`.
 - [ ] Confirm observability exists before the incident: metrics exported from `INFO`, a
@@ -313,7 +315,7 @@ Paths below are relative to this skill's directory.
 | Pub/Sub delivery and output-buffer limits, keyspace notifications as an event source, Stream anatomy, consumer groups, `XPENDING`/`XAUTOCLAIM` recovery, trimming, List queue patterns and their limits | Messages are lost, duplicated or piling up | `references/streams-and-messaging.md` |
 | Slot mapping and hash tags, the full `CROSSSLOT` surface, `MOVED`/`ASK` and slot-map refresh, resharding, connection pooling versus multiplexing, pipelining, timeouts and retries, replica reads | Moving to Cluster, or a client is the bottleneck | `references/cluster-and-connections.md` |
 | RDB save points and AOF fsync policies with their loss windows, rewrite behaviour, replication and failover, `WAIT`, the `INFO` fields worth alerting on, `SLOWLOG`, `LATENCY`, `MEMORY`, `--bigkeys`, `--latency-history` | Deciding durability, or answering "what is it doing right now" | `references/operations.md` |
-| ACL users, selectors and command categories, the `default` user's stock permissions, TLS, `bind` and `protected-mode`, why `rename-command` is the fallback, script and injection surface, audit checklist | Hardening an instance or reviewing one against a finding | `references/security.md` |
+| ACL users, selectors and command categories, the `default` user's stock permissions, TLS, `bind` and `protected-mode`, cluster bus authentication and its real port, why `rename-command` is the fallback, script and injection surface, audit checklist | Hardening an instance or reviewing one against a finding | `references/security.md` |
 | `FT.CREATE` schema design, field types and the exact-match trap, query-syntax and tokenisation gotchas, `FT.EXPLAIN`/`FT.PROFILE`, vector fields versus vector sets, HNSW parameters, hybrid retrieval, index aliases | Working on a Redis Query Engine index or vector search | `references/search-and-vectors.md` |
 
 ## Output format

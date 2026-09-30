@@ -1,6 +1,6 @@
 # Security and access control
 
-Verified against: Redis 8.10.1.
+Verified against: Redis 8.10.1; the cluster-bus rules against 8.10.2.
 
 ## Contents
 
@@ -12,6 +12,7 @@ Verified against: Redis 8.10.1.
 - [Why rename-command is the fallback](#why-rename-command-is-the-fallback)
 - [TLS](#tls)
 - [Network exposure](#network-exposure)
+- [The cluster bus](#the-cluster-bus)
 - [Scripts, injection and untrusted input](#scripts-injection-and-untrusted-input)
 - [Secrets and credential rotation](#secrets-and-credential-rotation)
 - [Audit checklist](#audit-checklist)
@@ -138,9 +139,14 @@ a command that has no category granularity you need.
   `tls-ca-cert-file` enables it; setting `port 0` alongside disables the plaintext port, which
   is the part people forget.
 - `tls-auth-clients yes` requires client certificates — mutual TLS, and the only way to
-  authenticate a peer rather than a secret.
+  authenticate a client rather than a secret. It governs the client port only.
 - Replication and cluster bus traffic need `tls-replication yes` and `tls-cluster yes`
   separately; enabling TLS for clients leaves the replication stream in clear text otherwise.
+- By default a peer certificate is only checked against the CA chain, not against who the peer
+  is. With a shared organisational CA, every certificate it ever signed is a valid replica,
+  primary or bus peer. `tls-expected-peer-name <name>` (8.10+) additionally requires that name
+  in the peer's SAN on server-to-server connections — issue every node a cluster-identity SAN —
+  or use a CA dedicated to this deployment.
 - Clients must verify: a client configured with certificate verification disabled has
   encryption without authentication, which does not defend against a man in the middle.
 - TLS costs CPU on the same thread that runs commands. Measure before and after on a
@@ -161,14 +167,38 @@ port 0                          # when tls-port is in use
 - Put the instance on a private network or a security group that allows only the application
   subnet. Redis has no per-command rate limiting and no connection-level anomaly detection;
   the network is the outer boundary.
-- The cluster bus listens on `port + 10000` and must be reachable between nodes and nowhere
-  else. A firewall rule that opens only 6379 breaks the cluster; one that opens both to the
-  world exposes it twice.
+- The cluster bus must be reachable between nodes and nowhere else; see
+  [The cluster bus](#the-cluster-bus) for which port that actually is.
 - `CONFIG SET` is itself an attack surface: an authenticated client with `@admin` can change
   `dir` and `dbfilename` and write a file anywhere Redis can write. This is the mechanism
   behind Redis-to-shell exploits, and the reason `@admin` never belongs on an application user.
 - `MONITOR` streams every command, including every value. It is in `@dangerous` and `@admin`
   for that reason; treat access to it as access to the data.
+
+## The cluster bus
+
+- The bus has no authentication of its own. ACL users, `requirepass`, `protected-mode` and
+  `tls-auth-clients` all guard the client port only. Any host that reaches the bus port can
+  join the cluster: measured on 8.10.2, a stranger node's `CLUSTER MEET` was accepted by a
+  node running with `requirepass`, which then listed it as a master. A member's gossip is
+  trusted, so this is cluster takeover (slot ownership, failover), not a read-only leak.
+- `tls-cluster yes` is what authenticates the bus: every bus peer, in both directions, must
+  present a certificate that verifies against the configured CA, whatever `tls-auth-clients`
+  says. Pair it with `tls-expected-peer-name` or a per-cluster CA (see [TLS](#tls)).
+- The bus port is `cluster-port` if set, otherwise 10000 plus the client port the node
+  advertises — `tls-port` only when `tls-cluster yes`, else `port`. Measured on 8.10.2:
+  `port 0`, `tls-port 6380`, `tls-cluster no` puts the bus on **10000**; switching to
+  `tls-cluster yes` moves it to 16380. A firewall written for `tls-port + 10000` is then wrong
+  twice: the live bus is elsewhere, and the rule opens the port the bus is about to move to.
+- `cluster-bus-port-protected-mode yes` (8.10.2, 8.8.3, 8.6.7, 8.4.7, 8.2.10 and later; default
+  `no`) makes a cluster node refuse to start while `tls-cluster` is off. With `no`, the node
+  only logs `WARNING: the cluster bus port is not authenticated` at startup. It cannot be
+  enabled ahead of TLS: at startup the node exits with a fatal config error, and `CONFIG SET`
+  rejects it unless `tls-cluster yes` is set first or in the same command. A server older than
+  those releases aborts on the unknown directive, so do not ship it in a config shared with
+  older nodes. It has no effect outside cluster mode.
+- Leave it `no` only when the network already guarantees that nothing untrusted can reach the
+  bus port, and say so explicitly in the config.
 
 ## Scripts, injection and untrusted input
 
@@ -205,9 +235,12 @@ port 0                          # when tls-port is in use
 - [ ] Does any application user hold `@admin`, `@dangerous`, `CONFIG`, `DEBUG` or `MONITOR`?
 - [ ] `CONFIG GET bind protected-mode port tls-port` — is the plaintext port off where TLS is
       required, and is `bind` explicit?
-- [ ] Is `tls-replication` / `tls-cluster` on where client TLS is on?
+- [ ] Is `tls-replication` / `tls-cluster` on where client TLS is on, and with a shared CA,
+      is `tls-expected-peer-name` set?
 - [ ] Is the port reachable only from the application subnet, and is the cluster bus port
-      (`port + 10000`) restricted to the nodes?
+      (compute it: `cluster-port`, else 10000 + `tls-port` or `port`) restricted to the nodes?
+- [ ] On a cluster: is `cluster-bus-port-protected-mode yes`, or is there a written reason
+      the bus port is unreachable from untrusted hosts?
 - [ ] `ACL LOG` — any denials that indicate probing rather than a misconfigured client?
 - [ ] Are keys built from user input anywhere, and is the prefix an ACL depends on derivable
       from that input?
