@@ -241,3 +241,66 @@ universal --copy --yes` 安装到 `/tmp/hs-smoke-cr/.agents/skills/code-review/`
 - 未来盯的上游：obra/superpowers 与 addyosmani/agent-skills 推送频繁（当日均有提交），
   同步时优先看 `receiving-code-review` 与 `code-review-and-quality` 的 diff；trailofbits
   `differential-review` 的 `patterns.md` 若新增语言中立的漏洞模式，值得重写补入。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）code-review 段 5 条 `behind`
+（obra-requesting-review、mattpocock-codebase-design、addyosmani-review、trailofbits-diffreview、
+anthropic-claude-code，后者 `diff too large`）。上一轮代理（2026-09-29 晚）中断时留下的未提交改动与
+中间 pin（mattpocock `c55ee46`、claude-code `dec92bc`）已逐条复核；归因一律从**上次提交的 pin** 起算到
+本次审阅 HEAD，全部在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里用 `git log <旧pin>..<HEAD> -- <paths>`
+与 `git diff` 读实际改动。`--pin` 后核对 SOURCES.yaml：obra `8ca22db`、mattpocock `d81f3a1`、
+addyosmani `2686b62`、trailofbits `82fe822`、claude-code `684800b`，与审阅 HEAD 逐条一致。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| obra-requesting-review | b36e082..8ca22db | 5bf4e78 `SKILL.md`：`BASE_SHA` 注释由 `origin/main` 改为 `git merge-base origin/main HEAD` | 已覆盖 | 核心规则 2 与 review-changes 第一步已要求 `git rev-parse <base>` 后取三点 diff `git diff <base>...HEAD`，即 merge-base 语义 |
+| obra-requesting-review | 同上 | 5bf4e78 `code-reviewer.md`：新增「Declined to judge」节（判定前列出所有被视为超出 spec/plan 而搁置的行为，每行附理由，由执行者逐条裁决） | 需合入 | 场景 5 基线两轮均无搁置清单（EB3 ✘），合入后有 skill 达成 |
+| obra-requesting-review | 同上 | 5bf4e78 `code-reviewer.md`：新增「The spec is a vision document」节（spec 未提及的行为按合理使用者预期判断，spec 沉默不是许可） | 作为 Set aside 的护栏一并合入 | 单独看基线已会（基线把逗号转义列为阻塞项，EB1/EB2 ✔），不构成独立缺口；但它是 Set aside 规则的对冲——没有这一句，搁置清单可能被用来把「issue 没提」的真实缺陷挪出发现。只写成 Set aside 条目里的一句，不另设规则 |
+| obra-receiving-review / obra-verification | b36e082..8ca22db | 路径无提交 | 噪声 | 仅 repo 前进 |
+| mattpocock-review / mattpocock-grilling | 3cca18b..d81f3a1 | 路径无提交 | 噪声 | 仅 repo 前进 |
+| mattpocock-codebase-design | 3cca18b..d81f3a1 | d80fa0f `DESIGN-IT-TWICE.md`：`CONTEXT.md` 约定改名 `GLOSSARY.md` | 噪声 | `relation: reference`；本 skill 从未引用 CONTEXT.md/GLOSSARY.md 约定（grep 无命中） |
+| addyosmani-review | 6ca0cd7..2686b62 | 01cc884 `SKILL.md` description 增「diff 以内联粘贴给出时也适用」 | 已覆盖 | 本 skill description「Reviews code changes and pull-request diffs」不限定 diff 的来源；属上游自身触发措辞调整 |
+| trailofbits-diffreview | 321ccfe..82fe822 | 123037e `agents/openai.yaml` 增 `display_name`/`short_description` | 噪声 | ChatGPT 导入元数据，与内容无关 |
+| anthropic-claude-code | e62465d..684800b（129 commits） | `plugins/code-review`、`plugins/feature-dev/agents/code-reviewer.md` 区间内无提交 | 噪声 | 报告 too large 只因全仓改动多；专有许可，仍 reference-only |
+
+### 正文改动（MIT 上游，措辞重写）
+
+- `SKILL.md` review-changes：Spec 发现之后新增 **Set aside** 步骤（每行一条附理由、由作者或编排者裁决、
+  spec 沉默不是搁置理由）；Gate 增加「Set aside list is present」；Output format 允许其他空节省略但
+  Set aside 写 "None"，示例报告加一行搁置。
+- `references/reviewer-prompt.md`：派发提示增加 `## Set aside` 节与输出格式中的 `### Set aside`；
+  并行多审阅者的汇总段要求编排者在写结论前逐条裁决（接受为范围外或升为发现）；示例报告加一行。
+- `SOURCES.yaml` obra-requesting-review 的 `contributes` 补记 Set aside。
+- 新增评测场景 5 与夹具 `evals/files/export.diff`、`evals/files/ISSUE-517.md`（CSV 导出，note 未转义；
+  issue 未提逗号/转义；唯一测试的 note 不含逗号）。
+
+### 评测
+
+模型 `workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同条件。以下为上一轮代理
+2026-09-29 20:01–20:11 实跑的产物，本轮核对：query/expected_behavior 与当前 evals.json 一致；
+r2 两条开跑时间晚于夹具最终修改（20:07:29）与正文最终修改（SKILL.md 20:04、reviewer-prompt.md 20:03），
+此后正文只改了 `metadata.version`，故复用；`answer.md` 由本轮逐条人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | deepseek-v4.1-flash / max | 无 | False | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ EB5 ✔ | r2（终版夹具）。转义判为阻塞项并实跑复刻；ORDER BY、内存、NULL 日期等进「建议修」表，没有任何带理由的搁置清单。`/tmp/hs-evals-sync/SyncG10/r2/code-review/…/baseline/5` |
+| 5 | deepseek-v4.1-flash / max | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | r2。转义为 Spec Critical（以验收「表格可打开」论证）；`### 搁置项` 6 行各附理由；测试只含无逗号 note 列为 Important；`Ready to merge: No` 点名转义。`…/r2/code-review/…/skill/5` |
+| 5 | deepseek-v4.1-flash / max | 无 | False | EB3 ✘（其余未计） | 首轮，夹具旧版（两个 hunk 头计数与正文不符，20:07 修正），只作方向参考：同样无搁置清单。`/tmp/hs-evals-sync/SyncG10/code-review/…/baseline/5` |
+| 5 | deepseek-v4.1-flash / max | 有 | True | EB3 ✔（其余未计） | 首轮旧夹具：出现 `### 搁置` 节与 `Ready to merge: No`。`…/code-review/…/skill/5` |
+
+结论：基线唯一缺口是 EB3（搁置清单），有 skill 时填补且 `skill_read=True`；spec 沉默护栏句没有使
+转义被挪进搁置（有 skill 时仍判 Critical）。
+
+### 冒烟
+
+`npx skills@latest add /tmp/hs-wt/SyncG10 --skill code-review --agent universal --copy --yes` 于
+`/tmp/hs-smoke-code-review`：`.agents/skills/code-review/` 与 worktree 源目录 `diff -r` 无差异，
+SKILL.md 与 reviewer-prompt.md 均含 Set aside。`validate_skills.py` 0 error，`build_catalog.py --check` 通过。
+
+### 共享段落
+
+本次改动不涉及与 `test-driven-development`、`debugging` 共享的四段文字（完成门、grilling 提问格式、
+seam 定义、重构归属），无需三处同步。

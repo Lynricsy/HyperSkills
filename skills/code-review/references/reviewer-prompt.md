@@ -106,6 +106,14 @@ Then, per changed file:
 - Comment on the code, never on the author. Do not soften a real problem and do
   not approve without evidence of having read the change.
 
+## Set aside
+
+Before your verdict, list every behaviour you considered and set aside as outside
+the spec or plan, one line each with the reason. Whoever dispatched you rules on
+each line; nothing you set aside is dropped silently. The spec's silence is not a
+reason on its own: behaviour a reasonable user of this change would expect is a
+requirement, graded by its effect on that user. "None" means you set nothing aside.
+
 ## Output format
 
 ### Strengths
@@ -124,6 +132,9 @@ Then, per changed file:
 
 ### Recommendations
 [Improvements worth knowing about but not required here]
+
+### Set aside
+[One line per behaviour set aside as outside the spec, with the reason, or "None"]
 
 ### Assessment
 Ready to merge: [Yes | No | With fixes]
@@ -153,7 +164,9 @@ needs:
 
 Aggregate into one report with the axes in separate sections, each ordered by severity. Do not
 merge or rerank across axes, and do not pick a single worst finding overall — name the worst
-within each axis. Reranking is exactly what the separation prevents.
+within each axis. Reranking is exactly what the separation prevents. Rule on every reviewer's
+Set aside lines before you write the verdict: each one is either accepted as out of scope or
+promoted to a finding.
 
 ## Example reviewer output
 
@@ -181,6 +194,10 @@ within each axis. Reranking is exactly what the separation prevents.
 ### Recommendations
 - FYI: `indexer.ts` is now the third module reading `process.env` directly; a single
   config accessor would remove the drift risk.
+
+### Set aside
+- Retry of failed index writes — the plan leaves durability to the queue added in the next
+  milestone.
 
 ### Assessment
 Ready to merge: With fixes

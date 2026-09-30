@@ -4,7 +4,7 @@ description: "Reviews code changes and pull-request diffs, or evaluates review f
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: task
 ---
 
@@ -118,6 +118,12 @@ and the `debugging` skill when a review finding turns out to need a diagnosis ra
       Critical finding, not a nit.
 - [ ] Collect **Spec** findings: requirements missing or partial, behaviour nobody asked for
       (scope creep), requirements implemented wrongly. Quote the spec line for each.
+- [ ] List what you set aside: every behaviour you considered and judged outside the spec or
+      plan, one line each with the reason, under **Set aside** before the verdict. The author —
+      or the orchestrator, for a dispatched reviewer — rules on each line; nothing considered
+      is dropped silently. The spec's silence is not a reason on its own: behaviour a
+      reasonable user of the change would expect is a Spec finding, graded by its effect on
+      that user.
 - [ ] Collect **Standards** findings through the five lenses — correctness, readability and
       simplicity, architecture, security, performance — citing the documented rule or the named
       smell. Keep the two collections apart.
@@ -132,8 +138,9 @@ and the `debugging` skill when a review finding turns out to need a diagnosis ra
 - [ ] Close the loop on hygiene: list dead code the change orphaned (ask before deleting) and
       apply the dependency rules to any bump.
 - [ ] **Gate — verdict backed by findings:** every finding has `file:line`, an impact and a fix;
-      the two axes are in separate sections; the report ends with Ready to merge — Yes, No, or
-      With fixes, and the reasoning names the findings that drove it.
+      the two axes are in separate sections; the Set aside list is present; the report ends with
+      Ready to merge — Yes, No, or With fixes, and the reasoning names the findings that drove
+      it.
 
 ### security-review-delta
 
@@ -210,9 +217,10 @@ Expanded, with worked replies, in `references/receiving-review.md`.
 
 ## Output format
 
-Use this shape. Skip empty sections; keep the two axes apart; order within each section by
-severity. Comment prefixes map onto the section headings: Critical stays Critical, an unprefixed
-required change is Important, Nit and Optional are Minor, FYI becomes a Recommendation.
+Use this shape. Skip empty sections except **Set aside**, which says "None" when you set nothing
+aside; keep the two axes apart; order within each section by severity. Comment prefixes map onto
+the section headings: Critical stays Critical, an unprefixed required change is Important, Nit and
+Optional are Minor, FYI becomes a Recommendation.
 
 ```markdown
 ### Strengths
@@ -241,6 +249,10 @@ required change is Important, Nit and Optional are Minor, FYI becomes a Recommen
 
 ### Recommendations
 - FYI: the handler module is nearing the size where splitting it pays off.
+
+### Set aside
+- Rounding for non-USD currencies — the spec covers USD orders only; confirm before
+  multi-currency ships.
 
 ### Assessment
 **Ready to merge: No**

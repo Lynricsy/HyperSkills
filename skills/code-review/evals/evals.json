@@ -57,5 +57,17 @@
       "Writes the middleware from general knowledge instead of producing a review report",
       "Does not pin a base ref, emit severity-labelled findings, or end with a merge verdict"
     ]
+  },
+  {
+    "skills": ["code-review"],
+    "query": "Review my branch feature/order-export before I merge it. export.diff has the commit list and the three-dot diff against origin/main, and ISSUE-517.md is the issue it closes. Give me your review.",
+    "files": ["evals/files/export.diff", "evals/files/ISSUE-517.md"],
+    "expected_behavior": [
+      "Flags that toCsv joins fields with bare commas and never quotes or escapes them, so a customer note containing a comma, a double quote or a newline shifts or splits the row, and treats this as a real finding against the issue rather than dismissing it because ISSUE-517 never mentions commas or escaping",
+      "Grades the unescaped-note finding by its effect on the people using the export (support sends the customer a spreadsheet with misaligned or broken rows, and the file no longer meets the 'opens in a spreadsheet' acceptance) at Important/required or higher, not as a Nit or optional polish",
+      "Before the verdict, gives an explicit list of the behaviours it considered and set aside as outside the issue — for example row ordering, very large exports held in memory, date formatting, or spreadsheet formula injection — one line each with the reason it set it aside, instead of silently dropping them or leaving them unmentioned",
+      "Notes that the only test covers a note with no comma or quote, so it would not catch the escaping bug, and asks for a test with a comma, a quote and a newline in the note",
+      "Ends with an explicit merge verdict — Ready to merge: No or With fixes — naming the escaping finding as what drove it"
+    ]
   }
 ]

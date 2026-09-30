@@ -1,0 +1,66 @@
+$ git log --oneline origin/main..HEAD
+a41c9e2 (HEAD -> feature/order-export) feat(orders): CSV export of a customer's orders (Closes #517)
+
+$ git diff origin/main...HEAD
+diff --git a/src/orders/export.js b/src/orders/export.js
+new file mode 100644
+index 0000000..6d0b1f3
+--- /dev/null
++++ b/src/orders/export.js
+@@ -0,0 +1,22 @@
++const { pool } = require('../db/pool');
++
++const HEADER = 'id,sku,quantity,note,created_at';
++
++function toCsv(rows) {
++  const lines = rows.map((r) =>
++    [r.id, r.sku, r.quantity, r.note, r.created_at.toISOString()].join(','),
++  );
++  return [HEADER, ...lines].join('\n');
++}
++
++async function exportOrders(req, res) {
++  const { rows } = await pool.query(
++    'SELECT id, sku, quantity, note, created_at FROM orders WHERE customer_id = $1',
++    [req.query.customerId],
++  );
++  res.type('text/csv');
++  res.attachment(`orders-${req.query.customerId}.csv`);
++  res.send(toCsv(rows));
++}
++
++module.exports = { exportOrders, toCsv };
+diff --git a/src/orders/routes.js b/src/orders/routes.js
+index 77bb22c..90c1d4e 100644
+--- a/src/orders/routes.js
++++ b/src/orders/routes.js
+@@ -1,8 +1,10 @@
+ const router = require('express').Router();
+ const { createOrder, cancelOrder, findOrdersByCustomer } = require('./handler');
++const { exportOrders } = require('./export');
+ 
+ router.post('/orders', createOrder);
+ router.post('/orders/:id/cancel', cancelOrder);
+ router.get('/orders', findOrdersByCustomer);
++router.get('/orders/export', exportOrders);
+ 
+ module.exports = router;
+diff --git a/test/export.test.js b/test/export.test.js
+new file mode 100644
+index 0000000..b2e8a70
+--- /dev/null
++++ b/test/export.test.js
+@@ -0,0 +1,13 @@
++const { toCsv } = require('../src/orders/export');
++
++describe('toCsv', () => {
++  it('writes the header and one line per order', () => {
++    const csv = toCsv([
++      { id: 7, sku: 'ABC', quantity: 2, note: 'gift wrap', created_at: new Date('2026-09-01T10:00:00Z') },
++    ]);
++    expect(csv.split('\n')).toEqual([
++      'id,sku,quantity,note,created_at',
++      '7,ABC,2,gift wrap,2026-09-01T10:00:00.000Z',
++    ]);
++  });
++});
