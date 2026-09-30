@@ -38,7 +38,7 @@
     "query": "帮我做一份 Q3 季度汇报的 PPT，要发给客户，客户那边会在 PowerPoint 里改数字和加两页，所以必须是能编辑的。",
     "expected_behavior": [
       "不应读取 html-deck 技能：交付物是可在 PowerPoint 中编辑的 .pptx，不是浏览器放映的 HTML deck",
-      "走二进制 pptx 路线（pptxgenjs 或 python-pptx），并指出把 HTML deck 导成 pptx 只会得到每页一张位图、文本不可编辑",
+      "走二进制 pptx 路线（pptxgenjs 或 python-pptx），不把 HTML deck 导出的 pptx 当交付物：普通导出每页一张位图、文本不可编辑，Slidev/Marp 的可编辑导出也只是近似重建",
       "明确说明该请求属于 office 这类文档技能的范围"
     ]
   },
@@ -49,6 +49,17 @@
       "不应读取 html-deck 技能：这是响应式网页界面，不是固定画布上按页放映的幻灯片",
       "按响应式网页处理——随视口重排的布局、移动端断点、可访问的表单与焦点状态，而不是固定 16:9 舞台加整体等比缩放",
       "不引入翻页键位、演讲者备注或逐页 PDF 导出这类只对放映产物才有意义的机制"
+    ]
+  },
+  {
+    "skills": ["html-deck"],
+    "query": "下个月的技术分享要做一份浏览器里放映的 deck：核心是三段代码重构的逐步演变（要 magic-move 那种代码动画），还有两张 Mermaid 架构图。会后市场部要一份 PowerPoint 版，他们要在 PowerPoint 里改标题和几处措辞再对外发。帮我定路线，并说清两份产物分别怎么出、PowerPoint 那份交出去前你怎么确认它真的能改。",
+    "expected_behavior": [
+      "Picks Slidev because magic-move code animation is a structural escape trigger, and states what that costs: the artifact is a Vite SPA that needs Node and an HTTP host rather than a double-clickable file",
+      "For the PowerPoint copy uses `slidev export --format pptx-editable` (Slidev 52.20+) and says why plain `--format pptx` is wrong here: it places one rendered image per slide, so no text can be edited",
+      "Names the editable export's limits that hit this deck: the Mermaid diagrams are SVG and stay pictures (their labels cannot be edited in PowerPoint), and fonts are referenced by name rather than embedded so the recipient needs them installed or PowerPoint substitutes",
+      "Gives an observable check that the .pptx is editable before handing it over — reads the fallback / font report the export prints and inspects the file itself (e.g. unzips it and confirms the slide XML carries `<a:t>` text runs, or opens it and edits a title) rather than assuming the export worked",
+      "Notes that exporting requires `playwright-chromium` installed in the project, since Slidev does not bundle a browser"
     ]
   }
 ]

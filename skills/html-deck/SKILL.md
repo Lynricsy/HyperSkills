@@ -4,7 +4,7 @@ description: "Creates browser HTML slide decks. Do not load for editable PowerPo
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.19"
+  version: "2026.09.30"
   category: task
 ---
 
@@ -22,7 +22,10 @@ and the render-time measurement that decides whether the deck is deliverable.
 Not covered — do not answer from this skill:
 
 - Binary `.pptx`, `.potx`, pptxgenjs and python-pptx: the `office` skill. Exporting a PDF from an
-  HTML deck is here; producing an editable PowerPoint file is there.
+  HTML deck is here, and so is a PowerPoint copy of a Slidev or Marp deck for someone to touch up
+  wording: Slidev `--format pptx-editable` and Marp `--pptx --pptx-editable` rebuild text as native
+  shapes, while plain `pptx` export is one picture per slide (`references/frameworks.md`). An
+  editable PowerPoint file as the deliverable in its own right is `office`.
 - Web interface visual direction, WCAG figures, palette and typography fundamentals, motion
   durations, Core Web Vitals: the `frontend-design` skill. Apply those conclusions on a fixed
   projected canvas; do not restate the numbers.
@@ -79,8 +82,11 @@ Not covered — do not answer from this skill:
 - Animate inside `@media (prefers-reduced-motion: no-preference)` and keep a visible focus ring on
   every control. A deck is driven from the keyboard by definition.
 - Budget about one slide per minute and cut rather than shrink. Most decks land at 8-15 slides.
-- Escape to a framework when the requirement, not the taste, demands it: Marp for one-command PDF
-  from Markdown, Slidev for magic-move/Monaco/recording/hosting, reveal.js for a mature runtime.
+- Escape to a framework when the requirement, not the taste, demands it, and then use its feature
+  instead of rebuilding it by hand: Marp for one-command PDF from Markdown, Slidev for
+  magic-move/Monaco/recording/hosting or an editable PowerPoint copy from the same source, reveal.js
+  for a mature runtime. Read `references/frameworks.md` for what each route costs and how it
+  exports.
 - Say what was verified and what was not. "Exported cleanly" without a render is a claim, not a result.
 
 ## Workflows

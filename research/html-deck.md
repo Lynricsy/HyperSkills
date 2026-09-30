@@ -234,3 +234,67 @@
 - **`w3c/wcag` 未纳入**：数值正确但会与 `skills/frontend-design` 争夺 WCAG 数值的唯一出处。跨 skill 重复数字迟早发散，宁可引用。
 - **后续同步要盯的上游**：`marp-team/marp-core` v5 目前是 `next` tag 的 RC（CHANGELOG 顶部 v5.0.2），转正式版时默认高亮器由 highlight.js 换成 Shiki，`.hljs-*` 失效；`slidevjs/slidev` 主版本号推进快（当前 v53）。
 - **放弃的方向**：Spectacle（React 工具链与零依赖目标冲突）、impress.js 主线化（无尺寸契约与导出）、把 Marp/Slidev 的官方文档镜像进 references（体量与维护成本不成比例，改为引用官方站点）。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告。所有 `behind` 条目都在 blobless 克隆里按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`），未用日期过滤。
+报告里标为 `diff too large` 的四条（event4u、antfu、open-design、carbon）改用 `git ls-tree` 比较两端的追踪路径。
+本节替换了 2026-09-29 一轮被中断、未提交的改动：那轮把 event4u、playwright、carbon、puppeteer 钉在了当时的中间提交上，
+而且 `frameworks.md` 的核验命令有错（见下文 C1），这次都按审阅 HEAD 重做了。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| event4u-html-deck | 107a210 → fd4a41a（226 提交），补审 fd4a41a → 3369ae2（35 提交） | `dist/agent-src/skills/html-deck` 两端都是 3 个文件，两段 `git diff` 都为空 | 噪声 | 追踪路径没有变化。第一次 pin 之后上游又前进，补审新增区间后重新 pin |
+| antfu-skills-slidev | a74f281 → d02c484 | e98e476「chore!: remove vendored skills」删除了 `skills/slidev` 共 56 个文件 | 需更正（Phase B 重新裁决） | 这份 vendored 副本的 `SYNC.md` 注明它来自 `slidevjs/slidev` 的 `skills/slidev`（a1609ff）。原件仍在，所以把该路径并入已有的 `slidev` 条目（`paths: [packages/client, skills/slidev]`），并删除 `antfu-skills-slidev` 条目，`frameworks.md` 的 sources 注释同步去掉这个 id。原件从 a1609ff 到 30a0a54 有 5 个提交：0e24a64 加入 editable PPTX 导出，需更正正文（见 C1）；04a9eff 加入内置 MCP server，属 Slidev 工具使用，不是 deck 规则，不合入；b610bdf 加入 magic-move 动画参数，是文档镜像内容，不合入；9d5f45e（Tweet 支持 URL）和 1877b30（修链接）是噪声 |
+| ohmyagent-oma-slide | f81c5a4 → ce19702 | 仓库有移动，追踪路径未变 | 噪声 | — |
+| marpit | 0d4ad4e → 8b82169 | 仓库有移动（dependabot），追踪路径未变 | 噪声 | — |
+| playwright | 07f1a61 → e37ddf1（94 提交） | `types.d.ts` 命中 10 个提交：`page.webmcp`（含一次 revert 与重提）、`Tracing.start` 返回 Disposable、`resourceType` 补全、WebKit `checkVisibility`、`locator.within()`、`page.content({includeShadow})`、`Temporal.Now` 跟随 clock、Firefox 支持 `isMobile` | 噪声 | `scripts/deck_qa.mjs` 只用到 `page.screenshot`、`page.pdf({printBackground, preferCSSPageSize})` 和 `page.evaluate`。逐个 hunk 核对，这三个 API 的签名与语义都没有变化 |
+| open-design-deck-qa | f5707c8 → 5b19dfa（38 提交） | `apps/daemon/src/qa` 两端都是 2 个文件，diff 为空 | 噪声 | — |
+| carbon-grid | 8472cca → 40f8d5c（41 提交） | `packages/grid/scss` 两端都是 5 个文件，diff 为空 | 噪声 | — |
+| puppeteer | 5cf7e20 → 02c2a3d（15 提交） | 6ab0419 新增 `HTTPResponse.asFetchResponse` 两页文档 | 噪声 | 只作 reference，与 decktape 的失败输出无关 |
+
+pin 写入的 commit 与上表审阅 HEAD 逐条一致：3369ae2、ce19702、8b82169、e37ddf1、5b19dfa、40f8d5c、02c2a3d；
+slidev 仍为 30a0a54，这次新增的 `skills/slidev` 路径也在这个提交上审过。
+up to date 条目随 `--pin` 对齐；`kind: docs` 条目不在本次范围。
+
+### C1 事实更正：Slidev / Marp 的 PPTX 导出并非都是位图
+
+旧的 `frameworks.md` 写的是「三条浏览器路线的 `.pptx` 输出都是每页一张位图，文本不可编辑」，这句话已经不成立：
+
+- Slidev 0e24a64 在 v52.20.0 首次发布（`git tag --contains` 的结果是 v52.20.0、v52.20.1、v53.0.0）。按 30a0a54 的 `docs/guide/exporting.md` 的 Editable PPTX 节：
+  `--format pptx-editable` 把页面重建成原生形状，文字可编辑。SVG（含 Mermaid 和图标）、canvas、iframe、视频、KaTeX、
+  CSS 渐变、`filter`/`backdrop-filter`/`mix-blend-mode`/`clip-path` 仍会保留为图片；无法重建的页会单独回退成图片并打印原因；
+  字体只写名字、不嵌入；正常流中的 `::before`/`::after` 装饰会被丢弃（代码行号是其中之一）；不支持 `--per-slide`。
+  `packages/slidev/node/commands/pptx/walker.ts` 里可以找到对应代码（`unplaceablePseudos`、`filter`/`mixBlendMode`/`clipPath`、KaTeX 判定）。
+- marp-cli ffc4128 的 README 写明 `--pptx --pptx-editable` 属于实验功能：需要同时装好浏览器和 LibreOffice Impress；主题样式复杂时可能报错或产出不完整；
+  不支持演讲者备注。
+- 本机实测（@slidev/cli 53.0.0 + playwright-chromium，3 页夹具含 Mermaid 和带行号的代码块）：
+  `pptx` 导出每页的 `<a:t>` 都是 0；`pptx-editable` 导出三页分别为 2 / 1 / 22，其中 Mermaid 页只有标题这一个文本 run。
+  上一轮草稿给的核验命令是 `grep -c '<a:t>'`，它数的是行数；slide XML 只有一行，所以 editable 版第 1 页数出来是 1，实际是 2 个 run。
+  已改为逐页 `grep -o '<a:t>' | wc -l`。
+
+正文改动：`references/frameworks.md` 的 PowerPoint 小节（两种 editable 模式的限制与逐页核验命令），Slidev 触发行加上
+「同一源出可编辑 PowerPoint 副本」；`SKILL.md` 的 Scope 写明「Slidev/Marp 导出给人改措辞的 PowerPoint 副本」属于本技能，
+「以可编辑 PowerPoint 本身为交付物」仍归 office。同一条核心规则里补了「退出到框架后用它的功能，不要手工重做」。
+
+### 评测（场景 6 新增；场景 4 负例的 expected_behavior 第 2 条同步改了措辞）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 magic-move + 给市场部的 PPT 副本 | workbuddy/deepseek-v4.1-flash / max | 无（基线） | false | b2 b3 b4；b1 部分 | 复用 2026-09-29 的运行（`/tmp/hs-evals-sync/SyncG8/.../baseline/6`，query 与 expected_behavior 与现文件逐字相同）。模型选了 Slidev，并读 CLI 源码找到了 `pptx-editable`，但没说明 Vite SPA 的代价；b5（`playwright-chromium`）未达成 |
+| 6 | 同上 | 有（第 1 轮：`frameworks.md` 已更正，`SKILL.md` Scope 仍写「可编辑 PowerPoint 归 office」） | true | b4；b3 部分 | 退步。没读 `frameworks.md`，按 Scope 转去 python-pptx 另建一条管线，magic-move 也手写，没有走 Slidev |
+| 6 | 同上 | 有（第 2 轮：Scope 与退出规则已改） | true | b4 | 退步。模型绕过 `skill://`，直接 glob 到 `/root/.omp/agent/skill-repositories/hyperskills/skills/html-deck/references/frameworks.md`，也就是全局安装的旧版本（仍写「全是位图」），并据此否定 Slidev 导出。这是评测环境污染（见遗留）。于是把关键事实直接写进 `SKILL.md` Scope |
+| 6 | 同上 | 有（第 3 轮，定稿） | true | b2 b3 b4；b1 部分 | 选 Slidev，理由是 magic-move、Mermaid 和同源可编辑 PPTX；实测 `pptx` 可编辑字符为 0，`pptx-editable` 为 532；说明 Mermaid 仍是图片、字体不嵌入；逐页数文本 run 并做往返改稿。b1 的代价说明与 b5 仍未达成，与基线相同 |
+
+结论：更正的依据是事实，不是基线缺口。基线自己能从源码找到 `pptx-editable`，而旧正文会把有 skill 的模型带偏（第 1、2 轮都退步）。
+定稿后有 skill 的结果与基线持平，没有退步。b1 的代价说明和 b5 都已经写在 `frameworks.md` 的触发表和 Slidev Export 节里，
+但两种模式都没有输出，这次不再为它们加正文。场景 4 负例依赖 description 路由，这次没改 description，未重跑。
+
+冒烟：`validate_skills.py` 0 error，`build_catalog.py --check` 通过；执行 `npx skills@latest add <worktree> --skill html-deck --agent universal --copy`
+后，`.agents/skills/html-deck` 的 16 个文件与 worktree 用 `diff -r` 比对完全一致。
+
+### 遗留
+
+- 评测环境里有全局安装的 HyperSkills 旧版本（`/root/.omp/agent/skill-repositories/hyperskills/skills/`）。有 skill 的运行可能读到旧文件而不是 worktree 版本，
+  所有 worktree 评测都受影响。本节第 2 轮就是这样被污染的。

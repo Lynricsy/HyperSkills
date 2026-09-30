@@ -23,7 +23,7 @@ row costs something; read the third column before you switch.
 | Requirement that triggers the escape | Escape to | What it costs |
 |---|---|---|
 | Markdown is the single source of truth, and one command has to produce PDF + speaker notes | Marp | Layout freedom collapses to CSS on `section`; one slide size per theme; nothing handles vertical overflow |
-| Magic-move code diffs, Monaco editing, recording, remote control, or hosting the deck as a web app | Slidev | The artifact is a Vite SPA — it cannot be double-clicked open, needs Node plus `playwright-chromium` to export, and needs an HTTP host with SPA rewrites |
+| Magic-move code diffs, Monaco editing, recording, remote control, hosting the deck as a web app, or an editable PowerPoint copy from the same source | Slidev | The artifact is a Vite SPA — it cannot be double-clicked open, needs Node plus `playwright-chromium` to export, and needs an HTTP host with SPA rewrites |
 | A mature presentation runtime — fragments, speaker view, scroll view — and you accept a multi-file artifact | reveal.js | `dist/` plus `plugin/` files travel with the deck; PDF comes out of the browser print dialog, confirmed only in Chrome/Chromium |
 | Non-linear zooming canvas instead of a page sequence | impress.js | No slide-size contract, no speaker notes, no export path of its own; steps are absolute canvas coordinates (`data-x/y/z`, px, measured at the step's centre) and PDF requires an external key-walking exporter |
 | The PDF page size must equal a non-16:9 paper size | Marp | The theme's `width`/`height` is the PDF page size, so a second paper size means a second theme |
@@ -35,9 +35,33 @@ defect).
 
 ## Per-framework facts
 
-One note that applies to all three browser routes: their `.pptx` output is a
-per-slide bitmap with non-editable text. Editable binary `.pptx` belongs to the
-`office` skill, not here.
+**PowerPoint output.** reveal.js has no `.pptx` exporter. Marp `--pptx` and
+Slidev `--format pptx` put one rendered picture on each slide, so nothing in the
+file can be edited. Both also ship an editable mode that rebuilds the slide as
+native shapes, and both are approximations of the browser deck:
+
+- Slidev `--format pptx-editable` (52.20+). SVG (so Mermaid diagrams and icons),
+  `<canvas>`, iframes, video, KaTeX, CSS gradients, `filter`, blend modes and
+  `clip-path` stay pictures; a slide it cannot rebuild falls back to a picture on
+  its own; `::before`/`::after` decorations in flow are dropped (code-block line
+  numbers among them); fonts are named, not embedded, and text may wrap
+  differently in PowerPoint. The export prints what it dropped and which fonts
+  the recipient needs — read that output.
+- Marp `--pptx --pptx-editable` is experimental, needs LibreOffice Impress next
+  to the browser, drops speaker notes, and may error or come out incomplete on a
+  theme with complex styles.
+
+Verify before sending — count text runs per slide; 0 means that slide is a picture
+(`grep -c` would count lines, and slide XML is one line):
+
+```bash
+for s in $(unzip -Z1 deck.pptx 'ppt/slides/slide*.xml'); do
+  echo "$s $(unzip -p deck.pptx "$s" | grep -o '<a:t>' | wc -l)"; done
+```
+
+Use these modes for "someone touches up wording in a copy". When an editable
+PowerPoint file is the deliverable in its own right, that is the `office` skill,
+not an export from here.
 
 ### reveal.js
 
@@ -203,4 +227,4 @@ Run the deck QA script (`scripts/deck_qa.mjs`) against those renders exactly as
 you would against a hand-built deck. Escaping changes who owns the runtime; it
 does not add a safety net for overflow.
 
-<!-- sources: revealjs, slidev, marp-cli, marp-core, marpit, antfu-skills-slidev, impress-js -->
+<!-- sources: revealjs, slidev, marp-cli, marp-core, marpit, impress-js -->
