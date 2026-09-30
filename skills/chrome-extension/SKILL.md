@@ -4,7 +4,7 @@ description: "Builds Chrome extensions with Manifest V3, service workers and con
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: platform
 ---
 

@@ -308,3 +308,16 @@ samber-cc-skills、dot-skills 为 up to date）随 `--pin` 一并对齐；pin �
 （249886c、8de5dee）。`kind: docs` 条目不在本次范围。
 
 结论：正文未变，仅 re-pin、quangpl-ext notes 补记与版本号改为 2026.09.29；正文未变，未跑 D2。
+
+## 2026-09-30 上游同步（增量）
+
+依据：在 worktree 重跑 `uv run tools/check_upstream.py chrome-extension`（2026-09-30），1 条 `behind`。按完整区间归因：blobless 克隆到
+`/tmp/hs-up/GoogleChrome__chrome-extensions-samples`，对 `8de5dee..c9490b2` 跑 `git log --oneline -- <paths>`、`git diff --stat`。
+`--pin` 后核对写入的 commit 与审阅 HEAD 一致（c9490b2）；repo moved、tracked paths unchanged 的 tenequm-wxt（3aa8070 → 6ef6b72）随 `--pin` 前移。
+三条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| chrome-samples | 8de5dee → c9490b2（1 提交） | c9490b2：dependabot 升级 `functional-samples/` 下 8 个示例（ai.gemini-*、libraries-xhr-in-sw、tutorial.puppeteer、tutorial.terminate-sw/{puppeteer,selenium}）的 `package.json` / `package-lock.json`；`api-samples/offscreen`、`api-samples/sidePanel` 0 提交 | 噪声 | 纯依赖版本更新，不改 offscreen 单例、侧边栏打开方式或 e2e 测试目标的写法 |
+
+未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。

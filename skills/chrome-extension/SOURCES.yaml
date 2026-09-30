@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin chrome-extension
 skill: chrome-extension
-version: "2026.09.29"
+version: "2026.09.30"
 upstreams:
   - id: chrome-modern-web-guidance
     kind: repo
@@ -13,7 +13,7 @@ upstreams:
     commit: 84ae7251ee919239d5ea85aef25897983f26601e
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "The catalogue of failures that make an extension silently non-functional: a side panel declared without an open trigger, chrome.action being undefined without the manifest action key, the chrome.* allow-list inside offscreen documents, tab.url returning undefined without the tabs permission, DevTools panel paths resolving from the extension root, the four userScripts pitfalls, and a user gesture surviving only one synchronous turn across sendMessage. Also the sandbox/blob/srcdoc escape hatches for evaluating code, and the store-submission checklist including a plain-language justification per permission."
     notes: "Maintained by the Chrome team; the skill directory carries no licence of its own, so it is covered by the repository root Apache-2.0. Its Part 2 workflow around a self-invented CHROMEWEBSTORE.md project file was deliberately not adopted (a workflow convention, not a platform fact), and its cross-reference to the sibling modern-web-guidance skill was stripped per docs/skill-standard.md section 1.3. One rule was overruled: it states that activeTab is not granted by a button click inside a side panel or a popup. developer.chrome.com lists executing the action as one of the four granting gestures, and opening a popup from the toolbar is executing the action, so the popup half of that claim is wrong; the side-panel half holds. See research/chrome-extension.md ruling 9."
   - id: samber-cc-skills
@@ -26,7 +26,7 @@ upstreams:
     commit: f6dad7c07bad369d25912cfa9f0b21790f431066
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "The per-context capability matrix (chrome.* access, DOM, network, storage, lifetime, hard limits) and the channel-selection table that follows from it; the decision-tree routing style; the content-script to service-worker relay for requests a page CSP or CORS would block; orphaned-content-script detection through chrome.runtime?.id; and the async onMessage handler wrapper."
     notes: "Upstream frontmatter fields user-invocable, allowed-tools, compatibility, metadata.author and metadata.openclaw were stripped. Its description ends by delegating CRXJS builds to another repository's skill; that cross-repository pointer was removed and build-tool selection is covered here instead. Its build-tool comparison table was reduced to one default plus one escape hatch."
   - id: chrome-docs
@@ -65,7 +65,7 @@ upstreams:
     commit: cf93c57cac89d6fc3e4194686000411567f5caf3
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Coverage gaps found by walking its rule index: versioned storage-schema migrations, re-injecting after a single-page-app route change, tearing down content-script listeners and observers on context invalidation, side-panel state persistence, and coalescing high-frequency messages. From its UI rule set, only the three extension-specific items were taken: popup versus side panel, isolating injected UI in a shadow root, and rendering a popup immediately from cached data."
     notes: "All three directories sit under skills/.experimental/, marked experimental by the author. Two of its rules were overruled: content-programmatic-injection contradicts developer.chrome.com, which prefers static manifest declarations for well-known URL patterns, and svc-keep-alive-patterns contradicts the official guidance not to keep a worker alive artificially (it also contradicts the sibling rule sw-avoid-keepalive in the same repository). See research/chrome-extension.md rulings 1 and 2. Its generic TypeScript naming and structure rules were left out as they belong to the typescript skill."
   - id: rsc-harness
@@ -78,7 +78,7 @@ upstreams:
     commit: 20cab128cfdd4eac946204b4ea28af0ba94b1349
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "The framing this skill opens with - an extension is a set of contexts that never share memory and communicate only by messages, so most extension bugs are someone assuming shared state - plus the vanilla versus Vite-plus-CRXJS versus WXT skeleton-selection criteria."
     notes: "Upstream frontmatter fields tags, recommends and origin are agent-specific and were stripped. Its claim that the Manifest V2 phase-out is still rolling out is out of date: Chrome 139 removed Manifest V2 support outright, so migration is treated here as inheriting a legacy codebase rather than as a live concern. See research/chrome-extension.md ruling 7."
   - id: quangpl-ext
@@ -93,7 +93,7 @@ upstreams:
     commit: 249886cf8137086792b6c3a5a2f7adce117a9f8d
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "The three-layer test split and where a chrome.* fake belongs in it, obtaining the extension id by picking the service_worker target out of the launched browser, the Manifest V2 to V3 change list used by the migration workflow, and the permission-to-warning mapping that drives permission minimisation."
     notes: "Its extension-test skill asserts that extensions cannot run in headless Chrome at all; developer.chrome.com states that Chrome's new headless mode loads extensions when started with --headless=new, so the official position was taken. See research/chrome-extension.md ruling 3. Its extension-backend and extension-payment directories are outside this skill's scope and were not used. Its references link to each other, which this repository forbids, so the structure was flattened. Since 2026-09 its SKILL.md files carry a paid-upgrade banner and name CRXJS in place of Plasmo with a crxjs.config.ts override file that the CRXJS repository does not define (its manifest lives in manifest.config.ts via defineManifest); neither was adopted."
   - id: tenequm-wxt
@@ -103,10 +103,10 @@ upstreams:
     paths:
       - skills/chrome-extension-wxt
     ref: main
-    commit: 3aa8070376a087ac5a4b1fca0749723fc176d003
+    commit: 6ef6b721ce59564c97d9603b41927589c02ff0d3
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "The WXT entrypoints directory layout and the dev/build/zip command set including per-browser output naming."
     notes: "Its code samples import from wxt/storage and wxt/client, which are pre-0.20 paths; WXT has since moved those exports under wxt/utils/* and recommends #imports, so only the official paths appear here. See research/chrome-extension.md ruling 5. Its time-sensitive phrasing about Manifest V2 and its metadata.openclaw frontmatter block were dropped."
   - id: chrome-samples
@@ -118,9 +118,9 @@ upstreams:
       - api-samples/offscreen
       - api-samples/sidePanel
     ref: main
-    commit: 8de5deec64ebab7e252468f25263b6529df8765d
+    commit: c9490b27d516a243d56a83f9274547b182a4c493
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Cross-check only: the offscreen singleton pattern built on runtime.getContexts(), how the official samples open a side panel, and the shape of the end-to-end test target were read to confirm the rules above hold in real Google-maintained code."
     notes: "Sample code rather than prose rules, so there was nothing to merge; no code was copied."
