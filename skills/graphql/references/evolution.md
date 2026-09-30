@@ -45,7 +45,7 @@ Do this classification before designing anything, because it decides the shape o
 | New type | Unreferenced types are invisible to clients. |
 | New field on an existing type | The core additive move. |
 | New optional argument on an existing field | Must have a default or be nullable. |
-| New optional (nullable) field on an input object | Existing documents stay valid. |
+| New nullable input field, or a non-null one with a default | Existing documents stay valid; omitted, it takes the default. `graphql-inspector` reports the defaulted non-null form as dangerous, not breaking. |
 | New enum value | Safe **only** in output positions — see below. |
 | New interface implementation by a new type | Existing selections still validate. |
 | Making a nullable output field non-null | Safe for clients; a new promise for the server. |
@@ -59,7 +59,7 @@ Do this classification before designing anything, because it decides the shape o
 | Remove or rename a type, field, argument, enum value | Existing documents stop validating. |
 | Change a field's type | Even `Int` → `Float`; generated client types and parsers differ. |
 | Make an output field nullable | Clients built against ` ! ` do not handle null. |
-| Add a required argument or a non-null input field | Existing documents become invalid. |
+| Add an argument or input field that is non-null with no default | Existing documents that omit it stop validating. |
 | Remove an enum value, or add one in an input position | See below. |
 | Add a member to a union, or a new implementation clients must handle | Only breaking for clients without a fallback branch — which is most of them. |
 | Remove an interface from a type | Selections through the interface stop resolving to it. |
@@ -122,8 +122,11 @@ Removing a member is unambiguously breaking.
 
 Input objects evolve under the same rules as arguments:
 
-- Adding a nullable field is safe; adding a non-null field (with or without a default) is
-  breaking for documents already sending that input, because the input's shape is validated.
+- Adding a nullable field, or a non-null field **with a default**, is safe: an input field is
+  required only when it is non-null and has no default (spec, "Input Object Required Fields"), so
+  documents that omit it keep validating and the resolver receives the default. [verified]
+- Adding a non-null field without a default is breaking for every document already sending that
+  input.
 - Removing a field is breaking.
 - `@oneOf` cannot be added to an existing input object: it changes what a valid input is.
 

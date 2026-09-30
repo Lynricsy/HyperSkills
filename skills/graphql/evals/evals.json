@@ -53,7 +53,7 @@
       "Says a new enum value is safe to add for output positions but that removing or renaming one is breaking, and handles `PENDING` by adding `AWAITING_PAYMENT`, deprecating `PENDING`, and keeping the old value served until traffic on it is zero",
       "Warns that adding an enum value is a breaking change for input positions and for clients that switch exhaustively, and tells clients to keep a default branch and to query `__typename` on unions/interfaces",
       "Moves the coupon and stock failures out of thrown top-level errors into errors-as-data - a `placeOrderV2`-style payload with the order plus a typed `userErrors` list (or a result union) - and keeps genuine infrastructure failures in the top-level `errors` array",
-      "Points out that adding a required argument or a non-null input field is breaking, so the `status` filter must be an optional argument with no new required input fields",
+      "Points out that adding a required argument or input field (non-null with no default) is breaking, so the `status` filter must be an optional argument (nullable or defaulted) with no new required input fields",
       "Bases removal on measured per-field usage over a deprecation window rather than on a fixed number of releases, and names a mechanised breaking-change check (schema diff in CI, e.g. `graphql-inspector diff`, or the federation equivalent) as the gate",
       "Does not propose a URL/header API version such as `/graphql/v2` as the primary strategy"
     ]
@@ -78,6 +78,19 @@
       "Explains the chain: the ranking error at the explicitly non-null `relevanceScore` propagates to its `Post`, and because Pothos list items default to non-null the failing `Post` nulls the entire `feed` list",
       "Proposes a targeted fix - remove `nullable: false` from `relevanceScore`, and/or make the feed items nullable with `nullable: { list: ..., items: true }` - rather than a blanket `nullable: true`",
       "Recommends checking the printed SDL (`printSchema(builder.toSchema())` or the committed generated SDL) or reproducing with the ranking service failing, rather than reasoning from the builder calls alone"
+    ]
+  },
+  {
+    "skills": ["graphql"],
+    "query": "Review pr-order-input.graphql before I merge it. The reviewer on the PR says every non-null field or argument we add to a shipped schema is a breaking change, so all three new `PlaceOrderInput` fields and `includeArchived` have to move into a `PlaceOrderInputV2` / `ordersV2`. Our old mobile clients (operations at the bottom of the file) cannot be force-upgraded. Which of these additions actually break those clients, and what should the PR change?",
+    "files": ["evals/files/pr-order-input.graphql"],
+    "expected_behavior": [
+      "Says `currency: CurrencyCode! = USD` and `includeArchived: Boolean! = false` do not break the old clients: an argument or input field is required only when it is non-null and has no default, so documents that omit them still validate and the resolver receives the default",
+      "Identifies `channel: SalesChannel!` (non-null, no default) as the one breaking addition - the old `PlaceOrder` variables omit it and fail validation - and fixes it by making it nullable or giving it a default rather than versioning the whole input",
+      "Classifies `giftMessage: String` as a safe additive change",
+      "Rejects the blanket `PlaceOrderInputV2` / `ordersV2` as unnecessary for the defaulted and nullable additions",
+      "Notes that a default is a behavioural contract: every old client now implicitly sends `USD` and `false`, so the default must equal today's behaviour (schema-diff tools flag such additions as dangerous rather than breaking)",
+      "Verifies with a mechanised check - `graphql-inspector diff` between the shipped and the PR schema, or validating the old operations against the new schema - rather than asserting the result"
     ]
   }
 ]

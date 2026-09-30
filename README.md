@@ -148,7 +148,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`github`](skills/github/) | 平台 | Manages GitHub pull requests, issues, Actions workflows, releases and repository settings | 2026.09.30 | 15 |
 | [`go`](skills/go/) | 框架 | Develops Go code with goroutines, modules, testing and performance profiling | 2026.09.30 | 12 |
 | [`godot`](skills/godot/) | 平台 | Develops Godot games with GDScript, scenes, nodes and engine APIs | 2026.09.30 | 11 |
-| [`graphql`](skills/graphql/) | 框架 | Designs GraphQL schemas, operations, resolvers, federation and query controls | 2026.09.29 | 12 |
+| [`graphql`](skills/graphql/) | 框架 | Designs GraphQL schemas, operations, resolvers, federation and query controls | 2026.09.30 | 12 |
 | [`harmonyos`](skills/harmonyos/) | 平台 | Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling | 2026.09.30 | 12 |
 | [`html-deck`](skills/html-deck/) | 任务 | Creates browser HTML slide decks | 2026.09.30 | 20 |
 | [`java-spring`](skills/java-spring/) | 框架 | Develops Java services with Spring Boot, Spring Security and Spring Data JPA | 2026.09.30 | 8 |

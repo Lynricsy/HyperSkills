@@ -367,3 +367,59 @@ github/awesome-copilot（无相关内容）。
 删减后重跑有 skill：5/5，`skill_read=true`，同样实跑 `printSchema` 并复现修复前后响应；
 与基线打平，结论是更正不造成回退，且消除了旧文本与源码的冲突。
 负例场景 5 未跑：description 与 Scope 未改。
+
+## 2026-09-30 上游同步（增量）
+
+依据 2026-09-30 在 worktree 重跑的 `uv run tools/check_upstream.py graphql`：只有 `apollo-skills-graphql`
+为 behind（3 提交）；graphql-yoga、graphql-hive-tooling 为 repo moved / tracked paths unchanged（报告判定），
+其余 repo 条目 up to date，docs 条目为 manual check。只覆盖旧 pin → 当前 HEAD 的增量区间：blobless 克隆
+`/tmp/hs-up/apollographql__skills` 后 `git log 322da82..222dfc0 -- skills/graphql-schema skills/graphql-operations skills/apollo-federation skills/apollo-server`、
+`git diff --stat`（4 文件 +27/−10）与 `git diff`。pin 后核对：apollo 写入 `222dfc0`，与审阅 HEAD 一致；
+graphql-yoga 写入 `84c18bc`、graphql-hive-tooling 写入 `e9db2c4`，与报告给出的 HEAD 一致。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| apollo-skills-graphql | `322da82..222dfc0`（`194056e`、`79d2b07`，`222dfc0` 为合并提交） | `graphql-operations/SKILL.md`：新增「Start From the Schema」一节与 Ground Rule「先读项目 schema，只用其定义的字段/参数/枚举值」 | 已覆盖 | 本 skill 的 write-or-review-an-operation 工作流首条即「Read the schema first」，Core rule 1 亦要求先读 SDL |
+| | | `graphql-schema/SKILL.md`：description 扩到「凡创建或编辑 SDL 都触发」 | 噪声 | 上游自身触发词，本 skill 的 description 另有标准约束 |
+| | | 同文件：「无限增长的列表必须分页、`first` 给默认页大小」 | 已覆盖 | Core rule 14、15 与 design-or-review-a-schema 工作流 |
+| | | 同文件：「新参数或 input 字段要么有默认值、要么可空；NEVER add a required argument or input field without a default value」 | **需更正**（本 skill 旧文有误） | 见下 |
+| | | `references/naming.md`、`references/types.md`：update mutation 把 `id` 移进 `UpdateXInput` | 噪声 | 示例风格；本 skill Core rule 10 已是「单一 input 对象参数」 |
+
+**更正：带默认值的非空 input 字段不是 breaking。** 上游新规则把「默认值」与「可空」并列为安全条件，
+对照本 skill 发现 `references/evolution.md`「Input evolution」一节写的是「adding a non-null field (with
+or without a default) is breaking … because the input's shape is validated」，分类表与 `SKILL.md`
+规则 6、evolve 工作流、`references/schema-design.md` 也只写「non-null input field」而不区分默认值。证据：
+
+- 规范（`graphql/graphql-spec` main `3f1ef84`，`gh api` 读 `spec/Section 5 -- Validation.md`）：
+  「Required Arguments」——参数为必填当且仅当类型非空且没有默认值；「Input Object Required Fields」——
+  input 字段同理。
+- 实跑（`/tmp/hs-scratch-SyncG29/gql`）：旧 schema `input I { a: Int }`、`f(i: I)`，新 schema 加
+  `b: Int! = 5` 与参数 `x: Int! = 3`。graphql-js 16.14.2 与 17.0.2 下，旧文档 `{ f(i: {a: 1}) }`
+  与变量形式 `query($i: I)` 均 `validate` 无错，resolver 收到 `{"i":{"a":1,"b":5},"x":3}`。
+- `npx @graphql-inspector/cli@latest diff`（7.0.0）：带默认值的两项报 ⚠（dangerous）、「No breaking
+  changes detected」、exit 0；去掉默认值后两项均为 ✖、exit 1。
+
+改动（最小更正）：`evolution.md` 分类表的 Safe 行改为「nullable 或带默认值的非空 input 字段」，并注明
+graphql-inspector 视其为 dangerous；Breaking 行改为「非空且无默认值」；「Input evolution」首条改写、
+`[verified]`。`SKILL.md` 规则 6 与 evolve 工作流、`schema-design.md` 的对应句补「无默认值」限定。
+`evals.json` 场景 4 的第 6 条期望同步措辞。
+
+### 评测（D2）
+
+新增场景 7（`evals/files/pr-order-input.graphql`：PR 给已发布的 `PlaceOrderInput` 加
+`currency: CurrencyCode! = USD`、`channel: SalesChannel!`、`giftMessage: String`，给 `Query.orders` 加
+`includeArchived: Boolean! = false`；评审者称「非空新增一律 breaking、全部挪进 V2」）。模型
+`workbuddy/deepseek-v4.1-flash`、thinking `max`，advisor 关闭，基线与有 skill 同条件。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 PR 新增非空字段是否 breaking | deepseek-v4.1-flash · max | 无 | false | 6 / 6 | 134 s。自建 graphql-js 16.14.2 脚本跑文件底部两条旧操作，五种 schema 变体对照；只判 `channel` 破坏，提出 `includeArchived` 默认值应保持现行为 |
+| 7 PR 新增非空字段是否 breaking | deepseek-v4.1-flash · max | 有 | true | 6 / 6 | 160 s。`events.jsonl` 确认读的是 `skill://graphql`（`version: 2026.09.30` 新文本）与 `references/evolution.md`；实跑 graphql-inspector diff（exit 1 → 修复后 exit 0）与 graphql-js 强转，另指出显式传 null 仍会失败 |
+
+结论：基线已会（与 2026-09-29 的 Pothos 更正同一情形），本次改动定性为**事实更正**而非新增——旧文本
+会把有 skill 的运行推向「带默认值也 breaking」的错误结论 `[INFERENCE：未用旧文本跑有 skill 对照]`。
+更正后有 skill 与基线打平、无回退，场景 7 保留为哨兵。负例场景 5 未跑：description 与 Scope 未改。
+
+安装冒烟：`npx skills@latest add /tmp/hs-wt/SyncG29 --skill graphql --agent universal --copy --yes` 到
+`/tmp/hs-smoke-graphql`，`.agents/skills/graphql/` 下 SKILL.md、NOTICE.md、SOURCES.yaml、8 个 references、
+evals 与 7 个夹具齐全，与 worktree 内容 `diff -rq` 无差异。

@@ -1,0 +1,69 @@
+# Pull request #412 - "checkout: currency, sales channel, gift messages, archived orders"
+# Shipped schema; lines marked "# PR" are the additions under review.
+# iOS 5.x and Android 4.x clients send the operations at the bottom of this file and
+# cannot be force-upgraded.
+
+enum CurrencyCode {
+  USD
+  EUR
+  GBP
+}
+
+enum SalesChannel {
+  WEB
+  IOS
+  ANDROID
+  PARTNER
+}
+
+type Money {
+  amount: Int!
+  currency: CurrencyCode!
+}
+
+type Order {
+  id: ID!
+  total: Money!
+  archived: Boolean!
+}
+
+input LineItemInput {
+  sku: String!
+  quantity: Int!
+}
+
+input PlaceOrderInput {
+  cartId: ID!
+  lineItems: [LineItemInput!]!
+  couponCode: String
+  currency: CurrencyCode! = USD       # PR
+  channel: SalesChannel!              # PR
+  giftMessage: String                 # PR
+}
+
+type UserError {
+  code: String!
+  message: String!
+}
+
+type PlaceOrderPayload {
+  order: Order
+  userErrors: [UserError!]!
+}
+
+type Query {
+  orders(first: Int = 20, after: String, includeArchived: Boolean! = false): [Order!]!   # PR: includeArchived
+}
+
+type Mutation {
+  placeOrder(input: PlaceOrderInput!): PlaceOrderPayload!
+}
+
+# --- Operations shipped in the mobile apps (unchanged by this PR) ---
+#
+# mutation PlaceOrder($input: PlaceOrderInput!) {
+#   placeOrder(input: $input) { order { id total { amount currency } } userErrors { code message } }
+# }
+# variables: { "input": { "cartId": "c1", "lineItems": [{ "sku": "A", "quantity": 1 }] } }
+#
+# query Orders { orders(first: 20) { id archived } }

@@ -58,8 +58,9 @@ the parent object without it still be useful?
 
 Inputs invert the trade-off. A non-null argument or input field costs nothing at execution time
 and eliminates a validation branch, so mark genuinely required inputs ` ! `. The cost arrives
-later: adding a required argument, or adding a non-null field to an existing input object, is a
-breaking change for every client already sending that input.
+later: adding a required argument, or a non-null field with no default to an existing input
+object, is a breaking change for every client already sending that input. A schema default
+makes the new position optional again.
 
 graphql-js 17 exposes an operation-level `@experimental_disableErrorPropagation` directive that
 turns null-bubbling off for one operation, and the executor reads it into an `errorPropagation`

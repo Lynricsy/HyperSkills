@@ -4,7 +4,7 @@ description: "Designs GraphQL schemas, operations, resolvers, federation and que
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: framework
 ---
 
@@ -66,7 +66,9 @@ Paths below are relative to this skill's directory.
    nullable.
 6. Non-null on the input side is the opposite trade: a required argument or input field costs
    nothing at runtime and removes a whole class of validation. The cost is later — adding a
-   required argument or a non-null input field to a shipped schema is a breaking change.
+   required argument or input field (non-null **with no default**) to a shipped schema is a
+   breaking change. With a schema default it is not required: old documents still validate and
+   the resolver receives the default.
 7. Model the domain the clients render, not the tables behind it. A type that mirrors a table
    freezes today's storage layout into a contract you cannot version out of.
 8. Return object types rather than scalar foreign keys. A field `author` typed as the `Author`
@@ -191,8 +193,8 @@ Paths below are relative to this skill's directory.
 ### evolve-a-schema-without-breaking-clients
 
 - [ ] Classify every requested change first: additive (new type, new field, new optional
-      argument, new output enum value) or breaking (retype, rename, remove, new required
-      argument or non-null input field, new union member, removed enum value) —
+      argument, new output enum value) or breaking (retype, rename, remove, new argument or input
+      field that is non-null with no default, new union member, removed enum value) —
       `references/evolution.md`.
 - [ ] For each breaking change, design the additive equivalent: a new field beside the old one,
       a new mutation beside the old one, a new enum value served alongside the old one.
