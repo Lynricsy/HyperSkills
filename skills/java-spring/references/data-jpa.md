@@ -161,8 +161,11 @@ needs "is there more".
 - `@Transactional` belongs on service methods. On a controller it holds the transaction open across
   view rendering; on a repository it is one transaction per call, which cannot compose.
 - Annotate the class `@Transactional(readOnly = true)` and override the writers with plain
-  `@Transactional`. `readOnly` lets Hibernate skip dirty-check snapshots and lets the driver route
-  to a replica.
+  `@Transactional`. `readOnly` lets Hibernate skip dirty-check snapshots and marks the JDBC
+  connection read-only. It is only a hint: it neither guarantees that writes fail nor routes
+  anything to a replica by itself. Replica reads need a routing `DataSource`, such as
+  `LazyConnectionDataSourceProxy` with a read-only `DataSource` (Spring 6.1.2+) or an
+  `AbstractRoutingDataSource` keyed on `isCurrentTransactionReadOnly()`.
 - Keep remote calls out of the transaction. An HTTP call inside one holds a database connection for
   the length of someone else's timeout.
 

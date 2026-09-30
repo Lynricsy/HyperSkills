@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: payments
+  datasource:
+    url: jdbc:postgresql://pg-primary.internal:5432/payments
+    username: payments
+    password: ${PAYMENTS_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+
+# Streaming replica, kept in sync by PostgreSQL physical replication.
+# Read-only service methods (@Transactional(readOnly = true)) are expected to land here.
+payments:
+  replica:
+    url: jdbc:postgresql://pg-replica.internal:5432/payments

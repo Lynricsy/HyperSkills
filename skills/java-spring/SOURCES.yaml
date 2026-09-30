@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin java-spring
 skill: java-spring
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: rrezart-spring-boot
     kind: repo
@@ -25,10 +25,10 @@ upstreams:
       - skills/spring-boot-4/multi-module-maven
       - skills/spring-boot-4/spring-boot-migration
     ref: main
-    commit: c43b0b6b7937f63b7e86ab1e19cc229cdc63ddd8
+    commit: f0c06a01b0b7571b519cd43e16692b2483a24514
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The trunk: transaction propagation and the self-invocation trap, after-commit side effects, retry placement relative to the transaction, entity mapping and new-state detection, N+1 remedies, keyset pagination, JDBC batching, Flyway starter requirement in Boot 4, Spring Security 7 lambda-DSL filter chains and OAuth2 resource-server claim mapping, RFC 9457 error contracts, @ImportHttpServices client groups, typed configuration binding and JSpecify, test-slice selection, Spring Modulith boundaries and durable module events, Actuator and Micrometer conventions, container and native packaging, and the per-topic 'what the agent gets wrong' lists that shaped the Core rules."
     notes: "Upstream keeps parallel skills/spring-boot-3 and skills/spring-boot-4 trees. Only the spring-boot-4 tree is merged; the spring-boot-3 tree was read solely to identify which differences are genuine 3-to-4 breaking changes (see research/java-spring.md ruling 1). Its rest-api-conventions, api-versioning, openapi-first, hateoas, spring-cloud-gateway, spring-batch, spring-data-redis, multi-tenancy, spring-ai-integration, ai-observability and mcp-server directories fall outside this skill's scope and were not used."
   - id: awesome-copilot
@@ -42,10 +42,10 @@ upstreams:
       - instructions/java-17-to-java-21-upgrade.instructions.md
       - instructions/java-21-to-java-25-upgrade.instructions.md
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Test-slice decision table, MockMvcTester and RestTestClient usage, why the Spring context cache is the real cost of a slow suite, the GraalVM native workflow of building first and deriving runtime hints from the actual failure, the Spring Boot 4 starter rename and package relocation tables, Jackson 3 type renames, and the JDK 18-25 feature, deprecation and preview-flag inventory behind the language reference."
     notes: "The instructions/*.instructions.md frontmatter field applyTo is an agent-specific glob and was stripped. Its claim that Spock support is removed reflects Spring Boot 4.0 only; 4.1 restored it, and this skill states the 4.0-versus-4.1 split (research/java-spring.md ruling 3). instructions/springboot.instructions.md, skills/java-springboot, skills/java-junit and the create-spring-boot-* scaffolding skills were read and rejected as generic; they are not in paths."
   - id: pavithraa-springboot
@@ -60,7 +60,7 @@ upstreams:
     commit: 6277c14290b2a19441ae1b74c29cfb9f3c8c4e54
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Repository-per-aggregate-root rather than per-entity, the query-shape selection table (derived, @Query, projection, custom fragment, dedicated query service), the persist-versus-merge semantics of save(), the review finding structure, and how Java 21-25 language features actually land in Spring code."
     notes: "Its creating-springboot-projects skill is one-shot scaffolding and was not used. Its Testcontainers 2 migration advice goes further than the official documentation and was not adopted."
   - id: spring-testing-skills
@@ -76,7 +76,7 @@ upstreams:
     commit: 7e7b33174e8b4cf7d756b73d76ec4ebd3f82568c
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The @DataJpaTest rule that setup goes through TestEntityManager and that flush() plus clear() must precede a read assertion, otherwise the first-level cache serves the answer and the query never runs; the ways the test transaction hides lazy-loading and constraint failures that occur in production; and the @Modifying clearAutomatically requirement."
     notes: "The GitHub API reports NOASSERTION; the repository's LICENSE file is the full Apache License 2.0 text, so it is merged as Apache-2.0. Upstream frontmatter fields version and license were stripped."
   - id: adityamparikh-boot4
@@ -94,7 +94,7 @@ upstreams:
     commit: 9ba6aabcefec8d76de2dedc39b05f4baf774aa5e
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The Spring Security 7 removal inventory (WebSecurityConfigurerAdapter, and() chaining, antMatchers, AntPathRequestMatcher and MvcRequestMatcher, AuthorizationManager#check, DaoAuthenticationProvider setter injection, SecurityJackson2Modules, OpenSAML 4), the security-starter namespace renames, and the strategy of moving to Security 6.5 with its preparation flags before 7.0."
     notes: "Each removal was verified against spring-projects/spring-security: PathPatternRequestMatcher exists at web/src/main/java/org/springframework/security/web/servlet/util/matcher/, and DaoAuthenticationProvider now offers only the UserDetailsService constructor."
   - id: spring-docs

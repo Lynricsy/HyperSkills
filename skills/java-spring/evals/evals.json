@@ -69,5 +69,22 @@
       "Answers as Android/Kotlin work: replaces GlobalScope and the hand-rolled CoroutineScope(Dispatchers.IO) with viewModelScope so the work is cancelled when the ViewModel clears",
       "Gives no Spring, Spring Boot, JPA or servlet advice"
     ]
+  },
+  {
+    "skills": ["java-spring"],
+    "query": "Review PaymentService.java, PaymentExpiryJob.java, V7__audit_entry.sql and payments-application.yml in this directory (Spring Boot 4, PostgreSQL). Auditors found PAYMENT_CAPTURED audit entries for payments that do not exist, merchants never receive the nightly 'payments expired' e-mail although the expiry job runs and the rows do change to EXPIRED, and we want confirmation that our read-only service methods really run on the replica. Explain each problem and show the fixes.",
+    "files": [
+      "evals/files/PaymentService.java",
+      "evals/files/PaymentExpiryJob.java",
+      "evals/files/V7__audit_entry.sql",
+      "evals/files/payments-application.yml"
+    ],
+    "expected_behavior": [
+      "Explains that AuditTrail.record commits the PAYMENT_CAPTURED row in its own REQUIRES_NEW transaction before ledger.post can throw, so when capture rolls back the success audit survives for a payment that was never committed",
+      "Fixes it by writing the success audit in the caller's transaction (default REQUIRED, or MANDATORY to enforce it) so it commits or rolls back with the capture, keeping REQUIRES_NEW only for records that must outlive a failure such as a failed-attempt entry - rather than adding more REQUIRES_NEW or try/catch around the audit",
+      "Explains that expireStale publishes PaymentsExpired with no transaction active (the scheduled method is not @Transactional; markExpired's repository transaction has already committed), so the @TransactionalEventListener is silently skipped because fallbackExecution defaults to false",
+      "Fixes the expiry by moving the query, update and publishEvent into one @Transactional service method called from the scheduler (or explicitly sets fallbackExecution = true with the trade-off stated), and notes that AFTER_COMMIT delivery is still best effort without an outbox or persistent publication registry",
+      "States that readOnly = true is only a hint and does not route anything by itself: with a single spring.datasource URL every transaction hits the primary, and replica routing needs a routing DataSource (for example LazyConnectionDataSourceProxy with a read-only DataSource, or AbstractRoutingDataSource keyed on the current transaction's read-only flag)"
+    ]
   }
 ]

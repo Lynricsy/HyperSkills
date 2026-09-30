@@ -232,3 +232,44 @@ Spring Boot 工程做了对照实验），缺口集中在「不查文档就想�
 - **放弃的方向**：REST 契约/OpenAPI 设计（`rest-api-conventions`、`api-versioning`、`openapi-first`、
   `hateoas`）、Spring Cloud Gateway、Spring Batch、Spring AI、Spring Data Redis、多租户——
   按本波边界不覆盖，主干上游中对应的目录未进 `paths`。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 2 条 `behind`，其中
+awesome-copilot 为 `diff too large`。全部按完整区间归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对
+`<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`，并用
+`git cat-file -e <HEAD>:<path>` 确认 tracked path 均仍存在。`--pin` 后逐条核对：写入的 commit 与审阅 HEAD 一致
+（f0c06a0、15ed97c）。三条 docs 为 manual check，本次只为核实下文的事实更正读了 spring-framework 源码。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| rrezart-spring-boot | c43b0b6 → f0c06a0（2 提交） | 09d9b78「Correct transaction and domain event skill guidance」：`spring-boot-4/transactional-patterns` 的 SKILL.md、good/bad 示例与模板。要点：① `readOnly` 只是优化提示，不是写保护也不自动路由到副本；② 成功审计不该用 `REQUIRES_NEW`（外层回滚后留下声称成功的孤儿行），改 `MANDATORY` 同事务，`REQUIRES_NEW` 只留给必须在失败后存活的「尝试」记录，且独立事务不可引用未提交父行；③ 删除错误的 `noRollbackFor = OptimisticLockException` 示例；④ 没有活动事务时 `@TransactionalEventListener` 默认被跳过；⑤ AFTER_COMMIT 非持久投递，必达要 outbox；⑥ saga 改为「本地事务 + 幂等命令 + 补偿」步骤描述；⑦ 修复建议去掉「注入自身」；⑧ 仓库层事务注解不该被删 | ① 需更正（事实更正）；②④ 候选 → 评测后不合入；③⑤⑦⑧ 已覆盖；⑥ 噪声 | ① `references/data-jpa.md` 原文「`readOnly` … lets the driver route to a replica」暗示标志本身可路由，见下「事实更正」。②④ 写成场景 5，无 skill 基线全部答出。③ 正文从未写 `noRollbackFor` 恢复乐观锁，重试节已是「调用方 bean + 新事务」；⑤ data-jpa「Side effects after commit」与 modulith 已写进程内投递会丢、用持久发布登记或 outbox；⑦ 正文首选抽 bean，`exposeProxy` 仅作最后手段；⑧ 正文只说业务事务放在服务层，没有让删仓库注解。⑥ 是通用架构常识，本 skill 不覆盖分布式事务 |
+| awesome-copilot | 7568a48 → 15ed97c（64 提交） | 5 个 tracked 路径 0 提交 | 噪声 | 区间改动全在其他 skill/instructions；too-large 只是 compare 上限 |
+
+### 事实更正：`readOnly` 与副本路由
+
+证据（`gh api` 读 spring-projects/spring-framework `main`）：`Transactional#readOnly` 的 javadoc 写明它
+「just serves as a hint for the actual transaction subsystem; it will not necessarily cause failure of write access
+attempts」，不能解释该提示的事务管理器会静默忽略它；`HibernateJpaDialect#beginTransaction` 在 `readOnly` 时只通过
+`DataSourceUtils.prepareConnectionForTransaction` 给物理连接设只读，不选数据源；真正按只读事务换数据源的是
+`LazyConnectionDataSourceProxy#setReadOnlyDataSource`（`@since 6.1.2`）或以
+`TransactionSynchronizationManager#isCurrentTransactionReadOnly()` 取键的 `AbstractRoutingDataSource`。据此把
+`references/data-jpa.md`「Transaction boundaries」一条改为：标志只是提示，既不保证写失败也不自行路由，副本读需要
+路由 `DataSource`，并点名上述两种做法。
+
+### 评测
+
+新增场景 5（夹具 `PaymentService.java`、`PaymentExpiryJob.java`、`V7__audit_entry.sql`、
+`payments-application.yml`）：成功审计走 `REQUIRES_NEW` 留孤儿行、无事务发布事件致 AFTER_COMMIT 监听器被跳过、
+以为 `readOnly` 已把读流量送到副本。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3、4、5（5/5） | 自行核对了 `fallbackExecution` 默认值；给出 `MANDATORY` 同事务、失败尝试另表；`@Transactional` 包住作业并提到 AFTER_COMMIT 需 outbox 才必达；路由用 `AbstractRoutingDataSource` + `LazyConnectionDataSourceProxy` |
+| 5 | workbuddy/deepseek-v4.1-flash（thinking max） | 有 | True | 1、2、3、5；4 前半（4.5/5） | 正文改后跑；1、2、3、5 与基线同；4 只给了 `@Transactional` 修复和可选 `@Async`，没提 AFTER_COMMIT 仍是尽力而为（该句在 `data-jpa.md` 已有，本次未改动相关段落）；5 与更正后的 data-jpa 表述一致 |
+
+结论：②④ 两个候选基线已会，按规则不合入，场景 5 保留作哨兵；正文只做 ① 的事实更正。D1 静态门通过；安装冒烟
+（`npx skills@latest add <worktree> --skill java-spring --agent universal --copy --yes`）后
+`.agents/skills/java-spring/` 的 SKILL.md、SOURCES.yaml、NOTICE.md 与 10 个 references 齐全，与源目录 `diff -r` 一致。
