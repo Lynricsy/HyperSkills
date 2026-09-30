@@ -4,7 +4,7 @@ description: "Manages AWS architecture, IAM, cloud services, deployments and cos
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: platform
 ---
 

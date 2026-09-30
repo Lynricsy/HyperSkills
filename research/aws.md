@@ -415,3 +415,16 @@ skill 弃用，继任者为 `aws/agent-toolkit-for-aws` 的 `aws-well-architecte
 - CloudWatch Omni 是新产品面，本次未评估是否需要进入本 skill；下次同步 `aws-agent-toolkit`
   的 `aws-observability` 时应重新判断。
 - `aws-wa-samples` 已冻结，今后大概率只剩噪声提交；若其仓库被归档，可考虑把 relation 降为 reference。
+
+## 2026-09-30 上游同步（增量）
+
+依据：在 worktree 重跑 `uv run tools/check_upstream.py aws`（2026-09-30），1 条 `behind`。按完整区间归因：blobless 克隆到
+`/tmp/hs-up/aws__agent-toolkit-for-aws`，对 `8164a8f..decfb6f` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`。
+`--pin` 后核对写入的 commit 与审阅 HEAD 一致（decfb6f）；repo moved、tracked paths unchanged 的 awesome-copilot-aws（997e95a → e7c25a4）
+随 `--pin` 前移。aws-docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| aws-agent-toolkit | 8164a8f → decfb6f（5 提交） | bc597f3：`aws-database/SKILL.md` +5/-5——metadata.version 2→3、路由表 ID 改为指向已有的 `references/select.md` 等链接、Neptune 行补上对应的服务 skill 名 `amazon-neptune` | 噪声 | 路由/打包层面的元数据改动，不含新的数据库选型事实或限制；本 skill 的数据服务选型不依赖其路由表 |
+
+未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。

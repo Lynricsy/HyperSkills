@@ -1,5 +1,5 @@
 skill: aws
-version: "2026.09.29"
+version: "2026.09.30"
 upstreams:
   - id: awslabs-agent-plugins
     kind: repo
@@ -16,7 +16,7 @@ upstreams:
     commit: 097fe8ad56d8a1d5e2c81d7880adf145553cf244
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Serverless backbone: Lambda quotas and idempotency rules, the REST/HTTP/WebSocket API Gateway selection table and its failure modes, Step Functions Standard versus Express semantics and JSONata, SAM and CDK deployment practice, and the workload-shape criteria for picking a managed compute service. From the dsql skill: the transaction row limit, which counts modified rows (corrected 2026-09-29 from 'rows per transaction' after re-reading the Aurora DSQL quota page)."
     notes: "Claude Code bindings stripped: argument-hint, metadata.tags, the 'MCP Server Unavailable' branch, and the 'ALWAYS use CDK/TypeScript' defaults (rewritten as workload-shape criteria). Its Lambda timeout table predates the Managed Instances exception; the official quota page wins."
   - id: aws-agent-toolkit
@@ -35,10 +35,10 @@ upstreams:
       - skills/core-skills/aws-security
       - skills/core-skills/aws-well-architected-review
     ref: main
-    commit: 8164a8fa8f111398596dfcf30fd24a23c051036b
+    commit: decfb6feff04765401800d763a02a4e696edd12d
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "IAM edge behaviour (policy evaluation, PassRole escalation, condition operators, STS and Organizations limits), the CloudFormation validation layers and describe-events, CDK deadly embrace and logical-id replacement, cost API traps, and the EKS/ECS control-plane surface including the App Runner sunset."
     notes: "The repo ships the same skills twice; skills/core-skills is tracked and plugins/aws-core is its mirror. Removed the AWS-MCP 'retrieve_skill' guardrail sections, the call_aws / aws___read_documentation tool names, and the Metadata.AWSToolsMetrics.AWSAgentToolkit attribution marker it asks agents to write into user templates. aws-well-architected-review was added to paths on 2026-09-29 because aws-samples/sample-well-architected-skills-and-steering names it as the successor of its deprecated review skill; it is tracked so future Well-Architected changes surface here, and nothing from it was merged - it is a gated live-documentation review procedure bound to AWS MCP tools, and its calibration guidance (severity follows business criticality, no manufactured Critical findings) is already in references/well-architected.md."
   - id: aws-wa-samples
@@ -51,7 +51,7 @@ upstreams:
     commit: e81835b1d159cdbd86a44d6bd820bc9914fb86c2
     license: MIT-0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Well-Architected question grouping per pillar and the high-frequency failures in each, reshaped into this skill's trade-off table."
     notes: "MIT No Attribution, read from the LICENSE file: no notice-retention condition. Only the question semantics were taken; the per-question file structure and the 14 tool adapters were not. On 2026-09-23 (35042c1, issue #147) the repository deprecated its aws-well-architected-framework-review skill in favour of aws-well-architected-review in aws/agent-toolkit-for-aws and froze new feature work; the repository itself is kept, not archived, as a compatibility suite. Re-adjudicated 2026-09-29: the question semantics already merged remain valid and stay attributed here, and the successor is tracked under aws-agent-toolkit."
   - id: aws-builder-samples
@@ -64,7 +64,7 @@ upstreams:
     commit: b4d559561c2d602db544f46dc5c4226998e0078b
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Lambda authorizer cache-key semantics and the policy-reuse authorisation bypass."
     notes: "The rest of the repository is Bedrock AgentCore material, which no skill in this library covers yet and which was deliberately left out."
   - id: awesome-copilot-aws
@@ -78,10 +78,10 @@ upstreams:
       - skills/aws-resource-health-diagnose
       - skills/aws-resource-query
     ref: main
-    commit: 997e95a6e42869c350f8ca6ec4c066287697c9f0
+    commit: e7c25a4e9c440dde98cb704230c24026ad01e925
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "CloudWatch investigation flow and Logs Insights usage, the cost resource-discovery command sequence, and the concrete Well-Architected review items."
     notes: "Every one of these skills ends by filing GitHub issues; that agent binding was removed."
   - id: aws-docs
@@ -102,7 +102,7 @@ upstreams:
     commit: e786d25128a6018d42bd7bcb8c47c531ff31c0f0
     license: MIT
     relation: reference
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Its eighteen per-service skills were used as a coverage checklist only. Its 2026-09-15 cloudwatch refresh pointed at CloudWatch log alarms and alarm mute rules; the log alarm model and the mute rule's two-resource permission were then written from the AWS documentation, not from this repository, while the rest of the mute-rule mechanics and its bedrock refresh (cross-Region inference authorisation) were not merged because the no-skill baseline already handled them."
     notes: "Tutorial-style content that restates what the model already knows; nothing was merged verbatim or paraphrased from it."
   - id: zxkane-aws
@@ -116,6 +116,6 @@ upstreams:
     commit: 68530c6f296ccd2f5e99c79782f3e0fbf962c51a
     license: MIT
     relation: reference
-    synced_at: "2026-09-29"
+    synced_at: "2026-09-30"
     contributes: "Cross-check for the cost inspection checklist and CDK practice."
     notes: "Last pushed three months before this sync and centred on Bedrock AgentCore and SST, both out of this skill's scope; nothing was merged."
