@@ -89,11 +89,16 @@ state transitions with a counter or a validity check, not as toggles.
 ## Networked physics
 
 Physics replication applies to actors that replicate movement and whose root component
-simulates physics; the simulation runs on the client machine. The Default replication mode is
-the legacy path, and other modes exist for physics-driven gameplay. Treat networked physics as
-a deliberate design decision with its own mode selection, not as "replicate movement and hope
-the simulations agree" — two machines simulating independently will not produce identical
-results.
+simulates physics. The client runs the simulation locally, but the object stays
+server-authoritative: in the legacy **Default** mode the client's velocity is overwritten
+each update to reach the server's state forward-predicted by half a round trip, so local
+interactions are corrected away. **Predictive Interpolation** blends local and server
+velocity so predicted client forces and pushes survive; **Resimulation** fully
+forward-predicts on the client, caches physics history for at least one RTT and rewinds and
+resimulates on a mismatch — it is the mode for physics-driven pawns, whose inputs go through
+the C++-only Network Physics component. Treat the mode as a deliberate design decision, not
+as "replicate movement and hope the simulations agree" — two machines simulating
+independently will not produce identical results. `[official]`
 
 ## Destruction
 

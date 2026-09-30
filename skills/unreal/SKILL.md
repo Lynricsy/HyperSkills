@@ -4,7 +4,7 @@ description: "Develops Unreal Engine gameplay with C++, Blueprints and engine AP
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: platform
 ---
 
@@ -114,9 +114,11 @@ word.
     a context without a priority plan produces input that works until the second context
     appears. `[official]`
 19. In the Gameplay Ability System, an Ability System Component does not replicate Abilities
-    and Gameplay Effects to all clients — only the Gameplay Attributes and Tags they affect
-    — and Gameplay Cues are not reliably replicated, so a Cue is cosmetic feedback only.
-    Gameplay-relevant feedback goes through Ability Tasks. `[official]`
+    to all clients — only the Gameplay Attributes and Tags they affect — and Gameplay Cues
+    are not reliably replicated, so a Cue is cosmetic feedback only. Gameplay Effects
+    follow the component's replication mode: `Full` sends every effect to every client,
+    `Mixed` only to the owner, `Minimal` to nobody, so a multiplayer ASC needs an explicit
+    `SetReplicationMode`. Gameplay-relevant feedback goes through Ability Tasks. `[official]`
 20. Lumen ignores lights whose Mobility is `Static`, because static light contribution lives
     in lightmaps and is disabled when Lumen is on. A project upgraded from UE4 does not get
     Lumen enabled automatically, and Lumen's hardware ray tracing carries significant scene
@@ -202,7 +204,7 @@ word.
 
 ### optimize-a-frame
 
-- [ ] Measure before changing anything: `stat unit` to split game / draw / GPU, then
+- [ ] Measure before changing anything: `stat unit` to split game / draw / RHI thread / GPU, then
       `stat game`, `stat collision` or an Unreal Insights capture on the scene that is slow.
       See `references/unreal-build.md` for the capture commands.
 - [ ] Attribute the cost to a thread. Game-thread cost is usually tick work, per-frame

@@ -202,7 +202,7 @@ engine.
 
 ## Measuring a frame
 
-- `stat unit` splits frame time into game, draw and GPU — always the first command, because
+- `stat unit` splits frame time into Game, Draw, RHIT (RHI thread) and GPU — always the first command, because
   it decides which of the other tools is relevant.
 - `stat game`, `stat collision` and the other stat groups attribute game-thread cost.
 - Unreal Insights is the profiler for a timeline capture; the legacy stat profiler is

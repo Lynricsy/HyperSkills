@@ -296,3 +296,58 @@ Cloudflare 429。本轮用受控浏览器渲染后抓 `innerText`，共取到 40
 仅修改否定边界与版本；UObject、Gameplay、复制、GAS等平台规则、上游pin和既有评测不变，
 不把本次边界更新当成重新验证Unreal平台行为。对应C++的Unreal近似负例由本批使用
 `openai/gpt-5.6-sol`、`medium`检验，结果记在`research/cpp.md`。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 4 条 `behind`。全部按完整区间
+归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、
+`git diff --stat` 与 `git diff`；四个仓库区间内均无 LICENSE 变更（kevinpbuckley 仍无许可文件）。quodsoler 的 92 文件
+重写由只读 scout 子代理逐目录对照本 skill 的 references 读新增/改动行，再由我逐条回到 Epic 官方页核实。
+`--pin` 后核对：写入的 commit 与审阅 HEAD 一致（d4b0e35、a6aa73a、27eb7c3、f3742d7）；benjaminastera-skills 为
+「repo moved, tracked paths unchanged」，随 pin 前进到 ecd7038。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| gamedev-unreal | b105e1c → d4b0e35（13 提交） | e4e9569：`unreal-behavior-trees/SKILL.md` +7 行「Behavior Tree 还是 StateTree」，5.8 两者并存、BT 未弃用 | 已覆盖 / 不合入 | 本 skill 的 gameplay-framework 已把 AI Controller 写成由行为树、StateTree 与导航驱动；这是项目选型建议，不是模型不会的引擎事实 |
+| epic-ue-skills | d1b0580 → a6aa73a（1 提交） | a6aa73a「[MCP] Permit safe concurrent tool calls」：`unreal-mcp/SKILL.md` 与 `operations.md` 把「必须串行」改为「MCP 接受并发请求，依赖调用与改同一资产的调用仍要串行」 | 噪声 | 本 skill 的 `unreal-build.md`「Editor automation from an agent」只写 MCP 是改 `.uasset` 的正规途径，从未写串行规则，无需改 |
+| kevinpbuckley-ue | 023eaa6 → 27eb7c3（2 提交） | 639f6e5：导入的器官类曲面接缝、LOD 重导后材质槽与 section 映射；27eb7c3：自动地形材质、RVT 与草、主材质、材质图特效、5 个 Niagara 美术制作 skill；另把「Flip Green Channel」说法改为 OpenGL +Y 需翻转 | 不合入 | 均为美术制作/资产流程指南，超出本 skill（C++/Blueprint 玩法、复制、GAS、构建与渲染系统取舍）的范围；法线绿通道约定本 skill 未涉及 |
+| quodsoler-ue | 231c857 → f3742d7（1 提交，92 文件 +31k/−21k） | f3742d7「Updated skills for Unreal Engine 5.8. Added new skills」：全部 skill 按同一模板重生成，新增「Deprecated — do not use」表（引用引擎头文件行号）、blueprint-cpp-interop/mover/gameplay-cameras/gameplay-tags-messaging 等新目录 | 需更正（3 处，据官方页）/ 其余不合入 | 见下 |
+
+### quodsoler 重新裁决与三处事实更正
+
+新鲜度：上次裁决时最后推送为 2026-03-01（新鲜度 0，故 reference）；本次 2026-09-28 推送，新鲜度理由失效。
+内容裁决仍为 reference：整批重写是同一流水线模板生成的；约 20 条 5.5–5.8 弃用/改名事实（`BeginReplication`→Iris
+回调、`NetUpdateFrequency` setter、`bReplicateUsingRegisteredSubObjectList` 默认 false、`bUsedWith*`→
+`GetUsageByFlag`、`UInputTriggerCombo` 5.8 弃用等）全部只引 EpicGames/UnrealEngine 头文件行号，
+`gh api repos/EpicGames/UnrealEngine` 返回 404（访问受限），无法核实，不合入；抽查还发现过度概括（「Triggered 每个
+活跃帧都触发」与 Epic 的触发状态定义不符，取决于 trigger）。其 Live Coding「结构性改动须重启」与 Nanite 半透明
+「mesh fallback」同本 skill 依据的官方页矛盾，维持本 skill 原文。
+
+它与本 skill 矛盾、且官方页证实本 skill 旧文不准确的三处，直接做事实更正：
+
+1. **GAS 复制范围**（SKILL.md 规则 19、`unreal-gas.md`「What replicates」）：旧文「ASC 不向所有客户端复制
+   Abilities 与 Gameplay Effects」是 Mixed/Minimal 的情形。证据：UE 5.8 API 页
+   `API/Plugins/GameplayAbilities/EGameplayEffectReplicationMode` 写明 Minimal「Only replicate minimal gameplay effect
+   info」、Mixed「minimal info to simulated proxies but full info to owners and autonomous proxies」、Full「Replicate
+   full gameplay info to all」。改为：Abilities 不向所有客户端复制；GE 随复制模式，Full 发给所有客户端，多人游戏须显式
+   `SetReplicationMode`，并在 gas 参考中加三模式表。
+2. **网络物理权威**（`unreal-physics.md`「Networked physics」）：旧文「simulation runs on the client machine」照搬了
+   官方页一句，但漏了权威方，读起来像客户端权威。证据：UE 5.8「Networked Physics Overview」：Default 模式把客户端速度
+   改写为服务器状态前推半个 RTT，本地交互会被覆盖；Predictive Interpolation 混合本地与服务器速度以保留预测性受力；
+   Resimulation 在客户端完全前推、缓存至少一个 RTT 的历史并在偏差时回滚重模拟，物理 Pawn 输入经仅 C++ 的
+   Network Physics 组件。据此重写该段。
+3. **`stat unit` 列**（SKILL.md optimize-a-frame、`unreal-build.md`「Measuring a frame」）：旧文只列 game/draw/GPU。
+   证据：官方「Stat Commands」页写明 `stat unit` 显示 Frame、Game、Draw、GPU、RHIT、DynRes。补上 RHIT（RHI 线程）。
+
+### 未合入原因汇总
+
+- 弃用/改名表：来源不可核实（引擎仓库访问受限），且本 skill 不是 API 迁移索引。
+- StateTree 选型、MCP 并发、美术制作类内容：非本 skill 范围或本 skill 未作相反陈述。
+
+### 评测
+
+本次三处均为官方页证实的纯事实更正，未新增评测场景，也未跑评测。D1 静态门（`validate_skills.py` 0 error 0 warning、
+`build_catalog.py --check`）通过；安装冒烟（`npx skills@latest add <worktree> --skill unreal --agent universal --copy --yes`）
+后 `.agents/skills/unreal/` 的 SKILL.md、SOURCES.yaml、NOTICE.md、evals 与 10 个 references 齐全，与源目录 `diff -r` 一致。

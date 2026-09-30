@@ -91,10 +91,23 @@ client goes through Ability Tasks instead.
 ## What replicates and what does not
 
 To save bandwidth and prevent cheating, an ASC **does not replicate its full state to all
-clients**: abilities and gameplay effects are not replicated to all clients, only the
-gameplay attributes and tags they affect. Any client-side system that wants to know "which
-ability is running on that other player" must infer it from attributes, tags or cues — not
-from an ability list it does not have.
+clients**: abilities are not replicated to all clients, only the gameplay attributes and
+tags they affect. Any client-side system that wants to know "which ability is running on
+that other player" must infer it from attributes, tags or cues — not from an ability list
+it does not have.
+
+Gameplay effects are governed by the component's `EGameplayEffectReplicationMode`
+(`SetReplicationMode`), and the statement above only holds for the two multiplayer modes:
+
+| Mode | Gameplay effects replicate to | Intended for |
+|---|---|---|
+| `Full` | every client | single player |
+| `Mixed` | the owner and autonomous proxy only; simulated proxies get tags and cues | player-controlled actors |
+| `Minimal` | nobody; everyone gets tags and cues | AI-controlled actors |
+
+An ASC left on `Full` in a multiplayer game sends every active effect to every client, which
+is the bandwidth and information leak this design exists to avoid. `Mixed` also expects the
+ASC's owner chain to reach the owning connection.
 
 ## Prediction and rollback
 
