@@ -18,7 +18,7 @@ upstreams:
       - skills/copilot-pr-autopilot/references/api-quirks.md
       - instructions/github-actions-ci-cd-best-practices.instructions.md
     ref: main
-    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
+    commit: e7c25a4e9c440dde98cb704230c24026ad01e925
     license: MIT
     relation: merged
     synced_at: "2026-09-30"
@@ -168,7 +168,7 @@ upstreams:
       - pkg/cmd/run
       - pkg/cmd/release
     ref: trunk
-    commit: 1863cb7c0f1d27e9479a95edb30ba97fcc6c01b1
+    commit: fc4b137cdef0a6bd28fd461b7cf9c84a5812a8cd
     license: MIT
     relation: reference
     synced_at: "2026-09-30"

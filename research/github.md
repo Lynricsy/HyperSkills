@@ -283,3 +283,12 @@ oz-for-oss、octocat、openai-skills、starter-workflows、secure-repo 为 up to
 aac58bc，`check_upstream.py` 复查 tracked paths 仍未变。
 
 结论：全部为噪声或已覆盖，正文未改、未新增评测；仅 re-pin，版本号改为 2026.09.30。
+
+### 收尾复查（同日）
+
+全量集成后重跑 `check_upstream.py`，gh-cli 又前进 19 个提交（1863cb7 → fc4b137）。命中 `pkg/cmd/run` 与
+`pkg/cmd/release` 的是 be9b3f4（下载写文件时防符号链接）、f0215ad（调用方可选目录创建权限）、26256ff（合并
+trunk 解决 download 冲突）、8b97df3（测试里关闭下载目标根目录）。这些都是 `gh run download` / `gh release download`
+的内部加固，尚未发布（最新 release v2.101.0，2026-09-15），没有命令、旗标或输出变化；正文只说下载的 artifact
+仍是不可信代码，不依赖 gh 怎么落盘。判定为噪声，re-pin 到 fc4b137；awesome-copilot 随 `--pin` 对齐到 e7c25a4
+（tracked paths 未变）。
