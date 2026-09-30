@@ -4,7 +4,7 @@ description: "Builds Supabase applications with Auth, RLS, Storage, Realtime and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: framework
 ---
 
@@ -115,6 +115,11 @@ Not covered:
     every call, and destructure to the value you want — `const { data: session }` from
     `getSession()` binds a truthy `{ session: null }` and turns "not signed in" into "RLS blocked
     me".
+26. Automation authenticates with a scoped personal access token, never the classic one that the
+    `supabase login` browser flow mints — that carries the account's full access to every current
+    and future organization and project. Pass it as `SUPABASE_ACCESS_TOKEN`, size it to the
+    commands or MCP tools the job runs, and remember `db push` with the database password is not
+    bounded by the token at all (`references/cli-and-migrations.md`).
 
 ## Workflows
 
@@ -214,7 +219,7 @@ Not covered:
 | Public versus private buckets, the privilege each SDK call needs, signed URLs and their independent signing key, image transformations, resumable and S3 uploads | An upload, replace, list or URL misbehaves | `references/storage.md` |
 | Channels and topics, Postgres Changes versus Broadcast versus Presence, RLS on `realtime.messages`, `private: true`, `realtime.send` and `realtime.broadcast_changes`, connection and slot budgets | Building or debugging a live-updating feature | `references/realtime.md` |
 | The `withSupabase` entry point, auth modes against `verify_jwt`, injected variables and `supabase secrets`, CORS, the four runtime limits, local serve and deploy, Deno traps | Writing, deploying or debugging an Edge Function | `references/edge-functions.md` |
-| Local stack commands, declarative versus imperative workflows, `db diff` blind spots, deploy and rollback, seed data, `gen types`, preview branches, moving a project | Any migration, CLI or environment question | `references/cli-and-migrations.md` |
+| Local stack commands, declarative versus imperative workflows, `db diff` blind spots, deploy and rollback, classic versus scoped access tokens for CI and MCP, seed data, `gen types`, preview branches, moving a project | Any migration, CLI, CI-credential or environment question | `references/cli-and-migrations.md` |
 | `{ data, error }` handling, error codes and the schema cache, typed clients and `QueryData`, embedded resources and their foreign keys, filters and `rpc`, which client belongs where | Writing queries, or an error code needs interpreting | `references/client-and-errors.md` |
 
 ## Environment

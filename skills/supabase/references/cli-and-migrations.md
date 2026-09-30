@@ -10,6 +10,7 @@ Verified against: Supabase CLI 2.117.
 - [Declarative schemas](#declarative-schemas)
 - [What the diff engine misses](#what-the-diff-engine-misses)
 - [Deploying and rolling back](#deploying-and-rolling-back)
+- [Credentials for CI, scripts and agents](#credentials-for-ci-scripts-and-agents)
 - [Seed data and generated types](#seed-data-and-generated-types)
 - [Branching](#branching)
 - [Moving a project](#moving-a-project)
@@ -139,6 +140,25 @@ Before committing a schema change, run `supabase db advisors` (or the MCP `get_a
 fix what it reports, particularly after touching views, functions, triggers, policies or storage.
 Commit the schema file and the generated migration **together** — either one alone breaks the next
 person's diff.
+
+## Credentials for CI, scripts and agents
+
+The CLI, the Management API and the hosted MCP server authenticate with a personal access token.
+The browser flow of `supabase login` mints a **classic** one: everything the account can do, on
+every organization and project it belongs to now *or joins later*. A token saved by that login
+and copied into a CI secret is therefore the owner's whole account, whatever the job does.
+
+For CI, scripts and agents, create a **scoped** token (prefix `sbp_fc`) per job from the
+account's access-token settings, limited to the project and the permissions that job's commands
+or MCP tools are documented to need, and pass it as `SUPABASE_ACCESS_TOKEN` — the variable takes
+precedence over any saved login, so a stale `supabase login` on the runner cannot widen it. For
+the MCP server in CI, send the same kind of token as an `Authorization: Bearer` header.
+
+The token does not bound everything. Commands that connect with the database password —
+`supabase db push` with `SUPABASE_DB_PASSWORD` or `--password` — are not limited by the token's
+permissions at all. In a migrate job the production database password is the real write
+credential: keep it in an environment-protected secret, and rotate it as well as revoking the
+classic token when either has been exposed to jobs that run untrusted code.
 
 ## Seed data and generated types
 

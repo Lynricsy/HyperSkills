@@ -72,5 +72,19 @@
       "Does not load the `supabase` skill and does not turn a plain SQL tuning question into RLS, API keys, Edge Functions or CLI workflow advice",
       "skill_read is false for the `supabase` skill"
     ]
+  },
+  {
+    "skills": ["supabase"],
+    "query": "A security review says the Supabase credentials in ci-deploy.yml are far too powerful. Lock it down so each job can do only what it needs. Also: when we tried a narrower token for the review bot, its schema-listing tool started failing with 'You do not have permission to perform this action', so we went back to the old one. What should we do?",
+    "files": ["evals/files/ci-deploy.yml"],
+    "expected_behavior": [
+      "Explains what the current token is: the browser flow of `supabase login` produces a classic personal access token carrying the owner's full account access - every organization and project she belongs to now or joins later - so one CI secret can touch every project, not just this one",
+      "Replaces it with scoped personal access tokens (created in the account's access-token settings, limited to the one project and to specific permissions), one per job, and keeps passing them through the `SUPABASE_ACCESS_TOKEN` environment variable, which takes precedence over any saved login",
+      "Sizes the migrate job's token by the commands it runs rather than guessing: `supabase link` needs read access to Project Settings, API Keys and API Key Secrets, and says the exact permission for each command or MCP tool should be looked up in Supabase's personal-access-token permission tables",
+      "Points out that `supabase db push` authenticating with `SUPABASE_DB_PASSWORD` is not limited by the token's permissions at all, so the production database password is the real write credential of that job and has to be protected (environment-scoped secret, rotation) separately from the token",
+      "Diagnoses the review-bot failure correctly: the scoped token lacks the permission that specific MCP tool needs, or the project is outside the token's scope - fix it by granting that tool's documented permission, not by going back to the classic token",
+      "Narrows the MCP server itself for a production project in CI: scope it to the project with `project_ref`, enable `read_only=true`, and restrict `features` to the tool groups the bot uses",
+      "Notes that a scoped token can never exceed its creator's own role, so the token's permissions are a ceiling beneath the creating account's access, not a grant"
+    ]
   }
 ]

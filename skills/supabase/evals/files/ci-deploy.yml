@@ -1,0 +1,40 @@
+name: deploy-db
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  migrate:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      # copied from ~/.supabase/access-token after `supabase login` on Dana's laptop (she is org Owner)
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+      - run: supabase link --project-ref abcdefghijklmnopqrst
+      - run: supabase db push
+
+  review-bot:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # the PR-review agent reads .mcp.json below and inspects the production schema
+      - run: npx review-agent --mcp-config .mcp.json
+        env:
+          SUPABASE_TOKEN: ${{ secrets.SUPABASE_TOKEN }}
+
+# .mcp.json used by review-bot:
+# {
+#   "mcpServers": {
+#     "supabase": {
+#       "type": "http",
+#       "url": "https://mcp.supabase.com/mcp",
+#       "headers": { "Authorization": "Bearer ${SUPABASE_TOKEN}" }
+#     }
+#   }
+# }

@@ -322,3 +322,49 @@ SKILL.md 的 workflow 只写「give `UPDATE` policies both `USING` and `WITH CHE
 签名密钥与吊销、由此推导有效期），然后**只重跑了场景 3 的 baseline**。第一次重跑的 `answer.md`
 在 `## Fix` 处被截断（`status: ok` 但正文不完整），不可用于判定，因此又重跑一次拿到完整答复才判分。
 其余四个场景的 baseline 未改动、未重跑。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt` 中本 skill 段（2026-09-30 `check_upstream.py`）。三条 `behind`：
+`supabase-official-skill`、`magnus-agent-skills`（diff too large）、`supabase-server-sdk`；其余 repo 条目为
+up to date 或 repo moved / tracked paths unchanged，两条 docs 为 manual check。三条均在
+`/tmp/hs-up/SyncG9/<owner>__<repo>` 的 blobless 克隆上按完整区间 `git log`/`git diff` 归因。
+`--pin` 后逐条核对：写入的 commit 与本次审阅的 HEAD 一致（`supabase-official-skill` 544bfc5、
+`magnus-agent-skills` 9e45d5e、`supabase-server-sdk` f3a0e3c，另有 moved 条目 `tushar-skills` 41ff69d、
+`supabase-postgres-best-practices` 544bfc5）。
+
+本节接手 2026-09-29 被中断的一轮：其未提交改动（Core rule 26、`cli-and-migrations.md` 新节、场景 6 与夹具）
+逐条对照官方文档复核后保留，SOURCES 的 `contributes` 按实际合入内容重写（原稿把正文没有的 MCP 报错排查也算作合入，已删）。
+
+### 归因
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| supabase-official-skill | 8331f91..544bfc5 | 551274e `skills/supabase/SKILL.md`（+6 行）；544bfc5 仅 CHANGELOG 发版（其中 3a4f0ce 已在旧 pin 内） | **需合入** | 新增三处：Management API/CLI/MCP 用 scoped PAT；`supabase login` 浏览器流生成 classic token，CI 用 `SUPABASE_ACCESS_TOKEN`（优先于已保存登录），数据库口令类命令不受 token 约束；MCP 在 CI 用 `Authorization: Bearer`，scoped token 报 "You do not have permission" 时查工具所需权限。前两点基线未达成（见评测），合入；报错排查基线已会，不合入 |
+| magnus-agent-skills | d0edebb..9e45d5e | `supabase/` 路径内 0 个提交（全仓 162 个提交在别的目录） | 噪声 | tracked path 未变 |
+| supabase-server-sdk | 0be8951..f3a0e3c | `docs/` 14 个提交：JWT `aud`/`iss` 校验与 `InvalidJwtError`、JWKS 可由 `SUPABASE_URL` 推导、Postgres 连接池参数与 `PostgresPoolError`、新增 `docs/mcp.md`、Vercel 集成 `SUPABASE_SECRET_KEY` 说明 | 已覆盖 / 范围外 | relation 为 reference，本 skill 只用它核对 `withSupabase` 的 auth mode 取值、`ctx` 字段与平台注入变量名；三者在区间内均未变（`edge-functions.md` 的注入变量表仍正确，平台仍注入 `SUPABASE_JWKS`）。连接池与 MCP server 构建属 SDK 自身用法，不进本 skill |
+
+事实核对（`gh api` 读 `supabase/supabase` 的 `apps/docs/content/guides/platform/personal-access-tokens.mdx`）：
+classic token「every organization and every project you belong to today, and on every one you create or join
+in the future」；scoped token 以 `sbp_fc` 开头，「only ever narrow what your account can already do」；
+「The browser flow of `supabase login` creates a classic token … The environment variable takes precedence over any
+saved token」；`supabase link` 需要 Project Settings、API Keys、API Key Secrets 三项 Read；
+「Database commands that connect with your database password, such as `supabase db push` with
+`SUPABASE_DB_PASSWORD` set, aren't limited by the token's permissions」。正文每句均有对应。
+
+### 评测（`workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同条件）
+
+场景 6（`evals/files/ci-deploy.yml`：classic token 同时给 `db push` 与读 `.mcp.json` 的 PR 审查机器人）。
+两次运行均为 2026-09-29 上一轮所跑，本次复用：query 与 `expected_behavior` 与当前 `evals.json` 逐字相同；
+有 skill 一次开始于 `cli-and-migrations.md` 最后一次修改之后，且此后正文未再改动（本次只改了版本号），
+事件日志显示读了 `SKILL.md` 与 `references/cli-and-migrations.md`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 CI 凭据收窄 | deepseek-v4.1-flash / max | 无 | false | EB3、EB5、EB6、EB7（4/7） | advisor 开启（旧口径）。EB1 只说「经典 PAT = 整个账号」，未提 `supabase login` 浏览器流与「将来加入的组织/项目」；EB2 未提 `SUPABASE_ACCESS_TOKEN` 及其优先级（migrate 改用 `--db-url` 去掉 token）；EB4 指出 `db push` 不受 token 约束，但未把数据库口令当作需单独保护/轮换的真实写凭据 |
+| 6 同上 | deepseek-v4.1-flash / max | 有 | **true** | EB1–EB7（7/7） | advisor 开启（旧口径）。「`supabase login` 浏览器流生成的 classic PAT，携带……全部现有与未来组织/项目的完整权限」；两枚 scoped PAT 走 `SUPABASE_ACCESS_TOKEN`「优先于 runner 上任何已保存登录态」；`PROD_DB_PASSWORD` 挂 `environment: production` 并与令牌分开轮换 |
+
+结论：基线缺口 EB1/EB2/EB4 在有 skill 时全部填补，合入成立。两次运行都在评测子进程关闭 advisor（主代理
+cherry-pick 的 `fix(tools): 🐛 评测子进程关闭 advisor`）之前，同为 advisor 开启的旧口径、已配对，按主代理规则不重跑。
+description 与 Scope 未改，负例场景未重跑。
+输出目录：`/tmp/hs-evals-sync/SyncG9/supabase/workbuddy-deepseek-v4.1-flash-max/{baseline,skill}/6`。
