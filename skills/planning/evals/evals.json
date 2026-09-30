@@ -84,5 +84,20 @@
       "Answers with the mechanical GitHub steps: `gh issue create` invocations with `--repo acme/notify`, `--label`, `--milestone`, plus how the blocked-by relation is expressed (issue body references or sub-issue/linked-issue commands), including creating the milestone or labels first if they do not exist",
       "Does not re-litigate the agreed scope, re-derive the dependency graph, rewrite the items into acceptance criteria, or produce a plan document"
     ]
+  },
+  {
+    "skills": ["planning"],
+    "query": "The spec for `tabkit dedupe` is approved (spec-dedupe.md) and repo-layout.md describes the codebase. Write the implementation plan so an engineer who has never seen this repo can pick it up tomorrow and execute it.",
+    "files": [
+      "evals/files/dedupe/spec-dedupe.md",
+      "evals/files/dedupe/repo-layout.md"
+    ],
+    "expected_behavior": [
+      "Code steps pin the file, the exact function signature and the values the spec fixes, and leave the body to the implementer: the plan does not write out the complete implementation of the dedupe logic or of `run(args, stdin, stdout, stderr) -> int` when the signature and the tests already determine it",
+      "Test steps name each test and give its assertions with the spec's exact values (for example stdout keeps INV-1, INV-2, INV-3 and stderr is `dedupe: kept 3 of 4 rows`; exit status 2 when `--keys` is missing), exercised through `run_cli`",
+      "Lists input classes or failure modes the spec implies but never states, naming at least three of: a `--keys` column that is not in the header, an empty input or a header-only input, a data row with fewer fields than the header, a quoted field containing a comma or newline, reading from standard input via `-`",
+      "For each listed input class, states the behaviour a reasonable user would expect (or flags it as a decision to confirm) and attaches a test for it to the step that owns the code, rather than leaving it as a general caution",
+      "Uses the repository's own commands (`make test-one T=...`, `make test`) with an expected result for each step's acceptance"
+    ]
   }
 ]

@@ -4,7 +4,7 @@ description: "Turns requirements into executable plans with dependencies and ver
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: task
 ---
 
@@ -90,7 +90,11 @@ Each rule is an invariant; the clause after the dash is what violating it costs.
 13. No placeholders in a finished plan: no TBD, no "add appropriate error
     handling", no "write tests for the above", no "similar to step N", no
     reference to a type no step defines — each defers a decision onto the
-    executor at the moment they have the least context.
+    executor at the moment they have the least context. The opposite failure
+    is a transcript: a code step carries the file, the exact signature and
+    the pinned values, and a body only where the signature and tests leave
+    the algorithm open — a body in the plan was never run, yet is copied with
+    the plan's authority, and it buries the decisions a reviewer must check.
 14. Each step is self-contained: its own paths, signatures and expected output,
     repeated rather than cross-referenced. Executors read one step, out of
     order, often in a fresh session with none of the author's context.
@@ -171,8 +175,9 @@ From agreed requirements to a document an executor can follow.
       (rule 18). Read `references/risk-and-unknowns.md`.
 - [ ] State non-goals and the rollback point (rules 11, 12).
 - [ ] Self-review, once, with fresh eyes: requirement coverage, placeholder
-      scan, name and type consistency across steps. The checklist is in
-      `references/plan-document.md`.
+      scan, name and type consistency across steps, and proportion — a plan
+      that is mostly code blocks is a transcript (rule 13). The checklist is
+      in `references/plan-document.md`.
 - [ ] **Gate — EVERY STEP HAS A COMMAND AND A PREDECESSOR:** for each step you
       can quote the command that proves it, the output that counts as passing,
       and either its dependencies or the argument that it has none. A step
@@ -245,7 +250,7 @@ output in it; a definition of done that mentions how the team feels.
 |---|---|---|
 | Decidable acceptance criteria, the already-built and already-rejected pre-checks, the look-up/ask/assume split, one-round questions, keeping clarification results | Turning a vague request into requirements | `references/clarifying-requirements.md` |
 | Two or three real options, the trade-off axis, YAGNI cuts, recording the rejected ones, ADR shape and supersede chains | A choice with more than one defensible answer | `references/exploring-options.md` |
-| Plan header, global constraints, the step block, interfaces consumed and produced, acceptance command and expected output, identifiers, no-placeholder list, self-review | Writing or fixing the plan document itself | `references/plan-document.md` |
+| Plan header, global constraints, the step block, interfaces consumed and produced, acceptance command and expected output, identifiers, no-placeholder list, what a step carries instead of a body, self-review | Writing or fixing the plan document itself | `references/plan-document.md` |
 | Dependency mapping, vertical slices, right-sizing and split triggers, capability maps for multi-subsystem work, one-subsystem-per-step | Cutting work into steps, or a step feels too big to start | `references/task-decomposition.md` |
 | Parallel / sequential / needs-coordination, freezing a contract first, serialisation boundaries, what a delegated step must carry | Deciding what can run at the same time, or handing steps out | `references/parallelism.md` |
 | Classifying unknowns, designing a spike that answers exactly one question, front-loading risk, `[NEEDS CLARIFICATION]` markers, assumption-to-step mapping | The plan contains something nobody knows yet | `references/risk-and-unknowns.md` |

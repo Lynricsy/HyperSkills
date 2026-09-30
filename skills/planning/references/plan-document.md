@@ -12,6 +12,7 @@
 - [The acceptance line](#the-acceptance-line)
 - [Identifiers, and when they help](#identifiers-and-when-they-help)
 - [No placeholders](#no-placeholders)
+- [No transcripts](#no-transcripts)
 - [Self-review](#self-review)
 
 ## What the document is for
@@ -228,9 +229,31 @@ the least context. In a finished plan they are defects, not shorthand:
 - A command with a placeholder argument (`make test-one FILE=<...>`) left
   unfilled
 
+## No transcripts
+
+The opposite failure. A step is finished when the executor can write exactly
+one reasonable thing from it: unambiguous, not complete.
+
+| Step kind | Carries | Leaves to the executor |
+|---|---|---|
+| Test | Each test's name and its assertions, with the requirement's exact values | Setup the repository's own fixtures already provide |
+| Code | The file, the exact signature, the values the requirements pin | The body — unless the signature and the tests leave the algorithm open, or the text is copy the requirements fix |
+| Verification | The command and the output that counts as passing | Nothing |
+| Use of an earlier step | Its *consumes* line | That step's code |
+
+A body written into the plan has never been compiled or run, yet the executor
+copies it with the plan's authority, so its bugs ship as decisions nobody made.
+It also buries the decisions: once code blocks are most of the document, a
+reviewer reading for "is this the right design" is reading a diff without the
+ability to execute it, and the one-line choices that mattered are lost among
+the lines that did not.
+
+Where a choice remains after the signature and the tests — which library call,
+which data structure — one line naming it is enough.
+
 ## Self-review
 
-Once, with fresh eyes, after the plan is complete. Three checks:
+Once, with fresh eyes, after the plan is complete. Four checks:
 
 1. **Requirement coverage.** Walk each requirement and name the step that
    implements it. Anything unmatched is either a missing step or a requirement
@@ -240,6 +263,11 @@ Once, with fresh eyes, after the plan is complete. Three checks:
 3. **Name and type consistency.** Every *consumes* matches a *produces*,
    character for character. Every path named exists, or is created by an
    earlier step in this plan.
+4. **Proportion.** Compare the plan's length with the requirements it
+   implements. A plan several times longer, or one that is mostly code blocks,
+   is a transcript: replace each body the signature and tests already determine
+   with the signature and the assertions, then re-check that every step still
+   admits only one reasonable implementation.
 
 Fix what you find inline; there is no second pass. Then run the gate: for every
 step you can quote its command, its expected output, and either its

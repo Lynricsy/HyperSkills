@@ -365,3 +365,55 @@
   `repo moved, tracked paths unchanged` 是常态。
 - `NeoLabHQ/context-engineering-kit`:GPL-3.0,**永远只能是 reference**。同步时只看它有没有
   新增规划类主题以判断覆盖面，不读正文。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）planning 段 7 条 `behind`
+（obra-writing-plans、obra-brainstorming、obra-executing、addy-planning、copilot-plan〔`diff too large`〕、
+speckit-docs〔`diff too large`〕、mattpocock-spec）。归因一律在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里
+先确认旧 pin 是 HEAD 的祖先，再用 `git log <旧pin>..<HEAD> -- <paths>`、`git diff --stat` 与 `git diff`
+读实际改动。`--pin` 后核对 SOURCES.yaml：obra `8ca22db`（三条）、addyosmani `2686b62`、awesome-copilot
+`15ed97c`、spec-kit `2c0a57a`、mattpocock `d81f3a1`，与审阅 HEAD 逐条一致；neolab-sdd 未动（`23e2428`）。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| obra-writing-plans | b36e082..8ca22db | 8ca22db `writing-plans/SKILL.md`「leaner plans」：步骤只需让执行者只能写出一种合理实现（无歧义而非完整）；代码步骤给文件、精确签名、spec 钉死的值，签名与测试已决定的函数体不写；自审加 Step scan（空话与抄写两种失败）与 Proportion（计划远长于 spec、代码块占大半即为程序抄本） | 需合入 | 新增场景 6（`evals/files/dedupe/`）：无 skill 基线在 Step 1 写出完整 `run()` 函数体（EB1 ✘）；合入后有 skill 明写「The body is not transcribed here on purpose」，只留签名、顺序与两个未被测试决定的选择（EB1 ✔） |
+| obra-writing-plans | 同上 | 8ca22db 新增 Review Focus 节（spec 隐含但无任务测试覆盖的五类输入/失败模式，逐条给测试并挂到负责任务） | 基线已会，不合入 | 场景 6 EB3/EB4 基线已达成：自行列出未知 key 列、空输入、表头仅一行、短行、`-` 读 stdin，并逐条给决策与测试 |
+| obra-writing-plans | 同上 | 8ca22db/5bf4e78 执行交接改为「先请人审计划再选 subagent-driven / native」；删除 `plan-document-reviewer-prompt.md` | 不合入 | 上游 harness 的执行方式选择与派发模板；本 skill 早已去掉该交接（SOURCES notes） |
+| obra-brainstorming | b36e082..8ca22db | 5bf4e78 `brainstorming/SKILL.md`：新增 Establish Shared Understanding（先问目的、写回理解并区分「说了的」与「假设」）；HARD-GATE 改为按路径分阶段批准（对想法的批准不等于批准尚不存在的产物）；反模式与红旗表措辞随之调整 | 已覆盖 | 核心规则 1–4 与 clarify 工作流已要求：未陈述的都写成带依赖的假设、需求改写为可判真假的准则、事实查、决策问；`plan` 前的 present-then-stop 同意闸门不变。上游 HARD-GATE 为 XML 块，本 skill 本就不合入 |
+| obra-brainstorming | 同上 | 5bf4e78 `visual-companion.md` | 噪声 | 路径在跟踪目录内，但本 skill 不合入 visual companion（SOURCES notes） |
+| obra-executing | b36e082..8ca22db | 5bf4e78 `executing-plans/SKILL.md` 重写为 inline 执行：ledger/工作区脚本、task-start/task-done、「Rulings, not stalls」（只有不可逆、安全敏感、工作树外副作用、计划坏到每条路都是猜这四种情况才停，其余自行裁决并以 `Ruling: 决定 — 理由 — 代价` 入账）、完成契约、最终整分支审阅 | 已覆盖 / 不合入 | 裁决入账与本 skill `references/execution-tracking.md` 的 Divergences（Detail 改步骤继续、Shape 改步骤及其消费者、Premise 停）一致，停机触发器仍是本 skill 的六条；ledger、脚本与 `.superpowers/sdd/` 工作区是上游 harness 机制。完成契约中「全量命令输出」行已在「What counts as done」表内 |
+| obra-executing | 同上 | 5bf4e78 `subagent-driven-development/`：何时选 inline 的决策图、脚本改为 `bash scripts/...` 调用、`sdd-workspace` 同名计划防撞、`review-package` 区间守卫 | 噪声 | 均为上游派发与脚本实现；`bash` 调用的缘由（解包丢执行位）已在 skill-authoring 同步中处理 |
+| obra-executing | 同上 | `verification-before-completion` 区间无提交 | 噪声 | — |
+| addy-planning | 6ca0cd7..2686b62 | 15af65e/bc97fd4 `spec-driven-development/SKILL.md`：项目已用 OpenSpec 等外部 spec 系统时沿用其格式与存放约定，不另建 `SPEC.md` | 已覆盖 | `plan` 工作流与 `references/plan-document.md`「Where it lives」已要求先找既有约定（`specs/` 树等）并严格匹配，无约定才问；`planning-and-task-breakdown` 区间无提交 |
+| copilot-plan | 7568a48..15ed97c（64 commits） | 5 个跟踪路径区间内均无提交（本地 `git log`/`git diff --stat` 为空），路径在 HEAD 仍存在 | 噪声 | 报告 too large 仅因全仓改动多 |
+| speckit-docs | c173bf1..2c0a57a（136 commits） | 3 个跟踪文件区间内均无提交，文件在 HEAD 仍存在 | 噪声 | 同上 |
+| mattpocock-spec | 3cca18b..d81f3a1 | d80fa0f `triage/SKILL.md`：grill 步骤里 `CONTEXT.md` 改名 `GLOSSARY.md`；`to-spec` 区间无提交 | 噪声 | 本 skill 未引用该约定（grep 无命中） |
+
+### 正文改动（MIT 上游，措辞重写）
+
+- `SKILL.md` 核心规则 13：在「无占位符」之后补上相反的失败——抄本：代码步骤给文件、精确签名与钉死的值，
+  只有签名与测试留下算法选择时才写函数体；代价是计划里的函数体从未运行却被当作决定照抄，并淹没审阅者要看的决定。
+  规则编号不变。`plan` 工作流自审一项加「proportion」；路由表 plan-document 行加「what a step carries instead of a body」。
+- `references/plan-document.md`：新增「No transcripts」节（按步骤类型列出携带什么、留给执行者什么，及理由），
+  Self-review 由三项改为四项，新增 Proportion。
+- `SOURCES.yaml` obra-writing-plans 的 `contributes`/`notes` 补记合入项与不合入的 Review Focus、执行方式交接。
+- 新增评测场景 6 与夹具 `evals/files/dedupe/spec-dedupe.md`、`repo-layout.md`（Python CLI 子命令 spec，
+  spec 对未知 key 列、空输入、短行、带引号字段沉默）。
+
+### 评测
+
+模型 `workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同条件；答案写入工作区
+`plan-dedupe.md`，逐条对照人工判定。有 skill 轮次 `events.jsonl` 的读取为 `skill://planning` 及
+`references/plan-document.md` 等（worktree 版本，经 `--skills planning` 注入），无全局旧副本路径。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | deepseek-v4.1-flash / max | 无 | False | EB1 ✘ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✘ | advisor 开启（旧口径）。Step 1 给出含 `_key_indices` 与完整 `run()` 的函数体（抄本）；测试表 + §5 期望值齐全；spec 沉默处列出未知列、空输入、表头仅一行、短行、`-`；Step 1–3 无逐步验收命令，只在 Step 4 列 `make test` 等且无期望输出。`/tmp/hs-evals-sync/SyncG24/planning-b6/…/baseline/6` |
+| 6 | deepseek-v4.1-flash / max | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | advisor 开启（旧口径）。Step 3「The body is not transcribed here on purpose」，只给签名、调用顺序和两处测试未决定的选择；12 个测试名 + 整串断言；A1–A7 假设逐条标受影响步骤与测试（含带引号逗号/换行）；每步 `make test-one T=…` → 期望计数。`/tmp/hs-evals-sync/SyncG24/planning-s6/…/skill/6` |
+
+结论：本次合入闭合 EB1（抄本）；EB5 由既有规则 6/7 闭合，属非本次新增文字的效果；EB2–EB4 为非区分项。
+另注：本场景有 skill 的计划仍有 472 行（主要是假设、调查问题与风险表，而非代码），Proportion 检查以「代码块占大半」
+为抄本信号，未把篇幅本身判为缺陷。
