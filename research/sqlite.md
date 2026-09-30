@@ -401,3 +401,19 @@ D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读�
   commit后backup恢复`[(1,0),(2,None)]`，`integrity_check=ok`、`foreign_key_check`空。
   这与模型运行的3.53.1分开记录；只证明本机语法与提交后备份机制，
   **不是电源断电、网络文件系统或生产恢复演练**，也不是额外with-skill模型得分。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：仅 `moollm-sqlite`（94 commits，diff too large）一条 `behind`。
+用 blobless 克隆（`/tmp/hs-up/SimHacker__moollm`）按完整 `541bf23..8f6d840` 区间、限该条目 `paths`
+（`skills/sqlite/SKILL.md`、`LICENSE`）核对（`git log --oneline` + `git diff --stat` + `git diff`），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| moollm-sqlite | 541bf23 → 8f6d840 | febd0d7（「Add place skill, patron model…」）只改 `LICENSE` 一行：版权人由「Don Hopkins, Leela AI」改为「Don Hopkins」；`skills/sqlite/SKILL.md` 未改动且在 HEAD 仍存在 | 噪声 | 许可证仍为 MIT、条款未变，`relation: merged` 的依据不受影响；本仓库 NOTICE 只记录仓库与 SPDX，不记录版权人，无需改动。SKILL.md 无内容变化，没有可合入的新事实 |
+
+其余仓库上游（`terminalskills-sqlite` 为 `repo moved, tracked paths unchanged`；`openfang-sqlite`、`harness-sqlite`
+为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（511ec20、8f6d840、acf2587、caa0c9b）。
+15 条 sqlite.org `kind: docs` 条目为 manual check，本次上游无相关提示，未改。
+
+结论：唯一 behind 的命中改动是版权行，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.09.30。

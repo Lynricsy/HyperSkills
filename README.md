@@ -172,7 +172,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`security-review`](skills/security-review/) | 任务 | Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks | 2026.09.30 | 17 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews and evaluates Agent Skills and their SKILL.md files | 2026.09.30 | 14 |
 | [`solidity-web3`](skills/solidity-web3/) | 框架 | Develops and audits Solidity smart contracts with Foundry security testing | 2026.09.30 | 20 |
-| [`sqlite`](skills/sqlite/) | 框架 | Designs and operates embedded SQLite databases, transactions, WAL and backups | 2026.09.12 | 22 |
+| [`sqlite`](skills/sqlite/) | 框架 | Designs and operates embedded SQLite databases, transactions, WAL and backups | 2026.09.30 | 22 |
 | [`supabase`](skills/supabase/) | 框架 | Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions | 2026.09.30 | 12 |
 | [`svelte`](skills/svelte/) | 框架 | Develops Svelte and SvelteKit applications with runes, routing and server data flows | 2026.09.29 | 11 |
 | [`tauri`](skills/tauri/) | 平台 | Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging | 2026.09.30 | 6 |

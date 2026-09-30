@@ -1,5 +1,5 @@
 skill: sqlite
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: terminalskills-sqlite
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/sqlite/SKILL.md, LICENSE]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 511ec2060fe9e1b95a42ae042964f56d777b6c9b
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Connection release and online-backup entry points, rewritten in SKILL.md and references/connections-and-transactions.md and references/wal-backup-and-recovery.md; introductory CRUD and fixed tuning values omitted."
   - id: moollm-sqlite
     kind: repo
@@ -18,10 +18,10 @@ upstreams:
     url: https://github.com/SimHacker/moollm
     paths: [skills/sqlite/SKILL.md, LICENSE]
     ref: main
-    commit: 541bf236194bddca05a12008505df0931c86ee85
+    commit: 8f6d840b2fc4758cc088b0124d0777d2065e6731
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Embedded-engine boundaries, affinity and durability cautions, rewritten in SKILL.md and references/types-and-migrations.md and references/wal-backup-and-recovery.md; MOOLLM integrations removed."
   - id: openfang-sqlite
     kind: repo
@@ -32,7 +32,7 @@ upstreams:
     commit: acf2587e46be174c10200489c9a2d23a39a98aeb
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Short explicit transactions, single-writer limits and covering-index observation, rewritten in SKILL.md and references/connections-and-transactions.md and references/query-plans-and-indexes.md; fixed cache and BLOB thresholds rejected."
     notes: "GitHub license detection returned NOASSERTION; the complete LICENSE-APACHE text was read and explicitly grants Apache-2.0. This rewrite uses that grant."
   - id: harness-sqlite
@@ -44,7 +44,7 @@ upstreams:
     commit: caa0c9b8a36ac6397ac70a8e551410790106d626
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Atomic SQL and early write-ownership intent, rewritten in references/connections-and-transactions.md; erroneous aiosqlite thread claims and process-local bootstrap guarantees rejected."
   - id: sqlite-transactions
     kind: docs
