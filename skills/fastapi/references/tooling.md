@@ -23,9 +23,11 @@ uv add --group test httpx2 pytest
 ```
 
 `fastapi[standard]` brings the `fastapi` CLI, uvicorn with `uvloop` and `httptools`, and the extras
-the tutorial assumes (`jinja2`, `python-multipart`, `email-validator`). Plain `fastapi` is the
-minimal install for a service that brings its own server; there is no separate slim package to hunt
-for any more.
+the tutorial assumes (`jinja2`, `python-multipart`, `email-validator`); from 0.142 it also brings the
+OpenTelemetry SDK and OTLP http/protobuf exporter that switch on native telemetry export once
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set (`references/opentelemetry.md`). Plain `fastapi` is the minimal
+install for a service that brings its own server; there is no separate slim package to hunt for any
+more.
 
 `httpx2` is a test dependency, not a runtime one, and it is needed because Starlette's test client
 prefers it over httpx v1.

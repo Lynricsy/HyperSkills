@@ -53,5 +53,18 @@
       "Does not introduce FastAPI, an ASGI server, routers or Pydantic models into a library that has nothing to do with HTTP",
       "skill_read is false for the `fastapi` skill"
     ]
+  },
+  {
+    "skills": ["fastapi"],
+    "query": "We bumped payments-api to fastapi[standard]==0.142.1 and three things broke. Staging pods now crash-loop with 'Application startup failed'; in production the `tenant.id` attribute that `tag_tenant` adds has vanished from every request span; and /healthz traces are back in the collector even though we exclude them. The app is payments_main.py (the Helm env for both clusters is in its docstring). Explain what is going on and give me the corrected payments_main.py.",
+    "files": ["evals/files/payments_main.py"],
+    "expected_behavior": [
+      "Recognises that FastAPI 0.142 records OpenTelemetry request traces, metrics and logs natively and by default (the SDK and the OTLP HTTP exporter ship with `fastapi[standard]`), so the request spans now reaching the collector are FastAPI's own rather than the contrib `FastAPIInstrumentor`'s",
+      "Explains the staging crash: at lifespan startup FastAPI's automatic environment export reads the `OTEL_EXPORTER_OTLP_*` variables, supports only OTLP http/protobuf, and aborts startup when `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`; the fix is `telemetry={\"auto_configure\": False}` when the app keeps its own exporter, or pointing staging at the collector's http/protobuf port",
+      "Explains why `tag_tenant` and `excluded_urls` stopped working: `FastAPIInstrumentor.instrument_app` called inside `lifespan` runs after the application stack is already built, so the contrib instrumentation is silently never applied (it only takes over when called before the app starts)",
+      "Explains that the `TracerProvider` set inside `lifespan` is rejected because FastAPI's automatic setup has already installed a global provider before the user's lifespan runs, and warns that configuring a provider with its own OTLP exporter earlier while leaving `auto_configure` on makes FastAPI attach a second exporter to the same endpoint, exporting every span twice",
+      "Moves the health-check exclusion to FastAPI's own setting, `telemetry={\"exclude\": lambda scope: scope[\"path\"] == \"/healthz\"}` (or equivalent), and restores `tenant.id` on the request span by a supported route — e.g. `trace.get_current_span().set_attribute(...)` from HTTP middleware, where the native request span is current",
+      "Flags that FastAPI now exports unhandled exceptions as OpenTelemetry log records with the exception message and stack trace, so the `ValueError` carrying the full card number leaks it to the telemetry backend - remove the PAN from the message, redact with a log processor, or set `logs: False`"
+    ]
   }
 ]

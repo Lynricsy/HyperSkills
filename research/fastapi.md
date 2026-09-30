@@ -281,3 +281,63 @@ Starlette 直接把 body 丢掉，所以症状只出现在客户端侧。
 「返回 ORM 行只有设了 `from_attributes` 才成立」，而这条被实测推翻（见「被实测推翻的两条常见说法」），
 于是改成了 `assert` → `raise ValueError` 那条。**`query` 与 `files` 两次完全相同**，改动只涉及人工
 判定的标准文本，不影响模型看到的输入，因此两次运行仍然可比；基线的该条按新标准重新判定为达成。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 2 条 `behind`：
+`fastapi-official-skill`、`kludex-fastapi-tips`。两条都按完整区间归因：blobless 克隆到
+`/tmp/hs-up/<owner>__<repo>`，对 `<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与
+`git diff`。`--pin` 后核对：写入的 commit 与审阅 HEAD 一致（fastapi 3e33a03、Kludex a263df9；repo moved 的
+pydantic 26f7b8a、microsoft/skills 3495f50、wshobson 156b7a5 顺带前移）。docs 条目中只读了与本次改动相关的
+`fastapi-docs` 页面 `docs/en/docs/advanced/opentelemetry.md`（同在 fastapi 仓库、同一区间新增），其 `synced_at`
+随之更新；其余 docs 为 manual check，本次未处理。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| fastapi-official-skill | 50113da → 3e33a03（12 提交，含 0.142.0/0.142.1 两次发版） | 仅 4b3949c（#16403 原生 OpenTelemetry）改 `fastapi/.agents/skills/fastapi/SKILL.md`：新增要点「用 FastAPI 原生 traces/metrics/logs」与 `## OpenTelemetry` 节（`fastapi[standard]` 带 SDK 与 HTTP/protobuf 导出器、`OTEL_SERVICE_NAME`/`OTEL_EXPORTER_OTLP_ENDPOINT`/`_HEADERS`、`FastAPI(telemetry={...})`） | **需合入** | 0.142.0（2026-09-29 发布）新功能，模型训练数据里不可能有；同提交的实现（`fastapi/telemetry/_runtime.py`、`_asgi.py`）与教程页决定了升级时的几处静默故障，见下 |
+| kludex-fastapi-tips | 8378516 → a263df9（1 提交） | a263df9：README 三个链接 `www.starlette.io` → `starlette.dev` | 噪声 | 本 skill 已用 `starlette.dev`（`starlette-docs` 条目），未引用这些链接 |
+
+区间内其余 fastapi 提交（release notes、sponsors、anyio 升级、前端测试超时、#16414 让 include_router 的路由
+只构建一次端点 handler 而非每请求重建）都不在 tracked path 内，也不触及本 skill 的任何规则。实测与版本行
+均以当前最新的 0.142.1 为准。
+
+### 合入前的实测（FastAPI 0.142.1、opentelemetry-sdk 1.45.0、instrumentation-fastapi 0.66b0，本地 OTLP sink 解码 protobuf）
+
+上游 skill 只说「优先用原生支持」，没写与既有配置冲突的后果。读 `_runtime._configure_from_environment` 后逐条实跑：
+
+1. 自动配置在 ASGI `lifespan.startup` 时执行，早于用户 `lifespan`：全局尚无 SDK provider 时它先装一个，用户在
+   `lifespan` 里 `trace.set_tracer_provider()` 被拒（`Overriding of current TracerProvider is not allowed`），
+   自建 provider 静默作废。
+2. 全局已有 SDK provider 且自带指向同一 endpoint 的 OTLP exporter 时，FastAPI 再挂一个且不去重：同一请求的
+   server span 与手写 span 在 sink 中各出现两次；`auto_configure: False` 后各一次。
+3. `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` 或 endpoint 存在时 `OTEL_TRACES_EXPORTER=console` → `FastAPIError`，
+   uvicorn 打印 `Application startup failed. Exiting.` 并退出。
+4. contrib `FastAPIInstrumentor.instrument_app` 在模块级调用 → contrib 接管、原生 span 关闭、无重复；在
+   `lifespan` 里调用 → 静默无效，hook 不触发、`excluded_urls` 不生效。`.instrument()` 在建 app 前调用同样接管。
+5. `@app.middleware("http")` 与纯 ASGI 中间件里 `get_current_span()` 是 server span；依赖与端点里分别是
+   `fastapi.dependencies`、`fastapi.endpoint` 子 span。
+6. 未处理异常以 ERROR 日志导出，`exception.message` 原文含插值进去的卡号。
+
+合入形态：新增 `references/opentelemetry.md`（以上六点 + 设置表 + 选型表 + 测试写法）、核心规则 22（后续规则顺延，
+仓库内无按编号引用）、主题路由一行、migrate 工作流一条、Scope/Not covered/Environment 与 `tooling.md` 的
+extras 说明各一句。只写模型不会的：上游教程已有的「怎么开」压缩成一段，篇幅给冲突与静默故障。
+
+### 评测（`workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同模型同条件）
+
+新增场景 5：`evals/files/payments_main.py` 是在 lifespan 里建 provider 并 `instrument_app`、staging 用 gRPC 的
+真实升级故障形态（夹具行为已在本地按生产/staging 两套环境复现：tenant 缺失、healthz 仍导出、staging 启动失败、
+卡号进入日志）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 FastAPI 0.142 遥测升级故障 | deepseek-v4.1-flash / max | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 半（provider 被拒 ✔，未警示双导出 ✘）EB5 ✘ EB6 ✘ | 基线装 0.142.1 读源码复现了崩溃与 hook 失效，但选择关掉全部原生遥测、把 contrib 挪到模块级；称原生遥测「0.137 起」（错）；完全没发现卡号随异常日志外泄 |
+| 5 同上 | deepseek-v4.1-flash / max | 有 | **true** | EB1–EB6 全部 ✔ | 删 contrib，import 时建 provider + `auto_configure: False`（点明避免二次挂 exporter），`exclude` 回调排除 healthz，中间件写 `tenant.id`，主动指出 PAN 随 ERROR 日志外泄并改为只留后四位；还说明了 `auto_configure: False` 后指标/日志不再导出 |
+
+结论：基线未达成的 EB4 后半、EB5、EB6 在有 skill 时达成，`skill_read` 为 true，场景 5 通过 D2。负例（场景 4）
+未改 description，未重跑。输出目录：`/tmp/hs-evals-sync/SyncG18/fastapi-b5`（基线）、`fastapi-s5`（有 skill）。
+
+D1：`validate_skills.py` 0 error、`build_catalog.py --check` 通过；安装冒烟
+`npx skills@latest add <worktree> --skill fastapi --agent universal --copy --yes` 后
+`.agents/skills/fastapi/` 含 SKILL.md 与 8 个 references（含新增 `opentelemetry.md`），与仓库内容 `diff -r` 一致。

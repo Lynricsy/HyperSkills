@@ -4,7 +4,7 @@ description: "Builds Python APIs with FastAPI, Pydantic, dependency injection an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: framework
 ---
 
@@ -16,9 +16,11 @@ Covers building and reviewing HTTP services with FastAPI: path operations and ro
 organisation, the dependency-injection system, Pydantic v2 models as the request and
 response contract, error handling, the boundary between async and blocking code,
 lifespan-managed resources, streaming and Server-Sent Events, background work, security
-dependencies, testing, and the FastAPI-specific parts of the toolchain.
+dependencies, the framework's native OpenTelemetry support, testing, and the FastAPI-specific parts
+of the toolchain.
 
-The body is written against **FastAPI 0.141**, **Pydantic 2.13** and **Starlette 1.6**.
+The body is written against **FastAPI 0.141**, **Pydantic 2.13** and **Starlette 1.6**; the native
+telemetry material against **FastAPI 0.142.1**, where it first shipped.
 
 Not covered:
 
@@ -36,6 +38,9 @@ Not covered:
 - Database schema design and query tuning. Use the `postgres` skill for PostgreSQL.
 - GraphQL schema and operations. Use the `graphql` skill.
 - Container images, Compose and Kubernetes deployment. Use the `containers` skill.
+- Vendor-neutral instrumentation — span naming, attribute cardinality, sampling, semantic
+  conventions, Collector pipelines. Use the `observability` skill; this skill covers only what
+  FastAPI's own telemetry does and how it collides with other setups.
 - ORM and migration tooling. No skill in this library covers it yet; say so rather than
   improvising one.
 
@@ -103,16 +108,23 @@ Paths below are relative to this skill's directory.
 21. `BackgroundTasks` runs in the same worker process after the response, with no retry and no
     persistence. If losing the work would page someone, return `202` with a job id and hand it
     to a real queue.
-22. Override dependencies in tests with `app.dependency_overrides[dep] = fake`, and clear them
+22. On FastAPI 0.142+, request traces, metrics and exception logs are native and on by default;
+    configure them with `FastAPI(telemetry={...})` and the `OTEL_*` variables, and do not add
+    `opentelemetry-instrumentation-fastapi`. When anything else sets up OpenTelemetry providers,
+    run it at import time and pass `telemetry={"auto_configure": False}` — otherwise FastAPI
+    exports every span a second time, a provider set in `lifespan` is silently refused, and an
+    OTLP gRPC environment aborts startup. Exception messages are exported with the logs, so keep
+    secrets out of them (`references/opentelemetry.md`).
+23. Override dependencies in tests with `app.dependency_overrides[dep] = fake`, and clear them
     in teardown. Patching the module attribute does nothing: the route captured the callable
     when the decorator ran.
-23. `TestClient(app)` without a `with` block never runs `lifespan`, so startup state is missing
+24. `TestClient(app)` without a `with` block never runs `lifespan`, so startup state is missing
     and the failure surfaces as an unrelated `AttributeError`. Use `with TestClient(app) as
     client:` in a fixture.
-24. Use `TestClient` for tests that only send requests; switch to
+25. Use `TestClient` for tests that only send requests; switch to
     `AsyncClient(transport=ASGITransport(app=app))` only when the test body itself awaits
     application code. `AsyncClient(app=app)` is not a thing any more.
-25. Finish with the gate: `uv run ruff format`, `uv run ruff check` (with `FAST` enabled), the
+26. Finish with the gate: `uv run ruff format`, `uv run ruff check` (with `FAST` enabled), the
     project's type checker, `uv run pytest`, and one request against the running app for the
     path you touched. Report the commands and their output.
 
@@ -194,6 +206,9 @@ Paths below are relative to this skill's directory.
 - [ ] Drop `ORJSONResponse` / `UJSONResponse` (deprecated) and any `RootModel` wrappers in
       favour of declared return types.
 - [ ] Delete `response_model=` where it now duplicates the return annotation (`FAST001`).
+- [ ] Crossing 0.142: find every existing OpenTelemetry setup (`FastAPIInstrumentor`, provider
+      code, Logfire or vendor SDKs, the deployed `OTEL_*` variables) and settle each one against
+      native telemetry before deploying (`references/opentelemetry.md`).
 - [ ] Update the tests in the same change: `dependency_overrides` instead of patches,
       `ASGITransport` instead of `AsyncClient(app=...)`, `with TestClient(app)` for lifespan.
 - [ ] **Gate — same contract, new code:** `/openapi.json` before and after the migration differ
@@ -210,12 +225,13 @@ Paths below are relative to this skill's directory.
 | SSE with `EventSourceResponse`, JSON Lines, byte streaming, what breaks mid-stream, WebSockets | Building a long-lived or incremental response | `references/streaming.md` |
 | `TestClient` vs `httpx.AsyncClient`, `httpx2`, lifespan in tests, `dependency_overrides`, conftest patterns, what to assert | Writing tests, or a test suite still reaching real services | `references/testing.md` |
 | Install extras, `fastapi dev`/`run` and `[tool.fastapi] entrypoint`, the `FAST` ruff rules, project layout, library defaults, client generation | Setting up a project or its checks | `references/tooling.md` |
+| Native request traces, metrics and exception logs, the `telemetry` dict, `auto_configure` at startup, coexistence with `FastAPIInstrumentor`/Logfire/own providers, request-span attributes, secrets in exception logs | Adding, upgrading or debugging telemetry on FastAPI 0.142+, or spans are missing, doubled, or startup fails after an upgrade | `references/opentelemetry.md` |
 
 ## Environment
 
-- Install with `uv add 'fastapi[standard]'`: that brings the `fastapi` CLI and uvicorn with
-  `uvloop`/`httptools`. Plain `fastapi` is the minimal install for a service that supplies its
-  own server.
+- Install with `uv add 'fastapi[standard]'`: that brings the `fastapi` CLI, uvicorn with
+  `uvloop`/`httptools`, and (from 0.142) the OpenTelemetry SDK with the OTLP http/protobuf exporter.
+  Plain `fastapi` is the minimal install for a service that supplies its own server.
 - Declare the app once in `pyproject.toml` so commands need no path argument:
 
   ```toml
