@@ -371,3 +371,21 @@ Node 驱动默认把 JS number 发成 double，所以「shell 里能过、应用
 - 官方四个 skill 的 MCP 工具调用主线（`collection-indexes` / `explain` / `find` /
   `atlas-get-performance-advisor` 及其参数 schema）整体剥离，改写成 `mongosh` 与驱动等价物；
   `mongodb-schema-design` 结尾的第一人称审批策略（"I will NEVER…"、"We're a team"）整段不合入。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告：`awesome-copilot`（64 commits）、`mongodb-server`（237 commits）两条
+`behind`，均为 diff too large。两者都用 blobless 克隆（`/tmp/hs-up/github__awesome-copilot`、
+`/tmp/hs-up/mongodb__mongo`）按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 核对
+（`git log --oneline` + `git diff --stat` + `git diff`），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths 的提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| awesome-copilot | 7568a48 → 15ed97c | 无：区间共 329 个文件变更，`instructions/mongo-dba.instructions.md`、`agents/mongodb-performance-advisor.agent.md` 均未改动且在 HEAD 仍存在；全区间 `--name-status` 检索 mongo/documentdb/cosmos 无新增相关文件 | 噪声 | 追踪文件逐字未变，也没有新的 MongoDB 条目可纳入 |
+| mongodb-server | 6d990ba → 9e49fe7 | 无：`LICENSE-Community.txt` 未改动 | 噪声 | 许可证仍为 SSPL-1.0，reference 身份不变。顺带复核发布线：8.3 线最新标签 `r8.3.11`，9.0 仍只有 `r9.0.0-alpha0/alpha1`（另有 `r9.1.0-alpha0`），SKILL.md「以 8.0 LTS 为基线、8.3.x 为当前 rapid release、9.0 仍为 alpha」依然成立；各 reference 的「Verified against 8.3.9」是实测版本记录，不随标签改写 |
+
+其余仓库上游（`mongodb-agent-skills`、`azure-documentdb-kit` 为 `repo moved, tracked paths unchanged`；`edd-skill`
+为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（d1d2d86、688a6c9、15ed97c、9e49fe7、
+0211b09）。`mongodb-docs` 为 `kind: docs`，未改。
+
+结论：两条 behind 均无命中改动，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.09.30。
