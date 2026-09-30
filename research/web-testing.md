@@ -740,3 +740,26 @@ blobless 克隆按完整 `<旧pin>..<审阅HEAD>` 区间、只限该条目 `path
 
 结论：基线已全部做到，network 新增内容不合入（`docs/skill-standard.md` 第 3 节：只写模型不会的）；正文未变，
 仅新增评测场景 6 与夹具、re-pin、版本号改为 2026.09.29；正文未变，未跑有 skill 的 D2。
+
+## 2026-09-30 上游同步（增量）
+
+依据 2026-09-30 在 worktree 重跑的 `uv run tools/check_upstream.py web-testing`：只有 `playwright-runtime`
+为 behind（8 提交）；awesome-copilot 为 repo moved / tracked paths unchanged（报告判定），其余 up to date。
+只覆盖旧 pin → 当前 HEAD 的增量区间：blobless 克隆 `/tmp/hs-up/microsoft__playwright` 后
+`git log d67c16e..5b8c4a0 -- packages/playwright-core/types/types.d.ts packages/playwright/types/test.d.ts`、
+`git diff --stat`（2 文件 +596/−28）与逐提交 `git show`。版本背景：`gh api` 查得最新 release 仍为
+v1.63.0（2026-09-04），区间两端 `package.json` 均为 `1.64.0-next`，即以下改动全部未发版。pin 后核对：
+`playwright-runtime` 写入 `5b8c4a0`、awesome-copilot 写入 `e7c25a4`，与审阅 HEAD / 报告 HEAD 一致。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| playwright-runtime | `d67c16e..5b8c4a0`（8 提交，命中 4 个） | `e37ddf1` `page.webmcp` API（`types.d.ts` +544） | 噪声 | 未发版的实验 API；2026-09-29 节已记录同类 WebMCP 命令为实验面不合入 |
+| | | `716a5d3` `tracing.start()` / `startChunk()` 返回 `Disposable`（dispose 等于不带 path 的 `stop`） | 噪声 | 未发版；本 skill 的 trace 规则走 config 的 `trace` 选项（规则 23），不示范手动 `tracing.start` |
+| | | `200edaf` `request.resourceType()` 文档补 `beacon`/`ping`/`cspreport` | 噪声 | 纯文档枚举补全，本 skill 不按资源类型路由 |
+| | | `0bd86d5` `test.d.ts` 中 `maxDiffPixels`/`maxDiffPixelRatio` 注释补「哪些像素算不同由 `threshold` 决定」 | 噪声 | 行为未变，只是注释澄清；`artifacts-and-debugging.md` 的截图示例只用 `maxDiffPixelRatio`，不涉及两者关系，无需更正 |
+
+区间内其余 4 个提交（`5b8c4a0` MCP 回环地址、`17c28cb` devops、`3456aa7` `--last-failed=<file>`、
+`5f47e4f` 依赖升级）不在 paths 内。
+
+**正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
+（`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。

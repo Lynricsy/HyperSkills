@@ -4,7 +4,7 @@ description: "Tests web applications in real browsers with Playwright end-to-end
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.09.30"
   category: task
 ---
 
