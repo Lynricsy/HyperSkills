@@ -49,5 +49,18 @@
       "Works on prompt structure, delimiting the retrieved articles as data, grounding/citation and provider-enforced structured output",
       "Treats this as text-model application work rather than a media generation task"
     ]
+  },
+  {
+    "skills": ["generative-media"],
+    "query": "Since the finals moved to FLUX.1-dev, the 10-step previews from evals/files/preview_flux.py come out as smeared mush, `--ays` dies with a ValueError, every run prints a deprecation warning, and previews got far slower. On top of that the seed the director approves on a preview never looks like the final render. Fix the preview path.",
+    "files": ["evals/files/preview_flux.py"],
+    "expected_behavior": [
+      "Identifies FLUX.1-dev as a flow-matching checkpoint whose shipped scheduler is `FlowMatchEulerDiscreteScheduler`, and says loading SDXL's DPM++ scheduler config onto it is the cause of the mush; keeps the checkpoint's default scheduler (or a flow-match-compatible one) for previews",
+      "If a scheduler is swapped at all, derives it with `from_config(pipe.scheduler.config)` from the pipeline's own config rather than loading another model's scheduler config with `from_pretrained`",
+      "Explains the `--ays` ValueError: custom `sigmas` only work when the scheduler's `set_timesteps` accepts them, and the SDXL Align-Your-Steps values belong to SDXL's noise schedule, so they are dropped for FLUX rather than forced through",
+      "Attributes the slowdown to `enable_full_determinism`, naming what it actually switches on beyond seeding (at least `CUDA_LAUNCH_BLOCKING=1` and `torch.use_deterministic_algorithms(True)`), removes it from the preview path, and moves the import to `diffusers.utils.torch_utils` wherever it is kept",
+      "Says a preview rendered with a different scheduler or step count follows a different trajectory, so an approved preview seed cannot reproduce the final unless scheduler, steps and guidance match; the generation record carries them",
+      "Uses a CPU `torch.Generator`, created per image, for seeds that must carry across runs or machines"
+    ]
   }
 ]

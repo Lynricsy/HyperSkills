@@ -508,3 +508,44 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 `openai/skills` 的三个媒体 skill + `ai.google.dev`（CC-BY-4.0 官方文档）+ `replicate/skills`
 + `GoogleCloudPlatform/vertex-ai-creative-studio`，辅以 `diffusers` / `whisper` / `c2pa` 三个
 本体仓库；ComfyUI（GPL）与两家厂商文档站（专有）作 reference。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 5 条 `behind`（三条 `diff too large`）。
+按完整区间归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，对 `<旧pin>..<审阅HEAD>` 只限条目 `paths` 跑 `git log --oneline`、
+`git diff --stat`、`git diff`；diffusers 另读 `src/diffusers/utils/torch_utils.py` 两端源码核实。`--pin` 前重新 fetch：ComfyUI 在
+报告之后又前进到 a65316b（新增 1 个 `comfy_extras` 提交，已补审）。`--pin` 后核对：写入的 commit 与审阅 HEAD 逐条一致
+（genmedia-creative-studio a7f6308、diffusers fef717f、whisper.cpp 6e4ab85、google/skills 2964a69、ComfyUI a65316b；c2pa
+为 repo moved、tracked paths unchanged，前移到 4eb2c67）。两条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| google-genmedia-skills | e9edbfc → a7f6308（77 提交） | 839818ca、6ac74193：`skills/README.md`、`build-mcp-genmedia`、`install-mcp-genmedia` 只把仓库名换成 genmedia-creative-studio，并补一行 install skill 说明；取用的 voice-director / video / producer 等 skill 未改 | 噪声（仓库改名） | `gh api repos/GoogleCloudPlatform/vertex-ai-creative-studio` 重定向到 `GoogleCloudPlatform/genmedia-creative-studio`，更新 `repo`/`url` 并记入 notes |
+| diffusers-docs | b27b69c → fef717f（37 提交） | 7263f33（#14805）重写 `reusing_seeds.md` 与 `schedulers.md`：① `enable_full_determinism` 列出全部动作（`CUDA_LAUNCH_BLOCKING=1`、cuBLAS workspace、`use_deterministic_algorithms(True)`、cuDNN deterministic + benchmark off、matmul TF32 off），导入路径改为 `diffusers.utils.torch_utils`；② 明确只有传 CPU generator 时才在 CPU 抽噪再搬设备；③ 新增「从 checkpoint 默认调度器出发，flow-matching（Qwen-Image、Flux）保留 `FlowMatchEulerDiscreteScheduler`，换调度器用 `from_config`，自定义 `timesteps`/`sigmas` 要看 `set_timesteps` 是否接受」；④ 删除 zero-SNR 重缩放节（移到 legacy 页） | ①② 需更正（已改）；③ 评测后不合入；④ 噪声 | ①：旧文「三件事」来自旧版文档，核对 b27b69c 的 `torch_utils.py` 源码，旧 pin 时函数就已设 `CUDA_LAUNCH_BLOCKING`、deterministic 算法与 cuDNN deterministic，且 TF32 只关 matmul、不动 cuDNN——属纯事实更正，改 `references/local-diffusion.md`；②同理改为按 generator 设备区分。③新增场景 5 验证，基线全部做到。④本 skill 未写该节 |
+| whisper-cpp | 1da4dc8 → 6e4ab85（180 提交） | `README.md` 2 提交：7a2ceef9 新增 ANEForge（Apple Neural Engine 编码器）一节，307869af 重写 Docker 用法 | 噪声 | 构建与后端选择本就排除在范围外；16 kHz 单声道 16-bit 输入要求与 VAD 段落未变 |
+| google-skills-gemini-api（reference） | ca4cde0 → 2964a69（59 提交） | becc4b8 加 `metadata.version: 1.0.0`；f4ed3d0 把示例模型 id 从 gemini-3.6-flash 换成 3.8-flash、omni 预览 id 加 1.1、认证文档链接换到 Agent Platform 路径 | 噪声 | 本 skill 按裁决 2 不写模型 id；该条目只作覆盖面对照，Omni/Veo 分工未变 |
+| comfyui（reference，GPL-3.0） | 1d48d9c → a65316b（120 提交，`comfy_extras` 下 27 个） | 新模型节点（Qwen-Image 2.1、Yue2 音乐、Marigold v2、MoGe 3、ming-image、ID-V2V）、通用循环节点、Video Concatenate、HDR LogC3/ACEScct 色彩空间节点、Save Video 默认画质 | 噪声 | 只用主题清单判断覆盖面（采样器/调度器、CFG、latent、适配器、mask、API 节点），这些主题的形态未变；新增节点属具体模型支持，不改本 skill 的任何裁决。仓库已转到 `Comfy-Org/ComfyUI`（gh api 重定向），更新 `repo`/`url` 并记入 notes |
+
+正文改动：仅 `references/local-diffusion.md` 两处事实更正（generator 设备与噪声抽取位置；full-determinism helper 的完整动作、
+导入路径、`use_deterministic_algorithms` 会让无确定性实现的算子直接报错、TF32 只关 matmul），`SOURCES.yaml` 的 diffusers
+`contributes` 同步。SKILL.md 核心规则 9、11 的表述仍成立，未改。
+
+### 评测
+
+新增场景 5：`evals/files/preview_flux.py`（FLUX.1-dev 预览沿用 SDXL 技巧：`from_pretrained` 装 SDXL 的 DPM++ Karras 调度器、
+`--ays` 传 SDXL AYS sigmas、旧路径导入 `enable_full_determinism`、CUDA generator）。
+
+评测隔离说明：前两次无 skill 基线作废——第 1 次（advisor 开启）模型在 `/tmp` 里搜到本 worktree 并读了 `evals.json`
+（含 expected_behavior）与 `local-diffusion.md`；第 2 次（advisor 已关）又在 `/root/.cache` 下搜到临时藏放的同一批文件。
+第 3 次把评测文件、references 与旧结果全部打包成 tarball 后重跑，events 中无任何 skill 副本或评测文件的读取。有 skill
+那次 events 显示读的是本 worktree 的 SKILL.md 与 `references/local-diffusion.md`；它 `find` 列出过临时移到
+`/root/.cache` 的基线结果目录名（深度 4，未进入 `baseline/5`），没有读取其中任何文件。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 FLUX 预览沿用 SDXL 调度器/AYS/determinism | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 5 / 6（1、2、3、4、6） | 489 s，advisor 关闭。自行认出 flow-matching 与 SDXL epsilon 调度器不兼容、保留默认调度器不再换（2 视为达成）；从 `retrieve_timesteps` 源码解释 ValueError，AysSchedules 无 FLUX 档，删 `--ays`；说出 `CUDA_LAUNCH_BLOCKING=1` 等并删掉该开关；每图 CPU generator。未达成 5：主张「预览 = 终稿只差步数」即可沿用种子，没指出步数不同轨迹就不同 |
+| 5（同上） | workbuddy/deepseek-v4.1-flash（thinking max） | 有 | true | 5 / 6（1、2、3、4、6） | 642 s，advisor 关闭。与基线同样的 1、2、3、6；4 直接沿用更正后的正文（「测试/校验开关，不是预览默认」，列全 `CUDA_LAUNCH_BLOCKING`、deterministic、cuDNN、TF32）。5 仍只部分达成：生成记录写入步数与调度器，并验证 28 步预览与终稿字节一致，但同样把 10 步预览当作「只差步数」 |
+
+结论：上游新增的调度器指引（flow-matching 保留默认调度器、`from_config`、自定义 sigmas 的前提）基线已全部做到，不合入，
+场景 5 留作哨兵。determinism helper 与 generator 设备两处按上游文档与源码直接更正。场景 5 的第 5 条在有无 skill 时都
+没达成；正文「五个条件」已把步数列为复现条件，这不是本次上游带来的内容，留作后续观察，本次不改。

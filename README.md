@@ -143,7 +143,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`flutter`](skills/flutter/) | 平台 | Develops cross-platform Flutter apps with Dart, widgets and state management | 2026.09.29 | 7 |
 | [`frontend-design`](skills/frontend-design/) | 任务 | Designs and audits web interfaces for visual quality, usability and accessibility | 2026.09.30 | 13 |
 | [`gcp`](skills/gcp/) | 平台 | Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services | 2026.09.30 | 7 |
-| [`generative-media`](skills/generative-media/) | 任务 | Integrates AI image, video, speech and music generation or transcription models | 2026.09.12 | 14 |
+| [`generative-media`](skills/generative-media/) | 任务 | Integrates AI image, video, speech and music generation or transcription models | 2026.09.30 | 14 |
 | [`git-workflow`](skills/git-workflow/) | 任务 | Manages local Git branches, worktrees, commits, merges, conflicts and history recovery | 2026.09.30 | 12 |
 | [`github`](skills/github/) | 平台 | Manages GitHub pull requests, issues, Actions workflows, releases and repository settings | 2026.09.30 | 15 |
 | [`go`](skills/go/) | 框架 | Develops Go code with goroutines, modules, testing and performance profiling | 2026.09.30 | 12 |

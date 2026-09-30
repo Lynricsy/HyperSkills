@@ -75,9 +75,10 @@ explicitly. Seed explicitly at the call, or accept that nothing is seeded.
 
 The same seed produces different noise on a CPU generator and on a CUDA
 generator; they are separate implementations, not one algorithm running in two
-places [official]. Diffusion libraries therefore create the initial noise
-tensor on the CPU and move it to the accelerator, precisely so a result can
-survive a change of device.
+places [official]. Diffusers draws the initial noise on the CPU and moves it to
+the accelerator only when the generator you pass is a CPU generator; hand it a
+CUDA generator and the noise is drawn on the device, so the result is tied to
+that device [official].
 
 If cross-machine reproduction matters, use a CPU generator and accept the
 negligible cost of generating a latent there [official]. If you let the device
@@ -96,20 +97,28 @@ Two further limits worth stating to whoever is asking for parity:
 
 ## The full-determinism switch and its price
 
-The library's full-determinism helper does three specific things [official]:
+The library's full-determinism helper (`enable_full_determinism` in
+`diffusers.utils.torch_utils`; the old `diffusers.utils.testing_utils` import
+is a deprecated alias) does more than pin a few flags [official]:
 
-1. Sets the cuBLAS workspace configuration environment variable to a fixed
+1. Sets `CUDA_LAUNCH_BLOCKING=1`, which makes every CUDA kernel launch
+   synchronous — a large slowdown on its own.
+2. Sets the cuBLAS workspace configuration environment variable to a fixed
    value, which makes certain GEMM routines deterministic.
-2. Disables the cuDNN benchmark autotuner, so convolution algorithm selection
-   stops depending on measured timings — the autotuner is why a warm process
-   can pick a different algorithm from a cold one.
-3. Disables TF32 on matmul and cuDNN paths, so reduced-precision fast paths
-   stop introducing run-to-run variation.
+3. Calls `torch.use_deterministic_algorithms(True)`, so any operation without
+   a deterministic implementation raises an error instead of running.
+4. Sets cuDNN to deterministic mode and disables the cuDNN benchmark
+   autotuner, so convolution algorithm selection stops depending on measured
+   timings — the autotuner is why a warm process can pick a different
+   algorithm from a cold one.
+5. Disables TF32 for CUDA matmuls, so that reduced-precision fast path stops
+   introducing run-to-run variation. It does not touch cuDNN's own TF32 flag.
 
-Each of the three costs throughput, which is why this is a test and
-verification switch rather than a production default. It must also be set
-before the pipeline runs; flipping it after models are loaded does not undo
-choices already made.
+Every one of these costs throughput, and the third can turn a working pipeline
+into an exception, which is why this is a test and verification switch rather
+than a production or preview default. Call it before anything touches CUDA:
+the environment variables are read when CUDA and cuBLAS initialise, so
+flipping it after models are loaded does not undo choices already made.
 
 ## Five conditions, and no guarantee even then
 
