@@ -229,3 +229,18 @@ skill 的增量集中在**编译器不报的静默变化**（`dom.iterable` 折�
   `references/tsconfig-and-modules.md`。
 - **放弃的方向**：tRPC / Zod 等具体库的用法（属于各自生态，且会让本 skill 变成库说明书）；
   类型体操竞赛式的 type-challenges 题解（对真实工程无杠杆）。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 2 条 `behind`，其中
+`awesome-copilot-ts-tests` 为 `diff too large`。两条都按完整区间归因：blobless 克隆到 `/tmp/hs-up/<owner>__<repo>`，
+对 `<旧 pin>..<HEAD>` 跑 `git log --oneline -- <paths>`、`git diff --stat` 与 `git diff`，并确认 tracked path 在 HEAD
+上仍存在。`--pin` 后核对：写入的 commit 与审阅 HEAD 一致（mattpocock d81f3a1、awesome-copilot 15ed97c；
+repo moved 的 shipshitdev 顺带前移到 a0f9899）。三条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| mattpocock-codebase-design | 3cca18b → d81f3a1（34 提交） | d80fa0f：`codebase-design/DESIGN-IT-TWICE.md` 与 `improve-codebase-architecture/SKILL.md` 把领域词表文件 `CONTEXT.md` 改名为 `GLOSSARY.md`（6 行纯替换） | 噪声 | 本 skill 当初就没取其词表/ADR 工作流（属文档实践，不属 TypeScript），正文与 references 不含该文件名；仅把 `SOURCES.yaml` notes 中的文件名更新为「CONTEXT.md，上游 d80fa0f 改名 GLOSSARY.md」以免过时 |
+| awesome-copilot-ts-tests | 7568a48 → 15ed97c（64 提交，329 文件） | `skills/javascript-typescript-jest/SKILL.md`、`instructions/nodejs-javascript-vitest.instructions.md` 0 提交 | 噪声 | 区间改动全在其他目录；too-large 只是 compare 上限 |
+
+未合入原因：两条均无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。

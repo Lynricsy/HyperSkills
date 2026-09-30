@@ -1,5 +1,5 @@
 skill: typescript
-version: "2026.09.12"
+version: "2026.09.30"
 upstreams:
   - id: mattpocock-codebase-design
     kind: repo
@@ -9,12 +9,12 @@ upstreams:
       - skills/engineering/codebase-design
       - skills/engineering/improve-codebase-architecture
     ref: main
-    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    commit: d81f3a183412e71a5b1e84ca21bc1a35eea03a60
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The deep-module vocabulary used verbatim as terminology (module, interface, implementation, depth, seam, adapter, leverage, locality) with its explicit list of words to avoid, the deletion test, depth-as-leverage in place of the implementation-to-interface line ratio, one-adapter-is-hypothetical / two-adapters-is-real, the internal-versus-external seam distinction, the interface-is-the-test-surface rule with replace-don't-layer, and the four dependency classes that decide where a seam goes."
-    notes: "paths are narrowed to the two directories actually consulted: this repository already tracks skills/engineering/code-review, .../tdd and .../diagnosing-bugs for other skills, and a whole-repo path list would report unrelated commits as drift here. The upstream's harness-bound material (disable-model-invocation, Skill-tool cross-calls, the Tailwind/Mermaid HTML report, xdg-open) was dropped, and its CONTEXT.md/ADR workflow was left out as belonging to documentation practice rather than to TypeScript."
+    notes: "paths are narrowed to the two directories actually consulted: this repository already tracks skills/engineering/code-review, .../tdd and .../diagnosing-bugs for other skills, and a whole-repo path list would report unrelated commits as drift here. The upstream's harness-bound material (disable-model-invocation, Skill-tool cross-calls, the Tailwind/Mermaid HTML report, xdg-open) was dropped, and its domain-glossary/ADR workflow (the glossary file was CONTEXT.md, renamed GLOSSARY.md upstream in d80fa0f) was left out as belonging to documentation practice rather than to TypeScript."
 
   - id: mcollina-ts-magician
     kind: repo
@@ -25,7 +25,7 @@ upstreams:
     commit: 856efd268ae85482d882f3d0bed869fd020b5c06
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The narrowing and generics body: the built-in narrowing constructs and their order, discriminated unions with never-based exhaustiveness, custom type predicates and generic guards, assertion functions together with the function-declaration requirement and the error it produces when broken, the control-flow-analysis failure cases (narrowing stored in a variable, narrowing across callbacks, uncorrelated optional properties), and branded types with the unique-symbol variant and validating constructors."
     notes: "metadata.tags frontmatter fields stripped. Its utility-type and type-challenge material was left out as content a capable model already has."
 
@@ -35,10 +35,10 @@ upstreams:
     url: https://github.com/shipshitdev/skills/tree/master/skills/typescript-refactor
     paths: [skills/typescript-refactor]
     ref: master
-    commit: 73e6017ef3eab0258da24102e4e0ec6c2b4d582f
+    commit: a0f9899c4254e9c000a390c00fbe5e11a52530bb
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The rule inventory and its impact ordering for type architecture, narrowing, modern syntax, generics, error safety and language quirks: satisfies over annotation, interfaces over intersections, readonly by default, union literals over enums, eliminating as-casts through narrowing chains, typed catch bindings, discriminated error unions, explicit return types on exported API, distributive conditional types and how to switch distribution off, excess-property checking on literals only, and the empty-object-type trap."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Four rules (arch-satisfies-over-annotation, generic-avoid-distributive-surprises, quirk-excess-property-checks, modern-verbatim-module-syntax) were checked against the TypeScript handbook and against tsc 7.0.2 before adoption; all four held. Its compiler-performance and tooling-selection rules were re-derived from the official TypeScript 6.0/7.0 release notes instead, because the upstream predates those releases."
 
@@ -51,7 +51,7 @@ upstreams:
     commit: 6dca4a3cd4b3be4e6d6beea7b04c50a9420b5b13
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The explicit-configuration principle (never rely on a version default), the consumption-model decision axis for module and moduleResolution with the bundler-resolution-breaks-consumers failure, isolatedDeclarations as a library flag and noise in an application, the strictification ratchet (measure the error surface, enable per flag or per directory, gate CI on no-new-errors), and the publish-side verification gate of publint plus arethetypeswrong."
     notes: "The only candidate whose content was already correct for TypeScript 6/7. Its own tsconfig playbook was not copied: every configuration block here was rebuilt from the official release notes and then compiled against tsc 7.0.2."
 
@@ -89,10 +89,10 @@ upstreams:
       - skills/javascript-typescript-jest/SKILL.md
       - instructions/nodejs-javascript-vitest.instructions.md
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Read to confirm the testing chapter had no missing topics. Neither file contains TypeScript-side configuration — the Jest skill is a matcher and structure checklist, and the Vitest instructions apply only to .js/.mjs/.cjs — so nothing was taken from either."
     notes: "paths list the two files consulted rather than the repository, which carries several hundred unrelated skills and instruction files."
 
@@ -105,6 +105,6 @@ upstreams:
     commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Cross-checked the type-level examples (branded types, discriminated unions, custom utility types) against the material adopted from other upstreams. No content taken."
     notes: "Reference-only by ruling, not by licence: its references/configuration.md is a TypeScript 5.x configuration baseline that no longer compiles — baseUrl with paths, esModuleInterop presented as opt-in, moduleResolution node still listed, target es5 context. It is recorded in research/typescript.md as the worked example of why configuration advice must be version-gated."
