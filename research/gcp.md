@@ -375,3 +375,35 @@ Plans、Gemini 计费档位）属 FinOps/AI 计费细节，不合入。
   launch stage，列表以官方页为准。
 - 本机没有 gcloud，未能确认 `gcloud billing budgets` 是否已有 spend cap 相关 flag，正文只描述控制台
   路径之外的语义，不给 CLI。
+
+## 2026-09-30 上游同步（增量）
+
+依据 2026-09-30 在 worktree 重跑的 `uv run tools/check_upstream.py gcp`：只有 `google-skills` 为
+behind（8 提交），其余 repo 条目 up to date，`gcp-docs` 为 manual check。只覆盖旧 pin → 当前 HEAD 的增量区间：
+blobless 克隆 `/tmp/hs-up/google__skills` 后 `git log a063fbf..2964a69 -- <20 个 paths>` 与
+`git diff --stat`/`git diff`。全仓 8 个提交中只有 1 个命中本 skill 的 paths。pin 后核对：写入的
+commit 为 `2964a69`，与审阅 HEAD 一致；其余条目 commit 未变，只刷新 `synced_at`。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| `google-skills` | `a063fbf..2964a69`（全仓 8 提交，命中 1 个） | `2964a69`：`google-cloud-storage-bucket-architect` 的 `SKILL.md` 与 `references/{gcloud,phase_draft_plan,phase_output,phase_project_checks,rest}.md`，6 文件 +74/−52 | 噪声 | 见下 |
+
+**`2964a69` 逐项**：
+
+- `CLOUDSDK_METRICS_ENVIRONMENT` 归因前缀扩到「执行或输出的每条 gcloud」（含项目检查、桶名检查、
+  建议里的辅助命令），唯一例外是 REST `curl` 里的 `gcloud auth print-access-token`。这是上游 skill 自身的
+  使用量归因遥测，本 skill 从未合入（2026-09-29 已判同类改动为噪声）。
+- 翻译表倾向「能在 `create` 里给的都在 `create` 里给，`update` 合并成一条」，网站配置与 CORS 合成一条
+  `update`。命令排版偏好，不涉及事实；本 skill 的 `references/cloud-storage.md` 只示范 `create` 时
+  必须定下的设置。
+- Autoclass 行补「要求 `STANDARD` 存储类；对现有非 STANDARD 桶启用时须显式 `--default-storage-class=STANDARD`」。
+  这是由 API 直接报错暴露的前置条件，不是静默失败；本 skill 的 Autoclass 一节讲的是成本取舍（每对象管理费
+  vs 生命周期规则），不给启用命令，无对应失败模式，不合入。
+- 草案计划的冲突处理（用户要求跳过确认时仍按其参数出命令并附警告）、「只禁止 gcloud 时才跳过只读项目检查」、
+  桶名冲突时预警 409：均为该上游多阶段向导的流程规则，本 skill 未采用该向导结构。
+
+区间内其余 7 个提交（genkit 导入、secops、bigquery-observability、gke-service-networking、
+agent-platform-deploy、GKE 路由消歧 `9ad3d2b`）都不在本 skill 的 paths 内。
+
+**正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
+（`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
