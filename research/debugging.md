@@ -158,3 +158,18 @@ skill 自身的路由相冲突，记录在案而非事后改写；下次同步�
 - 未来同步要盯的上游：obra/superpowers 与 mattpocock/skills 都是高频推送的大仓库，`check_upstream.py` 的 `paths` 已收窄到具体 skill 目录，避免全仓噪声。
 - 放弃的方向：可观测性设计、性能系统优化、浏览器验证、测试框架 API 四类都以「用生态 skill」路由，不合入（候选 14–16、28）。
 - 评测夹具 `evals/files/` 是四个可直接运行的小场景，全部在本机验证过：`test_pricing.py` 稳定 1 error + 1 failure；`test_ingest.py` 40 次跑测得 13 次失败（约 33% flaky）；`webhook_handler.py` + `handler.log` 含一条注入式「厂商诊断」与一条 live token 明文，用于检验 Core rule 3 与 6。
+
+## 2026-09-30 上游同步
+
+依据 2026-09-30 `tools/check_upstream.py` 报告（2 个 `behind`）。两条都用 blobless 克隆（`/tmp/hs-up/<owner>__<repo>`）按完整
+`<旧pin>..<审阅HEAD>` 区间、只限该条目 `paths` 核对（`git log` + `git diff --stat` + `git diff`），先确认旧 pin 是审阅 HEAD 的祖先。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| mattpocock-diagnosing | 3cca18b → d81f3a1 | 34 个提交中只有 d80fa0f 命中：`diagnosing-bugs/SKILL.md` 一行，把「先读 `CONTEXT.md`」改为「先读 `GLOSSARY.md`」；`skills/productivity/grilling` 无变化 | 噪声 | 该句属仓库约定耦合，合入时已整体剥离；只在 SOURCES.yaml 的 notes 里补记改名 |
+| obra-debugging | b36e082 → 8ca22db | 5bf4e78（v6.4.1）：`systematic-debugging/root-cause-tracing.md` 把 `./find-polluter.sh` 调用改为 `bash ./find-polluter.sh`；`verification-before-completion` 无变化 | 噪声 | 本 skill 未随附 `find-polluter.sh`（硬编码 `npm test`），只给出用项目自身命令的二分循环写法，调用方式与之无关 |
+
+其余仓库上游（addy-debugging 为 `repo moved, tracked paths unchanged`；pproenca-debug 为 up to date）随 `--pin` 一并对齐。
+2 个 behind 条目 pin 写入的 commit 与审阅 HEAD 逐条一致（d81f3a1、8ca22db）。
+
+结论：全部为噪声，正文未改、未新增评测；仅 re-pin、notes 补记 `CONTEXT.md` → `GLOSSARY.md` 改名，版本号改为 2026.09.30。

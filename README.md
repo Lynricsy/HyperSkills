@@ -137,7 +137,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`cpp`](skills/cpp/) | 框架 | Develops C++ code with CMake, ownership, concurrency and memory safety | 2026.09.30 | 10 |
 | [`csharp-dotnet`](skills/csharp-dotnet/) | 框架 | Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework | 2026.09.30 | 10 |
 | [`data-analysis`](skills/data-analysis/) | 任务 | Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions | 2026.09.12 | 14 |
-| [`debugging`](skills/debugging/) | 任务 | Diagnoses and fixes reproducible bugs, regressions, failures and performance problems | 2026.09.12 | 4 |
+| [`debugging`](skills/debugging/) | 任务 | Diagnoses and fixes reproducible bugs, regressions, failures and performance problems | 2026.09.30 | 4 |
 | [`elasticsearch`](skills/elasticsearch/) | 框架 | Designs and tunes Elasticsearch mappings, queries, search relevance and indexes | 2026.09.12 | 9 |
 | [`fastapi`](skills/fastapi/) | 框架 | Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling | 2026.09.30 | 12 |
 | [`flutter`](skills/flutter/) | 平台 | Develops cross-platform Flutter apps with Dart, widgets and state management | 2026.09.29 | 7 |
