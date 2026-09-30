@@ -229,3 +229,28 @@ ADR 一节的"先匹配既有约定"三条（位置与格式、编号与命名�
 - **不做「文档站工具链」一节**（mkdocs / Docusaurus / Sphinx 配置）。它是站点构建而不是内容，且负例第二版已经证明：只要 `description` 把 `docs sites` 列进覆盖物，这个 skill 就会被无关的工具链请求吸住。`## Scope` 与 `description` 两处都写明排除。
 - **不做 Markdown 语法层规范**（标题层级、表格对齐、行宽）。`google/styleguide` 的 `docguide/style.md` 有 845 行这类内容，但它是 Google 内部渲染器（Gitiles）的约束，且项目的 formatter/linter 比任何散文规则都可靠。
 - **不做「写给 agent 读的文档」**（`AGENTS.md`、`CLAUDE.md`、规则文件）。按本波次 Contract 归 `skill-authoring`；候选 #18、#21 都把它和面向读者的文档混在一套规则里，是它们被拒的原因之一。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）technical-writing 段 4 条 `behind`
+（mblode-docs-writing、copilot-docs〔`diff too large`〕、mattpocock-skills、google-styleguide）。归因一律
+从旧 pin 起算到审阅 HEAD，在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里先确认旧 pin 是 HEAD 的祖先，
+再用 `git log <旧pin>..<HEAD> -- <paths>` 与 `git diff` 读实际改动。`--pin` 后核对 SOURCES.yaml：
+mblode `b42cf43`、awesome-copilot `15ed97c`、mattpocock `d81f3a1`、google/styleguide `403f058`、
+addyosmani `2686b62`，与审阅 HEAD 逐条一致；jph-adr、standard-readme、awesome-readme-skill、shields
+为「repo moved, tracked paths unchanged」，随 `--pin` 前移。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| mblode-docs-writing | 7898f84..b42cf43 | 57eb304 `skills/docs-writing/SKILL.md`：IS NOT 与路由表增加 `agent-ready`、`seo` 指针 | 噪声 | 上游兄弟 skill 路由，本 skill 早已把这些交叉引用换成本仓库边界 |
+| mblode-docs-writing | 同上 | cbeaec5 删除 `skills/docs-writing/`（55 文件），内容并入 `skills/ghostwriter/references/docs.md`（见上游 `maintenance/2026-09-21-writing-consolidation.md` 处置表） | 路径迁移，重新裁决后保留 merged | 按 Phase B 找到新位置：`docs.md` 仍含我们合入的全部要素——类型门控（quick start / next steps / 多语言 / 请求响应 / `llms.txt` 只在对应类型要求，别处要求即违背 Diataxis）、「示例跑过、链接解析即可发布」、审计按文件分组且每条带修法、「Improve/fix 才直接改」、凭据用厂商测试前缀、新鲜度来自构建而非手写日期。`paths` 改为 `skills/ghostwriter/references/docs.md`，id 保留以免改动各 reference 的 `<!-- sources -->` 注释；许可仍 MIT（`gh api` 核对） |
+| mblode-docs-writing | 同上 | `docs.md` 相对旧 docs-writing 的新增：干净 shell 跑示例（未声明的环境变量是最常见的坏例子）、误分类是审计最大误报源、标题下定向句只在标题不自明时写 | 已覆盖 | `references/readme.md` 已要求示例前声明凭据与环境变量、`code-examples.md` 核对每个环境变量是代码真读的；SKILL.md 先分类后审计。上游「顺手修掉」的四处（编造延迟数字的示例、每轮删 20%、每个标题下强制定向句、2-4 链接/3-5 步配额）本 skill 均未合入过（grep 无命中） |
+| copilot-docs | 7568a48..15ed97c（64 commits） | 本地克隆 `git log`/`git diff --stat` 对 4 个跟踪路径均为空，路径在 HEAD 仍存在 | 噪声 | 报告 too large 仅因全仓改动多 |
+| mattpocock-skills | 3cca18b..d81f3a1 | d80fa0f/e484a80 `.agents/writing-docs.md`：示例里 `CONTEXT.md` 改名 `GLOSSARY.md`；deb4a9c 同文件：被移除 skill 的文档页保留为 archived 页（正文不动、开头加 `> **Archived.**` 引用块） | 噪声 / 不合入 | 改名只影响上游自有约定的举例；archived 页规则是 aihero.dev 站点的发布机制，与 SOURCES 既有 notes「站点专属机制不合入」一致 |
+| google-styleguide | 3b88229..403f058 | c1cea3a `docguide/style.md`：自身示例的外层 `<pre>` 改为四反引号围栏 | 噪声 | 仅上游文档自身排版，规则不变 |
+
+### 正文
+
+未改。只改 SOURCES.yaml（mblode `paths` 与 `notes`、re-pin）与版本号。未新增评测：没有「需合入」条目。

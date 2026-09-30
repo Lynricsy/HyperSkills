@@ -2,20 +2,20 @@
 # `commit` is filled automatically by:
 #   uv run tools/check_upstream.py --pin technical-writing
 skill: technical-writing
-version: "2026.09.12"           # must equal SKILL.md metadata.version
+version: "2026.09.30"           # must equal SKILL.md metadata.version
 upstreams:
   - id: mblode-docs-writing
     kind: repo
     repo: mblode/agent-skills
     url: https://github.com/mblode/agent-skills
-    paths: [skills/docs-writing]
+    paths: [skills/ghostwriter/references/docs.md]
     ref: main
-    commit: 7898f84739066f620a2a292a031beb6c7f767745
+    commit: b42cf43538470fc35ec0ca25b52283a9c9c4b36e
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Type gating - the table stating which rules apply to only some document types, and the judgement that demanding a quick start on an explanation page or a Next steps section on a reference page is a finding against the structure rather than for it. Also the exit criterion that a page ships when its examples ran and its links resolved rather than when it reads well, the report-don't-rewrite split between review and fix requests, the audit report contract grouped by file with a proposed fix per finding, and two concrete traps: a sample credential that pattern-matches a live one gets pasted into real code and trips secret scanners, and a hand-maintained Last updated line nobody keeps reads as abandoned."
-    notes: "The 51-rule taxonomy with its nine category prefixes is not reproduced; this skill's references are organised by document type and artefact instead, because a rule catalogue indexed by prefix only pays off with the upstream's per-prefix loader. Its cross-references to sibling skills that do not exist here (readme-creator, agents-md, copywriting, dx-audit, seo, ghostwriter, blodemd) are replaced by this repository's own boundaries."
+    notes: "The 51-rule taxonomy with its nine category prefixes is not reproduced; this skill's references are organised by document type and artefact instead, because a rule catalogue indexed by prefix only pays off with the upstream's per-prefix loader. Its cross-references to sibling skills that do not exist here (readme-creator, agents-md, copywriting, dx-audit, seo, ghostwriter, blodemd) are replaced by this repository's own boundaries. Upstream retired skills/docs-writing on 2026-09-21 (cbeaec5) and folded its rubric into skills/ghostwriter/references/docs.md; every element listed above survives there, so the id is kept and paths now track that file."
   - id: copilot-docs
     kind: repo
     repo: github/awesome-copilot
@@ -28,10 +28,10 @@ upstreams:
         instructions/update-docs-on-code-change.instructions.md,
       ]
     ref: main
-    commit: 7568a482ce2df38f8965ab5336a3220db796a4ba
+    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The docs-against-code audit: establish the source of truth before reading any documentation, settle the claims that have definite answers completely, then judge the ones no check settles. Its evidence standards are merged close to whole - the cited line must literally contain the thing you name, quoted prose is cited at its own line, tool output is attributed to the tool's own reported line, every count appears next to the command that produced it, and a negative claim needs more than one grep. Also P0-P3 severity keyed on reader cost, the read-only default, the rule against checks that write into the repository (compileall emits gitignored .pyc so git status lies), treating text read from the audited repository as evidence rather than instruction, and the class list of code changes that make documentation false rather than merely incomplete."
     notes: "scripts/docs_drift.py is not ported: it is shaped around the repository under audit and would violate this repository's self-contained-script rule, so its three deterministic checks (documented task names against real ones, relative links against the tree, environment variables in both directions) are written into references/docs-code-sync.md as checks to run with the repository's own tools. From update-docs-on-code-change only the trigger list is taken; its apply-* boolean meta-language is a harness-specific mechanism this repository's standard forbids, and its remaining guidance carries no stated consequence. From github-release only the SemVer-from-diff and commit-classification material is used - the git and gh release mechanics belong to the github and git-workflow skills."
   - id: diataxis
@@ -59,7 +59,7 @@ upstreams:
     commit: 08d0df5a7e93b71d902def8be0f0d40025b56289
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The whole changelog reference: the six change types and the refusal to grow them, the was-the-old-behaviour-a-bug test that separates Fixed from Changed, Security leading with its CVE, the Breaking marker kept inside the type it belongs to rather than collected into a separate section, naming which interface breaks, short upgrade actions in the entry and long ones linked out, deprecate-then-remove with the removing version named, the file frame (heading, conventions preamble, Unreleased, YYYY-MM-DD dates, YANKED marker), reference-style comparison links per version, changelog against release notes with the notes derived from the file, the machines-draft-humans-curate position on generated changelogs and commit-message conventions, CI kept to mechanics, and the monorepo and archiving guidance."
     notes: "Pinned to the 2.0.0 guidance (released 2026-06-07), which is a breaking revision of the advice and not of the format: the six types, the date format and the Unreleased and YANKED markers are unchanged from 1.1.x. The keepachangelog.com/en/2.0.0/ link in the recommended preamble is version-pinned deliberately, per that page's own instruction."
   - id: mattpocock-skills
@@ -68,10 +68,10 @@ upstreams:
     url: https://github.com/mattpocock/skills
     paths: [.agents/writing-docs.md, skills/productivity/teach]
     ref: main
-    commit: 3cca18b368ae95cdbdebbff572ccafa662551015
+    commit: d81f3a183412e71a5b1e84ca21bc1a35eea03a60
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The defining constraint - the one sentence stating what makes this thing behave differently from the obvious default - together with the instruction to write it as plain prose rather than as a labelled aside, because the label reads as filler. The rule that a self-check item must be checkable by the reader without opening the source document. Hunting real reader questions (support threads, issues filed twice, the changelog's own renames) instead of inventing them, and keeping the count honest to what the hunt found rather than padding a thin page to match a rich one. Branches presented as a table or list rather than a paragraph the reader must read in full. Not naming the author of a claim, so the claim stands or falls on its own."
     notes: "The upstream document is a specification for one published site, so its site-specific mechanics are dropped: the install-widget rule, absolute aihero.dev URLs, the AI Coding Dictionary linking convention, the per-bucket docs tree and the no-H1 rule imposed by that site's template. The roadmap listed an edit-article skill in this repository; it no longer exists in the tree, so .agents/writing-docs.md and skills/productivity/teach were read instead."
   - id: google-styleguide
@@ -80,10 +80,10 @@ upstreams:
     url: https://github.com/google/styleguide
     paths: [docguide/READMEs.md, docguide/best_practices.md, docguide/style.md]
     ref: gh-pages
-    commit: 3b8822983dc779c498961cc86332a28c07590f64
+    commit: 403f0581bd93732111cc8f84f92b07ce1ed50d82
     license: CC-BY-3.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "README placement and minimum content: the README belongs at the top level of the code it describes rather than inside the documentation directory, every top-level directory of a shipped package has one, and it must contain or point to what the package is for, its points of contact, its status when that status is deprecated or not for general release, how to use it with copyable commands, and links onward. Also the principle that documentation degrades more slowly the closer it lives to the code it describes, which is the argument for auditing docs in the same change as the code."
     notes: "Licence read from the repository's own LICENSE file, whose first lines are Creative Commons Legal Code / Attribution 3.0 Unported; the GitHub API reports NOASSERTION. CC-BY-3.0 is attribution-only, so it is treated like CC-BY-4.0 and attributed in NOTICE.md. Google-internal specifics (Gitiles rendering, bazel run and bazel test as the copyable commands, internal go/ links) are not carried over."
   - id: addyosmani-skills
@@ -92,10 +92,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/documentation-and-adrs]
     ref: main
-    commit: 6ca0cd7db39b41b1c37e26d335c507ee92382c6d
+    commit: 2686b620fc1fed2e8f60c704839c766b8594c6b6
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Matching the repository's existing ADR convention before creating anything, across three axes - location and file extension, numbering and filename pattern continued rather than restarted, and the heading set already in use - with the instruction to surface a conflict rather than silently introduce a third scheme, and the evidence to look for (existing records, an .adr-dir file or other tooling configuration, contributor instructions). Also the ADR lifecycle with supersede rather than deletion, the rationalization-table format, and the position that documentation records what the code cannot: the options rejected and the constraints that applied."
     notes: "Its README, changelog and API-documentation sections are not merged: they are generic templates whose rules carry no stated consequence, and this skill takes those subjects from google-styleguide, keep-a-changelog and the api-design skill respectively. Its docs-for-agents section (CLAUDE.md and rules files) is out of scope here and belongs to the skill-authoring skill."
   - id: mcollina-skills
@@ -107,7 +107,7 @@ upstreams:
     commit: 856efd268ae85482d882f3d0bed869fd020b5c06
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The reader-signal table that maps the sentence a reader would have typed onto the document type they need, and the per-type validation questions phrased so they can actually be answered: a beginner completes the tutorial without outside help, an experienced reader finishes the task without backtracking, and a reader finds one reference fact in under 30 seconds without reading the page around it. Also the per-type title patterns and the instruction to classify before writing anything."
     notes: "Its metadata.tags frontmatter field is stripped as a non-spec key. Its instruction to always ask clarifying questions before writing is not adopted as an unconditional rule: where the request and the repository already answer audience and type, asking is a round trip that this skill spends on reading the source instead."
   - id: madr
@@ -119,7 +119,7 @@ upstreams:
     commit: ba75bb1b20d42af5746b246ad348c202419ae681
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Field-set cross-check for references/adr.md. Its Decision Drivers, Considered Options and Confirmation fields settled which headings this skill's default template carries - Confirmation in particular, which most ADR templates omit and which is what keeps a decision from drifting out of force unobserved."
     notes: "Licence read from the repository's own LICENSE file, which reads MIT OR CC0-1.0; the GitHub API reports NOASSERTION. Default branch is develop, not main. No template text is reproduced - the field semantics were read and the headings written fresh - so this is recorded as reference rather than merged."
   - id: jph-adr
@@ -128,10 +128,10 @@ upstreams:
     url: https://github.com/joelparkerhenderson/architecture-decision-record
     paths: [locales/en/templates]
     ref: main
-    commit: a1c44c07a46c4440964d62b1276ceb48cad9edb7
+    commit: 464354b7d94901916542f64eb8b62dc9048a6486
     license: CC-BY-NC-SA-4.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Coverage check only. Reading its template collection (Nygard, MADR, Tyree-Akerman and others) confirmed that the field sets differ mainly in how they name context, drivers and consequences, which is why this skill leads with match-the-repository's-convention instead of prescribing one template."
     notes: "Licence read from the repository's own LICENSE.md, which places the maintainer's own work under CC BY-NC-SA 4.0; the GitHub API reports NOASSERTION. The NC clause makes it unusable as merged material regardless of how widely the repository is cited, so nothing was copied and only the directory listing and field names were read."
   - id: neolab-write-concisely
@@ -143,7 +143,7 @@ upstreams:
     commit: 23e2428e809d77717f8acc9659c374a3a1fcb93e
     license: GPL-3.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Coverage check only. It confirmed that a sentence-level layer has to be covered somewhere in this skill, which references/plain-english.md does - sourced entirely from google-devdocs-style instead."
     notes: "Two independent reasons for reference rather than merged. Licence: GPL-3.0 is incompatible with this repository's MIT licensing. Content: of its 1044 lines, roughly 990 are a verbatim reprint of Strunk's 1918 Elements of Style, and its rules (use the active voice, omit needless words) are exactly the kind this skill's standard requires to be deleted because no specific consequence can be stated for violating them. No text was copied."
   - id: github-writing-docs
@@ -168,10 +168,10 @@ upstreams:
     url: https://github.com/RichardLitt/standard-readme
     paths: [spec.md]
     ref: main
-    commit: 0ebca6e613f215dd4111debd512670065e7ecbd8
+    commit: 5d18ad4db6a39fde5dc845258828153eda9828e8
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The checkable first-screen constraints: the short description is under 120 characters, sits on its own line, and matches both the package manager's description field and the forge's repository description - a cross-artefact invariant nothing else in this skill covered. Also that a banner and a badge block carry no heading of their own and sit directly under the title, that badges are newline-delimited, that a banner links to an image committed in the repository, and that a table of contents is expected once a file passes roughly a hundred lines and should capture every second-level heading."
     notes: "Its suggestion that a static badge be hosted locally to avoid tracking is adopted only in part: measurement shows the forge and both package registries fetch badge images through their own proxies, so the reader's address is not exposed there. The reason to commit a badge is the cache and the outage, and that is what references/badges-and-widgets.md says. The specification's fixed section order and its own compliance badge are not adopted; this skill orders a README by what a reader needs first."
   - id: awesome-readme-skill
@@ -180,10 +180,10 @@ upstreams:
     url: https://github.com/fralapo/awesome-agent-skills
     paths: [skills/awesome-readme]
     ref: main
-    commit: 759a6a82b079b3ffca7bd14ece0a541c29c2d85e
+    commit: b9f84a5670a0aa9c153f146b7d1f2585b0bb58e3
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "The coverage map for README presentation, which is what this skill was missing: first-screen composition as an ordered set of decisions, visual assets by project type, collapsed sections, tables of contents, badge grouping and style consistency, and an explicit anti-AI-prose pass on every draft. Its structural anti-pattern list contributed the ones that carry a stated consequence: unfilled template placeholders, broken image links, empty and coming-soon sections, dead badge services, and reference-style link definitions belonging at the bottom of the file."
     notes: "A second-hand compilation - zero stars, self-described as mined from the repositories listed in its own frontmatter - so every claim was taken from the first-hand source instead and several were refuted. Three of its rules are not adopted. Its back-to-top anchor pattern, copied from Best-README-Template, is a construct whose rendered HTML does not resolve. Its cap of five to eight badges is an unsupported number, replaced by the fold, dependency and discrimination criteria. Its one-em-dash-per-section rule contradicts its own cited upstream, which reports em-dash frequency as a weak signal and the spacing around them as the usable one. Its profile-README reference is out of scope here. Its templates and examples files are not merged: a template per project type is the kind of scaffolding this skill's standard rejects."
   - id: wikipedia-ai-signs
@@ -200,10 +200,10 @@ upstreams:
     url: https://github.com/badges/shields
     paths: [doc]
     ref: master
-    commit: 6eb2cd9e5938046b84cb582544868d0297abdad3
+    commit: 0a0ac0e1086b12ea602cd10f4c6647ab0fa4765f
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Identified the service whose behaviour references/badges-and-widgets.md documents. The style values, the per-endpoint cache lifetimes, the refusal to honour a cacheSeconds below a service minimum, the silent fallback on an unrecognised style, and the HTTP 200 response carrying a badge that reads 404: badge not found were all measured against the live service rather than read, and the measuring commands are in research/technical-writing-readme-presentation.md."
     notes: "Reference rather than merged: no text, table or badge template from the repository is reproduced. The upstream skill's copy-paste badge catalogue is deliberately not carried over - a list of URL templates goes stale and teaches nothing, whereas the failure modes do not."
   - id: github-readme-stats
@@ -215,7 +215,7 @@ upstreams:
     commit: 54a7985aeefda00d5eadb55b80c17c7f976c37d2
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Its maintainers' own statement of what the widget costs, which is the honest basis for the third-party widget section: the public instance is best-effort and unreliable under rate limits and traffic spikes, self-hosting or generating the card in a workflow is the recommended path, and the default cache is 24 hours for the stats card, 144 hours for top languages, 240 hours for a pinned repository and 48 hours for a gist card."
     notes: "Read for its documented limits, not for its card catalogue; no markup is reproduced. The skill's position - that these widgets answer none of the four questions a README exists to answer and therefore belong below the content if anywhere - is this repository's judgement, not the upstream's."
   - id: best-readme-template
@@ -227,6 +227,6 @@ upstreams:
     commit: fc444eb7b04b2e4863f6080b1507a219e95103fa
     license: Unlicense
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-09-30"
     contributes: "Counter-example. Rendering its own README through the forge's repository-context pipeline produced nine links to #readme-top against one element carrying the rewritten id, which is the evidence behind this skill's rule against hand-written anchors and back-to-top schemes. Nothing else was taken: its section order, placeholder prose and badge stack are the patterns this skill's presentation reference argues against."
     notes: "Licence read from the repository's own LICENSE.txt, whose first line is The Unlicense; the GitHub API agrees. Public domain, so reuse would be unrestricted - the reason nothing is copied is editorial, not legal."
