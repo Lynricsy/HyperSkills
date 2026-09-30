@@ -422,3 +422,17 @@ Tauri 的通用语言边界同期改为路由 rust，不改平台权限规则或
 每配置每场仅单次运行，不外推跨模型稳定性；FFI 只验证合法 Rust backing storage，
 没有真实外部 C 或完整 Miri FFI 证明。外部 Cargo 临时消费者由运行者清理，
 其执行证据保留在 events，而不是宣称当前仍存在该临时目录。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 1 条 `behind`（`github-rust`，
+`diff too large`）。按完整区间归因：blobless 克隆到 `/tmp/hs-up/github__awesome-copilot`，对 `7568a48..15ed97c`
+跑 `git log --oneline -- instructions/rust.instructions.md` 与 `git diff --stat`，并用 `git rev-parse <commit>:<path>`
+比对两端 blob。`--pin` 后核对：写入的 commit 与审阅 HEAD 一致（awesome-copilot 15ed97c；repo moved、tracked paths
+unchanged 的 full-stack-cargo / full-stack-unsafe 前移到 b8a6af7）。十四条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| github-rust | 7568a48 → 15ed97c（64 提交，329 文件） | `instructions/rust.instructions.md` 0 提交，两端 blob 同为 `75ac0e4` | 噪声 | 区间改动全在其他目录；too-large 只是 compare 上限 |
+
+未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
