@@ -376,3 +376,50 @@ GitHub 推送保护的 Stripe 规则，导致整批推送被拒。`REDACTED` 只
 - 跑现成 ruleset 与 SARIF 流水线（trailofbits `static-analysis`）：属工具操作手册。
 - 渗透测试、对运行中系统发起请求、规避检测：明确排除，`description` 与 `## Scope` 都写明
   本 skill 是防御性审计，取证边界是源码阅读与本地沙箱内的有界执行。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）security-review 段 10 条 `behind`：
+cloudflare-audit、sentry-secreview、tob-semgrep-rules、tob-brocards、tob-insecure-defaults、tob-supplychain、
+tob-diffreview、copilot-threatmodel / copilot-secrets / copilot-secreview（后三者 `diff too large`）。
+全部在 `/tmp/hs-up/<owner>__<repo>` blobless 克隆里按完整区间 `git log <旧pin>..<HEAD> -- <paths>` 与
+`git diff` 读改动。`--pin` 后核对 SOURCES.yaml：cloudflare `c1c8a8c`、sentry `d18b7aa`、trailofbits
+`82fe822`、awesome-copilot `15ed97c`，与审阅 HEAD 逐条一致；openai、trilwu、semgrep 报告为 up to date。
+两条 manual check（OWASP Top10 `2025/docs/en`、ASVS `5.0/en`）用 `gh api repos/<o>/<r>/commits?path=…&since=2026-09-11`
+核对，均无新提交。正文未改。
+
+### 归因表
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| cloudflare-audit | d24bc26..c1c8a8c | c1c8a8c `SKILL.md`：新增 guidance / full audit 两种模式，六阶段流程、输出目录与落盘产物只在明确要求全量审计或报告产物时执行 | 噪声 | 本 skill 从未引入其多代理调度与产物落盘流程（SOURCES notes 已记），单代理、单报告，无需模式开关 |
+| cloudflare-audit | 同上 | c1c8a8c `HUNTING.md`：兄弟控制比较「等价而非仅存在」 | 已覆盖 | 核心规则 12（引用代码库自己的正确模式）+ `references/access-control.md` 的差分找缺失检查；场景 6 基线与有 skill 均以 `GET /:id` 的 `sameTenant` 为基准指出 download/share 检查存在但比较对象是调用方输入 |
+| cloudflare-audit | 同上 | c1c8a8c `HUNTING.md`：高危候选暴露可复用根因时搜索变体，同根因合并但逐个确立条件与影响 | 不合入 | 基线已做到根因归并（「4 条路由把租户判断交给调用方输入——全部问题的根因」）；基线缺口在「逐个确立」一侧（search 头变体仍列为「高」），而这一侧由现有核心规则 2/3/5 填补（有 skill 时 search 变体进 Rejected + NV-2） |
+| sentry-secreview | c2f99a5..d18b7aa | 3482d8d `SKILL.md` frontmatter `allowed-tools` 逗号改空格 | 噪声 | 本 skill frontmatter 无 `allowed-tools` |
+| tob-semgrep-rules / tob-brocards / tob-insecure-defaults / tob-supplychain / tob-diffreview | 321ccfe..82fe822 | a6d1b23、123037e：各 `plugin.json` 版本号，`agents/openai.yaml` 增 `display_name`/`short_description`（brocards、insecure-defaults 仅 plugin.json） | 噪声 | ChatGPT 导入元数据，无内容变化 |
+| copilot-threatmodel / copilot-secrets / copilot-secreview | 7568a48..15ed97c（64 commits） | 三个 paths 区间内均无提交 | 噪声 | 报告 too large 只因全仓改动多 |
+
+### 评测
+
+新增场景 6 与夹具 `evals/files/documents-routes.js`、`evals/files/gateway.yaml`：多租户文档 API，
+`GET /:id` 用会话租户，download/share 比较调用方提供的 tenantId，DELETE 只查角色，search 读
+`x-tenant-id` 头但网关先剥离再按 JWT 重设。用来检验 cloudflare 新增的「兄弟控制等价比较 + 变体逐个确立」
+是否是基线缺口。模型 `workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同条件。产物为
+上一轮代理 2026-09-29 20:03–20:09 实跑（`/tmp/hs-evals-sync/SyncG10/sec/security-review/…/{baseline,skill}/6`）；
+本轮核对 query/expected_behavior 与当前 evals.json 一致、夹具（20:02:47）早于开跑、正文自 worktree 检出后
+未改（本轮只改 `metadata.version`），故复用；`answer.md` 由本轮逐条人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | deepseek-v4.1-flash / max | 无 | False | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✘ EB5 ✔ | 表格对比各路由租户来源并点出根因；但 search 头变体列为「F4 高」严重度发现（虽写明今天不可绕过）；DELETE 只给「严重」，未分开可能性与影响 |
+| 6 | deepseek-v4.1-flash / max | 有（正文未改） | True | EB1 ✔ EB2 部分 EB3 ✔ EB4 ✔ EB5 ✔ | 本地 Express 桩复现 download/share/DELETE 三条；search 头进 Rejected 并留 NV-2（NetworkPolicy）；每条分列 Likelihood/Impact；修复均为 `sameTenant`/会话租户。根因只在 Hardening 中一句带过（「3 个 finding 都是新 handler 忘了检查」），未显式按根因分组 |
+
+结论：cloudflare 本次新增的两点，基线已会「等价比较」与「根因归并」；基线缺口（变体逐个确立可达性、
+可能性/影响分列）由现有正文填补，故不改正文，场景 6 保留作哨兵。
+
+### 未合入原因与后续观察
+
+- 变体归并（cloudflare HUNTING.md 新段落）：有 skill 时 EB2 只部分达成，但基线本身已达成，按「只写模型
+  不会的」不合入。下次同步若出现根因归并的基线缺口，再考虑在 `references/severity-and-reporting.md`
+  的 chain 段旁补一句「同根因的变体合并报告，但逐个确立条件与影响」。
+- guidance / full audit 模式：针对上游自己的重型落盘流程，本 skill 无对应物。

@@ -77,5 +77,17 @@
       "Reviews the diff for correctness and style — the keyset-pagination cursor logic, the `Intl.NumberFormat` change, the test that still asserts a length of 25 — instead of producing a threat model or a severity-ranked vulnerability report",
       "Does not enumerate trust boundaries, assign exploitability ratings, or write a security report file"
     ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "We onboard our second enterprise tenant next week. Audit the documents API for tenant isolation. documents-routes.js is the route file and gateway.yaml is the edge config in front of it; the rest of the repo is not here.",
+    "files": ["evals/files/documents-routes.js", "evals/files/gateway.yaml"],
+    "expected_behavior": [
+      "Compares the authorization checks across the sibling routes for equivalence, not just presence: uses GET /:id's sameTenant(req.user, doc) as the codebase's correct pattern and says that download and share do have a tenant check but compare the document against a caller-supplied tenantId, and that DELETE checks only the role, so each control exists yet is not equivalent to the session-tenant check",
+      "Treats 'the tenant is taken from the caller instead of the session' as one root cause and deliberately looks for its variants across the file (download query parameter, share body field, search x-tenant-id header), reporting them grouped under that root cause",
+      "Establishes each variant's reachability and impact on its own rather than giving them all the root cause's severity: download and share are confirmed cross-tenant reads (share even mints a public unauthenticated link), while the search header variant is rejected or left needs-validation because gateway.yaml strips x-tenant-id and resets it from the verified JWT and the api only accepts traffic from the gateway",
+      "Reports the DELETE route as a cross-tenant destructive action by any tenant's admin, with likelihood and impact stated separately",
+      "Names sameTenant(req.user, doc) (or the session tenantId) as the fix for every confirmed variant and states what it could not verify from two files, such as the NetworkPolicy and requireSession"
+    ]
   }
 ]

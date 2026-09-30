@@ -1,0 +1,10 @@
+# deploy/gateway.yaml — the edge gateway in front of packages/api.
+# It is the only ingress path: the api pods' NetworkPolicy (deploy/k8s/api-netpol.yaml)
+# admits traffic from the gateway pods only.
+routes:
+  - prefix: /api/
+    upstream: api
+    auth: jwt                        # rejects requests without a valid session JWT
+    strip_request_headers: [x-tenant-id]
+    set_request_headers:
+      x-tenant-id: "{jwt.claims.tenant_id}"   # always the caller's own tenant

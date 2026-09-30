@@ -169,7 +169,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`react-native`](skills/react-native/) | 平台 | Develops React Native and Expo mobile apps, navigation and native integrations | 2026.09.12 | 7 |
 | [`redis`](skills/redis/) | 框架 | Designs and operates Redis data structures, caching, streams and clusters | 2026.09.12 | 7 |
 | [`rust`](skills/rust/) | 框架 | Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI | 2026.09.12 | 17 |
-| [`security-review`](skills/security-review/) | 任务 | Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks | 2026.09.12 | 17 |
+| [`security-review`](skills/security-review/) | 任务 | Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks | 2026.09.30 | 17 |
 | [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews and evaluates Agent Skills and their SKILL.md files | 2026.09.12 | 14 |
 | [`solidity-web3`](skills/solidity-web3/) | 框架 | Develops and audits Solidity smart contracts with Foundry security testing | 2026.09.12 | 20 |
 | [`sqlite`](skills/sqlite/) | 框架 | Designs and operates embedded SQLite databases, transactions, WAL and backups | 2026.09.12 | 22 |
