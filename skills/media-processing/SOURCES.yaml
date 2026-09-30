@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin media-processing
 skill: media-processing
-version: "2026.09.12"           # must equal SKILL.md metadata.version
+version: "2026.09.30"           # must equal SKILL.md metadata.version
 upstreams:
   - id: kajisho-ffmpeg
     kind: repo
@@ -9,24 +9,24 @@ upstreams:
     url: https://github.com/kajisho5/ffmpeg-skill
     paths: [SKILL.md, docs/contract.md, scripts]
     ref: main
-    commit: 2d03b6f1bd155b31d00c94ceccff5bca2e31911a
+    commit: df5d2736b171473742b86789e5179bdfb0976373
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "The probe-plan-execute-read-back-look delivery gate, the split between mechanical format checks and content judgement checks, and the pitfall set: VFR, HDR versus log footage, keyframe-bounded stream-copy cuts, missing CJK glyphs, even dimensions, rotation metadata."
     notes: "Rules rewritten from its documented behaviour; none of its 42 wrapper scripts or their interfaces were reproduced, since this skill teaches bare commands instead of shipping a wrapper library."
   - id: vertex-genmedia-av
     kind: repo
-    repo: GoogleCloudPlatform/vertex-ai-creative-studio
-    url: https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio
+    repo: GoogleCloudPlatform/genmedia-creative-studio
+    url: https://github.com/GoogleCloudPlatform/genmedia-creative-studio
     paths: [experiments/mcp-genmedia/skills/genmedia-video-editor, experiments/mcp-genmedia/skills/genmedia-audio-engineer]
     ref: main
-    commit: e9edbfcd452d4b60ae6caf70c1f1efa0bce1dcab
+    commit: a7f6308930b895815ccde4b516ac4dd550b98254
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Ordering constraints for deterministic assembly: measure the base video before computing overlay coordinates, two-pass GIF at fps 15 and a 0.33 scale factor, matching dimensions and frame rate before concatenation with the normalising re-encode announced rather than hidden, matching sample rates before layering audio, relative voice-to-bed levels with a fade out, and wrapping raw PCM into WAV."
-    notes: "Only the ffmpeg half is used. Its generation surface (Veo, Lyria, Chirp, Gemini TTS) belongs to the generative-media skill. Its MCP tool names and allowed-tools frontmatter were stripped as harness bindings."
+    notes: "Only the ffmpeg half is used. Its generation surface (Veo, Lyria, Chirp, Gemini TTS) belongs to the generative-media skill. Its MCP tool names and allowed-tools frontmatter were stripped as harness bindings. The repository was renamed from GoogleCloudPlatform/vertex-ai-creative-studio (GitHub redirect, confirmed via gh api on 2026-09-30)."
   - id: media-os-ffmpeg
     kind: repo
     repo: damionrashford/media-os
@@ -36,7 +36,7 @@ upstreams:
     commit: 5014c1e8b23fd3e18d49926d9aa147d15a3aa08e
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "HLS, DASH, RTMP and SRT packaging: GOP pinned to frame rate times segment duration, -keyint_min and -sc_threshold 0, the mutual exclusion of hls_playlist_type and delete_segments, fMP4 and CMAF, ABR ladders, the tee muxer, -force_key_frames for exact segmentation; the concat demuxer's parameter requirements and its silently broken playback on mismatch; the measure-then-apply shape of two-pass loudnorm."
     notes: "Its slash-command bindings (argument-hint frontmatter, $ARGUMENTS, ${CLAUDE_SKILL_DIR} script paths) were removed and its 110-skill granularity deliberately not copied. Its ruling on input-side seeking was adopted over the other candidates (C1)."
   - id: n0an-ffmpeg
@@ -48,7 +48,7 @@ upstreams:
     commit: aec7706a3602134bfc606cc8a85eb010dfaa22ad
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Command-level parameter discipline: when -c copy is impossible, the yuv420p player requirement, HEVC -vtag hvc1, CRF plus or minus six as a bitrate halving heuristic, CRF being unable to hit a file size so two-pass ABR is required, mandatory setpts and asetpts after trim and atrim, setsar after pad, the difference between -shortest and duration=shortest, and the four-item checklist for a file that will not play."
     notes: "Two of its claims were corrected before merging: its output-side seeking advice contradicts the official Seeking wiki and is recorded here as superseded behaviour (C1), and its -preset veryslow default was replaced by a three-row table (C4). Its narrow, correct reading of setsar after pad was adopted over the common 'always setsar after scale' advice (C5)."
   - id: terminalskills-ffmpeg
@@ -57,10 +57,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/ffmpeg]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 511ec2060fe9e1b95a42ae042964f56d777b6c9b
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Container and codec selection table, the remux-versus-transcode decision, and the normalising filter chain applied to heterogeneous sources before they are joined."
     notes: "Its single-pass loudnorm recipe was rejected in favour of the two-pass form (C7)."
   - id: terminalskills-imagemagick
@@ -69,10 +69,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/imagemagick]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 511ec2060fe9e1b95a42ae042964f56d777b6c9b
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "ImageMagick coverage: the four geometry suffixes, the -gravity plus -extent square thumbnail recipe, -auto-orient, -strip, -density for vector rasterisation, and mogrify for batches together with its in-place rewrite hazard."
     notes: "Its comment describing -resize WxH^ as a cropping fill is wrong; the caret only guarantees minimum coverage and cropping requires -extent. Corrected here from the ImageMagick option reference (C9). Every fact was re-sourced from the official options page because the image side of this skill has only one repository upstream."
   - id: terminalskills-sharp
@@ -81,10 +81,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/sharp]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 511ec2060fe9e1b95a42ae042964f56d777b6c9b
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "sharp coverage: fit semantics with withoutEnlargement, the non-transferable quality scales across JPEG, WebP and AVIF, responsive variant batches, SVG text watermarks via composite, and metadata() and stats() for inspection."
     notes: "Its metadata guidance is inverted: it treats withMetadata as a stripping call, whereas sharp removes all metadata by default and keepMetadata or withMetadata are the preserving calls. Rewritten from the sharp output API documentation (C6)."
   - id: maxazure-video
@@ -93,10 +93,10 @@ upstreams:
     url: https://github.com/maxazure/video-editing-skill
     paths: [SKILL.md]
     ref: main
-    commit: c596fd7f81fca2074adbf5daba650e5fb9cc6ca7
+    commit: 76f8c560bd1cb248d34a5414ed14c4d70d86f32b
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "The fail-closed HDR-to-SDR rule: convert only on unambiguous PQ or HLG with BT.2020 primaries, tone map in linear light with zscale, reject a bare tonemap and reject 'force yuv420p' as a fallback, then verify all four colour tags on the output; the review proxy at 720p, 24 fps with burned timecode; and the media contract check with a full decode before an output is promoted."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Only its deterministic engineering rules were taken; its content-creation prompt library and its openclaw runtime metadata were not."
   - id: dabrlin-ffmpeg
@@ -108,7 +108,7 @@ upstreams:
     commit: 8fd7496e8d73a56daf9d3e9ed67e0737623ebc28
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Encoder and hardware-acceleration capability must be probed on every unfamiliar machine and the encoder chosen from what that probe reports, with an explicit fallback order from platform accelerators down to software encoders."
   - id: sakydev-ffmpeg
     kind: repo
@@ -119,7 +119,7 @@ upstreams:
     commit: 3b403bcbe61c2c40e5040d0ae43e81da3c2c2ccf
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "The quality floor table (H.264 CRF 28, HEVC 32, VP9 40, AAC 128 kbit/s) with the rule that a size target crossing a floor is refused and the best achievable size at the floor reported instead, plus confirming the plan before starting on very large inputs."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim."
   - id: cutcraft
@@ -131,7 +131,7 @@ upstreams:
     commit: 535a1176a48fffcafe4a094b5090ec500306ac41
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Rendering subtitle style previews over the real footage and having a human choose before committing to a burn-in, which turns a post-render rework into a pre-render gate."
     notes: "Only that single rule was taken; its conversational production workflow and credential handling are out of scope."
   - id: einverne-imagemagick
@@ -143,7 +143,7 @@ upstreams:
     commit: c6c0686125ae40cdf03141b1cff26afbe8fb300b
     license: GPL-3.0-only
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Read only to cross-check ImageMagick topic coverage: the v7 magick entry point, convert as the legacy name, and the in-place rewrite hazard of mogrify."
     notes: "The repository LICENSE is GPL-3.0 while the skill frontmatter claims MIT; the repository licence governs. Reference only under the GPL policy in docs/roadmap.md: no text, command or example copied, and every fact restated here was independently sourced from the ImageMagick option reference."
   - id: dcloud-ffmpeg
@@ -155,7 +155,7 @@ upstreams:
     commit: 5b008bbeefd941a6a80eb2c78c76ceddd570aff1
     license: NONE
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-09-30"
     contributes: "Rejected as a factual source after review; the entry records two errors in its AV1 section (libsvtav1 CRF default stated as 0, and -b:v 0 presented as the switch that enables CRF mode) so a later sync does not re-evaluate it. One convention was adopted independently: treating ffmpeg -h filter=, -h encoder=, -encoders and -pix_fmts as the way to answer questions the documentation does not."
     notes: "No licence file and correctness score 0 under the review rubric, so it cannot be a merged source. Nothing copied."
   - id: ffmpeg-filters-docs

@@ -50,5 +50,17 @@
       "Answers with Next.js image configuration (deviceSizes/imageSizes, formats, sizes prop on the component) rather than opening an ffmpeg or ImageMagick workflow",
       "Treats this as framework-owned image pipeline work instead of a local media processing job"
     ]
+  },
+  {
+    "skills": ["media-processing"],
+    "query": "evals/files/assemble_lesson.sh builds our lesson videos from slide PNGs and TTS narration. Three problems: from the second slide on, the voice runs further and further ahead of the slides; last week a lesson shipped where one slide had no voice at all even though the script's audio check passed; and since we put the picture-only intro.mp4 bumper in front, ffmpeg refuses to run. Fix the script.",
+    "files": ["evals/files/assemble_lesson.sh"],
+    "expected_behavior": [
+      "Explains the drift: the xfade offsets advance by each clip's on-screen (container/video) length while the acrossfade chain advances by each narration's shorter raw audio length, so every later narration starts earlier than its slide",
+      "Fixes it by giving each clip one length for both streams: the narration is padded with silence to the slide's video length (e.g. `apad` plus `atrim`/`-t`, or `apad=whole_dur`) before the crossfades, and both xfade and acrossfade are computed from that same per-clip length",
+      "States that a stream-presence / duration probe cannot detect a valid but fully silent WAV, and adds a level measurement (`volumedetect` max_volume, `astats` peak, or equivalent) on each narration file that fails or flags it below a stated threshold before joining",
+      "Gives the audio-less intro a generated silent track of the same length (e.g. `anullsrc` trimmed to the intro duration, matching rate and layout) instead of dropping the audio chain or the intro",
+      "Verifies the result on real or synthetic material: probes that output video and audio stream durations agree and match the expected total (sum of clip lengths minus the crossfade overlaps), or measures where each narration starts, rather than only asserting the fix"
+    ]
   }
 ]

@@ -559,3 +559,35 @@ image API；`ai-engineering` 管模型调用；`generative-media` 管概率性�
 `TerminalSkills/skills`（图像三件套）+ `GoogleCloudPlatform`（官方权威锚点），
 全部事实以 FFmpeg / sharp / ImageMagick / libvips / Pillow / EBU 官方文档复核。
 唯一需要在 Phase C 特别用力的是**图像侧的单源风险**，办法是逐条回官方文档取证。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt`（2026-09-30 `check_upstream.py`）中本 skill 有 3 条 `behind`。按完整区间归因：blobless
+克隆到 `/tmp/hs-up/{kajisho5__ffmpeg-skill,GoogleCloudPlatform__vertex-ai-creative-studio,maxazure__video-editing-skill}`，对
+`<旧pin>..<审阅HEAD>` 只限条目 `paths` 跑 `git log --oneline`、`git diff --stat`、`git diff`，关键提交另读提交说明。
+`--pin` 后核对：写入的 commit 与审阅 HEAD 逐条一致（kajisho df5d273、genmedia-creative-studio a7f6308、maxazure 76f8c56；
+TerminalSkills 三条为 repo moved、tracked paths unchanged，前移到 511ec20）。十一条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| kajisho-ffmpeg | 2d03b6f → df5d273（188 提交，paths 下 138 个，61 文件 +13339/-2353） | `SKILL.md` 重写为「请求 → 脚本」路由表加两层 token 结构（ee8c6c3、1e550ee、df5d273 等）；`docs/contract.md` 多为版本号、2.0 破坏性变更表、MCP 能力；`scripts/` 为 42 个包装脚本的新功能。可提炼成裸命令规则的候选：581d18e（TTS 写出「合法但全静音」的 WAV、没有任何可见字幕的烧录；以 volumedetect 峰值 ≤ -50 dBFS 判静音）、1afbcbc（交叉淡化拼接中每段音画取同一长度、短的一路补齐，xfade 与 acrossfade 偏移都由它计算；BT.2020 SDR 不走 PQ 色调映射）、66739b5（写出后复测真峰值，有损编码过冲再降上限）、2306025/70d471d（stream-copy 分支补 `+faststart`） | 评测后不合入 | 前两条新增场景 5 验证：基线 5/5 自行做到（见下表）。BT.2020 SDR 已由 maxazure 规则「只在 PQ/HLG 且 BT.2020 时转换」与 `references/video-encoding.md` 覆盖；`+faststart` 即核心规则 11；真峰值余量已在 `references/audio.md`。其余为脚本接口、MCP、发布流程，本 skill 不带包装库 |
+| vertex-genmedia-av | e9edbfc → a7f6308（77 提交） | 两个 paths（`genmedia-video-editor`、`genmedia-audio-engineer`）0 提交；同目录的 839818ca / 6ac74193 只改 README 与 build/install skill 里的仓库名 | 噪声（仓库改名） | `gh api repos/GoogleCloudPlatform/vertex-ai-creative-studio` 重定向到 `GoogleCloudPlatform/genmedia-creative-studio`，已更新 `repo`/`url` 并在 notes 记录 |
+| maxazure-video | c596fd7 → 76f8c56（18 提交） | `SKILL.md` +185/-14：新增 source-bound 脚本工作流（clip assembly、ping-pong loop、soft subtitles、chapter mux、GIF preview、logo overlay、frame grid、multicam switch、audio cue mix、video enhancement、edge-black trim、podcast audiogram）以及生成侧的 storyboard animatic、reference preflight、generation chain handoff | 噪声 / 已覆盖 | 内容是包装脚本的调用面与人工 live gate。可提炼的事实：异构片段先统一画布/CFR/SAR/采样率再拼接（`references/filters-and-editing.md` 已有）、无音轨片段补等长静音（场景 5 基线自行用 `anullsrc`）、MP4 软字幕用 `mov_text`（已有）、GIF 调色板（已有）；`reverse` 缓存全部帧、`blackdetect`/`silencedetect` 属 ffmpeg 常识。生成侧工作流归 generative-media，且 maxazure 不是那边的上游，按边界不取 |
+
+另核实：本机 FFmpeg N-126134 上复现了夹具的漂移（三张 6 s 幻灯片配 4 s 解说：视频流 21.5 s、音频流 15.5 s，第 3 张解说提前约
+4 s）；按「每段补齐到画面长度」修正后两流都是 21.5 s，各段解说起点与画面切换一致。全静音 16-bit WAV 的 `volumedetect`
+报 `max_volume: -91.0 dB`（不是 `-inf`），`astats` 报 `-inf`，`ebur128` 报 -70 LUFS——判静音要用阈值而不是等于 `-inf`。
+这些只用于判定评测，未写入正文。
+
+### 评测
+
+新增场景 5：`evals/files/assemble_lesson.sh`（幻灯片 PNG + TTS 解说，`-t` 只截画面、acrossfade 链按原始音频长度推进；
+自检只查有无音频流；片头 `intro.mp4` 无音轨）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 交叉淡化漂移 / 静音 TTS / 无音轨片头 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 5 / 5 | 364 s，advisor 关闭（新口径）。复现并量化漂移（成片 video 26.5 s / audio 18.49 s，第 2、3 段解说提前 3.15 / 5.0 s），每段取 max(停留, 解说) 并 `apad` 补齐、`-t` 截齐两轨，偏移用该长度；`volumedetect` -60 dBFS 门限判静音（实测静音 -91 dBFS）；片头 `anullsrc` 补静音轨；修后两轨 26.5 s、解说起点误差 ≤ 0.1 s。events 中未读取任何 skill 副本 |
+| 5（同上，作废） | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | 5 / 5 | 587 s，advisor 开启（旧口径）。结论与新口径一致；因只跑了基线一半，按主代理规则在新口径下重跑，以上一行为准 |
+
+结论：基线已全部做到，上游新增内容不合入；正文与 references 未改，场景 5 与夹具留作哨兵。仅 re-pin、更新改名仓库的
+`repo`/`url`、版本号改为 2026.09.30，未跑有 skill 的 D2，也不需要安装冒烟。

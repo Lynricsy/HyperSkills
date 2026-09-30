@@ -155,7 +155,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`laravel`](skills/laravel/) | 框架 | Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire | 2026.09.30 | 9 |
 | [`linux-ops`](skills/linux-ops/) | 平台 | Operates Linux hosts with systemd, permissions, networking, storage and backup recovery | 2026.09.12 | 13 |
 | [`mcp-server`](skills/mcp-server/) | 任务 | Builds Model Context Protocol servers with tools, resources, transports and authorization | 2026.09.30 | 9 |
-| [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg and deterministic image tools | 2026.09.12 | 24 |
+| [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg and deterministic image tools | 2026.09.30 | 24 |
 | [`ml-training`](skills/ml-training/) | 任务 | Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization | 2026.09.29 | 9 |
 | [`model-serving`](skills/model-serving/) | 任务 | Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity | 2026.09.30 | 10 |
 | [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB documents, aggregations, indexes and cluster operations | 2026.09.30 | 6 |
