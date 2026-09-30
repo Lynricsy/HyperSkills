@@ -178,7 +178,7 @@ it is invoked directly.
 
 A Next.js directive that makes a function or component cacheable, and requires
 `cacheComponents: true` in `next.config.ts`. See `nextjs-cache-components.md`
-for cache profiles, `cacheLife()` and `cacheTag()`.
+for cache profiles and `cacheLife()`.
 
 ---
 
