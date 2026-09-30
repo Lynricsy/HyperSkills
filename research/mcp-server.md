@@ -512,3 +512,27 @@ npm 当日版本：`@modelcontextprotocol/sdk` 1.31.0（2026-09-28 发布，1.30
 - 旧版「validator 必填」结论已写进过 E6 与基线缺口表；本节更正了结论，但未回改那两处历史记录（保留为当时的证据）。
 - scope challenge（TS 2.1.0）与 inspector `--protocol-era` 未合入；若后续发现模型在 v2 上手写 scope 预检，可再以基线实测决定是否补进 `auth.md` / `testing.md`。
 - 其他 reference 头部的「Verified against」仍写 2.0.0 / 1.30.0 / inspector 2.6.0：那些文件里的结论本次只抽测了错误转发、stdout 泄漏、inspector CLI 三项。
+
+## 2026-09-30 上游同步（增量）
+
+依据 2026-09-30 在 worktree 重跑的 `uv run tools/check_upstream.py mcp-server`：只有 `mcp-typescript-sdk`
+为 behind（2 提交）；mcp-python-sdk、anthropic-mcp-server-dev、awesome-copilot-mcp、microsoft-mcp-builder
+为 repo moved / tracked paths unchanged（报告判定），其余 up to date。只覆盖旧 pin → 当前 HEAD 的增量
+区间：blobless 克隆 `/tmp/hs-up/modelcontextprotocol__typescript-sdk` 后
+`git log dd22ba2..7f4c12a -- packages/core packages/server`、`git diff --stat` 与 `git diff`。pin 后核对：
+`mcp-typescript-sdk` 写入 `7f4c12a`，与审阅 HEAD 一致；repo moved 各条目写入 `06d1d1e`、`2a8ad9f`、
+`e7c25a4`、`3495f50`，与报告给出的 HEAD 一致。
+
+| 上游 | 区间 | 命中提交 / 文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| `mcp-typescript-sdk` | `dd22ba2..7f4c12a`（2 提交，命中 1 个） | `4d94e7b`（#2889）：`packages/server/src/server/mcp.ts` +24/−45，另加两个测试文件、改 `mcpParamValidation.test.ts` | 噪声 | 见下 |
+
+**`4d94e7b`**：`registerTool` 不再在注册时把 `inputSchema` 转成 JSON Schema，改为 `tools/list` 与
+调用前校验时按需转换并缓存；`outputSchemaJson` 改为首次读取时计算的 getter；SEP-2243 `x-mcp-header`
+声明无效的 `console.warn` 从注册时挪到 `tools/list` 时。属于 v2 服务端的性能改动（按请求工厂
+`createMcpHandler` 模型下不再为每个请求重复转换），带 changeset，尚未发版。本 skill 涉及的只是
+「tool 输入 schema 须为 Standard Schema」与「不要把敏感参数标成 `x-mcp-header`」，都未改变；正文没有
+「注册时告警」之类的时序表述，无需更正。`7f4c12a`（hono 改为常规依赖）在 `packages/middleware/node`，不在 paths 内。
+
+**正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
+（`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
