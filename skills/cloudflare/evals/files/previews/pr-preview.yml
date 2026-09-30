@@ -1,0 +1,17 @@
+name: PR preview
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+
+jobs:
+  preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      # wrangler is pinned at 4.128.0 in package.json
+      - run: npx wrangler versions upload --preview-alias pr-${{ github.event.number }}
+        env:
+          # token created from the "Edit Cloudflare Workers" template, all accounts, all zones
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_TOKEN }}

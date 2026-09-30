@@ -126,6 +126,7 @@ limited to 1,000 characters.
 
 | Gate | What it unlocks |
 |---|---|
+| Wrangler 4.135+ | Workers Previews (`wrangler preview`, the `previews` block): isolated per-branch/PR environments under one Worker, the replacement for aliased Version URLs. Open beta since 4.134.0; an older pin labels the commands private beta, so upgrade the project's wrangler instead of building per-PR environments |
 | Wrangler 4.107+ | declarative Durable Object `exports` lifecycle map |
 | Wrangler 3.73+ | versions/gradual-deployment commands without the `--x-versions` flag |
 | Wrangler 3.40+ | gradual deployments at all |

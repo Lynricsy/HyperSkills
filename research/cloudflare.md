@@ -195,3 +195,73 @@ Zero Trust 侧的取材源。核心判断：Access 管应用授权、Gateway 管
 - **Agents SDK / MCP server on Cloudflare**：cloudflare/skills 的 `agents-sdk`（18 个 reference）与 openai/plugins 的 `building-mcp-server-on-cloudflare` 质量都很高，但主题属于 `ai-engineering` / `mcp-server`，这两个 skill 本库尚不存在。按 Contract 不引用、不并入，正文只在 Scope 的否定列表里说明「本库尚无 skill 覆盖，应当直说而不是即兴发挥」。
 - **Cloudflare 的 CDN / WAF / DDoS / Bot Management / Turnstile / Stream / Zaraz 产品面**：属于 Cloudflare 的网络与安全产品，不是「构建与运维 Workers 应用」。`cloudflare/skills` 的参考树里有完整材料，将来若立 `web-security` 类 skill 可以再评。
 - **Terraform / Pulumi provider 字段**：按 Contract，HCL 语法与 state 归 `terraform`；本 skill 出现 IaC 时用 Cloudflare 自己的原生工具（wrangler、`exports`、Access/Gateway API），需要 Terraform 时指向 `terraform`。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt` 中本 skill 段（2026-09-30 `check_upstream.py`）。四条 `behind`：
+`cloudflare-skills`、`workers-sdk`（diff too large）、`jezweb-cloudflare`、`secondsky-cloudflare`；
+`xiaoyuboi-tunnel` up to date，`cloudflare-computer`、`cf-nextjs` 为 repo moved / tracked paths unchanged，
+`cloudflare-docs` 为 manual check。四条均在 `/tmp/hs-up/SyncG9/<owner>__<repo>` 的 blobless 克隆上按完整区间
+`git log`/`git diff` 归因。`--pin` 后逐条核对：写入的 commit 与本次审阅的 HEAD 一致（`cloudflare-skills`/`cf-nextjs`
+626547c、`workers-sdk` ae70e63、`jezweb-cloudflare` ee91a87、`secondsky-cloudflare` 8837836、`cloudflare-computer` ada6480）。
+
+本节接手 2026-09-29 被中断的一轮。其未提交改动逐条复核：`limits-and-versions.md` 的「Wrangler 4.135+ → Workers
+Previews」门槛行先按「基线已会」回退，后因有 skill 时出现回归（见评测）改写后重新加入；两处自动 provisioning 的
+`[community]` → `[official]` 保留（依据见下）；jezweb 的 archive/ 路径更正保留；它 pin 的 workers-sdk c2bb4c8 与
+cloudflare-computer e5e28a7 已过时，本次按当前 HEAD 补审并重新 pin。
+
+### 归因
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| cloudflare-skills | b052c32..626547c | c57a2d8（授权）：`skills/wrangler/SKILL.md` 新增「远程命令前确认身份与所需角色、取最窄范围；`wrangler login` OAuth 不支持细粒度授权，需细粒度时用账号级 API token」及 Workers 授权文档链接；`skills/durable-objects/SKILL.md` 新增「DO 无独立角色，权限随实现它的 Worker」 | **需合入**（Workers 授权） | 三次基线里两次把 CI token 定为账号级 `Workers Scripts: Edit` 并断言「无法按 Worker 收窄」，与官方授权文档相反（见评测）。合入 Core rule 29 与 `references/wrangler.md`「Deploy credentials and token scope」节；角色表取自 `workers/authorization/workers` 文档。DO 授权一句无对应失败模式，不合入 |
+| cloudflare-skills | 同上 | 8c5812f、a05da78（320fbbc 为合并）：`skills/wrangler/SKILL.md` 新增「Work with Workers Previews」节（项目内 Wrangler ≥ 4.135.0、Previews 与 Version URL/环境的取舍、`previews` 块放置表、Preview URL 默认公开、`--env` 须一致）及 Previews 文档链接 | 基线已会，**只合入版本门槛一行** | 三次基线 EB1–EB6、EB8 全部达成（自行读官方 Previews 文档与 wrangler schema），不写 Previews 用法。但有 skill 时一次（合入授权后的第一次有效运行）照 Core rule 1/2「以项目安装的 wrangler 为准」，看到钉住的 4.128.0 把 `wrangler preview` 标为 private beta，放弃 Previews、改建每 PR 一个 Worker——正文把项目内工具当权威，却在自称「版本门槛索引」的表里缺这一条。于是在 `limits-and-versions.md` 门槛表补「Wrangler 4.135+ → Workers Previews，4.134.0 起 open beta，旧 pin 标 private beta，应升级项目 wrangler」一行，补后两次有 skill 运行均回到 Previews |
+| workers-sdk | 7d39eed..ae70e63 | 19 个 Version Packages 提交，全部落在 `packages/wrangler/CHANGELOG.md`（4.131.1 → 4.144.0，655 行）；`config-schema.json` 不在仓库内（只随 npm 包发布），旧 pin 时即如此 | 门槛一行 / 噪声 / 暂缓 | 逐版读完：4.134.0「Mark `wrangler preview` commands as open beta」进门槛表（见上行）；其余 Previews 细节（4.131.1 自定义域 Preview URL 提示、4.132.0 `--secrets-file`/`--var`/AI Search 绑定、4.133.0 `previews.placement` 与 `exports` 随 Preview 上传、4.136.x JSON 输出与 onboarding、4.140.0 Containers）基线已会；Containers/SSH、实验性 `cloudflare.config.ts`/`cf/config`、Build Output、Flagship 本地求值、UDP connect、Queue 订阅源、Workflows 进 `exports`（本地尚不生效）、依赖升级与 bug 修复（含 4.143.1 仅有 custom domain 时不再需要 Zone Workers Routes Read、4.136.1 不再需要账号级 subdomain 权限）为噪声或本 skill 范围外。**暂缓**：4.141.0 `--durable-objects-code-update-mode` / `durable_objects.code_update_strategy`（默认 deferred、最长 5 分钟）——`durable-objects/platform/known-issues` 与 `concepts/durable-object-lifecycle` 仍写「代码更新以最终一致方式全球发布并重启 DO」，官方文档未跟进前不写入，下次同步复查 |
+| jezweb-cloudflare | e875a6b..ee91a87 | ee91a87（SKILLCUT）：`cloudflare-worker-builder`、`d1-drizzle-schema` 整目录 0 行改动地移到 `archive/plugins/...`；`vite-flare-starter` 未变；其余 3 个提交在别的目录 | 需更正（仅 SOURCES paths/notes） | 两条 paths 改指 `archive/`（`archive/README.md`：不再加载、`vite-flare-starter` 为继任者）；由此其提供的「省略资源 id 触发自动 provisioning」一条改以官方来源为据，见下 |
+| secondsky-cloudflare | 00d6097..8837836 | a0994f7：删除 4 个 `SKILL-ORIGINAL-BACKUP.md`、两处文件改权限 | 噪声 | relation 为 reference，无内容变化 |
+
+`[community]` → `[official]` 的依据（纯出处更正，Core rule 15 与 `references/wrangler.md`）：`gh api` 读
+`cloudflare/cloudflare-docs` 的 `src/content/docs/workers/wrangler/configuration.mdx`「Automatic provisioning」节：
+「add bindings to your configuration file _without_ adding resource IDs … resources will be created for you」；
+`cloudflare-skills` 的 wrangler skill（旧 pin 起即有）写「When binding existing resources, verify their identifiers;
+omitted identifiers can trigger automatic provisioning」。原先唯一的社区出处已被上游归档，官方两处足以支撑。
+
+授权事实核对（`gh api` 读 `cloudflare-docs` 的 `workers/authorization/index.mdx` 与 `workers.mdx`）：角色为
+Metadata Read-Only / Content Read-Only / Editor / Admin，作用域为 Workers 产品或单个 Worker；「Product-level roles apply
+to every current and future Worker」；旧的 `Workers Scripts Edit` 由「`Editor` at the Workers product scope」取代；
+部署既有 Worker、上传/部署版本、回滚、`secret put` 需「`Editor` for that Worker」，创建新 Worker 需「Product-level
+`Admin`」；增删改 Route/Custom Domain 另需 Zone `Workers Routes Write`；带绑定部署「do not need separate permissions on
+the bound resources」；「The `wrangler login` OAuth flow does not currently support granular authorization」；
+「Custom Domains do not currently support per-Worker roles」。正文每句均有对应。
+
+Previews 事实核对（门槛行与场景 6 的 expected_behavior）：`cloudflare-docs` 的 `workers/previews/*`——「Worker Previews
+requires `Wrangler 4.135.0` or later. Update the project dependency because project commands do not use a newer global
+installation」、每 Worker 100（Free）/500（Paid）个 Preview、超限删除最久未部署者、Preview URL 默认公开、`workers.dev`
+Preview URL 带 `X-Robots-Tag: noindex`、队列不能由 Preview 消费、Cron 只打生产、`previews.durable_objects.bindings`
+仅在代码从 `env` 读取时需要；workers-sdk CHANGELOG 4.134.0 标 open beta，4.132.0/4.136.0 条目仍称 private beta。
+
+### 评测（`workbuddy/deepseek-v4.1-flash`、thinking `max`，基线与有 skill 同条件）
+
+场景 6（`evals/files/previews/wrangler.jsonc`、`pr-preview.yml`：别名 Version URL 做 PR 预览、全账号模板 token）。
+第一次基线为 2026-09-29 上一轮所跑（query 与 `expected_behavior` 与当前逐字相同，基线不依赖正文，复用）。
+下表所有运行都在评测子进程关闭 advisor（主代理 cherry-pick 的 `fix(tools): 🐛 评测子进程关闭 advisor`）之前启动，
+基线与有 skill 同为 advisor 开启的旧口径、已配对，按主代理规则不重跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 基线 1（09-29） | deepseek-v4.1-flash / max | 无 | false | EB1–EB8（EB7 缺 OAuth 半句） | advisor 开启（旧口径）。Workers Editor、scope 选 Individual Workers → `orders-api` |
+| 6 基线 2 | deepseek-v4.1-flash / max | 无 | false | EB1–EB6、EB8；**EB7 ✘** | advisor 开启（旧口径）。「最小权限 token：仅 Account → Workers Scripts: Edit + D1: Edit」「Cloudflare token 无法按 Worker 收窄」 |
+| 6 基线 3（全新 workspace 路径） | deepseek-v4.1-flash / max | 无 | false | EB1–EB6、EB8；**EB7 ✘** | advisor 开启（旧口径）。「Account → Workers Scripts: Edit 必需」「同账号内 Workers Scripts: Edit 本身就足以部署生产代码」 |
+| 6 有 skill，合入前正文 | deepseek-v4.1-flash / max | 有 | true | EB1–EB6、EB8；**EB7 ✘** | advisor 开启（旧口径）。「令牌无法只授权单个 Worker：`Workers Scripts: Edit` 是账户级的」 |
+| 6 有 skill，+rule 29 | deepseek-v4.1-flash / max | 有 | false | 不计 | advisor 开启（旧口径）。未加载 skill，作废 |
+| 6 有 skill，+rule 29（全新 workspace 路径） | deepseek-v4.1-flash / max | 有 | true | EB1–EB8（EB7 缺 OAuth 半句） | advisor 开启（旧口径）。「account-owned API token……`Workers` 角色 `Editor`，scope 选 `Individual Workers → orders-api`」「创建新 Worker 才要 product-level Admin」 |
+| 6 有 skill，+rule 29、`wrangler.md` 授权节压缩到 400 行 | deepseek-v4.1-flash / max | 有 | true | EB6；EB1、EB5 部分；**EB2/3/4/7/8 ✘** | advisor 开启（旧口径）。以钉住的 4.128.0 为准（「`wrangler preview`……还在 private beta，别现在依赖」），改为每 PR 一个 Worker + `env.preview`，于是 token 取产品级 Admin——授权推理本身与正文一致，回归来自 Previews 被放弃 |
+| 6 有 skill，+门槛行（运行 1） | deepseek-v4.1-flash / max | 有 | true | EB1–EB8（EB7 缺 OAuth 半句） | advisor 开启（旧口径）。「`wrangler preview` 的硬门槛是 4.135.0……`npx wrangler` 用的是项目本地依赖」；Editor 只勾 `orders-api`，「只有新建 Worker 才需要 product 级 Admin」 |
+| 6 有 skill，+门槛行（运行 2） | deepseek-v4.1-flash / max | 有 | true | **EB1–EB8 全部** | advisor 开启（旧口径）。「4.128.0 里这个命令还是 private beta」→ 升级；Editor 仅 `orders-api`；「`wrangler login` 的 OAuth 表达不了 per-Worker 粒度」 |
+
+结论：Workers 细粒度授权基线 2/3 次答错，合入 Core rule 29 与 `wrangler.md` 授权节后有 skill 的有效运行 4 次中 3 次达成，
+未达成的 1 次是放弃 Previews 导致的连带失败；补上 Previews 门槛行后两次有 skill 运行 8 条全部达成。Previews 用法本身
+不写正文（基线 3/3 会），场景 6 同时作为 Previews 哨兵保留。description 与 Scope 未改，负例场景未重跑。
+输出目录（均在 `/tmp/hs-evals-sync/SyncG9/` 下）：`cloudflare/workbuddy-deepseek-v4.1-flash-max/baseline/6`（基线 1）、
+`cloudflare-b6`、`cloudflare-b6c`（基线 2、3）、`cloudflare-s6`（合入前）、`cloudflare-s6b`（作废）、`cloudflare-s6c`、
+`cloudflare-s6d`、`cloudflare-s6e`、`cloudflare-s6f`。

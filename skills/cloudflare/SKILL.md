@@ -4,7 +4,7 @@ description: "Builds on Cloudflare Workers, Durable Objects, storage services an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.09.30"
   category: platform
 ---
 
@@ -110,7 +110,7 @@ output are a stale limit or a retired plan name, not a wrong API call.
     configured compatibility date and flags, and re-running it is how a renamed binding
     becomes a type error instead of a runtime `undefined` `[verified]`.
 15. Declare resource ids explicitly. An omitted id can trigger automatic provisioning, which
-    creates a *new* empty resource instead of binding the existing one `[community]`.
+    creates a *new* empty resource instead of binding the existing one `[official]`.
 16. `wrangler dev` is local by default (`--remote` defaults to false) and needs no account:
     workerd serves the Worker and KV, D1, R2, Durable Object and Cache state persists as
     SQLite under `.wrangler/state/v3/` `[verified]`. Local KV is read-after-write consistent,
@@ -161,6 +161,13 @@ output are a stale limit or a retired plan name, not a wrong API call.
     `@cloudflare/vitest-pool-workers`) runs tests inside workerd with real bindings, and
     `createTestHarness()` exercises whole Workers `[official]`
     (`references/testing.md`).
+29. Deploy credentials scope to a single Worker. Workers permissions are now roles at a scope,
+    and the legacy account-wide `Workers Scripts: Edit` is `Editor` on every current and future
+    Worker. A CI token for one Worker is an account-owned API token with `Editor` on that
+    Worker: it deploys, uploads and deploys versions, rolls back and sets secrets. Product-level
+    `Admin` is only for creating or deleting Workers, bound KV/D1/Queues need no permission to
+    deploy, and `wrangler login` OAuth cannot express any of this `[official]`
+    (`references/wrangler.md`).
 
 ## Workflows
 
@@ -283,7 +290,7 @@ output are a stale limit or a retired plan name, not a wrong API call.
 | Every quota, default and version gate in one table: CPU and wall time, memory, subrequests, asset and store limits, the wrangler/compat-date gates, retired names | Before quoting any number or any "since version X" claim | `references/limits-and-versions.md` |
 | Isolate lifecycle, request-scoped I/O, `waitUntil` and `passThroughOnException`, streaming, crypto, service bindings and RPC, Smart Placement, Cron Triggers, `nodejs_compat` | Writing or reviewing Worker code, or explaining a runtime error | `references/workers-runtime.md` |
 | Configuration shape and schema, compatibility dates and flags, binding declarations, environments and non-inheritable keys, secrets and `.dev.vars`/`.env`, `limits`, `observability`, `wrangler types`, auto-provisioning | Editing `wrangler.jsonc`/`wrangler.toml` or adding a binding | `references/wrangler.md` |
-| Local versus remote dev and where state lives, data commands, `deploy --dry-run`, versions and gradual deployments, rollback constraints, secret commands, diagnostics | Running wrangler, deploying, or recovering a deployment | `references/wrangler.md` |
+| Local versus remote dev and where state lives, data commands, `deploy --dry-run`, versions and gradual deployments, rollback constraints, secret commands, Workers roles and API token scope for deploys, diagnostics | Running wrangler, deploying, setting up CI credentials, or recovering a deployment | `references/wrangler.md` |
 | Durable Object modelling and sharding, stub creation, SQLite and key-value storage APIs, input/output gates and `blockConcurrencyWhile`, alarms, WebSocket hibernation, RPC | Writing or reviewing Durable Object code | `references/durable-objects.md` |
 | The `exports` lifecycle map, each `state` and its required fields, safe rename and transfer sequences, storage backends, reconciliation output, legacy `migrations` and converting off it | Adding, renaming, deleting or moving a Durable Object class | `references/do-lifecycle.md` |
 | KV, R2, D1, Durable Object storage, Queues and Hyperdrive side by side: consistency guarantee, per-key write rate, size ceilings, failure mode, and the decision table | Choosing a store, or explaining why the current one cannot work | `references/storage-selection.md` |

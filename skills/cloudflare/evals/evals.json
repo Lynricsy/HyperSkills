@@ -74,5 +74,20 @@
       "Does not introduce Cloudflare Workers, Cloudflare Images, Cache API, KV or wrangler into the answer",
       "skill_read is false for the `cloudflare` skill"
     ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "We want every pull request of orders-api to get its own testable deployment instead of the aliased Version URL we upload today. Here are wrangler.jsonc and our GitHub Actions workflow pr-preview.yml. Set it up so reviewers can click a URL per PR, nothing in a PR can touch production data, the CI token has only the access it needs, and PR environments get cleaned up. Tell me exactly what to change and anything that will not behave like production.",
+    "files": ["evals/files/previews/wrangler.jsonc", "evals/files/previews/pr-preview.yml"],
+    "expected_behavior": [
+      "Moves the workflow off `wrangler versions upload --preview-alias` to Workers Previews (`wrangler preview`, Preview name defaulting to the branch or set with `--name`), and explains why: a Version URL runs the uploaded version against the production bindings, so an aliased Version URL gives a PR no isolation from `orders-prod`, the production KV namespace or the production queue",
+      "States the version gate: Previews need Wrangler 4.135.0 or later installed in the project, so the pinned 4.128.0 in package.json must be upgraded - a newer global or `npx wrangler@latest` is not what project commands run",
+      "Adds a `previews` block and says Previews do not inherit production settings: `vars` and every storage binding (KV `SESSIONS`, D1 `DB`, the `ORDER_EVENTS` producer) are redeclared under `previews` pointed at non-production resources, while `compatibility_date`/`compatibility_flags` (and `assets`, if present) stay top-level only; D1 migrations must be applied to the Preview database before deploying the Preview",
+      "Handles the Durable Object correctly: each Preview automatically gets its own `Cart` namespace and storage, the class declaration stays top-level, but because the code reads `env.CART` the binding must also be declared under `previews.durable_objects.bindings` or it is missing in the Preview (a 1101 error)",
+      "Names what does not behave like production in a Preview: the queue consumer and the `*/15` Cron Trigger never run against a Preview (they target production and must not be put in `previews`), the `AUTH` service binding calls the production `auth-worker`, and the production route/custom domain does not serve Preview traffic",
+      "Warns that Preview URLs are public by default and offers protection (Cloudflare Access on the Preview hostnames, or at least the `workers.dev` Preview URL which is `noindex`), leaving the decision to the user",
+      "Replaces the all-accounts `Edit Cloudflare Workers` token with an account-owned API token carrying the Workers `Editor` role scoped to the `orders-api` Worker (not product-level Admin, which only creating new Workers needs), notes that `wrangler login` OAuth cannot express granular permissions, and keeps Preview secrets out of the config via `wrangler preview secret put` or the Previews Base configuration",
+      "Adds cleanup on PR close with `wrangler preview delete --name <preview>` (using the same `--env` if an environment is targeted), and mentions that Cloudflare evicts the least recently deployed Preview once the per-Worker cap is reached (100 on Free, 500 on Paid)"
+    ]
   }
 ]

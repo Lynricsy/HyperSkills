@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "orders-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "preview_urls": true,
+  "routes": [{ "pattern": "api.example.com", "custom_domain": true }],
+  "vars": { "APP_ENV": "production", "PAYMENTS_BASE": "https://payments.example.com" },
+  "kv_namespaces": [{ "binding": "SESSIONS", "id": "6f1c2a9e0b7d4e3f8a5c1d2e3f4a5b6c" }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "orders-prod", "database_id": "0e7c4b1a-5d2f-4c3e-9a8b-7f6e5d4c3b2a" }
+  ],
+  "durable_objects": { "bindings": [{ "name": "CART", "class_name": "Cart" }] },
+  "exports": { "Cart": { "type": "durable-object", "storage": "sqlite" } },
+  "queues": {
+    "producers": [{ "binding": "ORDER_EVENTS", "queue": "order-events" }],
+    "consumers": [{ "queue": "order-events", "max_batch_size": 10 }]
+  },
+  "services": [{ "binding": "AUTH", "service": "auth-worker" }],
+  "triggers": { "crons": ["*/15 * * * *"] }
+}

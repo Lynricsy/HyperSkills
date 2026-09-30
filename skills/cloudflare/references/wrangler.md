@@ -24,6 +24,7 @@ one the project pins.
 - [Versions, deployments and gradual rollout](#versions-deployments-and-gradual-rollout)
 - [Rollback and its limits](#rollback-and-its-limits)
 - [Secret commands deploy](#secret-commands-deploy)
+- [Deploy credentials and token scope](#deploy-credentials-and-token-scope)
 - [Diagnostics](#diagnostics)
 
 ## File format and the schema reference
@@ -199,7 +200,7 @@ environment most likely to have been forgotten.
 Omitting a resource identifier can trigger automatic provisioning, which creates a **new,
 empty** resource and binds that — the symptom is a staging deploy that comes up with no data
 and no error. Declare ids explicitly, and when binding an existing resource verify the id
-rather than trusting the name. `[community]`
+rather than trusting the name. `[official]`
 
 Reconcile dashboard edits before deploying: `wrangler deploy` can overwrite variables and
 routes changed in the dashboard, so a dashboard-only hotfix disappears on the next deploy.
@@ -362,6 +363,22 @@ staged form: `[official]`
 npx wrangler versions secret put API_KEY     # creates a version only
 npx wrangler versions deploy                 # then assign traffic deliberately
 ```
+
+## Deploy credentials and token scope
+
+Workers roles are granted for the whole product or per Worker; the legacy `Workers Scripts Edit`
+behind the "Edit Cloudflare Workers" template is `Editor` on every current *and future* Worker `[official]`.
+
+| Wrangler operation | Minimum role |
+|---|---|
+| `deploy`, `versions upload`, `versions deploy`, `rollback`, `secret put`/`delete` on an existing Worker | `Editor` for that Worker |
+| `deploy` of a Worker that does not exist yet | product-level `Admin` — a per-Worker role cannot name a Worker that does not exist |
+| a deploy that adds, changes or removes a route or custom domain | `Editor` plus Zone `Workers Routes: Write` on each affected zone; a deploy that leaves them untouched needs only `Editor` |
+
+- Bindings need no permission on the bound KV, D1, R2 or Queue to deploy; only data commands
+  (`d1 migrations apply --remote`, `kv key put`) need the resource's own, never part of a Workers role.
+- `wrangler login` OAuth cannot carry granular roles: automation uses an account-owned API token
+  (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`). Custom domains do not support per-Worker roles yet.
 
 ## Diagnostics
 
