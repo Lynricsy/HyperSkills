@@ -377,3 +377,23 @@ policies, JWT claims, an SDK returning no rows, and the Supabase dashboard or CL
   写进来会让「一个默认方案 + 一个逃生口」的原则失效。
 - 不写 `scripts/`：本 skill 的可执行资产是目录查询，它们已经在 `references/diagnostics.md` 里，
   再包一层脚本只会增加依赖而不增加信息。
+
+## 2026-09-30 上游同步
+
+依据：`/tmp/upstream-report-0930.txt` 中本 skill 段（2026-09-30 `check_upstream.py`）。四条 `behind`：
+`awesome-copilot-pg`（diff too large）、`neon-agent-skills`、`prisma-skills`、`google-cloud-sql`（diff too large）；
+其余 repo 条目为 up to date 或 repo moved / tracked paths unchanged，`postgresql-docs` 为 manual check。
+四条均在 `/tmp/hs-up/SyncG9/<owner>__<repo>` 的 blobless 克隆上按完整区间 `git log`/`git diff` 归因。
+`--pin` 后逐条核对：写入的 commit 与本次审阅的 HEAD 一致（`awesome-copilot-pg` 15ed97c、`neon-agent-skills`
+80164a2、`prisma-skills` 82b88dd、`google-cloud-sql` 2964a69，moved 条目 `supabase-postgres-bp` 544bfc5、
+`microsoft-postgres-skills` adadc03、`timescale-pg-aiguide` b236d35、`pgvector` 468fc77、`wshobson-table-design` 156b7a5）。
+
+| 上游 | 区间 | 命中提交/文件 | 判定 | 理由 |
+|---|---|---|---|---|
+| awesome-copilot-pg | 7568a48..15ed97c | `skills/postgresql-optimization`、`skills/postgresql-code-review` 内 0 个提交 | 噪声 | 64 个提交全在其他目录 |
+| google-cloud-sql | fd2bd41..2964a69 | becc4b8 `skills/cloud/cloud-sql-basics/SKILL.md` 仅加 frontmatter `version: "1.0.0"` | 噪声 | 元数据 |
+| neon-agent-skills | 2e0da3a..80164a2 | e5a62ea、e481b50、9fd97c5 改 `neon-postgres/SKILL.md`：description 收窄、把 Auth 路由给新 `neon-auth`、「已有 `DATABASE_URL` 就直接用」、安装命令改 `neon skills`、Drizzle 从「总是」改为「保留既有 ORM」；dd290a9 新增 `references/lakebase-search-drizzle.md` | 噪声 / 已覆盖 | 前者是 Neon 自身 skill 路由与安装方式；Lakebase Search（`lakebase_bm25`、`lakebase_ann`）是 Neon 专有扩展，按 Scope「Postgres-compatible products with their own semantics」不覆盖；其中通用的两点——迁移走直连、per-query GUC 用 `SET LOCAL` 以落在同一池化连接——`connections.md` 与 Core rules 23、25 已写 |
+| prisma-skills | 1123817..82b88dd | 6451b71、b29946c、b491588：`prisma-postgres` 变为 deprecated 兼容桩（指向 `prisma-postgres-setup`）；`prisma-database-setup/references/postgresql.md` 删除，内容并入 `prisma-orm-setup/references/v7-postgresql.md`（只加了 Prisma 7 限定、`@prisma/adapter-pg@7` 与文档链接）；`prisma-postgres-setup` 重写为 provisioning/operations/vercel-marketplace 三份短参考 | 需更正（仅 SOURCES paths） | relation 仍为 reference，正文不动；paths 改为具名继任者，继任者仍写「Special characters in password must be URL-encoded」，直连 URL 一条仍以 neon-agent-skills 与 PgBouncer 文档为据 |
+
+正文未改动（只改 `metadata.version`），故未跑评测、未做安装冒烟。上一轮（2026-09-29，被中断）只留下
+SOURCES.yaml 中 prisma 的 paths 更正，本次复核属实后保留并补全措辞。
