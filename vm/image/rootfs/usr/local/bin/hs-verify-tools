@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# VM 工具自检：逐个执行版本命令，打印「状态 名称 版本」，任一失败则退出码非零。
+#   hs-verify-tools             只查二进制是否可用
+#   hs-verify-tools --services  另外实际启动 PostgreSQL / Redis / dockerd 并探活
+set -uo pipefail
+
+checks=(
+  # agent
+  "pi|pi --version"
+  # 基础
+  "git|git --version" "gh|gh --version" "curl|curl --version" "jq|jq --version"
+  "yq|yq --version" "rg|rg --version" "fd|fd --version" "tree|tree --version"
+  "shellcheck|shellcheck --version" "shfmt|shfmt --version" "tmux|tmux -V"
+  "strace|strace -V" "gdb|gdb --version" "valgrind|valgrind --version"
+  # C/C++
+  "gcc|gcc --version" "clang|clang --version" "cmake|cmake --version"
+  "ninja|ninja --version" "meson|meson --version"
+  # JS
+  "node|node --version" "npm|npm --version" "pnpm|pnpm --version"
+  "yarn|yarn --version" "bun|bun --version" "tsc|tsc --version" "tsx|tsx --version"
+  "prettier|prettier --version" "eslint|eslint --version" "pyright|pyright --version"
+  "playwright|playwright --version" "wrangler|wrangler --version"
+  # Python
+  "python|python --version" "pip|pip --version" "uv|uv --version"
+  "ruff|ruff --version" "mypy|mypy --version" "pre-commit|pre-commit --version"
+  "semgrep|semgrep --version"
+  "py-libs|python -c 'import pandas, polars, duckdb, openpyxl, docx, pptx, pypdf, fastapi, mcp; print(\"ok\")'"
+  # 其他语言
+  "go|go version" "rustc|rustc --version" "cargo|cargo --version"
+  "java|java -version" "mvn|mvn --version" "gradle|gradle --version"
+  "dotnet|dotnet --version" "php|php --version" "composer|composer --version"
+  "forge|forge --version"
+  # 数据
+  "sqlite3|sqlite3 --version" "duckdb|duckdb --version" "psql|psql --version"
+  "postgres|ls /usr/lib/postgresql/*/bin/postgres" "redis-server|redis-server --version"
+  "mongosh|mongosh --version"
+  # 媒体与办公
+  "ffmpeg|ffmpeg -version" "magick|convert -version" "pdftoppm|pdftoppm -v"
+  "qpdf|qpdf --version" "gs|gs --version" "pandoc|pandoc --version"
+  "soffice|soffice --version" "dot|dot -V"
+  "chromium|ls -d \"\$PLAYWRIGHT_BROWSERS_PATH\"/chromium-*"
+  # 容器与云
+  "docker|docker --version" "docker-compose|docker-compose version"
+  "hadolint|hadolint --version" "trivy|trivy --version" "gitleaks|gitleaks version"
+  "kubectl|kubectl version --client" "helm|helm version --short"
+  "terraform|terraform version" "aws|aws --version" "az|az version --output tsv"
+  "gcloud|gcloud --version"
+)
+
+fail=0
+for entry in "${checks[@]}"; do
+  name=${entry%%|*}
+  cmd=${entry#*|}
+  if out=$(bash -c "$cmd" 2>&1); then
+    printf 'ok    %-15s %s\n' "$name" "$(printf '%s' "$out" | grep -m1 -v '^\s*$' | cut -c1-90)"
+  else
+    printf 'FAIL  %-15s %s\n' "$name" "$(printf '%s' "$out" | tail -1 | cut -c1-90)"
+    fail=1
+  fi
+done
+
+# 服务探活：确认 VM 内核与权限足以真正跑起来，而不只是二进制存在。
+if [ "${1:-}" = --services ]; then
+  probe() {
+    local name=$1; shift
+    if out=$(bash -c "$*" 2>&1); then
+      printf 'ok    %-15s %s\n' "$name" "$(printf '%s' "$out" | tail -1 | cut -c1-90)"
+    else
+      printf 'FAIL  %-15s %s\n' "$name" "$(printf '%s' "$out" | tail -1 | cut -c1-90)"
+      fail=1
+    fi
+  }
+  probe postgres-up "sudo service postgresql start >/dev/null && sudo -u postgres psql -tAc 'select version()'"
+  probe redis-up "sudo service redis-server start >/dev/null && redis-cli ping"
+  probe dockerd-up "sudo sh -c 'dockerd >/tmp/dockerd.log 2>&1 &' && for i in \$(seq 30); do sudo docker info >/dev/null 2>&1 && break; sleep 1; done; sudo docker info --format '{{.ServerVersion}} {{.Driver}}' || { tail -3 /tmp/dockerd.log; false; }"
+fi
+
+exit "$fail"

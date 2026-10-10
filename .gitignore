@@ -8,3 +8,6 @@ __pycache__/
 
 # 全局 core.excludesFile 忽略了 AGENTS.md，但本仓库的 agent 约定必须入库
 !AGENTS.md
+
+# 测试 VM 的本机凭据（模板见 vm/local.env.example）
+vm/local.env
