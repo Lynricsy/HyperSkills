@@ -221,7 +221,8 @@ HyperSkills/
 │   └── assets/logo.svg         # README 首屏标记（透明底，单份资产适配明暗主题）
 ├── research/<name>.md          # 候选调研、冲突裁决、基线缺口、评测结果（中文）
 ├── templates/                  # skill 与 research 脚手架
-├── tools/                      # 校验 / 上游检查 / 目录生成 / 评测运行
+├── tools/                      # 校验 / 上游检查 / 目录生成 / 评测运行 / 测试 VM 入口
+├── vm/                         # skill 测试 VM：microsandbox 镜像 + pi，见 vm/README.md
 ├── .claude-plugin/             # 生成的 Claude Code 市场清单
 └── THIRD_PARTY_NOTICES.md      # 生成的上游许可与署名汇总
 ```
@@ -251,6 +252,8 @@ HyperSkills/
 uv run tools/new_skill.py <name> --category platform   # 脚手架（platform|framework|task|meta）
 uv run tools/run_evals.py <name> --baseline            # 无 skill 基线
 uv run tools/run_evals.py <name>                       # 有 skill
+uv run tools/vm.py build                               # 构建隔离测试 VM（microsandbox + pi）
+uv run tools/vm.py run --skill <name> "<prompt>"       # 在一次性 VM 里跑一条提示词
 uv run tools/validate_skills.py                        # 静态质量门
 uv run --locked tools/check_repository.py             # 与 CI 相同的完整内容门
 uv run tools/check_upstream.py                         # 上游漂移

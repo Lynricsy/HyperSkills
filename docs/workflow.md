@@ -155,6 +155,13 @@ Phase C 修改——缺口未被填补 = skill 无效。
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 ```
 
+### 隔离 VM（可选）
+
+`tools/vm.py` 在 microsandbox 的一次性 microVM 里用 pi 运行提示词：VM 中没有宿主的
+agent 配置、上下文文件与 skill 目录，被测 skill 只读挂载，基线运行不挂载任何 skill。
+构建与用法见 [`vm/README.md`](../vm/README.md)。`tools/run_evals.py` 目前仍驱动宿主
+`omp`，两者的 `events.jsonl` 事件结构相同，但 agent 不同，结果不可混用对比。
+
 ### 交互式开发（可选）
 
 在仓库根目录 `.omp/config.yml`（已 gitignore）写入：
