@@ -176,7 +176,9 @@ cp vm/local.env.example vm/local.env     # 填 OPENAI_API_KEY（可选代理地�
 
 产物在 `/tmp/hs-evals/<skill>/omp-<model>-<thinking>/<baseline|skill>/<N>/`：`answer.md`、
 `result.json`、`events.jsonl`、`stderr.log`、`workspace/`（agent 的产出）。重跑只替换
-带运行标记或 `result.json` 的场景目录，`--out` 下其他已有目录一律拒绝删除。
+带运行标记或 `result.json` 的场景目录，`--out` 下其他已有目录一律拒绝删除。每个场景在
+同级的 `.<N>.lock` 上持有非阻塞文件锁直到 `result.json` 写完：另一个进程跑同一
+skill / 模型 / 模式 / 场景会直接报错退出，不会删掉正在运行的那份。
 模型请求失败会中止整批，不会把空回答当作一次作答。细节见 [`vm/README.md`](../vm/README.md)。
 
 ### 交互式开发（可选）

@@ -105,7 +105,7 @@ uv run tools/vm.py run --workspace skills/office/evals/files \
 | `meta.json` | 退出码、是否超时、模型错误、耗时、模型、思考档、挂载的 skill、omp 参数 |
 | `workspace/` | VM 内 `/workspace` 的最终状态，agent 产出的文件都在这里；只有它挂进 VM |
 | `models.yml` | 挂进 VM 的 omp provider 覆盖（只有代理地址，不含密钥） |
-| `.hyperskills-vm-run` | 运行标记；`run_evals.py` 重跑时只替换带它（或 `result.json`）的目录 |
+| `.hyperskills-vm-run` | 运行标记（独占创建）：证明目录由本工具创建，不代表已结束；`run_evals.py` 另用场景锁防并发替换 |
 
 退出码：omp 的退出码；事件流里最后一条回答以模型错误结束时记为 3；超时由 msb 终止，
 `meta.json` 里 `timed_out: true`。只支持 `openai/*` 与 `anthropic/*` 模型：VM 只为这两个

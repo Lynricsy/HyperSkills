@@ -30,6 +30,7 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -219,18 +220,35 @@ def base_run(spec: VmSpec) -> list[str]:
     ]
 
 
+def parse_events(raw: str) -> list[dict[str, Any]]:
+    """按 LF 切分的 JSONL 事件；超时截断的残行被跳过。
+
+    只能按 `\\n` 分帧：`str.splitlines()` 还会在 U+2028/U+2029 等字符处断行，而它们
+    在 JSON 字符串里是合法的原样字符（输出未转义非 ASCII 时就会出现），整条事件会被
+    拆坏并静默丢掉——恰好可能是最终回答或错误事件。
+    """
+    events: list[dict[str, Any]] = []
+    for line in raw.split("\n"):
+        line = line.removesuffix("\r")
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict):
+            events.append(event)
+    return events
+
+
 def provider_error(events_path: Path) -> str | None:
     """最后一条 assistant 消息以 error 结束时返回错误文本。
 
     pi 系 agent 在模型请求全部失败（连接错误、鉴权失败）时可能仍以 0 退出，事件流里
     只有 stopReason=error 的空回答；不在这里拦下，评测会把它当成一次正常作答。
     """
-    last: dict | None = None
-    for line in events_path.read_text("utf-8", errors="replace").splitlines():
-        try:
-            event = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    last: dict[str, Any] | None = None
+    for event in parse_events(events_path.read_text("utf-8", errors="replace")):
         message = event.get("message") if event.get("type") == "message_end" else None
         if isinstance(message, dict) and message.get("role") == "assistant":
             last = message
@@ -261,18 +279,22 @@ def check_model(model: str) -> str:
 
 
 def claim_out_dir(out: Path) -> None:
-    """创建（或接管一个空的）输出目录，并写入运行标记。
+    """创建（或接管一个空的）输出目录，并以独占方式写入运行标记。
 
     非空目录一律拒绝：输出目录由调用方指定，可能是任何路径（`--out .` 就是仓库根），
-    唯一安全的做法是只写入自己刚创建的空目录。标记文件让上层工具日后能识别
-    「这是一次运行的产物」，从而只替换自己产生过的目录。
+    唯一安全的做法是只写入自己刚创建的空目录。标记用 O_EXCL 创建，两个进程同时认领
+    同一个空目录时只有一个成功。标记只证明「目录由本工具创建」，不代表运行已结束；
+    并发互斥由调用方负责（run_evals 用场景锁）。
     """
     if out.is_symlink():
         raise VmRunError(f"{out} is a symlink")
     out.mkdir(parents=True, exist_ok=True)
     if any(out.iterdir()):
         raise VmRunError(f"{out} is not empty")
-    (out / RUN_MARKER).write_text("", encoding="utf-8")
+    try:
+        (out / RUN_MARKER).open("x", encoding="utf-8").close()
+    except FileExistsError:
+        raise VmRunError(f"{out} was claimed by another run") from None
 
 
 def new_out_dir() -> Path:
