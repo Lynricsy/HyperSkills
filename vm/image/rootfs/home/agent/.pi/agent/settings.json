@@ -1,9 +1,0 @@
-{
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-5",
-  "defaultThinkingLevel": "medium",
-  "defaultProjectTrust": "never",
-  "quietStartup": true,
-  "enableInstallTelemetry": false,
-  "collapseChangelog": true
-}

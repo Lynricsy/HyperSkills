@@ -32,9 +32,8 @@ ARG NODE_VERSION=24.21.0 \
 RUN --mount=type=bind,source=provision,target=/provision \
     bash /provision/20-binaries.sh
 
-# 3. Node 生态：pi、全局 CLI、Playwright Chromium
-ARG PI_VERSION=1.1.0 \
-    PLAYWRIGHT_VERSION=1.64.0
+# 3. Node 生态：全局 CLI、Playwright Chromium
+ARG PLAYWRIGHT_VERSION=1.64.0
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 RUN --mount=type=bind,source=provision,target=/provision \
     bash /provision/30-node.sh
@@ -44,7 +43,13 @@ USER agent
 RUN --mount=type=bind,source=provision,target=/provision \
     bash /provision/40-user.sh
 
-# 5. 预置文件（pi 默认设置、自检脚本）。放在最后，改动不触发重装。
+# 5. 评测 agent：omp。升级频繁，单独成层放在工具链之后，改版本号不触发重装工具。
+USER root
+ARG OMP_VERSION=18.8.7
+RUN --mount=type=bind,source=provision,target=/provision \
+    bash /provision/50-omp.sh
+
+# 6. 预置文件（omp 配置、自检脚本）。放在最后，改动不触发重装。
 COPY --chown=agent:agent rootfs/home/agent/ /home/agent/
 COPY rootfs/usr/local/bin/ /usr/local/bin/
 
@@ -55,9 +60,7 @@ ENV PATH=/opt/venv/bin:/home/agent/.local/bin:/home/agent/.cargo/bin:/home/agent
     NPM_CONFIG_PREFIX=/home/agent/.npm-global \
     DOTNET_ROOT=/usr/share/dotnet \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
-    DOTNET_NOLOGO=1 \
-    PI_TELEMETRY=0 \
-    PI_SKIP_VERSION_CHECK=1
+    DOTNET_NOLOGO=1
 # Debian 的 /etc/profile 会把登录 shell 的 PATH 重置为默认值；从上面的 ENV 生成
 # profile.d 片段补回，保证 `bash -l` 与非登录 shell 看到同一个 PATH。
 USER root

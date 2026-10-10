@@ -179,7 +179,7 @@ Phase B 结束、Phase C 动笔之前先写 ≥3 个评测场景：
 - **skill 目录下只有根目录可以有 `SKILL.md`。** 夹具即使内容是一个 skill，也必须换名
   （如 `widget-builder-SKILL.md`）——Cursor 等递归发现器把「含 SKILL.md 的目录」直接
   当作一个 skill，`evals/files/SKILL.md` 会注册出第二个坏 skill。
-- Phase D 用 Claude Opus 5（medium 思考，`tools/run_evals.py` 默认）在隔离 VM 里由 pi
+- Phase D 用 omp + GPT-6.1 Sol（medium 思考，`tools/run_evals.py` 默认）在隔离 VM 里
   各跑一遍「有 skill」与「无 skill（基线）」，结果记入 `research/<skill>.md`。
 
 ---

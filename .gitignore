@@ -11,3 +11,5 @@ __pycache__/
 
 # 测试 VM 的本机凭据（模板见 vm/local.env.example）
 vm/local.env
+# 测试 VM 镜像里预置的 omp 配置必须入库（上面的 .omp/ 只针对本机会话配置）
+!vm/image/rootfs/home/agent/.omp/

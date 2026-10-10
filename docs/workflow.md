@@ -91,8 +91,8 @@ gh api repos/<owner>/<repo> \
    逐条记录哪些 `expected_behavior` 未达成——这就是 skill 要填补的缺口，写进
    「基线缺口」节。**若基线全部达成，说明评测没有区分度，改写评测直到出现缺口。**
 
-   评测模型固定为 **Claude Opus 5、medium 思考**（`tools/run_evals.py` 的默认值）；
-   基线与「有 skill」都用它，两次运行才可比。评测在隔离 VM 里由 pi 执行，前置条件见下文
+   评测固定为 **omp + GPT-6.1 Sol、medium 思考**（`tools/run_evals.py` 的默认值，advisor 关闭）；
+   基线与「有 skill」都用它，两次运行才可比。评测在隔离 VM 里执行，前置条件见下文
    [评测环境](#评测环境)。
 
 ---
@@ -141,7 +141,7 @@ npx skills@latest add /root/Projects/Ling/HyperSkills --skill <name> \
 ### D2 行为评测
 
 ```bash
-uv run tools/run_evals.py <name>                  # Claude Opus 5 medium，有 skill
+uv run tools/run_evals.py <name>                  # omp + GPT-6.1 Sol medium，有 skill
 ```
 
 基线已在 Phase B 用 `--baseline` 跑过，模型与 agent 相同。逐条对照 `expected_behavior`
@@ -156,23 +156,25 @@ Phase C 修改——缺口未被填补 = skill 无效。
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 ```
 
-「模型」列写 `pi / claude-opus-5 medium`。2026-10-10 之前的评测结果由宿主 `omp` 跑出，
-agent 不同，不与 VM 结果混用对比；重测一个 skill 时基线与有 skill 两侧都要重跑。
+「模型」列写 `gpt-6.1-sol medium`。2026-10-10 之前的评测结果在宿主 `omp` 上跑出（继承宿主
+配置，部分开启 advisor，模型也不同），不与 VM 结果混用对比；重测一个 skill 时基线与有 skill
+两侧都要重跑。
 
 ### 评测环境
 
-`tools/run_evals.py` 的每个场景都在 microsandbox 的一次性 microVM 里由 pi 执行
-（`tools/vm.py` 的 `run_pi`）。VM 中没有宿主 agent 的配置、上下文文件、skill 目录与
-advisor；有 skill 时只读挂载被测 skill 且 pi 只加载它，基线不挂载任何 skill；
+`tools/run_evals.py` 的每个场景都在 microsandbox 的一次性 microVM 里由 omp 执行
+（`tools/vm.py` 的 `run_agent`）。VM 中的 omp 只有镜像自带的最小配置（advisor、memory
+关闭），没有宿主的上下文文件、skill 目录与 MCP；有 skill 时只读挂载被测 skill 并以
+`--skills <name>` 只加载它，基线不挂载任何 skill 并传 `--no-skills`；
 只有场景工作区挂进 VM，评测产物对 agent 不可见。首次使用前：
 
 ```bash
 uv run tools/vm.py build                 # 构建并导入镜像
 uv run tools/vm.py verify --services     # 自检
-cp vm/local.env.example vm/local.env     # 填 ANTHROPIC_API_KEY（可选代理地址）
+cp vm/local.env.example vm/local.env     # 填 OPENAI_API_KEY（可选代理地址）
 ```
 
-产物在 `/tmp/hs-evals/<skill>/pi-<model>-<thinking>/<baseline|skill>/<N>/`：`answer.md`、
+产物在 `/tmp/hs-evals/<skill>/omp-<model>-<thinking>/<baseline|skill>/<N>/`：`answer.md`、
 `result.json`、`events.jsonl`、`stderr.log`、`workspace/`（agent 的产出）。重跑只替换
 带运行标记或 `result.json` 的场景目录，`--out` 下其他已有目录一律拒绝删除。
 模型请求失败会中止整批，不会把空回答当作一次作答。细节见 [`vm/README.md`](../vm/README.md)。

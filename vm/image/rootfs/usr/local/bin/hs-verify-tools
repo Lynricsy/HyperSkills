@@ -6,7 +6,8 @@ set -uo pipefail
 
 checks=(
   # agent
-  "pi|pi --version"
+  "omp|omp --version"
+  "omp-config|grep -A1 '^advisor:' ~/.omp/agent/config.yml | grep -q 'enabled: false' && echo 'advisor disabled'"
   # 基础
   "git|git --version" "gh|gh --version" "curl|curl --version" "jq|jq --version"
   "yq|yq --version" "rg|rg --version" "fd|fd --version" "tree|tree --version"

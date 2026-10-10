@@ -30,7 +30,7 @@ class OutDirProtectionTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
         # 去掉凭据，保证即使保护失效也走不到模型调用。
-        self.env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+        self.env = {k: v for k, v in os.environ.items() if not k.endswith("_API_KEY")}
 
     def run_tool(self, script: str, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(

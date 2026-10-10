@@ -3,17 +3,18 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml>=6"]
 # ///
-"""HyperSkills 测试 VM 管理：构建镜像、自检、在一次性 microVM 里用 pi 跑提示词。
+"""HyperSkills 测试 VM 管理：构建镜像、自检、在一次性 microVM 里用 omp 跑提示词。
 
     uv run tools/vm.py build                      # docker 构建并导入 msb
     uv run tools/vm.py verify --services          # VM 内工具与服务自检
     uv run tools/vm.py run --skill office "..."   # 一次性 VM，只挂载 office skill
     uv run tools/vm.py run "..."                  # 不挂载任何 skill（基线）
-    uv run tools/vm.py shell                      # 常驻开发 VM，交互式 pi
+    uv run tools/vm.py shell                      # 常驻开发 VM，交互式 omp
     uv run tools/vm.py clean                      # 删除本工具创建的全部 sandbox
 
-VM 里没有宿主的 agent 配置、AGENTS.md、skill 目录或凭据：模型密钥经 msb `--secret`
-以占位符注入，只在发往模型 API 主机的请求里被替换成真实值。详见 vm/README.md。
+VM 里没有宿主的 agent 配置、AGENTS.md、skill 目录或凭据，advisor 关闭：模型密钥经
+msb `--secret` 以占位符注入，只在发往模型 API 主机的请求里被替换成真实值。
+详见 vm/README.md。
 """
 
 from __future__ import annotations
@@ -38,13 +39,30 @@ from _common import SkillLoadError, repo_root, resolve_targets  # noqa: E402
 IMAGE = "hyperskills-vm:latest"
 # 宿主侧可选配置文件（已 gitignore）；环境变量优先于文件。
 LOCAL_ENV = "vm/local.env"
-KEY_ENV = "ANTHROPIC_API_KEY"
-BASE_URL_ENV = "HS_VM_ANTHROPIC_BASE_URL"
-DEFAULT_API_URL = "https://api.anthropic.com"
-# 与 tools/run_evals.py 一致：同一模型与思考档，VM 内外结果才可比。
-DEFAULT_MODEL = "anthropic/claude-opus-5"
+
+
+@dataclass(frozen=True, slots=True)
+class Provider:
+    """VM 能转发凭据的模型 provider：密钥变量名、可选代理地址变量名、官方端点。"""
+
+    key_env: str
+    base_url_env: str
+    default_url: str
+
+
+# 模型选择器的 `<provider>/` 前缀 → 凭据来源。只有这里列出的 provider 能在 VM 里拿到密钥。
+PROVIDERS = {
+    "openai": Provider(
+        "OPENAI_API_KEY", "HS_VM_OPENAI_BASE_URL", "https://api.openai.com/v1"
+    ),
+    "anthropic": Provider(
+        "ANTHROPIC_API_KEY", "HS_VM_ANTHROPIC_BASE_URL", "https://api.anthropic.com"
+    ),
+}
+# 评测模型由维护者指定为 GPT-6.1 Sol、medium 思考；基线与有 skill 同一配置才可比。
+DEFAULT_MODEL = "openai/gpt-6.1-sol"
 DEFAULT_THINKING = "medium"
-THINKING_LEVELS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
+THINKING_LEVELS = ("off", "minimal", "low", "medium", "high", "xhigh", "max", "auto")
 DEFAULT_OUT_ROOT = Path("/tmp/hs-vm-runs")
 # 每次运行输出目录里的文件名；run_evals.py 复用同一套布局。
 EVENTS_FILE = "events.jsonl"
@@ -62,12 +80,13 @@ DEV_SANDBOX = "hs-dev"
 # 所有由本工具创建的 sandbox 都带这个标签，clean 按它清理。
 LABEL = "project=hyperskills"
 GUEST_HOME = "/home/agent"
-GUEST_PI_DIR = f"{GUEST_HOME}/.pi/agent"
+GUEST_OMP_DIR = f"{GUEST_HOME}/.omp/agent"
+# 镜像里的 omp config.yml 把它设为 skills.customDirectories。
 GUEST_SKILLS = "/opt/hyperskills/skills"
 GUEST_WORKSPACE = "/workspace"
 # msb 做 TLS 拦截（secret 替换靠它）时把自己的 CA 写进系统证书包，同时设置
 # NODE_EXTRA_CA_CERTS=/.msb/tls/ca.pem；但该路径只有 root 可读，以 agent 身份运行的
-# Node（pi 本身、npm、playwright）会忽略它并以 SELF_SIGNED_CERT_IN_CHAIN 失败。
+# Node/Bun 进程（omp、npm、playwright）会忽略它并以 SELF_SIGNED_CERT_IN_CHAIN 失败。
 # 改指向对所有用户可读、且已含 msb CA 的系统证书包。
 GUEST_ENV = ["--env", "NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt"]
 
@@ -96,33 +115,46 @@ def load_local_env(root: Path) -> None:
         os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
-def model_access(root: Path, workdir: Path) -> list[str]:
-    """生成 pi 的 models.json 并返回对应的 msb 参数（secret 绑定 + 文件挂载）。
+def model_access(root: Path, workdir: Path, providers: Sequence[str]) -> list[str]:
+    """生成 omp 的 models.yml 并返回对应的 msb 参数（secret 绑定 + 文件挂载）。
 
     真实密钥只存在于宿主进程环境里；msb 在 VM 中放置占位符，并且只在发往
-    API 主机的连接上替换。VM 里的任何进程都读不到真实值。
+    该 provider API 主机的连接上替换。VM 里的任何进程都读不到真实值。
     """
     load_local_env(root)
-    if not os.environ.get(KEY_ENV):
-        raise SystemExit(
-            f"error: {KEY_ENV} is not set. Export it or put it in {LOCAL_ENV} "
-            f"(see vm/local.env.example)."
-        )
-    base_url = os.environ.get(BASE_URL_ENV, "").strip()
-    host = urlparse(base_url or DEFAULT_API_URL).hostname
-    if not host:
-        raise SystemExit(f"error: {BASE_URL_ENV} is not a URL: {base_url!r}")
-    providers = {"anthropic": {"baseUrl": base_url}} if base_url else {}
-    models = workdir / "models.json"
-    models.write_text(json.dumps({"providers": providers}, indent=2) + "\n", "utf-8")
+    args: list[str] = []
+    overrides: dict[str, dict[str, str]] = {}
+    for name in providers:
+        provider = PROVIDERS[name]
+        if not os.environ.get(provider.key_env):
+            raise SystemExit(
+                f"error: {provider.key_env} is not set. Export it or put it in "
+                f"{LOCAL_ENV} (see vm/local.env.example)."
+            )
+        base_url = os.environ.get(provider.base_url_env, "").strip()
+        host = urlparse(base_url or provider.default_url).hostname
+        if not host:
+            raise SystemExit(
+                f"error: {provider.base_url_env} is not a URL: {base_url!r}"
+            )
+        if base_url:
+            overrides[name] = {"baseUrl": base_url}
+        args += ["--secret", f"{provider.key_env}@{host}"]
+    # JSON 是合法 YAML，省掉对宿主 YAML 序列化的依赖。
+    models = workdir / "models.yml"
+    models.write_text(json.dumps({"providers": overrides}, indent=2) + "\n", "utf-8")
     # 用 uid 映射的只读文件挂载而不是 --copy-file：后者注入的文件是 root:root 0600，
-    # pi 以 agent 身份读不到，会静默退回官方端点，请求随即被 secret 策略拦下。
-    return [
-        "--secret",
-        f"{KEY_ENV}@{host}",
+    # omp 以 agent 身份读不到，会静默退回官方端点，请求随即被 secret 策略拦下。
+    args += [
         "--mount-file",
-        f"{models}:{GUEST_PI_DIR}/models.json:ro,uid=1000,gid=1000",
+        f"{models}:{GUEST_OMP_DIR}/models.yml:ro,uid=1000,gid=1000",
     ]
+    return args
+
+
+def configured_providers() -> list[str]:
+    """宿主上已提供密钥的 provider（常驻开发 VM 全部挂上）。"""
+    return [n for n, p in PROVIDERS.items() if os.environ.get(p.key_env)]
 
 
 def sandbox_exists(name: str) -> bool:
@@ -190,8 +222,8 @@ def base_run(spec: VmSpec) -> list[str]:
 def provider_error(events_path: Path) -> str | None:
     """最后一条 assistant 消息以 error 结束时返回错误文本。
 
-    pi 在模型请求全部失败（连接错误、鉴权失败）时仍以 0 退出，事件流里只有
-    stopReason=error 的空回答；不在这里拦下，评测会把它当成一次正常作答。
+    pi 系 agent 在模型请求全部失败（连接错误、鉴权失败）时可能仍以 0 退出，事件流里
+    只有 stopReason=error 的空回答；不在这里拦下，评测会把它当成一次正常作答。
     """
     last: dict | None = None
     for line in events_path.read_text("utf-8", errors="replace").splitlines():
@@ -219,10 +251,13 @@ class VmRunError(Exception):
     """运行无法开始：输出目录不可用或模型不受支持。不会删除或覆盖宿主上已有的内容。"""
 
 
-def check_model(model: str) -> None:
-    # VM 只通过 secret 转发 Anthropic 端点的凭据，其他 provider 在 VM 里没有密钥。
-    if not model.startswith("anthropic/"):
-        raise VmRunError(f"only anthropic/* models are wired into the VM, got {model}")
+def check_model(model: str) -> str:
+    """返回模型所属 provider；VM 只能为 PROVIDERS 里的 provider 转发凭据。"""
+    provider = model.lstrip("@").split("/", 1)[0]
+    if "/" not in model or provider not in PROVIDERS:
+        supported = ", ".join(f"{p}/*" for p in PROVIDERS)
+        raise VmRunError(f"model must be one of {supported}; got {model}")
+    return provider
 
 
 def claim_out_dir(out: Path) -> None:
@@ -248,15 +283,15 @@ def new_out_dir() -> Path:
 
 
 @dataclass(slots=True)
-class PiRun:
-    """一次 `run_pi` 的结果；产物都在 `out` 下。"""
+class AgentRun:
+    """一次 `run_agent` 的结果；产物都在 `out` 下。"""
 
     out: Path
     returncode: int
     timed_out: bool
     provider_error: str | None
     duration_s: float
-    pi_argv: list[str]
+    agent_argv: list[str]
 
     @property
     def events_path(self) -> Path:
@@ -271,7 +306,7 @@ class PiRun:
         return self.out / "workspace"
 
 
-def run_pi(
+def run_agent(
     *,
     prompt: str,
     out: Path,
@@ -281,13 +316,13 @@ def run_pi(
     thinking: str = DEFAULT_THINKING,
     timeout: int = DEFAULT_TIMEOUT_S,
     spec: VmSpec | None = None,
-) -> PiRun:
-    """在一次性 microVM 里跑一条 pi 提示词。`vm.py run` 与 `run_evals.py` 共用。
+) -> AgentRun:
+    """在一次性 microVM 里跑一条 omp 提示词。`vm.py run` 与 `run_evals.py` 共用。
 
     `out` 必须不存在或为空目录（见 `claim_out_dir`）；`files` 按文件名复制进
-    `/workspace`；`skill_dirs` 只读挂载并且是 pi 唯一能加载的 skill，空则为基线。
+    `/workspace`；`skill_dirs` 只读挂载并且是 omp 唯一能加载的 skill，空则为基线。
     """
-    check_model(model)
+    provider = check_model(model)
     claim_out_dir(out)
     workspace = out / "workspace"
     workspace.mkdir()
@@ -298,7 +333,7 @@ def run_pi(
         else:
             shutil.copy2(src, dest)
 
-    cmd = base_run(spec or VmSpec()) + model_access(repo_root(), out)
+    cmd = base_run(spec or VmSpec()) + model_access(repo_root(), out, [provider])
     cmd += ["--label", "kind=run", "--timeout", f"{timeout}s"]
     # 工作区是宿主上的一次性目录；uid/gid 映射让 VM 里的 agent 用户能写。
     # 只有它被挂进 VM，输出目录里的事件流等产物对 agent 不可见。
@@ -308,11 +343,13 @@ def run_pi(
         cmd += ["--volume", f"{path}:{GUEST_SKILLS}/{path.name}:ro"]
     cmd += ["--workdir", GUEST_WORKSPACE, IMAGE, "--"]
 
-    pi = ["pi", "-p", prompt, "--mode", "json", "--no-session", "--offline"]
-    pi += ["--model", model, "--thinking", thinking, "--no-skills"]
-    for path in skill_dirs:
-        pi += ["--skill", f"{GUEST_SKILLS}/{path.name}"]
-    cmd += pi
+    agent = ["omp", "-p", prompt, "--mode", "json", "--no-session"]
+    agent += ["--model", model, "--thinking", thinking]
+    if skill_dirs:
+        agent += ["--skills", ",".join(p.name for p in skill_dirs)]
+    else:
+        agent.append("--no-skills")
+    cmd += agent
 
     events_path = out / EVENTS_FILE
     stderr_path = out / STDERR_FILE
@@ -337,13 +374,13 @@ def run_pi(
     error = provider_error(events_path) if rc == 0 else None
     if error:
         rc = 3
-    run = PiRun(
+    run = AgentRun(
         out=out,
         returncode=rc,
         timed_out=timed_out,
         provider_error=error,
         duration_s=round(time.monotonic() - started, 1),
-        pi_argv=pi,
+        agent_argv=agent,
     )
     meta = {
         "returncode": rc,
@@ -355,7 +392,7 @@ def run_pi(
         "skills": [p.name for p in skill_dirs],
         "prompt": prompt,
         "image": IMAGE,
-        "pi_argv": pi,
+        "agent_argv": agent,
     }
     (out / META_FILE).write_text(
         json.dumps(meta, indent=2, ensure_ascii=False) + "\n", "utf-8"
@@ -382,7 +419,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     out = args.out.resolve() if args.out is not None else new_out_dir()
     files = sorted(args.workspace.iterdir()) if args.workspace else []
     try:
-        run = run_pi(
+        run = run_agent(
             prompt=args.prompt,
             out=out,
             skill_dirs=skill_dirs,
@@ -415,12 +452,19 @@ def cmd_shell(args: argparse.Namespace) -> int:
     name = args.name
     if args.recreate and sandbox_exists(name):
         subprocess.run(["msb", "remove", "--force", name], check=False)
-    # models.json 放宿主 /tmp（不进仓库），以文件挂载进 VM；每次进入前都重写，
+    # models.yml 放宿主 /tmp（不进仓库），以文件挂载进 VM；每次进入前都重写，
     # 宿主重启清空 /tmp 后常驻 VM 仍能启动。
     state = Path("/tmp") / f"hs-vm-{name}"
     state.mkdir(parents=True, exist_ok=True)
     # 每次都校验并加载密钥：msb 在每次 start 时从宿主环境重新读取 secret 的值。
-    access = model_access(root, state)
+    load_local_env(root)
+    providers = configured_providers()
+    if not providers:
+        keys = ", ".join(p.key_env for p in PROVIDERS.values())
+        return die(
+            f"no model credentials: set one of {keys} (see vm/local.env.example)"
+        )
+    access = model_access(root, state, providers)
     if not sandbox_exists(name):
         cmd = [
             "msb",
@@ -440,9 +484,9 @@ def cmd_shell(args: argparse.Namespace) -> int:
             args.memory,
             "--root-disk",
             args.root_disk,
-            # 开发 VM 挂载全部 skill（只读）到 pi 的用户级发现目录，交互时直接可用。
+            # 开发 VM 挂载全部 skill（只读）到 omp 配置的 skill 目录，交互时直接可用。
             "--volume",
-            f"{root / 'skills'}:{GUEST_HOME}/.agents/skills:ro",
+            f"{root / 'skills'}:{GUEST_SKILLS}:ro",
             *access,
             *GUEST_ENV,
         ]
@@ -498,7 +542,7 @@ def main() -> int:
     add_resources(p)
     p.set_defaults(func=cmd_verify)
 
-    p = sub.add_parser("run", help="run one pi prompt in a throwaway VM")
+    p = sub.add_parser("run", help="run one omp prompt in a throwaway VM")
     p.add_argument("prompt")
     p.add_argument(
         "--skill", action="append", default=[], help="skill name or path; repeatable"

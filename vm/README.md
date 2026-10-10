@@ -1,7 +1,7 @@
 # skill 测试 VM
 
 在 [microsandbox](https://docs.microsandbox.dev/)（msb）的 microVM 里用
-[pi](https://pi.dev/) 跑 skill 测试，让评测与本机环境彻底分开。
+[omp](https://github.com/can1357/oh-my-pi)（oh-my-pi）跑 skill 测试，让评测与本机环境彻底分开。
 
 ## 为什么要 VM
 
@@ -9,7 +9,8 @@
 advisor、MCP、记忆，以及 agent 在测试中写下的文件。这些都会混进「有 skill / 无 skill」
 的对照里，日志 0078 记录的 advisor 干扰就是一例。VM 里只有镜像内容加上本次挂载的东西：
 
-- 没有宿主的 agent 配置、上下文文件或 skill 目录；基线运行连被测 skill 都看不到。
+- 没有宿主的 agent 配置、上下文文件或 skill 目录；VM 内 omp 只有镜像自带的最小配置
+  （advisor、memory 关闭）；基线运行连被测 skill 都看不到。
 - 被测 skill 以**只读**方式挂载，agent 改不动仓库。
 - 工作区是宿主 `/tmp` 下的一次性目录，每次运行都是全新 VM（`msb run` 不带 `--name`）。
 - 模型密钥由 msb `--secret` 注入：VM 里只有占位符，msb 只在发往 API 主机的 HTTPS
@@ -20,16 +21,16 @@ flowchart LR
   subgraph host[宿主]
     vm[tools/vm.py] -->|docker build| img[hyperskills-vm:latest]
     img -->|docker save / msb image load| msb[msb]
-    key[(ANTHROPIC_API_KEY)] -.->|--secret| msb
+    key[(OPENAI_API_KEY 等)] -.->|--secret| msb
   end
   subgraph guest[microVM（一次性）]
-    pi[pi -p --mode json] --> tools[预装工具链]
-    skills[/opt/hyperskills/skills/&lt;name&gt; 只读/] --> pi
-    ws[/workspace 读写/] --> pi
+    omp[omp -p --mode json] --> tools[预装工具链]
+    skills[/opt/hyperskills/skills/&lt;name&gt; 只读/] --> omp
+    ws[/workspace 读写/] --> omp
   end
   msb --> guest
-  pi -->|占位符在出口处替换| api[模型 API]
-  pi -->|events.jsonl| out[/tmp/hs-vm-runs/&lt;ts&gt;/]
+  omp -->|占位符在出口处替换| api[模型 API]
+  omp -->|events.jsonl| out[输出目录]
 ```
 
 ## 目录结构
@@ -44,10 +45,11 @@ vm/
     │   ├── lib.sh                # 共享函数：架构名、下载、sha256 校验
     │   ├── 10-system.sh          # apt：基础/构建/数据库/媒体办公/JDK/PHP/docker、gh、gcloud、agent 用户
     │   ├── 20-binaries.sh        # 上游二进制：Node、Go、uv、Terraform、kubectl、Helm、yq、…、.NET
-    │   ├── 30-node.sh            # pi、npm 全局 CLI、Playwright Chromium
-    │   └── 40-user.sh            # 以 agent 身份：/opt/venv Python 库、uv tools、Rust
+    │   ├── 30-node.sh            # npm 全局 CLI、Playwright Chromium
+    │   ├── 40-user.sh            # 以 agent 身份：/opt/venv Python 库、uv tools、Rust
+    │   └── 50-omp.sh             # omp 官方二进制（钉版本 + sha256），升级频繁故放最后
     └── rootfs/                   # 原样复制进镜像的文件
-        ├── home/agent/.pi/agent/settings.json   # pi 默认：anthropic/claude-opus-5、medium
+        ├── home/agent/.omp/agent/config.yml     # omp 最小配置：advisor/memory 关闭、skill 目录
         └── usr/local/bin/hs-verify-tools        # VM 内工具自检
 tools/vm.py                       # 宿主侧入口：build / verify / run / shell / clean
 ```
@@ -63,8 +65,12 @@ tools/vm.py                       # 宿主侧入口：build / verify / run / she
 
   | 变量 | 必填 | 说明 |
   |---|---|---|
-  | `ANTHROPIC_API_KEY` | 是 | 只在宿主进程环境里存在 |
-  | `HS_VM_ANTHROPIC_BASE_URL` | 否 | Anthropic 兼容代理根地址（不含 `/v1`）；`--secret` 自动绑定到它的主机名 |
+  | `OPENAI_API_KEY` | 用 `openai/*` 模型时（评测默认） | 只在宿主进程环境里存在 |
+  | `HS_VM_OPENAI_BASE_URL` | 否 | OpenAI 兼容代理根地址（含 `/v1`） |
+  | `ANTHROPIC_API_KEY` | 用 `anthropic/*` 模型时 | 同上 |
+  | `HS_VM_ANTHROPIC_BASE_URL` | 否 | Anthropic 兼容代理根地址（不含 `/v1`） |
+
+  `--secret` 自动绑定到各 provider 实际使用的主机名；代理地址写进挂载给 omp 的 `models.yml`。
 
 ## 用法
 
@@ -74,13 +80,13 @@ uv run tools/vm.py verify                # 一次性 VM 里跑 hs-verify-tools
 uv run tools/vm.py verify --services     # 另外实际启动 PostgreSQL / Redis / dockerd
 ```
 
-行为评测（Phase B/D）：`tools/run_evals.py` 的每个场景都由 `run_pi` 在一次性 VM 里执行，
+行为评测（Phase B/D）：`tools/run_evals.py` 的每个场景都由 `run_agent` 在一次性 VM 里执行，
 用法与产物布局见 [`docs/workflow.md` 的评测环境](../docs/workflow.md#评测环境)。
 
-单条提示词（与评测共用同一个 `run_pi`）：
+单条提示词（与评测共用同一个 `run_agent`）：
 
 ```bash
-# 有 skill：只挂载 office，pi 用 --no-skills --skill 只加载它
+# 有 skill：只挂载 office，omp 用 --skills office 只加载它
 uv run tools/vm.py run --skill office --workspace skills/office/evals/files \
   "List the fillable fields in intake-form.pdf"
 
@@ -94,24 +100,25 @@ uv run tools/vm.py run --workspace skills/office/evals/files \
 
 | 文件 | 内容 |
 |---|---|
-| `events.jsonl` | pi `--mode json` 的原始事件流（`agent_end`、`tool_execution_*` 等） |
-| `stderr.log` | pi 与 msb 的诊断输出 |
-| `meta.json` | 退出码、是否超时、模型错误、耗时、模型、思考档、挂载的 skill、pi 参数 |
+| `events.jsonl` | omp `--mode json` 的原始事件流（`agent_end`、`tool_execution_*` 等） |
+| `stderr.log` | omp 与 msb 的诊断输出 |
+| `meta.json` | 退出码、是否超时、模型错误、耗时、模型、思考档、挂载的 skill、omp 参数 |
 | `workspace/` | VM 内 `/workspace` 的最终状态，agent 产出的文件都在这里；只有它挂进 VM |
-| `models.json` | 挂进 VM 的 pi provider 配置（不含密钥） |
+| `models.yml` | 挂进 VM 的 omp provider 覆盖（只有代理地址，不含密钥） |
 | `.hyperskills-vm-run` | 运行标记；`run_evals.py` 重跑时只替换带它（或 `result.json`）的目录 |
 
-退出码：pi 的退出码；模型请求失败（pi 仍返回 0）记为 3；超时由 msb 终止，`meta.json`
-里 `timed_out: true`。只支持 `anthropic/*` 模型：VM 只经 secret 转发 Anthropic 端点的凭据。
+退出码：omp 的退出码；事件流里最后一条回答以模型错误结束时记为 3；超时由 msb 终止，
+`meta.json` 里 `timed_out: true`。只支持 `openai/*` 与 `anthropic/*` 模型：VM 只为这两个
+provider 经 secret 转发凭据。
 
-默认参数与评测一致：`anthropic/claude-opus-5`、`medium`、900 秒；
+默认参数与评测一致：`openai/gpt-6.1-sol`、`medium`、900 秒；
 VM 规格 4 vCPU / 8G 内存 / 32G 可写根盘，均可用 `--cpus`、`--memory`、`--root-disk` 调整。
 
 交互开发：
 
 ```bash
-uv run tools/vm.py shell                 # 常驻 VM hs-dev；仓库全部 skill 只读挂到 ~/.agents/skills
-pi                                       # 在 VM 里直接用，skill 可被发现
+uv run tools/vm.py shell                 # 常驻 VM hs-dev；仓库全部 skill 只读挂到 /opt/hyperskills/skills
+omp                                      # 在 VM 里直接用，skill 可被发现，advisor 关闭
 uv run tools/vm.py shell --recreate      # 镜像更新后重建
 uv run tools/vm.py clean                 # 删除本工具创建的全部 sandbox（--image 连镜像一起删）
 ```
@@ -130,7 +137,7 @@ VM 内 agent 以 `agent`（uid 1000，免密 sudo）运行，工作目录 `/work
 
 | 类别 | 工具 | 主要服务的 skill |
 |---|---|---|
-| agent | pi | 全部 |
+| agent | omp（advisor 关闭） | 全部 |
 | 基础 | git、gh、curl、jq、yq、ripgrep、fd、tree、shellcheck、shfmt、tmux、strace、gdb、valgrind、graphviz | git-workflow、github、debugging、linux-ops |
 | C/C++ | gcc、clang/clangd/clang-format/clang-tidy、lldb、cmake、ninja、meson | cpp |
 | JS/TS | Node 24、npm、pnpm、yarn、bun、tsc、tsx、prettier、eslint、pyright、playwright + Chromium、wrangler | typescript、react、vue、svelte、astro、nodejs-backend、web-testing、html-deck、cloudflare、chrome-extension、frontend-design |

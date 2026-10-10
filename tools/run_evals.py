@@ -5,10 +5,10 @@
 # ///
 """Headless eval runner for HyperSkills skills.
 
-Runs each scenario in `skills/<name>/evals/evals.json` through `pi` inside a
-throwaway microsandbox VM (see `vm/README.md`) and records whether the skill was
-actually read plus the final answer, so Phase B baselines and Phase D with-skill
-runs are directly comparable.
+Runs each scenario in `skills/<name>/evals/evals.json` through a non-interactive
+`omp` session inside a throwaway microsandbox VM (see `vm/README.md`) and
+records whether the skill was actually read plus the final answer, so Phase B
+baselines and Phase D with-skill runs are directly comparable.
 
     uv run tools/vm.py build                          # once: build the VM image
     uv run tools/run_evals.py apple --baseline        # no skill mounted (the gap)
@@ -17,8 +17,8 @@ runs are directly comparable.
     uv run tools/run_evals.py apple --only 2          # one scenario
 
 The VM carries none of the host agent's state (context files, installed skills,
-advisor, MCP, memories), so the only difference between the two modes is the
-read-only skill mount.
+MCP, memories) and its omp config disables the advisor, so the only difference
+between the two modes is the read-only skill mount.
 
 Judging is manual on purpose: `expected_behavior` entries are prose, and a
 regex grader would reward wording rather than behaviour. Read `answer.md` and
@@ -53,7 +53,7 @@ from vm import (  # noqa: E402
     VmRunError,
     check_model,
     require,
-    run_pi,
+    run_agent,
 )
 
 # A single eval turn is usually 1-5 minutes; 900s leaves headroom for slow
@@ -61,7 +61,7 @@ from vm import (  # noqa: E402
 SCENARIO_TIMEOUT = 900
 ANSWER_FILE = "answer.md"
 RESULT_FILE = "result.json"
-AGENT = "pi"
+AGENT = "omp"
 # Outside the repo: eval runs are throwaway artifacts, never committed. Only the
 # scenario's `workspace/` subdirectory is mounted into the VM, so the agent can
 # never wander into earlier transcripts under this root.
@@ -118,9 +118,13 @@ def detect_skill_read(events: list[dict[str, Any]], skill: str) -> bool:
     answer quoting the path, or any fixture path under `evals/files/` all came
     back True. Only the *arguments* of a tool call that then succeeded count as
     a read. In the VM the skill lives at `/opt/hyperskills/skills/<name>/`, which
-    these relative targets match.
+    the relative targets match; omp may also read it through `skill://<name>`.
     """
-    targets = (f"skills/{skill}/SKILL.md", f"skills/{skill}/references/")
+    targets = (
+        f"skills/{skill}/SKILL.md",
+        f"skills/{skill}/references/",
+        f"skill://{skill}",
+    )
     wanted: set[str] = set()
     for event in events:
         if event.get("type") != "tool_execution_start":
@@ -196,7 +200,7 @@ def run_scenario(
         prompt = f"{prompt}\n\nFiles in the working directory: {listing}"
 
     try:
-        run = run_pi(
+        run = run_agent(
             prompt=prompt,
             out=out_dir,
             skill_dirs=[] if baseline else [skill_path],
@@ -268,7 +272,7 @@ def main() -> int:
     parser.add_argument(
         "--model",
         default=DEFAULT_MODEL,
-        help=f"model selector, anthropic/* only (default: {DEFAULT_MODEL})",
+        help=f"model selector, openai/* or anthropic/* (default: {DEFAULT_MODEL})",
     )
     parser.add_argument(
         "--thinking",

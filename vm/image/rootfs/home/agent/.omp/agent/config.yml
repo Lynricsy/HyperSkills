@@ -1,0 +1,15 @@
+# VM 内 omp 的全局配置。与宿主配置无关：只保留评测需要的最小集合。
+# 已完成首次引导，交互式 omp 不再弹设置向导。
+setupVersion: 2
+modelRoles:
+  # 与 tools/run_evals.py 的默认评测模型一致；评测运行仍显式传 --model / --thinking。
+  default: openai/gpt-6.1-sol:medium
+# advisor 是第二个模型，会审阅每一轮并注入建议；开着就测成了模型组合（日志 0078）。
+advisor:
+  enabled: false
+memory:
+  backend: "off"
+skills:
+  # 被测 skill 由 tools/vm.py 只读挂到这里；基线运行不挂载任何东西。
+  customDirectories:
+    - /opt/hyperskills/skills
