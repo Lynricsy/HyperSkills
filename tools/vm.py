@@ -24,7 +24,10 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -43,6 +46,14 @@ DEFAULT_MODEL = "anthropic/claude-opus-5"
 DEFAULT_THINKING = "medium"
 THINKING_LEVELS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
 DEFAULT_OUT_ROOT = Path("/tmp/hs-vm-runs")
+# 每次运行输出目录里的文件名；run_evals.py 复用同一套布局。
+EVENTS_FILE = "events.jsonl"
+STDERR_FILE = "stderr.log"
+META_FILE = "meta.json"
+# claim_out_dir 写入的运行标记：只有带它的目录才是本工具产物，上层工具才可替换。
+RUN_MARKER = ".hyperskills-vm-run"
+# msb --timeout 杀掉命令时打印的诊断（退出码只是 1）。
+MSB_TIMEOUT_TEXT = "exec timed out"
 DEFAULT_TIMEOUT_S = 900
 DEFAULT_CPUS = 4
 DEFAULT_MEMORY = "8G"
@@ -143,7 +154,20 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
-def base_run(args: argparse.Namespace) -> list[str]:
+@dataclass(frozen=True, slots=True)
+class VmSpec:
+    """一次性 VM 的规格。"""
+
+    cpus: int = DEFAULT_CPUS
+    memory: str = DEFAULT_MEMORY
+    root_disk: str = DEFAULT_ROOT_DISK
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> VmSpec:
+        return cls(cpus=args.cpus, memory=args.memory, root_disk=args.root_disk)
+
+
+def base_run(spec: VmSpec) -> list[str]:
     return [
         "msb",
         "run",
@@ -154,11 +178,11 @@ def base_run(args: argparse.Namespace) -> list[str]:
         "--label",
         LABEL,
         "--cpus",
-        str(args.cpus),
+        str(spec.cpus),
         "--memory",
-        args.memory,
+        spec.memory,
         "--root-disk",
-        args.root_disk,
+        spec.root_disk,
         *GUEST_ENV,
     ]
 
@@ -185,47 +209,115 @@ def provider_error(events_path: Path) -> str | None:
 
 def cmd_verify(args: argparse.Namespace) -> int:
     require("msb")
-    cmd = base_run(args) + [IMAGE, "--", "hs-verify-tools"]
+    cmd = base_run(VmSpec.from_args(args)) + [IMAGE, "--", "hs-verify-tools"]
     if args.services:
         cmd.append("--services")
     return subprocess.run(cmd, check=False).returncode
 
 
-def cmd_run(args: argparse.Namespace) -> int:
-    require("msb")
-    root = repo_root()
-    try:
-        skill_dirs = resolve_targets(args.skill, root) if args.skill else []
-    except SkillLoadError as exc:
-        return die(str(exc))
+class VmRunError(Exception):
+    """运行无法开始：输出目录不可用或模型不受支持。不会删除或覆盖宿主上已有的内容。"""
 
-    out = (args.out or DEFAULT_OUT_ROOT / time.strftime("%Y%m%d-%H%M%S")).resolve()
-    if out.exists():
-        shutil.rmtree(out)
+
+def check_model(model: str) -> None:
+    # VM 只通过 secret 转发 Anthropic 端点的凭据，其他 provider 在 VM 里没有密钥。
+    if not model.startswith("anthropic/"):
+        raise VmRunError(f"only anthropic/* models are wired into the VM, got {model}")
+
+
+def claim_out_dir(out: Path) -> None:
+    """创建（或接管一个空的）输出目录，并写入运行标记。
+
+    非空目录一律拒绝：输出目录由调用方指定，可能是任何路径（`--out .` 就是仓库根），
+    唯一安全的做法是只写入自己刚创建的空目录。标记文件让上层工具日后能识别
+    「这是一次运行的产物」，从而只替换自己产生过的目录。
+    """
+    if out.is_symlink():
+        raise VmRunError(f"{out} is a symlink")
+    out.mkdir(parents=True, exist_ok=True)
+    if any(out.iterdir()):
+        raise VmRunError(f"{out} is not empty")
+    (out / RUN_MARKER).write_text("", encoding="utf-8")
+
+
+def new_out_dir() -> Path:
+    """默认输出目录：时间戳前缀 + 随机后缀，并发运行互不相撞。"""
+    DEFAULT_OUT_ROOT.mkdir(parents=True, exist_ok=True)
+    prefix = time.strftime("%Y%m%d-%H%M%S-")
+    return Path(tempfile.mkdtemp(prefix=prefix, dir=DEFAULT_OUT_ROOT))
+
+
+@dataclass(slots=True)
+class PiRun:
+    """一次 `run_pi` 的结果；产物都在 `out` 下。"""
+
+    out: Path
+    returncode: int
+    timed_out: bool
+    provider_error: str | None
+    duration_s: float
+    pi_argv: list[str]
+
+    @property
+    def events_path(self) -> Path:
+        return self.out / EVENTS_FILE
+
+    @property
+    def stderr_path(self) -> Path:
+        return self.out / STDERR_FILE
+
+    @property
+    def workspace(self) -> Path:
+        return self.out / "workspace"
+
+
+def run_pi(
+    *,
+    prompt: str,
+    out: Path,
+    skill_dirs: Sequence[Path] = (),
+    files: Sequence[Path] = (),
+    model: str = DEFAULT_MODEL,
+    thinking: str = DEFAULT_THINKING,
+    timeout: int = DEFAULT_TIMEOUT_S,
+    spec: VmSpec | None = None,
+) -> PiRun:
+    """在一次性 microVM 里跑一条 pi 提示词。`vm.py run` 与 `run_evals.py` 共用。
+
+    `out` 必须不存在或为空目录（见 `claim_out_dir`）；`files` 按文件名复制进
+    `/workspace`；`skill_dirs` 只读挂载并且是 pi 唯一能加载的 skill，空则为基线。
+    """
+    check_model(model)
+    claim_out_dir(out)
     workspace = out / "workspace"
-    if args.workspace:
-        shutil.copytree(args.workspace, workspace)
-    else:
-        workspace.mkdir(parents=True)
+    workspace.mkdir()
+    for src in files:
+        dest = workspace / src.name
+        if src.is_dir():
+            shutil.copytree(src, dest)
+        else:
+            shutil.copy2(src, dest)
 
-    cmd = base_run(args) + model_access(root, out)
-    cmd += ["--label", "kind=run", "--timeout", f"{args.timeout}s"]
+    cmd = base_run(spec or VmSpec()) + model_access(repo_root(), out)
+    cmd += ["--label", "kind=run", "--timeout", f"{timeout}s"]
     # 工作区是宿主上的一次性目录；uid/gid 映射让 VM 里的 agent 用户能写。
+    # 只有它被挂进 VM，输出目录里的事件流等产物对 agent 不可见。
     cmd += ["--volume", f"{workspace}:{GUEST_WORKSPACE}:uid=1000,gid=1000"]
     # 只挂载被测 skill，且只读：基线运行在文件系统里根本找不到任何 skill。
     for path in skill_dirs:
         cmd += ["--volume", f"{path}:{GUEST_SKILLS}/{path.name}:ro"]
     cmd += ["--workdir", GUEST_WORKSPACE, IMAGE, "--"]
 
-    pi = ["pi", "-p", args.prompt, "--mode", "json", "--no-session", "--offline"]
-    pi += ["--model", args.model, "--thinking", args.thinking, "--no-skills"]
+    pi = ["pi", "-p", prompt, "--mode", "json", "--no-session", "--offline"]
+    pi += ["--model", model, "--thinking", thinking, "--no-skills"]
     for path in skill_dirs:
         pi += ["--skill", f"{GUEST_SKILLS}/{path.name}"]
     cmd += pi
 
-    events_path = out / "events.jsonl"
-    stderr_path = out / "stderr.log"
+    events_path = out / EVENTS_FILE
+    stderr_path = out / STDERR_FILE
     started = time.monotonic()
+    timed_out = False
     with events_path.open("wb") as sink, stderr_path.open("wb") as err_sink:
         try:
             rc = subprocess.run(
@@ -234,35 +326,87 @@ def cmd_run(args: argparse.Namespace) -> int:
                 stdout=sink,
                 stderr=err_sink,
                 # msb 自己的 --timeout 先生效；这里只兜底 VM 启停卡死。
-                timeout=args.timeout + 120,
+                timeout=timeout + 120,
                 check=False,
             ).returncode
         except subprocess.TimeoutExpired:
-            rc = 124
+            rc, timed_out = 124, True
+    if rc and not timed_out:
+        # msb 的 --timeout 杀掉命令后以 1 退出，只能从它的诊断输出区分超时。
+        timed_out = MSB_TIMEOUT_TEXT in stderr_path.read_text("utf-8", errors="replace")
     error = provider_error(events_path) if rc == 0 else None
     if error:
         rc = 3
+    run = PiRun(
+        out=out,
+        returncode=rc,
+        timed_out=timed_out,
+        provider_error=error,
+        duration_s=round(time.monotonic() - started, 1),
+        pi_argv=pi,
+    )
     meta = {
         "returncode": rc,
+        "timed_out": timed_out,
         "provider_error": error,
-        "duration_s": round(time.monotonic() - started, 1),
-        "model": args.model,
-        "thinking": args.thinking,
+        "duration_s": run.duration_s,
+        "model": model,
+        "thinking": thinking,
         "skills": [p.name for p in skill_dirs],
-        "prompt": args.prompt,
+        "prompt": prompt,
         "image": IMAGE,
         "pi_argv": pi,
     }
-    (out / "meta.json").write_text(
+    (out / META_FILE).write_text(
         json.dumps(meta, indent=2, ensure_ascii=False) + "\n", "utf-8"
     )
+    return run
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    root = repo_root()
+    try:
+        skill_dirs = resolve_targets(args.skill, root) if args.skill else []
+    except SkillLoadError as exc:
+        return die(str(exc))
+    # 显式目录已存在（哪怕是空的）就拒绝：用户给的路径可能是任何东西。
+    if args.out is not None and (args.out.exists() or args.out.is_symlink()):
+        return die(f"--out {args.out} already exists; pick a new path")
+    if args.workspace is not None and not args.workspace.is_dir():
+        return die(f"--workspace {args.workspace} is not a directory")
+    try:
+        check_model(args.model)
+    except VmRunError as exc:
+        return die(str(exc))
+    require("msb")
+    out = args.out.resolve() if args.out is not None else new_out_dir()
+    files = sorted(args.workspace.iterdir()) if args.workspace else []
+    try:
+        run = run_pi(
+            prompt=args.prompt,
+            out=out,
+            skill_dirs=skill_dirs,
+            files=files,
+            model=args.model,
+            thinking=args.thinking,
+            timeout=args.timeout,
+            spec=VmSpec.from_args(args),
+        )
+    except VmRunError as exc:
+        return die(str(exc))
+    meta = json.loads((out / META_FILE).read_text(encoding="utf-8"))
     print(json.dumps({"out": str(out), **meta}, ensure_ascii=False, indent=2))
-    if error:
-        print(f"error: model request failed inside the VM: {error}", file=sys.stderr)
-    elif rc:
-        tail = stderr_path.read_text("utf-8", errors="replace").strip()[-800:]
-        print(f"error: run exited {rc}; stderr tail:\n{tail}", file=sys.stderr)
-    return rc
+    if run.provider_error:
+        print(
+            f"error: model request failed inside the VM: {run.provider_error}",
+            file=sys.stderr,
+        )
+    elif run.returncode:
+        tail = run.stderr_path.read_text("utf-8", errors="replace").strip()[-800:]
+        print(
+            f"error: run exited {run.returncode}; stderr tail:\n{tail}", file=sys.stderr
+        )
+    return run.returncode
 
 
 def cmd_shell(args: argparse.Namespace) -> int:
@@ -361,7 +505,9 @@ def main() -> int:
     )
     p.add_argument("--workspace", type=Path, help="host dir copied in as /workspace")
     p.add_argument(
-        "--out", type=Path, help=f"output dir (default {DEFAULT_OUT_ROOT}/<ts>)"
+        "--out",
+        type=Path,
+        help=f"new output dir, must not exist (default: unique dir in {DEFAULT_OUT_ROOT})",
     )
     p.add_argument("--model", default=DEFAULT_MODEL)
     p.add_argument("--thinking", default=DEFAULT_THINKING, choices=THINKING_LEVELS)

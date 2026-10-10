@@ -74,7 +74,10 @@ uv run tools/vm.py verify                # 一次性 VM 里跑 hs-verify-tools
 uv run tools/vm.py verify --services     # 另外实际启动 PostgreSQL / Redis / dockerd
 ```
 
-一次性运行（评测原语）：
+行为评测（Phase B/D）：`tools/run_evals.py` 的每个场景都由 `run_pi` 在一次性 VM 里执行，
+用法与产物布局见 [`docs/workflow.md` 的评测环境](../docs/workflow.md#评测环境)。
+
+单条提示词（与评测共用同一个 `run_pi`）：
 
 ```bash
 # 有 skill：只挂载 office，pi 用 --no-skills --skill 只加载它
@@ -86,17 +89,22 @@ uv run tools/vm.py run --workspace skills/office/evals/files \
   "List the fillable fields in intake-form.pdf"
 ```
 
-产物在 `/tmp/hs-vm-runs/<时间戳>/`（`--out` 可改）：
+产物默认在 `/tmp/hs-vm-runs/<时间戳>-<随机后缀>/`，并发运行互不覆盖。`--out` 指定的目录
+必须不存在：工具从不删除或覆盖宿主上已有的内容。
 
 | 文件 | 内容 |
 |---|---|
-| `events.jsonl` | pi `--mode json` 的原始事件流，与 `tools/run_evals.py` 解析的事件同构（`agent_end`、`tool_execution_*`） |
+| `events.jsonl` | pi `--mode json` 的原始事件流（`agent_end`、`tool_execution_*` 等） |
 | `stderr.log` | pi 与 msb 的诊断输出 |
-| `meta.json` | 退出码、耗时、模型、思考档、挂载的 skill、pi 参数 |
-| `workspace/` | VM 内 `/workspace` 的最终状态，agent 产出的文件都在这里 |
-| `models.json` | 注入 VM 的 pi provider 配置（不含密钥） |
+| `meta.json` | 退出码、是否超时、模型错误、耗时、模型、思考档、挂载的 skill、pi 参数 |
+| `workspace/` | VM 内 `/workspace` 的最终状态，agent 产出的文件都在这里；只有它挂进 VM |
+| `models.json` | 挂进 VM 的 pi provider 配置（不含密钥） |
+| `.hyperskills-vm-run` | 运行标记；`run_evals.py` 重跑时只替换带它（或 `result.json`）的目录 |
 
-默认参数与 `tools/run_evals.py` 一致：`anthropic/claude-opus-5`、`medium`、单场景 900 秒；
+退出码：pi 的退出码；模型请求失败（pi 仍返回 0）记为 3；超时由 msb 终止，`meta.json`
+里 `timed_out: true`。只支持 `anthropic/*` 模型：VM 只经 secret 转发 Anthropic 端点的凭据。
+
+默认参数与评测一致：`anthropic/claude-opus-5`、`medium`、900 秒；
 VM 规格 4 vCPU / 8G 内存 / 32G 可写根盘，均可用 `--cpus`、`--memory`、`--root-disk` 调整。
 
 交互开发：

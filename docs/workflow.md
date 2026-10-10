@@ -92,7 +92,8 @@ gh api repos/<owner>/<repo> \
    「基线缺口」节。**若基线全部达成，说明评测没有区分度，改写评测直到出现缺口。**
 
    评测模型固定为 **Claude Opus 5、medium 思考**（`tools/run_evals.py` 的默认值）；
-   基线与「有 skill」都用它，两次运行才可比。
+   基线与「有 skill」都用它，两次运行才可比。评测在隔离 VM 里由 pi 执行，前置条件见下文
+   [评测环境](#评测环境)。
 
 ---
 
@@ -143,8 +144,8 @@ npx skills@latest add /root/Projects/Ling/HyperSkills --skill <name> \
 uv run tools/run_evals.py <name>                  # Claude Opus 5 medium，有 skill
 ```
 
-基线已在 Phase B 用 `--baseline` 跑过，模型相同。逐条对照 `expected_behavior` 人工判定
-达成 / 未达成，负例场景确认 `skill_read == false`。
+基线已在 Phase B 用 `--baseline` 跑过，模型与 agent 相同。逐条对照 `expected_behavior`
+人工判定达成 / 未达成，负例场景确认 `skill_read == false`。
 
 **通过标准**：至少一条基线未达成的行为在有 skill 时达成。否则回到
 Phase C 修改——缺口未被填补 = skill 无效。
@@ -155,12 +156,26 @@ Phase C 修改——缺口未被填补 = skill 无效。
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 ```
 
-### 隔离 VM（可选）
+「模型」列写 `pi / claude-opus-5 medium`。2026-10-10 之前的评测结果由宿主 `omp` 跑出，
+agent 不同，不与 VM 结果混用对比；重测一个 skill 时基线与有 skill 两侧都要重跑。
 
-`tools/vm.py` 在 microsandbox 的一次性 microVM 里用 pi 运行提示词：VM 中没有宿主的
-agent 配置、上下文文件与 skill 目录，被测 skill 只读挂载，基线运行不挂载任何 skill。
-构建与用法见 [`vm/README.md`](../vm/README.md)。`tools/run_evals.py` 目前仍驱动宿主
-`omp`，两者的 `events.jsonl` 事件结构相同，但 agent 不同，结果不可混用对比。
+### 评测环境
+
+`tools/run_evals.py` 的每个场景都在 microsandbox 的一次性 microVM 里由 pi 执行
+（`tools/vm.py` 的 `run_pi`）。VM 中没有宿主 agent 的配置、上下文文件、skill 目录与
+advisor；有 skill 时只读挂载被测 skill 且 pi 只加载它，基线不挂载任何 skill；
+只有场景工作区挂进 VM，评测产物对 agent 不可见。首次使用前：
+
+```bash
+uv run tools/vm.py build                 # 构建并导入镜像
+uv run tools/vm.py verify --services     # 自检
+cp vm/local.env.example vm/local.env     # 填 ANTHROPIC_API_KEY（可选代理地址）
+```
+
+产物在 `/tmp/hs-evals/<skill>/pi-<model>-<thinking>/<baseline|skill>/<N>/`：`answer.md`、
+`result.json`、`events.jsonl`、`stderr.log`、`workspace/`（agent 的产出）。重跑只替换
+带运行标记或 `result.json` 的场景目录，`--out` 下其他已有目录一律拒绝删除。
+模型请求失败会中止整批，不会把空回答当作一次作答。细节见 [`vm/README.md`](../vm/README.md)。
 
 ### 交互式开发（可选）
 

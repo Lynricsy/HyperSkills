@@ -5,14 +5,20 @@
 # ///
 """Headless eval runner for HyperSkills skills.
 
-Runs each scenario in `skills/<name>/evals/evals.json` through a non-interactive
-`omp` session and records whether the skill was actually read plus the final
-answer, so Phase B baselines and Phase D with-skill runs are directly comparable.
+Runs each scenario in `skills/<name>/evals/evals.json` through `pi` inside a
+throwaway microsandbox VM (see `vm/README.md`) and records whether the skill was
+actually read plus the final answer, so Phase B baselines and Phase D with-skill
+runs are directly comparable.
 
-    uv run tools/run_evals.py apple --baseline        # no skills loaded (the gap)
-    uv run tools/run_evals.py apple                   # with skill
+    uv run tools/vm.py build                          # once: build the VM image
+    uv run tools/run_evals.py apple --baseline        # no skill mounted (the gap)
+    uv run tools/run_evals.py apple                   # only this skill mounted
     uv run tools/run_evals.py apple --thinking high   # 换思考档
     uv run tools/run_evals.py apple --only 2          # one scenario
+
+The VM carries none of the host agent's state (context files, installed skills,
+advisor, MCP, memories), so the only difference between the two modes is the
+read-only skill mount.
 
 Judging is manual on purpose: `expected_behavior` entries are prose, and a
 regex grader would reward wording rather than behaviour. Read `answer.md` and
@@ -24,9 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import subprocess
 import sys
-import time
 from pathlib import Path
 from typing import Any
 
@@ -40,50 +44,28 @@ from _common import (  # noqa: E402
     resolve_targets,
 )
 
+from vm import (  # noqa: E402
+    DEFAULT_MODEL,
+    DEFAULT_THINKING,
+    IMAGE,
+    RUN_MARKER,
+    THINKING_LEVELS,
+    VmRunError,
+    check_model,
+    require,
+    run_pi,
+)
+
 # A single eval turn is usually 1-5 minutes; 900s leaves headroom for slow
 # models and tool-heavy scenarios without hanging a batch forever.
 SCENARIO_TIMEOUT = 900
-# Raw NDJSON event stream from `omp --mode json`, kept verbatim so a failed text
-# extraction can still be judged by hand.
-EVENTS_FILE = "events.jsonl"
 ANSWER_FILE = "answer.md"
-STDERR_FILE = "stderr.log"
 RESULT_FILE = "result.json"
-# Outside the repo: eval runs are throwaway artifacts, never committed.
+AGENT = "pi"
+# Outside the repo: eval runs are throwaway artifacts, never committed. Only the
+# scenario's `workspace/` subdirectory is mounted into the VM, so the agent can
+# never wander into earlier transcripts under this root.
 DEFAULT_OUT_ROOT = Path("/tmp/hs-evals")
-OVERLAY_FILE = "overlay.yml"
-# The scenario's working directory must live outside the artifact tree. A
-# shared `--out` root accumulates hundreds of MB of prior `events.jsonl`, and a
-# scenario whose agent searches the filesystem then drowns in its own
-# transcripts: web-testing hit the 900s ceiling on all five scenarios that way,
-# and the same scenario finished in 113s once the workspace was separated.
-DEFAULT_WORKSPACE_ROOT = Path("/tmp/hs-eval-workspaces")
-# Evals are fixed to one model so runs stay comparable across skills and
-# batches: Claude Opus 5 is the strong model this repo's users actually work
-# with, so a gap measured here is a gap they would really hit.
-DEFAULT_MODEL = "anthropic/claude-opus-5"
-# `medium` is the default reasoning level of that model; evaluating anywhere
-# else would measure the thinking budget rather than the skill.
-DEFAULT_THINKING = "medium"
-THINKING_LEVELS = ("off", "minimal", "low", "medium", "high", "xhigh", "max", "auto")
-
-
-def write_overlay(out_root: Path, skills_dir: Path) -> Path:
-    """Config overlay: this repo's skills discoverable from any cwd, advisor off.
-
-    The advisor is a second model that reviews each turn and injects notes, so
-    leaving a user-level `advisor.enabled: true` on would measure the pair, not
-    the eval model; and its provider may refuse some prompts (security audits
-    were flagged as cyber risk), so whether it helped differed run to run.
-    """
-    out_root.mkdir(parents=True, exist_ok=True)
-    overlay = out_root / OVERLAY_FILE
-    overlay.write_text(
-        f'skills:\n  customDirectories: ["{skills_dir}"]\n'
-        "advisor:\n  enabled: false\n",
-        encoding="utf-8",
-    )
-    return overlay
 
 
 def extract_answer(events: list[dict[str, Any]]) -> str | None:
@@ -128,24 +110,17 @@ def parse_events(raw: str) -> list[dict[str, Any]]:
     return events
 
 
-def detect_skill_read(
-    events: list[dict[str, Any]], skill: str, skills_dir: Path
-) -> bool:
+def detect_skill_read(events: list[dict[str, Any]], skill: str) -> bool:
     """Whether a tool call actually loaded the skill body or one of its references.
 
     Substring-matching the whole transcript reported a read whenever the path
     merely appeared: a `find` listing that printed `skills/<name>/SKILL.md`, an
-    answer saying "do not read `skill://<name>`", or any fixture path under
-    `evals/files/` all came back True. Only the *arguments* of a tool call that
-    then succeeded count as a read.
+    answer quoting the path, or any fixture path under `evals/files/` all came
+    back True. Only the *arguments* of a tool call that then succeeded count as
+    a read. In the VM the skill lives at `/opt/hyperskills/skills/<name>/`, which
+    these relative targets match.
     """
-    targets = (
-        f"skills/{skill}/SKILL.md",
-        f"{skills_dir}/{skill}/SKILL.md",
-        f"skills/{skill}/references/",
-        f"{skills_dir}/{skill}/references/",
-        f"skill://{skill}",
-    )
+    targets = (f"skills/{skill}/SKILL.md", f"skills/{skill}/references/")
     wanted: set[str] = set()
     for event in events:
         if event.get("type") != "tool_execution_start":
@@ -164,6 +139,28 @@ def detect_skill_read(
     return False
 
 
+def scenario_out_dir(
+    out_root: Path, skill: str, model: str, thinking: str, baseline: bool, index: int
+) -> Path:
+    model_tag = f"{model.lstrip('@').replace('/', '-').replace(':', '-')}-{thinking}"
+    mode = "baseline" if baseline else "skill"
+    return out_root / skill / f"{AGENT}-{model_tag}" / mode / str(index)
+
+
+def replaceable(out_dir: Path) -> bool:
+    """An existing scenario dir may be replaced only if this tool produced it.
+
+    `--out` can point anywhere, including inside the repository; deleting a
+    directory merely because it sits at the computed path would destroy
+    whatever the user keeps there. A VM run marker or a `result.json` (written
+    for every finished scenario, including those from before the VM runner) is
+    proof of origin.
+    """
+    if out_dir.is_symlink():
+        return False
+    return (out_dir / RUN_MARKER).is_file() or (out_dir / RESULT_FILE).is_file()
+
+
 def run_scenario(
     *,
     skill: str,
@@ -171,17 +168,11 @@ def run_scenario(
     scenario: dict[str, Any],
     skill_path: Path,
     out_dir: Path,
-    work_dir: Path,
-    overlay: Path,
     model: str,
     thinking: str,
     baseline: bool,
 ) -> dict[str, Any]:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    if work_dir.exists():
-        shutil.rmtree(work_dir)
-    work_dir.mkdir(parents=True)
-    copied: list[str] = []
+    files: list[Path] = []
     for rel in scenario.get("files") or []:
         src = skill_path / str(rel)
         if not src.exists():
@@ -189,8 +180,7 @@ def run_scenario(
                 f"error: {skill} eval {index} fixture not found: {rel}. "
                 f"Expected under {skill_path / 'evals' / 'files'}"
             )
-        shutil.copy2(src, work_dir / src.name)
-        copied.append(src.name)
+        files.append(src)
 
     # The fixture files must be NAMED in the prompt, not merely present in cwd.
     # Copying them and saying nothing makes "did the model go looking?" a random
@@ -201,124 +191,75 @@ def run_scenario(
     # the logging tool produced a checklist answer, while the baseline for the
     # same scenario read the file and cited its numbers.
     prompt = scenario["query"]
-    if copied:
-        listing = ", ".join(f"`{name}`" for name in copied)
+    if files:
+        listing = ", ".join(f"`{src.name}`" for src in files)
         prompt = f"{prompt}\n\nFiles in the working directory: {listing}"
 
-    cmd = [
-        "omp",
-        "-p",
-        prompt,
-        "--mode",
-        "json",
-        "--no-session",
-        "--config",
-        str(overlay),
-    ]
-    cmd += ["--no-skills"] if baseline else ["--skills", skill]
-    cmd += ["--model", model, "--thinking", thinking]
-
-    # `stdin=DEVNULL` is load-bearing, not hygiene. `subprocess` only replaces
-    # stdout/stderr; stdin stays inherited, and under a parent chain that holds
-    # an open pipe nobody ever writes to or closes, `omp -p` still enters
-    # `readPipedInput` and waits for an EOF that never comes. That, not the
-    # query, is what burned 900s per scenario with a 0-byte transcript: the same
-    # scenario finishes in 154s with rc=0 and a 701 KB transcript when stdin is
-    # /dev/null.
-    #
-    # stderr goes to its own file for the whole run. Discarding it on timeout is
-    # what made the hang undiagnosable — omp was printing
-    # `Still starting after 570s — phase: readPipedInput` the entire time.
-    events_path = out_dir / EVENTS_FILE
-    stderr_path = out_dir / STDERR_FILE
-    started = time.monotonic()
-    timed_out = False
     try:
-        with (
-            events_path.open("w", encoding="utf-8") as sink,
-            stderr_path.open("w", encoding="utf-8") as err_sink,
-        ):
-            proc = subprocess.Popen(
-                cmd,
-                cwd=work_dir,
-                stdin=subprocess.DEVNULL,
-                stdout=sink,
-                stderr=err_sink,
-                text=True,
-            )
-            try:
-                proc.communicate(timeout=SCENARIO_TIMEOUT)
-            except subprocess.TimeoutExpired:
-                timed_out = True
-                proc.kill()
-                proc.communicate()
-    except FileNotFoundError:
-        raise SystemExit(
-            "error: 'omp' not found on PATH. run_evals.py drives the omp CLI headlessly."
-        ) from None
-    duration = round(time.monotonic() - started, 1)
+        run = run_pi(
+            prompt=prompt,
+            out=out_dir,
+            skill_dirs=[] if baseline else [skill_path],
+            files=files,
+            model=model,
+            thinking=thinking,
+            timeout=SCENARIO_TIMEOUT,
+        )
+    except VmRunError as exc:
+        raise SystemExit(f"error: {skill} eval {index}: {exc}") from None
 
-    raw = events_path.read_text(encoding="utf-8", errors="replace")
+    raw = run.events_path.read_text(encoding="utf-8", errors="replace")
     events = parse_events(raw)
-    stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
+    result: dict[str, Any] = {
+        "skill": skill,
+        "index": index,
+        "agent": AGENT,
+        "image": IMAGE,
+        "model": model,
+        "thinking": thinking,
+        "baseline": baseline,
+        "skill_read": detect_skill_read(events, skill),
+        "query": scenario["query"],
+        "expected_behavior": scenario.get("expected_behavior", []),
+        "workspace": str(run.workspace),
+        "events_bytes": len(raw),
+        "duration_s": run.duration_s,
+    }
 
-    if timed_out:
+    if run.timed_out:
+        stderr_text = run.stderr_path.read_text(encoding="utf-8", errors="replace")
         tail = "\n".join(stderr_text.strip().splitlines()[-5:])
         print(
             f"warn: {skill} eval {index} hit the {SCENARIO_TIMEOUT}s ceiling after "
             f"emitting {len(raw)} bytes of events. Last stderr lines:\n{tail}",
             file=sys.stderr,
         )
-        return {
-            "skill": skill,
-            "index": index,
-            "model": model,
-            "thinking": thinking,
-            "baseline": baseline,
-            "status": "timeout",
-            "skill_read": detect_skill_read(events, skill, skill_path.parent),
-            "query": scenario["query"],
-            "expected_behavior": scenario.get("expected_behavior", []),
-            "answer_path": None,
-            "workspace": str(work_dir),
-            "events_bytes": len(raw),
-            "stderr_path": str(stderr_path),
-            "duration_s": duration,
-        }
-    if proc.returncode != 0:
-        print(
-            f"error: omp exited {proc.returncode} for {skill} eval {index}:\n"
-            f"{stderr_text.strip()[:800]}",
-            file=sys.stderr,
+        return result | {"status": "timeout", "answer_path": None}
+    # A failed model request aborts the batch: every later scenario would fail
+    # the same way, and an empty answer must never be judged as a real one.
+    if run.provider_error:
+        raise SystemExit(
+            f"error: model request failed for {skill} eval {index}: "
+            f"{run.provider_error} (see {run.events_path})"
         )
-        raise SystemExit(2)
+    if run.returncode != 0:
+        stderr_text = run.stderr_path.read_text(encoding="utf-8", errors="replace")
+        raise SystemExit(
+            f"error: VM run exited {run.returncode} for {skill} eval {index}:\n"
+            f"{stderr_text.strip()[:800]}"
+        )
 
     answer = extract_answer(events)
     answer_path: str | None = None
     if answer is None:
         print(
             f"warn: could not extract final text for {skill} eval {index}; "
-            f"read {out_dir / EVENTS_FILE} by hand"
+            f"read {run.events_path} by hand"
         )
     else:
         (out_dir / ANSWER_FILE).write_text(answer + "\n", encoding="utf-8")
         answer_path = str(out_dir / ANSWER_FILE)
-
-    return {
-        "skill": skill,
-        "index": index,
-        "model": model,
-        "thinking": thinking,
-        "baseline": baseline,
-        "status": "ok",
-        "skill_read": detect_skill_read(events, skill, skill_path.parent),
-        "query": scenario["query"],
-        "expected_behavior": scenario.get("expected_behavior", []),
-        "answer_path": answer_path,
-        "workspace": str(work_dir),
-        "events_bytes": len(raw),
-        "duration_s": duration,
-    }
+    return result | {"status": "ok", "answer_path": answer_path}
 
 
 def main() -> int:
@@ -327,7 +268,7 @@ def main() -> int:
     parser.add_argument(
         "--model",
         default=DEFAULT_MODEL,
-        help=f"model selector (default: {DEFAULT_MODEL})",
+        help=f"model selector, anthropic/* only (default: {DEFAULT_MODEL})",
     )
     parser.add_argument(
         "--thinking",
@@ -338,35 +279,25 @@ def main() -> int:
     parser.add_argument(
         "--baseline",
         action="store_true",
-        help="run with --no-skills to measure the gap",
+        help="mount no skill to measure the gap",
     )
     parser.add_argument("--only", type=int, help="run only scenario N (1-based)")
     parser.add_argument(
         "--out", type=Path, default=DEFAULT_OUT_ROOT, help="output root"
     )
-    parser.add_argument(
-        "--workspace-root",
-        type=Path,
-        default=DEFAULT_WORKSPACE_ROOT,
-        help="scratch directory the scenario runs in (never the artifact root)",
-    )
     args = parser.parse_args()
 
     root = repo_root()
-    skills_dir = root / "skills"
     try:
+        check_model(args.model)
         targets = resolve_targets(args.skills, root)
-    except SkillLoadError as exc:
+    except (VmRunError, SkillLoadError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    overlay = write_overlay(args.out, skills_dir)
-    mode = "baseline" if args.baseline else "skill"
-    model_tag = (
-        f"{args.model.lstrip('@').replace('/', '-').replace(':', '-')}-{args.thinking}"
-    )
-
-    results: list[dict[str, Any]] = []
+    # Resolve every scenario and vet its output dir before the first VM boots:
+    # a refusal halfway through a batch would waste the runs already made.
+    planned: list[tuple[str, Path, int, dict[str, Any], Path]] = []
     for skill_path in targets:
         try:
             skill = load_skill(skill_path)
@@ -382,44 +313,61 @@ def main() -> int:
         except (ValueError, OSError) as exc:
             print(f"error: {evals_path}: {exc}", file=sys.stderr)
             return 1
-
         for i, scenario in enumerate(scenarios, start=1):
             if args.only is not None and i != args.only:
                 continue
-            out_dir = args.out / skill.name / model_tag / mode / str(i)
-            work_dir = args.workspace_root / f"{skill.name}-{model_tag}-{mode}-{i}"
-            if out_dir.exists():
-                shutil.rmtree(out_dir)
-            print(
-                f"running {skill.name} eval {i} "
-                f"({mode}, {args.model}, thinking={args.thinking}) ..."
+            out_dir = scenario_out_dir(
+                args.out.resolve(),
+                skill.name,
+                args.model,
+                args.thinking,
+                args.baseline,
+                i,
             )
-            result = run_scenario(
-                skill=skill.name,
-                index=i,
-                scenario=scenario,
-                skill_path=skill_path,
-                out_dir=out_dir,
-                work_dir=work_dir,
-                overlay=overlay,
-                model=args.model,
-                thinking=args.thinking,
-                baseline=args.baseline,
-            )
-            (out_dir / RESULT_FILE).write_text(
-                json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
-            )
-            results.append(result)
+            if (out_dir.exists() or out_dir.is_symlink()) and not replaceable(out_dir):
+                print(
+                    f"error: {out_dir} exists but was not produced by an eval run; "
+                    "refusing to delete it. Move it away or choose another --out.",
+                    file=sys.stderr,
+                )
+                return 1
+            planned.append((skill.name, skill_path, i, scenario, out_dir))
+
+    require("msb")
+    mode = "baseline" if args.baseline else "skill"
+    results: list[dict[str, Any]] = []
+    for skill_name, skill_path, i, scenario, out_dir in planned:
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
+        print(
+            f"running {skill_name} eval {i} "
+            f"({mode}, {AGENT} {args.model}, thinking={args.thinking}) ..."
+        )
+        result = run_scenario(
+            skill=skill_name,
+            index=i,
+            scenario=scenario,
+            skill_path=skill_path,
+            out_dir=out_dir,
+            model=args.model,
+            thinking=args.thinking,
+            baseline=args.baseline,
+        )
+        (out_dir / RESULT_FILE).write_text(
+            json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        results.append(result)
 
     print(
-        "\n| skill | # | model | thinking | mode | skill_read | status | secs | answer |"
+        "\n| skill | # | agent | model | thinking | mode | skill_read | status | secs | answer |"
     )
-    print("|---|---|---|---|---|---|---|---|---|")
+    print("|---|---|---|---|---|---|---|---|---|---|")
     for r in results:
         print(
-            f"| {r['skill']} | {r['index']} | {r['model']} | {r['thinking']} | "
-            f"{'baseline' if r['baseline'] else 'skill'} | {r['skill_read']} | "
-            f"{r['status']} | {r['duration_s']} | {r['answer_path'] or '-'} |"
+            f"| {r['skill']} | {r['index']} | {r['agent']} | {r['model']} | "
+            f"{r['thinking']} | {'baseline' if r['baseline'] else 'skill'} | "
+            f"{r['skill_read']} | {r['status']} | {r['duration_s']} | "
+            f"{r['answer_path'] or '-'} |"
         )
     print(
         "\nJudge each expected_behavior by reading the answer files, then fill the "

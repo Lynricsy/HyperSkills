@@ -250,10 +250,10 @@ HyperSkills/
 
 ```bash
 uv run tools/new_skill.py <name> --category platform   # 脚手架（platform|framework|task|meta）
-uv run tools/run_evals.py <name> --baseline            # 无 skill 基线
-uv run tools/run_evals.py <name>                       # 有 skill
-uv run tools/vm.py build                               # 构建隔离测试 VM（microsandbox + pi）
-uv run tools/vm.py run --skill <name> "<prompt>"       # 在一次性 VM 里跑一条提示词
+uv run tools/vm.py build                               # 构建评测 VM（microsandbox + pi），评测前一次即可
+uv run tools/run_evals.py <name> --baseline            # 无 skill 基线（在一次性 VM 里跑）
+uv run tools/run_evals.py <name>                       # 有 skill（只读挂载被测 skill）
+uv run tools/vm.py run --skill <name> "<prompt>"       # 在一次性 VM 里跑任意一条提示词
 uv run tools/validate_skills.py                        # 静态质量门
 uv run --locked tools/check_repository.py             # 与 CI 相同的完整内容门
 uv run tools/check_upstream.py                         # 上游漂移
