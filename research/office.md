@@ -383,3 +383,26 @@ openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 man
 其余仓库上游（`anthropic-docx`（8a1541c → dbd4588，3 commits）、`anthropic-pptx`（8a1541c → dbd4588，3 commits）、`anthropic-xlsx`（8a1541c → dbd4588，3 commits）、`anthropic-pdf`（8a1541c → dbd4588，3 commits）为 `repo moved, tracked paths unchanged`；`openai-pdf`、`slidespeak-design`、`ourarash-md-docx` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（dbd4588、dbd4588、dbd4588、dbd4588、49f948f、3cf7c7e、14fee23、5e87d8a、4456f82），`pin_check.py` 结果 PIN CHECK CLEAN。10 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS4 第 M 条（TerminalSkills/skills `markitdown`，Apache-2.0）。结论：不合入，只记录核实结果。
+
+| 候选要点 | 结论 | 理由 |
+|---|---|---|
+| 扫描件 PDF 经 markitdown 返回空串、不抛异常 | 不合入 | 行为实测成立，但已被现有通用规则覆盖：`SKILL.md` extract 清单「a page yielding no text is a scan — switch to OCR」、`references/pdf.md`「near-zero characters … signature of a scan」、`references/pdf-forms-tables-ocr.md` 故障表「Empty result → OCR path」。且本 skill 读 PDF 走 pdfplumber / `pdftotext`，markitdown 只用于 pptx/xlsx。 |
+| 截断的 PDF 同样返回空串 | 不合入（说法不成立） | 实测截断到 400 字节的 PDF 抛 `FileConversionException`（PdfConverter: PSEOF Unexpected EOF），不是静默返回空串。 |
+| `convert()` 会去取 URL，服务端有 SSRF 风险；MCP server 无鉴权只能绑 127.0.0.1 | 不合入（超出 Scope） | 源码核实成立，但本 skill 的 Scope 是 agent 处理本地 Office/PDF 文件，路径由 agent 自己选定；把 markitdown 部署成接收不可信输入的服务属于安全审计范畴。官方 README 自带「Security Considerations」节已写明。 |
+
+核实证据：
+
+- 源码 microsoft/markitdown v0.1.8（MIT，`gh api …/contents?ref=v0.1.8`）`packages/markitdown/src/markitdown/_markitdown.py`：`convert()` 对字符串先 `urlparse`，scheme 为 `http`/`https`/`file`/`data` 时转 `convert_uri()`；`http(s)` 用 `requests.Session().get(uri, stream=True)`（默认跟随重定向），`file:` 只拒绝非 localhost 的 netloc 后转 `convert_local()`。
+- 根 `README.md`「Security Considerations」：不要把不可信输入直接交给 MarkItDown，限制路径、URI scheme 与网络目的地，屏蔽私网/回环/链路本地/元数据地址；只调用所需的最窄方法（`convert_local()`、`convert_response()`、`convert_stream()`）。
+- `packages/markitdown-mcp/README.md` 与 `__main__.py`：HTTP/SSE 模式默认绑 `127.0.0.1`，绑其他地址时打印无鉴权警告；`convert_to_markdown` 工具能读该用户可读的任何文件和网络资源。
+- 实跑：`uvx --from "markitdown[pdf]==0.1.8"`，用 Pillow 生成只含图像的 A4 PDF，`MarkItDown().convert_local("scan.pdf").text_content == ''`（长度 0，无异常）；同一文件截断到前 400 字节经 `convert_stream()` 抛 `FileConversionException`。
+
+评测：无合入内容，未新增场景、未跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| — | gpt-6.1-sol medium | — | — | — | 未合入，未跑 |
