@@ -364,3 +364,5 @@ obra-tdd、obra-verification 区间内跟踪路径无净变化（bb92a77 的 rel
 结论：改动相关行为（场景 6 的 seam 列举与 yes 措辞、场景 9 的定点反例、场景 10 的 tripwire）在有 skill 时达成，均优于基线。**负例未通过**：`skill_read == true`。路由只取决于 `description`，而今天的提交没有改 description（仍是 2026-09-12 压缩后的单句「Drives implementation and bug fixes through test-first red-green-refactor cycles.」，不再含 CI/缓存的否定边界；`## Scope` 正文里的排除项要读入后才生效），所以这不是本轮正文改动造成的回退；按简报「只改有证据的问题」，正文无可修，未改。
 
 遗留：负例需走「本地 description 维护」流程（同模型同条件对照新旧描述的路由结果，含保留样本）后决定是否在 description 加回否定边界，并在 provider 恢复后补跑场景 4 第二个样本；场景 7、8 有 skill 不读 skill 的问题上文已记。
+
+补跑（主代理，provider 恢复后）：场景 4 负例有 skill 第二个样本（`/tmp/hs-d2/main/test-driven-development/omp-openai-gpt-6.1-sol-medium/skill/4/`，41 s）：`skill_read == false`，EB1 ✔ EB2 ✔ EB3 ✔——只给 `actions/setup-node` 的 `cache: pnpm` 与诚实的提速预期，未施加 red-green。两个样本一次误读、一次正确，路由歧义是间歇性的；仍属既有 description 问题（今天未改 description），留给「本地 description 维护」流程，本轮不改。
