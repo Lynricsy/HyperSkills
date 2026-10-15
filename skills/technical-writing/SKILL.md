@@ -1,6 +1,6 @@
 ---
 name: technical-writing
-description: "Writes and edits READMEs, documentation, tutorials, architecture decisions and changelogs."
+description: "Writes and audits READMEs, guides, reference docs, changelogs; not site generators, profile READMEs."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills

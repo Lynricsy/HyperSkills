@@ -311,3 +311,33 @@ neolab、standard-readme、github-readme-stats、best-readme-template up to date
 **负例 5 两次均 `skill_read=true`**（两次都是首个工具调用即读 skill），属既有路由问题，与今日改动无关：今日两个提交 b1cd321、caab44f 都没有改 SKILL.md 的 description；`git log -G'^description:'` 显示最后一次修改是 27dd3f4（2026-09-12，压缩为单句路由）。早先为这个负例加的排除项分两次丢失：「It governs what pages say, never the tooling that builds them」在 6df04a3（2026-09-11）改写时去掉，`Do not use for … docs-site generators` 在 27dd3f4 压缩时去掉。本轮不改 description，留待描述路由复核。
 
 遗留：负例路由；9 的 E1；11 两侧都删掉截图，没有保留为带 alt 的配图（E2 后半）。
+
+## 2026-10-15 description 维护（路由）
+
+旧：`Writes and edits READMEs, documentation, tutorials, architecture decisions and changelogs.`  
+新：`Writes and audits READMEs, guides, reference docs, changelogs; not site generators, profile READMEs.`（100 字符）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，模型在系统提示里只看到 `name: description` 与「Matching skill → MUST read」；探针只判定是否读取 skill（`detect_skill_read`），不评答案。判定：读了=read；`agent_end` 正常结束、无 provider 错误且未读=not_read；超时未读 / 空事件流 / provider 错误=不确定，不计入。样本固定于 `/tmp/hs-desc/samples.json`：D2 失败的负例为调优负例（3 次），既有正例场景各 1 次，另写保留负例 / 保留正例各 1 条（2 次，只用于验收）。旧、新描述同模型同条件各跑一遍。约束：omp 渲染 skill 列表时把超过 100 字符的描述截断到词边界，所以新描述 ≤100 字符，否则排除限定词会被截掉；真实宿主第二次会话起看到的是 smol 模型压缩后的 ≤12 词提示，本对照只覆盖首次会话的原文路由。
+
+| 样本 | 类型 | 内容 | 旧描述（期望结果次数） | 新描述 |
+|---|---|---|---|---|
+| N5 | 调优负例 | 场景 5：Our docs are plain Markdown in docs/ and people read them on the forge… | 0/3 | 1/3 |
+| N10 | 调优负例 | 场景 10：I want to redo my GitHub profile README — the one in the repo named af… | 0/3 | 1/3 |
+| P6 | 正例 | 场景 6：tilekit has no README and we're about to promote it on Hacker News. Wr… | 1/1 | 2/2 |
+| P3 | 正例 | 场景 3：We're cutting 3.2 next week. Audit docs/reference.md against the code … | 1/1 | 2/2 |
+| HN | 保留负例 | 新写：Write the Product Hunt launch post and the landing-page hero copy for … | 0/2 | 0/2 |
+| HP | 保留正例 | 新写：docs/install.md still tells users to run `tilekit init --yes`, but tha… | 2/2 | 2/2 |
+
+
+#### technical-writing 迭代（仅用调优负例 N5/N10 与正例 P3/P6；保留样本不参与选择）
+
+| 版本 | 描述 | N5 未读 | N10 未读 | P3 读取 | P6 读取 |
+|---|---|---|---|---|---|
+| 旧 | Writes and edits READMEs, documentation, tutorials, architecture decisions and changelogs. | 0/3 | 0/3 | 1/1 | 1/1 |
+| v1 | Writes project READMEs, guides, ADRs and changelogs; not doc sites, profile READMEs or marketing. | 0/3 | 3/3 | 0/1 | 1/1 |
+| v2（采用） | Writes and audits READMEs, guides, reference docs, changelogs; not site generators, profile READMEs. | 1/3 | 1/3 | 2/2 | 2/2 |
+| v3a | Writes and audits project READMEs, guides, reference docs, changelogs; not site generators. | 0/3 | 0/3 | 2/2 | 1/1（另 1 次不确定） |
+| v3b | Writes and audits project READMEs, guides, reference, changelogs; not site generators or profiles. | 0/3 | 0/3 | 2/2 | 2/2 |
+| v4 | Writes and audits project READMEs, guides and changelogs; not doc-site setup or profile READMEs. | 0/3 | 0/3 | 2/2 | 1/1（另 1 次不确定） |
+
+结论：N10 只有 v1 达到 3/3、v2 为 1/3，同样点名「profile READMEs」的 v4 却是 0/3，措辞与结果没有稳定对应；mkdocs 站点（N5）各版本最多 1/3 未读，单 skill 挂载下模型把站点导航与内容视为文档工作，描述无法稳定区分。各版本在 6 次负例上 0–3 次之间波动，抽样噪声大。v2 在不丢正例的前提下最均衡（负例 2/6，旧 0/6；正例 4/4；保留负例营销文案两侧都 0/2、保留正例 2/2，无回退），采用 v2。遗留：N5、N10 及营销类请求仍多半会读取本 skill；正文 `## Scope` 已明确排除，D2 中读取后答案仍正确，影响限于多读一次上下文。
