@@ -113,7 +113,7 @@ upstreams:
     url: https://opentelemetry.io/docs/
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The vendor-neutral conceptual layer this skill is written on: the three signals and their data models, the resource/instrumentation-scope/record attribute levels and what belongs at each, resource identity attributes and their role, schema_url, context propagation and the W3C traceparent header, exemplars, metric instrument selection and temporality, and the Collector's component model (receivers, processors, exporters, connectors, extensions) plus the official terminology for agent and gateway deployment shapes."
     notes: "Licence verified by reading the LICENSE of the documentation source repository open-telemetry/opentelemetry.io: Creative Commons Attribution 4.0 International, which is a merge-eligible licence under docs/roadmap.md. Attribution: content adapted from the OpenTelemetry documentation, (c) The OpenTelemetry Authors, licensed CC-BY-4.0. Note that the repository's licence is the documentation's, not the Apache-2.0 licence of the OpenTelemetry code it documents."
   - id: rampstack-monitoring
@@ -172,8 +172,8 @@ upstreams:
     url: https://sre.google/workbook/alerting-on-slos/
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "Read only for the multi-window multi-burn-rate formulation that no open-licensed upstream in this skill provides: the burn-rate multipliers paired with long and short windows (14.4x over one hour, 6x over six hours, and the slower day-and-multi-day rules), the fraction of the error budget consumed before each fires, the convention of a short window at roughly one twelfth of the long one, and the reason the short window exists at all - so an alert resolves promptly instead of staying latched for the length of the long window."
+    synced_at: "2026-10-15"
+    contributes: "Read only for the multi-window multi-burn-rate formulation that no open-licensed upstream in this skill provides: the burn-rate multipliers paired with long and short windows (14.4x over one hour, 6x over six hours, and the slower day-and-multi-day rules), the fraction of the error budget consumed before each fires, the convention of a short window at roughly one twelfth of the long one, the reason the short window exists at all - so an alert resolves promptly instead of staying latched for the length of the long window - and the chapter's explicit recommendation against duration (`for:`) parameters in SLO alerting, because a duration does not scale with severity and resets whenever the SLI briefly recovers."
     notes: "Copyright Google, freely readable online but not open-licensed, so reference only: no text was copied and every conclusion in references/alerting-and-slos.md is rewritten. The numbers were checked against the chapter and are marked [official] rather than [verified] because they were not measured here."
   - id: awesome-copilot-appinsights
     kind: repo

@@ -453,3 +453,37 @@ partition_processing.max_in_flight.bytes」只改 `receiver/kafkareceiver`，本
 D1：`validate_skills.py skills/observability` 0 error / 0 warning，`build_catalog.py --check` 通过；安装冒烟
 （`npx skills@latest add <worktree> --skill observability --agent universal --copy --yes`）后 `.agents/skills/observability/`
 的 SKILL.md、SOURCES.yaml、NOTICE.md、evals 与 9 个 references 齐全，与源目录 `diff -r` 一致。
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照。OTel 文档读源仓库 `open-telemetry/opentelemetry.io` 的 `content/en/docs/`（`gh api`）；
+SRE Workbook 读站点页面。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| otel-docs | 三信号与数据模型；resource / scope / record 三级属性；`service.name` 缺省为 `unknown_service` | `concepts/resources/index.md`、`concepts/instrumentation-scope/index.md`、`concepts/signals/*.md` | 一致 |
+| otel-docs | 跨进程上下文走 W3C `traceparent`（可选 `tracestate`） | `concepts/context-propagation/index.md` | 一致 |
+| otel-docs | 指标 instrument 选择（Counter / UpDownCounter / Gauge / Histogram）、delta 与 cumulative 时间性 | `concepts/signals/metrics.md` | 一致。页面新增「Temporality and cardinality limits」小节（SDK 侧基数上限与溢出、delta 每周期回收），属本 skill 未写的新增内容，本轮只记录，未做基线缺口评测，不合入 |
+| otel-docs | SDK 默认采样器 `ParentBased(root=AlwaysOn)` | `opentelemetry-specification` `specification/trace/sdk.md` | 一致 |
+| otel-docs | Collector 组件模型（receivers、processors、exporters、connectors、extensions）；接收器默认绑 `localhost`、跨 Pod 须显式 `0.0.0.0` | `collector/configuration.md` | 一致 |
+| otel-docs | agent / gateway 部署术语；尾采样需 `load_balancing` exporter 按 trace ID 路由到同一实例 | `collector/deploy/agent.md`、`collector/deploy/gateway.md`（路径已从 `collector/deployment/` 改为 `collector/deploy/`，旧路径有 alias；本 skill 未引用 URL） | 一致 |
+| otel-docs | 用内存 exporter 断言 trace 形状 | `concepts/instrumentation/libraries.md`（2026-09-25 #11835 改为推荐 in-memory exporter） | 一致（`references/instrumentation.md` 已用 `InMemorySpanExporter`） |
+| otel-docs | 版本基线 otelcol-contrib 0.160.0 | 文档站已更新到 v0.162.0（#11887） | 一致：正文写的是验证所用版本，不是「最新」；未改 |
+| google-sre-workbook | 14.4×/1h/5m/2%、6×/6h/30m/5%、1×/3d/6h/10%（Table 5-8），3×/24h/2h 在示例配置；短窗为长窗 1/12；短窗让告警及时解除 | https://sre.google/workbook/alerting-on-slos/ | 一致 |
+| google-sre-workbook | 告警 `for:` 持续时间 | 同页 Table 5-3 与其后一句 | **更正**，见下 |
+
+更正：**burn-rate 规则不应加 `for:`。** 原正文 SKILL.md 规则 23、design-alerts-and-slos 清单、`references/alerting-and-slos.md`
+都写「每条（paging）告警都要 `for:`」，且该段标 `[official]`。Workbook 原文相反：Table 5-3 列出 duration 参数的缺点——不随
+严重度缩放（100% 故障与 0.2% 故障同样等满时长才告警），SLI 短暂回到目标内即重置计时、来回波动的 SLI 可能永远不告警——随后明确
+「we do not recommend using durations as part of your SLO-based alerting criteria」。改为：burn-rate 规则不加 `for:`（长窗已平滑），
+`for:` 只用于基于短速率窗的阈值型症状告警；`[official]` 标签移到确有出处的短窗一段。评测场景 3 的对应期望（原「每条 paging 告警
+都带 `for:`」）同步改为「runbook + 两级严重度，且不给 burn-rate 规则加 `for:`」。
+
+这是对照官方页面的更正而非新增规则，不需要 D1 基线缺口；为确认新正文不误导，跑了一次有 skill 的场景 3：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 | gpt-6.1-sol medium | 有 | True | 更正项（第 11 条）达成；另 1、2、3、6、8、9、12 达成，4、7 部分，5、10 未达成 | 369 s。重建的 burn-rate 告警注释「No for: the long window smooths; the short window confirms ongoing impact」，每条带 runbook、只剩 page/ticket；4：短窗写成「确认影响仍在」而非「及时解除」；5：保留 99.99% 目标待业务评审；7：只把 2xx 算成功，未展开 4xx/超时；10：答案未提 `OTEL_SEMCONV_STABILITY_OPT_IN` |
+
+（表中编号按 `expected_behavior` 从 1 起数。）SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，google-sre-workbook 的
+`contributes` 补上「不建议在 SLO 告警中用 duration」。

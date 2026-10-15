@@ -126,9 +126,12 @@ Paths below are relative to this skill's directory.
 22. An SLO whose alert window equals its compliance window cannot page in time — it fires once the
     budget is already gone. Page on a fast burn measured over hours with a short confirmation
     window, and ticket on a slow burn measured over days.
-23. Every paging alert has a `for:` duration, a runbook link, and exactly one of two severities
-    (page now / ticket this week). More tiers become a sorting exercise; a rotation paged more
-    than once or twice a week stops reading the pager.
+23. Every paging alert has a runbook link and exactly one of two severities (page now / ticket
+    this week). More tiers become a sorting exercise; a rotation paged more than once or twice a
+    week stops reading the pager. Threshold alerts on a short rate window also need a `for:`
+    duration; burn-rate rules do not — their long window is the smoothing, and a `for:` there
+    delays a total outage exactly as long as a trickle and resets whenever the SLI briefly
+    recovers.
 24. Verify the telemetry itself before calling the work done: trigger the failure path, find it by
     its correlation ID, confirm the fields are structured, follow one request end to end with no
     broken spans, and fire each new alert once. Instrumentation is code and can be wrong.
@@ -225,8 +228,9 @@ Paths below are relative to this skill's directory.
       burn pages, a slow burn tickets, and each long window is paired with a short one so the
       alert clears promptly.
 - [ ] Re-classify every existing alert as symptom or cause, and move the causes to dashboards.
-- [ ] Give each surviving paging alert a `for:` duration, a runbook link and one of two
-      severities; write the error-budget policy with a consequence, not a meeting.
+- [ ] Give each surviving paging alert a runbook link and one of two severities, plus a `for:`
+      duration on threshold alerts (not on burn-rate rules); write the error-budget policy with a
+      consequence, not a meeting.
 - [ ] **Gate — each alert was fired once:** the threshold is temporarily lowered, the notification
       arrives in the intended channel, and the runbook link resolves.
 

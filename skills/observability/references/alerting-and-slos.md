@@ -171,7 +171,7 @@ Two windows per rule, not one, and both must be firing:
 - The **short** window is the confirmation window, conventionally one twelfth of the long one. It
   exists so the alert **resolves promptly** once the burn stops. Without it, a rule with a 6-hour
   window stays firing for six hours after the incident ends, which is how a rotation learns to
-  ignore it.
+  ignore it. [official]
 
 ```promql
 # 14.4x fast burn against a 99.9% objective: both windows must exceed the threshold.
@@ -182,9 +182,15 @@ Two windows per rule, not one, and both must be firing:
 )
 ```
 
-Every rule also needs `for:` — a duration the condition must hold before the alert fires — so a
-single scrape-interval blip does not page. Keep it short on the fast-burn rules (a minute or two);
-the long window is already doing the smoothing. [official]
+Do not add a `for:` duration to these rules to smooth them. The chapter that defines the
+formulation rejects durations in SLO alerting outright: a duration does not scale with severity,
+so a 100% outage waits exactly as long as a 0.2% one before paging, and it resets whenever the
+SLI dips back inside the objective for a moment, so a flapping SLI may never alert. The long
+window already does the smoothing. [official]
+
+`for:` belongs on threshold alerts evaluated over a short rate window — a latency or saturation
+symptom alert that is not budget-derived — where a minute or two keeps a single scrape blip from
+paging.
 
 ## Two severities
 
@@ -249,7 +255,8 @@ Quarterly, and after any incident that revealed a gap:
 
 - Which alerts fired, and how many were acted on? An alert with a zero action rate is noise.
 - Which incidents were not caught by any alert? Those are the missing symptom alerts.
-- Does every paging alert have a `for:` duration, a runbook link and one of the two severities?
+- Does every paging alert have a runbook link and one of the two severities, and does every
+  threshold alert (not burn-rate rule) carry a `for:` duration?
 - Is any alert on a cause rather than a symptom?
 - Is any threshold an unexplained absolute number rather than something derived from an SLO or a
   measured baseline?
