@@ -414,3 +414,31 @@ OpenTelemetry configuration fails」——`_runtime.lifespan` 把 `_configure_fr
 | sqlmodel-docs | 仅用于确认「SQL + Pydantic 模型用 SQLModel、已有 SQLAlchemy 项目沿用」的适用条件 | https://sqlmodel.tiangolo.com | 页面有效，定位未变（0.0.48）；ORM 不在本 skill 范围，正文未改 |
 
 正文改动：`references/pydantic-models.md`（别名配置与迁移表、版本行）、`references/testing.md`（版本行）；`evals/evals.json` 场景 3 一条断言措辞；`SOURCES.yaml` 中 `pydantic-docs` 的 contributes / notes。SKILL.md 的「written against FastAPI 0.141 …」行未改（正文规则在当前版本复核成立）。未新增规则与场景、未跑 D2。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的两个提交——2a07dcf（上游同步：OpenTelemetry 0.142.2 / 0.143 版本门、Asyncer 优先于
+`run_in_threadpool`）与 534f0c7（文档复核：别名配置改为 `validate_by_name`，并改了场景 3 的 expected_behavior）。均在
+`/tmp/hs-wt/D2G4`（分支 `d2/D2G4`，正文与 main `311a6c7` 相同）上跑，模型 omp + `openai/gpt-6.1-sol` medium，
+产物 `/tmp/hs-d2/D2G4/fastapi/omp-openai-gpt-6.1-sol-medium/`。
+
+选场景：
+
+- 场景 3（必选）：今天改过 expected_behavior（EB2 改为 `validate_by_name=True`，`populate_by_name=True` 仍算达成），且直接使用 534f0c7 改的 `pydantic-models.md`。
+- 场景 1：规则 7、诊断清单与 `async-and-lifecycle.md` 的 `asyncify` / `run_in_threadpool` 顺序调整落在 EB2。
+- 场景 5：OpenTelemetry 版本门改写的回退面——提问固定在 0.142.1，检查模型不会把 0.143 的 opt-in 默认误用到 0.142.1。今天上午 `/tmp/hs-evals-sync/SyncG6/fastapi-s5` 的有 skill 结果（09:50）早于最后一次正文提交（13:04），不复用；今天没有该场景的基线，两侧都新跑。
+- 场景 4：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 users_schemas 迁移 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✘ EB7 ✘ | 105 s。`ConfigDict(from_attributes=True, validate_by_name=True)`、`@field_validator` + `@classmethod`、`ValueError`；去掉 `Field(...)` 与 `RootModel`，改 `response_model=list[User]`。未提 `Admin` 被按声明类型截掉 `permissions`，也未提响应二次校验 / Input-Output 两份 schema |
+| 3 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✘ EB5 ✘ EB6 ✘ EB7 ◐ | 119 s。用 `populate_by_name=True`（按新断言仍算达成）；保留 `Field(...)` 与 `RootModel`；设 `separate_input_output_schemas=False` 让两侧 schema 一致，但未解释响应二次校验 |
+| 1 reports_router 阻塞与任务丢失 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ EB6 ✘ EB7 ✔ | 122 s。两处 handler 都纯同步，选 `def`，另给「整体改异步驱动 + 异步客户端」；未用到 `asyncify`/`run_in_threadpool`（本场景用不上）。指出 40 个线程令牌与同步 BackgroundTasks 共用，但未给 `total_tokens` 写法；lifespan 管资源、去掉 startup hook，未提 `request.state`；未提 prefix/tags |
+| 1 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ EB5 ✘ EB6 ✘ EB7 ✔ | 117 s。同样选 `def` 或整体异步；只说线程池可能耗尽、无 40 的上限；未提 lifespan / `on_event` |
+| 5 FastAPI 0.142.1 遥测升级故障 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 200 s。按 0.142.1 答出 gRPC 环境导致启动失败（未误套 0.143 的 opt-in）；import 时建 provider + `auto_configure: False`，并说明「提前建 provider 却不关自动配置会重复导出」；`exclude` lambda + HTTP 中间件给当前 span 写 `tenant.id`；从异常消息去掉卡号并说明原生异常遥测会导出消息。在本地 HTTP 与 gRPC 两种 OTLP 接收端实测 |
+| 5 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ◐ EB6 ◐ | 131 s。读 0.142.1 源码答对崩溃与 `instrument_app` 太晚；改为整体关闭原生遥测、在启动前装 contrib（可行但不是 EB5 的原生 `exclude`）；未提重复导出；指出卡号风险但未改 |
+| 4 负例（uv + ruff 迁移） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 88 s。纯 Python 打包与 CI 建议，未引入任何 FastAPI 内容 |
+
+结论：今天改动涉及的行为在有 skill 时全部达成——场景 3 用了新推荐的 `validate_by_name`，场景 5 在版本门改写后仍按 0.142.1 的行为作答且 6/6，场景 1 未回退（`asyncify` 偏好调整在纯同步 handler 上没有被用到，两侧都选 `def`）。有 skill 在场景 1、3、5 均不比基线差（场景 3 的 EB7 基线 ◐、有 skill ✘，与今天改动无关）。负例 `skill_read == false`。正文未改。
+
+遗留：场景 1 未触发「保留 `async def` 时用 `asyncify`」分支，偏好调整的行为证据仍只有官方 skill 的表述；场景 3 EB6/EB7 两侧均未稳定达成，属既有缺口，非本次回归。
