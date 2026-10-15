@@ -1,0 +1,11 @@
+Run subosito/flutter-action@v2
+  with:
+    channel: stable
+
+Run flutter pub get
+Resolving dependencies...
+Got dependencies!
+
+Run flutter gen-l10n
+/home/runner/work/shop_app/shop_app/l10n.yaml: Cannot enable "synthetic-package", this feature has been removed. See http://flutter.dev/to/flutter-gen-deprecation.
+Error: Process completed with exit code 1.

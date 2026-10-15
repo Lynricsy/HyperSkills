@@ -305,3 +305,19 @@ Genkit / Firebase 属本 skill Scope 外、从未合入，判定噪声，仅 re-
 
 5 条事实，4 条一致、1 条更正（事实更正，未新增行为规则，不跑基线评测）。`flutter-docs` 的 `synced_at` 更新为 2026-10-15，
 `contributes` 补注 3.32 起源码生成，`flutter-official` 的 notes 同步「已移除」措辞。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的提交 ab09817（`references/localization.md`：`synthetic-package` 由「已弃用」更正为「已移除」，`true` 使 `flutter gen-l10n` 报错、`false` 只警告，失败目录补一行）。e7d3887 只 re-pin。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/flutter/omp-openai-gpt-6.1-sol-medium/`。今天此前没有本 skill 的 VM 评测结果，全部新跑。
+
+选场景：现有场景 1–5 都不涉及本地化，新增场景 6（夹具 `evals/files/l10n/`：`synthetic-package: true` 的 `l10n.yaml`、引用 `package:flutter_gen/gen_l10n/app_localizations.dart` 的 `main.dart`、CI 日志中 stable 工具链的原文报错——报错文本取自 `flutter/flutter` stable 分支 `localizations_utils.dart`），队友主张把 CI 钉回旧版 Flutter。场景 4 为负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 synthetic-package 已移除 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 136 s。判定为功能移除而非上游 bug、反对降级；删掉该行并明确「不要改成 `false`」；import 改为 `l10n/app_localizations.dart`，说明未设 `output-dir` 时生成到 `arb-dir`；给出 `pub get` / `gen-l10n` / `analyze` / `test`。VM 无 Flutter，未实跑 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 106 s。报错原文已说明「has been removed」，基线读官方迁移页得出同样改法（删行、改相对 import、`arb-dir` 输出），未提 `false` 的情形但删行本身达成 EB2 |
+| 4 负例（SwiftUI 评审） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 18 s。只按 SwiftUI 评审：`@State` 不应由传入值初始化，改 `let` 或 `@Binding` |
+
+结论：更正后的本地化内容在有 skill 时正确使用（4/4），不比基线差；该报错自带「已移除」字样，基线同样 4/4，正文这条更正的作用是避免 skill 自身给出过时的「弃用」说法，而非填补可测缺口。负例 `skill_read == false`。正文未改。
+
+遗留：两侧都未提 Flutter 3.32 这一默认改为源码生成的版本点；VM 内无 Flutter SDK，`flutter gen-l10n` 未实际执行。

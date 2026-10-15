@@ -55,5 +55,20 @@
       "Builds webKey with p.relative plus p.posix.joinAll(p.split(...)) (or p.url) instead of substring arithmetic and replaceAll('\\\\', '/'), and uses p.extension for isImage",
       "Replaces the switch over a bool with a conditional expression and the standalone if (code case >= 200 && < 300) with a plain boolean comparison, rather than adding more patterns"
     ]
+  },
+  {
+    "skills": ["flutter"],
+    "query": "Our shop app's CI moved to the current Flutter stable and now fails at `flutter gen-l10n` (ci-log.txt). l10n.yaml sits in the project root, the ARB files are in lib/l10n, pubspec.yaml has `generate: true`, and main.dart is lib/main.dart. A teammate wants to pin CI back to the old Flutter version until 'the localization bug' is fixed upstream. What do we actually change?",
+    "files": [
+      "evals/files/l10n/l10n.yaml",
+      "evals/files/l10n/main.dart",
+      "evals/files/l10n/ci-log.txt"
+    ],
+    "expected_behavior": [
+      "Explains that this is not an upstream bug: the synthetic `package:flutter_gen` package was deprecated when Flutter 3.32 switched to generating localizations into source, and current stable has removed it, so `synthetic-package: true` now stops `flutter gen-l10n`; argues against pinning Flutter back",
+      "Deletes the `synthetic-package` line from l10n.yaml rather than changing it to `false` (which only warns that the option no longer has any effect)",
+      "Changes the import in main.dart from `package:flutter_gen/gen_l10n/app_localizations.dart` to the file generated next to the ARB files (`l10n/app_localizations.dart` relative to lib, or the app's own `package:` path), noting that the output goes to `arb-dir` unless `output-dir` is set",
+      "Names regenerating (`flutter gen-l10n` or `flutter pub get`) and `flutter analyze` as the checks that confirm the fix"
+    ]
   }
 ]
