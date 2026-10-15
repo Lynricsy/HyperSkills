@@ -1,0 +1,25 @@
+$ git rev-parse --short HEAD
+9b41e7c
+$ npm test
+
+> @acme/billing@5.0.3 test
+> node --test
+
+✔ invoice totals sum line items (0.7ms)
+✔ invoice totals apply tax per line (0.2ms)
+✖ invoice rounds tax half-even (1.1ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1235 !== 1234
+
+✖ credit note negates the original invoice (0.9ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  -1235 !== -1234
+
+... 412 more passing tests ...
+ℹ tests 416
+ℹ pass 414
+ℹ fail 2
+$ echo $?
+1

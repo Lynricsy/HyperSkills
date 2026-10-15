@@ -176,6 +176,12 @@ recipes are in `references/feedback-loops.md`.
 - [ ] Tag every probe `[DEBUG-xxxx]` with one id for the session.
 - [ ] For a performance regression, measure instead of logging: baseline with a
       timing harness, profiler or query plan, then bisect the measurement.
+- [ ] For a captured profile, trace or heap snapshot, read
+      `references/profiles.md` before naming a cause. Walk from the hottest
+      frame to its first application-owned caller; one heap snapshot shows what
+      is held, not what grows; and one recording yields the most probable cause
+      until a second capture, taken after the suspect code changed, shows the
+      cost gone.
 - [ ] **Gate — ONE SURVIVOR:** the evidence names which hypothesis holds and
       why the others are dead. If none survives, return to Phase 4 with what
       the probes taught you.
@@ -255,6 +261,7 @@ picked — is announced, not asked.
 | The ten loop constructions in detail, tightening, raising the reproduction rate on flaky bugs, condition-based waiting instead of sleeps, driving a human-in-the-loop repro | Phase 1, or any symptom that reproduces intermittently | `references/feedback-loops.md` |
 | Tracing a bad value backwards to its origin, stack-capture probes, finding which test pollutes shared state, layering guards after the fix | Phase 3 or Phase 6, when the error surfaces far from its cause | `references/root-cause-tracing.md` |
 | Decision trees for non-reproducible, test, build and runtime failures; `git bisect run` recipes | Phase 3, to pick where to look first | `references/triage-trees.md` |
+| Capture by symptom, reading CPU profiles and heap snapshots (self vs total, 0-based V8 lines, retaining paths), probable vs confirmed, measuring a change fairly | A profile, trace or heap snapshot is in hand, or a performance or memory problem needs one | `references/profiles.md` |
 
 ## Output format
 

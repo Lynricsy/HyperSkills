@@ -1,0 +1,20 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      # Keep the logs readable: the full build and test output is thousands of lines.
+      - name: Build
+        run: npm run build 2>&1 | head -n 40
+      - name: Test
+        run: npm test 2>&1 | tail -n 40

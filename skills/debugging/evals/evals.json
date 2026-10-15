@@ -60,5 +60,42 @@
       "Implements the new endpoint as asked instead of opening a diagnosis workflow for a bug that does not exist",
       "Answers from general knowledge without invoking the debugging skill"
     ]
+  },
+  {
+    "skills": ["debugging"],
+    "query": "Two problems on the shop service, and I only have captures, no repro yet. (1) The export worker's memory keeps climbing over the day; export-worker.heapsnapshot was taken from it this afternoon. (2) POST /checkout got slow; checkout.cpuprofile was recorded while load-testing it. Source is in src/. Tell me what is leaking and what is slow, with file:line I can open. Don't change any code yet.",
+    "files": [
+      "evals/files/profile/export-worker.heapsnapshot",
+      "evals/files/profile/checkout.cpuprofile",
+      "evals/files/profile/src/receipt.js",
+      "evals/files/profile/src/checkout.js",
+      "evals/files/profile/src/pricing.js",
+      "evals/files/profile/src/session-cache.js",
+      "evals/files/profile/src/export-worker.js"
+    ],
+    "expected_behavior": [
+      "Says a single heap snapshot shows what is held, not what grows, so it cannot by itself prove the leak; asks for or describes a second snapshot taken minutes apart under the same load and comparing per-type counts (Session objects) to confirm growth",
+      "Follows the retaining path from the Session objects to the first application-owned holder, the module-level sessionCache Map in src/session-cache.js (declared at line 4, filled at line 8 with no eviction), rather than stopping at the largest objects (payload strings, compiled code)",
+      "For the CPU profile, does not stop at the frame with the most self samples (the native NumberFormat frame) but walks its parents to the application caller, formatMoney in src/receipt.js, and names the statement at line 5 that constructs a new Intl.NumberFormat on every call from buildReceipt's loop",
+      "Converts the profile's 0-based lineNumber to 1-based source lines (formatMoney is receipt.js:4, buildReceipt receipt.js:10, handleCheckout checkout.js:4) instead of quoting the raw values 3, 9 and 3 as line numbers",
+      "Presents both causes as the most probable explanation from one recording each and names the capture that would confirm them (a second heap snapshot; a profile after the suspected code changes where the cost is gone), instead of calling them confirmed",
+      "Does not modify any file"
+    ]
+  },
+  {
+    "skills": ["debugging"],
+    "query": "`npm test` fails locally on commit 9b41e7c (local-run.txt) but CI is green on the same commit (ci-log.txt). Our workflow is ci.yml. Why is CI green, and fix the workflow so this can't happen again.",
+    "files": [
+      "evals/files/cigreen/ci.yml",
+      "evals/files/cigreen/ci-log.txt",
+      "evals/files/cigreen/local-run.txt",
+      "evals/files/cigreen/package.json"
+    ],
+    "expected_behavior": [
+      "Explains that the Test step's exit status is that of `tail`, the last command in the pipeline, so the two failing tests never fail the step",
+      "States that a `run` step with no `shell:` runs as `bash -e {0}` without pipefail, whereas `shell: bash` runs `bash --noprofile --norc -eo pipefail {0}` (or adds `set -o pipefail`), and fixes the workflow on that basis",
+      "Warns that once pipefail applies, the Build step's `| head -n 40` can fail a successful build with exit status 141 (SIGPIPE) when the build keeps writing after head exits, and changes that step so the full output is consumed (for example write it to a file and show its head, or drop the truncation) rather than leaving `| head` under pipefail",
+      "Does not mask the failure (`|| true`, `continue-on-error`) and treats the two failing tax-rounding tests as real failures to be fixed separately"
+    ]
   }
 ]

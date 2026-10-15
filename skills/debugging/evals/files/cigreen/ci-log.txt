@@ -1,0 +1,24 @@
+Run for 9b41e7c on ubuntu-latest — conclusion: success ✅
+
+▶ Run npm ci
+added 312 packages in 9s
+▶ Build
+Run npm run build 2>&1 | head -n 40
+> @acme/billing@5.0.3 build
+> node scripts/build.js --verbose
+[build] compiling src/invoice.ts
+[build] compiling src/credit-note.ts
+... (38 more lines) ...
+▶ Test
+Run npm test 2>&1 | tail -n 40
+✔ ledger export writes one row per line (0.4ms)
+✔ ledger export escapes commas (0.2ms)
+... (36 more lines) ...
+ℹ tests 416
+ℹ pass 414
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3412.8
+Job completed: success

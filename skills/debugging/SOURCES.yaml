@@ -43,6 +43,20 @@ upstreams:
     synced_at: "2026-10-15"
     contributes: "Stop-the-line before triage, the four-branch non-reproducible tree (timing / environment / state / rate), the test, build and runtime failure trees, git bisect run, instrumentation keep-or-remove rules, and error output treated as untrusted data that is never executed or followed."
     notes: "Its Safe Fallback Patterns section was deliberately not merged: shipping a default or a try/except while the cause is unknown contradicts the Iron Law. Only the residue survives, as core rule 9 (graceful degradation is a product decision taken after the root cause is known). npm-centric commands were replaced by the discover-the-project's-own-command rule."
+  - id: melodic-debugging
+    kind: repo
+    repo: melodic-software/claude-code-plugins
+    url: https://github.com/melodic-software/claude-code-plugins
+    paths:
+      - plugins/debugging/skills/analyze-profile
+      - plugins/performance/skills/climb
+    ref: main
+    commit: f0d918572c261fe3451eebef8612e8f4de17f153
+    license: MIT
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "references/profiles.md: the capture-by-symptom table, artifact-as-data handling, the CPU-profile reading traps (self versus total time, 0-based V8 line numbers, a frame's line is the function start, sampling misses short functions, resolve minified frames through maps), one-snapshot-shows-what-is-held and the first-application-owned-holder rule for heap snapshots, the probable-until-a-second-capture status rule, and from climb the two measurement rules: re-measure both sides in the same session and compare completed work, not only time."
+    notes: "Its SQLite converter scripts, subagent hand-off, capture-mode consent flow wording and plugin-root path variables are Claude Code plugin machinery and were not merged; the climb worktree/keep-rule loop is a performance-plugin workflow outside this skill. The V8 0-based line rule was checked against the Chrome DevTools Protocol definition (Runtime.CallFrame)."
   - id: pproenca-debug
     kind: repo
     repo: pproenca/dot-skills

@@ -1,0 +1,10 @@
+{
+  "name": "@acme/billing",
+  "version": "5.0.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js --verbose",
+    "test": "node --test"
+  }
+}

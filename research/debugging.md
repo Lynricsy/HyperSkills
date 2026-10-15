@@ -211,3 +211,35 @@ addy-debugging（tracked paths unchanged）、pproenca-debug（up to date）随 
 结论：gpt-6.1-sol 在场景 3 能自己造出复现，三次运行都没有走到「停下提问」，因此本 skill 内无法测得 yes 措辞的差异；该句作为与
 test-driven-development、code-review 逐字共享的提问格式同步合入，缺口证据见那两份 research（tdd 场景 6：基线 ✘、有 skill ✔；
 code-review 场景 3：无 skill ✘、旧 skill ✘、本轮正文 ✔）。场景 3 新增条目保留作哨兵。
+
+## 2026-10-15 上游新增内容评估
+
+依据：主代理的上游新增文件评估（NewS5：melodic `debugging/analyze-profile` MERGE、`performance/climb` 两条测量纪律、ECC `verification-loop` 的 pipefail/SIGPIPE MAYBE）。原文从 `/tmp/hs-attr` 裸仓库缓存读取：melodic-software/claude-code-plugins @ `f0d9185`（MIT，`gh api` 核）、affaan-m/everything-claude-code @ `b92f181`（MIT）。melodic 此前只被 git-workflow 追踪，本 skill 新增 upstream 条目 `melodic-debugging`。
+
+### 候选与裁决
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| melodic `analyze-profile`：按症状选采集、产物即数据、self/total、V8 0 基行号、帧行是函数起始行、采样漏短函数、单份堆快照只看到持有不看到增长、第一个应用自有持有者、一次录制只算最可能 | **合入**：新建 `references/profiles.md`，SKILL.md Phase 5 加一条核心要点（三句压缩版）与路由表一行 | 场景 5 基线 EB1 ◐（说了单快照不证明增长，但没要第二份快照）、EB5 ✘（把两处原因当结论陈述，没有说明需要什么采集来确认）；有 skill 全达成 |
+| melodic `climb`：两边同一时段重测、不和存下的旧数字比；核对完成的工作单元数 | **合入**（`profiles.md`「Measuring a change」） | 与 analyze-profile 同一条缺口链（「确认」需要第二次测量），未单独设场景；climb 的 worktree / keep-rule 循环属其 performance 插件流程，不取 |
+| melodic 的 SQLite 转换脚本、子代理分工、capture 模式的 Claude Code 授权流程 | 不合入 | 插件机制；正文只保留「先问再采、优先以子进程启动而非 attach」 |
+| ECC `verification-loop`：`cmd \| tail` 吞退出码要 `pipefail`；开 `pipefail` 后 `\| head` 让成功命令以 141 失败 | 不合入 | 场景 6 基线 4/4：指出 Actions 未写 `shell:` 时不带 pipefail、加 `shell: bash`，并改成「先完整写日志再 head/tail、按捕获的状态退出」以免 head 提前关管道；场景留作哨兵 |
+
+### 核实
+
+- V8 行列号 0 基：`gh api repos/ChromeDevTools/devtools-protocol/contents/json/js_protocol.json`（@ `dfad770`）中 `Runtime.CallFrame.lineNumber` 描述为 "JavaScript script line number (0-based)"。
+- Node 采集开关：本机 Node v26.10.0 `node --help` 列出 `--cpu-prof`、`--heap-prof`、`--heapsnapshot-signal`。
+- GitHub Actions 默认 shell（场景 6 期望行为依据）：docs.github.com workflow-syntax 表格，未写 `shell:` 时为 `bash -e {0}`，写 `shell: bash` 时为 `bash --noprofile --norc -eo pipefail {0}`。
+- 场景 5 夹具为脚本生成的自制数据（`.cpuprofile` 14 KB、`.heapsnapshot` 27 KB，结构按 DevTools Protocol 字段），未复制上游 fixture。
+
+### 评测结果
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals/debugging/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 无 | False | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✘ EB6 ✔ | 143 s。找到 `session-cache.js:4/8` 与 `receipt.js:5`，行号已按 1 基给出；「One snapshot establishes the retention mechanism, not the day's growth rate」但没要第二份快照；两处原因以 Diagnosis 定论陈述，没说明怎样确认 |
+| 5 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 79 s。两处均标「Most probable」；Verification 段写明「compare another heap snapshot under equivalent load」「re-profile … after formatter reuse」；说明已把 V8 0 基位置换成编辑器行号 |
+| 6 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 83 s。`shell: bash` + 先写 `$RUNNER_TEMP/*.log` 再 head/tail 并 `exit "$status"`；在临时夹具上验证退出码 0/1/7 保留。基线已达成，不合入 |
+
+结论：analyze-profile（含 climb 两条测量纪律）填补了场景 5 的 EB1/EB5 缺口，合入；pipefail/SIGPIPE 基线已具备，不合入，场景 6 留作哨兵。
