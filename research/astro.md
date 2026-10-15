@@ -34,3 +34,16 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 **遗留风险**
 - 场景 3 在 deepseek-v4.1-flash 下两次都不触发本 skill（description 未改动，属模型路由问题），场景 3 的有 skill 结果本次缺失。
 - 基线实测称：`src/content.config.ts` 中无 loader 的 `type:` 集合只告警、集合为空，并不报错；与 `references/content-collections.md` 故障表的「`Content collection missing loader`」及场景 2 预期不一致。本次未核实，留待下次对照文档与源码判定 `[INFERENCE]`。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py` 报告：`withastro-astro-skills`（124 commits）、`awesome-copilot-astro`（140 commits）共 2 条 `behind`，均为 diff too large to attribute to paths。主代理已在 shallow blobless 裸仓库缓存（`/tmp/hs-attr/github__awesome-copilot`、`/tmp/hs-attr/withastro__astro`）上按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 归因为空；本次复跑 `git log --oneline <pinned>..<head> -- <paths>` 仍为空，并用不依赖提交历史完整性的树对比 `git diff --stat <pinned> <head> -- <paths>` 与两端 `git ls-tree` 复核（结果为空、所有追踪路径在两端均存在），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| withastro-astro-skills | d94e841 → 71e2b24（124 commits，全仓 668 个文件变更） | 无：`.agents/skills/astro-developer`、`.agents/skills/astro-code-review` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| awesome-copilot-astro | 997e95a → 3cf7c7e（140 commits，全仓 827 个文件变更） | 无：`instructions/astro.instructions.md` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+
+其余仓库上游（`gigio-astro-dev`、`delineas-astro-framework`、`incluud-astro-skills` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（71e2b24、3cf7c7e、be297c3、3e32c91、4b4355e），`pin_check.py` 结果 PIN CHECK CLEAN。1 条 `kind: docs` 条目为 manual check，本次未改。
+
+结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。

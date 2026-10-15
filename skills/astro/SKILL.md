@@ -4,7 +4,7 @@ description: "Builds Astro sites with islands, content collections and server re
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.10.15"
   category: framework
 ---
 
