@@ -275,3 +275,17 @@ neolab、standard-readme、github-readme-stats、best-readme-template up to date
 `pin_check.py` 结果 `PIN CHECK CLEAN`。
 
 结论：正文与 references 未改，未新增评测，未跑 D2；SOURCES.yaml 的 jph-adr `paths`/`notes` 跟迁、re-pin、版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：5 条 `kind: docs` 条目的 `contributes` 事实 + references 中标 `[official]` 且出自这些页面的规则与数字。GitHub Docs 用 `gh api repos/github/docs/contents/...` 读源文件；Google 风格指南（global audience 页 2026-10-02、images 页 2026-10-09、code samples 页 2025-10-10）、Diátaxis、PyPA 直接读页面；Wikipedia 用 `action=raw` 读 wikitext。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| diataxis | 罗盘两问（action/cognition × acquisition/application）；教学契约责任几乎全在作者；how-to 回应人的项目；解释以 why 问题为界；不建空的四分结构、小步迭代让结构浮现；functional / deep quality | https://diataxis.fr/compass/ 、 /how-to-guides/ 、 /explanation/ 、 /tutorials/ 、 /how-to-use-diataxis/ 、 /quality/ | 一致（各页原句命中，如「Every how-to guide should answer to a human project」「nearly all the responsibility falls upon the teacher」「create empty structures … Don't do that」） |
+| google-devdocs-style | commence/consequently/utilize 等简单词；少用短语动词；不超过两个名词作修饰；only 紧贴所限成分；不省关系代词；条件从句在前；定义缩写；避免方位语；文化习语/幽默/季节、多样示例名；代码元素加限定名词；省略代码用注释不用省略号、含省略的块不设一键复制；冒号或句号引出代码块；80 字符换行；图片内文字 | https://developers.google.com/style/translation 、 /style/code-samples 、 /style/images | 前述各项一致。**更正（措辞）**：`plain-english.md` 原写「Images are not translated」；images 页的表述是图中文字「increases localization costs if figures are localized」，即图片可被本地化但代价高。改为「图中文字只有在单独本地化图片时才会被翻译，多数页面不会做」，结论（仅存在于图中的信息对译文读者与读屏用户不可得）不变 |
+| github-writing-docs | 标题 slug（小写、空格变连字符、其余标点删除）；自定义锚点不进大纲；自动目录；`<picture>` 受支持且示例以内层 `<img>` 带 alt 作回退；alerts 仅在关键时用、每篇一两个、不相邻、不可嵌套；mermaid/geoJSON/topoJSON/STL；README 查找顺序 `.github` → 根 → `docs`；500 KiB 截断；上传上限（图片/GIF 10MB，视频免费 10MB、付费 100MB，其他 25MB）、PNG/GIF/JPEG/SVG/mp4/mov/webm、推荐 H.264 | `github/docs` 源文件：basic-writing-and-formatting-syntax.md、attaching-files.md、creating-diagrams.md、about-readmes.md、`data/reusables/getting-started/picture-element-example.md` | 一致 |
+| pypa-readme | 项目页由清单指定的 README 渲染；`long_description_content_type`；`twine check dist/*` 是上传前检查 | https://packaging.python.org/en/latest/guides/making-a-pypi-friendly-readme/ | 一致（页面未写明渲染器名为 readme_renderer，该点仍以 `notes` 所述实测为准） |
+| wikipedia-ai-signs | 结构性 vs 词汇性信号；词汇信号「一两个无意义」；em dash 两侧加空格、计数是弱信号；弯直引号混用；标题 Title Case；助手标记残留（`oaicite`、`contentReference`、`turn0search0`、`[cite: 1]`、`utm_source=openai`/`chatgpt.com`、`referrer=grok.com`）；多个死链；检测器错误率不低；少用 LLM 的人约等于随机 | https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing | 其余一致（各标记字符串在 wikitext 中均出现；「only Claude used em dashes more than professional writers, and ChatGPT used them less」支持正文）。**更正（措辞）**：`human-voice.md` 称成堆的 AI 词汇是「the strongest single indicator there is」，页面原意为「one of the strongest tells」，改为「one of the strongest tells」。页面新增「2026-09 起部分模型被硬编码为完全不用 em dash」，进一步说明计数是弱信号，与正文方向一致，仅记录 |
+
+正文改动：`references/plain-english.md`、`references/human-voice.md` 各一处措辞更正；其余仅更新 synced_at。未新增规则、未新增评测场景、未跑 D2。

@@ -116,8 +116,8 @@ explain what the document is about to do.
 ## Lexical tells, and why a word list rots
 
 Some words became statistically overused after 2022 and are a real signal in
-quantity. One or two mean nothing; a dozen in one page is the strongest single
-indicator there is. [official]
+quantity. One or two mean nothing; many of them, many times, in one page is one
+of the strongest tells there is. [official]
 
 The cluster worth searching a README for: `delve`, `underscore`, `showcase`,
 `leverage`, `harness`, `pivotal`, `crucial`, `vital`, `testament`, `landscape`,

@@ -155,10 +155,11 @@ the project has a glossary, it wins over your preference.
 
 ## Things that do not translate at all
 
-Images are not translated. Any information that exists only inside a screenshot
-or a diagram is unavailable to a translated reader, and to a reader using a
-screen reader. New information goes in text; images illustrate what the text
-already said. [official]
+Text inside an image is translated only if someone localises the figure itself,
+a separate and costly step most pages never get. Any information that exists
+only inside a screenshot or a diagram is therefore unavailable to a translated
+reader, and always to a reader using a screen reader. New information goes in
+text; images illustrate what the text already said. [official]
 
 The same holds for text baked into a diagram, a table rendered as a picture, and
 a code sample delivered as a screenshot — the last is also uncopyable, which is

@@ -39,7 +39,7 @@ upstreams:
     url: https://diataxis.fr
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The four document types and the compass that decides between them from two questions about the reader (does the content inform action or cognition; does it serve acquisition or application of skill). The teaching contract in which nearly all obligation sits with the author. The requirement that a how-to guide answer a human project rather than describe an operation the machinery can perform. Explanation bounded by a why-question because nothing else bounds it. The refusal to create empty per-type scaffolding, and the iterative page-at-a-time working method that produces the structure as an outcome. The functional-quality / deep-quality distinction, which is why this skill writes rules only for the checkable half."
     notes: "Licence read from the repository's own LICENSE.rst (evildmp/diataxis-documentation-framework), whose first line is Creative Commons Attribution-ShareAlike 4.0 International; the GitHub API reports NOASSERTION. Per this repository's licence rules for CC-BY-SA-4.0, only the structure and checklist semantics are taken and every sentence here is written fresh - no upstream text, table or image is reproduced."
   - id: google-devdocs-style
@@ -47,7 +47,7 @@ upstreams:
     url: https://developers.google.com/style
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Every mechanically checkable item in references/plain-english.md: simpler words for commence/consequently/utilize/a number of, avoiding phrasal verbs where a single verb exists, no more than two nouns modifying another noun, only placed immediately before what it limits, keeping the helper words conversational English drops (then, that, of), not omitting relative pronouns, consistent terminology and capitalisation, condition-clause-first sentences, second person, present tense, active voice, expanding abbreviations, replacing ambiguous pronouns, avoiding directional language, and the inclusivity items (no idioms, no humour, no seasons as dates, diverse example names). From /style/code-samples: marking omitted code with a comment in the sample's language rather than an ellipsis, not offering a block containing an omission as click-to-copy, the colon-or-period rule for introducing a block, 80-character wrapping, and qualifying nouns for code elements. From /style/images: information that exists only inside an image is unavailable to a translated reader."
     notes: "Licence read from the page footer's own Creative Commons Attribution 4.0 statement; attribution is carried in NOTICE.md. Guidance specific to Google's own publishing pipeline (devsite annotations, the Android and Cloud logo conventions, the four-space Markdown code-block convention that conflicts with fenced blocks used everywhere in this repository) is not adopted. Its reference hierarchy pointing at the Microsoft Writing Style Guide is not followed: that guide is proprietary."
   - id: keep-a-changelog
@@ -151,7 +151,7 @@ upstreams:
     url: https://docs.github.com/en/get-started/writing-on-github
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Every [official] statement about what a forge actually renders: the heading-slug rule that letters are lower-cased, spaces become hyphens and all other punctuation is removed - which is what makes an emoji heading slug start with a hyphen; custom anchors being excluded from the generated outline; the automatically generated table of contents from headings, which is the argument against a hand-written one on a short file; <picture> with prefers-color-scheme and the instruction that the inner <img> is the fallback and must carry the alt text; <details> and its open attribute; the alerts syntax together with the guidance to use them only when crucial, to keep to one or two per page and never to place them consecutively or nested; mermaid, geoJSON, topoJSON and STL fenced blocks; the recommendation to use relative links inside a repository; the README lookup order .github then root then docs; the 500 KiB rendering truncation; and the upload limits and supported media types, including H.264 for video compatibility."
     notes: "Licence per the GitHub Docs repository's own terms for documentation content (CC BY 4.0); attribution is carried in NOTICE.md. No text is reproduced - each statement was re-derived and rewritten. The relative-link recommendation is adopted only for files that are never published to a package registry: measurement shows relative paths do not resolve on a registry page, and that conflict is settled in references/readme-portability.md rather than by following either source unconditionally. Profile-README material on those pages is out of scope for this skill."
   - id: pypa-readme
@@ -159,7 +159,7 @@ upstreams:
     url: https://packaging.python.org/en/latest/guides/making-a-pypi-friendly-readme/
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "That a Python package's project page is rendered from the README named by the manifest, that the renderer is readme_renderer rather than the forge's, and that twine check is the pre-upload way to find out what the page will look like. This is the basis for treating the README as a multi-renderer artefact rather than a repository page."
     notes: "Licence per the PyPA packaging guide's own CC BY-SA 4.0 terms; no text reproduced. The page does not document which HTML survives the renderer, so the support matrix in references/readme-portability.md was measured directly with readme_renderer and the reproduction commands are recorded in research/technical-writing-readme-presentation.md."
   - id: standard-readme
@@ -191,7 +191,7 @@ upstreams:
     url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The whole structure of references/human-voice.md: the split between structural tells that survive model changes and lexical ones that decay, copula avoidance, the trailing present-participle pseudo-analysis, undue emphasis on significance and broader trends, vague attribution and overgeneralised opinion, the rule of three, the negative-parallelism family, the challenges-and-future-prospects ending, section summaries, and the mechanical signals - spaced em dashes, mixed curly and straight quotation marks, title case in headings, thematic breaks between every section, and assistant markup leftovers such as oaicite, [cite: 1] and utm_source=openai. Also the two caveats that keep the page honest: detection tools have non-trivial error rates and people who do not use these models heavily perform at about chance, so the page is written as an editing pass rather than an accusation."
     notes: "Licence is Wikipedia's CC BY-SA 4.0. Handled the same way as diataxis in this file: structure and semantics only, every sentence written fresh, no table, list or example text reproduced. Two of its findings correct the awesome-readme-skill upstream: em-dash frequency is a weak indicator and one current model uses them less than professional writers, and the bolded-lead bullet list is a habit inherited from READMEs, so flagging it inside a README is a false positive. Its Wikipedia-specific signs - wikitext bugs, category and template hallucination, Articles-for-Creation artefacts, edit-summary patterns - are not carried over."
   - id: shields
