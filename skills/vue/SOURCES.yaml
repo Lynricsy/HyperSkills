@@ -80,38 +80,38 @@ upstreams:
     url: https://vuejs.org/guide/introduction.html
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authority for every version-sensitive statement: what Reactive Props Destructure does and does not transform (3.5+) and why a destructured prop passed into a function needs a getter, shallowRef's actual purpose and the real magnitude of deep-reactivity overhead, watcher cleanup and flush timing, data-allow-mismatch, useId, useTemplateRef, v-memo and v-once semantics, hydration mismatch causes, and attribute fallthrough rules."
-    notes: "Sources live in vuejs/docs, whose LICENSE file is Creative Commons Attribution 4.0 International (images excepted); the GitHub API reports NOASSERTION. Attribution: Vue.js documentation, copyright 2019-present Yuxi (Evan) You and Vue documentation contributors, CC BY 4.0. Only technical facts were taken; all wording here is original. Current GA was confirmed as Vue 3.5.42 through the releases API, with 3.6.0-rc still a prerelease, so nothing 3.6-specific is stated."
+    notes: "Sources live in vuejs/docs, whose LICENSE file is Creative Commons Attribution 4.0 International (images excepted); the GitHub API reports NOASSERTION. Attribution: Vue.js documentation, copyright 2019-present Yuxi (Evan) You and Vue documentation contributors, CC BY 4.0. Only technical facts were taken; all wording here is original. Current GA was confirmed as Vue 3.5.44 through npm at the 2026-10-15 review, with 3.6.0-rc still a prerelease, so nothing 3.6-specific is stated."
   - id: nuxt-docs
     kind: docs
     url: https://nuxt.com/docs
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The Nuxt facts this skill turns into rules: useFetch keys including the call site, the must-match versus may-differ option lists for calls sharing a key, deep defaulting to false so data is a shallow ref, createUseFetch being a compiler macro that must be an exported declaration and useFetch being a reserved name, the independence of await and lazy, private runtimeConfig being server-only, the hydration-mismatch cause and fix table, componentIslands defaulting to auto, and the app/ directory layout."
-    notes: "Sources live in nuxt/nuxt under docs/, which carries that repository's MIT licence. Current GA was confirmed as Nuxt 4.5.2 through the releases API; the Nitro v3 and import-path changes documented for Nuxt 5 are deliberately not stated here."
+    notes: "Sources live in nuxt/nuxt under docs/, which carries that repository's MIT licence. Current GA was confirmed as Nuxt 4.6.1 through npm at the 2026-10-15 review, with the facts above re-read at the v4.6.1 tag; the Nitro v3 and import-path changes documented for Nuxt 5 are deliberately not stated here."
   - id: pinia-docs
     kind: docs
     url: https://pinia.vuejs.org/core-concepts/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "That a setup store must return all state properties and that making them readonly breaks SSR, devtools and plugins just as omitting them does; storeToRefs' exact behaviour including plugin-added properties and directly destructurable actions; that $reset exists only on option stores; store use outside components and inside router guards; $patch, $subscribe and $onAction; and that Pinia 4 is ESM-only with @vue/devtools-api as a required peer dependency."
-    notes: "Sources live in vuejs/pinia under packages/docs, which carries that repository's MIT licence. Current release confirmed as Pinia 4.0.3 through the releases API."
+    notes: "Sources live in vuejs/pinia under packages/docs, which carries that repository's MIT licence. Current release confirmed as Pinia 4.1.0 at the 2026-10-15 review, with the facts above re-read at the v4.1.0 tag."
   - id: router-docs
     kind: docs
     url: https://router.vuejs.org/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Navigation guard return-value semantics and which guard runs on a param change, reacting to param changes, the RouteRecordInfo and TypesConfig shape for typed routes including the raw-versus-normalised param types, RouteMeta augmentation, scrollBehavior, and that Vue Router 5 merges unplugin-vue-router into core with no breaking changes for v4 users apart from the IIFE build."
-    notes: "Sources live in vuejs/router under packages/docs, which carries that repository's MIT licence. Current release confirmed as Vue Router 5.3.1 through the releases API."
+    notes: "Sources live in vuejs/router under packages/docs, which carries that repository's MIT licence. Current release confirmed as Vue Router 5.4.0 at the 2026-10-15 review, with the facts above re-read at the v5.4.0 tag."
   - id: vue-test-utils-docs
     kind: docs
     url: https://test-utils.vuejs.org/guide/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The exact shapes this skill's test examples rely on: the global.plugins mounting option, emitted() payload assertions, findComponent for driving child events, flushPromises versus nextTick, and the trade-off of shallow mounting."
-    notes: "Sources live in vuejs/test-utils, MIT. Vue Test Utils 2.5 is the current release."
+    notes: "Sources live in vuejs/test-utils, MIT. Vue Test Utils 2.5 (2.5.1) is the current release."

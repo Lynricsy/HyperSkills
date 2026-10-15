@@ -193,3 +193,18 @@ repo moved / paths unchanged，`awesome-copilot` too-large 但归因为空）随
 结论：**正文未变**，仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin 更新为 2026.10.15；
 未新增评测场景，未跑 D2。`pin_check.py`：PIN CHECK CLEAN。遗留沿用上节：Nuxt 5 GA 后重写 `references/nuxt.md`
 的 server routes 一节。
+
+## 2026-10-15 文档上游复核
+
+五个 docs 条目均以 GitHub 源文件为准（`gh api` 读取，Nuxt/Pinia/Router 读当前发布 tag），版本经 npm registry 核实：vue `latest` 3.5.44（`rc` 3.6.0-rc.11）、nuxt 4.6.1、pinia 4.1.0、vue-router 5.4.0、@vue/test-utils 2.5.1。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| vue-docs | Reactive Props Destructure（3.5+）：编译器自动前置 `props.`，传入函数需包成 getter；`onWatcherCleanup`（3.5+，须同步调用）与 `flush: 'post'`；`data-allow-mismatch`、`useId`、`useTemplateRef`（均 3.5+）；`v-memo`（3.2+）；`shallowRef` 用途 | vuejs/docs `src/guide/components/props.md`、`essentials/watchers.md`、`api/ssr.md`、`api/composition-api-helpers.md`、`api/built-in-directives.md`、`best-practices/performance.md`（main 40aa88a，2026-09-15） | 一致。09-11 后仅 8 个文档提交，其一（#3459）补「子组件 scoped 样式不作用于插槽内容」，与 `references/components.md`「`:slotted()`/`:deep()`」一致 |
+| vue-docs | 当前 GA 3.5，3.6 仍为预发布 | npm `vue` dist-tags | 一致（notes 中版本号 3.5.42 → 3.5.44） |
+| nuxt-docs | `useFetch` key 含调用位置；共享 key 时必须一致（`handler`/`deep`/`transform`/`pick`/`getCachedData`/`default`）与可不同（`server`/`lazy`/`immediate`/`dedupe`/`watch`）；`deep` 默认 `false`；`createUseFetch` 是须导出的编译宏、`useFetch` 为保留名；`await` 与 `lazy` 相互独立；私有 runtimeConfig 仅服务端；`componentIslands` 默认 `'auto'` | nuxt/nuxt v4.6.1 `docs/1.getting-started/10.data-fetching.md`、`docs/4.api/2.composables/use-fetch.md`、`create-use-fetch.md`、`docs/3.guide/6.going-further/10.runtime-config.md`；`packages/schema/src/config/experimental.ts`（`componentIslands` `$resolve` → `'auto'`） | 一致。4.6 新增 `defineUseFetchAddon`、`runtimeConfig.appSecret`（`app` 前缀键保留给 Nuxt）——不涉本 skill 现有规则，仅记录 |
+| pinia-docs | setup store 必须返回全部 state、设 readonly 同样破坏 SSR/devtools/插件；`storeToRefs` 含插件属性、action 可直接解构；`$reset` 仅 option store；Pinia 4 ESM-only（`type: module`）、`@vue/devtools-api` 为必需 peer（`optional: false`） | vuejs/pinia v4.1.0 `packages/docs/core-concepts/index.md`、`state.md`、`packages/pinia/package.json` | 一致。4.1.0 新增 `getStores()`、修复 `$patch` 对象语法触发 shallow ref——正文无相反断言 |
+| router-docs | 守卫返回值（`false` 取消、路由地址重定向、`undefined`/`true` 放行）；参数变化用 `beforeRouteUpdate`/`onBeforeRouteUpdate`；`RouteRecordInfo` 类型化路由；`scrollBehavior` 的 `savedPosition` 仅 popstate；v5 合入 unplugin-vue-router，v4 用户除 IIFE 外无破坏性变更 | vuejs/router v5.4.0 `packages/docs/guide/advanced/navigation-guards.md`、`essentials/dynamic-matching.md`、`advanced/typed-routes.md`、`advanced/scroll-behavior.md`、`migration/v4-to-v5.md` | 一致。5.4.0 的破坏性变更与「默认恢复 hash/top」均限 experimental 路由器，不影响 `createRouter` 的 `scrollBehavior` |
+| vue-test-utils-docs | `global.plugins`、`emitted()`、`findComponent`、`nextTick` 与 `flushPromises` 的区别、`shallow: true` | vuejs/test-utils main `docs/guide/advanced/async-suspense.md`、`essentials/event-handling.md`、`advanced/stubs-shallow-mount.md`、`docs/api/index.md` | 一致（2.5.1 仅类型与构建修复） |
+
+正文未改；五个条目 `synced_at` 更新为 2026-10-15，notes 中的「当前版本」同步为本次实查值。
