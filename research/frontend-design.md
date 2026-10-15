@@ -521,3 +521,45 @@ iPad 上用）。
 
 结论：vercel-wig 的桌面去回弹规则基线 2.5/5 → 有 skill 5/5，合入；其余 5 条为噪声或元数据更新（antfu 删除、taste-skill
 路径迁移）。版本号改为 2026.10.15，re-pin 后 `pin_check.py`：PIN CHECK CLEAN。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS3——emilkowalski/skills `skills/animation-performance`、`skills/break-ui`（MIT，2d22863，已由 `emil-animations`
+追踪），event4u-app/agent-config `src/skills/svg-authoring` 末尾 gotchas 中的 SMIL 陷阱（MIT，只取 gotchas）。Motion 简写与每帧
+setState 两条属于 react skill，不在本次范围。
+
+核实：Chromium 源码（`chromium/chromium` main `6364ff2`）`third_party/blink/renderer/core/animation/compositor_animations.cc`
+与 `cc/paint/filter_operations.cc`；Chrome DevTools Performance 参考文档；SVG Animations 规范；本机 Playwright 1.64.1 驱动
+Chromium 156 与 Firefox 实测（`/tmp/m3-pw/smil.mjs`、`fixture.mjs`）。
+
+| 候选 | 来源 | 核实证据 | 基线 | 结论 |
+|---|---|---|---|---|
+| `margin`/`width` 等布局属性换 `transform` | animation-performance | 已有（`layout-density-motion.md` Motion performance） | 场景 12 E1 ✔ | 已覆盖 |
+| `box-shadow` 动画每帧重绘，改动画 `filter: drop-shadow()` | animation-performance | **部分不成立**：`box-shadow` 不在 Blink 可合成属性列表（transform/opacity/filter/backdrop-filter/background-color/clip-path）里，确实每帧重绘；但 `filter` 关键帧只要含会移动像素的滤镜（`HasFilterThatMovesPixels`：BLUR、DROP_SHADOW、ZOOM、OFFSET、REFERENCE）就记 `kFilterRelatedPropertyMayMovePixels` 失败原因，不上合成器 | 场景 12 E2 ✔（伪元素预置阴影 + 动画 `opacity`，未提 drop-shadow） | 不合入（基线已会；上游 drop-shadow 替换说法与 Chromium 源码相悖，记入 SOURCES notes） |
+| 120Hz 每帧 8.3ms；DevTools CPU 节流模拟不了移动设备，要真机远程调试 | animation-performance | DevTools 文档：「Throttling is relative to your computer's capabilities」「DevTools can't truly simulate the CPUs of mobile devices」 | 场景 12 E3 ✔ | 不合入（基线已会） |
+| 页面忙时的动画放 CSS/WAAPI；`will-change` 最后才加；blur < 20px | animation-performance | 已有 | — | 已覆盖 |
+| reduced-motion 下 CSS `animation: none` 停不住 SMIL，要在 SMIL 本身门控 | svg-authoring | 实测（`reducedMotion: 'reduce'` + `*, svg * { animation: none !important }`）：Chromium 0→94°、Firefox 2→135°，`<animateTransform>` 照转 | 场景 12 E4 ✔（改用 CSS 旋转动画，再由 reduced-motion 规则停下） | 不合入（基线已会） |
+| `keySplines` 超出 [0,1] 时动画直接失效 | svg-authoring | 规范：「The values must all be in the range 0 to 1 … If there are any errors in the keySplines specification … the document fragment is in error」；实测 Chromium、Firefox 两种浏览器的 `animVal` 均为空、`r` 恒为初值 | 场景 12 E5 ✔ | 不合入（基线已会） |
+| `<img>` 嵌入的 SVG 读不到系统动效偏好 | svg-authoring | 未核实 | — | 不合入（评估报告已标未核实） |
+| 压测 UI：限值取自 schema、从数据边界注入、空/一条/上限三种状态、真实宽度 + 320px + 200% 缩放 + RTL 渲染矩阵、`flex-shrink: 0` / `min-width: 0`、`Intl.PluralRules`、`Intl.Segmenter` 取首字母、按字段选截断 | break-ui | WCAG 2.2 SC 1.4.10（320 CSS px 重排）、SC 1.4.4（200% 文本缩放）；MDN `Intl.PluralRules`、`Intl.Segmenter`（grapheme 粒度） | 场景 13 E1 ◐ E2 ✔ E3 ◐ E4 ✔ E5 ✔ E6 ✘ | **合入**：SKILL.md 新增 `stress-test-content` 工作流 |
+
+### 评测（omp + `openai/gpt-6.1-sol`，thinking `medium`）
+
+新增场景 12（夹具 `ops-dashboard.html`：`margin-left` 侧栏、`box-shadow` 悬停、reduced-motion 下仍转的 SMIL 图标、超范围
+`keySplines` 的脉冲点）与场景 13（夹具 `MemberRow.tsx`：带 zod 限值的成员行，360px 侧栏）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12 动效性能 | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✔ E3 ✔ E4 ✔ E5 ✔ | 伪元素阴影 + `opacity`；「DevTools’ 6× CPU slowdown is not Android hardware emulation」；SMIL 换 CSS 动画；「`keySplines` requires all four control-point coordinates in `[0,1]`」 |
+| 13 压测成员行 | gpt-6.1-sol medium | 无 | false | E1 ◐ E2 ✔ E3 ◐ E4 ✔ E5 ✔ E6 ✘ | 用 schema 上限渲染并给 `shrink-0`/`min-w-0`、`Intl.Segmenter`；漏掉空列表/大列表、标题里的「1 members」，只在 360px 一个宽度下检查 |
+| 13 压测成员行 | gpt-6.1-sol medium | 有 | true | **E1 ✔** E2 ✔ **E3 ✔** E4 ✔ E5 ✔ **E6 ✔** | 列出每个值的来源与限值（含「unbounded」）；渲染空、单条、1,000 行；「`1 members` and `1 projects`」；验证范围写明 360px、320px、RTL、200% 文本放大（原生缩放未测） |
+
+D2 判定：基线未达成 / 部分达成的场景 13 E1、E3、E6 在有 skill 时达成。场景 12 基线全部达成，对应内容不合入，场景留作哨兵，
+未跑有 skill。负例（场景 4）未改 description / Scope，未重跑。输出目录：`/tmp/hs-evals-M3/fd-b12`、`fd-b13`（基线）、`fd-s13`（有 skill）。
+
+### 正文改动
+
+- `SKILL.md` Workflows：新增 `stress-test-content`（列值与限值 → 构造最坏数据并从数据边界注入 → 空/一条/上限 → 渲染矩阵 →
+  按成因修 → 按字段选截断），以「每个值有限值或 unbounded、每个问题有 path:line、写明哪些宽度实际渲染过」为门。
+- `SOURCES.yaml`：`emil-animations` 的 `paths` 加 `skills/break-ui/SKILL.md`，`contributes` / `notes` 更新（含 animation-performance 未合入的理由）。
+- event4u-app/agent-config 未合入任何内容，不新增 SOURCES 条目。

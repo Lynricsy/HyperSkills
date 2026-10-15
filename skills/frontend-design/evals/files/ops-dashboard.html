@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet ops</title>
+<style>
+  :root { --bg: #0f1115; --panel: #171a21; --ink: #e8eaf0; --muted: #9aa3b2; --accent: #4f8cff; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  .shell { display: flex; min-height: 100vh; }
+
+  /* Sidebar slides in from the left and pushes the content. */
+  .sidebar { width: 260px; margin-left: -260px; background: var(--panel); transition: margin-left 320ms ease; }
+  .shell.open .sidebar { margin-left: 0; }
+  .content { flex: 1; padding: 24px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border-radius: 12px; padding: 16px;
+          box-shadow: 0 1px 2px rgb(0 0 0 / .3);
+          transition: box-shadow 200ms ease, transform 200ms ease; }
+  .card:hover { box-shadow: 0 18px 40px rgb(0 0 0 / .45); transform: translateY(-2px); }
+
+  .sync, .live { width: 16px; height: 16px; vertical-align: -3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after, svg * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+  <nav class="sidebar" aria-label="Main">…</nav>
+  <main class="content">
+    <button id="toggle">Menu</button>
+    <section class="grid" id="grid">
+      <article class="card">
+        <h2>Van 14
+          <!-- Spinner while the vehicle is syncing. -->
+          <svg class="sync" viewBox="0 0 16 16" role="img" aria-label="Syncing">
+            <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="28 10">
+              <animateTransform attributeName="transform" type="rotate" from="0 8 8" to="360 8 8"
+                                dur="0.9s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <!-- "Live" dot. Design asked for an overshooting pulse; since that change it no longer pulses at all. -->
+          <svg class="live" viewBox="0 0 16 16" role="img" aria-label="Live">
+            <circle cx="8" cy="8" r="4" fill="#3ddc84">
+              <animate attributeName="r" values="4;6;4" keyTimes="0;0.5;1" dur="1.6s"
+                       repeatCount="indefinite" calcMode="spline"
+                       keySplines="0.3 -0.4 0.7 1.4; 0.3 -0.4 0.7 1.4"/>
+            </circle>
+          </svg>
+        </h2>
+        <p>Route 7 · 42 stops</p>
+      </article>
+      <!-- 300 more cards are rendered from /api/fleet -->
+    </section>
+  </main>
+</div>
+<script>
+  document.getElementById('toggle').addEventListener('click', () => {
+    document.getElementById('shell').classList.toggle('open');
+  });
+</script>
+</body>
+</html>

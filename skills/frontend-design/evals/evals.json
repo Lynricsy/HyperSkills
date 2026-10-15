@@ -137,5 +137,30 @@
       "States that overscroll-behavior: none also turns off scroll chaining and the browser's overscroll swipe navigation (back/forward gesture), not just the visual bounce",
       "Keeps overscroll-behavior: contain for modals, drawers and inner scroll panes instead of replacing everything with none"
     ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Our fleet ops dashboard (ops-dashboard.html) janks on the field team's mid-range Android tablets, mostly when the sidebar opens and when cards are hovered. On my MacBook with DevTools CPU throttling at 6x it looks smooth, so I am not sure it is real. Separately, a dispatcher with Reduce Motion turned on says the sync icons still spin, and design says the green live dot stopped pulsing after they gave it an overshooting ease. Diagnose each problem and give me the fixes.",
+    "files": ["evals/files/ops-dashboard.html"],
+    "expected_behavior": [
+      "Moves the sidebar from a `margin-left` transition to `transform: translateX(...)`, because animating margin re-lays out the content beside it on every frame",
+      "Stops animating `box-shadow` on card hover: puts the raised shadow on a pseudo-element and transitions its `opacity` (or drops the shadow change), and does not offer `filter: drop-shadow()` as the cheap substitute, since Chromium does not composite filter animations that move pixels",
+      "Says a throttled desktop run is not evidence for the tablets (DevTools cannot emulate a mobile CPU or GPU) and asks for a Performance recording on an actual tablet through remote debugging",
+      "Explains that the reduced-motion rule cannot stop the SMIL `<animateTransform>` because CSS `animation: none` only affects CSS animations; gates the SMIL animation itself (for example `pauseAnimations()` when `prefers-reduced-motion: reduce` matches, or rendering a static icon)",
+      "Identifies the `keySplines` control values outside the 0–1 range as the reason the live dot no longer animates (the animation is in error and is dropped, not clamped), and moves the overshoot into `values` instead"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Before we ship the new members panel, stress-test MemberRow.tsx: find out what breaks with realistic worst-case data and tell me the fix for each break. It lives in a 360px side panel.",
+    "files": ["evals/files/MemberRow.tsx"],
+    "expected_behavior": [
+      "Builds the worst case from realistic values or the schema limits (`name` 120, `email` 254, `role` 60) and feeds it through the data boundary (fixture or props), not by editing the markup; also covers zero members, exactly one, and a large list",
+      "Adds `flex-shrink: 0` (`shrink-0`) to the avatar, the count badge and the actions button, and `min-width: 0` (`min-w-0`) to the text column so long values cannot squeeze the avatar or push the actions button out of the row",
+      "Fixes the plurals (`1 members`, `1 projects`) with `Intl.PluralRules` or per-count messages",
+      "Rewrites `initials()` to work on grapheme clusters (`Intl.Segmenter`) using the first and last word, with a fallback icon, so emoji-first, single-word and multi-part names do not produce broken or wrong initials",
+      "Chooses wrap or truncation per field rather than one global rule: never truncates the project count, and keeps any truncated name or email readable in full (tooltip, title or a detail view)",
+      "Checks the result at the real 360px panel width, at 320px, at 200% zoom and in RTL"
+    ]
   }
 ]

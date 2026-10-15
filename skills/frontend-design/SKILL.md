@@ -91,6 +91,20 @@ Use when UI code already exists.
 
 Gate: every finding carries a `path:line` and a replacement, every reviewed file appears in the output, the output opens with the first file heading rather than a summary, and no replacement asserts a fact that could only come from the project.
 
+### stress-test-content
+
+Use when asked to stress-test a component or screen, find its edge cases, or try the worst case. Demo data is chosen to make a design look good; this workflow undoes that one field at a time.
+
+- [ ] List every rendered value (including header counts, badges, relative times, avatars and the list length itself) with its source and limit from the validation schema, column type, API type or `maxLength`. A value with no limit anywhere is a finding: say "unbounded".
+- [ ] Build one worst-case dataset from plausible values or those exact limits, never keyboard mash, and spread the failures across rows: long hyphenated and multi-part names, one-letter and single-word names, emoji-first names, long corporate emails, missing optional fields, counts at 0, 1 and four digits.
+- [ ] Feed it where the demo data enters (fixture, props, mock, API stub). Editing markup or CSS to force a break tests the edit, not the component.
+- [ ] Add the states one dataset cannot hold: an empty list, exactly one item with every count at 1, and the realistic maximum list length (a long unpaginated list is a performance break too).
+- [ ] Render at the component's real container width, then 320 CSS px, then 200% zoom, then RTL and dark mode where the product supports them. Text grows and fixed boxes do not.
+- [ ] Map each break to its cause and fix: `flex-shrink: 0` on avatars, icons, badges and trailing actions; `min-width: 0` on the text column; top-align rows once their text can wrap; plurals through `Intl.PluralRules` or per-count messages; initials from grapheme clusters (`Intl.Segmenter`) of the first and last word, with a fallback icon.
+- [ ] Decide wrap, end truncation, middle truncation or clamp per field. Middle-truncate values that differ at the end (file names, paths, hashes); never truncate numbers, amounts or dates; keep every truncated value readable in full.
+
+Gate: every rendered value has a limit or "unbounded", every break is reported as value, cause and fix with a `path:line`, and the report states which of real width, 320 px, 200% zoom and RTL were rendered and which were inferred from the code.
+
 ### modernize-css
 
 Use when picking or replacing a CSS or HTML platform feature.
