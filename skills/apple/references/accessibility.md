@@ -108,10 +108,13 @@ additional work is about *cost per element*:
 ## Colour, contrast, and motion
 
 - Contrast minimums are WCAG 2.2 AA: **4.5:1** for body text, **3:1** for large text
-  (18 pt regular or 14 pt bold and above) and for meaningful UI components.
-- Minimum target size under WCAG 2.2 AA (SC 2.5.8) is **24×24 CSS px**; Apple's own iOS
-  guidance is stricter at **44×44 pt**, which is the number to enforce on touch. Neither
-  applies to macOS pointer chrome, where standard controls are around 28 pt.
+  (18 pt regular or 14 pt bold and above) and for meaningful UI components. The HIG's own
+  table is 4.5:1 up to 17 pt, 3:1 from 18 pt, and 3:1 for bold text at any size.
+- Minimum target size under WCAG 2.2 AA (SC 2.5.8) is **24×24 CSS px**. The HIG gives a
+  default and a minimum control size per platform: iOS/iPadOS and watchOS **44×44 pt**
+  default, **28×28 pt** minimum; macOS 28×28 pt default, 20×20 pt minimum; visionOS
+  60×60 pt default; tvOS 66×66 pt default. Build touch targets to the 44 pt default and
+  treat anything below it as a documented exception that never goes under 28 pt.
 - Never carry meaning in colour alone. Honour
   `\.accessibilityDifferentiateWithoutColor` with an icon, pattern, stroke, or text.
 - Honour `\.accessibilityReduceMotion` per animated component; the system gates its own

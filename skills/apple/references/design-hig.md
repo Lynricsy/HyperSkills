@@ -33,9 +33,9 @@ inside the design system rather than per feature — the improvement then propag
   number.
 - Avoid hard-coded padding and stack spacing unless asked. The defaults adapt to platform
   and size class; a literal does not.
-- The minimum tap target on iOS is 44×44 pt, enforced strictly. On macOS this number is
-  wrong: standard regular-size controls are around 28 pt, and copying the touch minimum
-  produces oversized, non-native chrome.
+- Touch controls default to 44×44 pt on iOS (the HIG's minimum is 28×28 pt; go below 44
+  only deliberately). On macOS 44 is wrong: the HIG default is 28×28 pt with a 20×20 pt
+  minimum, and copying the touch size produces oversized, non-native chrome.
 - Design for the smallest supported width first, then let content expand. Views should be
   context-agnostic — a row that hard-codes its own width cannot be reused in a sidebar.
 

@@ -352,3 +352,21 @@ D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达
 - `SOURCES.yaml`：新增 `tenequm-swift-dev`（merged，paths `skills/swift-dev/SKILL.md`）。
 
 遗留：本机无 Xcode，枚举谓词在 SwiftData 存储层的运行时翻译（局部常量版本）未在设备上验证，只验证到宏展开与 `Predicate.evaluate`。
+
+## 2026-10-15 文档上游复核
+
+范围：`apple-docs`（唯一 `kind: docs` 条目）的 `contributes`：正文所有版本门槛、API 拼写与无障碍数字。developer.apple.com 为前端渲染，改读其文档 JSON（`/tutorials/data/documentation/<path>.json` 的 `metadata.platforms`）、框架符号索引（`/tutorials/data/index/{swiftui,uikit,swiftdata,observation,appkit,foundation,webkit,testing,swift}`）、HIG JSON（`/tutorials/data/design/human-interface-guidelines/accessibility.json`）与开发者发布 RSS。API 拼写用脚本把 `SKILL.md` 与全部 references 反引号内的 `name(` 调用逐一对照索引，未命中的只剩用户代码、SwiftPM 设置与正文已标为「编造」的 `scrollExtensionMode`，外加下表三处。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| apple-docs | 默认部署目标 iOS 27 / Xcode 27 / iOS 27 已发布 | https://developer.apple.com/news/releases/ （RSS：Xcode 27 (27A266a) 2026-09-14；iOS 27.0.1 (24A446) 2026-09-28；Xcode 27.2 仍为 beta） | 一致；`contributes` 原写「iOS 26 为默认、iOS 27 在 RC」已过时，改写 |
+| apple-docs | iOS 27 条目：`visibilityPriority(_:)` iOS 27 / macOS 26.1；`ToolbarOverflowMenu` 仅 iOS/iPadOS/Catalyst/visionOS 27；`reorderable()`（`DynamicViewContent`）与 `reorderContainer(for:isEnabled:move:)`、`swipeActionsContainer()` 无 tvOS；`defaultTabBarPlacement(_:)`、`isTabViewSidebarAvailable` 27；`defaultAdaptableTabBarPlacement(_:)` iOS 18；`alert`/`confirmationDialog` 的 `item:` 重载回溯 iOS 15 / macOS 12 / tvOS 15 / watchOS 8 / visionOS 1；`AsyncImage(request:)`、`asyncImageURLSession(_:)`、`ReadableDocument`/`WritableDocument` 27；`toolbarMinimizationBehavior(_:for:)` 27（旧拼写无页面）；`appearsActive` iOS 18 / macOS 10.15 | `https://developer.apple.com/documentation/swiftui/<symbol>` | 一致 |
+| apple-docs | iOS 26 条目与替换表门槛 | 同上 | **已变化 → 更正**（原文与官方不符）：① `dragContainer(for:…)`、`onDragSessionUpdated(_:)` 为 **iOS 27 / macOS 26**（`DragConfiguration` 才是 26），原列在「iOS 26 新增、统一 `#available(iOS 26)`」下；② `ControlSize.extraLarge` 是 iOS 17 / macOS 14；③ `Tab(role: .search)` 的 API 是 iOS 18；④ `@Animatable` / `@AnimatableIgnored` 宏文档标注自 iOS 13 / macOS 10.15 可用（需 26 SDK 编译），原表与 `swiftui-animation.md` 写「iOS 26+」；⑤ `autocorrectionDisabled(_:)` 文档标注自 iOS 13，原表写 iOS 16。按「正确门槛、不做多余 gate」改写 `latest-apis.md` 与 `swiftui-animation.md` |
+| apple-docs | API 拼写 | SwiftUI 符号索引 | **已变化 → 更正**：`sliderNeutralValue(_:)` 不存在（是 iOS 26 `Slider` 初始化器的 `neutralValue:` 参数）；`navigationTransitionSource(id:namespace:)`/`navigationTransitionDestination(...)` 不存在（`latest-apis.md` 与 `swiftui-navigation.md` 两处），实际为 `matchedTransitionSource(id:in:)`（View iOS 18；`ToolbarContent` iOS 26）+ `.navigationTransition(.zoom(sourceID:in:))`；`.rect(cornerRadius:style: .concentric)` 不存在（`RoundedCornerStyle` 只有 `circular`/`continuous`），同心圆角为 `ConcentricRectangle()` 或 `.rect(corners: .concentric)`（`Edge.Corner.Style.concentric`，26） |
+| apple-docs | 触控目标与对比度 | https://developer.apple.com/design/human-interface-guidelines/accessibility | **已变化 → 更正**（原文即与 HIG 不符）：HIG 表为「默认控件尺寸 / 最小控件尺寸」——iOS/iPadOS 与 watchOS 44×44 / 28×28 pt，macOS 28×28 / 20×20 pt，visionOS 60×60 / 28×28 pt，tvOS 66×66 / 56×56 pt。正文把 44 pt 写成「iOS 最小、严格执行」，Mac 写「约 28 pt」。`accessibility.md`、`design-hig.md`、`liquid-glass.md`、`uikit-appkit-interop.md` 四处改为默认值/最小值表述。对比度：HIG 表为 ≤17 pt 4.5:1、≥18 pt 3:1、粗体任意字号 3:1，与 WCAG 的 14 pt 粗体门槛不同，`accessibility.md` 补注 |
+| apple-docs | `ControlActiveState` 弃用版本 | https://developer.apple.com/documentation/swiftui/controlactivestate | **更正**：文档 `deprecatedAt` 为 macOS **27.2**（提示改用 `appearsActive`），原写「macOS 27」 |
+| apple-docs | 无障碍尺寸（AX5 测试）、`glassEffect(_:in:)` / `GlassEffectContainer` 26 且无 visionOS | 同上 | 一致 |
+
+评测：`evals/evals.json` 场景 7 第一条原写「不用 `@Animatable` 宏，因为它需要 iOS 26」，与 ④ 冲突，改为「直接遵循 `ViewModifier` + `Animatable`，或使用 `@Animatable` 宏（需 26 SDK、文档标注自 iOS 13 可用，无需 gate）」，两种答法均可达成。
+
+另记（未合入）：文档 JSON 已对 `foregroundColor(_:)`、`cornerRadius(_:antialiased:)`、`tabItem(_:)`、`AnimatableModifier`、`statusBarHidden(_:)` 等软弃用 API 标出 `deprecatedAt: 27.2`；Xcode 27.2 仍为 beta（RSS 2026-10-14 为 beta 3），正式发布后这些将从「无警告的软弃用」变成真实弃用警告，届时需复核 `latest-apis.md`「soft-deprecated 不报警」一句。

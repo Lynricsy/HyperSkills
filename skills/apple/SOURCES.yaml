@@ -194,6 +194,6 @@ upstreams:
     url: https://developer.apple.com/documentation/
     license: NONE
     relation: merged
-    synced_at: "2026-09-10"
-    contributes: "Correctness oracle for every version floor, API spelling, and accessibility figure in this skill, including the iOS/iPadOS release notes used to fix the default deployment target at iOS 26 with iOS 27 at RC."
-    notes: "Apple developer documentation carries no open licence; facts are used and all prose is original."
+    synced_at: "2026-10-15"
+    contributes: "Correctness oracle for every version floor, API spelling, and accessibility figure in this skill, including the release list that fixes the default deployment target at iOS 27 (Xcode 27 shipped 2026-09-14, iOS 27.0.1 on 2026-09-28) and the HIG's per-platform default and minimum control sizes."
+    notes: "Apple developer documentation carries no open licence; facts are used and all prose is original. Availability floors are read from the documentation JSON (`developer.apple.com/tutorials/data/documentation/<path>.json`, `metadata.platforms`) and API spellings from the SwiftUI, UIKit, SwiftData, WebKit and Foundation symbol indexes (`tutorials/data/index/<framework>`); release dates from the developer releases RSS feed."

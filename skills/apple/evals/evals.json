@@ -74,7 +74,7 @@
     "query": "We're switching to Xcode 27 (iOS 27 SDK) and keeping the iOS 17 deployment target. Review Legacy27.swift: what is deprecated or behaves differently now, and what should each piece become? Show the fixes.",
     "files": ["evals/files/Legacy27.swift"],
     "expected_behavior": [
-      "Flags AnimatableModifier as soft-deprecated in the 27 SDK and changes PulseModifier to conform to ViewModifier and Animatable directly (not the @Animatable macro, which needs iOS 26)",
+      "Flags AnimatableModifier as soft-deprecated in the 27 SDK and changes PulseModifier to conform to ViewModifier and Animatable directly, or applies the @Animatable macro (it needs the 26 SDK but Apple documents it as available from iOS 13, so no #available gate)",
       "Replaces statusBarHidden(true) with toolbarVisibility(.hidden, for: .statusBar) behind #available(iOS 27, *) and keeps statusBarHidden in the fallback branch",
       "Does not emit toolbarVisibility(_:for:) unguarded for the navigation bar at an iOS 17 target, because it is iOS 18+; uses toolbar(.hidden, for: .navigationBar) or gates the newer spelling",
       "Fixes QuantityStepper by removing the declaration default from @State count and assigning it once in init as an intentional one-time seed, and explains that assigning to state that already has a declaration default does not take effect (and is the pattern the @State macro diagnostics surface) rather than suggesting reordering assignments",

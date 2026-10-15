@@ -120,9 +120,10 @@ prefer `ReadableDocument` / `WritableDocument` over `FileDocument` for new docum
   `CommandMenu` adds a whole top-level menu. Menu commands read state through
   `@FocusedValue`, which is why focused values exist.
 - `@Environment(\.appearsActive)` (macOS 10.15, iOS 18 — back-deployed, not a WWDC26 API)
-  dims inactive-window chrome. `ControlActiveState` is deprecated at macOS 27.
-- Mac control metrics are much smaller than iOS: the 44 pt touch minimum does not apply,
-  and copying it produces oversized chrome. Standard regular-size controls are around 28 pt.
+  dims inactive-window chrome. `ControlActiveState` is deprecated from the macOS 27.2 SDK.
+- Mac control metrics are much smaller than iOS: the 44 pt iOS touch default does not
+  apply, and copying it produces oversized chrome. The HIG's macOS default control size is
+  28×28 pt, minimum 20×20 pt.
 
 ## Glass in UIKit
 

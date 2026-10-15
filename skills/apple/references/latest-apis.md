@@ -56,7 +56,7 @@ Scope every observation to the code you were asked to touch.
 | `overlay(_:alignment:)` | `overlay(alignment:content:)` trailing closure | iOS 15 |
 | `NavigationView` | `NavigationStack` / `NavigationSplitView` | iOS 16 |
 | `accentColor(_:)` | `tint(_:)` | iOS 16 |
-| `disableAutocorrection(_:)` | `autocorrectionDisabled(_:)` | iOS 16 |
+| `disableAutocorrection(_:)` | `autocorrectionDisabled(_:)` | iOS 13 (back-dated) |
 | `onChange(of:perform:)` single-parameter closure | `onChange(of:) { }` or `onChange(of:) { old, new in }` | iOS 17 |
 | `UIImpactFeedbackGenerator` and siblings, in a view | `sensoryFeedback(_:trigger:)` | iOS 17 |
 | `MagnificationGesture` / `RotationGesture` | `MagnifyGesture` / `RotateGesture` | iOS 17 |
@@ -64,7 +64,7 @@ Scope every observation to the code you were asked to touch.
 | `ObservableObject` + `@Published` | `@Observable` | iOS 17 |
 | `tabItem(_:)` | `Tab(_:systemImage:value:)` | iOS 18 |
 | `PreviewProvider` | `#Preview` macro | iOS 17 |
-| manual `animatableData` that only forwards stored properties | `@Animatable` macro (keep a hand-written `animatableData` that clamps or normalises) | iOS 26 |
+| manual `animatableData` that only forwards stored properties | `@Animatable` macro (keep a hand-written `animatableData` that clamps or normalises) | Xcode 26 SDK; the macro back-deploys to iOS 13 |
 | `toolbarBackground(_:for:)` given a `Visibility` | `toolbarBackgroundVisibility(_:for:)` (the `ShapeStyle` overload is not deprecated) | iOS 18 |
 | `Task.sleep(nanoseconds:)` | `Task.sleep(for:)` | iOS 16 |
 | `String(format: "%.2f", x)` | `Text(x, format: .number.precision(.fractionLength(2)))` | any |
@@ -87,20 +87,27 @@ excluded here; the material has its own reference.
 - `tabBarMinimizeBehavior(_:)` — tab bar minimisation on scroll. Distinct from the toolbar
   API below; do not confuse the two names.
 - `tabViewBottomAccessory { }` plus the `tabViewBottomAccessoryPlacement` environment value.
-- `Tab(role: .search)` — a search tab that separates and morphs into a search field.
+- `Tab(role: .search)` — a search tab that separates and morphs into a search field. The
+  API is iOS 18; only the separated, morphing look is new in 26, so do not gate it on 26.
 - `ToolbarSpacer(.fixed)` / `(.flexible)` for grouping toolbar items.
 - `sharedBackgroundVisibility(_:)` — scoped to `ToolbarContent`, not a `View` modifier.
 - `searchToolbarBehavior(.minimize)` — the case is `.minimize`, not `.minimized`.
-- `@Animatable` / `@AnimatableIgnored` macros on `Shape` and other animatable types.
-- `controlSize(.extraLarge)`; `.rect(cornerRadius:style: .concentric)`.
-- `Slider` tick marks (`ticks:` builder with `SliderTick`) and `sliderNeutralValue(_:)`.
+- `@Animatable` / `@AnimatableIgnored` macros on `Shape` and other animatable types — they
+  need the 26 SDK but back-deploy to iOS 13, so no `#available` gate.
+- `ControlSize.extraLarge` is iOS 17 / macOS 14, not 26. Concentric corners come through
+  `ConcentricRectangle()` or `.rect(corners: .concentric)` — `RoundedCornerStyle` has no
+  `.concentric` case.
+- `Slider` tick marks (`ticks:` builder with `SliderTick`) and a `neutralValue:` parameter
+  on the `Slider` initialisers (there is no `sliderNeutralValue(_:)` modifier).
 - `TextEditor` bound to an `AttributedString` for rich text.
 - `WebView` / `WebPage` (`import WebKit`) replaces hand-wrapped `WKWebView` in
   `UIViewRepresentable` for almost all uses.
-- `dragContainer(for:)` + `DragConfiguration` + `onDragSessionUpdated` for multi-item drag.
+- `DragConfiguration` (26) for multi-item drag; `dragContainer(for:…)` and
+  `onDragSessionUpdated(_:)` are **iOS 27 / macOS 26**, so gate them separately per platform.
 - `Font` scaling: `.font(.body.scaled(by:))` complements `@ScaledMetric`.
-- `navigationTransitionSource(id:namespace:)` / `navigationTransitionDestination(id:namespace:)`
-  to morph a sheet out of the control that presented it.
+- `matchedTransitionSource(id:in:)` now also applies to `ToolbarContent` (iOS 26), so a
+  sheet whose content uses `.navigationTransition(.zoom(sourceID:in:))` morphs out of the
+  toolbar button that presented it.
 - SwiftData model class inheritance (see the SwiftData reference for the `@available`
   requirement, which applies even when the deployment target is already 26).
 

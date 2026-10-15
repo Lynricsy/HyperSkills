@@ -64,7 +64,8 @@ custom easing that no spring expresses.
 
 ## Animatable types
 
-Use the `@Animatable` macro (iOS 26+) instead of hand-writing `animatableData`. It
+Use the `@Animatable` macro (26 SDK; documented as available back to iOS 13, so no
+`#available` gate) instead of hand-writing `animatableData`. It
 synthesises the conformance from the animatable stored properties; mark anything that
 cannot interpolate — `Bool`, `Int` used as a discrete mode, a string — with
 `@AnimatableIgnored`.

@@ -59,8 +59,9 @@ destroys navigation state.
   into the presenter's state.
 - Use `fullScreenCover` only when the task genuinely takes over the screen; a sheet keeps
   the user oriented. On macOS `fullScreenCover` is unavailable — use a sheet or a window.
-- (iOS 26+) `navigationTransitionSource(id:in:)` on the presenting control plus
-  `navigationTransitionDestination(id:in:)` on the sheet morphs the sheet out of its source.
+- `matchedTransitionSource(id:in:)` on the presenting control (iOS 18; on toolbar content,
+  iOS 26) plus `.navigationTransition(.zoom(sourceID:in:))` on the sheet's content morphs
+  the sheet out of its source.
 
 ## Inspector
 

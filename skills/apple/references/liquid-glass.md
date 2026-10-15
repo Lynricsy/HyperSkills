@@ -191,7 +191,7 @@ Never emit these; flag them on sight.
 | `.glassBackgroundEffect(…)` on iOS or macOS | visionOS-only API, and glass is unavailable on visionOS — doubly misfiled. |
 | `@Environment(\.accessibilityPrefersCrossFadeTransitions)` | No such environment value. Read `UIAccessibility.prefersCrossFadeTransitions`. |
 | "13% battery on iOS 26 vs 1% on iOS 18" | Unsourced anecdote. Keep the qualitative claim — glass costs GPU, profile it — and drop the number. |
-| A 44 pt minimum hit target on macOS | The iOS touch minimum applied to a pointer platform. Standard regular-size Mac controls are around 28 pt. |
+| A 44 pt minimum hit target on macOS | The iOS touch default applied to a pointer platform. The HIG's macOS default control size is 28×28 pt, minimum 20×20 pt. |
 
 ## Migration hygiene
 
