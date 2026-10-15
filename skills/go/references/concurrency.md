@@ -145,8 +145,12 @@ so passing the same `ctx` to several calls is fine.
   parameters; the context carries deadlines, cancellation, and cross-cutting metadata such
   as a trace ID.
 
-Avoid `time.After` inside a loop: each iteration allocates a timer that lives until it
-fires. Use one `time.NewTimer` and `Reset` it, or `time.NewTicker` with `defer Stop()`.
+`time.After` in a loop is fine for correctness: since Go 1.23 (module `go` line 1.23 or
+later) an unreferenced, unstopped `Timer` or `Ticker` is garbage-collected at once, and
+`Stop` is no longer needed to free it. The remaining cost is one timer allocation per
+iteration, which matters only in a hot loop; there, use one `time.NewTimer` and `Reset` it.
+Below 1.23 an unstopped timer lived until it fired and an unstopped ticker forever, so
+`time.NewTicker` always needs `defer Stop()` in modules on older `go` lines.
 
 ## Picking a primitive
 
@@ -242,11 +246,11 @@ resort, not the first move.
 | Receiver closes the channel | Only the sender closes |
 | Arbitrary buffer size to "avoid blocking" | 0, or a count you can name |
 | `select` without `<-ctx.Done()` | Add the case; a blocked send is a leak |
-| `time.After` in a loop | One `time.NewTimer` plus `Reset` |
+| `time.After` in a hot loop | One `time.NewTimer` plus `Reset` (a leak only below Go 1.23) |
 | Hand-rolled semaphore channel | `g.SetLimit(n)` |
 | Mutex held across an HTTP call | Copy what you need, unlock, then call |
 | Results channel plus a collector goroutine | Pre-sized slice, one index per goroutine |
 | Sending on a channel after `close` | Ownership: one sender, one close |
 | `-race` only in a nightly job | Run it on every CI test job |
 
-<!-- sources: samber-golang, spf13-go, cxuu-golang, go-effective-go, go-wiki-codereview, go-release-notes -->
+<!-- sources: samber-golang, spf13-go, cxuu-golang, go-effective-go, go-wiki-codereview, go-release-notes, leeovery-go -->

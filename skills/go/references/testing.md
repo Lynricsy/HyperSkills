@@ -168,8 +168,16 @@ func TestExpiry(t *testing.T) {
 
 - `synctest.Wait()` blocks until every other goroutine in the bubble is durably blocked.
   Call it before asserting on work another goroutine performs.
+- A bare `time.Sleep(d)` in the test wakes at the same fake instant as the code's own
+  timer or ticker, and either may run first: a count asserted right after it comes out one
+  short. `synctest.Sleep(d)` (Go 1.27+) is exactly `time.Sleep(d)` then `synctest.Wait()`;
+  below 1.27 write the two calls. [verified]
 - The bubble must be self-contained: no real network, no external processes, no goroutines
-  started outside it.
+  started outside it. A mutex, real network or file I/O and system calls are not durable
+  blocking, so the clock stalls behind them: `httptest.NewServer` inside a bubble hangs the
+  test. Use `httptest.NewTestServer(t, handler)` (Go 1.27+), which serves over an in-memory
+  network built for bubbles; below 1.27 give the client a fake `http.RoundTripper`.
+  [verified]
 - This replaces both `time.Sleep` padding and deadline polling loops. A polling loop with a
   two-second budget is still a wall-clock test — it is slow on a loaded runner and it
   cannot prove the timer fired at the right moment.
@@ -308,4 +316,4 @@ rather than dropping the check.
 | One benchmark run compared by eye | `-count=10` and `benchstat` |
 | Tests that depend on execution order | Each test builds its own state |
 
-<!-- sources: samber-golang, spf13-go, ashwin-go, go-wiki-testcomments, go-release-notes -->
+<!-- sources: samber-golang, spf13-go, ashwin-go, go-wiki-testcomments, go-release-notes, leeovery-go -->

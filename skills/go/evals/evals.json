@@ -45,5 +45,35 @@
       "Does not read the go skill: skill_read is false",
       "Answers about Python concurrency (asyncio vs ThreadPoolExecutor) and does not propose goroutines, channels, errgroup or any Go code"
     ]
+  },
+  {
+    "skills": ["go"],
+    "query": "TestPollerFetchesOncePerInterval in poller_test.go panics, and when I moved things around it hung until go test timed out instead. Fix the test so it is deterministic. Don't change poller.go.",
+    "files": [
+      "evals/files/poller/go.mod",
+      "evals/files/poller/poller.go",
+      "evals/files/poller/poller_test.go"
+    ],
+    "expected_behavior": [
+      "Moves synctest.Test inside each table row's t.Run, because t.Run (like t.Parallel and t.Deadline) must not be called inside a synctest bubble",
+      "Replaces httptest.NewServer with httptest.NewTestServer(t, handler) (Go 1.27+, which this module's go.mod allows), explaining that a real loopback server does network I/O, which is not durable blocking, so the bubble's fake clock cannot advance and the test hangs",
+      "Replaces the bare time.Sleep before the assertion with synctest.Sleep (or time.Sleep followed by synctest.Wait), because the test's Sleep wakes at the same fake instant as the ticker and the fetch count comes out one short",
+      "Runs go test (ideally with -count greater than 1) and reports it passing, without editing poller.go"
+    ]
+  },
+  {
+    "skills": ["go"],
+    "query": "Switch webhook.go to encoding/json/v2: the payloads come from the internet and we want v2's stricter checks on invalid UTF-8 and duplicate keys. Keep everything else behaving as it does today.",
+    "files": [
+      "evals/files/webhook/go.mod",
+      "evals/files/webhook/webhook.go",
+      "evals/files/webhook/webhook_test.go"
+    ],
+    "expected_behavior": [
+      "Handles v2's case-sensitive name matching: the untagged ID field no longer receives \"id\", so it adds a json:\"id\" tag or a case:ignore option, and says that payload key casing that v1 tolerated would now be dropped",
+      "Handles time.Duration having no default representation in v2 (marshal fails with a SemanticError) by keeping the nanosecond number explicitly (format:nano tag or json.FormatDurationAsNano option) rather than changing the wire format",
+      "Calls out that the Encode output stored for the audit service changes unless handled: a nil Tags slice now encodes as [] instead of null, and omitempty on the int Attempts no longer drops 0, which needs omitzero to keep today's shape",
+      "Runs go test and reports the result"
+    ]
   }
 ]

@@ -283,3 +283,39 @@ unchanged 的 spf13-go 前移到 9ac6eca、ashwin-go 前移到 d071a92）。五�
 其余仓库上游（`samber-golang`（19a0626 → 8e899e2，1 commits）为 `repo moved, tracked paths unchanged`；`spf13-go`、`cxuu-golang`、`ashwin-go`、`douglas-pprof`、`uber-go-guide` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（8e899e2、9ac6eca、91f0c2e、d071a92、3cf7c7e、45573dd、1d60a91），`pin_check.py` 结果 PIN CHECK CLEAN。5 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+依据：主代理的上游新增文件评估（NewS4 F：leeovery/agentic-skills `go/skills/go-testing`、`go-concurrency` MERGE，`go-types` 的 json/v2 一条 MAYBE）。原文用已登录 `gh api` 按审阅 HEAD `88b5924` 读取（MIT，仓库根 LICENSE）。leeovery 此前只被 laravel 追踪，本 skill 新增 upstream 条目 `leeovery-go`（paths 只含 go-testing、go-concurrency）。事实全部对照本机 go1.27.1 的 `go doc` 与实跑核实（VM 内 Go 1.27.2）。
+
+### 候选与裁决
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| 事实更正：`concurrency.md` 写 `time.After` 每次迭代分配的 timer「活到触发为止」 | **更正** | Go 1.23 起（模块 `go` 行 ≥1.23）未引用、未 Stop 的 Timer/Ticker 立即可回收；剩下的理由只是热循环里每次分配。正文改写该段，Common mistakes 一行改为「hot loop」并注明 1.23 以下才是泄漏 |
+| synctest：bubble 内 `httptest.NewServer` 走真实网络、不是持久阻塞，时钟停住 → 用 `httptest.NewTestServer(t, h)`（Go 1.27+），低版本用假 `RoundTripper` | **合入**（`testing.md` synctest 节） | 场景 5 基线 EB2 ◐（解释对、改用手写 RoundTripper，不知道 NewTestServer）；有 skill 用 `NewTestServer` |
+| synctest：裸 `time.Sleep` 与被测 ticker 同一假时刻醒来，计数少一 → `synctest.Sleep`（Go 1.27+）或 Sleep + Wait | **合入**（同上，标 [verified]） | 场景 5 基线已用 Sleep + Wait；本条作为上一条的同节补充写入，并经本机实跑证实（见核实）；不单独计缺口 |
+| synctest 其余：持久阻塞表、bubble 内不能 `t.Run`、泄漏时 deadlock panic、时钟从 2000-01-01 起 | 不合入 | 场景 5 基线已把 `synctest.Test` 移进每行的 `t.Run` 并理解持久阻塞；先写进的 `t.Run` 一条已按此删除 |
+| Shutdown 用 `context.WithTimeout(context.WithoutCancel(ctx), grace)` 代替 `Background()` | 不合入 | `stdlib-modern-apis.md` 的 `Background()` 写法本身正确（注释说明了 ctx 已取消）；保留 ctx 值属风格改进，无评测缺口 |
+| go-types：json/v2 不要半个模块迁移、名字区分大小写、`time.Duration` 无默认编码、nil slice → `[]`、`omitempty` 语义变化 | 不合入 | 场景 6 基线（与有 skill）都用 v2 + `jsonv1.DefaultOptionsV1()` + 严格 UTF-8/重复键选项保住全部旧行为；事实已对照 `go doc encoding/json` 的 v1/v2 差异清单核实，可留待日后 |
+| go-errors、go-interfaces、go-quality、go-architecture、go-actions | 不合入、不追踪 | 已覆盖或与本 skill 立场冲突（禁 go-cmp/testify） |
+
+### 核实
+
+- `go doc time.After` / `time.NewTimer`（go1.27.1）："As of Go 1.23, the garbage collector can recover unreferenced, unstopped timers"；golang/website `_content/doc/go1.23.md`「Timer changes」：仅当主模块 `go.mod` 的 `go` 行 ≥1.23.0 时启用。
+- `go doc testing/synctest`：持久阻塞清单不含 mutex、I/O、系统调用；`synctest.Sleep` "exactly equivalent to time.Sleep(d); synctest.Wait()"；`synctest.Test` 文档写明 `T.Run`、`T.Parallel`、`T.Deadline` must not be called。`go doc net/http/httptest.NewTestServer`：默认用内存网络。`api/go1.27.txt` 含 `httptest.NewTestServer` 与 `synctest.Sleep`。
+- 本机实跑场景 5 夹具：原文件 panic `testing: t.Run called inside synctest bubble`；把 `synctest.Test` 移进 `t.Run` 但保留 `httptest.NewServer` → 30 s 超时挂住；换 `NewTestServer` + 裸 `time.Sleep` → `-count=20` 稳定失败 `got 0 want 1` / `got 2 want 3`；再换 `synctest.Sleep` → `-count=50` 通过。
+- json/v2：`go doc encoding/json`「Migrating to v2」差异清单；`go doc encoding/json.FormatDurationAsNano`；`src/encoding/json/v2/arshal_time.go` 的 `format:nano` 等取值。
+
+### 评测结果
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals/go/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md` 与 `workspace/` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ | 87 s。行内 `t.Run` 包 `synctest.Test`；手写 `RoundTripper` 代替真实服务器并说明 socket I/O 不让时钟前进；Sleep 后 `synctest.Wait()`；`-race -count=100` 通过 |
+| 5 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 101 s。`httptest.NewTestServer(t, …)`；Sleep 前后 `synctest.Wait()`；先取消并等待 poller 再关服务器；`-race` 100 次通过 |
+| 6 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 146 s。v2 + `DefaultOptionsV1()` + `AllowInvalidUTF8(false)`/`AllowDuplicateNames(false)`，大小写、Duration、nil slice、omitempty 全保持旧行为 |
+| 6 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 130 s。与基线同一做法；无回归 |
+
+结论：`time.After` 一段按官方文档更正；NewTestServer / synctest.Sleep 填补场景 5 EB2 缺口，合入；json/v2 与其余 synctest 规则基线已具备，不合入，场景 6 留作哨兵。
