@@ -451,3 +451,33 @@ description 与 Scope 未改，负例场景未重跑。
 | 4 | gpt-6.1-sol medium | 有 | True | 1、2、3、6 达成；4、5 部分 | 35 s。先查 `config.toml` 的 `[experimental.pgdelta]` 再分别给 migra（停栈 + `db diff -f`）与 pg-delta（`db schema declarative sync --name … --no-apply`）命令，并说明 pg-delta 上 `db diff` 不读 schema 文件；4：只提 DML 不被捕获和逐条审阅，未列 `security_invoker`/grants；5：讲了只加新迁移、不改已部署历史，未讲本地 `db reset --version` |
 
 SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，supabase-docs 的 `contributes` 随三处更正调整。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`1d15e3b`（上游同步：`edge-functions.md` 示例导入改为 `npm:@supabase/server@1`）与 `5d9c249`（文档复核：`getClaims()` 只在非对称密钥项目本地验签、`auth: 'secret'` 只认名为 `default` 的 secret key、声明式迁移按 diff 引擎区分 pg-delta / migra，场景 4 前两条期望改为引擎感知）。最后正文提交 13:09:18。
+
+选场景与理由：
+
+- 场景 1（RLS 无数据，含 `getSession`/`getClaims` 分工）：读 `auth-and-sessions.md` 被改段落。
+- 场景 2（Edge Function CORS / secrets / `verify_jwt`）：读 `edge-functions.md` 被改的导入写法与 auth 模式表。
+- 场景 4（声明式 schema 与 `db diff`）：今天改了 expected_behavior，必选。12:52 的有 skill 结果（`/tmp/hs-docd4/evals-supa/…/skill/4`）早于正文提交，不复用；今天没有该场景基线，两侧都新跑。
+- **新增场景 7**（夹具 `digest-function.ts`、`digest-cron.sql`、`auth-guard.ts`）：原有场景都没有直接考察「`'secret'` 只认 `default`」与「对称密钥项目上 `getClaims()` 走 Auth 服务器」两处更正，按简报新增回归场景：cron 改用名为 `scheduler` 的 secret key 后 401、HS256 项目上 `requireUser()` 每请求多 80 ms。
+- 场景 5：负例。
+
+今天此前没有任何 supabase 基线，全部新跑。模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/D2G5/supabase/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ✔ EB6 ✔ EB7 ◐ | 116 s。查文档：`getSession()` 不可信、改 `getUser()`；会话检查只在 SQL 编辑器里 `set local role` 模拟，未经同一客户端查 `auth.uid()` 或 curl；只说 service-role 不是修法，未区分 publishable；42501 只隐含在「permission denied 查 grant」 |
+| 1 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ EB6 ◐ EB7 ✔ | 143 s。经同一客户端调 `auth.uid()` 诊断 RPC + 有/无 Bearer 的 curl；表格区分 `[]` 与 42501；守卫改 `getClaims()`，但只说「改用经验证的身份」，未明说 `getSession()` 不重新验证；EB3 同基线 |
+| 2 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ◐ EB3 ✘ EB4 ✔ EB5 ✔ EB6 ✔ EB7 ✘ | 98 s。手写 CORS 头；生产 `secrets set` 但未讲本地 `.env`；未提 legacy service-role 变量；无运行时限制 |
+| 2 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ◐ EB3 ◐ EB4 ✔ EB5 ✔ EB6 ✔ EB7 ✘ | 81 s。`withSupabase` 示例为 `npm:@supabase/server@1`（更正后的写法），浏览器函数 `auth: 'user'`、webhook 拆出 `auth: 'none'` + `verify_jwt = false` + 异步验签；EB3 只改用 `ctx.supabase`，未点明 legacy 变量；EB7 未提 |
+| 4 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✘ EB5 ◐ EB6 ✘ | 59 s。查了当前文档，分 legacy / pg-delta 两套命令（pg-delta 写成 `sync -f`）；未提 diff 盲区；未提重新生成类型 |
+| 4 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ◐ EB6 ✔ | 65 s。按 `[experimental.pgdelta]` 分两种引擎：migra `supabase stop` + `db diff -f`，pg-delta `db schema declarative sync --name … --no-apply`，并说明 pg-delta 上 `db diff` 不读 schema 文件、空 diff 只在 legacy 上能解释；EB3 放在末尾但未讲原因；EB4 只提数据回填不被推断；EB5 不改已部署迁移，未讲回退 schema 文件生成前向迁移 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 108 s。联网读 Supabase functions/auth 与 signing-keys 文档后全部答对，并补充「只把旧 secret 导入新签名体系不改变验证路径」 |
+| 7（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 41 s。`['user', 'secret:scheduler']`，不建议 `'secret:*'`；HS256 下 `getClaims()` 调 Auth 服务器，迁移到非对称签名密钥，不改 `getSession()` |
+| 5（负例） | gpt-6.1-sol medium | 有 | **False** | 全部 ✔ | 50 s。只答 Postgres 部分覆盖索引，无 Supabase 内容 |
+
+结论：三处更正在有 skill 时都按更正后的内容作答（场景 4 的引擎区分、场景 2 的锁版本导入、场景 7 的命名 secret key 与 `getClaims()` 验证路径），且不比基线差；场景 7 基线联网即可答对，不构成新缺口，留作哨兵。负例 `skill_read == false`。正文无需修正。
+
+遗留：场景 1 EB6 有 skill 只给出替换、未明说 `getSession()` 不验证（基线答到），场景 2 EB7 两侧都未提运行时限制，均为既有内容的波动，与本次更正无关。

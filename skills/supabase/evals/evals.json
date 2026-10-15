@@ -86,5 +86,16 @@
       "Narrows the MCP server itself for a production project in CI: scope it to the project with `project_ref`, enable `read_only=true`, and restrict `features` to the tool groups the bot uses",
       "Notes that a scoped token can never exceed its creator's own role, so the token's permissions are a ceiling beneath the creating account's access, not a grant"
     ]
+  },
+  {
+    "skills": ["supabase"],
+    "query": "Two Supabase problems. (1) Since we moved the nightly digest cron to its own secret key, every call to the send-digest Edge Function returns 401 and the function logs show our handler code never runs; on-demand calls from signed-in users still work. (2) A perf review says requireUser() adds about 80 ms to every server-rendered request; a teammate insists getClaims() verifies locally so it cannot be the cause. Review digest-function.ts, digest-cron.sql and auth-guard.ts: what is going on in each case and what should we change?",
+    "files": ["evals/files/digest-function.ts", "evals/files/digest-cron.sql", "evals/files/auth-guard.ts"],
+    "expected_behavior": [
+      "Diagnoses the 401 as the auth mode: `withSupabase`'s `'secret'` mode accepts only the secret key named `default`, so the scheduler's key named `scheduler` is rejected before the handler runs; changes the mode to `'secret:scheduler'` (or `'secret:*'`) while keeping `'user'` in the array",
+      "Keeps the dedicated scheduler key as the fix rather than switching the cron back to the default secret key or to the legacy `service_role` key",
+      "Explains that `getClaims()` verifies locally against the cached JWKS only on projects with asymmetric signing keys; on this project, still signing with the legacy symmetric (HS256) JWT secret, it calls the Auth server on every request, so the round trip is a likely source of the 80 ms",
+      "Gives the fix as migrating the project to asymmetric JWT signing keys (after which `getClaims()` verifies locally), and does not suggest `getSession()` as a faster server-side guard because it does not verify the token"
+    ]
   }
 ]
