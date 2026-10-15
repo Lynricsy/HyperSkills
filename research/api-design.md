@@ -407,3 +407,20 @@ redocly-cli（95a8e7d → 78f5a32）、prism-cli（2426fc0 → e7553fe）随 `--
 | 6 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | false | E1 ✅ E2 ✅ E3 ✅ E4 ✅ E5 ◐ | 自行查 Skipper 文档确认无路由默认 404 并写 stub 复现 5/5 误删；建议 catch-all 503 + problem+json、稳定 Service 名切 selector、404/410 以注册 `type` 判别、批量删除熔断与软删。E5 额外改了 401/403/5xx/`Retry-After` 行，但理由都落在夹具上（伙伴 `RETRYABLE` 不含 401、`float()` 解析 HTTP-date 抛错），记半分。advisor 关闭，输出 `/tmp/hs-evals-sync/SyncG28/api-design-b6` |
 
 未合入原因：zalando 新规则的内容基线已会；orchestkit 为噪声。正文与 references 未改，未跑有 skill 的同场景，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与归因结果
+`/tmp/hs-attr/attribution.md`。本 skill 4 条上游在 tracked paths 下确有提交。归因方法：redocly-cli、orchestkit-api-design
+为 too-large 条目，用主代理的 blobless 裸仓库缓存 `/tmp/hs-attr/<owner>__<repo>` 跑
+`git diff <pinned>..<head> -- <paths>` 与按文件 `git log`；jeffallan、prism 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>`
+取 patch 后按 paths 过滤。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| jeffallan-api-designer | 882ef55 → 1be15d8（2 提交命中） | `skills/api-designer/SKILL.md`：frontmatter 加 `metadata.company`，文末加维护者署名行（958e60f、ec755b7 发版） | 噪声：元数据与署名，规则未动 |
+| orchestkit-api-design | 05967c2 → 5469225（1 提交命中） | 480e358：`plugins/ork/skills/api-design/SKILL.md` frontmatter 去掉 `context`/`agent`，改为 `metadata.owner-agent` | 噪声：agent 绑定字段本就剥离 |
+| redocly-cli（reference） | 78f5a32 → 4e6f421（4 提交命中） | 非测试代码只有三处：9c77281 `no-enum-type-mismatch` 在 `type` 为数组时逐值报告且新增对 `const` 的类型检查；82b9418 `no-ambiguous-paths` 按段数/变量数分组的性能重写（判定逻辑不变）；c2bb9de `ajv.ts` 在示例类规则间共享已编译的校验器（去掉注释类关键字后按形状缓存）。其余 80+ 个文件全是 `__tests__` 的写法统一（c52b721） | 噪声：本条目只用于核定 lint 门措辞（exit 0、警告不影响退出码、断 `$ref` exit 1、接受 3.2），三处改动是误报/漏报修复与性能优化，退出码语义不变；正文未提及这两条规则 |
+| prism-cli（reference） | e7553fe → 2a1b205（1 提交命中） | 2a1b205：`packages/http/src/forwarder/index.ts` 依赖升级后给代理 agent 加类型断言 | 噪声：纯类型修正，mock 门行为不变 |
+
+结论：正文与 references 未变，仅 re-pin 与版本号改为 2026.10.15；正文未变，未跑 D2。
