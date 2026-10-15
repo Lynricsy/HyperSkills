@@ -411,3 +411,34 @@ repo moved / tracked paths unchanged，`--pin` 顺带前移。
 | pypa-docs | `license` 为 SPDX 表达式、`license-files` 为 glob 列表、旧 table 形式弃用；`License ::` classifier 自 Metadata 2.4 弃用；PEP 440 规范化；内联脚本元数据格式；src 布局理由 | https://packaging.python.org/en/latest/guides/writing-pyproject-toml/ 、/specifications/pyproject-toml/ 、/specifications/core-metadata/ 、/specifications/inline-script-metadata/ 、/specifications/version-specifiers/ 、/discussions/src-layout-vs-flat-layout/ | 主体一致。**更正**：`packaging.md` 原称「PyPI 拒绝与表达式矛盾的 classifier」，官方规范只写「构建工具 MAY 在同时使用 license 表达式与 `License ::` classifier 时报错」（PyPI 拒绝的是同时带 `License` 与 `License-Expression` 字段）。实跑 `uv build --wheel`，同一 `license = "MIT"` + `License :: OSI Approved :: MIT License`：setuptools≥77 抛 `InvalidConfigError: License classifiers have been superseded by license expressions`，hatchling≥1.27 与 uv_build 均成功出 wheel。改为按规范与实测描述 |
 
 处理：除上述三处 references 更正外无改动；`synced_at` 6 条均为 2026-10-15。评测夹具 `evals/files/uv-ci/pyproject.toml` 中 `ruff>=0.8` 为场景输入，不随文档版本改动。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`7bf98ce`（上游同步，正文未变）、`7867480`（lint 棘轮评估，新增场景 5）、`17f805f`（`--frozen`/`--locked` 语义更正，新增场景 6）、`b31aa95`（文档复核：ruff 0.16 起默认约 400 条规则、0.17 起无配置时回退 `py311`；`License ::` classifier 由构建后端拒绝而非 PyPI；`to_thread` 不适合纯 Python CPU 工作）。最后正文提交 13:12:58。
+
+选场景与理由：
+
+- 场景 1（迁移到 uv）：CI 命令与 ruff 配置直接用到 `uv-projects.md` 的 `--locked` 更正与 `ruff.md` 默认值段。
+- 场景 5（lint 棘轮）：今天新增；跑基线后删去了原第 3 条期望，场景已改，`/tmp/hs-evals-MergeM5/…/baseline/5` 不可复用，两侧新跑。
+- 场景 6（私有索引 / 缓存 / cron 部署）：今天新增，此前只跑过基线。基线 `/tmp/hs-evals/python/…/baseline/5`（当时编号 5，rebase 后顺延为 6）query 与期望与当前场景 6 逐字一致、夹具首读逐行一致，复用（副本 `/tmp/hs-d2/D2G5/reused/python-b6`），判定沿用上节；有 skill 新跑。
+- **新增场景 7**（夹具 `evals/files/toolchain/`：ruff 0.15.4→0.17.0 + setuptools 80 的 PR、CI 失败摘录、`uv sync --frozen`、`to_thread` 跑纯 Python 抖动算法）：ruff 默认规则集与 `py311` 回退、license classifier、`to_thread` 三处更正此前没有场景直接考察，按简报新增；`--frozen` 一并纳入。夹具首版把版本写成不存在的 `ruff==0.17.2`（PyPI 只有 0.17.0），有 skill 一侧在 VM 里装不上并如实报出；改为 0.17.0 后两侧重跑，下表只记重跑结果（首版副本 `/tmp/hs-d2/D2G5/python-s7-r1`、`python-b7-r1`，有 skill 同为 5/5）。
+- 场景 3：`to_thread` 只以 IO 用法出现（「或 `asyncio.to_thread`」包同步 httpx），更正针对 CPU 用法，未选。
+- 场景 4：负例。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），新跑产物 `/tmp/hs-d2/D2G5/python/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md`、`workspace/` 与 `events.jsonl` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 无 | False | EB1 ✘ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✘ EB7 ◐ | 191 s。手写 `pyproject.toml`，未用 `uv add`；保留 black/isort/flake8；内联元数据手写、未提空 `dependencies`；CI 用 `--locked` |
+| 1 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✔ EB7 ◐ | 233 s。`uv add -r`、`uv add --script`；CI 全用 `--locked`，README 写明「`--frozen` skips that check and is not a replacement」；ruff 显式 `select`；EB4 未说明空 `dependencies` 也须存在；EB7 只改 README，未提 `noqa`/旧工具配置段 |
+| 5 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ | 247 s。分规则计上限、禁止调高；ruff 配置错误「fail closed」；快照无源码，计数为 0 并要求在完整仓库 `--update` |
+| 5 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ | 261 s。合计上限 300 作为起始预算、要求在完整仓库测得后收紧；ruff 退出码非 0/1 即失败，实测配置/语法错误 |
+| 6 | gpt-6.1-sol medium | 无（复用 `reused/python-b6`） | False | #1–#4 全 ✔ | 判定见上节 |
+| 6 | gpt-6.1-sol medium | 有 | True | #1–#4 全 ✔ | 140 s。`UV_INDEX_ACME_*` 并要求轮换；`[tool.uv.sources]` + `explicit = true`；`uv cache prune --ci`；`uv pip` 发现顺序与 `--python`，另指出导出 requirements 丢失索引路由与哈希 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | EB1–EB5 全 ✔ | 322 s。联网读 ruff 0.16/0.17 changelog 与 PEP 639；`select = ["E4","E7","E9","F"]`；`requires-python = ">=3.10"`；删 classifier 保留 setuptools 80；`--locked`；`anyio.to_process.run_sync` |
+| 7（新增） | gpt-6.1-sol medium | 有 | True | EB1–EB5 全 ✔ | 269 s。同样的五处修正；`to_thread` 改为 lifespan 管理的 `ProcessPoolExecutor`；纠正「PyPI 会拒绝」为构建后端拒绝 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | 全部 ✔ | 46 s。只给 TypeScript 判别联合，无 Python 类型构造 |
+
+结论：四处更正在有 skill 时均按更正后的内容作答（场景 1 与 7 的 `--locked`、场景 7 的 ruff 默认值 / `py311` / classifier / 进程池），且不比基线差；场景 7 基线联网即全部答对，留作哨兵。负例 `skill_read == false`。正文无需修正。
+
+遗留：场景 1 EB4（空 `dependencies` 也须存在）与 EB7（清理 `noqa` 与旧工具配置段）两侧都未完整达成，均为既有内容，与本次更正无关。

@@ -1,0 +1,19 @@
+Excerpts from the failing CI run on PR #214 ("bump ruff 0.15.4 -> 0.17.0, setuptools 80"):
+
+--- step: uv run ruff check (python 3.12) ---
+thumbsmith/client.py:3:1: I001 [*] Import block is un-sorted or un-formatted
+...
+Found 318 errors.
+[*] 241 fixable with the `--fix` option.
+(On 0.15.4 the same tree reported 4 errors, all E731. Those are gone now.)
+
+--- step: uv build (python 3.10) ---
+  setuptools.errors.InvalidConfigError: License classifiers have been superseded by license expressions (see https://peps.python.org/pep-0639/). Please remove:
+
+  License :: OSI Approved :: MIT License
+
+--- note from the PR author ---
+Plan: run `ruff check --fix` to clear the 241 fixable ones, add `# noqa` to the rest,
+and pin setuptools<77 so the build passes again. PyPI would reject the classifier
+anyway, right? Also p95 latency on /thumbnail went up under load even though the
+dithering runs in to_thread.

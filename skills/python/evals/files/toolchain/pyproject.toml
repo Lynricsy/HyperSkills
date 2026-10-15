@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thumbsmith"
+version = "2.3.0"
+description = "Thumbnail service and client library"
+license = "MIT"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = ["pillow>=11", "starlette>=0.47"]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff==0.17.0"]  # was ruff==0.15.4 until this PR
+
+[tool.ruff]
+line-length = 100

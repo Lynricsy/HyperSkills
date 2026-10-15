@@ -84,5 +84,22 @@
       "Adds `uv cache prune --ci` at the end of the CI job before the cache is saved, explaining that it drops downloaded wheels that are cheaper to re-fetch and keeps only locally built ones, which is why the cache keeps growing",
       "Explains that `uv pip install` picks its target from `VIRTUAL_ENV`, then `CONDA_PREFIX`, then a `.venv` in the current or a parent directory - cron has none of these and `/srv/billing/venv` is not named `.venv`, while Sam's shell had some other virtualenv activated and the packages went there - and fixes it by passing `--python /srv/billing/venv/bin/python` (or switching the deploy to `uv sync --locked` with `UV_PROJECT_ENVIRONMENT`)"
     ]
+  },
+  {
+    "skills": ["python"],
+    "query": "PR #214 bumps ruff from 0.15.4 to 0.17.0 and setuptools to 80, and CI broke. ci-failures.txt has the excerpts and the author's plan; the package is pyproject.toml, ci.yml and thumbs.py. Review the PR: is the plan right, what actually changed, and what should the fix be? Edit the files where you would change them.",
+    "files": [
+      "evals/files/toolchain/pyproject.toml",
+      "evals/files/toolchain/ci.yml",
+      "evals/files/toolchain/thumbs.py",
+      "evals/files/toolchain/ci-failures.txt"
+    ],
+    "expected_behavior": [
+      "Explains the jump to 318 errors as ruff's default rule set growing in 0.16.0 to roughly 400 rules across linters such as `B`, `UP`, `I` and `S` (with `E731` and other opinionated `E`/`F` rules leaving it), not as new defects in the code, and answers it with an explicit `select` (adopting rule families deliberately) rather than a blanket `--fix` plus `# noqa`",
+      "Notes that with no `requires-python` and no `target-version`, ruff 0.17 assumes `py311` (it was `py310` before 0.17.0) although the package is tested and classified for 3.10, and declares `requires-python = \">=3.10\"` so version-dependent fixes do not break 3.10",
+      "Fixes the build by deleting the `License :: OSI Approved :: MIT License` classifier and keeping `license = \"MIT\"`, not by pinning setuptools below 77; and corrects the PyPI claim: the spec lets a build backend refuse the classifier next to an expression (setuptools does), it is not that PyPI rejects it",
+      "Replaces `uv sync --frozen` with `uv sync --locked` (or adds `uv lock --check`), because `--frozen` skips the staleness check entirely and would install from a stale lock rather than fail",
+      "Explains that `asyncio.to_thread` does not spread pure-Python CPU work across cores because of the GIL, so the dithering competes with the event loop thread; moves it to a process pool (`loop.run_in_executor` with a `ProcessPoolExecutor`) or vectorised/native code"
+    ]
   }
 ]
