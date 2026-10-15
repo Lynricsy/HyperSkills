@@ -268,3 +268,23 @@ typescript-expert：其余内容来自 pstack（cursor/plugins，另有 MIT 许�
 
 结论：正文与 references 未改，未跑 D2；`pin_check.py` 为 `PIN CHECK CLEAN`（以新 paths 计）。提交含 re-pin、
 paths/url 迁移、版本号与本节。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS5（melodic-software/claude-code-plugins `plugins/review/skills/ratchet`、`plugins/code-metrics/skills/audit-suppressions`，MIT）。结论：不合入。
+
+| 候选要点 | 结论 | 理由 |
+|---|---|---|
+| 「linter 解析配置失败时报 0 个违规，从而通过计数上限」，计数命令必须在被测对象失败时自己失败 | 不合入 | 上游的字面说法不成立：实测 ESLint 与 ruff 配置出错都以退出码 2 结束、stdout 为空，并不是「报 0 个违规」；读成 0 的是丢弃退出码的计数管道（`$(… \| grep -c …)`）。本 skill 的棘轮（规则 20、`references/tsconfig-and-modules.md`「Adopting strictness」）计的是 `tsc` 错误，而 `tsc` 把配置错误作为同一输出流里的诊断打印（TS18003 / TS5083 / TS1136 实测），按 `error TS` 计数不会归零。ESLint 配置与计数不在本 skill 正文覆盖面内。 |
+| 只对计数做棘轮、不对时长做；计数为 0 时直接设为 error | 不合入 | 本 skill 只有 tsc 严格度棘轮，没有时长类指标；「计数为 0 即开 flag」已是 rule 20 的直接推论。 |
+
+实测（2026-10-15，`/tmp/m5-lint`）：
+
+- ESLint 10.12.0：`eslint.config.js` 语法错误、未知规则名、缺少配置文件，三种情况 `eslint src` 均退出 2，stdout 为空；`echo violations=$(eslint -f unix src | grep -c no-unused-vars)` 均输出 `violations=0` 且整体退出 0。另一个真正的「静默 0」：配置对象的 `files` 匹配不到被检文件（`**/*.ts` 对 `.js`）时 ESLint 退出 0、`messages` 为空。
+- TypeScript 7.0.2：类型错误 `tsc --noEmit --pretty false` 退出 1；`include` 匹配不到文件时输出 `error TS18003` 并退出 2；`tsconfig.json` 语法错误输出 `tsconfig.json(1,70): error TS1136` 并照常报其他错误；`extends` 指向缺失文件时输出 `error TS5083`。三种配置错误都留在计数的同一输出流里。
+
+评测：未合入，未新增场景、未跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| — | gpt-6.1-sol medium | — | — | — | 未合入，未跑 |
