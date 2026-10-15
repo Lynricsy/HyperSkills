@@ -205,9 +205,11 @@ Two workable arrangements:
   fall through to it: `@fastify/express` for Fastify, `app.use(expressApp)` in
   NestJS. One process, one deploy — but both middleware chains are live at
   once, so the request context store must be entered on the outer one and read
-  by both. This arrangement is **not available for Hono**: `app.mount()` takes
-  a fetch-style `(Request) => Response` handler, and an Express app is not one,
-  so a Hono migration uses the proxy split.
+  by both. This arrangement is **not available for Hono**: its Mount Middleware
+  (`app.all('/legacy/*', mount(handler))` from `hono/mount`, which replaces the
+  deprecated `app.mount()`) takes a fetch-style `(Request) => Response`
+  handler, and an Express app is not one, so a Hono migration uses the proxy
+  split.
 
 Either way, put shutdown in the new stack and have it close the Express server
 too; two independent signal handlers race.

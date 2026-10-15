@@ -174,8 +174,12 @@ app.get('/orders/:id', {
 
 Ajv is configured to coerce types by default, which is what makes `?limit=10`
 arrive as a number. On a JSON body that coercion can accept a client bug
-silently, so consider a body-specific compiler with `coerceTypes: false` and
-`additionalProperties: false` on write routes.
+silently, so consider a body-specific compiler with `coerceTypes: false` on
+write routes. The baseline also sets `removeAdditional: true`, so
+`additionalProperties: false` *strips* unknown body fields and returns 200 —
+it does not reject them. To turn a misspelled field into a 400, set
+`removeAdditional: false` as well (globally through `ajv.customOptions`, or in
+that body compiler).
 
 Register shared fragments with `app.addSchema({ $id, ... })` and reference them
 by `$id`. Schema `$id`s are scoped like everything else, so a fragment added in

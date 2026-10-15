@@ -99,8 +99,12 @@ logger — turned request-scoped therefore converts most of the application, and
 30 000 concurrent requests mean 30 000 ephemeral instances plus garbage
 collection.
 
-Places request scope is not allowed at all: WebSocket gateways (each wraps one
-real socket), Passport strategies, cron controllers. They must be singletons.
+Places request scope is not allowed at all: Passport strategies and cron
+controllers. They must be singletons. WebSocket gateways are the exception that
+changed in NestJS 12: they accept request-scoped providers, but the scope is the
+*socket connection*, not the message — one instance per connected client,
+living until it disconnects, so state on it accumulates across every message
+from that client.
 
 `durable` providers exist for the one shape where request scope is tempting and
 wrong: multi-tenancy, where the aggregation key is the tenant rather than the

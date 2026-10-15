@@ -243,3 +243,57 @@ amirtaherkhani-nestjs 在 tracked path 下确有提交；awesome-copilot 为 too
 | amirtaherkhani-nestjs | 4495222 → b688def（2 提交命中：7c6a415、b688def） | `SKILL.md`：预执行冲突守卫压缩、与作者其他 skill 的协作清单改写（本 skill 合入时已整段剥离）；`evals/evals.json` 加两个上游自有场景；`references/dependency-injection.md`：抽象类作 token 时注册的适配器不必继承它（结构兼容即可 `useClass`），Symbol 与抽象类都不保证行为可替换；`references/module-boundaries.md` 加一行链接；新增 `references/module-contracts.md`（模块契约记录表、真实容器才能证明导入/导出、同描述的两个 Symbol 是不同 token、引入 port 不会自动消除 A→B→A 模块导入环、带 `forwardRef` 能启动不等于图无环） | 无影响：本 skill `references/nestjs.md` 已写「模块环是设计信号，`forwardRef` 只让环能编译、抽出第三个模块才消除」「接口运行时消失，token 才是容器解析的对象，Symbol 避免字符串冲突」，与新增内容一致且无冲突；抽象类 token 的细节、契约记录表与上游自建 fixture 属架构咨询，超出本 skill 范围（合入时已排除其 architecture-ladder/CQRS 材料） |
 
 结论：正文与 references 未变，仅 re-pin 与版本号改为 2026.10.15；正文未变，未跑 D2。
+
+## 2026-10-15 文档上游复核
+
+按 `docs/workflow.md` 的 manual check 要求，逐条对照 `kind: docs` 条目 `contributes` 声明的事实与正文实际引用处。Fastify、
+NestJS、Hono 读的是 GitHub 上的文档源（`gh api`，Fastify 取 `v5.12.7` tag，因为 main 已是 v6 开发线）；Node 与 Express
+读站点页面。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| nodejs-docs | 发布计划：v20 EOL 2026-04-30；v24 Active LTS 至 2026-10-20 转 Maintenance（EOL 2028-04-30）；v26 2026-10-28 进入 LTS | `nodejs/Release` `schedule.json` | 一致。「Written against Node.js 24 LTS」「Node 20 is end-of-life」仍成立；v26 13 天后成为 Active LTS，本轮只记录，下次同步时评估基线是否换到 26 |
+| nodejs-docs | `--unhandled-rejections` 默认 `throw` 自 v15，含 throw 模式的语义（有监听器则 emit，无则作 uncaught exception） | https://nodejs.org/docs/latest-v24.x/api/cli.html#--unhandled-rejectionsmode | 一致 |
+| nodejs-docs | `run()` 优于 `enterWith()`（同事件下一个监听器仍能看到 store）；`withScope()` 配 `using`、Experimental、Node 24.20+/25.9+ | https://nodejs.org/docs/latest-v24.x/api/async_context.html（v24 页标 v24.20.0，最新版 v26.12 页标 v25.9.0） | 一致 |
+| nodejs-docs | `--env-file` 20.6+、多文件后者覆盖、环境变量优先；`--env-file-if-exists` 22.9+；`process.loadEnvFile` 20.12+（三者在 24.10 转稳定） | cli.html、process.html（latest-v24.x） | 一致 |
+| nodejs-docs | 类型剥离 22.6+ 加入、不支持 enum/namespace/参数属性（需 `--experimental-transform-types`）；24.12 转稳定 | typescript.html（latest-v24.x） | 一致 |
+| nodejs-docs | `pipeline` 传播错误并销毁全链；`write()` 返回 false 时等 `drain`；`monitorEventLoopDelay` 纳秒、`resolution` 默认 10 ms；`mock.fn`、`mock.timers.enable({ apis })`/`tick`/`reset` | stream.html、perf_hooks.html、test.html（latest-v24.x） | 一致 |
+| fastify-docs | 默认错误处理器在所有状态码（含 500）原样回 `error.message`/`code`、不区分开发与生产；路由 response schema 替换内置错误序列化器 | `docs/Reference/Errors.md`@v5.12.7 | 一致 |
+| fastify-docs | `FST_ERR_DEC_REFERENCE_TYPE` 与两种正确写法（空声明+钩子、getter/holder） | `Errors.md`、`Decorators.md`@v5.12.7 | 一致 |
+| fastify-docs | `close()` 六步；`return503OnClosing` 默认 true；`forceCloseConnections` 默认 `"idle"`；`keepAliveTimeout` 72 s；`handlerTimeout` 协作式、靠 `request.signal`、可按路由覆盖 | `Server.md`、`Hooks.md`@v5.12.7 | 一致 |
+| fastify-docs | Ajv 基线配置；`new Function()` 编译、用户输入 schema 即 RCE；fast-json-stringify 丢弃 schema 外字段 | `Validation-and-Serialization.md`@v5.12.7 | **更正**，见下 |
+| nestjs-docs | REQUEST 作用域沿注入链上冒、durable providers、禁用作用域的位置 | `content/fundamentals/provider-scopes.md`、`content/websockets/gateways.md` | **更正**，见下 |
+| nestjs-docs | 生命周期顺序（init 自底向上、shutdown 反向）；shutdown hooks 默认关闭及监听器开销原因；`app.close()` 不终止进程；Windows 无 SIGTERM | `content/fundamentals/lifecycle-events.md` | 一致 |
+| nestjs-docs | `ValidationPipe` 的 `whitelist`/`forbidNonWhitelisted`/`transform` | `content/application/validation.md`（文档已从 `techniques/` 移到 `application/`，站点 URL 不变） | 一致 |
+| hono-docs | json/form 校验要求匹配的 content-type，否则回调拿到 `{}`；header 目标键小写；流式 helper 第三参是错误处理器、回调内抛错不触发 `onError`、`onAbort`；`contextStorage` 在 Workers 需 `nodejs_als`/`nodejs_compat` | `docs/guides/validation.md`、`docs/helpers/streaming.md`、`docs/middleware/builtin/context-storage.md` | 一致 |
+| hono-docs | `app.mount()` 接 fetch 风格 handler | `docs/api/hono.md`、`docs/middleware/builtin/mount.md` | **更正**，见下 |
+| hono-docs | `@hono/node-server` 的 Node 版本下限 | `docs/getting-started/nodejs.md`；honojs/node-server README 与 v2.0.0 release notes | **更正**，见下 |
+| express-docs | Express 5 需 Node 18+；路径语法（具名通配、`{}` 可选段、保留字符）；`req.params` null 原型/数组通配/省略未匹配；`req.body` 未解析为 undefined；`req.query` getter + simple；`urlencoded` `extended: false`；`static` dotfiles `"ignore"` 且作用于点目录（`.well-known` 404）；移除的签名；`res.status` 100–999；`app.listen` 回调收错误；async 拒绝进错误处理器；`v5-migration-recipe` | https://expressjs.com/en/guide/migrating-5/ | 一致（页面新增 `router.param()` 不再接受数组、`res.sendFile` 的 `hidden`/`from` 选项移除，属次要签名变化，未入正文） |
+
+更正（均为对照官方当前页面发现，非新增内容，不需要 D1 基线缺口）：
+
+1. **Fastify `additionalProperties: false` 默认是剥离而非拒绝。** 原 `references/fastify.md` 建议「body 专用编译器用
+   `coerceTypes: false` 和 `additionalProperties: false`」，没说 Fastify 基线 Ajv 配置是 `removeAdditional: true`——在这一配置下
+   `additionalProperties: false` 让未知字段被静默删掉、请求照常 200，与 `validation-and-errors.md` 「写接口应拒绝未知字段」的建议相反。
+   证据：`Validation-and-Serialization.md`@v5.12.7 的 baseline 配置块（`removeAdditional: true // remove additional properties if
+   additionalProperties is set to false`）与同页「body 关闭 coercion」示例里显式写的 `removeAdditional: false`。实跑：fastify 5.12.7，
+   `additionalProperties: false` 的 body schema 收 `{ qty: 1, discount: 10 }`，默认配置返回 `200 {"got":{"qty":1}}`；
+   `ajv.customOptions.removeAdditional = false` 时返回 `400 FST_ERR_VALIDATION "body must NOT have additional properties"`。
+   改为：要拒绝就同时设 `removeAdditional: false`；`validation-and-errors.md` 的「拒绝」一行补同一句。
+2. **NestJS 12 起 WebSocket gateway 支持请求作用域。** 原 `references/nestjs.md` 把 WebSocket gateway 与 Passport 策略、cron
+   控制器并列为「不允许请求作用域」。当前 `provider-scopes.md` 写明「Starting with NestJS v12, WebSocket gateways support
+   request-scoped providers」，`gateways.md` 的 Request-scoped gateways 一节：每个连接的 socket 一个实例、随连接存活、断开时销毁，
+   可用 `REQUEST` 注入 socket。改为：禁用位置只剩 Passport 策略与 cron 控制器；gateway 可用但作用域是连接而非消息，状态跨该客户端
+   全部消息累积。
+3. **Hono `app.mount()` 已弃用。** `docs/api/hono.md` 标「`app.mount()` is deprecated. Use the Mount Middleware」；hono v4.13.13
+   release notes：`app.mount()` v4 仍可用、v5 移除，迁移为 `app.all('/x/*', mount(handler))`（`hono/mount`）。
+   `references/express-migration.md` 的「Hono 不能在进程内挂 Express」一句改用 Mount Middleware 表述，结论不变（仍只接
+   fetch 风格 handler）。
+4. **`@hono/node-server` 下限变为 Node 20。** 原 `references/hono.md` 写「18.14.1+、19.7.0+ 或任意 20+」，来自站点
+   getting-started 页（该页至今未更新）。当前适配器 2.x（npm 最新 2.1.5，`engines.node >=20`）的 README 写「works on Node.js
+   versions greater than 20.x」，v2.0.0 release notes 的 Breaking changes：「Dropped support for Node.js v18 … v2 requires
+   Node.js v20 or later」。改为「`@hono/node-server` 2.x requires Node 20 or later」，SOURCES notes 注明以适配器仓库为准。
+
+SOURCES：五个 docs 条目 `synced_at` 改为 2026-10-15；fastify-docs、nestjs-docs、hono-docs 的 `contributes` 随更正调整。
+当前版本：fastify 5.12.7（v6 仍 alpha）、@nestjs/core 12.1.3、hono 4.13.13、express 5.3.0，与正文的「Fastify 5 / NestJS 12 /
+Hono 4」一致。

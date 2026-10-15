@@ -66,7 +66,9 @@ whatever the client sent. Know which of these your project has enabled:
   stripped before the handler sees it.
 - **Unknown properties rejected** — the request fails instead. Prefer this on
   write endpoints: silently ignoring an unknown field means a client that
-  misspelled `discount` believes the discount was applied.
+  misspelled `discount` believes the discount was applied. Fastify's baseline
+  Ajv sets `removeAdditional: true`, so `additionalProperties: false` lands in
+  the *removed* row until `removeAdditional: false` is also set.
 
 In NestJS the equivalent is one pipe configuration, and the defaults are not
 what you want: `new ValidationPipe()` on its own passes unknown properties

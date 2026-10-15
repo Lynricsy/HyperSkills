@@ -29,7 +29,7 @@ const server = serve({ fetch: app.fetch, port: config.port })
 ```
 
 That is also the first thing to check in a Hono project that "does not start".
-Node support requires 18.14.1+, 19.7.0+ or any 20+.
+`@hono/node-server` 2.x requires Node 20 or later.
 
 Because the same app can run on Workers, Deno, Bun or Node, be explicit about
 which one the advice targets: `node:fs`, `AsyncLocalStorage` and process signals
