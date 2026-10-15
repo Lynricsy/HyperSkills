@@ -386,10 +386,13 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | 4 | gpt-6.1-sol medium | 无 | false | ◐1 ✔2 ✔3 ◐4 ✔5 ✘6 ◐7 ✔8（4✔3◐1✘） | 248 s。同样改 parse + strict、所有字段 required、去掉 EUR 默认；只说「不完整响应」报错未点出截断陷阱；字段无描述 |
 | 7 Anthropic 缓存断点与模式切换（缓存寿命/写入计价更正） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ◐4 ✔5 | 133 s。块级 + 请求级 `cache_control`、`cache_read_input_tokens` 验证；system 保持不变、升级指令以 `role: "system"` 追加在用户轮之后并说明「按模型支持」，未提不支持的模型返回 400 需回退；TTL 写法与更正后正文一致（默认 5 分钟命中刷新、`ttl: "1h"` 写入更贵） |
 | 7 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4 ✔5 | 163 s。与有 skill 同级；同样给出 5 分钟默认与 1 小时 TTL，未提 400 回退 |
-| 5 负例（pgvector HNSW） | gpt-6.1-sol medium | 有 | **true** | 2/3（EB1 ✘） | 130 s。首个工具调用即 `read skill://ai-engineering`（intent「Reading retrieval tuning skill」），随后按 Postgres/pgvector 索引问题作答（`ef_search`、`m`/`ef_construction`、`maintenance_work_mem`），未越界到 RAG 管线。输出另存 `/tmp/hs-d2/D2G1-keep/ai-engineering-skill5-run1` |
+| 5 负例（pgvector HNSW），第 1 次 | gpt-6.1-sol medium | 有 | **true** | 2/3（EB1 ✘） | 130 s。首个工具调用即 `read skill://ai-engineering`（intent「Reading retrieval tuning skill」），随后按 Postgres/pgvector 索引问题作答（`ef_search`、`m`/`ef_construction`、`maintenance_work_mem`），未越界到 RAG 管线。输出另存 `/tmp/hs-d2/D2G1-keep/ai-engineering-skill5-run1` |
+| 5 负例，第 2 次 | gpt-6.1-sol medium | 有 | **true** | ✘1 ◐2 ◐3 | 70 s。同样首个工具调用即读 skill，再读 pgvector 0.8.0 README。仍按索引作答：`ef_search` 扫描、`ef_construction=200` 重建并给 `maintenance_work_mem='4GB'`，但认为 64 MB 溢出只影响构建、不解释查询慢；最后提议 halfvec 表达式索引 + 全精度重排（属索引内手段，但触及 EB3 的「不提 rerank」） |
+| 10 Anthropic 原生结构化输出与窗口溢出（新增） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ◐4（3✔1◐） | 270 s。改用 `output_config.format` + `json_schema`、去掉强制工具；`extra: dict` 判为不可表达（每个对象须 `additionalProperties: false`）→ `list[ExtraTerm]`；三个 `Optional` 仍可选、明说不同于 OpenAI strict，并给出 24 个可选参数上限与「必填先于可选」的属性顺序；溢出：Claude 4.5+ 返回 200 + `stop_reason="model_context_window_exceeded"`，解析前检查 `stop_reason`（含 `max_tokens`、拒答），但未用 `count_tokens` 预先预算输入，且把 1/50 的成因写成「需看 stop_reason 才能确认」 |
+| 10 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4（3✔1◐） | 325 s。同样 `output_config.format`、`extra` 改 `{key, value_json}` 条目、`Optional` 仍可选、溢出为 200 + `model_context_window_exceeded`、解析前查 `stop_reason`；同样未做输入预算 |
 
 选择理由：8、9 为今日新增（9 的期望 #2 今日改过，两侧重跑；8 有 skill 结果早于 b7c481f，重跑，基线复用）；4 考察规则 13 改为「OpenAI strict」；7 考察缓存断点与寿命/写入计价更正；Anthropic `output_config.format` 方言与 Claude 4.5+ 窗口溢出截断没有场景覆盖，新增 10（`contract-terms/`）；5 为负例。
 
-已完成部分：4（5✔ 对 4✔）、9（3✔ 对 2✔）有 skill 优于基线，7、8 持平，未见回退。**负例 5 `skill_read=true`**：首个工具调用即读 skill；description 今日未改（早先收紧的排除词已不在当前 description 中），属既有路由问题，非今日正文改动所致；已排队重跑一次判断稳定性。
+结论：4（5✔ 对 4✔）、9（3✔ 对 2✔）有 skill 优于基线；7、8、10 持平（10 两侧 3✔1◐，都未用 `count_tokens` 预先预算输入），未见回退。未改正文。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：10 Anthropic 原生结构化输出与窗口溢出（新增，有/无）；5 负例重跑（判断 skill_read=true 是否稳定）。待结果出来后补判定。
+**负例 5 两次均 `skill_read=true`**（两次都是首个工具调用即读 skill），属稳定的既有路由问题，与今日改动无关：`git log ab38c43..HEAD -- skills/ai-engineering/SKILL.md` 只有 77a04d3 与 b7c481f，两者都只改版本号、规则 13 与 Rationalizations 表一行，description 未动；`git log -G'^description:'` 显示 description 最后一次修改是 5e5cb1a（2026-09-12，压缩为单句路由），早先收紧的排除词在那次压缩中丢失。按本轮约定不改 description，留待下次描述路由复核（`docs/workflow.md` 描述压缩流程 D 步对照路由）处理。
