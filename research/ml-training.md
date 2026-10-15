@@ -336,3 +336,19 @@ skill 未列举 LoRA 初始化方式，新增的初始化选项不在合入面�
 
 **正文与评测**：`SKILL.md` 与 `references/` 正文未变（只改 `metadata.version`），`SOURCES.yaml`
 仅 re-pin 全部 repo 条目，`contributes`/`notes` 不变。正文未变，未跑 D2。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告与主代理归因清单 `/tmp/hs-attr/attribution.md`。
+归因方法：vllm-docs 用 blobless 裸仓库缓存 `git diff <pinned>..<head> -- <paths>` 读完整区间；hf-skills、trl-docs 用 `gh api .../compare/<pinned>...<head>` 取落在 tracked paths 下的文件 patch。
+nvidia-skills、pytorch-docs 报告为 too large 但完整区间归因为空（主代理已判噪声），deepspeed-docs、peft-docs 为 tracked paths unchanged，均随 `--pin` 前移。
+`--pin` 后 `pin_check.py`：pytorch-docs（5f0215f..006c9f9）、vllm-docs（de2b869..429a3da）各前进 1 个提交、未碰 tracked paths，PIN CHECK CLEAN。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| hf-skills | 80f9fa5 → c3ff942 | 3d7a802：`trl-training/SKILL.md` 按 trl@fd74bbc 重写（CLI 示例换成 Trainer/Config 对照表、数据格式、SFT 关键字段、GRPO 奖励函数签名与生成批次整除约束、新增 `DistillationTrainer`、`AsyncGRPOTrainer`） | 噪声：本 skill 取的选型表、`max_length`（非 `max_seq_length`）、先 SFT 后偏好对齐、生成批次须被 `num_generations` 整除等事实在新版中不变；`license: Apache-2.0` 未变 |
+| trl-docs | 0e7bb36 → 8f39f8f | 07baa40 删除 SFT padding-free/packing 的 FlashAttention 警告；ebf09f6 文档去掉已弃用的 `use_liger_kernel`；31fb1b6 SFT 改用融合 LM head 打分并删掉 `chunked_nll` 一节；5de4a98 新增 `expandable_segments` 说明（`PYTORCH_ALLOC_CONF` 自 PyTorch 2.10 为规范名，vLLM sleep mode 只读 `PYTORCH_CUDA_ALLOC_CONF`）；3e9940d SFT 选择性激活检查点 `gradient_checkpointing_kwargs={"selective": True}` | 噪声 / 新增未合入：本 skill 不涉及 Liger、`chunked_nll`、padding-free 的注意力实现要求（已 grep）；OOM 一节「用 chunked/fused 交叉熵」是通用表述仍成立。`PYTORCH_CUDA_ALLOC_CONF` 核对 PyTorch HEAD `c10/core/AllocatorConfig.cpp`：仍是第一个被解析的变量、无弃用告警，本 skill 的写法仍正确且恰是 vLLM 读的那个。SAC 是 trl 1.15.0 起 `SFTTrainer` 专有选项，本 skill 的检查点取舍按库无关写法（transformers 的 `every_n_layers`），评测场景钉在 trl 1.13；属新增内容，本次未做基线划界，不合入 |
+| vllm-docs | 998490c → de2b869 | 4c43254/2e3154a HiSparse 连接器指标；1c47ebf `VLLM_CPU_KVCACHE_SPACE` 默认值更正为 0（GiB）；37d6174 `--custom-histogram-buckets` | 噪声：本 skill 只取「指标在 API server 端口的 `/metrics`」，该事实未变；CPU 后端 KV 空间与直方图分桶不在训练侧交接范围 |
+
+结论：正文与 references 未改，未新增评测场景、未跑 D2；只 re-pin 并把版本号改为 2026.10.15。
+遗留：TRL SFT 的选择性激活检查点若要写入 OOM 步骤 5，需新增钉在 trl ≥ 1.15 的场景先跑基线。
