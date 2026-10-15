@@ -127,7 +127,7 @@ an order of magnitude in either direction:
 
 | Modality | Billed by |
 |---|---|
-| Image | Emitted image tokens, fixed per resolution tier, which the aspect ratio and quality tier select. Input images add input tokens, and a high input-fidelity setting raises them substantially [official] |
+| Image | Emitted image tokens, fixed per size tier and the same for every aspect ratio within it. Input images add input tokens, and a high input-fidelity setting raises them substantially [official] |
 | Video | Duration and resolution tier of a clip, per job, with one clip per job [official] |
 | Speech | Input characters |
 | Recognition | Audio duration |

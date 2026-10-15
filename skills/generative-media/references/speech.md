@@ -21,7 +21,19 @@
 
 Hosted speech endpoints commonly return raw PCM — 24 kHz, 16-bit, mono, with
 no container and no header [official]. The same is true of realtime audio
-sockets, which is what makes it a general trap rather than one vendor's quirk.
+sockets and of streamed synthesis, which is what makes it a general trap
+rather than one vendor's quirk.
+
+The format is a property of the model generation and the request mode, not of
+the vendor. One vendor's earlier speech models return headerless PCM by
+default, while its current generation returns a complete WAV with a RIFF
+header for a non-streaming request and headerless PCM for a streaming one,
+with the encoding selectable per request [official]. Decide from the declared
+MIME type (`audio/l16` versus `audio/wav`) or from the first four bytes
+reading `RIFF` — never from the model you think you are calling. Wrapping a
+header around bytes that already have one still probes as valid audio, but the
+inner 44-byte header plays as samples: a click at the start of every file,
+and a click at every joint when such files are concatenated.
 
 Naming those bytes `.wav` does not make them a WAV. A browser player, an
 `<audio>` element, a media library and a mobile player all reject the file,
@@ -164,8 +176,8 @@ window and decodes each window autoregressively; the low-level path pads or
 truncates the input to exactly 30 seconds before computing features
 [official]. Hosted services inherit the window, which is why "audio longer
 than 30 seconds needs an explicit chunking strategy" appears in vendor docs —
-and why omitting it returns a truncated transcript rather than an error
-[official].
+currently scoped to one vendor's speaker-labelling model — and why omitting it
+returns a truncated transcript rather than an error [official].
 
 Three consequences that get misdiagnosed as model quality:
 

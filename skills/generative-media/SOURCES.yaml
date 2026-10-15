@@ -73,9 +73,9 @@ upstreams:
     url: https://ai.google.dev/gemini-api/docs
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-12"
-    contributes: "Hard numbers no other licence-compatible source publishes: fixed 24 fps video with duration restricted to 4, 6 or 8 seconds and forced to 8 for high resolution, reference images or extension; one clip per request; 11 second to 6 minute request latency; two-day server-side retention; region-restricted person generation; no billing when safety filters block audio; the aspect-ratio to resolution to token cost chain and default watermarking of generated images; raw 24 kHz 16-bit mono PCM returned by speech synthesis; and the statement that the seed does not guarantee determinism but slightly improves it."
-    notes: "Attribution required: content from the Gemini API documentation (https://ai.google.dev/gemini-api/docs) by Google, licensed under CC BY 4.0 (code samples Apache-2.0), per the site footer read directly. Facts were restated in our own words; no text was copied verbatim. Model ids and SDK call shapes were deliberately not carried (rulings 1 and 2). Pages consulted: image-generation, video, veo, speech-generation."
+    synced_at: "2026-10-15"
+    contributes: "Hard numbers no other licence-compatible source publishes: fixed 24 fps video with duration restricted to 4, 6 or 8 seconds and forced to 8 for high resolution, reference images or extension; one clip per request; 11 second to 6 minute request latency; two-day server-side retention; region-restricted person generation; no billing when safety filters block audio; the size-tier to fixed output-token cost chain in which the aspect ratio only picks the geometry, and default watermarking of generated images; 24 kHz 16-bit mono PCM returned headerless by earlier speech models and by streaming requests, but as a RIFF WAV by the current generation's non-streaming requests; and the statement that the seed does not guarantee determinism but slightly improves it."
+    notes: "Attribution required: content from the Gemini API documentation (https://ai.google.dev/gemini-api/docs) by Google, licensed under CC BY 4.0 (code samples Apache-2.0), per the site footer read directly. Facts were restated in our own words; no text was copied verbatim. Model ids and SDK call shapes were deliberately not carried (rulings 1 and 2). Pages consulted: image-generation, video, veo, omni, speech-generation; the 2026-10-15 review corrected the image cost chain and the speech output format from those pages."
   - id: diffusers-docs
     kind: repo
     repo: huggingface/diffusers
@@ -158,7 +158,7 @@ upstreams:
     url: https://developers.openai.com/api/docs/guides/image-generation
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Fact-checking only: the image, text-to-speech and speech-to-text guides were used to verify the request-size cap, format whitelist, chunking requirement beyond 30 seconds, the model scope of style instructions, and the AI-voice disclosure obligation quoted from the merged skills."
     notes: "Licence ruling: no content licence is granted anywhere on the site, so it is treated as proprietary and nothing was copied. The equivalent engineering facts were merged from the Apache-2.0 openai/skills directories instead. This check is also what surfaced a whole-generation turnover of model ids, which is the evidence behind ruling 2."
   - id: fal-community-skills

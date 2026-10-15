@@ -10,7 +10,7 @@
 - [Reference images and multi-image composition](#reference-images-and-multi-image-composition)
 - [`background` is not the backdrop](#background-is-not-the-backdrop)
 - [What the prompt may invent, and what it may not](#what-the-prompt-may-invent-and-what-it-may-not)
-- [Aspect ratio drives resolution drives cost](#aspect-ratio-drives-resolution-drives-cost)
+- [Size tier, not frame shape, drives cost](#size-tier-not-frame-shape-drives-cost)
 - [Prompt failures that get misread as model quality](#prompt-failures-that-get-misread-as-model-quality)
 - [Writing the artefact](#writing-the-artefact)
 
@@ -168,15 +168,16 @@ These are the additions the user cannot see you made until the asset is already
 published. Report the final prompt actually sent, including anything the
 provider's rewriter added, next to the delivered file.
 
-## Aspect ratio drives resolution drives cost
+## Size tier, not frame shape, drives cost
 
-The billing chain for hosted image generation is aspect ratio → resolution tier
-→ emitted token count, and it is stepped rather than continuous [official]. A
-given quality tier maps each aspect ratio onto a fixed pixel geometry, and that
-geometry maps onto a fixed number of billed output tokens. Two consequences:
+The billing chain for hosted image generation is size tier → fixed emitted
+token count, and it is stepped rather than continuous [official]. Within a
+tier the aspect ratio only chooses the pixel geometry: every ratio in the tier
+is billed the same number of output tokens. Two consequences:
 
-- Asking for a slightly taller frame can cross into the next tier and change
-  the price with no visible change in detail.
+- Changing the frame from square to tall or panoramic does not change the
+  price; moving up a size tier does, in a step, whether or not the extra
+  detail is visible.
 - The cost of a batch is knowable before you run it, because the token count
   per image is fixed by the tier and not by the prompt.
 

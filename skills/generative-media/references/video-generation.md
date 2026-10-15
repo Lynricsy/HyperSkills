@@ -15,10 +15,13 @@
 
 ## Duration and frame rate are fixed, not requested
 
-Hosted video models emit short clips at a frame rate they choose. One current
-flagship accepts only 4, 6 or 8 seconds, runs at a fixed 24 fps, forces the
-duration to 8 seconds whenever 1080p, 4K, reference images or clip extension
-are in play, and returns exactly one video per request [official].
+Hosted video models emit short clips at a frame rate they choose. One vendor's
+high-fidelity cinematic model accepts only 4, 6 or 8 seconds, runs at a fixed
+24 fps, forces the duration to 8 seconds whenever 1080p, 4K, reference images
+or clip extension are in play, and returns exactly one video per request
+[official]. The same vendor now recommends a different default model for
+general video work, with its own limits — read the limits of the model you
+actually call.
 
 The design consequences arrive before the first call:
 

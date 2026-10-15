@@ -562,3 +562,16 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 | comfyui | a65316b → ba99487（paths 15 提交） | `comfy_extras/`：Latent 几何节点、ReferenceMultiLatent、ImageSDRToHDR、EXR 16 位浮点与压缩、LatentOperationBlend、原生 LoRA 堆叠加载节点、CameraAngle/CreateCameraInfo、3D 输出统一等 | 噪声：GPL-3.0 仅作 reference，用途是判定节点图工作流的覆盖面（采样/调度、引导、latent、适配器加载、蒙版、托管 API 节点）；新增节点不改变该覆盖判定，也未复制任何内容 |
 
 结论：正文与 references 未改，未新增评测场景、未跑 D2；只 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：2 条 `kind: docs` 条目的 `contributes` 事实 + references 中标 `[official]` 且出自这两处的数字与行为。Google 页面直接读 ai.google.dev（Veo 页 2026-10-08、image-generation 2026-10-09、speech-generation 2026-10-12、video 概览 2026-06-30）；OpenAI 页面读 developers.openai.com 的 `.md` 版本，只核对、不复制。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| google-gemini-docs | Veo：24 fps；时长仅 4/6/8 s；1080p/4K/参考图/扩展时强制 8 s；每请求 1 个视频；延迟 11 s–6 min；服务端保留 2 天、扩展视频重新计时；EU/UK/CH/MENA 仅 `allow_adult`；音频被安全过滤拦截不计费；seed 不保证确定性只略微改善 | https://ai.google.dev/gemini-api/docs/veo | 一致。另：video 概览页现推荐新的默认视频模型、Veo 3.1 用于扩展 / 末帧控制等场景；原文把 Veo 称作「current flagship」已不准确，`video-generation.md` 改为「某厂商的高保真电影级模型」并提示默认模型限值不同（不引入模型 id，遵循裁决 2） |
+| google-gemini-docs | 图片计费链「宽高比 → 分辨率档 → token」与「略高一点的画幅可能跨档涨价」；生成图片默认水印 | https://ai.google.dev/gemini-api/docs/image-generation 、 https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite-image | 水印一致（「All generated images include a SynthID watermark」；模型页另注「SynthID watermarking (Always On) + C2PA」，Cloud Content Credentials 页列出图像与 Veo 模型，`provenance-and-policy.md` 的 C2PA 陈述成立）。**更正**：当前各模型的比例→分辨率→token 表中，同一 `image_size` 档内所有宽高比 token 数相同（如某档 1K 均为 1120、2K 均为 1680），档位由 `image_size` 显式选择，宽高比只决定像素几何；原文「略高的画幅会跨入下一档并改变价格」不成立。`image-generation.md` 该节改为「Size tier, not frame shape, drives cost」（目录锚点同步），`job-lifecycle.md` 计费表 Image 行同步；`SOURCES.yaml` contributes 同步 |
+| google-gemini-docs | 语音合成返回 24 kHz / 16-bit / mono 无头 PCM | https://ai.google.dev/gemini-api/docs/speech-generation | **更正**：页面「Audio output formats」与迁移说明写明当前一代 TTS 非流式请求默认返回带 RIFF 头的完整 WAV（`audio/wav`），流式请求默认返回无头 L16 PCM，可经 `response_format.mime_type` 选 `audio/l16`/`mulaw`/`alaw`；早期模型才默认无头 PCM，并提示原先自己补 WAV 头的代码要移除。`speech.md` 补充「格式取决于模型代际与是否流式，按声明的 MIME 或前 4 字节 `RIFF` 判断」，并说明重复加头的后果：实测给已有头的 WAV 再包一层，`ffprobe` 仍报 1.0 s 有效 pcm_s16le，但解码首样本为 `(18770, 17990, …)` 即内层头被当作音频（起始爆音）。SKILL.md 规则 20「until proven otherwise」与之相容，未改。评测场景 3 夹具固定早期 TTS 模型（仍返回无头 PCM），断言不受影响 |
+| openai-docs | 转写单请求 25 MB 与格式白名单（mp3/mp4/mpeg/mpga/m4a/wav/webm）；>30 s 需 `chunking_strategy`；风格 `instructions` 的模型范围；TTS 4096 字符上限；AI 语音披露义务 | https://developers.openai.com/api/docs/guides/speech-to-text 、 https://developers.openai.com/api/docs/guides/text-to-speech 、 speech 创建接口参考 | 25 MB、白名单、`instructions`「Does not work with `tts-1` or `tts-1-hd`」、4096 字符、「usage policies require you to provide a clear disclosure … AI-generated」均一致。>30 s 的 `chunking_strategy` 要求在当前指南中只出现在说话人标注（diarize）模型一节，`speech.md` 补注「currently scoped to one vendor's speaker-labelling model」；「省略则返回截断转写而非报错」当前指南未述，该说法来自 `openai-skills-transcribe`，保留原标注 |
+
+正文改动：`references/image-generation.md`、`job-lifecycle.md`、`speech.md`、`video-generation.md`；`SOURCES.yaml` 中 `google-gemini-docs` 的 contributes/notes 同步。均为按官方页面更正既有陈述，不新增规则，未新增评测场景、未跑 D2。
