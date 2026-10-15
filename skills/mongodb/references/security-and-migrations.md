@@ -1,6 +1,7 @@
 # Security and online change
 
-Verified against: MongoDB 8.0/8.3 documentation; behaviour checks on 8.3.9.
+Verified against: MongoDB 8.0/8.3 documentation (Queryable Encryption query types: 9.0 manual and
+release notes); behaviour checks on 8.3.9.
 
 ## Contents
 
@@ -74,10 +75,13 @@ production.
   the server never sees; deterministic encryption allows equality queries on the encrypted
   field, randomised does not allow any.
 - **Queryable Encryption** is the current form: equality and range queries over encrypted
-  fields are supported in production; prefix, suffix and substring queries are public
-  preview in 8.2 and explicitly not for production (the GA form will be incompatible with
-  the preview). The encrypted fields must be declared in the collection's `encryptedFields`
-  at creation time, and cannot be changed afterwards without re-creating the collection.
+  fields are supported in production, and prefix, suffix and substring queries on string
+  fields are GA from 9.0 (mongosh needs the 9.0+ Automatic Encryption Shared Library for
+  them). The 8.2/8.3 public-preview query types (`prefixPreview`, `suffixPreview`,
+  `substringPreview`) are incompatible with the GA ones: a collection that enables them has
+  to be dropped and re-created with `prefix`/`suffix`/`substring`. The encrypted fields must
+  be declared in the collection's `encryptedFields` at creation time, and cannot be changed
+  afterwards without re-creating the collection.
 
 Both CSFLE and Queryable Encryption require a key-management provider and change the query
 surface — decide them at modelling time, not as a hardening pass.

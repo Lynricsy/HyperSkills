@@ -18,10 +18,10 @@ replication and sharding semantics, time-series collections, Atlas Search and ve
 search, driver-side connection and cursor behaviour, and authentication, authorisation and
 encryption at the database level.
 
-The body is written against **MongoDB 8.0** (the current LTS). Rules that need a rapid
-release carry a gate such as `(8.3+)`; 8.3.x is the current rapid release and the version
-every measurement quoted below was taken on. Nothing here assumes 9.0, which is still in
-alpha.
+The body is written against **MongoDB 8.0** (long-term support). Rules that need a later
+release carry a gate such as `(8.3+)` or `(9.0+)`; every measurement quoted below was taken on
+8.3.x. MongoDB 9.0 is generally available, but nothing here assumes it unless the rule is
+gated.
 
 Not covered:
 

@@ -402,3 +402,31 @@ Node 驱动默认把 JS number 发成 double，所以「shell 里能过、应用
 其余仓库上游（`mongodb-agent-skills`（d1d2d86 → c370a63，2 commits）、`azure-documentdb-kit`（688a6c9 → 1dd4bd5，1 commits）为 `repo moved, tracked paths unchanged`；`edd-skill` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（c370a63、1dd4bd5、3cf7c7e、4858a63、0211b09），`pin_check.py` 结果 PIN CHECK CLEAN。1 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+候选：mongodb/agent-skills（Apache-2.0，`c370a63b2707`）新增 `mongodb-qe-size-estimation`（`skills/`、`plugins/mongodb*/` 与
+`.agy-plugin/` 共 5 份相同副本）。MongoDB 手册已新增同内容的官方页 `core/queryable-encryption/qe-estimate-storage-impact`，并在页内
+指向这个 skill。
+
+事实更正（核实后直接改）：
+- `references/security-and-migrations.md` 原写「prefix/suffix/substring 在 8.2 public preview、不可用于生产」，已过时。
+  9.0 发布说明「Queryable Encryption Prefix, Suffix, and Substring Query General Availability」、9.0 手册
+  `encrypt-and-query`（strMaxLength 2–50、substring 的 strMaxQueryLength 2–6）与 `supported-operations`（三者仅限 string；
+  equality 不支持 double/decimal，由 range 索引承担等值）为证；v8.3 手册写明 preview 类型为 `prefixPreview`/`suffixPreview`/
+  `substringPreview`，与 GA 不兼容、启用它们的集合必须 drop 后重建；mongosh 需 9.0+ Automatic Encryption Shared Library。
+  改为 9.0 GA + preview 类型须重建集合。
+- `SKILL.md` Scope 原写「9.0 仍在 alpha」：mongodb/mongo 已有 `r9.0.2`、`r9.0.4` 发布标签，手册标 9.0 (Current)，改为 9.0 已 GA、
+  正文仍以 8.0 为基准、需要 9.0 的规则单独打门槛；SOURCES 中 `mongodb-docs`、`mongodb-server` 的 contributes 同步改写。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| QE 容量估算公式（T、文档存储、索引存储、内存）与「substring 最多一个字段、文档数 < 5000 万」 | 不合入 | 场景 6 基线 5/5：自行引用官方估算页，算出每个 substring 字段 T=236、内存约 1,376 GiB，并给出 prefix/suffix 替代 |
+| 字段类型与查询类型组合（double 不能 equality） | 不合入 | 同场景基线已指出并给出 range 或 long 替代 |
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 QE schema 能否上线与容量 | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | 基线把 balance 改为 long equality 后 T_total=710（预期约 709，口径差一个等值字段），内存 1,376 GiB |
+
+结论：新增内容无缺口不合入，只做两处事实更正（无需评测）；场景 6 与夹具 `evals/files/qe-sizing/` 留作哨兵。
+产物：`/tmp/hs-evals-MergeM2/mongodb/omp-openai-gpt-6.1-sol-medium/baseline/6`。

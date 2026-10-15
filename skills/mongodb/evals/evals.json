@@ -66,5 +66,17 @@
       "Does not introduce MongoDB concepts such as documents, collections, aggregation pipelines or write concern",
       "skill_read is false for the `mongodb` skill"
     ]
+  },
+  {
+    "skills": ["mongodb"],
+    "query": "encrypted-fields.json is the Queryable Encryption schema we plan to use for the production patients collection. Will it work and will the cluster cope? Give me numbers and what to change.",
+    "files": ["evals/files/qe-sizing/encrypted-fields.json"],
+    "expected_behavior": [
+      "States that prefix, suffix and substring queries are GA only from MongoDB 9.0 and that the `substringPreview` configuration from the preview is not the GA query type: upgrade to 9.0 and create the collection with `prefix`/`suffix`/`substring` (encrypted fields cannot be changed later without re-creating the collection)",
+      "Rejects `equality` on the double `balance` field (equality is not supported for double/decimal; use `range`, which also answers equality matches)",
+      "Computes the worst-case tag count with MongoDB's formula: T = 1 + (ub - lb + 1)(2*strMaxLength + 2 - ub - lb)/2 = 236 per substring field, about 709 in total with the equality field",
+      "Computes memory as N * (52 * T_total + 17), roughly 1.4-1.5 TB (about 1,370 GiB) for 40 million documents, far beyond a 64 GB node, and disk via 1.2*(67*T_total+640) per document plus per-field document storage",
+      "Recommends cutting substring to at most one field (MongoDB advises it only below 50 million documents and when prefix/suffix cannot serve): `prefix` for lastName, `suffix` for the email domain, and dropping or narrowing substring on address.street (lower strMaxLength, narrower query-length range)"
+    ]
   }
 ]

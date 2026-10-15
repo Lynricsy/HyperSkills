@@ -25,8 +25,8 @@ upstreams:
     url: https://www.mongodb.com/docs/manual/
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "The final authority for every version-gated or semantic claim: the implicit default write concern formula and the arbiter case, read-concern levels, the transaction runtime limit and the TransientTransactionError / UnknownTransactionCommitResult contract, retryable-write coverage, cursorTimeoutMillis and the 30-minute logical-session timeout that overrides noCursorTimeout, the 100 MB blocking-stage budget, the 64-index-per-collection ceiling, TTL and multikey semantics, operator-by-operator index usability, chunk sizing and jumbo chunks, refineCollectionShardKey versus reshardCollection (including 8.0 forceRedistribution and 8.0.10 time-series support), Queryable Encryption's GA equality and range support against the 8.2 public-preview prefix/suffix/substring types, and the $rankFusion (8.0+) and $scoreFusion (8.3+) gates."
+    synced_at: "2026-10-15"
+    contributes: "The final authority for every version-gated or semantic claim: the implicit default write concern formula and the arbiter case, read-concern levels, the transaction runtime limit and the TransientTransactionError / UnknownTransactionCommitResult contract, retryable-write coverage, cursorTimeoutMillis and the 30-minute logical-session timeout that overrides noCursorTimeout, the 100 MB blocking-stage budget, the 64-index-per-collection ceiling, TTL and multikey semantics, operator-by-operator index usability, chunk sizing and jumbo chunks, refineCollectionShardKey versus reshardCollection (including 8.0 forceRedistribution and 8.0.10 time-series support), Queryable Encryption's equality and range support and the 9.0 GA of prefix/suffix/substring queries (with the 8.2/8.3 *Preview query types incompatible with GA), and the $rankFusion (8.0+) and $scoreFusion (8.3+) gates."
     notes: "Licence checked, not assumed: the source repository mongodb/docs reports license: null from the GitHub API and carries no LICENSE file at its root (only third-party notice files under content/), and https://www.mongodb.com/docs/ carries nothing beyond a copyright line. Treated as the no-licence-but-public case: license NONE, no text copied verbatim, every fact restated. Note that this is the documentation repository, which is distinct from the SSPL-licensed server source (see mongodb-server below). Every page also serves Markdown by appending .md to its path, which is how the facts above were read."
   - id: azure-documentdb-kit
     kind: repo
@@ -70,7 +70,7 @@ upstreams:
     license: SSPL-1.0
     relation: reference
     synced_at: "2026-10-15"
-    contributes: "Read only to establish the current release train for the version gates in this skill: the newest tag is r8.3.9, 8.0 is the LTS the body is written against, and r9.0.0-alpha* confirms 9.0 is not yet a release."
+    contributes: "Read only to establish the current release train for the version gates in this skill: 8.0 is the LTS the body is written against, 8.3.x is the rapid release the measurements were taken on, and the r9.0.x release tags (r9.0.4 at the 2026-10-15 check) confirm 9.0 is generally available."
     notes: "The GitHub API reports license.spdx_id as NOASSERTION; LICENSE-Community.txt was read and is the Server Side Public License v1, which is not a permissive licence. Reference only under the licence rules for this repository - no code, comment, test or documentation text from this repository was copied or adapted. Note that the docs repository (mongodb-docs above) is a separate repository and is not SSPL-licensed."
   - id: edd-skill
     kind: repo

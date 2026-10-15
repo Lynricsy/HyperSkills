@@ -1,0 +1,25 @@
+{
+  "collection": "patients",
+  "cluster": "Atlas M60 (64 GB RAM per node), MongoDB 8.2, 1.2 TB disk",
+  "documents": 40000000,
+  "note": "Copied from the staging collection we built during the 8.2 preview. Plan: create the production collection with this schema next sprint.",
+  "encryptedFields": {
+    "fields": [
+      { "path": "ssn", "bsonType": "string", "queries": { "queryType": "equality" } },
+      { "path": "lastName", "bsonType": "string",
+        "queries": { "queryType": "substringPreview", "strMaxLength": 50, "strMinQueryLength": 2, "strMaxQueryLength": 6, "caseSensitive": false, "diacriticSensitive": false } },
+      { "path": "email", "bsonType": "string",
+        "queries": { "queryType": "substringPreview", "strMaxLength": 50, "strMinQueryLength": 2, "strMaxQueryLength": 6, "caseSensitive": false, "diacriticSensitive": false } },
+      { "path": "address.street", "bsonType": "string",
+        "queries": { "queryType": "substringPreview", "strMaxLength": 50, "strMinQueryLength": 2, "strMaxQueryLength": 6, "caseSensitive": false, "diacriticSensitive": false } },
+      { "path": "balance", "bsonType": "double", "queries": { "queryType": "equality" } },
+      { "path": "diagnosis", "bsonType": "object" }
+    ]
+  },
+  "averagePlaintextBytes": { "ssn": 11, "lastName": 9, "email": 24, "address.street": 28, "diagnosis": 400 },
+  "searchNeeds": {
+    "lastName": "staff type the first letters of the surname",
+    "email": "support searches by the domain after @",
+    "address.street": "occasional 'contains' search"
+  }
+}
