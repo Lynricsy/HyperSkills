@@ -238,7 +238,8 @@ That access grant is the main argument against using it casually.
 - [ ] `examples/minimal` and `examples/complete` both plan.
 - [ ] README inputs/outputs regenerated (`terraform-docs`).
 - [ ] `required_version` reflects the oldest runtime actually tested, not the newest feature
-      used — and names both runtimes if both are supported.
+      used — and if OpenTofu is supported, its floor sits in a `.tofu` file, because OpenTofu
+      1.12+ ignores `required_version` in `.tf` files (`references/opentofu-differences.md`).
 - [ ] Provider constraints are ranges (`~> 6.0`), not exact pins: a module that pins a provider
       exactly cannot be composed with any other module.
 - [ ] Breaking interface changes get a major version, and the changelog names the `moved`

@@ -53,5 +53,16 @@
       "Does not bring in Terraform, HCL, modules, state or infrastructure-as-code framing at all",
       "skill_read is false for the `terraform` skill"
     ]
+  },
+  {
+    "skills": ["terraform"],
+    "query": "service_tags.tf is a shared module in PR #87 and review-thread.md is the review so far. The platform team runs Terraform 1.16.2, the data team runs OpenTofu 1.13.1. Settle the review: who is right, what has to change so both teams can use the module, and how do we stop this happening again?",
+    "files": ["evals/files/dual-runtime/service_tags.tf", "evals/files/dual-runtime/review-thread.md"],
+    "expected_behavior": [
+      "Rejects Reviewer A's premise: `convert()` is not Terraform-only — it exists from Terraform 1.15 and OpenTofu 1.13 — so it works for both teams' versions and does not need replacing with `tomap()`",
+      "Identifies the typed `output` as what actually breaks the data team: an explicit `type` on an `output` block is Terraform 1.15+ only and OpenTofu (1.13.1 included) rejects it as an unsupported argument, so the `type` line must go (keep the description) for the module to be shared",
+      "Corrects Reviewer B on `required_version`: since OpenTofu 1.12 a `required_version` in a `.tf` file is treated as Terraform's constraint and ignored by OpenTofu, so `>= 1.15` neither blocks nor protects the OpenTofu callers; the OpenTofu floor (1.13, for `convert()`) belongs in a `.tofu` file, as `terraform { required_version = \">= 1.13\" }` or a `language { compatible_with { opentofu = \">= 1.13\" } }` block",
+      "Prevents recurrence by running the module's tests under both binaries in CI (`terraform test` and `tofu test` on the same `.tftest.hcl` files, at the supported minimum versions), since only that proves dual-runtime support"
+    ]
   }
 ]

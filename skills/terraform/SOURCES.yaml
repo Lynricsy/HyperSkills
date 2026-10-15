@@ -62,7 +62,7 @@ upstreams:
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"
-    contributes: "The permissively licensed authority for language semantics shared by both runtimes, used wherever the equivalent HashiCorp page could not be merged: moved/import/removed/check block semantics, for_each versus count expansion, the lifecycle meta-arguments, variable validation and the nullable and optional() rules, backend configuration and state locking behaviour, workspace semantics, and the state encryption and `enabled` meta-argument that exist only on this side."
+    contributes: "The permissively licensed authority for language semantics shared by both runtimes, used wherever the equivalent HashiCorp page could not be merged: moved/import/removed/check block semantics, for_each versus count expansion, the lifecycle meta-arguments, variable validation and the nullable and optional() rules, backend configuration and state locking behaviour, workspace semantics, how OpenTofu reads its own version floor (required_version only from .tofu files from 1.12, or a language compatible_with block), and the state encryption and `enabled` meta-argument that exist only on this side."
     notes: "Licence verified by reading the LICENSE of the docs source repository opentofu/opentofu.org: Apache-2.0, so this is merged rather than reference. This is the only official documentation source in this skill that can be merged - see the terraform-docs-site entry."
   - id: awesome-copilot-terraform
     kind: repo

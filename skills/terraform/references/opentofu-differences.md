@@ -25,9 +25,15 @@ shared features arrived at different versions. A configuration that runs on one 
 parse on the other, and a version gate written as "1.9+" without naming the runtime is
 usually wrong for one of them.
 
-Practical rule: `required_version` constrains whichever binary is running, so it cannot
-express "Terraform 1.11 or OpenTofu 1.10". A module supporting both needs its version floor in
-the README and its real proof in a CI job that runs the test suite under both binaries.
+Practical rule: one `required_version` cannot express "Terraform 1.11 or OpenTofu 1.10", and
+the two binaries no longer read the same one. Terraform checks `required_version` in any `.tf`
+file. OpenTofu 1.12+ ignores a `required_version` in a `.tf` file (it assumes the constraint is
+Terraform's) and honours one only in a `.tofu` file, or reads its own floor from
+`language { compatible_with { opentofu = ">= 1.13" } }` (1.12+; put it in a `.tofu` file too,
+because Terraform rejects the block) [verified]. OpenTofu 1.11 and earlier applied the `.tf`
+constraint to themselves. So a module supporting both carries Terraform's floor in
+`versions.tf`, OpenTofu's in `versions.tofu`, and its real proof in a CI job that runs the
+test suite under both binaries.
 
 ## OpenTofu-only features
 
@@ -115,11 +121,12 @@ redistributed the way an MPL or Apache document can. Quote it by link, not by pa
 - Name the runtime whenever you state a version floor. "1.9+" is ambiguous; "Terraform 1.11+
   / OpenTofu 1.10+" is not.
 - Prefer the intersection of the two feature sets in a shared module, and keep runtime-specific
-  configuration in `.tofu` overrides if you need it.
+  configuration in `.tofu` overrides if you need it — OpenTofu's version floor included, since
+  OpenTofu 1.12+ does not read `required_version` from `.tf` files.
 - Do not use `terraform`/`tofu` in a script's hardcoded path; take the binary name from a
   variable so the same pipeline can run both.
 - Run the test suite under both binaries in CI. That is the only thing that actually proves the
-  claim; `required_version` cannot express it.
+  claim; version constraints only state it.
 
 ## Migrating between them
 

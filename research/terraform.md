@@ -621,3 +621,40 @@ nitinjain-platform-skills、wshobson-terraform-specialist、tflint 为 repo move
    libraries 早已在差异表里。
 
 两处都是对照官方 CHANGELOG 与实跑的事实更正，不改规则，不需要评测。SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`c737e5e`（`convert()` 由「Terraform-only」改为「Terraform 1.15 / OpenTofu 1.13」并移入同功能不同版本表；Scope 与
+`opentofu-differences.md` 的「当前稳定版」改为「以 OpenTofu 1.12 为准、差异表按 1.13 复核」）；`92c9bf4` 只有 re-pin 与版本号。
+
+选场景：现有场景都不考察 `convert()` 或 OpenTofu 1.13，按简报新增回归场景 5（`evals/files/dual-runtime/`：同时供 Terraform 1.16.2 与
+OpenTofu 1.13.1 使用的 tags 模块，用了 `convert()`、带 `type` 的 output 和 `.tf` 里的 `required_version = ">= 1.15"`；评审 A 说
+`convert()` 是 Terraform 独有，评审 B 说 typed output 与 `required_version` 都没问题）。负例 4（Dockerfile 瘦身）。
+夹具行为本机实测：Terraform 1.16.2 `validate` 通过；OpenTofu 1.13.1 对 output `type` 报 `Unsupported argument`，去掉后 `convert()` 正常。
+
+### 场景中发现的正文错误（已修正）
+
+构造夹具时实测：OpenTofu 1.12.6 与 1.13.1 对 `.tf` 文件中的 `terraform { required_version = ">= 9.0" }`（以及 `< 1.0`、`= 1.5.0`、`>= 1.15`）
+一律照常 plan；同一约束写进 `versions.tofu` 或写成 `language { compatible_with { opentofu = ">= 9.0" } }` 才报 `Incompatible module`；
+Terraform 1.16.2 对 `language` 块报 `Unsupported block type`。源码 `internal/configs/diagnostics.go`@v1.13.1：「We only pay attention to these
+in OpenTofu-specific files」（v1.12.0 起即有）；文档 `language/settings`@v1.13.1：旧版本 OpenTofu 才把它当作自己的约束，跨运行时模块用
+`versions.tofu` + `versions.tf`；1.12 CHANGELOG 新增 `language` 块（#3300）。而 `opentofu-differences.md` 写「`required_version` constrains
+whichever binary is running」，与 1.12+ 不符。
+
+改前有 skill 的一次运行（产物另存 `/tmp/hs-d2/D2G3/prefix/terraform-skill-5`）照样 4/4，但 EB3 是模型自己在 VM 里用 1.13.1 二进制
+实测出来的（「the original constraint did not block initialization」），与正文说法相反——正文在这一点上误导，模型靠实验绕过。
+修正：`opentofu-differences.md`「The short version」改写为两种运行时各读各的约束（Terraform 读 `.tf`；OpenTofu 1.12+ 只读 `.tofu` 中的
+`required_version` 或 `language.compatible_with`，后者也须放 `.tofu`；1.11 及更早仍读 `.tf`），「Writing for both」两条随之调整；
+`modules.md` 发布清单一条改为 OpenTofu 版本下限放 `.tofu`；SOURCES `opentofu-docs` 的 contributes 补一句。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 双运行时模块评审 | gpt-6.1-sol medium | 有（改前正文） | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 230 s。EB3 由实测得出，与正文「constrains whichever binary」相反 |
+| 5 | gpt-6.1-sol medium | 有（改后正文） | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 165 s。直接写出「OpenTofu 1.12+ ignores `required_version` in `.tf` files」，给 `versions.tf` + `versions.tofu`（`language.compatible_with`）；保留 `convert()`、删 output `type`；两套二进制的 CI 与最低版本测试 |
+| 5 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 305 s。VM 内有网络与两套二进制，自行查到 1.13 文档并实测 |
+| 4 负例 | gpt-6.1-sol medium | 有（改后正文） | **false** | — | 50.4 s，按镜像瘦身作答，未读 terraform |
+
+产物：`/tmp/hs-d2/D2G3/terraform/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/5`、`skill/4`。
+
+结论：`convert()` 更正相关行为在有 skill 时达成，不比基线差（4/4 对 4/4，基线无缺口，场景留作哨兵）。另修正一处既有事实错误
+（OpenTofu 1.12+ 不读 `.tf` 中的 `required_version`），改后同场景复跑 4/4 且直接引用正文。
