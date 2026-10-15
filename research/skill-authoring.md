@@ -454,3 +454,21 @@ hyperskills-self 的 `cc9720d..179c8dc` 区间里，只有 eb63f00 命中 tracke
 而且它的服务方会拦截安全审计类提示词。这条经验针对的是 omp 这一种宿主的 advisor 功能，按标准第 1.3 节属于
 agent 绑定面，不合入正文；「两批之间变动的东西与 skill 效果不可区分」在 `references/evaluation.md` 已有通用表述。
 re-pin 到 179c8dc。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`。
+vercel-skills-cli 用 `gh api …/compare` 的 README patch；hyperskills-self 即本仓库，直接在本地 `git log/diff` 区间。
+anthropic-skill-creator、obra-writing-skills 为 repo moved / tracked paths unchanged（`skills/skill-creator` 含
+`LICENSE.txt`，未变，Apache-2.0 判断仍成立），`--pin` 顺带前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| vercel-skills-cli | 3694740 → 13e4063（4 提交） | `README.md`：f2adfc6 把 `skills list` 注释改为「列出项目安装的 skill」；15c88cc 新增 `skills remove owner/repo`（按锁文件来源整批删除）；f086e7a 把 Codex 的全局目录由 `~/.codex/skills/` 改为 `~/.agents/skills/` 并并入共享目录行；cc5fb50 把 fx 并入共享 `.agents/skills/` 行，容器目录列表删去 `.fx/skills/` | 无影响：`references/publishing.md` 只列 `list`/`remove` 子命令名，不涉及其默认作用域或参数形式；`references/client-extensions-and-paths.md` 的主机表早已按 Codex 官方文档写 `~/.agents/skills/`（此次上游是追上官方）；fx 不在主机表；容器目录写的是「约五十个其他主机目录」，少一个不改变表述 |
+| hyperskills-self | 179c8dc → ab38c43（审阅 HEAD，5 提交命中） | 1a8e0a9/4ef6e4c/a9881ac/4e481c5/ab38c43：新增 `tools/vm.py`（microsandbox 隔离 VM），`tools/run_evals.py` 改为在一次性 VM 内由 omp + GPT-6.1 Sol medium 执行、关闭 advisor，场景加文件锁、JSONL 只按 LF 分帧；`docs/skill-standard.md`、`docs/workflow.md` 把评测模型/环境说明同步改写，并规定 2026-10-10 前后的评测结果不混比、重测须两侧都重跑 | 无影响：本 skill 从这里取的是 provenance 记录结构、CI 校验清单与「场景文件 + 实测无 skill 基线」的评测形态，三者未变（场景字段仍为 `skills`/`query`/`files`/`expected_behavior`）。VM、omp、advisor、文件锁与 JSONL 分帧都是本仓库自身的执行环境细节，按标准 1.3 属 agent/宿主绑定；「两批之间变动的东西与 skill 效果不可区分」及「改进既有 skill 时以快照作基线」已在 `references/evaluation.md`「Baseline and with-skill runs」覆盖「环境不同不混比、两侧重跑」 |
+
+`--pin` 时 hyperskills-self 写入 origin HEAD b0a42d4，比审阅 HEAD ab38c43 多 51 提交（包含本次同步已集成到 main 的
+各 skill 提交）；`pin_check.py` 报 tracked paths untouched，本地 `git log ab38c43..b0a42d4 -- docs/skill-standard.md
+docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
+
+结论：正文与 references 未改，未跑 D2。提交含 re-pin、版本号与本节。
