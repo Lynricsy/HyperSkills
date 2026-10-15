@@ -34,7 +34,7 @@ upstreams:
     url: https://developer.chrome.com/docs/extensions
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Every number and semantic in this skill: the three service-worker termination conditions (30s idle, a single request over 5 minutes, a fetch response over 30s) and which Chrome version changed what; the 30-second floor on chrome.alarms; storage quotas per area and the setAccessLevel rule for content scripts; declarativeNetRequest ruleset and rule ceilings; the minimum extension_pages CSP that cannot be relaxed; the remotely-hosted-code ban and its Blue Argon rejection code; offscreen documents being a singleton with reason-driven lifetimes; world defaulting to ISOLATED; the userScripts user-facing toggle; Chrome Web Store review-time factors and the obfuscation-versus-minification rule; and extensions loading only under --headless=new."
     notes: "The live site footer licenses page content under CC BY 4.0 with code samples under Apache 2.0; attribution: Chrome for Developers, developer.chrome.com. The retired content repository GoogleChrome/developer.chrome.com was archived in 2024 and its LICENSE file is CC-BY-SA-4.0, so to stay safe under either terms no sentence was copied - only technical facts and numeric limits were taken, and all wording here is original."
   - id: wxt-docs
@@ -42,7 +42,7 @@ upstreams:
     url: https://wxt.dev/guide/essentials/project-structure.html
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The WXT engineering baseline: the entrypoints file-name conventions, importing runtime helpers from #imports rather than the pre-0.20 wxt/storage and wxt/client paths, storage.defineItem with version and migrations, the isolation trade-offs between integrated, shadow-root and iframe content-script UIs, unit testing through the WxtVitest plugin with the in-memory fakeBrowser, Playwright end-to-end tests pointed at .output/chrome-mv3, and the fact that WXT ships no messaging abstraction of its own."
     notes: "Source repository wxt-dev/wxt is MIT and the documentation lives in that same repository, so this is merged. Verified against WXT v0.21.4; the documentation site serves a Markdown variant of each page, which is what was read."
   - id: playwright-docs
@@ -50,7 +50,7 @@ upstreams:
     url: https://playwright.dev/docs/chrome-extensions
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The end-to-end fixture contract: extensions load only in a persistent context, Google Chrome and Microsoft Edge no longer accept the side-loading command-line flags so the bundled Chromium must be selected with channel chromium (which is also what permits headless runs), the extension id is read from the service-worker target, and Playwright keeps one Worker handle across a Manifest V3 worker's idle suspension so no second serviceworker event arrives."
     notes: "Source repository microsoft/playwright is Apache-2.0 and the documentation lives in it. Reached from WXT's own end-to-end guide, which points here rather than documenting extension launching itself. See research/chrome-extension.md ruling 10."
   - id: dot-skills
