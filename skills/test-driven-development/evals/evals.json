@@ -100,5 +100,80 @@
       "Puts the open decisions as numbered questions in one round, each with a recommended answer, and words each question so that answering 'yes' accepts that recommendation",
       "Writes no test or implementation code in this turn and ends by asking for agreement"
     ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Review PR #412 (PR-412.md, with the head versions of discount.js, discount.test.js, discount.spec.js and package.json) before I approve it. This is a read-only review: don't edit or run anything. Does the new test actually prove the fix? The author says CI is green.",
+    "files": [
+      "evals/files/pr412/PR-412.md",
+      "evals/files/pr412/package.json",
+      "evals/files/pr412/discount.js",
+      "evals/files/pr412/discount.test.js",
+      "evals/files/pr412/discount.spec.js"
+    ],
+    "expected_behavior": [
+      "Notices that the new discount.spec.js is not picked up by `node --test` default discovery (it matches *.test.js and similar, not *.spec.js), backed by the unchanged count of 6 tests before and after the PR, so the green CI run never executed the regression test",
+      "Does not accept the green CI run or the author's statement as red-green evidence that the test catches the #398 defect",
+      "Flags the test.skip on 'applyDiscount never returns a negative total' as a skipped test that proves nothing, not as a pass",
+      "Labels its own conclusion about whether the test would fail on the pre-fix code (Math.max(0, pct)) as a static prediction or unverified, explicitly not executed proof, since it ran nothing",
+      "States the executed evidence still needed: run the spec on the fixed code and confirm a non-zero executed count, restore only the pre-fix comparison and see that test fail on its assertion, then restore and see it pass, recording the selected/executed/passed/skipped counts of each run",
+      "Does not edit or run anything"
+    ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Review run-row.test.ts. For each test tell me whether it earns its place and what to do with it. Give me file:line for every finding. The production code it covers is run-row.ts, committees.ts and container.ts.",
+    "files": [
+      "evals/files/runrow/run-row.test.ts",
+      "evals/files/runrow/run-row.ts",
+      "evals/files/runrow/committees.ts",
+      "evals/files/runrow/container.ts"
+    ],
+    "expected_behavior": [
+      "Keeps 'committee list fits' (COMMITTEE_CODES.length <= LIST_LIMIT, both imported) as a deliberate tripwire guarding the assumption that renderRunRow's committee slice drops nothing because it has no total, instead of deleting it as a change detector",
+      "Flags 'committee list is short enough' because its bound is a copied literal 10 that drifts silently when LIST_LIMIT changes; it should compare against the imported LIST_LIMIT (or be merged into the tripwire)",
+      "Recommends the kept tripwire name the deferred issue (#123) and the reason in the test name, and list in a comment what each resolution does to the test (raising LIST_LIMIT keeps it passing; adding a committees total beside the list means retiring the test)",
+      "Still flags 'has the right list limit' (expect(LIST_LIMIT).toBe(10)) as a change detector on a decision",
+      "Does not delete 'builds the production container' as an assertion-less test that cannot fail: recognises that buildContainer throws on a missing registration, so the throw is the oracle, and keeps it or rewrites it with an explicit assertion",
+      "Treats 'never re-activates a retired code' as a legitimate relation check between two imported lists and keeps it"
+    ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Fix #51 (ISSUE-51.md) in the @acme/duration package and tell me exactly what you did.",
+    "files": [
+      "evals/files/duration/package.json",
+      "evals/files/duration/Makefile",
+      "evals/files/duration/CONTRIBUTING.md",
+      "evals/files/duration/ISSUE-51.md",
+      "evals/files/duration/duration.js",
+      "evals/files/duration/duration.test.js"
+    ],
+    "expected_behavior": [
+      "Uses the repository's own command (make test-one FILE=duration.test.js / make test), not `npm test`",
+      "Gets the reproduction test to fail on its assertion before the fix (for example by first adding a buildable exported DurationError, or by asserting on behaviour that exists) and does not count a module-load failure such as 'does not provide an export named DurationError' as the RED",
+      "When proving the regression test after the fix, removes only the defective behaviour (the missing validation or throw) while keeping the DurationError export, and quotes a failure on the assertion rather than a missing-export or module-load error",
+      "Restores the fix and re-runs to green, quoting the passing output and the full-suite counts"
+    ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Issue #123 (ISSUE-123.md) has sat open for months and nobody will notice the day it starts to matter. We're still not fixing it now. Turn it into a test in @acme/run-board instead, and tell me what you did.",
+    "files": [
+      "evals/files/tripwire/package.json",
+      "evals/files/tripwire/Makefile",
+      "evals/files/tripwire/CONTRIBUTING.md",
+      "evals/files/tripwire/ISSUE-123.md",
+      "evals/files/tripwire/committees.js",
+      "evals/files/tripwire/run-row.js",
+      "evals/files/tripwire/run-row.test.js"
+    ],
+    "expected_behavior": [
+      "Writes a test that asserts COMMITTEE_CODES.length <= LIST_LIMIT using both imported values, with no copied literal 8 or 10 standing in for either",
+      "The test name carries the reason and the issue number (#123)",
+      "A comment beside the assertion lists the resolutions and what each does to the test: raising LIST_LIMIT keeps it passing, while adding a committees total beside the list means retiring the test",
+      "Proves the test can fail: temporarily breaks the assumption (for example lowers LIST_LIMIT below 8), runs it with the repository's command and quotes a failure on the assertion, then restores the value from a saved copy rather than with `git checkout --` and re-runs it green",
+      "Says to close or narrow #123 in the same change and point it at the test"
+    ]
   }
 ]

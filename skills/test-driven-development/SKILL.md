@@ -71,6 +71,8 @@ appear to.
 8. Every test names the production change that would make it fail, and that
    change is a bug rather than a decision. A test that only an intentional
    redesign can break fires on every rename and sleeps through real breakage.
+   The one deliberate exception is a tripwire for a deferred fix, which has its
+   own rules in `references/writing-good-tests.md`.
 9. Expected values are derived by hand — literals, worked examples, table-driven
    cases. An expectation computed by the code under test, or by its helpers,
    agrees with the code no matter what the code does.
@@ -85,7 +87,11 @@ appear to.
     on a fix you have not yet proven wrong.
 13. Prove the regression test is real: write it, see it pass, revert only the
     fix, confirm it fails, restore the fix, confirm it passes. A test that has
-    never failed for the right reason is decoration.
+    never failed for the right reason is decoration. When the test needs a
+    symbol the fix introduced (a new error class, export or method), revert only
+    the defective behaviour and keep the symbol: a missing-export or compile
+    error is not the red. Revert from a saved copy of the file, never with
+    `git checkout --`, which also throws away uncommitted work.
 14. Production code carries production methods only. Cleanup and inspection
     helpers that exist for tests live in test utilities, or the next reader
     treats them as part of the contract.
@@ -144,7 +150,7 @@ the `debugging` skill; come back with a reproduction.
       trace it back before editing.
 - [ ] Run the reproduction test, then the full suite.
 - [ ] Prove the regression test (rule 13): revert only the fix, re-run, see it
-      fail, restore, re-run, see it pass. Quote both runs.
+      fail on its assertion, restore, re-run, see it pass. Quote both runs.
 - [ ] **Gate — REGRESSION PROVED:** the test failed before the fix, fails again
       when the fix alone is reverted, and passes with it restored — with all
       three outputs quoted. A regression test that has only ever been green is
@@ -161,7 +167,10 @@ the `debugging` skill; come back with a reproduction.
 - [ ] Verdict per test: keep / rewrite / delete. Deleting a test that cannot
       fail costs no coverage, because it was protecting nothing; re-pinning it
       to the current implementation is worse, since it re-freezes the same
-      non-test.
+      non-test. A tripwire is the exception that looks like a change detector:
+      it compares two imported values the code assumes but never enforces.
+      Keep it, and hold it to the tripwire rules in
+      `references/writing-good-tests.md`.
 - [ ] Say what is missing, not only what is wrong: which behaviour in scope has
       no test that would catch its realistic mutations.
 - [ ] **Gate — EVERY VERDICT NAMES A BREAK:** each kept test has a named break,
@@ -224,7 +233,7 @@ no reproduction; "all tests pass" without a command output in front of you.
 
 | Topic | Read when | File |
 |---|---|---|
-| Name-the-break and exercise-the-real-thing gates, independent expected values, change detectors, mutation check | Before writing or changing any assertion | `references/writing-good-tests.md` |
+| Name-the-break and exercise-the-real-thing gates, independent expected values, change detectors and the tripwire exception, mutation check | Before writing or changing any assertion, or when a deferred fix should become a test instead of an open issue | `references/writing-good-tests.md` |
 | Catalogue of test smells with the fix for each | Reviewing existing tests, or a test feels wrong and you cannot say why | `references/test-smells.md` |
 | Boundary-only mocking, dependency injection, SDK-shaped interfaces, complete fixtures, the real > fake > stub > mock ladder | Anything is about to be mocked, or mock setup is growing | `references/mocking.md` |
 | Seam selection, stack-discovery checklist, test sizes and the pyramid, DAMP over DRY, arrange-act-assert, naming | Choosing where a test goes, or what kind of test a behaviour needs | `references/test-strategy.md` |

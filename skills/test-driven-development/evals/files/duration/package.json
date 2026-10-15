@@ -1,0 +1,9 @@
+{
+  "name": "@acme/duration",
+  "version": "2.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "node --check duration.js"
+  }
+}

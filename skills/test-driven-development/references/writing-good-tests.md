@@ -9,6 +9,7 @@ and a test exercises the real thing.
 - [Gate 1 — name the break](#gate-1--name-the-break)
 - [Derive expected values by hand](#derive-expected-values-by-hand)
 - [Change detectors](#change-detectors)
+- [Tripwires: the deliberate exception](#tripwires-the-deliberate-exception)
 - [Behaviour, not text](#behaviour-not-text)
 - [Your code, not the framework](#your-code-not-the-framework)
 - [Gate 2 — exercise the real thing](#gate-2--exercise-the-real-thing)
@@ -102,6 +103,39 @@ Snapshots are change detectors by default. A snapshot earns its place when the
 output is genuinely a document (rendered markup, a generated file) and every
 diff is reviewed; a snapshot nobody reads is a test that always agrees with the
 code.
+
+## Tripwires: the deliberate exception
+
+A tripwire asserts an assumption the code relies on but does not enforce, so
+that a deferred fix fails in the PR that finally makes it necessary instead of
+waiting in an issue nobody connects to that PR. It looks like a change detector
+and is kept:
+
+```typescript
+// The run row caps committees at LIST_LIMIT with no total beside them (#123).
+// Raising LIST_LIMIT keeps this passing. Adding a committees total beside the
+// list fixes #123 for good: delete this test then.
+it('COMMITTEE_CODES fits within LIST_LIMIT, since the run row drops the rest silently (#123)', () => {
+  expect(COMMITTEE_CODES.length).toBeLessThanOrEqual(LIST_LIMIT);
+});
+```
+
+- Compare two real, imported values: a length against a cap, retired codes
+  against active ones, a copy against its source. A copied literal (`<= 10`)
+  stops tracking the cap the day someone changes it.
+- Put the reason and the issue in the test name; the failure line is the only
+  documentation the next person is sure to read.
+- List every resolution in a comment and say what each does to the test:
+  passes it, or retires it. A comment that promises a fix will turn the test
+  green when it does not sends the reader in a circle.
+- Prove it can fail: break the assumption on purpose (lower the cap below the
+  length), run only that test, and see it fail on the assertion with both
+  values in the message. Restore from a saved copy, not `git checkout --`.
+- Close or narrow the issue in the same change and point it at the test; two
+  copies of the condition drift apart.
+- Use one only when the trigger is visible in the code. A date or an outside
+  event belongs in an issue; runtime data (row counts, traffic) belongs in a
+  runtime check or an alert.
 
 ## Behaviour, not text
 
@@ -211,5 +245,6 @@ finished, not over the whole suite.
 | Assert a call count | Assert the caller-visible outcome first, the count second |
 | Confirm something was stored | Read it back through the public interface |
 | Finish a slice | Run the mutation check |
+| Defer a fix whose trigger is in the code | Write a tripwire on the imported values; name the issue; list what each resolution does to it |
 
-<!-- sources: obra-tdd, mattpocock-tdd -->
+<!-- sources: obra-tdd, mattpocock-tdd, laurigates-tripwire -->

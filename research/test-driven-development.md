@@ -300,3 +300,41 @@ obra-tdd、obra-verification 区间内跟踪路径无净变化（bb92a77 的 rel
 | 6 | gpt-6.1-sol medium | 有（r3，终版） | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 37 s。三行 seam 表（`getJson` / `syncInvoices` 真客户端 / mock `getJson`），每行 Catches 与 Misses/risk 两列；受控时钟；Q1 "Shall we use the invoice-job seam…" 推荐 yes |
 
 结论：基线 EB2（逐 seam 的 catches/misses）与 EB4（编号、带推荐且 yes 即接受）均未达成；终版措辞两次有 skill 运行中 EB4 两次达成、EB2 一次全达成一次半达成，缺口被填补，合入。EB1 的改善来自同一步骤要求列出候选。
+
+## 2026-10-15 上游新增内容评估
+
+依据：主代理的上游新增文件评估（NewS4 A/B、NewS5 melodic `testing/cleanup` 与 ECC `verification-loop`）。上游原文从 `/tmp/hs-attr/<owner>__<repo>` 裸仓库缓存读取：dotnet/skills @ `9de888b`、laurigates/claude-plugins @ `8fc6916`、melodic-software/claude-code-plugins @ `f0d9185`；许可均用 `gh api` 核为 MIT。
+
+### 候选与裁决
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| dotnet `test-value-evidence`：定点反例（修复引入的新符号保留，只恢复缺陷行为；缺符号/编译失败不算红） | **合入**（规则 13、fix-bug 证明步骤） | 场景 9 基线 EB2/EB3 未达成（根本没做红与回退证明）；有 skill 时「保留 DurationError 导出、只恢复原解析逻辑」并引用断言失败 |
+| dotnet `test-value-evidence`：只读评审标「静态预测」、绿色 CI/作者说法不算证据、记录选中/执行/跳过数、0 执行或有跳过=未验证 | 不合入 | 场景 7 基线已达成：识别 `*.spec.js` 不被 `node --test` 默认发现、6=6 计数未变、`test.skip`、「by inspection」并声明未运行任何命令 |
+| dotnet `test-value-evidence`：不复用旧构建产物（`--no-build`）、shipping consumer 校验 | 不合入 | .NET 打包/交付层面的流程，不在本 skill 的语言无关范围 |
+| laurigates `test-tripwire`：tripwire 是 change detector 规则的有意例外；测导入的真实值；测试名带 issue；注释列每种解决办法及其对测试的影响；证明会失败并从副本恢复（不用 `git checkout --`）；同一改动关闭 issue | **合入**（`writing-good-tests.md` 新节、规则 8 例外句、review-tests 判决、路由表） | 场景 10 基线 EB1 ✘（写成行为测试而非对导入值断言）、EB3 ◐、EB5 ◐；有 skill 全达成。场景 8（评审）基线已保留 tripwire，但 EB3（建议测试名写 issue、注释列解决办法）未达成 |
+| melodic `testing/cleanup`：无断言测试仍可能因 setup 抛错而失败（DI 装配）、删测试前后跑变异门 | 不合入 | 场景 8 EB5 基线已达成（识别 `buildContainer` 抛错即判据，保留）；变异门依赖其插件的 mutation-testing 工具链 |
+| ECC `verification-loop` 的 pipefail / SIGPIPE 141 | 不在本 skill 处理 | 分配给 `debugging`，见 research/debugging.md 同日小节 |
+
+### 核实
+
+- 场景 7 夹具：本机 Node v26.10.0 在 `evals/files/pr412/` 跑 `node --test` 得 `tests 6 / pass 6`（`discount.spec.js` 未被发现）；`node --test discount.spec.js` 得 `tests 2 / pass 1 / skipped 1`，与 PR 描述里的 CI 日志一致。
+- 场景 9、10 夹具 `make test` 实跑全绿（3 / 2 个测试）。
+
+### 评测结果
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals/test-driven-development/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md` 与 `workspace/` 人工判定。场景 8 第一次有 skill 运行用的是改动前的 skill，第二次为改动后。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ◐ EB6 ✔ | 25 s。指出 `.spec.js` 不被发现、6=6、skip；「By inspection」+「no commands run」；要求「8 tests, zero skipped」并在旧实现上失败，但没写恢复后再绿与每次计数 |
+| 7 | gpt-6.1-sol medium | 有（改动后） | False | 同基线 | 46 s。未读取 skill，作哨兵 |
+| 8 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ EB5 ✔ EB6 ✔ | 56 s。保留 tripwire、删字面量 10 的副本与 `LIST_LIMIT===10`；保留无断言容器测试；未建议测试名写 #123 或列解决办法 |
+| 8 | gpt-6.1-sol medium | 有（改动前） | False | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ EB6 ✔ | 64 s。未读取 skill；建议改名说明风险但未带 issue、未列解决办法。现行规则未诱发误删 |
+| 8 | gpt-6.1-sol medium | 有（改动后） | False | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ EB6 ✔ | 71 s。仍未读取 skill（评审类请求的路由问题，不在本次范围）；无回归 |
+| 9 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✘ EB3 ✘ EB4 ◐ | 127 s。直接实现 + 补测试，`make test` 6 pass；无 RED、无回退证明 |
+| 9 | gpt-6.1-sol medium | 有（改动后） | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 119 s。RED 为 `Missing expected exception`（断言失败）；「temporarily restored the original parser while retaining the error export」→ 3 fail；恢复后 7 pass |
+| 10 | gpt-6.1-sol medium | 无 | False | EB1 ✘ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ | 63 s。写的是「全选委员会后不丢徽章」行为测试（`committeesTotal ?? committees.length`），失败信息提两种修法但未说各自对测试的影响；在临时副本里证明会失败；issue 只补注说明、未关闭 |
+| 10 | gpt-6.1-sol medium | 有（改动后） | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 99 s。`COMMITTEE_CODES.length <= LIST_LIMIT`，名字带 #123；注释写明提高上限仍通过、加 total 则删除此测试；把上限改成 7 看到断言失败后改回；ISSUE-123 标记关闭并指向测试 |
+
+结论：定点反例（场景 9 EB2/EB3）与 tripwire（场景 10 EB1/EB3/EB5）基线缺口被填补，合入；其余候选基线已具备，不合入，场景 7、8 留作哨兵。

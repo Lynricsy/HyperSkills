@@ -64,3 +64,27 @@ upstreams:
     synced_at: "2026-10-15"
     contributes: "Discover-the-stack-first (find this repository's real focused and full-suite commands before RED), the prove-it bug-fix flow, the pyramid and the Small/Medium/Large resource model, DAMP over DRY, the real > fake > stub > mock ladder, arrange-act-assert, and the anti-pattern table."
     notes: "The coverage-has-not-decreased checklist item is deliberately dropped: it rewards padding, which the test-quality rules forbid. The upstream link to a repo-level references/testing-patterns.md is dropped because a per-skill install does not copy it, and its browser-verification section becomes a routing note instead of merged content."
+  - id: dotnet-test-value-evidence
+    kind: repo
+    repo: dotnet/skills
+    url: https://github.com/dotnet/skills
+    paths: [plugins/dotnet-test/skills/test-value-evidence]
+    ref: main
+    commit: 9de888b8ce55da34e76a113bd7b2d463d6b3e1e6
+    license: MIT
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "The targeted counterfactual for proving a regression test whose code needs a symbol the fix introduced: restore only the defective behaviour and keep the symbol, because a missing-symbol failure is not behavioural evidence."
+    notes: "Only the targeted-counterfactual rule is merged (core rule 13). Its static-prediction labelling, green-CI-is-not-evidence, per-run selected/executed/skipped counts and zero-executed-is-unverified rules were evaluated and not merged: the no-skill baseline already applied them (research/test-driven-development.md, 2026-10-15). The stale-build (--no-build) and shipping-consumer rules are .NET packaging concerns outside this skill."
+  - id: laurigates-tripwire
+    kind: repo
+    repo: laurigates/claude-plugins
+    url: https://github.com/laurigates/claude-plugins
+    paths: [testing-plugin/skills/test-tripwire]
+    ref: main
+    commit: 8fc6916cdb281aa6e9feeb72e217605381cccaba
+    license: MIT
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "The tripwire test as the deliberate exception to the change-detector rule: assert an unenforced assumption on imported values, name the deferred issue, list what each resolution does to the test, prove it fails on the assertion and restore from a saved copy rather than git checkout, and close the issue in the same change."
+    notes: "Community source. Claude Code allowed-tools and plugin cross-references are dropped; examples are rewritten. The upstream agentic command table is not merged (runner commands are the project's own)."
