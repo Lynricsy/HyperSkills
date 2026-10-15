@@ -475,3 +475,17 @@ GKE 新内容（`references/gke-control-plane.md`「When an upgrade stalls」，
 结论：Cloud Trace 缺口成立并由 skill 填补（基线 2.5/4 → 有 skill 4/4），合入；节点无响应不合入，场景留作哨兵。负例与旧场景未重跑。
 SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补 contributes；`--pin gcp` 全部 up to date（google-skills 仍为 b85f257）。
 产物：`/tmp/hs-evals-MergeM2/gcp/omp-openai-gpt-6.1-sol-medium/{baseline/{8,9},skill/8}`。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| gcp-docs | Cloud Run 并发：CLI/Terraform 新建服务默认 80 × vCPU、控制台 80、上限 1,000；请求超时默认 300 s、最长 3600 s | [About concurrency](https://cloud.google.com/run/docs/about-concurrency)、[Request timeout](https://cloud.google.com/run/docs/configuring/request-timeout) | 一致 |
+| gcp-docs | IAM 传播「通常 2 分钟，可能 7 分钟或更久」；2024-05-03 及之后创建的组织默认强制 `automaticIamGrantsForDefaultServiceAccounts` | [Access change propagation](https://cloud.google.com/iam/docs/access-change-propagation)、[Restricting service accounts](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-service-accounts) | 一致 |
+| gcp-docs | 条件不能用于基本角色与 `allUsers`/`allAuthenticatedUsers`；自定义角色不能定义在文件夹级；先查拒绝策略再查允许策略 | [Conditions overview](https://cloud.google.com/iam/docs/conditions-overview)、[Custom roles](https://cloud.google.com/iam/docs/understanding-custom-roles)、[Deny overview](https://cloud.google.com/iam/docs/deny-overview) | 一致 |
+| gcp-docs | Cloud Storage 最短存储期 30/90/365 天、Rapid 类、生命周期配置最长 24 小时生效、软删除默认开启 7 天 | [Storage classes](https://cloud.google.com/storage/docs/storage-classes)、[Lifecycle](https://cloud.google.com/storage/docs/lifecycle)、[Soft delete](https://cloud.google.com/storage/docs/soft-delete) | 一致 |
+| gcp-docs | Logging 保留：`_Required` 400 天不可配、`_Default` 30 天（文件夹/组织级不可配）；$0.50/GiB、每项目每月 50 GiB 免费 | [Logging quotas](https://cloud.google.com/logging/quotas)、[Pricing](https://cloud.google.com/stackdriver/pricing) | 一致 |
+| gcp-docs | GKE：每节点默认 110 Pod；管理费 $0.10/集群/小时、免费额度 $74.40、扩展支持 $0.50/小时 | [Flexible Pod CIDR](https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr)、[GKE pricing](https://cloud.google.com/kubernetes-engine/pricing) | 一致 |
+| gcp-docs | Autopilot「general-purpose（Balanced）类每 Pod 最少 0.25 vCPU / 0.5 GiB，50m 按最小值计费；CPU:内存 1:1–1:8；limits 等于 requests」 | [Autopilot resource requests](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-resource-requests)、[Pod bursting](https://cloud.google.com/kubernetes-engine/docs/how-to/pod-bursting-gke) | **已变化 → 更正**：默认 general-purpose 与 Balanced 是两个类。general-purpose 最小值取决于是否支持 bursting（支持：50m CPU / 52 MiB；不支持：250m / 512 MiB 且 CPU 按 0.25 vCPU 取整），比例 1:1–1:6.5；Balanced 才是 0.25 vCPU / 0.5 GiB、1:1–1:8。支持 bursting（Autopilot 1.30.2-gke.1394000+、cgroupv2、控制面重启后，`kube-system` 有 `efficiency-daemon`）时 limits 可高于 requests、未设 limits 不补；不支持时才把 limits 设为 requests。`references/gke-control-plane.md` 三条按此改写，SOURCES `contributes` 同步 |
+
+7 组事实，6 组一致、1 组更正（事实更正，未新增行为规则，不跑基线评测）；`gcp-docs` 的 `synced_at` 更新为 2026-10-15。

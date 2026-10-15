@@ -42,12 +42,18 @@ and Autopilot is the cheaper mistake.
 
 The ones that turn into deployment failures rather than design discussions:
 
-- Minimum per Pod on the general-purpose (Balanced) class: **0.25 vCPU and 0.5 GiB**. A Pod
-  requesting 50m CPU is billed and scheduled at the minimum.
-- CPU:memory ratio must land between **1:1 and 1:8**. A Pod asking for 1 vCPU and 16 GiB is
-  rejected or silently adjusted upward on one axis.
-- Resource *requests* are what you pay for, and Autopilot sets limits equal to requests for
-  CPU and memory. Tuning requests is the cost lever.
+- Minimum requests depend on the compute class and on whether the cluster supports bursting
+  (Autopilot 1.30.2-gke.1394000+ on cgroupv2, after a control-plane restart; check for the
+  `efficiency-daemon` DaemonSet in `kube-system`). Default general-purpose class:
+  **50m CPU / 52 MiB** with bursting, **250m CPU / 512 MiB** without (and without bursting,
+  CPU rounds up to 0.25 vCPU steps). `Balanced` class: **0.25 vCPU / 0.5 GiB**. A request
+  below the minimum is raised to it, and that is what you are billed for.
+- CPU:memory ratio must land between **1:1 and 1:6.5** on general-purpose and **1:1 and 1:8**
+  on `Balanced`. Outside the range Autopilot raises the smaller resource, so a Pod asking for
+  1 vCPU and 16 GiB is billed for more vCPU than it asked for.
+- Resource *requests* are what you pay for, so tuning requests is the cost lever. With
+  bursting, CPU/memory limits above requests let a Pod burst and unset limits stay unset;
+  without bursting, GKE sets limits equal to requests.
 - No privileged containers, no `hostNetwork`/`hostPID`, restricted DaemonSets, no node SSH.
   Agents that expect to run as a privileged DaemonSet (some security and APM vendors) need
   their Autopilot-specific build.
