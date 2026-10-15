@@ -423,3 +423,17 @@ tob-diffreview、copilot-threatmodel / copilot-secrets / copilot-secreview（后
   不会的」不合入。下次同步若出现根因归并的基线缺口，再考虑在 `references/severity-and-reporting.md`
   的 chain 段旁补一句「同根因的变体合并报告，但逐个确立条件与影响」。
 - guidance / full audit 模式：针对上游自己的重型落盘流程，本 skill 无对应物。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py` 报告：`copilot-threatmodel`（138 commits）、`copilot-secrets`（138 commits）、`copilot-secreview`（138 commits）共 3 条 `behind`，均为 diff too large to attribute to paths。主代理已在 shallow blobless 裸仓库缓存（`/tmp/hs-attr/github__awesome-copilot`）上按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 归因为空；本次复跑 `git log --oneline <pinned>..<head> -- <paths>` 仍为空，并用不依赖提交历史完整性的树对比 `git diff --stat <pinned> <head> -- <paths>` 与两端 `git ls-tree` 复核（结果为空、所有追踪路径在两端均存在），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| copilot-threatmodel | 15ed97c → 3cf7c7e（138 commits，全仓 827 个文件变更） | 无：`skills/threat-model-analyst` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| copilot-secrets | 15ed97c → 3cf7c7e（138 commits，全仓 827 个文件变更） | 无：`skills/secret-scanning` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| copilot-secreview | 15ed97c → 3cf7c7e（138 commits，全仓 827 个文件变更） | 无：`skills/security-review` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+
+其余仓库上游（`tob-semgrep-rules`（82fe822 → e1f86a3，13 commits）、`tob-brocards`（82fe822 → e1f86a3，13 commits）、`tob-insecure-defaults`（82fe822 → e1f86a3，13 commits）、`tob-supplychain`（82fe822 → e1f86a3，13 commits）、`tob-diffreview`（82fe822 → e1f86a3，13 commits）为 `repo moved, tracked paths unchanged`；`cloudflare-audit`、`sentry-secreview`、`openai-threatmodel`、`openai-secbase`、`openai-ownership`、`trilwu-audit`、`semgrep-skills` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（c1c8a8c、d18b7aa、49f948f、49f948f、49f948f、e1f86a3、e1f86a3、e1f86a3、e1f86a3、e1f86a3、3cf7c7e、3cf7c7e、3cf7c7e、ca53957、68177b8），`pin_check.py` 结果 PIN CHECK CLEAN。2 条 `kind: docs` 条目为 manual check，本次未改。
+
+结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
