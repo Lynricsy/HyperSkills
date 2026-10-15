@@ -307,3 +307,20 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | promptfoo | f8ba0bc → 4f57300（9 提交） | 822caba：`model-graded/agent-rubric.md` +2（目标用 `copy_working_dir` 时评分器在被评调用的工作区里运行、看到代理留下的文件）；`model-graded/select-best.md` +2（凭据被脱敏的评测恢复时需匹配的 provider ID 与非机密配置，否则重跑） | 噪声 | 均为 promptfoo 自身 provider/恢复机制的产品细节；本 skill 取的是「确定性轨迹断言 + 模型评分分离、评分器故障判失败、检索三指标分开测」，与之无关。「评测对沙箱化副作用」已由规则 24 覆盖 |
 
 未合入原因：两条均无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因清单 `/tmp/hs-attr/attribution.md`（只列 paths 下确有提交的条目）。
+归因方法：promptfoo 为 compare 超限条目，用 blobless 裸仓库缓存 `git diff <pinned>..<head> -- <paths>` 读完整区间；其余条目用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取文件 patch，只看落在 tracked paths 下的文件。
+`--pin` 后 `pin_check.py` 输出 PIN CHECK CLEAN（写入的 commit 与审阅 HEAD 一致）。vercel-ai-sdk、langchain-skills、huggingface-skills、github-awesome-copilot 区间内 tracked paths 无提交，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| google-skills | 2964a69 → b85f257 | 7d97937：`agent-platform-eval-flywheel` 多轮用户模拟必须走 `generate_conversation_scenarios` 且需确认、`location` 无安全默认值、`judge_model` 必须是完整资源名、已有 `response` 时不得 `run_inference`（会覆盖）、自定义指标收到的是 `Content` 字典而非字符串（远端须返回 float）；`rag-engine-management` 不单独探测依赖、heredoc 执行、空检索是合法答案 | 噪声：均为 Agent Platform 产品 API 细节与交互规范（本条 contributes 已排除产品打包）。「评分函数按错误形状读取导致全体同分」属于已合入的「验证器要对错误与捷径答案自测」，不新增 |
+| openai-agents-python | 3590e5d → 24ebf1c | 9d2b318 ruff 升级导致的示例代码排版；f007b3f 删除 hosted tool search 的 `openai>=2.25.0` 下限；2c11c22 `ComputerTool.on_safety_check`（未配置时 SDK 继续执行且不确认 pending checks）；f53c624 guardrail 可直接调外部分类器（Decisions API） | 噪声：SDK API 与排版细节；「审批/可见性不是授权、策略在 harness 内强制」已由 `tool-calling.md` Gating 节覆盖 |
+| anthropics-claude-api | 8a1541c → dbd4588 | 683bc88/9d63080/dbd4588：Claude Haiku 5.5 成为当前 Haiku（模型表、思考/effort 表、错误码、缓存最小长度、advisor 组合）；Managed Agents onboarding、quickstarts 与 dynamic workflows；cost-hillclimb 补充 effort 档位受 thinking 设置约束 | 噪声：本 skill 只取跨厂商的消息结构事实（顶层 system、对话中途 system「新模型支持、旧模型 400」、缓存断点），不列模型 id 与清单，Haiku 5.5 加入支持列表不改变任何陈述；Managed Agents 为产品打包。其「独立分片才扇出、读多推理少的工作交给便宜模型」已由 `subagents-and-parallelism.md` 覆盖 |
+| obra-superpowers | 8ca22db → bb92a77 | bb92a77：`subagent-driven-development/scripts/sdd-workspace` Git Bash 路径规范化、`.gitignore` 只在不存在时创建 | 噪声：脚本实现细节 |
+| murat-context-engineering | 6dbe1a1 → 9ff0c99 | 7638f30：`context-compression` 新增指向 `self-managed-context` 的路由说明 | 噪声：只改 skill 间路由；「压缩摘要必须保留什么」不变 |
+| promptfoo | 4f57300 → 1c28848 | 21 提交改 `expected-outputs`：`cost` 无阈值记录、`equals/contains` Unicode 归一化、`rouge-l/rouge-s`、trace 断言按属性过滤、`not-` 前缀对工具调用校验只反转判定而配置错误仍失败、`llm-rubric` 缺判定时判失败、`threshold: 0` 不再必过、加权平均不重标尺度、`--safe-mode` 等 | 噪声：均为 promptfoo 自身断言语义；方向与本 skill 已写的「评分器故障/缺判定必须判失败、确定性断言与模型评分分开」一致，无冲突、无新增跨工具判据 |
+
+结论：正文与 references 未改，未新增评测场景、未跑 D2；只 re-pin 并把 `metadata.version` / `SOURCES.yaml version` 改为 2026.10.15。
