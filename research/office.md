@@ -370,3 +370,16 @@ openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 man
 
 未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟；仅 re-pin，
 版本号改为 2026.09.30。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py` 报告：`copilot-md-to-docx`（138 commits）、`open-design-pptx`（38 commits）共 2 条 `behind`，均为 diff too large to attribute to paths。主代理已在 shallow blobless 裸仓库缓存（`/tmp/hs-attr/github__awesome-copilot`、`/tmp/hs-attr/nexu-io__open-design`）上按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 归因为空；本次复跑 `git log --oneline <pinned>..<head> -- <paths>` 仍为空，并用不依赖提交历史完整性的树对比 `git diff --stat <pinned> <head> -- <paths>` 与两端 `git ls-tree` 复核（结果为空、所有追踪路径在两端均存在），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| copilot-md-to-docx | 15ed97c → 3cf7c7e（138 commits，全仓 827 个文件变更） | 无：`skills/md-to-docx` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| open-design-pptx | 5b19dfa → 14fee23（38 commits，全仓 652 个文件变更） | 无：`skills/pptx` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+
+其余仓库上游（`anthropic-docx`（8a1541c → dbd4588，3 commits）、`anthropic-pptx`（8a1541c → dbd4588，3 commits）、`anthropic-xlsx`（8a1541c → dbd4588，3 commits）、`anthropic-pdf`（8a1541c → dbd4588，3 commits）为 `repo moved, tracked paths unchanged`；`openai-pdf`、`slidespeak-design`、`ourarash-md-docx` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（dbd4588、dbd4588、dbd4588、dbd4588、49f948f、3cf7c7e、14fee23、5e87d8a、4456f82），`pin_check.py` 结果 PIN CHECK CLEAN。10 条 `kind: docs` 条目为 manual check，本次未改。
+
+结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
