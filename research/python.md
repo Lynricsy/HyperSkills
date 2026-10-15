@@ -350,6 +350,8 @@ repo moved / tracked paths unchanged，`--pin` 顺带前移。
 
 结论：三条均为搬移/无关偏好/他域内容，正文与 references 未改，未跑 D2。提交含 re-pin、版本号与本节。
 
+## 2026-10-15 上游新增内容评估
+
 ### lint 棘轮
 
 2026-10-15 上游新增内容评估的一部分（与 uv 条目分开记录）。来源：评估报告 NewS5，melodic-software/claude-code-plugins `plugins/review/skills/ratchet`、`plugins/code-metrics/skills/audit-suppressions`（MIT）。结论：不合入正文，评测场景 5（`evals/files/lint-ceiling/`）留作哨兵。合并时若 uv 条目也新增了场景 5，本场景顺延编号。
@@ -368,3 +370,28 @@ repo moved / tracked paths unchanged，`--pin` 顺带前移。
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 | 5 lint-ceiling | gpt-6.1-sol medium | 无 | False | 1、2（全部） | 写了 `scripts/check_lint_ceiling.py`：退出码不在 0/1 即报错退出 2，严格解析 JSON；上限文件按基线提交比对，禁止调高；计数下降时要求同步调低。缺口不存在，未跑有 skill。跑完后删去了原第 3 条「计数为 0 即开规则」：夹具无源码、计数必为 0，该条无法区分。 |
+
+### uv
+
+来源：评估报告 NewS4 第 I 条（TerminalSkills/skills 新增 `skills/uv/SKILL.md`，Apache-2.0，167★，2026-10-14 推送）。
+
+| 候选要点 | 结论 | 理由 |
+|---|---|---|
+| `--frozen` 与 `--locked` 语义（uv-projects.md 原 65/89/229/236 行） | **合入（事实更正）** | 我们把 `--frozen` 写成「锁文件过期时报错、CI 用」，实际相反：`--locked` 在过期时报错，`--frozen` 完全不检查、按旧锁安装。四处改为 `--locked`，并写明 `--frozen` 只用于看不到全部 `pyproject.toml` 的 Docker 依赖层，之后再跑一次 `--locked` |
+| 私有索引凭据 `UV_INDEX_<NAME>_USERNAME/_PASSWORD` + 保持默认 `first-index` 防依赖混淆 | 不合入 | 已对照 uv 文档核实；评测 6 基线已达成 |
+| `uv pip` 目标环境解析（`VIRTUAL_ENV` → `CONDA_PREFIX` → 最近 `.venv`），脚本显式 `--python` | 不合入 | 已对照 uv 文档核实；评测 6 基线已达成，且基线自行实测了 `--python` |
+| CI 存缓存前 `uv cache prune --ci` | 不合入 | 已对照 uv 文档核实；评测 6 基线已达成 |
+
+核实证据：
+- uv 官方文档 `concepts/projects/sync`「Automatic lock and sync」：`--locked` 在锁文件不是最新时报错而不是更新；`--frozen` 使用锁文件而不检查其是否最新；`uv lock --check` 等价于 `--locked`。
+- 本机复现（uv 0.11.21）：`uv init --lib` + `uv lock` 后往 `dependencies` 加 `six` 不重锁 → `uv sync --frozen --offline` 退出 0 且只装了项目本身；`uv sync --locked --offline` 退出 1，报 "The lockfile at `uv.lock` needs to be updated, but `--locked` was provided"；`uv lock --check` 同样退出 1。
+- uv 文档 `guides/integration/docker`：中间层在只挂载 `uv.lock` 与 `pyproject.toml` 时用 `uv sync --frozen --no-install-project/--no-install-workspace`，原文说明 uv 无法在缺少成员 `pyproject.toml` 时断言锁文件最新，复制完整项目后的下一次同步仍可用 `--locked`。containers skill `references/dockerfile.md:97` 在 Docker 层语境下列 `uv sync --frozen`，符合该用法，未改。
+- uv 文档 `concepts/authentication/http`（`UV_INDEX_<NAME>_USERNAME/PASSWORD`，名称大写、非字母数字转下划线）、`concepts/indexes`（`first-index` 为默认，`unsafe-best-match` 有依赖混淆风险）、`pip/environments`「Discovery of Python environments」、`concepts/cache`（`uv cache prune --ci` 删预构建 wheel、保留源码构建的 wheel）。
+
+评测（新增场景 6：私有索引 + CI 缓存 + cron 部署，夹具 `evals/files/uv-ci/`，用于判断三条新增要点是否有缺口；原在 MergeM1 分支上编号为 5，rebase 到含 lint-ceiling 场景 5 的 main 后顺延为 6）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 uv 私有索引/缓存/部署 | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✓ / #4 ✓ | 基线读了 uv 官方文档：凭据改 `UV_INDEX_ACME_*` 并要求轮换；拒绝 `unsafe-best-match`，给出 `[tool.uv.sources]` + `explicit = true`；`uv cache prune --ci`；`uv pip` 发现顺序与 `--python`，并在本地实测。无缺口 → 三条不合入，场景留作哨兵 |
+
+`--frozen` 更正属于事实更正，未跑 D2。

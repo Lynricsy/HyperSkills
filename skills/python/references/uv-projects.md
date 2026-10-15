@@ -62,7 +62,8 @@ uv add -r requirements.txt  # bulk import; review the pins it brings along
 uv remove httpx
 uv sync                     # make .venv match uv.lock exactly
 uv sync --all-groups        # including lint/test/docs
-uv sync --frozen            # fail instead of re-locking (use in CI)
+uv sync --locked            # error if uv.lock is stale instead of re-locking (use in CI)
+uv sync --frozen            # install from uv.lock as-is, no staleness check at all
 uv run pytest               # sync if needed, then run inside the environment
 uv run --with ipython python  # one-off extra package, not written to the project
 uv tree                     # why is this transitive dependency here
@@ -86,8 +87,13 @@ disappears after a sync, it was never declared.
 - Libraries: the wheel's metadata is what consumers resolve against, so the lock
   only pins *your* CI. Committing it is still the easier choice; the cost is
   Dependabot-style churn.
-- CI: `uv sync --frozen` (or `uv run --frozen`) so a stale lockfile fails the build
-  instead of being silently updated mid-pipeline.
+- CI: `uv sync --locked` (or `uv run --locked`) so a stale lockfile fails the build
+  instead of being silently updated mid-pipeline; `uv lock --check` is the same
+  check on its own. `--frozen` is not a substitute: it skips the check and installs
+  whatever the old lock says, so a dependency added to `pyproject.toml` without
+  re-locking passes CI and is simply missing. Reserve `--frozen` for steps where uv
+  cannot see every member's `pyproject.toml` — the workspace dependency layer of a
+  Docker build — and follow it with a `--locked` sync once the full tree is copied.
 - `uv lock --upgrade-package httpx` bumps one package; `uv lock --upgrade` bumps
   everything. Prefer the first, one dependency per change, so a regression has one
   suspect.
@@ -226,14 +232,14 @@ next person.
 - uses: astral-sh/setup-uv@<sha>   # pin by SHA; tags move
   with:
     enable-cache: true
-- run: uv sync --all-groups --frozen
+- run: uv sync --all-groups --locked
 - run: uv run ruff format --check
 - run: uv run ruff check
 - run: uv run mypy src
 - run: uv run pytest
 ```
 
-`--frozen` is the important flag: without it a stale lockfile is quietly refreshed
+`--locked` is the important flag: without it a stale lockfile is quietly refreshed
 and CI stops testing what the developer committed. Keep format, lint, types and
 tests as four steps so the failing one names itself.
 

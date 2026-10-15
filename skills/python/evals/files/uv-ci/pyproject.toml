@@ -1,0 +1,22 @@
+[project]
+name = "billing-api"
+version = "3.4.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "acme-auth>=2.1",
+    "acme-ledger>=1.8",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.8"]
+
+[[tool.uv.index]]
+name = "acme"
+url = "https://ci-bot:glpat-9fK2xQ7mP4@pkgs.acme.internal/api/pypi/simple"
+
+[tool.uv]
+# Added by Priya 2026-09-30: without this uvicorn resolved to an old version
+# because the internal mirror only has 0.30. Do not remove.
+index-strategy = "unsafe-best-match"

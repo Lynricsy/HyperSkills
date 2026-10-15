@@ -161,13 +161,26 @@ upstreams:
     synced_at: "2026-10-15"
     contributes: "Read to draw the boundary: its checklist (injection, IDOR, TOCTOU, session handling) is language-neutral audit work owned by this repository's code-review skill, so this skill keeps only language-level runtime traps. No content copied."
 
+  - id: terminalskills-uv
+    kind: repo
+    repo: TerminalSkills/skills
+    url: https://github.com/TerminalSkills/skills/tree/main/skills/uv
+    paths: [skills/uv]
+    ref: main
+    commit: 6edcf94159d9f46b0759d2e1b59dd545cfaca254
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-10-15"
+    contributes: "Surfaced the `--frozen` versus `--locked` error in this skill's CI guidance; the correction itself rests on the uv documentation and a local reproduction, not on this file. No content copied."
+    notes: "Its other uv points — named-index credentials via `UV_INDEX_<NAME>_USERNAME/_PASSWORD` with the default `first-index` strategy, `uv pip` target-environment discovery, and `uv cache prune --ci` — were checked against the uv docs and evaluated (python eval 5); the no-skill baseline already met all four expected behaviours, so they were not merged."
+
   - id: uv-docs
     kind: docs
     url: https://docs.astral.sh/uv/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "Authoritative source for the four dependency fields and who sees each, `uv add`/`remove`/`sync`/`run`/`lock`/`build`/`publish` semantics, `--frozen` in CI, cross-platform lockfile behaviour, and the PEP 723 workflow: `uv init --script`, `uv add --script`, the requirement that a `dependencies` key exist even when empty, inline metadata causing the surrounding project to be ignored, and the `#!/usr/bin/env -S uv run --script` shebang."
+    synced_at: "2026-10-15"
+    contributes: "Authoritative source for the four dependency fields and who sees each, `uv add`/`remove`/`sync`/`run`/`lock`/`build`/`publish` semantics, `--locked` as the CI staleness gate (and `--frozen` skipping that check, used only for the partial-tree Docker layer), cross-platform lockfile behaviour, and the PEP 723 workflow: `uv init --script`, `uv add --script`, the requirement that a `dependencies` key exist even when empty, inline metadata causing the surrounding project to be ignored, and the `#!/usr/bin/env -S uv run --script` shebang."
 
   - id: ruff-docs
     kind: docs

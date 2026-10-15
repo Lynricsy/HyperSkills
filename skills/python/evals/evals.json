@@ -69,5 +69,20 @@
       "Records the measured current count as a checked-in ceiling, fails CI only when the count rises above it, and lowers the ceiling as violations are fixed rather than ever raising it to turn a build green",
       "Makes the counting step fail when ruff itself fails instead of reading that run as zero violations: ruff exits 2 on a configuration parse error or an unknown rule selector even with `--exit-zero`, so the script checks ruff's exit status (0 and 1 are counts, anything else aborts) or otherwise fails on a missing or unparsable report - no `|| true`, no status-discarding command substitution or `grep -c` / `wc -l` over a run whose exit code is lost"
     ]
+  },
+  {
+    "skills": ["python"],
+    "query": "billing-api now depends on two internal packages from our Artifactory PyPI mirror. Review pyproject.toml, ci.yml and deploy.sh before we roll this out to the other services. Two things are already bugging us: CI cache restores keep getting bigger every week, and the nightly cron deploy fails with \"No virtual environment found\" even though the same script works when Sam runs it from his terminal - but after Sam's run last Tuesday the service crashed with ImportError for acme-ledger.",
+    "files": [
+      "evals/files/uv-ci/pyproject.toml",
+      "evals/files/uv-ci/ci.yml",
+      "evals/files/uv-ci/deploy.sh"
+    ],
+    "expected_behavior": [
+      "Removes the credentials from the index URL in pyproject.toml and supplies them through `UV_INDEX_ACME_USERNAME` / `UV_INDEX_ACME_PASSWORD` (the index name upper-cased) set from CI secrets, and says the leaked token must be rotated",
+      "Rejects `index-strategy = \"unsafe-best-match\"` because it lets a same-named package on PyPI win over the internal one (dependency confusion), keeps the default `first-index` behaviour, and solves the stale-uvicorn problem another way (pin the internal packages to the `acme` index via `[tool.uv.sources]` with `explicit = true`, or reorder/scope the indexes)",
+      "Adds `uv cache prune --ci` at the end of the CI job before the cache is saved, explaining that it drops downloaded wheels that are cheaper to re-fetch and keeps only locally built ones, which is why the cache keeps growing",
+      "Explains that `uv pip install` picks its target from `VIRTUAL_ENV`, then `CONDA_PREFIX`, then a `.venv` in the current or a parent directory - cron has none of these and `/srv/billing/venv` is not named `.venv`, while Sam's shell had some other virtualenv activated and the packages went there - and fixes it by passing `--python /srv/billing/venv/bin/python` (or switching the deploy to `uv sync --locked` with `UV_PROJECT_ENVIRONMENT`)"
+    ]
   }
 ]
