@@ -1,8 +1,9 @@
 # Polars: preserve semantics across lazy execution
 
-Verified against: Polars 1.44.2 Python API documentation and the official
-streaming user guide. API claims are [official]. `nulls_equal` requires 1.24+;
-inspect the installed signature before adapting older code.
+Verified against: Polars 2.0.0 Python API documentation, the 2.0 upgrade guide
+and the official streaming user guide. API claims are [official]. `nulls_equal`
+requires 1.24+ (2.0 removed the old `join_nulls`); inspect the installed
+version and signature before adapting older code.
 
 ## Contents
 
@@ -96,8 +97,8 @@ percentage bounded by zero and one.
 
 ## Opaque UDF promises
 
-`LazyFrame.map_batches` cannot infer a Python function's semantics. In 1.44.2,
-pushdown flags and `streamable` default to false. Setting them true asserts:
+`LazyFrame.map_batches` cannot infer a Python function's semantics. In 1.44.2 and
+2.0.0, pushdown flags and `streamable` default to false. Setting them true asserts:
 
 | Promise | Required equivalence |
 |---|---|
@@ -114,15 +115,21 @@ must not pass a global normalization and shrink its denominator.
 Rewrite to native expressions by default. For an unavoidable UDF, keep only
 proved flags enabled, keep the function pure, provide an accurate output schema,
 and retain output-schema validation. Do not globally disable optimization as a
-substitute for repairing one opaque boundary. The deprecated `no_optimizations`
-parameter is not the recommended control (deprecated in 1.30.0).
+substitute for repairing one opaque boundary. The `no_optimizations` parameter,
+deprecated in 1.30.0, was removed in 2.0.0 and now raises `ArgumentRemovedError`.
 
 ## Streaming and output memory
 
-`collect(engine="streaming")` executes supported work in batches, but unsupported
-operations can fall back to the in-memory engine. Joins, high-cardinality group
-state, sorts, and the final DataFrame can still exceed available memory. A small
-preview or success on one batch cannot prove a full-data memory bound.
+Since Polars 2.0, a bare `collect()` (`engine="auto"`) resolves to the streaming
+engine for lazy queries unless engine affinity selects another; 1.x resolved it
+to the in-memory engine. Record the installed version and the engine actually
+used. Streaming executes supported work in batches, but unsupported operations
+can fall back to the in-memory engine. Joins, high-cardinality group state,
+sorts, and the final DataFrame can still exceed available memory. A small
+preview or success on one batch cannot prove a full-data memory bound. The
+streaming engine also does not preserve incidental row order of joins,
+`group_by` or `unpivot`; sort at the output boundary, or pass `maintain_order`
+where the operation supports it.
 
 Inspect `lf.explain()` for logical placement and, when diagnosing streaming
 memory, `lf.show_graph(plan_stage="physical", engine="streaming")` for the

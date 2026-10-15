@@ -1,6 +1,6 @@
 # pandas: ingestion, identity, and calendar boundaries
 
-Verified against: pandas 3.0.5 documentation. API semantics are [official];
+Verified against: pandas 3.0.6 documentation. API semantics are [official];
 examples are contract patterns to adapt to the actual schema, not parser defaults.
 
 ## Contents

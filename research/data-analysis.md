@@ -382,3 +382,22 @@ blobless 归因确有 2 个提交命中 paths。用其裸仓库缓存 `/tmp/hs-a
 `--pin` 同时对齐 `anthropic-data`（a6d8653 → f652327，报告为 `repo moved, tracked paths unchanged`）；`pin_check.py` 输出 `PIN CHECK CLEAN`。
 
 结论：正文未变，未跑 D2；仅 re-pin 与版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：10 条 `kind: docs` 条目的 `contributes` 事实 + 四份 references 实际引用的参数、默认值与版本。当前稳定版：pandas 3.0.6（2026-09-17）、Polars **2.0.0**（2026-10-06，`/api/python/stable/` 已指向 2.0.0）、DuckDB 1.5.6（2026-09-28）、SciPy 文档仍为 1.18.0（PyPI 已有 1.18.1）。实跑均用 `uv run --no-project --with <pkg>==<ver>` 隔离环境。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| pandas-csv | `na_values` 可按列 dict；`keep_default_na=False` + `na_values` 仅用列出的标记；`na_filter=False` 使二者被忽略；converters 取代 dtype；`low_memory` 仍读入单个 DataFrame，分块须 chunksize/iterator；`on_bad_lines='error'` 默认 | https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html | 一致；pandas 3.0.6 实跑示例：`NA` 实体保留为文本、空 entity 与 `N/A` 数值为缺失。3.0.6 发布说明只含 read_csv 回归修复（usecols DtypeWarning、`sep=None` 嗅探、C 引擎内存泄漏），不触及上述语义。版本行 3.0.5 → 3.0.6 |
+| pandas-merge | 两侧 null 键会互相匹配（不同于 SQL）；`validate` 中 m:m 不做检查 | https://pandas.pydata.org/docs/reference/api/pandas.merge.html | 一致；3.0.6 实跑 None 键左连接命中右侧 None 行 |
+| pandas-time | `tz_localize` 的 `ambiguous`/`nonexistent` 默认 raise；`ambiguous="infer"` 依赖序列结构 | https://pandas.pydata.org/docs/user_guide/timeseries.html | 一致；3.0.6 实跑 America/New_York 春季跳变时刻 `nonexistent="raise"` 抛 ValueError |
+| polars-streaming | 流式按批执行，不支持的算子回退内存引擎；`show_graph(plan_stage="physical", engine="streaming")` 查看物理计划 | https://docs.pola.rs/user-guide/concepts/streaming/ | **更正**：Polars 2.0 起 `LazyFrame.collect()` 默认 `engine="auto"` 对惰性查询解析为**流式引擎**（1.x 为内存引擎），流式引擎不保证 join/group_by/unpivot 的偶然行序（[2.0 升级指南](https://docs.pola.rs/releases/upgrade/2/)「The Lazy API defaults to the streaming engine」；[collect API](https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.collect.html)）。原文只把流式写成 `collect(engine="streaming")` 显式选项。2.0.0 实跑：20 万行左连接默认 `collect()` 不保持左表顺序、`maintain_order="left"` 与 `engine="in-memory"` 保持。已改 `references/polars.md` 流式一节并更新 contributes；`show_graph` 2.0 默认 `plan_stage="physical"`，原显式写法仍有效未改 |
+| polars-map-batches | UDF 须纯函数；`predicate/projection/slice_pushdown` 与 `streamable` 默认 False；schema 校验 | https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.map_batches.html | 默认值一致（2.0.0 签名实测）。**更正**：原文称 `no_optimizations`「已弃用（1.30.0）」，2.0.0 已移除，实跑传入抛 `ArgumentRemovedError`（升级指南移除表：deprecated 1.30）。注：2.0.0 运行时报错文本写「deprecated in version 1.39.3」，与升级指南及 1.44.2 源码 `.. deprecated:: 1.30.0` 不一致，以文档为准 |
+| polars-join | `validate` 默认 m:m 不检查；`nulls_equal` 默认 False（1.24 由 `join_nulls` 改名，2.0 移除旧名）；`coalesce=None` 时 full join 不合并键；`maintain_order` 默认 none、行序不可依赖 | https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.join.html | 一致；版本行改为 2.0.0 并注明 `join_nulls` 已移除 |
+| duckdb-csv | `nullstr` 默认空串；`force_not_null` 使空值读为空串；`all_varchar` 不关闭 NULL 解析；`store_rejects` 跳过错行入表；`allow_quoted_nulls` 默认 true；`union_by_name` 按名对齐 | https://duckdb.org/docs/current/data/csv/overview | 一致；1.5.6 实跑示例：`NA`/前导零保留、空 reading_id 为 `''`、`all_varchar=true` 下空值仍为 NULL。**url 迁移**：原 `.html` 地址 308 永久重定向到无后缀路径，已更新 url |
+| duckdb-aggregates | 除 list/first/last 外聚合忽略 NULL；除 count 外空组返回 NULL（sum 不返回 0）；first/last/list/string_agg 需 ORDER BY 才确定 | https://duckdb.org/docs/current/sql/functions/aggregates | 一致；1.5.6 实跑 `sum(NULL)`=NULL、`count(x)`=0。url 同上 308 迁移已更新 |
+| duckdb-workloads | GROUP BY/JOIN/ORDER BY/窗口可溢出；多个阻塞算子仍可能 OOM；list()/string_agg() 不能落盘，PIVOT 继承；EXPLAIN 不执行、EXPLAIN ANALYZE 执行 | https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads | 一致；url 同上 308 迁移已更新。版本行 1.5.5 → 1.5.6 |
+| scipy-ttest | `equal_var=False` 为 Welch；`nan_policy` 取值；统计量方向 mean(a)−mean(b)；`df` 与 `confidence_interval` 自 1.11.0 | https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html | 一致（页面仍为 v1.18.0 Manual，正文版本行不改） |
+
+其他观察（仅记录）：Polars 2.0 多文件 `scan_csv` 默认只用前 10 个文件推断 schema（`infer_schema_files=10`），DuckDB `files_to_sniff` 默认亦为 10；正文已要求核对推断样本之外的分区与冻结文件清单，无新增缺口。评测夹具 `evals/files/revenue_share.py` 固定 `polars==1.44.2`，属可复现基线，不随文档版本改动。

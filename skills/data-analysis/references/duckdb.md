@@ -1,6 +1,6 @@
 # DuckDB: local file queries without changing the metric
 
-Verified against: DuckDB 1.5.5 release and current CSV, aggregate, and workload
+Verified against: DuckDB 1.5.6 release and current CSV, aggregate, and workload
 documentation. API semantics are [official]; examples are analytical patterns,
 not database administration instructions.
 

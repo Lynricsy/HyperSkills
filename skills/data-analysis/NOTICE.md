@@ -15,7 +15,7 @@ Reference-only sources (no content copied):
 - https://docs.pola.rs/user-guide/concepts/streaming/ (MIT) — https://docs.pola.rs/user-guide/concepts/streaming/
 - https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.map_batches.html (MIT) — https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.map_batches.html
 - https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.join.html (MIT) — https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.join.html
-- https://duckdb.org/docs/current/data/csv/overview.html (MIT) — https://duckdb.org/docs/current/data/csv/overview.html
-- https://duckdb.org/docs/current/sql/functions/aggregates.html (MIT) — https://duckdb.org/docs/current/sql/functions/aggregates.html
-- https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads.html (MIT) — https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads.html
+- https://duckdb.org/docs/current/data/csv/overview (MIT) — https://duckdb.org/docs/current/data/csv/overview
+- https://duckdb.org/docs/current/sql/functions/aggregates (MIT) — https://duckdb.org/docs/current/sql/functions/aggregates
+- https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads (MIT) — https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads
 - https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html (BSD-3-Clause) — https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
