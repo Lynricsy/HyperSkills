@@ -1,5 +1,5 @@
 skill: data-analysis
-version: "2026.09.12"
+version: "2026.10.15"
 upstreams:
   - id: polars-official
     kind: repo
@@ -10,7 +10,7 @@ upstreams:
     commit: 70bec73cd09722411492dfd3613c73bb6df979b8
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Rewritten scan, expression naming, lazy-plan, join and sink guidance in references/polars.md and the scale workflow."
     notes: "Read root LICENSE; rejected mandatory engine migration, no-I/O schema claims and guaranteed streaming completion."
   - id: duckdb-official
@@ -22,7 +22,7 @@ upstreams:
     commit: 7feda8e01e22bc0886c86123f3884947e36d8c69
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Rewritten schema-first local SQL, bounded presentation and derived-file export workflow in references/duckdb.md and SKILL.md."
     notes: "Read root LICENSE; omitted host state, slash commands, generic format macros, xls claims and automatic extension installation."
   - id: anthropic-data
@@ -31,10 +31,10 @@ upstreams:
     url: https://github.com/anthropics/knowledge-work-plugins
     paths: [data/skills/analyze/SKILL.md, data/skills/validate-data/SKILL.md, data/skills/statistical-analysis/SKILL.md]
     ref: main
-    commit: a6d8653261a4cf3353c145648fece23bad949278
+    commit: f652327d4e953d7957d99e735c3c7f9964e9d2e5
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Rewritten population, join-grain, denominator, independent reconciliation, evidence and reproducibility guidance across SKILL.md and analytical references."
     notes: "Read data/LICENSE; removed connector dependencies and corrected universal range checks, UTC calendar simplification and statistical shortcuts."
   - id: kdense-eda
@@ -43,10 +43,10 @@ upstreams:
     url: https://github.com/K-Dense-AI/scientific-agent-skills
     paths: [skills/exploratory-data-analysis/SKILL.md]
     ref: main
-    commit: c1ed16d97dd61ff50a3bd46dd353e4a55fd77f34
+    commit: a1043ef544e3a100c28e70a736b6cf32554d0677
     license: MIT
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Rewritten observation hierarchy, missingness distinctions, raw-data preservation and exploratory-claim limits in SKILL.md and references/statistical-design.md."
     notes: "Read LICENSE.md; no scripts, scientific-format support matrix, host restrictions or automatic paper-citation instructions copied."
   - id: pandas-csv

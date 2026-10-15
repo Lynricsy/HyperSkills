@@ -359,3 +359,26 @@ pin更新0。隔离安装恰好五包，data-analysis 的18个文件与源逐字
 `--state-db` 会重建内部同名表，只应使用专用分析状态库，不能据此推荐把任意既有
 数据库当临时库；默认临时文件路径不改原CSV。本次没有把该评测辅助脚本作为
 skill脚本发布，也没有审定其中手写 Student-t 数值实现为通用统计库替代品。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因清单：`kdense-eda` 报 `behind`（diff too large），主代理按完整区间
+blobless 归因确有 2 个提交命中 paths。用其裸仓库缓存 `/tmp/hs-attr/K-Dense-AI__scientific-agent-skills` 读
+`git diff c1ed16d..a1043ef -- skills/exploratory-data-analysis/SKILL.md` 全文。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| kdense-eda | c1ed16d → a1043ef（2 提交：ce9e6e9、a92663a） | SKILL.md +34/−20：description 改第三人称；版本基线日期 2026-07-23 → 2026-09-30，NumPy 2.5.3、Biopython 1.88、tifffile 2026.9.20、pandas 3.0.6、Polars 1.44.2，删去「pandas 3.0.4 已撤回」一句；NPZ 归档预检、TIFF 通用页分组说明；「Output interpretation」新增一条：行数上限扫描的是 CSV 开头而非随机样本，按日期/批次/站点等排序的文件不能由前缀推断整体，需记录排序与覆盖分组 | 无影响 / 不合入 |
+
+裁决理由：
+
+- 版本表与 TIFF/NPZ 能力矩阵属于上游自带脚本的依赖快照，本 skill 不含这些脚本（SOURCES notes 已声明未复制 scripts 与格式矩阵）。
+  `references/pandas.md` 的「Verified against: pandas 3.0.5」与 `references/polars.md` 的「Polars 1.44.2」是本 skill 自身核对时的版本记录，
+  不是推荐版本，不因上游快照更新而失真；正文从未提及 3.0.4 撤回一事。
+- 新增的「前缀 ≠ 随机样本」一条是上游在**强制有界扫描**（安全约束下只读前 N 行）前提下的补救说明。本 skill 不设扫描上限，
+  核心规则 16 与 Reproduction 门已要求区分 sampled diagnostics 与 full-data results、报告数字必须对全量执行并独立复核，
+  `references/duckdb.md` 亦写明样本不能证明每一行。该条在本 skill 语境下是既有规则的子情形，不构成新行为，不合入，未跑 D2。
+
+`--pin` 同时对齐 `anthropic-data`（a6d8653 → f652327，报告为 `repo moved, tracked paths unchanged`）；`pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+结论：正文未变，未跑 D2；仅 re-pin 与版本号改为 2026.10.15。
