@@ -401,3 +401,39 @@ blobless 归因确有 2 个提交命中 paths。用其裸仓库缓存 `/tmp/hs-a
 | scipy-ttest | `equal_var=False` 为 Welch；`nan_policy` 取值；统计量方向 mean(a)−mean(b)；`df` 与 `confidence_interval` 自 1.11.0 | https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html | 一致（页面仍为 v1.18.0 Manual，正文版本行不改） |
 
 其他观察（仅记录）：Polars 2.0 多文件 `scan_csv` 默认只用前 10 个文件推断 schema（`infer_schema_files=10`），DuckDB `files_to_sniff` 默认亦为 10；正文已要求核对推断样本之外的分区与冻结文件清单，无新增缺口。评测夹具 `evals/files/revenue_share.py` 固定 `polars==1.44.2`，属可复现基线，不随文档版本改动。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的提交 ddd53d3（文档复核：`polars.md` 改为 Polars 2.0——裸 `collect()` 默认流式、流式不保留 join/group_by/unpivot 的偶然行序、`no_optimizations` 已移除；pandas/DuckDB 只改版本行）。237f05a 只 re-pin。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/data-analysis/omp-openai-gpt-6.1-sol-medium/`。今天此前没有本 skill 的 VM 评测结果，全部新跑。
+
+### 正文修正（评测前发现）
+
+写新场景夹具时在 `uv run --with polars==2.0.0` 与 `polars==1.44.2` 上实测，发现 ddd53d3 那句「The `no_optimizations` parameter, deprecated in 1.30.0, was removed in 2.0.0 and now raises `ArgumentRemovedError`」把两个参数混成一个：
+
+| 调用 | 1.44.2 | 2.0.0 |
+|---|---|---|
+| `collect(no_optimization=True)`（单数，全局关优化） | `DeprecationWarning … (Deprecated in version 1.30.0)` | `ArgumentRemovedError: the argument 'no_optimization' for 'LazyFrame.collect' was deprecated in version 1.30.0 and has been removed in version 2.0. use the optimizations parameter.` |
+| `collect(no_optimizations=True)`（复数） | `TypeError: unexpected keyword argument` | `TypeError: unexpected keyword argument` |
+| `map_batches(..., no_optimizations=True)` | 弃用警告「Deprecated in version 1.39.3」 | `ArgumentRemovedError …deprecated in version 1.39.3…` |
+
+即：1.30.0 弃用的是 `collect` 的单数 `no_optimization`，复数 `no_optimizations` 是 `map_batches` 的参数、1.39.3 弃用（文档复核记下的「运行时报 1.39.3、与升级指南 1.30 不一致」正是两者混淆所致）。照原句写 `collect(no_optimizations=True)` 得到的是 `TypeError` 而非所述异常。`polars.md`「Opaque UDF promises」末句改为分别写明两个开关的弃用版本、2.0 均抛 `ArgumentRemovedError` 及各自替代（`optimizations=` 参数；pushdown 标志）。下面的有 skill 运行均在此修正之后。
+
+### 场景与结果
+
+选场景：
+
+- 场景 5（`map_batches` 不透明边界 + 默认/流式两种 collect）：用到改写过的「Opaque UDF promises」与「Streaming」两节。夹具固定 `polars==1.44.2`，检查 2.0 措辞不会让模型误判 1.44.2 下的行为。
+- 新增场景 6（夹具 `evals/files/polars2/`）：现有场景都固定 1.44.2，没有一个考察 2.0 的变化。夹具是升级到 `polars==2.0.0` 的周报脚本：`collect(no_optimization=True)` 在 2.0 抛 `ArgumentRemovedError`（已实测），去掉后「最新三单」依赖文件顺序 `head(3)`、按区域汇总依赖 group_by 输出顺序（本机 2.0.0 连跑三次，三行顺序各不相同）。期望数字由修正版脚本在 2.0.0 上算出。
+- 场景 4：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 revenue_share 不透明 UDF | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 269 s。在 1.44.2 下观察到谓词下推让 North 分母变成 $400；改为独立的原生聚合分支再 cross join；默认与流式两种引擎、South、下游过滤、10 万行正反序均验证一致；未全局关优化 |
+| 5 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 114 s。改为原生 `sum()` 窗口表达式，同样两引擎与 15 万行验证 |
+| 6 Polars 2.0 升级 | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ | 165 s。删掉 `no_optimization`、不另设全局开关，但未点名 `ArgumentRemovedError` 与 1.30 弃用；说明 2.0 默认流式引擎、join/group_by 不保证偶然行序；`created_at` 降序 + `order_id` 决胜后再 `head(3)`，区域排序；2.0.0 上实跑 o112/o111/o110 与三区金额、单数，并在 `auto`/`streaming`/`in-memory` 三引擎上用 12 万行乱序数据验证 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ◐ EB3 ✔ EB4 ◐ | 76 s。修法相同（显式排序），只说「join 不保证 CSV 行序」，未指出 2.0 默认引擎改为流式这一变化原因；结果只给金额未给单数 |
+| 4 负例（SQLite 写锁） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ | 108 s。按 SQLite 并发诊断作答，明确不要删除 `-wal`/`-shm`/journal |
+
+结论：Polars 2.0 更正相关的行为在有 skill 时达成——场景 6 唯有有 skill 一侧解释了「2.0 默认流式 → 偶然行序不再成立」（EB2 ✔ 对基线 ◐），场景 5 在 1.44.2 下两侧 4/4、无回退。负例 `skill_read == false`。正文按实测修正了 `no_optimization` / `no_optimizations` 的混淆。
+
+遗留：场景 6 两侧都没有点名 `ArgumentRemovedError` 与弃用版本（EB1 ◐），模型直接按报错删参数即可修好，这一句的行为价值有限；`references/pandas.md`、`duckdb.md` 仅版本行变化，未设场景。

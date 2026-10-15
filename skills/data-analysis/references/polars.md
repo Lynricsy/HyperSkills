@@ -115,8 +115,11 @@ must not pass a global normalization and shrink its denominator.
 Rewrite to native expressions by default. For an unavoidable UDF, keep only
 proved flags enabled, keep the function pure, provide an accurate output schema,
 and retain output-schema validation. Do not globally disable optimization as a
-substitute for repairing one opaque boundary. The `no_optimizations` parameter,
-deprecated in 1.30.0, was removed in 2.0.0 and now raises `ArgumentRemovedError`.
+substitute for repairing one opaque boundary. Both old switches are gone in 2.0.0
+and raise `ArgumentRemovedError`: `collect(no_optimization=True)` (deprecated in
+1.30.0; the replacement is the `optimizations=` parameter) and
+`map_batches(no_optimizations=...)` (deprecated in 1.39.3; the pushdown flags
+above replace it).
 
 ## Streaming and output memory
 

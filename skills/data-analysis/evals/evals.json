@@ -53,5 +53,20 @@
       "Executes the repaired North top-two report and obtains n2=0.3 and n1=0.1 from the $1000 known completed subtotal, excluding cancelled n4. Keeps n3's share null when included in an untruncated North report, rather than converting unknown revenue to zero or treating $1000 as the exact fully reconciled total.",
       "Exercises both default and streaming collection and at least one changed display population (South, or a downstream filter on an order). A retained order keeps its company-wide share: s1=0.6, s2=0.0, n2=0.3, n1=0.1 wherever displayed. Evidence must show output agreement, not merely assert that streaming is safe."
     ]
+  },
+  {
+    "skills": ["data-analysis"],
+    "query": "We bumped our pinned Polars to 2.0.0 (the pin is in the script header of weekly_report.py; orders.csv and customers.csv are this week's sample exports). The report now crashes on the collect calls. When I deleted that argument it ran, but the 'latest three orders' block comes out in a different order on every run, and on the full production export it sometimes lists orders that are not the newest at all. Revenue by region also prints its rows in a different order each time. Fix the report so it is correct on Polars 2.0 and tell me what changed.",
+    "files": [
+      "evals/files/polars2/weekly_report.py",
+      "evals/files/polars2/orders.csv",
+      "evals/files/polars2/customers.csv"
+    ],
+    "expected_behavior": [
+      "Says the crash is `ArgumentRemovedError`: `collect(no_optimization=True)` was deprecated in 1.30.0 and removed in 2.0, and removes it rather than replacing it with another global optimisation switch (for example `optimizations=pl.QueryOptFlags.none()`) as the fix",
+      "Explains the ordering change: since Polars 2.0 a bare `collect()` (`engine=\"auto\"`) runs lazy queries on the streaming engine, where 1.x used the in-memory engine, and the streaming engine does not preserve the incidental row order of a join or `group_by`, so `head(3)` after the join no longer means the newest three rows of the file",
+      "Fixes the latest-orders block by ordering on `created_at` explicitly (a descending sort before `head`, or `top_k`) instead of relying on file order, and sorts the by-region table at the output boundary, rather than only forcing `engine=\"in-memory\"` to restore the old behaviour",
+      "Runs the fixed report on Polars 2.0.0 and reports o112, o111, o110 as the latest three orders, newest first, and completed revenue North 288.64 (5 orders), South 267.35 (4), West 310.00 (1), with the installed Polars version recorded"
+    ]
   }
 ]
