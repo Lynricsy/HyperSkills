@@ -166,3 +166,30 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
 **正文未变**（仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin / notes），因此未跑 D2 行为评测。
 
 遗留：Nuxt 5 GA 后需按 antfu 已跟进的 Nitro v3 变更重写 `references/nuxt.md` 的 server routes 一节（`createError({ statusCode, statusMessage })` 在 Nuxt 5 下改为 `status` / `statusText`）。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因（`/tmp/hs-attr/skills_real.json`），本 skill 只有
+`onmax-nuxt-skills` 一条在 tracked paths 下确有提交。用 `gh api repos/onmax/nuxt-skills/compare/<旧pin>...<审阅HEAD>`
+取完整 patch，逐文件读 diff 归因；其余条目（`vuejs-ai-skills`、`awesome-skills-code-review` up to date，`antfu-skills`
+repo moved / paths unchanged，`awesome-copilot` too-large 但归因为空）随 `--pin` 对齐。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| `onmax-nuxt-skills` | `3bbba5a → 46aaca0`（4 提交：`17cb3fa`、`e44b316`、`2bdce85`、`008232b`） | `skills/vue`：`SKILL.md` 版本号；`advanced-patterns.md` 加 `GlobalDirectives` 全局指令类型；`core-new-apis.md` 加 `isShallow()`；`script-setup-macros.md` 加「`defineProps` 可用导入类型」。`skills/nuxt`：整体切到 **Nuxt 5.x（`5.0.0-0`）**——Nitro v3 / h3 v2、`nuxt/server` 显式导入、`createError` 改 `status`/`statusText`、typed routes、大小写敏感路由、`clearNuxtState` 重置为初值、`payloadExtraction: 'client'`、无 `jiti` 的 config 加载；另有组件目录 `(group)` 分组与 `pattern`/`ignore` glob、`await` 与 `lazy` 的客户端语义、`useFetch` key 含调用位置 | 不合入（噪声 / 预发布 / 已覆盖） |
+
+归因要点：
+
+- 这批提交是 onmax 每周 bundle 任务把 `antfu/skills` 的物化副本同步进来（`ecosystem-skills.json` 把 `nuxt`、`vue`
+  映射到 antfu，见 2026-09-29 节），内容与本 skill `antfu-skills` 条目在 `d02c484` 已审过的版本一致；`antfu-skills`
+  自身本次 paths 无变化。
+- Nuxt 5：`npm view nuxt dist-tags` 实查 `latest` 为 `4.6.1`，不存在任何 5.x 发布标签，Nuxt 5 仍是主干上的预发布；
+  本 skill 只写 GA 线（`SKILL.md` Scope 与 `nuxt-docs` notes 已声明 Nuxt 5 不写），故全部 Nuxt 5 条目不合入。
+- 与 Nuxt 4 共通的两点已覆盖：`await` 不改 SSR HTML、`lazy` 与 `await` 相互独立（`references/nuxt.md`「await, lazy
+  and immediate」）；`useFetch` key 含调用位置、共享需显式 `key`（规则 25、`references/nuxt.md` 第 70–90 行）。
+- Vue 侧三项是 API 参考条目（全局指令类型、`isShallow`、导入类型的 props），不在本 skill「陷阱 / 失败模式」的
+  `contributes` 定位内，且 `defineProps` 导入类型自 3.3 起即为模型熟知能力。
+
+结论：**正文未变**，仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin 更新为 2026.10.15；
+未新增评测场景，未跑 D2。`pin_check.py`：PIN CHECK CLEAN。遗留沿用上节：Nuxt 5 GA 后重写 `references/nuxt.md`
+的 server routes 一节。
