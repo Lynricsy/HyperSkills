@@ -418,3 +418,34 @@ MTP-based `dotnet test`」，否则报「Testing with VSTest target is no longer
 行为，证据以上述两页为准。
 
 SOURCES：dotnet-docs、aspnetcore-docs 的 `synced_at` 改为 2026-10-15，dotnet-docs 的 `contributes` 补上 `dotnet test` 两种模式。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的提交 b9e232f（上游同步：MSBuild 求值顺序更正、EF 客户端求值更正、`aspnetcore.md` 合入 EF 长导入 / `ExecuteUpdate` / `Expression.Constant` 三条，新增场景 5）、d846bfb（新增场景 6–8，正文未改）、b87d815（文档复核：`dotnet test` 的 VSTest / MTP 两种模式与 `global.json` 开关）。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/csharp-dotnet/omp-openai-gpt-6.1-sol-medium/`。
+
+选场景与复用：
+
+- 场景 1：EB2 直接考察被更正的 `.props` 求值时机，两侧新跑。
+- 场景 5–8（今天新增）：有 skill 新跑（上午 `/tmp/hs-evals-sync/SyncG6/csharp-s5` 早于最后一次正文提交 b87d815，不复用）；基线复用今天已有结果——场景 5 `/tmp/hs-evals-sync/SyncG6/csharp-b5/`，场景 6–8 `/tmp/hs-evals/csharp-dotnet/omp-openai-gpt-6.1-sol-medium/baseline/{6,7,8}/`（`result.json` 的 query 与 expected_behavior 与当前 evals.json 逐字相同；未被运行改写的夹具逐字节相同，差异文件为该次运行自己的修改）。
+- 新增场景 9（夹具 `evals/files/mtp/`）：没有场景覆盖 b87d815 的更正。夹具为 `xunit.v3.mtp-v2` 4.0.2 测试项目（残留 `TestingPlatformDotnetTestSupport`）、只钉 SDK 10.0.100 的 `global.json`、CI 日志中的 MTP 原文报错（文本取自 microsoft/testfx `Microsoft.Testing.Platform.MSBuild.targets`），并要求改写 VSTest 风格的夜间 `--filter "Category=Integration"`。
+- 场景 4：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 MSBuild 三文件 | gpt-6.1-sol medium | 有 | true | EB2 ✔ EB3 ◐（其余未逐条判定） | 167 s。指出 `Directory.Build.props` 在项目体设置 `TargetFramework` 之前导入，`net10.0` 条件恒假；引号写法给出但实测显式 `-c Release` 时原条件也生效；另指出 `DefineConstants` 覆盖、分析器包缺 `PrivateAssets="all"`、`OutputPath` 被覆盖 |
+| 1 | gpt-6.1-sol medium | 无 | false | EB2 ✔ EB3 ◐（其余未逐条判定） | 224 s。同样判定 `.props` 过早求值，移到项目或 `Directory.Build.targets`；同样实测 Release 条件在显式传参时生效 |
+| 5 库存导入 EF | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ◐ EB3 ✔ | 182 s。每 500 行一批、关自动检测并在保存前显式 `DetectChanges()`（实测 6 万行 121 次扫描），未提 `ChangeTracker.Clear()` 收缩跟踪集；先释放预留再加载商品，未提批量语句与后续保存不原子；`Expression.Constant` 改捕获变量，SQL Server provider 生成参数化 SQL |
+| 5 | gpt-6.1-sol medium | 无（复用） | false | EB1 ◐ EB2 ◐ EB3 ✔ | 见「2026-10-15 上游同步」 |
+| 6 容器 tag | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 122 s。CONTAINER2008 与 `;latest` 两个原因、`-p:VersionPrefix="${GITHUB_REF_NAME#v}"`，用 `ComputeContainerConfig` 得到 `2.4.0` 与 `latest` |
+| 6 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 见上一节 |
+| 7 非 SDK MSTest | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ | 112 s。显式 `<Compile Include>`、未动 packages.config 与 3.5.2；回答只说「assert `ArgumentOutOfRangeException`」，未点明用 `ThrowsException`；说明无法运行 build.cmd |
+| 7 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 见上一节 |
+| 8 无 daemon 出镜像 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 185 s。SDK `PublishContainer` 出双架构 OCI archive，逐平台 trivy，通过后 `skopeo copy --all` 推送，CI 覆盖 `ContainerImageTags` |
+| 8 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 见上一节 |
+| 9 .NET 10 SDK 跑 MTP v2 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ | 84 s。说明 CI 走默认 VSTest 模式、MTP v2 在 .NET 10 上拒绝它，桥接属性只解释旧 SDK 为何能跑并删去；`global.json` 加 `"test": {"runner": "Microsoft.Testing.Platform"}` 保留 sdk 段；夜间命令 `-- --filter-trait "Category=Integration"`；在 SDK 10.0.401 隔离项目上实测全量 2 个、过滤后 1 个测试，但未点明「过滤为空也会成功」 |
+| 9 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ◐ | 114 s。修法相同（联网读到迁移页），但把失败归因于桥接属性，未说明 .NET 10 SDK 默认是 VSTest 模式 |
+| 4 负例（Go 协程泄漏） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 264 s。按 Go 处理：两处 `[chan send]` 泄漏、ctx/WaitGroup/停 ticker，pprof goroutine 诊断，未出现 .NET 内容 |
+
+结论：更正相关的行为在有 skill 时达成且不差于基线——场景 1 正确使用新的求值顺序；场景 9 只有有 skill 一侧说清「.NET 10 SDK 默认 VSTest 模式」这一原因（EB1 ✔ 对 ◐）；场景 5–8 与基线持平（场景 7 EB2 回答措辞不足，属表述而非方案退化）。负例 `skill_read == false`。正文未改。
+
+遗留：场景 1 因本轮请求预算只判定了与更正直接相关的 EB2/EB3，其余七条未逐条对照；场景 5 EB1/EB2 两侧仍为 ◐（`ChangeTracker.Clear()`、批量语句原子性），与今天上午记录一致。

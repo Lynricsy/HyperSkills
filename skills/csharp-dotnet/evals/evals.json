@@ -116,5 +116,20 @@
       "Produces the two architectures with ContainerRuntimeIdentifiers (a subset of RuntimeIdentifiers), which yields one OCI image index, rather than two separately tagged images",
       "Pushes only after the scan passes, via ContainerRegistry on a publish or by pushing the scanned archive with a registry tool, and feeds the version from outside the project body so ContainerImageTags does not resolve to ';latest'"
     ]
+  },
+  {
+    "skills": ["csharp-dotnet"],
+    "query": "We moved Orders.Tests from xunit 2 to xUnit v3 (Orders.Tests.csproj) and pinned CI to the .NET 10 SDK (global.json, at the repo root). Since then the CI test step fails before running a single test (ci-log.txt), although `dotnet test` still works on my laptop with the .NET 9 SDK. Our nightly job also runs only the integration tests with `dotnet test --configuration Release --filter \"Category=Integration\"`. Fix the repo so `dotnet test` runs these tests on the .NET 10 SDK, and give me the nightly command that works afterwards.",
+    "files": [
+      "evals/files/mtp/Orders.Tests.csproj",
+      "evals/files/mtp/global.json",
+      "evals/files/mtp/ci-log.txt"
+    ],
+    "expected_behavior": [
+      "Explains that on the .NET 10 SDK `dotnet test` runs in VSTest mode by default and no longer runs a Microsoft.Testing.Platform v2 project such as this xunit.v3.mtp-v2 one, and that `TestingPlatformDotnetTestSupport` is the old VSTest-mode bridge, which only helps with MTP v1 or the .NET 9 SDK, so keeping it does not fix CI",
+      "Opts the repository into the MTP mode of `dotnet test` in global.json with `\"test\": { \"runner\": \"Microsoft.Testing.Platform\" }` next to the existing `sdk` block, rather than pinning CI back to the .NET 9 SDK, downgrading to an MTP v1 or VSTest package set, or replacing `dotnet test` in CI with running the test executable",
+      "Rewrites the nightly filter in xUnit v3's own syntax — `--filter-trait \"Category=Integration\"` (or an equivalent `--filter-query`) — and says that the VSTest `--filter \"Category=Integration\"` expression is not what xUnit v3 accepts under MTP",
+      "Says to confirm the change by checking the reported test count on the .NET 10 SDK, because a filter that matches nothing can finish successfully with zero tests"
+    ]
   }
 ]
