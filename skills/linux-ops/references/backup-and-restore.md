@@ -1,6 +1,6 @@
 # Backup evidence and controlled restoration
 
-Verified against: restic documentation at ba802d42b7294c98b62c16d1157ea3e80820c019;
+Verified against: restic documentation at 9da3b87b07706956e8dc5fd5cb259b99ec940f51;
 rsync official manual. Check the installed versions before selecting flags.
 
 ## Contents
