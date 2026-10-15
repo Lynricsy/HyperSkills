@@ -536,3 +536,42 @@ npm 当日版本：`@modelcontextprotocol/sdk` 1.31.0（2026-09-28 发布，1.30
 
 **正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
 （`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告与主代理归因清单 `/tmp/hs-attr/attribution.md`。
+归因方法：mcp-python-sdk、awesome-copilot-mcp、mcp-inspector、cloudflare-agents-mcp 用 blobless 裸仓库缓存 `git diff <pinned>..<head> -- <paths>`（inspector 区间 98 提交，只读 `clients/cli` 的 diff，并对改动 CLI 行为的提交单独 `git show`）；mcp-typescript-sdk 用 `gh api .../compare` 取 `packages/core`、`packages/server` 下的文件 patch。
+microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f -- <path>` 为空（文件仍在），与 mcp-spec、anthropic-mcp-server-dev、anthropic-mcp-builder（tracked paths unchanged）一并随 `--pin` 前移。`pin_check.py` 输出 PIN CHECK CLEAN。
+许可复核：python-sdk MIT（gh api），typescript-sdk 包清单改为 Apache-2.0（见下），其余未变。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mcp-python-sdk | 06d1d1e → 754254c（9 提交） | 754254c 未知 prompt / 缺必填参数改回 `-32602`（原为 `ValueError`→`-32603`）；c449255 去掉 Python 3.10（`typing.Self`/`NotRequired` 改从标准库导入）；9a754b0 新增 `mcp.server.skills`（SEP-2640 `skills/list`、`skills/get`、`resources/directory/read`）；c54075c `Mcp-Param-*` 校验按名查 schema 而非跑 `tools/list`；6513955 `subscriptions=False` 关闭 `subscriptions/listen`；19e4f2a ID-JAG 仅限机密客户端改述为 SDK 策略；afa7edc `Context[T]` 注解保留实例；3d0c40d 注册时拒绝非法 `x-mcp-header`；449070c 未设置的 experimental 能力不再出现在 initialize 结果 | 噪声（已核对 sdk-versions 现有陈述）：在 PyPI 最新 `mcp` 2.3.0 上实测——`LATEST_PROTOCOL_VERSION` 仍为 `2026-07-28`，`server/discover` 回 `supportedVersions: ["2026-07-28"]`，`mcp.server.fastmcp` 的 `ModuleNotFoundError` 文本前半不变（后面新增迁移指南链接与 `mcp<2` 提示，引文已补全），`run()` 的传输字面量仍是 `"streamable-http"`。去 3.10 与 Skills 扩展都在 2.3.0 之后、尚未发版（2.3.0 的 `Requires-Python` 仍为 `>=3.10`，`mcp.server.skills` 不存在）；正文只写「在 Python 3.12 上验证」，未声称支持 3.10。Skills 扩展的分发由 `skill-authoring` 负责（SKILL.md 范围说明已写），不改。prompt 错误码修正后与规范一致，本 skill 未写 prompt 的错误码 |
+| mcp-typescript-sdk | 7f4c12a → 9bc40e9（13 提交） | 2.3.0/2.3.1 发版：84804c2 一个 `Server` 只服务一个连接（`createMcpHandler(() => 同一实例)` 并发请求 500/`-32603`，无状态 transport 复用报错）；40f8f4e `requireBearerAuth` 新增可选 `expectedResource`；6d8dbc6 `maxToolInputElements`；e55f9ac `allowedOrigins` 支持 `<scheme>://*`；2fc49ea 省略 `arguments` 的 `prompts/get`；b381559、43c45f4、2237555 修正；633dd3e 包清单 license 改为 Apache-2.0 | 新增内容以基线划界后未合入（见下）；已核对现有陈述：实测 `@modelcontextprotocol/sdk` 1.32.1 与 `@modelcontextprotocol/server` 2.3.1（Node v26.10.0）——v1 `LATEST_PROTOCOL_VERSION` `2025-11-25`、`server/discover` `-32601`、`initialize` 静默降级到 `2025-11-25`；v2 常量 `2025-11-25` 而 `server/discover` 回 `2026-07-28`；v1/v2 `$schema` 分别为 draft-07 / 2020-12；`serveStdio` 传实例与裸 JSON Schema 两个陷阱仍是每个请求 `-32603`、原因只在 `onerror`（文案多了「or a raw Zod shape」）。均成立，`sdk-versions.md` 版本号与「Verified against」刷新为实测版本。license：仓库 LICENSE 本就记为 Apache-2.0，`notes` 补记包清单变化 |
+| awesome-copilot-mcp | e7c25a4 → 3cf7c7e（1 提交） | 727ff2e：`mcp-security-audit` 的固定版本检查从只查 `@latest` 扩展到裸包名、semver 范围与 `npm exec`/`pnpm dlx`/`bunx` 等启动器；不得用当天 registry 版本代替「审过的版本」 | 噪声：`threats.md` 已要求「pin an exact version」，扩展的是审计脚本的识别面；未单独测基线，记为遗留 |
+| mcp-inspector | 1e31c78 → 074b810（`clients/cli` 98 提交） | 3f535de `--version`/`-V` 在各模式打印版本；新增 `-q`、`--output`、`--completion`、`servers/add|edit|remove`；URL 目标无默认传输（路径非 `/mcp`、`/sse` 需显式 `--transport`）、URL 与位置命令冲突时拒绝；连接超时提示、task 路径、刷新回写等修复 | **事实更正**：`testing.md` 原写「`--version` 不受支持、会落到 UI」。`git tag --contains 3f535de` 只有 2.11.0；实跑 `npx @modelcontextprotocol/inspector@2.11.0 --version` 与 `--cli --version` 均输出 `2.11.0`，2.10.1 的 `--cli --version` 仍报 `Method is required`。改为按版本分述，并保留 lockfile / `npm view` 的做法。其余为新功能；本 skill 的示例全部是 stdio 目标 `--method tools/list|tools/call|resources/list`，在 2.11.0 上实跑 `tools/list` 正常；错误信封格式区间内未变 |
+| cloudflare-agents-mcp | 626547c → be68fd8（1 提交） | 41e0d19：文档链接改为显式 `index.md` 路由 | 噪声 |
+
+### TypeScript v2 2.3.x 新行为：以基线划界
+
+候选新增两点（均已在 2.3.1 上实测）：`createMcpHandler(() => server)` 返回启动时建好的同一实例，三个并发 `tools/call` 一个 200、两个 500 `-32603`，`onerror` 收到「The factory returned an instance that is still serving another request…」；`requireBearerAuth` 未设 `expectedResource` 时接受 `AuthInfo.resource` 为别的服务的令牌，设置后返回 `401 invalid_token`「Token was not issued for this resource」。
+
+新增场景 7（`evals/files/notes-http-v2.mjs`：共享实例工厂 + 只校验签名/issuer/过期的 verifier + 未设 `expectedResource`）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 无 | false | E1 ✅ E2 ✅ E3 ✅ E4 ◐ | 基线自行装 2.3.1 实测：12 个并发 11 个 500，改为每请求新建实例并加 `onerror`；指出未校验 audience，加 `jwtVerify` audience、填 `AuthInfo.resource` 并设 `expectedResource`，实测异 audience 401。未明说「只设 `expectedResource` 而 verifier 不填 resource 会拒绝所有令牌」 |
+| 7 | gpt-6.1-sol medium | 有 | true | E1 ✅ E2 ✅ E3 ◐ E4 ◐ | 同样实测（100 个并发无 500）；在 `jwtVerify` 中强制 audience，未用 `expectedResource`，也未说明 `requireBearerAuth` 默认不比 resource |
+
+判定：基线已自行实测并修好两处（E1–E3 达成，E4 只差一句注意事项），新增内容没有可证明的缺口，**不合入正文**；场景 7 与夹具保留为哨兵。有 skill 一侧（含本次 `testing.md`/`sdk-versions.md` 更正）未出现退化。其余场景未受本次改动影响，未重跑。
+
+### 正文改动
+
+- `references/testing.md`：Inspector 版本检查一段按版本分述（2.11.0 起 `--version`/`-V` 可用；更早版本落到 UI 或报 `Method is required`），头部注明该行为在 2.10.1、2.11.0 上复核。
+- `references/sdk-versions.md`：「Verified against」与差异表、包版本行刷新为本次实测的 `mcp` 2.3.0、`fastmcp` 4.1.0、`@modelcontextprotocol/sdk` 1.32.1、v2 `server/core/client/codemod` 2.3.1、`node` 2.1.1；`ModuleNotFoundError` 引文补全为 2.3.0 的完整文本；两陷阱注明在 2.3.1 上复测。
+- `SOURCES.yaml`：mcp-python-sdk / mcp-typescript-sdk 的 `contributes` 记录复测版本，typescript-sdk `notes` 记录包清单 license 改为 Apache-2.0。
+
+### 遗留
+
+- `@modelcontextprotocol/server` 2.3.0 的「一实例一连接」与 `expectedResource`、`maxToolInputElements`，以及 awesome-copilot 对裸包名/范围版本的识别，基线已会或未测，均未写入；若换更弱的基线模型需重测场景 7。
+- python-sdk 的去 3.10、Skills 扩展、prompt `-32602` 修正尚未发版，下一次 `mcp` 发版后应复测 `sdk-versions.md` 的 Python 行。

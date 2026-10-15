@@ -1,8 +1,8 @@
 # SDK versions versus the specification revision
 
-Verified against: `mcp` (PyPI) 2.2.0, `@modelcontextprotocol/sdk` 1.31.0 (and 1.30.0),
-`@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.2.0 (and 2.0.0),
-`@modelcontextprotocol/inspector` 2.8.0, Node v26.7.0 and v26.9.0.
+Verified against: `mcp` (PyPI) 2.3.0 (and 2.2.0), `@modelcontextprotocol/sdk` 1.32.1 (and 1.31.0,
+1.30.0), `@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.3.1 (and 2.2.0, 2.0.0),
+`@modelcontextprotocol/inspector` 2.8.0, Node v26.7.0, v26.9.0 and v26.10.0.
 
 ## Contents
 
@@ -21,9 +21,9 @@ The current specification revision is `2026-07-28`. The SDKs do not all implemen
 
 | Runtime | Package | Version | `LATEST_PROTOCOL_VERSION` | `server/discover` |
 |---|---|---|---|---|
-| Python | `mcp` | 2.2.0 | `2026-07-28` | answers `supportedVersions: ["2026-07-28"]` |
-| Node | `@modelcontextprotocol/sdk` (v1) | 1.31.0 | `2025-11-25` | `-32601 Method not found` |
-| Node | `@modelcontextprotocol/server` (v2) | 2.2.0 | `2025-11-25` | answers `supportedVersions: ["2026-07-28"]` |
+| Python | `mcp` | 2.3.0 | `2026-07-28` | answers `supportedVersions: ["2026-07-28"]` |
+| Node | `@modelcontextprotocol/sdk` (v1) | 1.32.1 | `2025-11-25` | `-32601 Method not found` |
+| Node | `@modelcontextprotocol/server` (v2) | 2.3.1 | `2025-11-25` | answers `supportedVersions: ["2026-07-28"]` |
 
 Two things follow, and both are easy to get wrong:
 
@@ -65,7 +65,9 @@ official skills. Under `mcp` 2.x it does not exist: `[verified]`
 
 ```
 ModuleNotFoundError: No module named 'mcp.server.fastmcp'. This is mcp 2.x, where FastMCP was
-renamed to MCPServer (from mcp.server.mcpserver import MCPServer) and other APIs changed
+renamed to MCPServer (from mcp.server.mcpserver import MCPServer) and other APIs changed; see the
+migration guide at https://py.sdk.modelcontextprotocol.io/v2/migration/#fastmcp-renamed-to-mcpserver
+or pin 'mcp<2' to keep running v1 code.
 ```
 
 Current shape:
@@ -95,15 +97,15 @@ the docstring. A tool with no docstring is emitted with `"description": ""` — 
 
 ## Python: `fastmcp` is a different package
 
-PyPI has both `mcp` (2.2.0, the official SDK) and `fastmcp` (4.0.3, a separate third-party
+PyPI has both `mcp` (2.3.0, the official SDK) and `fastmcp` (4.1.0, a separate third-party
 package). They are not the same project and their APIs differ. Pick one deliberately and say which
 in the project's dependency file; the default for a new server is `mcp`. `[verified]`
 
 ## TypeScript: v1 is a single package, v2 is scoped packages
 
-`@modelcontextprotocol/sdk` is the v1 line; it still receives releases (1.31.0 at the time of
+`@modelcontextprotocol/sdk` is the v1 line; it still receives releases (1.32.1 at the time of
 measurement) but keeps the `2025-11-25` ceiling above. The v2 line ships as separate packages that
-are versioned independently — `server`, `core`, `client` and `codemod` at 2.2.0, `node` at 2.1.0,
+are versioned independently — `server`, `core`, `client` and `codemod` at 2.3.1, `node` at 2.1.1,
 the framework adapters at 2.0.x when measured: `[verified]`
 
 | Package | Contents |
@@ -132,7 +134,7 @@ Both of these make *every* request fail — `server/discover` and `tools/list` i
 opaque `{"code":-32603,"message":"Internal server error"}`. Without an `onerror` option nothing
 reaches stderr; with the handler below the cause is printed (`factory is not a function`, or
 `inputSchema/outputSchema/argsSchema must be a Standard Schema …`), so always pass one. Measured on
-2.0.0 and 2.2.0. `[verified]`
+2.0.0, 2.2.0 and 2.3.1. `[verified]`
 
 ```javascript
 import { McpServer } from "@modelcontextprotocol/server";

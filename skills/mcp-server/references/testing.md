@@ -1,7 +1,8 @@
 # Testing and releasing an MCP server
 
-Verified against: `@modelcontextprotocol/inspector` 2.6.0; `mcp` 2.2.0;
-`@modelcontextprotocol/sdk` 1.30.0; `@modelcontextprotocol/server` 2.0.0; Node v26.7.0.
+Verified against: `@modelcontextprotocol/inspector` 2.6.0 (the version flag re-checked on 2.10.1
+and 2.11.0); `mcp` 2.2.0; `@modelcontextprotocol/sdk` 1.30.0; `@modelcontextprotocol/server` 2.0.0;
+Node v26.7.0.
 
 ## Contents
 
@@ -40,8 +41,10 @@ npx @modelcontextprotocol/inspector --cli uv run server.py --method resources/li
 It prints the raw result as JSON, which makes it the fastest way to see what the model will see —
 including whether a tool has a `description` at all.
 
-Do not use it to check the version: `--version` is not supported and falls through to the UI. Use
-`npm view @modelcontextprotocol/inspector version`.
+Checking its version depends on the release. From 2.11.0, `--version` (or `-V`) prints the version
+and exits in every mode. Before that, a bare `--version` fell through to the UI and `--cli
+--version` failed with "Method is required"; on those releases read the version from the lockfile,
+or ask the registry with `npm view @modelcontextprotocol/inspector version`. `[verified]`
 
 Worth knowing about its limits: the CLI is lenient about garbage on stdout and will skip an
 unparseable line, so a server that logs to stdout can pass an Inspector check and still break a

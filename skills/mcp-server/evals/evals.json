@@ -73,5 +73,16 @@
       "States that the explicit `jsonSchemaValidator` is not the missing piece — v2 has a default validator — so adding or removing it neither causes nor fixes this failure",
       "Points to the `onerror` handler already passed to `serveStdio` (stderr) as the place the real cause is printed, or proposes a raw JSON-RPC / Inspector probe to confirm the fix, rather than leaving the diagnosis at the opaque -32603"
     ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "notes-http-v2.mjs in this directory is the HTTP entry point of our notes MCP server. Since we bumped @modelcontextprotocol/server to 2.3.1, a single request works but under real traffic a share of requests comes back as HTTP 500 with -32603 Internal server error and nothing in our logs. Separately, our security reviewer asked whether an access token our IdP minted for a different internal API would be accepted here. Answer both and fix the file.",
+    "files": ["evals/files/notes-http-v2.mjs"],
+    "expected_behavior": [
+      "Identifies the cause of the 500s as the factory passed to createMcpHandler returning one McpServer built at startup: since 2.3.0 a server instance serves one connection at a time, so a request that arrives while another is in flight is refused with 500 / -32603, and fixes it by constructing and registering a new McpServer inside the factory on every call",
+      "Explains why nothing was logged — createMcpHandler reports the real cause only through its onerror option, which the file does not pass — and adds one",
+      "Answers the reviewer: yes, such a token is accepted, because the verifier checks signature, issuer and expiry but never the audience, and requireBearerAuth does not compare the token's resource unless told to",
+      "Fixes audience checking concretely for this SDK: passes expectedResource set to the server's canonical URL (https://notes.example.com/mcp) to requireBearerAuth, and makes the verifier fill AuthInfo.resource from the token's aud claim (or enforces the audience in jwtVerify), noting that expectedResource alone rejects every token if the verifier leaves resource unset"
+    ]
   }
 ]
