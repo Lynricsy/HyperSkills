@@ -73,5 +73,52 @@
       "Flags updateTag in the hr-sync Route Handler as invalid because updateTag works only inside Server Actions, and replaces it with the two-argument revalidateTag(tag, 'max') (or an explicit expire profile), noting the single-argument form is deprecated",
       "Says the green instant() test proves the shell commits, not that data is fresh after a mutation, and adds a mutation check: perform the update, then read the page again and assert the new value is shown"
     ]
+  },
+  {
+    "skills": ["react"],
+    "query": "Our Next.js app uses shadcn/ui (see components.json) with the AI SDK's useChat. assistant-turn.tsx renders one assistant turn: reasoning, tool calls and the answer. Bring it in line with current shadcn/ui conventions for AI chat UIs, then list each change and the component it uses.",
+    "files": [
+      "evals/files/components.json",
+      "evals/files/chat/assistant-turn.tsx"
+    ],
+    "expected_behavior": [
+      "Replaces the hand-rolled Collapsible reasoning block with the shadcn Trace components (TraceCollapsible > TraceCollapsibleTrigger > TraceLine with TraceIcon and TraceTitle, content in TraceCollapsibleContent) instead of keeping a restyled Collapsible",
+      "Renders tool calls as TraceLine rows inside a Trace (a plain TraceLine until output exists, a TraceCollapsible once it does), not as Marker, and says Marker is for notes and dividers between turns",
+      "Shows tool output in a CodeBlock (CodeBlockContent with wrap and a max-h-* cap) instead of a hand-styled <pre>",
+      "Drives running/finished state through the TraceLine status prop and status words rather than opacity-* dimming or raw SDK state strings",
+      "Installs the missing components through the CLI (npx shadcn@latest add trace code-block, or docs/info first) rather than hand-writing them"
+    ]
+  },
+  {
+    "skills": ["react"],
+    "query": "Apply our brand spec DESIGN.md to this shadcn/ui project (components.json; globals.css is its tailwindCssFile; every component is already installed under the ui alias). Show the exact globals.css edits and list every component file you would change and how. Do not build a showcase page.",
+    "files": [
+      "evals/files/components.json",
+      "evals/files/design-system/DESIGN.md",
+      "evals/files/design-system/globals.css"
+    ],
+    "expected_behavior": [
+      "Pins each radius step from the DESIGN.md scale directly in @theme inline (--radius-sm ... --radius-4xl with the 4/6/8/12/16/9999px values mapped to the classes the components use) instead of only changing --radius and keeping the derived multipliers",
+      "Raises every control to 40px together (button, input, input-group, select, native-select, toggle, tabs and similar), by editing the height classes in the installed component sources, not only the Button",
+      "Implements the primary press state with active: (a new --primary-pressed/--primary-active token registered in @theme inline) and does not add a hover: color change",
+      "Defines the typography tokens as type-* utilities (@utility) instead of --text-* theme keys, or explains that custom text-* sizes collide with text-* color classes in cn()/tailwind-merge",
+      "Makes inputs, buttons and cards shadowless per the hairline-only rule (for example --shadow-xs: 0 0 #0000 in @theme) while giving popovers and dialogs the documented two-layer shadow verbatim",
+      "Edits the existing globals.css and the components' cva variants rather than adding a new stylesheet or call-site className overrides"
+    ]
+  },
+  {
+    "skills": ["react"],
+    "query": "Next.js 16.3, cacheComponents: true. settings-layout.tsx is app/teams/[team]/settings/layout.tsx and settings-page.tsx is its page.tsx. The route has no static shell: every visit waits for auth and data before anything paints. Make it instant without breaking anything, and explain each change. Show the new code for both files.",
+    "files": [
+      "evals/files/static-shell/settings-layout.tsx",
+      "evals/files/static-shell/settings-page.tsx"
+    ],
+    "expected_behavior": [
+      "Moves the cookies()/membership read out of the top of the layout into a Suspense-wrapped component (or equivalent) so the settings frame and heading render in the static shell",
+      "Points out that forbidden() called after streaming has started can still render the forbidden UI but the response status stays 200, so the 403 that integrations and uptime checks rely on is lost, and checks access before streaming (proxy/middleware or before the boundary) or explicitly accepts the trade-off",
+      "Keeps data/plan-limits.json a runtime read (cached with 'use cache' plus a cacheLife/revalidation that matches how often billing edits it, or streamed per request) and does not turn it into a static JSON import or build-time read that would freeze the limits",
+      "Pushes the usage read behind its own Suspense boundary with a real loading skeleton, keeping the page's stable UI out of the fallback",
+      "Says how to verify: an instant() test on a production build, plus checking the non-admin response status and that an edited limits file is reflected"
+    ]
   }
 ]

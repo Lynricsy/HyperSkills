@@ -289,3 +289,36 @@ skill 纳入 `paths` 留给下一次完整复核（需先有基线缺口证据�
 `nextjs-cache-components.md` for cache profiles, `cacheLife()` and `cacheTag()`」，但该文件只讲 `cacheLife`，
 全 skill 没有 `cacheTag` 的内容。场景 5 基线说明模型自己会用 `cacheTag`，因此不补内容；这句指引应在下一次
 正文修订时收窄为 `cacheLife()`。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因（`/tmp/hs-attr/skills_real.json`）：`addy-frontend-ui`、
+`nextjs-cache-components`（too large）、`shadcn-official`（too large）三条在 tracked paths 下确有提交。too-large 两条用主代理的
+shallow blobless bare 缓存（`/tmp/hs-attr/vercel__next.js`、`/tmp/hs-attr/shadcn-ui__ui`）按完整区间
+`git log/diff <旧pin>..<审阅HEAD> -- <paths>` 读 diff；`addy-frontend-ui` 用 `gh api .../compare` 取 patch。其余条目
+（`vercel-react-bp` up to date；`openai-plugins-nextjs`、`anthropic-web-artifacts` repo moved / paths unchanged）随 `--pin` 对齐，
+`react-docs` / `nextjs-docs` 为 manual check。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| addy-frontend-ui | 2686b62 → aeac41d（1 提交） | `3e1e0a2`：`frontend-ui-engineering/SKILL.md` 容器示例补上 `refetch` 解构，使 `retry={refetch}` 有定义 | 已覆盖 / 噪声：`references/architecture-and-state.md` 第 72–75 行的同一示例本来就解构了 `refetch` |
+| nextjs-cache-components（too large） | 3854a98 → 0b3693d（1 提交命中） | `7c16cc9f`：新增官方指南 **Optimizing the static shell**（`docs/01-app/02-guides/optimizing-the-static-shell.mdx`，不在 paths 内但被 skill 引为框架事实来源）；`next-cache-components-optimizer` 删掉 `reference/patterns.md`、`real-app-patterns.md`，把框架模式改为链接到该指南，保留 P→G 阶段、rig、RED→GREEN、parity、differential；新增要求：断言完整契约（请求期 UI 在锁下不出现）、不得把可变读取改成构建期 import、parity 要顾及「流式开始后 `forbidden()`/`notFound()` 状态码仍为 200」、最终 GREEN 须跑完整 in-scope 命令、URL 专属内容交给 `next-partial-prefetching-optimizer`；`next-partial-prefetching-adoption` 的 rig 改为优先由 Playwright `webServer` 管理生产服务器、用真实可见 DOM 节点的 `data-testid` 作标记 | 事实核对无冲突；新增规则按基线划界后不合入（见场景 8） |
+| shadcn-official（too large） | 08ab84f → 4233ed1（2 提交） | `2d3f1cd`：新增 `design-system.md` / `design-system-page.md` / showcase 资源与 `scripts/showcase-coverage.mjs`——从 DESIGN.md 建主题：`init --preset … --template … --no-monorepo`、`add --all`、角色→变量映射、在 `@theme inline` 钉死 radius 各级、`@theme` 覆盖 shadow、Fontsource 字体替身、`type-*` `@utility` 而非 `--text-*`、控件高度联动、按 DESIGN.md 用 `active:` 而非 `hover:`、设计系统页的对比度色对与 `data-preview` 状态矩阵；`customization.md` 加一句「品牌 radius 刻度直接钉 `--radius-*`」。`4233ed1`：`rules/chat.md` 新增 **Trace**（推理 / 工具调用 / 来源行）与 **CodeBlock**（代码与工具输出），AI Elements 组件页的映射 | 新增内容，按基线划界后均不合入（见场景 6、7） |
+
+静态指南与本 skill 的核对：`references/nextjs-cache-components.md` 的九种阻塞形态、loading UI 复用顺序、「空 fallback 只在
+解析后同样无视觉占位时成立」、两种导航入口、parity 清单，与新指南「Keep static UI in the shell / Push data access down /
+Design loading states / Cache reusable work」各节一致，未发现需更正的事实。
+
+### 评测（划界用，基线）
+
+新增场景 6–8（`evals/files/chat/`、`evals/files/design-system/`、`evals/files/static-shell/`），只跑基线：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 AI 聊天回合改用 Trace / CodeBlock | gpt-6.1-sol medium | 无 | false | 5 / 5 | 349 s。联网读 shadcn AI Elements 文档：推理与工具行改 `TraceCollapsible`/`TraceLine`（`status` 驱动），工具输出改 `CodeBlock`，`npx shadcn@latest add trace code-block`，TypeScript 与 Chromium 夹具验证 |
+| 7 DESIGN.md 映射到 shadcn 主题 | gpt-6.1-sol medium | 无 | false | 6 / 6 | 250 s。`@theme inline` 钉死 4/6/8/12/16 px 各级（按名称对齐后改组件类名，而非照上游把 8 px 钉到 `--radius-lg`，属等价做法）；全部控件 40 px 并列出文件；`--primary-pressed` + `active:`；`@utility type-*`；卡片与输入去阴影、浮层用逐字双层阴影；只改已有 `globals.css` 与组件 cva |
+| 8 让 settings 路由 instant（含 403 契约与运行时 JSON） | gpt-6.1-sol medium | 无 | false | 3 / 5 | 167 s。达成：认证移入 Suspense；指出流式开始后 `forbidden()` 状态仍为 200、需前置门禁（引官方文档并本地复现）；`plan-limits.json` 保持请求期读取（`connection()`），不改静态 import。未达成：usage 与 limits 合在一个只有文字的 fallback 里而非各自的骨架边界；验证只做 HTTP 冒烟、没有生产构建上的 `instant()` 测试——这两项是 skill 既有内容（「Reusing loading UI」与 instant() 守卫），不是本次上游新增 |
+
+结论：三处上游新增内容（Trace/CodeBlock、DESIGN.md 主题映射、静态外壳指南带来的状态码与「不改构建期 import」要求）基线均已做到，
+按 `docs/skill-standard.md` 第 3 节不合入；场景 6–8 保留为哨兵。**正文未变**，未跑有 skill 的 D2；仅新增评测场景与夹具、
+re-pin、版本号改为 2026.10.15。`pin_check.py`：PIN CHECK CLEAN。
