@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "es2023",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "declaration": true,
+    "types": ["node"],
+    "isolatedDeclarations": false
+  },
+  "include": ["*.ts"]
+}

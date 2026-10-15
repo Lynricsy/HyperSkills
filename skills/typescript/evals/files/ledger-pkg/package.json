@@ -1,0 +1,19 @@
+{
+  "name": "@acme/ledger",
+  "version": "3.4.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": { "node": ">=22" },
+  "imports": {
+    "#/*": "./*"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^7.0.2"
+  }
+}

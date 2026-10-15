@@ -116,9 +116,10 @@ builds.
   references a name the consumer cannot import.
 - `isolatedDeclarations: true` requires an explicit type on every exported binding that is not
   trivially inferable and in exchange allows declaration emit to be parallel and tool-agnostic.
-  Errors `TS9007` (function return type must be inferred from the body), `TS9010` (variable needs an
-  annotation) and `TS9009` (accessor needs an annotation) [verified] are it telling you the public
-  surface is not written down.
+  Errors `TS9013` at a non-inferable `return` expression (TS 7.0; TS 6.0 and multi-return functions
+  give `TS9007` on the function name), `TS9010` (variable needs an annotation) and `TS9009`
+  (accessor needs an annotation) [verified] are it telling you the public surface is not written
+  down; the fix is the annotation on the exported declaration.
 - `skipLibCheck` does not affect what you emit, only whether you check other people's `.d.ts`.
 
 ## `tsc` as the type-checker, a bundler as the emitter

@@ -65,5 +65,16 @@
       "Answers as a React rendering question (memoization, React Compiler, component structure) rather than a TypeScript type-system question",
       "Does not turn the answer into advice about discriminated unions, tsconfig strictness or branded types"
     ]
+  },
+  {
+    "skills": ["typescript"],
+    "query": "These files are our @acme/ledger package (the package root); notes.md says what happened after we switched from the @/ alias to subpath imports. The build is green but it will not start in production or on my laptop. Fix it so it runs on our Node 22 production image and on newer Node, and tell me what the isolatedDeclarations errors want before we decide whether to turn that flag back on.",
+    "files": ["evals/files/ledger-pkg/package.json", "evals/files/ledger-pkg/tsconfig.json", "evals/files/ledger-pkg/index.ts", "evals/files/ledger-pkg/money.ts", "evals/files/ledger-pkg/notes.md"],
+    "expected_behavior": [
+      "Explains the production error as a Node version floor, not a TypeScript or path bug: a bare `#/` subpath-import prefix is accepted only from Node 24.14 / 25.4, and Node 22 (like 20) rejects the specifier with `ERR_INVALID_MODULE_SPECIFIER`; with `engines` at `>=22` the fix is a named prefix such as `#lib/*` (or raising the floor and the image to Node 24.14+), not a loader hack",
+      "Explains the laptop error: the `imports` map points at `./*`, where only the `.ts` sources exist, while `node dist/index.js` runs the compiled output, so it must map to `./dist/*` (tsc maps the target back to the sources through `rootDir`/`outDir`); pointing at the sources is only right when a bundler or type-stripping runtime loads them",
+      "Reads the declaration errors correctly: the `TS9013` at the `return` expression of the exported `toMinorUnits` asks for an explicit return type on that function (TypeScript 7 reports a non-inferable single return there; TS 6 would say `TS9007`), and `TS9010` for an explicit type on the exported `defaultCurrency` initialised from a call; fixes them with annotations (`: number`, `: Currency`) rather than rewriting the expressions, and treats `isolatedDeclarations` as a reasonable flag for a published library rather than leaving it off",
+      "Verifies by building and actually running `dist/index.js` (on Node 22 and on a newer Node), not only by a green `tsc`"
+    ]
   }
 ]

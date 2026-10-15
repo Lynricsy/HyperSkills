@@ -225,10 +225,13 @@ per unit of noise:
 | `isolatedDeclarations` | Exported API whose type cannot be written into a `.d.ts` without inferring from the body; enables parallel, tool-agnostic declaration emit |
 
 `isolatedDeclarations` is a library flag. It demands an explicit type on every exported binding whose
-type is not trivially inferable from a literal (errors `TS9007` on an inferred function return,
-`TS9010` on a variable initialised from a call, `TS9013` on a non-inferable expression inside an
-initialiser, `TS9009` on an untyped accessor) [verified], which is right for a package's public
-surface and pure noise inside an application.
+type is not trivially inferable from a literal, which is right for a package's public surface and
+pure noise inside an application. The diagnostics under TypeScript 7.0: an exported function whose
+single `return` expression cannot be inferred gets `TS9013` pointing at that expression (TS 6.0
+reports `TS9007` on the function name instead), a function with several returns gets `TS9007`, a
+variable initialised from a call `TS9010`, a non-inferable expression inside an initialiser
+`TS9013`, an untyped accessor `TS9009` [verified]. Every one of them is fixed by writing the type
+on the exported declaration, not by changing the expression.
 
 `noUnusedLocals` and `noUnusedParameters` belong in the linter, not the compiler: as compiler
 options they break the edit-run loop by failing the build on a variable you are about to use.

@@ -300,3 +300,62 @@ paths/url 迁移、版本号与本节。
 | vitest-docs | `--typecheck`（`typecheck.enabled` 默认 false）；`typecheck.include` 默认 `**/*.{test,spec}-d.?(c|m)[jt]s?(x)`，运行时 `include` 默认 `**/*.{test,spec}.?(c|m)[jt]s?(x)` 互不重叠；底层调用 `tsc --noEmit` 或 `vue-tsc --noEmit`，可替代单独的 typecheck 脚本；配置项 enabled/only/checker/include/exclude/tsconfig/ignoreSourceErrors；`vitest/globals` 类型入口 | https://vitest.dev/guide/testing-types 、https://vitest.dev/config/typecheck | 一致（文档已是 Vitest 5）。本机 Vitest 5.0.4 实跑：不带 `--typecheck` 时运行时文件里的 `expectTypeOf` 类型断言失败不影响结果（退出码 0）；带 `--typecheck` 时 `.test-d.ts` 断言失败报 `TypeCheckError`，运行时测试与源码里的类型错误作为 Unhandled Source Error 报出，退出码 1；`vitest/globals` 导出仍在；`vi.fn<PaymentGateway["charge"]>()` 与 `satisfies` 写法、`toBeCallableWith` 通过。testing-types.md 版本行由「Vitest 3.x/4.x」改为「3.x–5.x」。5.0 迁移指南（Assertion 类型参数、移除旧入口等）不涉及本 skill 引用的类型测试接口 |
 
 结论：3 条复核完毕，两处更正已合入（`#/` 子路径导入的 Node 版本下限与映射目标；`types`/`isolatedDeclarations` 诊断码），均为既有正文事实纠错、非新增内容，未新增评测场景、未跑评测；3 个条目 `synced_at` 改为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`9260412`（`#/` 子路径导入改为 Node 24.14+/25.4+、Node 20/22 报 `ERR_INVALID_MODULE_SPECIFIER`，映射目标改 `./dist/*`；
+默认值表 `types` 行与 testing-types.md 的诊断码 `TS2593`/`TS2868`；`isolatedDeclarations` 诊断码 `TS9007`/`TS9010`）；`3c60e97` 只改版本号。
+
+### 回归中发现的正文问题与修正
+
+`9260412` 的 isolatedDeclarations 诊断码「按 tsc 7.0.2 实跑」写成：推断的函数返回报 `TS9007`。本次复核发现本机全局 `tsc`
+（`/usr/lib/node_modules/typescript`）实为 **6.0.3**，用 npm 安装的 `typescript@7.0.2`（`@typescript/typescript-linux-x64` 7.0.2）重跑同一组探针：
+
+| 写法 | TS 7.0.2 | TS 6.0.3 |
+|---|---|---|
+| 只有一个 `return`、表达式不可推断（`return Math.round(a)`、`return a * 2`） | `TS9013`，指向该 `return` 表达式 | `TS9007`，指向函数名 |
+| 返回一个局部变量 | `TS9039`（private name） | `TS9007` |
+| 多个 `return` | `TS9007` | `TS9007` |
+| 变量由调用初始化 / 访问器无注解 / 初始化器内不可推断的表达式 | `TS9010` / `TS9009` / `TS9013` | 相同 |
+
+其余诊断码在 7.0.2 上复核一致：缺 `process` `TS2591`、缺 `describe` `TS2593`、缺 `Bun` `TS2868`，`baseUrl` `TS5102`，`moduleResolution: node` `TS5108`。
+正文据此改写：`tsconfig-and-modules.md`「Strictness beyond strict」的 isolatedDeclarations 段与 `packaging-and-build.md`「Declaration emit」一条，
+写明 TS 7 对单一 `return` 报 `TS9013`、TS 6 与多 `return` 报 `TS9007`，修法都是在导出声明上写类型。
+
+同时，场景 6 首轮用的是目录型夹具，`validate_skills.py` 只接受文件（skill-standard 第 6 节），且其 notes.md 里的 `TS9007` 正是上面的错误码。
+按主代理意见改为平铺单文件夹具（`package.json`、`tsconfig.json`、`index.ts`、`money.ts`、`notes.md`，源码在包根、`rootDir: "./"`、
+`"#/*": "./*"`），notes.md 换成 TS 7.0.2 的真实输出（`money.ts(5,10) TS9013`、`money.ts(12,14) TS9010`），EB2/EB3 随之改写。
+夹具用官方 Node 22.23.3 与系统 Node 26.10.0 实测：tsc 7.0.2 构建通过；Node 22 报 `ERR_INVALID_MODULE_SPECIFIER`、Node 26 报找不到 `money.js`；
+改成 `"#lib/*": "./dist/*"` 后两者都输出 `{"account":"cash","minor":1250,"currency":"EUR"}`。首轮结果
+（`/tmp/hs-d2/D2G3/typescript/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/6`，均 EB1 ◐ EB2 ✔ EB3 ◐ EB4 ✔）因夹具与 EB 已改作废，两侧重跑。
+
+### 评测
+
+选场景：6（新增回归场景，考察 `#/` 子路径导入的版本下限与映射目标、isolatedDeclarations 诊断码）；2（TS 7 升级后 tsconfig 报错，
+`types` 默认 `[]` 那一行的直接使用者）。负例 5（React `useMemo`，`skills: []`）。场景 1、3 不涉及改动内容；场景 4 的「subpath」是
+`exports` 子路径，与 `imports` 无关。
+口径：omp + `openai/gpt-6.1-sol` medium，VM。有 skill 的 2、6 在上述正文修正后重跑，产物 `/tmp/hs-d2/D2G3b/typescript/omp-openai-gpt-6.1-sol-medium/skill/{2,6}`；
+基线 6 同目录 `baseline/6` 重跑；基线 2 用 `/tmp/hs-d2/D2G3/typescript/omp-openai-gpt-6.1-sol-medium/baseline/2`（今天新跑，场景与夹具未改）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 TS 7 升级后 tsconfig 报错 | gpt-6.1-sol medium | 有 | true | EB1–EB5 ✔ EB6 ◐ EB7 ✔ EB8 ✔ | 91 s。`es2015`、删 `downlevelIteration`、`nodenext`（「models how Node loads this package」）、删 `baseUrl` 并给 `paths` 加 `./src/`、`types: ["node"]` 并说明 TS 7 不再自动加载 `@types`；加 `rootDir` 只说避免 `dist/src/`，没说不再推断；删 `esModuleInterop`/`allowSyntheticDefaultImports`/冗余 strict 子项与 `dom.iterable`。修正前的首轮（`/tmp/hs-d2/D2G3/.../skill/2`，107 s）为 6✔2◐ |
+| 2 | gpt-6.1-sol medium | 无（今天新跑） | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ EB6 ✔ EB7 ✘ EB8 ✘ | 224 s。`nodenext` 未说明按消费方式选；保留 `esModuleInterop`、`allowSyntheticDefaultImports`、`noImplicitAny`、`strictNullChecks` 与 `dom.iterable` |
+| 6 `#/` 子路径导入与 isolatedDeclarations | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ | 268 s。`"#ledger/*": "./dist/*"`；Node 22 拒绝 `#/`，在 notes.md 写明 24.14+/25.4+ 才接受；旧映射指向包根不存在的 `money.js`，tsc 经 `rootDir`/`outDir` 回映源码；`TS9013` 要 `toMinorUnits` 的 `: number`、`TS9010` 要 `: Currency`，是注解而非改实现，并在临时副本上用 7.0.2 验证；flag 留待用户决定，没表态适合发布库；Node 22.23.3 与 24.22.0 实跑并装 tarball |
+| 6 | gpt-6.1-sol medium | 无（重跑） | false | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ | 161 s。`"#ledger/*": "./dist/*"`，没给版本下限；`TS9013`/`TS9010` 读对并把两处注解写进源码，指出这些错误不构成永久关闭的理由；Node 22.23.3 与 24.22.0 实跑 |
+| 5 负例（React useMemo） | gpt-6.1-sol medium | 有 | **true** | 2/2（按 React 作答） | 26.5 s，`/tmp/hs-d2/D2G3/.../skill/5`：读了 `skill://typescript`（SKILL.md，未读 references）与 `ProjectList.tsx`，答案全是记忆化与组件结构，没有转向类型系统 |
+| 5 负例复跑 | gpt-6.1-sol medium | 有 | **true** | 2/2（按 React 作答） | 192 s，`/tmp/hs-d2/D2G3b/.../skill/5`（前三次因模型服务 503 无回答中止，第四次完成）：同样只读 `skill://typescript` 与 `ProjectList.tsx`，复现 |
+
+负例处理：`git log ab38c43..HEAD -p -- skills/typescript/SKILL.md` 只有 `3c60e97` 把 `metadata.version` 改为 2026.10.15，description
+（"Designs TypeScript types, fixes type errors and configures typed package builds."）今天未改，故不属本轮回归，是既有的路由歧义：
+提示里的 `.tsx` 文件让 gpt-6.1-sol 两次都先加载了 typescript skill，但回答仍按 React 渲染作答、未受 skill 内容带偏（负例两条 EB 均达成）。
+旧口径下 claude-opus-5 的同一负例 skill_read 为 false（见「评测结果」一节）。按主代理裁定本轮不改 description；收窄 `.tsx`/React 组件
+问题的路由须走 `docs/workflow.md` 的 description 维护流程。本次正文修正只动 references，不影响路由，负例未再重跑。
+
+结论：`#/` 子路径导入更正（场景 6 EB1、EB2）在有 skill 时达成且优于基线（基线没给版本下限）；isolatedDeclarations 的诊断码经修正后两侧都读对
+`TS9013`/`TS9010`，有 skill 一侧只差对 flag 的表态。场景 2 有 skill 7✔1◐，基线 5✔1◐2✘，未见回退。负例 skill_read 为 true，属既有路由歧义
+（description 今天未改），两次运行均复现，已如实记录。正文修正随本提交合入。
+
+遗留：负例 5 的路由歧义待 description 维护流程处理。`tsconfig-and-modules.md`「Path aliases without baseUrl」末句「Prefer `imports` with `#/`
+when the runtime is Node」未带版本下限，与同文件上一节的下限说明并存，评测中未造成误导，未改。本机全局 `tsc` 是 6.0.3，此后核对 TS 7 行为须用
+`npx -p typescript@7 tsc` 或项目内安装的版本。
