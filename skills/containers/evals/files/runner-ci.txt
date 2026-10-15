@@ -1,0 +1,47 @@
+== .ci/deploy-job.sh (runs on the self-hosted runner) ==
+#!/usr/bin/env bash
+set -euo pipefail
+docker compose up -d --build --wait web app
+curl -fsS http://127.0.0.1:8080/healthz.txt
+timeout 420 docker compose run --rm terraform
+docker compose down
+
+== infra/deploy.sh (entrypoint of the terraform service, image FROM hashicorp/terraform:1.15 = Alpine) ==
+#!/bin/sh
+set -eu
+terraform init -input=false
+terraform apply -input=false -auto-approve
+echo "apply finished"
+
+== infra/backend.tf ==
+terraform {
+  backend "s3" {
+    bucket       = "acme-tfstate"
+    key          = "shop/prod.tfstate"
+    region       = "eu-central-1"
+    use_lockfile = true
+  }
+}
+
+== docker/nginx.conf (excerpt) ==
+location = /healthz.txt { root /srv/static; }
+location ~ \.php$ {
+    fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+    include fastcgi_params;
+}
+
+== Incident notes ==
+Runner: Docker Engine 29.8.2, Compose 5.6.0. We moved here from GitHub-hosted runners last week;
+the same files pass there.
+
+1. On the new runner `docker compose up --wait` reports web healthy and the curl on
+   /healthz.txt returns 200, but every PHP page returns 502. nginx error log:
+   connect() to unix:/run/php-fpm/php-fpm.sock failed (2: No such file or directory)
+   `docker compose exec app ls -l /run/php-fpm` shows php-fpm.sock, owned by www-data.
+   Someone suggested chmod 666 on the socket; it made no difference.
+
+2. 40 minutes ago an apply was slow and the CI step ended with "exit 124" after 420 s. The two
+   deploy jobs since then both failed in terraform with:
+     Error acquiring the state lock ... Lock Info: ID: 7c1e... Operation: OperationTypeApply
+   `docker compose ps` on the runner shows only web and app, so nothing is running. We are about
+   to run `terraform force-unlock 7c1e...` and raise the timeout to 900.

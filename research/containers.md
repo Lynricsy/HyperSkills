@@ -674,3 +674,60 @@ automerge）+ `pin-check.txt`（`imagetools inspect` 实测 digest 与干净的 
 
 结论：基线已全部做到，netresearch 新增内容不合入；正文未变，仅新增评测场景 6 与夹具、re-pin、版本号改为
 2026.09.30，未跑有 skill 的 D2。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因清单：paths 下确有提交的是 `compose-spec`、`netresearch-docker`、
+`nvidia-device-plugin`、`nvidia-gpu-operator`、`nvidia-container-toolkit`；`awesome-copilot` 报 `behind`（diff too large），主代理按完整区间
+blobless 归因 paths 下无提交，判噪声。compose-spec 与三条 NVIDIA 用 `gh api .../compare/<pinned>...<head>` 取 patch；netresearch 用 blobless
+裸克隆（`/tmp/hs-g7/nr.git`）读 `git diff 0d121a0..de9aa6e`，并额外读了 SKILL.md 索引行指向、但不在 paths 内的 `ci-testing.md` 与
+`engine-and-image-upgrades.md` 的同区间改动，以免只凭索引行下结论。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| compose-spec | 914ec15 → de28432（5 提交） | `spec.md` 重组：新增 Container / Workload 规格文件，服务属性按两者拆分搬移（`depends_on`、`healthcheck`、`ports` 等原文移入 `workload_spec.md`，语义未改）；`pre_start` 步骤改为完整容器规格（未声明属性继承自服务）；新增顶层 `jobs`（`triggers.manual` 三态、`schedule`）与服务/任务共享命名空间；网络长语法新增 `use_service_name_alias`。`develop.md` 无改动 | 无影响 |
+| netresearch-docker | 0d121a0 → de9aa6e（9 提交） | `SKILL.md`：SPDX 头、版本 1.16.4、`allowed-tools` 收窄为只读 docker 子命令并去掉 Write、索引行补三条新坑；`bind-mount-ownership.md` 新增「父路径 tmpfs 遮住其下的 volume」；其余三个 reference 只加 SPDX 头 | 新内容，评测先行 → 基线已会，不合入；许可元数据核对 |
+| nvidia-device-plugin | a6ddd02 → 654bdb2（3 提交） | `values.yaml`：生成 `values.schema.json` 的 `@schema` 注释；各组件独立 `resources`（含 config-manager）；新值 `nvidiaDriverCapabilities: "compute,utility"`（设在插件与 MPS 守护进程容器上，默认渲染不变）；`enableHostNetwork` 显式为 false；新增 `nvidiaDevRoot` | 无影响 |
+| nvidia-gpu-operator | 75210df → fbe7930（2 提交） | `values.yaml`：operator 与 dcgmExporter 的 ServiceMonitor 新增 `metricRelabelings`；DRA driver 镜像 v0.5.0 → v0.5.1 | 无影响 |
+| nvidia-container-toolkit | 84e2c2c → 3e112b4（1 提交） | `internal/config/image/devices.go`：`NVIDIA_VISIBLE_DEVICES`（及 swarm 资源变量）里重复的设备只返回一次 | 无影响 |
+
+裁决理由：
+
+- compose-spec：`jobs` 与 `use_service_name_alias` 均标「Compose NEXT」，而最新发布为 Compose v5.6.0（`gh api repos/docker/compose/releases/latest`，
+  2026-10-02），尚无实现，不写入；本 skill 的 one-shot 写法（`profiles` + `restart: "no"` + `run --rm`）仍是已发布版本的做法。拆分搬移的段落
+  逐段比对语义未变（`extends` 不导入被引用资源的说法与 `references/compose.md` 一致）。本 skill 未写 `pre_start`。
+- NVIDIA 三条：本 skill 断言的默认值（MPS `FailRequestsGreaterThanOne`、`migStrategy: null` 即插件默认 none、Operator 的驱动升级默认值、
+  未设 `NVIDIA_DRIVER_CAPABILITIES` 即 `utility,compute`）均未改变。新的 `nvidiaDriverCapabilities` 只作用于插件自身容器（commit ce970f1
+  说明部分 MIG 环境需设为 `all` 才能读显存信息），不是工作负载的能力集，且出自提交说明而非官方文档，不收录；去重与 metricRelabelings、
+  DRA 镜像补丁版本本 skill 均未涉及。
+- netresearch：许可元数据——上游给 SKILL.md 与 references 加了 `SPDX-License-Identifier: CC-BY-SA-4.0`，与 SOURCES 已记录的
+  `license: CC-BY-SA-4.0`（README 声明内容 CC-BY-SA、代码 MIT）一致，无需改动；`allowed-tools` 本就在合入时剥离。内容方面三条新坑：
+  1. **父路径 tmpfs 遮住 volume**（在 paths 内）。本机 Docker Engine 29.8.2 / Compose 5.6.0 复现并找到确切条件：alpine 中 `/var/run` 是
+     指向 `/run` 的符号链接；`tmpfs: [/var/run]` + `sock:/run/php-fpm` 时容器内 `/proc/mounts` 先列 volume 后列 `/run` 的 tmpfs，
+     `/run/php-fpm` 不可见；`docker run --tmpfs /var/run -v …:/run/php-fpm` 同样复现；而 `tmpfs: [/run]`（真实路径）时 tmpfs 先挂、
+     volume 在上，socket 可见；窄路径 `/run/nginx` 亦正常。即触发条件是挂载目标经符号链接别名指向另一挂载的父目录，按字面路径排序后挂载顺序颠倒。
+  2. **`timeout` 包 `docker compose run` 停不下容器**（`ci-testing.md`，不在 paths 内，SKILL.md 索引行在 paths 内）。本机复现：
+     `timeout 4 docker compose run --rm` 返回 124 后，`sleep 300` 与 `sh -c 'sleep 300; …'` 作 PID 1 的容器仍在运行；`init: true` 时容器退出
+     （包装 shell 的情形下子进程随容器结束被杀，并非优雅退出）；不带 `-a` 的 `docker compose ps` 不列出仍在运行的 one-off 容器，`ps -a` 才列出；
+     `docker compose down` 不清理它（网络报 in use）。
+  3. **PHP 8.5 OPcache 编进内核、`docker-php-ext-install opcache` 失败**（`engine-and-image-upgrades.md`）：PHP 官方镜像专属，属语言栈而非
+     容器通用知识，超出本 skill 范围，不评测不合入。
+
+### 评测
+
+1、2 两条是本 skill 没有的新行为规则，合并为一个现实场景先测基线：新增场景 7（`evals/files/runner-compose.yaml`、`evals/files/runner-ci.txt`：
+自建 runner 上 nginx:alpine 以 `tmpfs: /var/run` 遮住 php-fpm socket volume、健康检查只打静态文件；CI 用 `timeout 420 docker compose run --rm terraform`，
+入口 `deploy.sh` 为 shell 且末尾还有 echo，超时后 S3 state lock 一直被占，团队准备 force-unlock 并把超时调到 900）。6 条 expected_behavior。
+首版第 2 条只接受「挪到窄路径」的修法；基线给出改用真实路径 `/run`，本机复测该写法确实可行（见上），据实放宽为「真实路径 `/run` 或窄路径」，
+按改正后的条目判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 自建 runner 的 502 与残留 state lock | omp + openai/gpt-6.1-sol（medium） | 无 | false | 6 / 6 | 165 s。点出 `/var/run`→`/run` 别名使 tmpfs 晚于 volume 挂载而遮住 socket、ENOENT 不是权限问题、要在 web 内验证；改 `/run` 并要求重建容器；健康检查改走 PHP；124 不代表 apply 结束、shell 作 PID 1 不转发、`--rm` 只在退出后删除、默认 `compose ps` 隐藏 one-off；先找存活容器、对 terraform 进程发 SIGINT、不 `docker rm -f`、确认无写者后才 force-unlock；`exec terraform apply`，调大超时不是根因修复 |
+
+基线 6/6，无缺口，按规则不合入正文；场景 7 与夹具留作哨兵，未跑有 skill 一侧。
+
+`--pin` 同时对齐其余仓库上游（google-skills、azure-aks-skills、kustomize、nvidia-dra-driver、rocm-device-plugin 报告均为
+`repo moved, tracked paths unchanged`）；`pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+结论：正文未变；新增评测场景 7（基线 6/6）作哨兵；version 改为 2026.10.15。

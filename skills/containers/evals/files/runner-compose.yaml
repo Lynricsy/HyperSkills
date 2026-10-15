@@ -1,0 +1,37 @@
+services:
+  web:
+    image: nginx:1.29-alpine
+    read_only: true
+    ports:
+      - "8080:80"
+    tmpfs:
+      - /var/run
+      - /var/cache/nginx
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - php-socket:/run/php-fpm
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz.txt"]
+      interval: 5s
+      retries: 5
+    depends_on:
+      app:
+        condition: service_started
+
+  app:
+    build: .
+    volumes:
+      - php-socket:/run/php-fpm
+
+  terraform:
+    build:
+      context: ./infra
+    profiles: ["tools"]
+    working_dir: /infra
+    entrypoint: ["/infra/deploy.sh"]
+    environment:
+      AWS_REGION: eu-central-1
+      TF_IN_AUTOMATION: "1"
+
+volumes:
+  php-socket:

@@ -90,5 +90,18 @@
       "Advises against merging the tag-stripping PR because Renovate treats a digest with no version as tracking `latest`, so later digest updates would move the base image across releases instead of staying on the pinned series, and with `automerge` on this would land unreviewed; keeping `tag@digest` is the shape Renovate maintains, updating tag and digest together",
       "Handles the scanner finding without changing the reference form - e.g. documents it as accepted for Renovate-managed lines and adds a check that the tag and digest agree, rather than deleting the tag"
     ]
+  },
+  {
+    "skills": ["containers"],
+    "query": "Two problems since we moved CI to our own runner; runner-ci.txt has the job, the scripts and our incident notes, runner-compose.yaml is the stack. Find the root causes and give me the fixes. We are about to run the force-unlock and raise the timeout - is that right?",
+    "files": ["evals/files/runner-compose.yaml", "evals/files/runner-ci.txt"],
+    "expected_behavior": [
+      "Diagnoses the 502 as a mount problem in the web container, not a permission problem: `/var/run` is a symlink to `/run` in the Alpine-based nginx image, so the tmpfs declared at `/var/run` is a mount over the parent of the `php-socket` volume at `/run/php-fpm` and covers it - nginx sees an empty directory while the app container still has the socket",
+      "Proposes checking the web container's own mount table (`docker compose exec web cat /proc/mounts`, or `ls /run/php-fpm` inside web) rather than reasoning from the app container, and fixes the compose file by changing the tmpfs target so it no longer reaches the volume through a symlinked alias - the canonical `/run` (measured on Engine 29.8.2: then mounted before `/run/php-fpm` and the socket stays visible) or a narrow dedicated path such as `/run/nginx` with the pid file moved there - instead of chmod or dropping `read_only`",
+      "Points out that the healthcheck only fetches a static file and therefore stays green while every PHP request fails, and makes the check (or the CI curl) exercise a PHP route through the socket",
+      "Explains that `timeout` returning 124 does not mean the work stopped: the signal reaches the container's PID 1, which is the `deploy.sh` shell; it does not forward the signal to `terraform`, so the one-off container keeps running and holding the state lock, and `--rm` only removes it after it exits; notes that plain `docker compose ps` hides one-off `run` containers (use `docker compose ps -a` or `docker ps`)",
+      "Rejects force-unlock while that apply may still be running: find the surviving `terraform-run-*` container first and stop Terraform gracefully by signalling the terraform process itself (e.g. `docker exec ... kill -INT <pid>`), not `docker kill`/SIGKILL of the container, then force-unlock only if the lock is still held after no process remains",
+      "Fixes the job so a timeout actually reaches Terraform - `exec terraform apply ...` in deploy.sh and/or `init: true` on the service, or the bound moved inside the container (`timeout -s INT ...`) - and treats raising the timeout to 900 as not addressing the cause"
+    ]
   }
 ]
