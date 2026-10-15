@@ -65,7 +65,7 @@ upstreams:
     url: https://www.elastic.co/docs/
     license: CC-BY-NC-ND-4.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Read as the final authority for every fact in this skill that was not settled by measurement: field type semantics, analysis chain behaviour, query and aggregation contracts, retriever and inference APIs, data stream and ILM semantics, allocation deciders and watermarks, and licence tiers."
     notes: "Source repository elastic/docs-content reports NOASSERTION through the GitHub API; its LICENSE file was read and is Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International. NoDerivatives forbids distributing an adapted version and NonCommercial forbids commercial redistribution, so this cannot be merged under the repository's MIT licence no matter how thoroughly it is rewritten. Facts were verified against it; no sentence, table or code block was copied. This is the same ruling as graphql-spec in wave 4."
   - id: elasticsearch-repo

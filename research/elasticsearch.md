@@ -378,3 +378,16 @@ marker、HTTP API 遇到多余 Prometheus 参数返回 400、`/api/v1/query_exem
 | 6 Grafana 仪表盘迁到 ES 9.5 PromQL | gpt-6.1-sol medium | 无 | false | EB1–EB6 全部 | panel 5（经典 `_bucket` 直方图）判为可直接使用 |
 
 结论：无缺口，不合入；场景 6 与夹具 `evals/files/promql/` 留作哨兵。产物：`/tmp/hs-evals-MergeM2/elasticsearch/omp-openai-gpt-6.1-sol-medium/baseline/6`。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| elastic-docs | 正文基线 9.5（8.19 为最后的 8.x 系列） | `gh api repos/elastic/elasticsearch/releases`：最新 v9.5.5、v9.4.8、v8.19.23（2026-10-06） | 一致：9.5 仍是当前 minor，「9.5.3 at time of writing」是测量时点 |
+| elastic-docs | `dense_vector` 9.1+ 默认量化：≥384 维 `bbq_hnsw`、<384 维 `int8_hnsw`（9.0 一律 `int8_hnsw`）；`index.mapping.exclude_source_vectors` 新索引默认开启 | [dense_vector](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/dense-vector) | 一致 |
+| elastic-docs | 磁盘水位 low 85% / high 90% / flood_stage 95% | [Cluster-level shard allocation and routing settings](https://www.elastic.co/docs/reference/elasticsearch/configuration-reference/cluster-level-shard-allocation-routing-settings) | 一致 |
+| elastic-docs | `index.max_result_window` 默认 10000 | [Index modules](https://www.elastic.co/docs/reference/elasticsearch/index-settings/index-modules) | 一致 |
+| elastic-docs | `cluster.max_shards_per_node` 默认 1000（主副分片都计入） | [Miscellaneous cluster settings](https://www.elastic.co/docs/reference/elasticsearch/configuration-reference/miscellaneous-cluster-settings) | 一致 |
+| elastic-docs | `rrf` / `linear` 检索器与 RRF 混合检索为 Enterprise 层（basic/gold/platinum 无） | [Subscriptions](https://www.elastic.co/subscriptions) 功能矩阵 | 一致 |
+
+6 条事实全部一致，正文未改，`elastic-docs` 的 `synced_at` 更新为 2026-10-15。
