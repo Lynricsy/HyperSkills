@@ -430,3 +430,23 @@ reference 四个（`redis-io-docs`、`redis-oss`、`redis-py`、`lude-kit-redis`
 
 D1：`validate_skills` / `build_catalog --check` 通过；`npx skills@latest add … --skill redis --agent universal --copy` 安装后
 `references/` 与源目录 `diff -r` 无差异，`SKILL.md` 逐字节一致。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因清单：paths 下确有提交的只有 `redis-py`。
+用 blobless 裸克隆（`/tmp/hs-g7/redis-py.git`）按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 读 `git diff`（不按提交标题下结论）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| redis-py | be8e807 → 0431fd6（13 提交） | `redis/connection.py` +794/−192：客户端缓存新增 OPTIN/OPTOUT 跟踪模式（#4358）、拒绝用户在缓存托管连接上发 `CLIENT TRACKING`/`RESET`（#4393）、读失败清理进行中缓存条目（#4306）、OS 级 `ETIMEDOUT` 归为连接错误（#4399）、`InvalidResponse` 一律作废连接（#4293）、连接构造失败不再丢池容量（#4298）、`BlockingConnectionPool` 超时与连接数指标（#4409、#4078）、异步连接用 hiredis 打包（#4191）、URL 布尔值识别 `OFF`（#4376）、MultiDB 健康检查超时放宽（#4354）；`redis/client.py` 只改 `PubSubWorkerThread.stop()` 等待工作线程退出（#4400）；`redis/cluster.py` 只把新命令 `BLESS SCAN` 加入按节点路由与管道禁用列表（#4362） | 范围外 / 无影响 |
+
+裁决理由：本 skill 不教客户端 API（SOURCES notes 已声明），只取「改变服务端可见行为的客户端默认值」。逐项核对 diff：
+`socket_timeout` / `socket_connect_timeout` 默认仍为 `None`（`references/cluster-and-connections.md` 的断言不变）；连接池租借/阻塞语义未改；
+`CLIENT TRACKING` 的 OPTIN/OPTOUT 是服务端 6.0 起就有的模式，redis-py 只是新增了客户端开关，正文「默认模式 vs BCAST」的取舍不受影响；
+其余全部是 redis-py 内部错误分类、指标与线程收尾。`BLESS SCAN` 只出现在 cluster 路由表里，正文不涉及该命令族。
+
+`--pin` 同时对齐了 `redisvl`（ebde7ea → fe583d5，报告为 `repo moved, tracked paths unchanged`）与 `awesome-copilot-redis`
+（15ed97c → 3cf7c7e，报告为 `behind`/diff too large；主代理按完整区间 blobless 归因 `skills/upstash-redis` 下无提交，判噪声）；
+`pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+结论：正文未变，未跑 D2；仅 re-pin 与版本号改为 2026.10.15。
