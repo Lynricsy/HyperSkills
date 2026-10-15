@@ -321,3 +321,17 @@ samber-cc-skills、dot-skills 为 up to date）随 `--pin` 一并对齐；pin �
 | chrome-samples | 8de5dee → c9490b2（1 提交） | c9490b2：dependabot 升级 `functional-samples/` 下 8 个示例（ai.gemini-*、libraries-xhr-in-sw、tutorial.puppeteer、tutorial.terminate-sw/{puppeteer,selenium}）的 `package.json` / `package-lock.json`；`api-samples/offscreen`、`api-samples/sidePanel` 0 提交 | 噪声 | 纯依赖版本更新，不改 offscreen 单例、侧边栏打开方式或 e2e 测试目标的写法 |
 
 未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 的 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与归因结果（`/tmp/hs-attr/attribution.md`），
+本 skill 只有 chrome-samples 一条 `behind` 且 paths 下确有提交。归因方法：`gh api repos/GoogleChrome/chrome-extensions-samples/compare/c9490b2...5de90cf`
+取 patch，只保留 `functional-samples`、`api-samples/offscreen`、`api-samples/sidePanel` 下的文件逐个读。`--pin` 后
+`pin_check.py` 报 `PIN CHECK CLEAN`；rsc-harness（20cab12 → 5bf0616）、tenequm-wxt（6ef6b72 → db4b27c）、
+chrome-modern-web-guidance、samber-cc-skills 为 repo moved、tracked paths unchanged，随 `--pin` 前移。三条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| chrome-samples（reference） | c9490b2 → 5de90cf（10 提交） | `functional-samples/` 65 个文件：49 个 `manifest.json` 只改 `name` / `description` 文案（ab81bc5、184c75d：把「Hello Extensions」「Fix an Extension!」这类占位描述改成说明用途的句子，几个缺 `description` 的样例补上），16 个 `package.json` / `package-lock.json` 为 dependabot 升级（brace-expansion 等）；`api-samples/offscreen`、`api-samples/sidePanel` 0 个文件 | 噪声：没有改权限、`background`、offscreen 单例、侧边栏打开方式或测试写法，正文没有任何一条事实依赖样例的名称或描述文案 |
+
+结论：正文与 references 未变，只做 re-pin，`metadata.version` 与 `SOURCES.yaml` 的 `version` 改为 2026.10.15；正文未变，未跑 D2。
