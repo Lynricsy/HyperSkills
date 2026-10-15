@@ -298,3 +298,27 @@ up to date 条目随 `--pin` 对齐；`kind: docs` 条目不在本次范围。
 
 - 评测环境里有全局安装的 HyperSkills 旧版本（`/root/.omp/agent/skill-repositories/hyperskills/skills/`）。有 skill 的运行可能读到旧文件而不是 worktree 版本，
   所有 worktree 评测都受影响。本节第 2 轮就是这样被污染的。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 的 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因结果（`/tmp/hs-attr/attribution.md`、
+`skills_real.json`）。paths 下确有提交的是 flabs-slideshow-deck、ohmyagent-oma-slide、revealjs、playwright、decktape、carbon-grid、
+puppeteer；event4u-html-deck、open-design-deck-qa 为 too-large，主代理按完整区间归因为空，判噪声。归因方法：oma-slide、
+playwright、carbon 用主代理的 blobless 裸仓库缓存（`/tmp/hs-attr/<owner>__<repo>`）对 `<pin>..<head> -- <paths>` 跑
+`git log` / `git diff --stat` / 逐提交 `git show`；其余用 `gh api .../compare/<pin>...<head>` 取 patch，只读 paths 内文件。
+`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`；slidev（30a0a54 → 73053ab）、marpit（8b82169 → 9f20751）为 repo moved、
+tracked paths unchanged，随之前移。chromium-headless 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| ohmyagent-oma-slide | ce19702 → 83bc99d（2 提交） | 742b594「remove reduced-motion defaults」：删掉 guardrail「prefers-reduced-motion required」、`animation-patterns.md` 的「Reduced-Motion Guard Reference」、`viewport-base.css` 的 `prefers-reduced-motion: reduce` 覆盖、checklist 与 design-doctrine 的对应条目，示例动画全部去掉 `@media` 包裹；提交说明只写「Remove mandatory reduced-motion guidance」，没有给理由。ff11f05「correct execution contracts and unsafe templates」：Canva MCP 工具名改成官方远端名（`search-designs`、`upload-asset-from-url` 等）并删掉不存在的 `create_design` 资产数组流程；`deck-stage.js` 的 `goTo` 不再 clamp 非整数索引、`postMessage` 索引不再 `Number()` 强转；交叉淡化说明改为「共享 CSS 固定 350ms，不读 `--slide-transition-duration`」；预览页改为内联 CSS/JS | 不跟随 / 噪声。本 skill 的「动画放进 `@media (prefers-reduced-motion: no-preference)`」（`SKILL.md`、`references/single-file-deck.md`）依据是 W3C WCAG 技术 C39（用 `prefers-reduced-motion` 满足 SC 2.3.3），社区上游无理由删除不构成更正，按「官方 > 社区」保留，并在 `SOURCES.yaml` notes 记录。ff11f05 全部是它自己的 Canva 集成与运行时 `deck-stage.js`，本 skill 不含 Canva 路线，`assets/deck-shell.html` 也不是它的 stage 脚本 |
+| flabs-slideshow-deck | d4f259e → a9ddeb2（1 提交） | 1.4.0 加一条默认规则：完整文档外壳，`<!doctype html>`、`<html lang>`、`<head>` 先写 `<meta charset="utf-8">`、viewport、`<title>`，理由是缺 charset 时 `file://` 打开会乱码 | 已覆盖：`assets/deck-shell.html` 前 5 行就是 doctype、`lang`、`<meta charset="utf-8">`、`<title>`，正文要求从它开始 |
+| revealjs | f8c9ec3 → e240e17（2 提交） | `js/reveal.js`：`syncSlide()` 对当前页显式重新启动嵌入内容（背景 iframe）；`js/controllers/backgrounds.js`：同步时清掉 `backgroundImage`（渐变残留） | 噪声：运行时 bug 修复，正文不涉及 `syncSlide` |
+| playwright | e37ddf1 → 5c42a39（17 提交命中 `types.d.ts`） | 与 web-testing 同一批：`CDPSession.send` 的 `timeout` / `signal`、`APIRequestContext` cookie 方法、`page.getByRef()`、WebAuthn `signCount`、撤回 evaluate 的 `world` 与 Map/Set 序列化、修正调用不存在 API 的示例（screencast、`selectOption`、`routeWebSocket`）、`within()` 描述、`headersArray()`、coverage 等 | 噪声：`scripts/deck_qa.mjs` 只用 `page.evaluate`、`page.screenshot`、`page.pdf({ printBackground, preferCSSPageSize })`，不用 CDPSession，也没传 `world` / `serialize`；逐 hunk 看，这三个 API 只有 evaluate 的可选参数被撤回，签名其余部分与 pdf/screenshot 语义未变 |
+| decktape | 0ab408f → 6aa7ec0（1 提交） | `plugins/remark.js` 在导出前注入 `@page { size: auto !important; margin: 0 !important }`，修 remark 固定 4:3 `@page` 导致的 PDF 裁切 | 噪声：正文的 decktape 路线只讲 reveal.js 与「不改动的第三方 deck」，不涉及 remark 插件 |
+| carbon-grid（reference） | 40f8d5c → c866811（2 提交） | f3dfa98 给 css-grid 加 `box-sizing: border-box`；b1d8da3 修注释错字 | 噪声：只作「gutter 是小枚举」的旁证；`assets/deck-shell.html` 本来就是 `* { box-sizing: border-box; }` |
+| puppeteer（reference） | 02c2a3d → d1b9a21（7 提交） | `docs/api` 16 个文件：ConsoleMessage 的 `page()` / `frame()` / `worker()`、`HTTPRequest.asFetchRequest`、拦截与额外请求头接受 `Headers`、WebSocket 最大载荷、网络模拟改走 `emulateNetworkConditionsByRule`、`emulateMediaFeatures` 支持更多特性、Service Worker 请求也受黑白名单约束 | 噪声：只用来解释 decktape 的失败输出，这些新 API 不改变 decktape 的启动与报错 |
+| event4u-html-deck、open-design-deck-qa | 3369ae2 → be11ed6；5b19dfa → 14fee23 | too-large，按完整区间对 paths 归因为空 | 噪声 |
+
+结论：没有事实更正，也没有需要评测的新增规则。正文与 references 未变；`SOURCES.yaml` 只改 re-pin、`version` 与
+ohmyagent-oma-slide 的 notes（记录上游删除 reduced-motion 而本 skill 保留的依据）；`metadata.version` 改为 2026.10.15。正文未变，未跑 D2。
