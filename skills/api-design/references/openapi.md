@@ -36,9 +36,11 @@ migrating a 3.0 document: `[official]`
 | `example: 5` inside a schema | `examples: [5]` (an array); the singular form is deprecated, not yet removed |
 | `$ref` had to stand alone | sibling keywords next to `$ref` are allowed |
 
-`nullable` is the trap: it is not an error in 3.1, it is an unknown keyword, so tools ignore
-it silently and the schema now accepts `null` nowhere. Grep for it whenever a document was
-migrated.
+`nullable` is the trap: it is no longer a keyword, so a JSON Schema 2020-12 validator treats it
+as an unknown keyword and ignores it, and the schema now accepts `null` nowhere. Redocly CLI's
+`struct` rule does report it as an error (`Property nullable is not expected here`)
+`[verified]`, so a 3.1 document that still carries it was never linted, or the rule is
+switched off. Grep for it whenever a document was migrated.
 
 Also new in 3.1: `webhooks` as a top-level entry point for callbacks your API sends, and
 `info.summary`. `paths` is no longer required, so a document can describe webhooks only.
@@ -200,7 +202,6 @@ client can drive is a contract that survives review.
 - A collection endpoint with no pagination parameters, or pagination parameters with no
   documented maximum.
 - A bare array as a top-level response schema.
-- `nullable: true` left over from 3.0.
 - Error responses typed as `application/json` rather than `application/problem+json`.
 - `example`/`examples` values that contradict the schema's own constraints.
 - A `PATCH` body declared as `application/json` with no merge-patch or JSON-Patch semantics

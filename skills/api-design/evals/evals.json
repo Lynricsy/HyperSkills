@@ -81,5 +81,18 @@
       "Tells the partner not to take an irreversible action (cancel billing, delete) on a single 404: verify the response came from the service (problem+json type, response headers) and treat an unrecognised 404 as a transient failure to retry, or quarantine before deleting",
       "Keeps the rest of the review proportional: does not replace the whole contract or recommend changing unrelated codes (200/401/403/429) without a reason tied to these files"
     ]
+  },
+  {
+    "skills": ["api-design"],
+    "query": "migration-pr.md is a teammate's PR that moves catalog-openapi.yaml (the file as it stands on that branch) from OpenAPI 3.0.3 to 3.1.0. Review it before it merges: which of the changes are right, which are wrong, and what should the 3.1 document look like?",
+    "files": ["evals/files/oas31-migration/catalog-openapi.yaml", "evals/files/oas31-migration/migration-pr.md"],
+    "expected_behavior": [
+      "Restores the `discriminator` (with its `mapping`) on `PaymentMethod`: the 3.1 Schema Object is JSON Schema 2020-12 plus a small OAS vocabulary in which `discriminator` still exists, so deleting it was not required by 3.1 and only loses what the SDK generators and docs use to pick the variant",
+      "Restores the `xml` object on `Product`/`sku` for the `application/xml` response, for the same reason: `xml` is part of the OAS vocabulary that survives in 3.1",
+      "Corrects the `example` claim: the singular schema-level `example` is deprecated in 3.1, not removed, so deleting the examples was not necessary; the right migration is `examples: [...]` (an array), not dropping them",
+      "Flags leaving `nullable: true` as the real breakage: `nullable` is gone in 3.1 and a JSON Schema 2020-12 validator ignores it as an unknown keyword, so `discontinuedAt` and `replacementSku` no longer accept `null` even though the generators run cleanly; rewrites them as `type: [string, \"null\"]` (or an equivalent `null` branch)",
+      "Notes that 3.1 allows sibling keywords next to `$ref`, so the `allOf` wrapper around `Product.category` is unnecessary (harmless, but not required)",
+      "Ends with a validation step on the revised document rather than trusting that the generators ran: `redocly lint` (whose `struct` rule reports a leftover `nullable` on a 3.1 document) and/or a check against real payloads containing `null`, e.g. with a mock server such as `prism mock`"
+    ]
   }
 ]

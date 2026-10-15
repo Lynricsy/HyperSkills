@@ -1,0 +1,97 @@
+openapi: 3.1.0
+info:
+  title: Catalog API
+  version: 2.3.0
+servers:
+  - url: https://api.example.com/v2
+paths:
+  /products/{sku}:
+    get:
+      operationId: getProduct
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: One product.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Unknown SKU.
+  /orders/{id}/payment:
+    get:
+      operationId: getOrderPayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The payment method used for the order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentMethod"
+components:
+  schemas:
+    Product:
+      type: object
+      required: [sku, name, price, discontinuedAt]
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        replacementSku:
+          type: string
+          nullable: true
+        discontinuedAt:
+          type: string
+          format: date-time
+          nullable: true
+        category:
+          allOf:
+            - $ref: "#/components/schemas/CategoryRef"
+          description: Primary category shown in the storefront breadcrumb.
+    CategoryRef:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    PaymentMethod:
+      oneOf:
+        - $ref: "#/components/schemas/CardPayment"
+        - $ref: "#/components/schemas/BankTransferPayment"
+    CardPayment:
+      type: object
+      required: [kind, last4]
+      properties:
+        kind:
+          type: string
+          const: card
+        last4:
+          type: string
+    BankTransferPayment:
+      type: object
+      required: [kind, iban]
+      properties:
+        kind:
+          type: string
+          const: bank_transfer
+        iban:
+          type: string
