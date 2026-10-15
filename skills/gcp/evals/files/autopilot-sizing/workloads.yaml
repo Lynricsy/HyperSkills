@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-shipper
+  namespace: shop
+spec:
+  replicas: 40
+  selector:
+    matchLabels: { app: log-shipper }
+  template:
+    metadata:
+      labels: { app: log-shipper }
+    spec:
+      containers:
+        - name: shipper
+          image: europe-docker.pkg.dev/shop-prod/platform/log-shipper:4.2.1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feature-flags
+  namespace: shop
+spec:
+  replicas: 10
+  selector:
+    matchLabels: { app: feature-flags }
+  template:
+    metadata:
+      labels: { app: feature-flags }
+    spec:
+      nodeSelector:
+        cloud.google.com/compute-class: Balanced
+      containers:
+        - name: flags
+          image: europe-docker.pkg.dev/shop-prod/platform/feature-flags:2.9.0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-builder
+  namespace: shop
+spec:
+  replicas: 4
+  selector:
+    matchLabels: { app: report-builder }
+  template:
+    metadata:
+      labels: { app: report-builder }
+    spec:
+      containers:
+        - name: builder
+          image: europe-docker.pkg.dev/shop-prod/reports/report-builder:1.17.3
+          resources:
+            requests:
+              cpu: "1"
+              memory: 8Gi

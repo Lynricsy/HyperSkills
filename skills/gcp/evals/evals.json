@@ -103,5 +103,17 @@
       "Collects the cause before repairing: Compute Engine audit-log system events for the VM (`compute.instances.hostError`, `automaticRestart`, `guestTerminate`, `preempted`) and serial port 1 output (`gcloud compute instances get-serial-port-output --port=1`, last 1 MB only; older output needs `serial-port-logging-enable`) for a kernel panic",
       "Enables auto-repair on the Standard node pool (it is off), explaining that GKE repairs a node that is NotReady or silent for about 10 minutes by draining it, waiting up to one hour for the drain, then re-creating it"
     ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "cost-sheet.md is Priya's draft of what our Autopilot cluster shop-ap will bill for the three workloads in workloads.yaml. Check her assumptions and numbers, correct the table, and tell me whether her proposal at the bottom makes sense.",
+    "files": ["evals/files/autopilot-sizing/cost-sheet.md", "evals/files/autopilot-sizing/workloads.yaml"],
+    "expected_behavior": [
+      "Recognises from the pasted facts that the cluster supports Pod bursting (Autopilot at 1.30.2-gke.1394000 or later with the `efficiency-daemon` DaemonSet in `kube-system`), and that on the default general-purpose class the minimum is then 50m CPU / 52 MiB, so log-shipper is billed for its own 50m / 64Mi (2 vCPU and 2.5 GiB for 40 replicas), not 0.25 vCPU / 0.5 GiB per Pod",
+      "Rejects 'limits are forced equal to requests' for this cluster: with bursting, a limit above the request is kept and lets the Pod burst (the 500m CPU limit is honoured, and unset limits stay unset); the throttling has to be explained some other way, e.g. by the limit itself or by contention for spare capacity",
+      "Corrects feature-flags: the Balanced class has its own minimum of 0.25 vCPU / 0.5 GiB, so its 100m / 128Mi requests are raised to that and billed as 2.5 vCPU and 5 GiB for 10 replicas, not 1 vCPU and 1.25 GiB",
+      "Corrects report-builder: 1 vCPU : 8 GiB is outside the general-purpose 1:1-1:6.5 range, so Autopilot raises the smaller resource, CPU, to about 1.23 vCPU (8 / 6.5) per Pod and bills that (Balanced would accept 1:8)",
+      "Rejects the proposal to move log-shipper to Balanced: there it would be raised to the 0.25 vCPU / 0.5 GiB minimum, five times its current CPU bill, so it is more expensive, not cheaper"
+    ]
   }
 ]

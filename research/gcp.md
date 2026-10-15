@@ -489,3 +489,38 @@ SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补
 | gcp-docs | Autopilot「general-purpose（Balanced）类每 Pod 最少 0.25 vCPU / 0.5 GiB，50m 按最小值计费；CPU:内存 1:1–1:8；limits 等于 requests」 | [Autopilot resource requests](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-resource-requests)、[Pod bursting](https://cloud.google.com/kubernetes-engine/docs/how-to/pod-bursting-gke) | **已变化 → 更正**：默认 general-purpose 与 Balanced 是两个类。general-purpose 最小值取决于是否支持 bursting（支持：50m CPU / 52 MiB；不支持：250m / 512 MiB 且 CPU 按 0.25 vCPU 取整），比例 1:1–1:6.5；Balanced 才是 0.25 vCPU / 0.5 GiB、1:1–1:8。支持 bursting（Autopilot 1.30.2-gke.1394000+、cgroupv2、控制面重启后，`kube-system` 有 `efficiency-daemon`）时 limits 可高于 requests、未设 limits 不补；不支持时才把 limits 设为 requests。`references/gke-control-plane.md` 三条按此改写，SOURCES `contributes` 同步 |
 
 7 组事实，6 组一致、1 组更正（事实更正，未新增行为规则，不跑基线评测）；`gcp-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`d0f4a21`（`gke-control-plane.md`「When an upgrade stalls」：`get-upgrade-info`、暂停原因、`SYSTEM_CONFIG`、surge 超窗、
+蓝绿 soak，新增场景 7）；`9c4832f`（`logging-monitoring.md` 新增 Cloud Trace 一节，新增场景 8、9）；`b7ce93a`（Autopilot general-purpose
+与 Balanced 两类的最小值、比例与 bursting 下 limits 的处理）。
+
+选场景：7、8、9 为今天新增，必选；`b7ce93a` 没有场景覆盖，新增回归场景 10（`evals/files/autopilot-sizing/`：支持 bursting 的 Autopilot
+集群上按「每 Pod 至少 0.25 vCPU / 0.5 GiB、limits 强制等于 requests」算出的成本表，以及把 log-shipper 挪到 Balanced 的提议），
+直接考察更正后的三组事实。负例 5（只问 Deployment 探针，`skills: []`）。旧场景 1–4、6 不涉及改动内容。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；新跑产物 `/tmp/hs-d2/D2G3/gcp/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`。
+有 skill 一侧全部新跑（14:57–16:25，均晚于最后一次正文提交 `b7ce93a` 12:22）。
+
+复用说明：基线 7（`/tmp/hs-evals/gcp/omp-openai-gpt-6.1-sol-medium/baseline/7`）与基线 8
+（`/tmp/hs-evals-MergeM2/gcp/omp-openai-gpt-6.1-sol-medium/baseline/8`）的 result.json 中 query 与 expected_behavior 与当前逐字相同，
+夹具自创建提交后未改（工作区差异是 agent 自己对脚本的改写），按简报复用。基线 8 判定沿用本文件「上游新增内容评估」一节；基线 7 按本节
+同一标准重判：EB4 两侧都没提「exclusion 挡不住 end of support 强制升级」，记 ◐（原记录为达成）。基线 9、10 新跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 GKE 升级停滞 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ | 237 s。集群与节点池 `get-upgrade-info`、`autoUpgradeStatus`/`pausedReason`、`CLUSTER_DISRUPTION_BUDGET` 不是 PDB、`SYSTEM_CONFIG`；4 小时窗口对 60 节点 `maxSurge=1` 会暂停再续，建议加长窗口或提高 surge，未提蓝绿；删 exclusion 前先看 name/start/end/scope，未提 end of support；手动升级绕过窗口与 exclusion，重发同一命令续跑部分完成的节点池 |
+| 7 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✘ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ◐ | 156 s，`/tmp/hs-evals/.../baseline/7`：只用 `clusters describe`/`operations list` 推断，没有 GKE 自身的升级状态与暂停原因 |
+| 8 修 Cloud Trace 计数脚本 | gpt-6.1-sol medium | 有 | true | EB1–EB4 ✔ | 166 s。拉 `COMPLETE` 视图逐 trace 后过滤（精确根 span 时长、`db.inventory.reserve` 上的 `db.status=error`）；`+root:"POST /checkout"`、`latency:2s` 去空格、`+span:` 精确；`latency:` 是整条 trace 且含等号；30 天保留期，脚本对 45 天窗口打警告并标注不完整 |
+| 8 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✘ | 114 s，`/tmp/hs-evals-MergeM2/.../baseline/8` |
+| 9 GKE GPU 节点 NodeStatusUnknown | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ | 147 s。先把 VM 停到 TERMINATED 再强删 Pod；取证后经 MIG 替换；系统事件/审计日志与串口输出，未列事件名、`--port=1`、1 MB 与 `serial-port-logging-enable`；开启 auto-repair 并说明排空最多 1 小时，未给约 10 分钟阈值 |
+| 9 | gpt-6.1-sol medium | 无（新跑） | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ | 322 s。确认旧 VM ID 已销毁后才强删；`hostError` 与 `--port=1`，缺 1 MB/`serial-port-logging-enable`；auto-repair 约 10 分钟，未给 1 小时排空上限 |
+| 10 Autopilot 计费核对 | gpt-6.1-sol medium | 有 | true | EB1–EB5 ✔ | 161 s。以 `efficiency-daemon` 判定支持 bursting，general-purpose 50m / 52 MiB → log-shipper 2 vCPU / 2.5 GiB；500m limit 保留可 burst，节流另有原因；Balanced 0.25/0.5 → 2.5 vCPU / 5 GiB；1:8 超出 1:6.5，CPU 抬到 8/6.5 ≈ 1.23 vCPU；挪到 Balanced 是 5× CPU、8× 内存 |
+| 10 | gpt-6.1-sol medium | 无（新跑） | false | EB1–EB5 ✔ | 163 s。联网查到同一组官方页面，结论与数字相同 |
+| 5 负例 | gpt-6.1-sol medium | 有 | **false** | — | 253 s，按 Kubernetes 探针作答，未读 gcp |
+
+结论：升级停滞（场景 7：3✔2◐ 对基线 1✔3◐1✘）与 Cloud Trace（场景 8：4/4 对 2✔1◐1✘）在有 skill 时达成且优于基线；Autopilot 更正
+（场景 10）有 skill 5/5，与基线持平，未见回退；场景 9 两侧同为 2✔2◐（该内容按上节裁定未合入，属哨兵）。负例 skill_read 为 false。正文无需修改。
+
+遗留：场景 10 基线已满分，说明这组 Autopilot 事实模型联网即可查到，场景只作回归哨兵。场景 7 的蓝绿越窗与 end of support 两侧都只部分提及，
+正文已有，属模型取舍。
