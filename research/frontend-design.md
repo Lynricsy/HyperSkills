@@ -574,3 +574,35 @@ D2 判定：基线未达成 / 部分达成的场景 13 E1、E3、E6 在有 skill
 | web-dev-vitals | LCP ≤2.5 s、INP ≤200 ms、CLS ≤0.1；按页面加载 75 百分位、分移动/桌面评估；三项都达标才算通过；poor 阈值 LCP >4.0 s、INP >500 ms、CLS >0.25 | https://web.dev/articles/vitals（Last updated 2024-10-31）；poor 阈值见 https://web.dev/articles/lcp 、/inp 、/cls | 一致 |
 
 处理：无事实更正，仅 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：03c3461（vercel-wig 桌面去回弹规则进 SKILL.md 与两篇 reference；新增场景 11）、fab8483（`stress-test-content` 工作流；
+新增场景 12、13）。e77c7ed 只动 research / SOURCES。
+
+复用判定：今天已有的有 skill 结果（场景 11 为 10:11、场景 13 为 12:00）都早于 fab8483（12:02）对 SKILL.md 的改动，重跑；场景 12
+从未跑过有 skill。基线复用：场景 11 `/tmp/hs-evals/frontend-design/omp-openai-gpt-6.1-sol-medium/baseline/11`（10:04）、场景 12
+`/tmp/hs-evals-M3/fd-b12/frontend-design/omp-openai-gpt-6.1-sol-medium/baseline/12`（11:53），两份 `result.json` 的 query 与
+expected_behavior 与当前逐字一致；场景 13 基线（11:56）的期望 5 与当前不同（合入时改过措辞），重跑。
+
+选场景：今天新增的 11、12、13；负例 4。今天没有事实更正，无需新增场景。
+
+运行：`uv run tools/run_evals.py frontend-design --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），
+产物在 `/tmp/hs-d2/D2G2/frontend-design/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 69 s。`@media (pointer: fine) { html { overscroll-behavior: none } }`；`pointer` 只反映主输入、带配件的 iPad 要测；双轴 `none` 还关掉下拉刷新与横向滑动导航；弹层保留 `contain` |
+| 11 | gpt-6.1-sol medium | 无（复用） | false | 2.5 / 5 | 复用 `baseline/11`（见上游同步一节）：全设备 `overscroll-behavior-y: none`，反对用 `pointer` 查询 |
+| 12 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 246 s。侧栏改 transform；阴影放伪元素过渡 opacity，未提 `drop-shadow`；「DevTools 6× CPU slowdown is not Android hardware emulation」并要求真机远程录制；SMIL 换 CSS 动画由 reduced-motion 停下；`keySplines` 超出 [0,1] 致动画失效，改 CSS `cubic-bezier` 保留回弹；浏览器实测 |
+| 12 | gpt-6.1-sol medium | 无（复用） | false | 1✔ 2✔ 3✔ 4✔ 5✔ | 复用 M3 `fd-b12`（见新增内容评估） |
+| 13 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5◐ 6✔ | 251 s。按 schema 上限构造数据，含 1 条与 10,000 条；`shrink-0` / `min-w-0`；「1 members」「1 projects」→ `Intl.PluralRules`；`Intl.Segmenter` 取首末词；验证写明 360 / 320 px、200% 缩放、RTL。5：按字段决定换行，说了保留完整值，但未给出具体查看途径 |
+| 13 | gpt-6.1-sol medium | 无 | False | 1◐ 2✔ 3◐ 4✔ 5◐ 6✘ | 212 s。用 schema 上限渲染并 `shrink-0` / `min-w-0`、`Intl.Segmenter`；未覆盖空列表 / 大列表；只修「1 projects」；统一 `truncate`；只在 360 px 下检查 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 57 s。按 PostgreSQL 查询作答，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：三个新增场景在当前正文下有 skill 均达成或基本达成，且不比基线差：场景 11 基线 2.5 / 5 → 5 / 5，场景 13 期望 1、3、6
+好于基线，场景 12 两侧全部达成（哨兵）。负例 `skill_read == false`。正文无需修改。
+
+遗留：各场景只有 1 次运行。
