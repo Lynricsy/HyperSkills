@@ -368,3 +368,32 @@ saved token」；`supabase link` 需要 Project Settings、API Keys、API Key Se
 cherry-pick 的 `fix(tools): 🐛 评测子进程关闭 advisor`）之前，同为 advisor 开启的旧口径、已配对，按主代理规则不重跑。
 description 与 Scope 未改，负例场景未重跑。
 输出目录：`/tmp/hs-evals-sync/SyncG9/supabase/workbuddy-deepseek-v4.1-flash-max/{baseline,skill}/6`。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因清单：paths 下确有提交的是 `supabase-official-skill` 与
+`supabase-server-sdk`；`magnus-agent-skills`、`tushar-skills` 报 `behind`（diff too large），主代理按完整区间 blobless 归因 paths 下无提交，判噪声。
+两条有效条目都用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch，只看 paths 下文件。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| supabase-official-skill | 544bfc5 → c9be0e9（1 提交） | 只有 `skills/supabase/CHANGELOG.md`：0.1.9 发布记录「推荐用 scoped personal access token」（551274e）。`compare 551274e...544bfc5` 为 `ahead`，即该内容提交早于旧 pin，已在 2026-09-30 同步范围内；本 skill 规则 26 与 `references/cli-and-migrations.md` 已写 scoped token | 噪声 |
+| supabase-server-sdk | f3a0e3c → ae24804（2 提交：da3a60a、e632e4f） | `docs/`：去掉 middleware 子路径与 `withOAuthProtectedResource` 的 Alpha 标注；四个框架 adapter（Elysia/H3/Hono/NestJS）标为弃用、2026-12-01 移除；`docs/getting-started.md` 的 Deno 导入由 `npm:@supabase/server` 改为 `npm:@supabase/server@1` | 事实更正（导入写法）；其余无影响 |
+
+裁决与核实：
+
+- 导入写法：本 skill `references/edge-functions.md` 的示例写 `import { withSupabase } from 'npm:@supabase/server'` 并称「这就是
+  `supabase functions new` 生成的样子」。按官方源核对：上游 README（ae24804）为 `npm:@supabase/server@1`；Supabase CLI 的脚手架模板
+  （`supabase/cli` develop 分支 `apps/cli/src/commands/functions/new/new.templates.ts`）生成 `deno.json` import map
+  `"@supabase/server": "npm:@supabase/server@^1"`，代码里按裸名 `@supabase/server` 导入。原文的未锁版本写法与「脚手架所生成」的描述
+  都不准确，且与本文件「Verified against `@supabase/server` 1.x」及 Deno 小节「npm: 说明符便于锁版本」自相矛盾。改为：示例导入
+  `npm:@supabase/server@1`，前句说明脚手架把 `npm:@supabase/server@^1` 放在函数的 `deno.json` import map、代码按裸名导入。
+  属事实更正，未新增行为规则，未跑 D2。
+- Alpha 标注移除：本 skill 只用 `withSupabase(config, handler)` 与 `createSupabaseContext`（上游原本就标为 stable），未涉及
+  `@supabase/server/middleware/*` 与 pipeline 形式，无影响。
+- adapter 弃用：本 skill 未提及 `@supabase/server` 的框架 adapter（正文里的 "adapter" 均指 `@supabase/ssr` 的 cookie adapter），无影响。
+
+`--pin` 同时对齐其余仓库上游；`magnus-agent-skills` 写入 122cb54，超过审阅 HEAD b3b4565，`pin_check.py` 判差额 1 提交未碰 paths；
+输出 `PIN CHECK CLEAN`。
+
+结论：`references/edge-functions.md` 一处事实更正；version 改为 2026.10.15。

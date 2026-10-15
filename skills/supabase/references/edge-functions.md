@@ -17,11 +17,12 @@ Verified against: Supabase CLI 2.117, `@supabase/server` 1.x, Deno runtime.
 ## Runtime shape
 
 Functions are TypeScript on Deno — there is no other language option. The current entry point is
-a default export with a `fetch` handler wrapped by `withSupabase`, which is what
-`supabase functions new <name>` scaffolds:
+a default export with a `fetch` handler wrapped by `withSupabase`. `supabase functions new <name>`
+scaffolds it with the specifier pinned to the major version (`npm:@supabase/server@^1` in the
+function's `deno.json` import map, imported by bare name); written inline it looks like this:
 
 ```ts
-import { withSupabase } from 'npm:@supabase/server'
+import { withSupabase } from 'npm:@supabase/server@1'
 
 export default {
   fetch: withSupabase({ auth: 'user' }, async (req, ctx) => {
