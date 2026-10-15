@@ -62,5 +62,26 @@
       "Gives the audio-less intro a generated silent track of the same length (e.g. `anullsrc` trimmed to the intro duration, matching rate and layout) instead of dropping the audio chain or the intro",
       "Verifies the result on real or synthetic material: probes that output video and audio stream durations agree and match the expected total (sum of clip lengths minus the crossfade overlaps), or measures where each narration starts, rather than only asserting the fix"
     ]
+  },
+  {
+    "skills": ["media-processing"],
+    "query": "normalize_episode.sh is our two-pass loudness step. Pass 2 gets every measured value back plus linear=true, so it should just be a gain change - but on interview episodes like ep142 (pass-1 output attached) the music beds pump and the host's dynamics sound squashed, and QC flags the .norm.wav as 192 kHz although the source is 48 kHz. Explain what is happening and fix the script.",
+    "files": ["evals/files/normalize_episode.sh", "evals/files/ep142.pass1.json"],
+    "expected_behavior": [
+      "Explains that passing all four `measured_*` values with `linear=true` is necessary but not sufficient: linear scaling also needs a target LRA no lower than the source LRA (7 against the measured 14.8) and a gain that keeps the true peak within the target TP (about +7 dB on a -0.31 dBTP peak overshoots -1.5), so loudnorm silently reverts to dynamic mode - which is the pumping and the squashed dynamics",
+      "Makes linear mode achievable instead of leaving the fallback in place: a target LRA at or above the measured LRA, and a true-peak/integrated combination the gain can meet (for example limiting the peaks before measuring, or accepting a lower integrated target)",
+      "Checks which path actually ran: adds `print_format=json` to pass 2 and reads (or fails the job on) `normalization_type`",
+      "Explains the 192 kHz output as the dynamic path's internal upsampling, which loudnorm does not undo, and adds an explicit `aresample=48000` (or `-ar 48000`) after the filter"
+    ]
+  },
+  {
+    "skills": ["media-processing"],
+    "query": "thumbs.sh is supposed to drop 400px WebP thumbnails into thumbs/ at the repo root. thumbs/ stays empty and vipsthumbnail complains it cannot write photos/thumbs/<name>.webp, a directory we never mentioned. Also, privacy review asked us to confirm the published thumbnails carry no EXIF/GPS - is the `strip` option still the right way on libvips 8.18? Fix the script.",
+    "files": ["evals/files/thumbs.sh"],
+    "expected_behavior": [
+      "Explains that vipsthumbnail resolves a relative output pattern against each input file's directory, so `thumbs/%s.webp` means `photos/thumbs/...`, and fixes it with `%c/thumbs/%s.webp` (current directory) or an absolute path in `-o`/`--path`",
+      "Says `strip` is deprecated and uses `keep=none` in the save options to drop all metadata, including GPS",
+      "Keeps vipsthumbnail and the existing save options (`Q=80`, `%s` basename, smartcrop) rather than switching tools or looping per file to work around the path"
+    ]
   }
 ]

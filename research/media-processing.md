@@ -643,3 +643,19 @@ kajisho 逐项：
 | ebu-r128 | 目标 −23.0 LUFS；最大真峰值 −1 dBTP；LU/LUFS 定义；BS.1770 门限测量；LRA 依 Tech 3342 | https://tech.ebu.ch/publications/r128 （以 https://tech.ebu.ch/docs/r/r128.pdf R 128-2023 核对） | 一致；按 R 128 文本，LRA 15 LU 不是其规定值，SOURCES notes 已注明目标表为本仓库按交付惯例汇编 |
 
 结论：11 条复核完毕，合入 4 处既有正文更正（VP9 码率与恒定质量、scale 保持 DAR、loudnorm linear 条件与 192 kHz 范围、vipsthumbnail 输出路径与 `keep`），1 条 url 迁移（ImageMagick）。均为纠错、非新增内容。评测 1 的第 1、3 条随事实改写，未重跑评测；该场景以后的结果不能与 2026-09-12 及之前的评分直接对比，下次全量重评时需两侧重跑。11 个条目 `synced_at` 改为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：f71e1cb 上游同步、14d7215 VP9 码率语义、scale 保持 DAR、loudnorm 线性条件、vipsthumbnail 输出路径（场景 1 期望 #1/#3 同提交改过）。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/media-processing/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 夜间转码（期望 #1、#3 今日改过） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ✔4 ◐5 ✔6 ◐7（4✔3◐） | 397 s。VP9 补 `-b:v 0` 并说明「旧版默认会施加码率约束、新版默认已为 0」，未误称 4.3+ 下 `-crf` 单独即 CQ；复现 1280×733 失败改 `-2`；删 `setsar=1` 但理由只写「保留 SAR 防止变形」未点出 scale 保持 DAR；`veryslow` 保留未给耗时倍数；造合成素材（含变形 SD）验证输出而非先 ffprobe 源 |
+| 1 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ✘3 ✔4 ✘5 ✘6 ◐7（1✔3◐3✘） | 357 s。`-b:v 0` 只说「让 CRF 控制更明确」；奇数高度改成自写 `trunc/round` 表达式；保留 `setsar=1` 并改按 DAR 计算高度来补偿；未提 `veryslow`、未加 `+faststart` |
+| 4 负例（next/image） | gpt-6.1-sol medium | 有 | false | 3/3 | 52 s。只改 `next.config.mjs`（deviceSizes、AVIF/WebP）并提示 `sizes`，未引入 ffmpeg/ImageMagick |
+
+选择理由：1 的期望 #1/#3 今日改过（必选，两侧重跑）；loudnorm 线性条件 / 192 kHz 与 vipsthumbnail 输出路径 / `keep=none` 没有场景覆盖，新增 6（`normalize_episode.sh` + `ep142.pass1.json`）与 7（`thumbs.sh`）；4 为负例。
+
+已完成部分：场景 1 有 skill 4✔3◐ 对基线 1✔3◐3✘，VP9 一条按更正后口径表述（未误称 4.3+ 下 `-crf` 单独即 CQ）；负例 `skill_read=false`。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：6 loudnorm 线性条件与 192 kHz（新增，有/无）；7 vipsthumbnail 输出路径与 keep=none（新增，有/无）。待结果出来后补判定。
