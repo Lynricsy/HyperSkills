@@ -488,3 +488,26 @@ tob-secure-contracts / tob-property-testing（82fe822 → e1f86a3）、erc-7201�
 | solidity-docs | 数据文件位置 | 提交 [9833e8bd7a](https://github.com/argotorg/solidity/commit/9833e8bd7a)（2026-09-23「Use YAML as source for known bugs」） | URL 仍有效：`docs/bugs.json` 继续发布，改由 `docs/bugs.yaml` 经 `scripts/update_bugs_json.py` 生成；正文补一句来源说明，url 不变 |
 
 `solidity-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`8acb2a6`（上游同步，正文未变）与 `d54914b`（文档复核：0.8.37 的 `bugs_by_version.json` 条目自 2026-10-13 起非空，新增 `YulOptimizerKnowledgeBaseStaleBookkeeping`，规则 2 与 `solidity-baseline.md` 改为「pin 时重读 bug 列表」）。最后正文提交 13:05:37。
+
+选场景与理由：
+
+- **新增场景 7**（夹具 `evals/files/compiler-pin/`：`foundry.toml` 为 0.8.37 + `via_ir` + optimizer，`AUDIT-NOTES.md` 声称「0.8.37 无已知 bug、9 月查过无需复查」）：原有场景都不直接考察这处更正，按简报新增。
+- 场景 1（Vault 主网评审）：浮动 pragma，可能引出规则 2 的 pin 建议，选作回归。两侧各跑两次均无产出：有 skill 两次都被服务端 `cyber_policy` 拒答（172 s / 235 s），基线一次 `cyber_policy`、一次 provider `503 No available providers`。与上文 Phase B 记录的「场景 1 在写 PoC 时被 Refusal (cyber) 掐断」同一现象，属评测环境问题，不是 skill 回退；本轮无该场景的可判结果，更正由场景 7 覆盖。失败产物副本 `/tmp/hs-d2/D2G5/failed/solidity-*-r1` 与 `/tmp/hs-d2/D2G5/solidity-web3/…/{skill,baseline}/1`。
+- 场景 5：负例。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/D2G5/solidity-web3/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 与 `workspace/` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ | 126 s。联网取 `bugs.json`/`bugs_by_version.json`：SOL-2026-7、low、0.8.19 引入、0.8.38 修复、条件 `yulOptimizer`；保留 pin；改为提交前复查并存档 |
+| 7（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ | 95 s。`forge config --json` 核实配置；同一条 bug 及其优化器条件，「空列表只是发布时状态，不是永久保证」；保留 0.8.37、不 pin 未发布的 0.8.38，交付前复查 |
+| 1 | gpt-6.1-sol medium | 有 / 无 | — | 无产出 | 见上：`cyber_policy` 拒答与 provider 503 |
+| 5（负例） | gpt-6.1-sol medium | 有 | **False** | 全部 ✔ | 167 s。按 React 组件问题作答，未审计合约 |
+
+结论：更正相关行为在有 skill 时达成且不比基线差；基线联网即可答对，场景 7 留作哨兵。负例 `skill_read == false`。正文无需修正。
+
+遗留：场景 1 在当前模型口径下反复触发服务端 `cyber_policy`，无法用作回归场景，需另行处理（改写提问或换口径）。

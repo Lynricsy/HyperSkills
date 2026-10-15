@@ -79,5 +79,18 @@
       "Reports the unchecked `transfer` return values in `harvest` and `sweep` and names `SafeERC20` as the fix",
       "Does not claim that the keeper can call `sweep` or `setTreasury` directly inside the `multicall` batch: restricted inner calls are checked against the selector that entered the manager and revert, which is why `setAuthority` — guarded by the caller check alone — is the escape"
     ]
+  },
+  {
+    "skills": ["solidity-web3"],
+    "query": "We send our audit package on Monday. Check the compiler section of AUDIT-NOTES.md against foundry.toml: is the pin right, and is the statement about known compiler bugs something we can sign? Fix whatever needs fixing.",
+    "files": [
+      "evals/files/compiler-pin/AUDIT-NOTES.md",
+      "evals/files/compiler-pin/foundry.toml"
+    ],
+    "expected_behavior": [
+      "Refutes the 'no known compiler bugs apply' statement: 0.8.37 shipped with an empty `bugs_by_version.json` entry, but the list now names `YulOptimizerKnowledgeBaseStaleBookkeeping` (low, introduced 0.8.19, fixed in the unreleased 0.8.38) against it, grounded in Solidity's published `bugs.json` / `bugs_by_version.json` rather than memory",
+      "Checks that bug's condition against this configuration: it needs the Yul optimizer, which `via_ir = true` with `optimizer = true` runs, so the codebase is in scope and the notes must disclose and assess it instead of dismissing it",
+      "Keeps 0.8.37 as the pin (the newest release, still the one with the fewest known bugs; 0.8.38 is not released) rather than downgrading, and replaces 'checked once in September, no need to revisit' with re-reading the bug list at each pin and before each release"
+    ]
   }
 ]
