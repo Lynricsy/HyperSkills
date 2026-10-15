@@ -351,7 +351,7 @@ D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达
 - `references/swift-concurrency-bugs.md`：「Sending 'x' risks causing data races」条目补 SIL 阶段与验证命令。
 - `SOURCES.yaml`：新增 `tenequm-swift-dev`（merged，paths `skills/swift-dev/SKILL.md`）。
 
-遗留：本机无 Xcode，枚举谓词在 SwiftData 存储层的运行时翻译（局部常量版本）未在设备上验证，只验证到宏展开与 `Predicate.evaluate`。
+遗留：本机无 Xcode，枚举谓词在 SwiftData 存储层的运行时翻译（局部常量版本）未在设备上验证，只验证到宏展开与 `Predicate.evaluate`。同日复核：正文原写「过滤仍在 store 中执行」超出了已验证范围，已删去该保证，改为注明验证边界、要求在真实 `ModelContainer` + `context.fetch` 上确认后再依赖；宏编译层面的修正保留。
 
 ## 2026-10-15 文档上游复核
 
