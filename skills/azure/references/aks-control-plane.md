@@ -162,7 +162,12 @@ Rules:
 - Zones are set per node pool at creation and cannot be added later. Spreading one pool across
   `1 2 3` is not the same as three pools; both are valid, the first is simpler.
 - Ephemeral OS disks (`--node-osdisk-type Ephemeral`) boot faster and cost less, at the price of
-  losing the OS disk on deallocation - correct for stateless nodes, which is all of them.
+  losing the OS disk on deallocation - correct for stateless nodes, which is all of them. The VM
+  size must have local storage at least as large as the OS disk: current-generation sizes place it
+  on the temp disk (the `d` sizes, e.g. `Standard_D4ds_v5` with 150 GiB), while sizes without a
+  local disk (`Standard_D4s_v5`, the whole Dsv5 series) do not support it at all and fail with
+  `VMCannotFitEphemeralOSDisk`. OS disk type and size are fixed per node pool; a wrong choice means
+  a new pool.
 - Node Auto Provisioning picks VM sizes from pending pod requirements instead of scaling a fixed
   pool. It is the default in AKS Automatic and usually beats hand-tuned cluster autoscaler
   min/max counts.
@@ -209,7 +214,7 @@ az aks create \
   --enable-managed-identity --assign-identity "$UAMI_ID" \
   --enable-aad --enable-azure-rbac --disable-local-accounts \
   --enable-oidc-issuer --enable-workload-identity \
-  --node-count 3 --node-vm-size Standard_D4s_v5 --node-osdisk-type Ephemeral \
+  --node-count 3 --node-vm-size Standard_D4ds_v5 --node-osdisk-type Ephemeral \
   --nodepool-name npsystem --nodepool-taints CriticalAddonsOnly=true:NoSchedule \
   --auto-upgrade-channel patch --node-os-upgrade-channel NodeImage \
   --attach-acr "$ACR_NAME"

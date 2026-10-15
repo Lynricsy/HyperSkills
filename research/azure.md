@@ -296,3 +296,41 @@ awesome-copilot 随 `--pin` 前移。learn-azure 为 manual check，未处理。
   `functions-bindings-service-bus.md`。
 
 结论：两处事实更正按官方文档改正文，无新增行为规则，未新增评测场景；未跑 D2（场景 4 已覆盖 bundle 区间这一行为，本次未重跑）。
+
+## 2026-10-15 上游新增内容评估
+
+候选来自 Azure/azure-functions-skills（MIT，`a747a49e45a4`）与 microsoft/azure-skills（MIT，`d1736f313f7a`）区间内新增文件。
+每条要点合入前对照 Microsoft Learn 核实：
+- In-process 停止支持 2026-11-10：`migrate-dotnet-to-isolated-model`（ms.date 2026-09-14）与 `dotnet-isolated-process-guide` 脚注 3 一致；
+  Linux Consumption 不能跑 .NET 10（同页脚注 4）；`Azure.Functions.Sdk` 1.0.0 为项目 SDK、显式引用 Worker、Worker 最低版本
+  2.50.0/2.0.0/1.16.0、只做 solution restore 会跳过扩展 post-restore hook（AZFW0108）、不要动 `obj/azure_functions.g.csproj`（AZFW0109）、
+  System.Text.Json 静默忽略 `[JsonProperty]`、`FUNCTIONS_WORKER_RUNTIME` 与代码分两步发布会出现 AZFD0013 —— 均已核实。
+  上游「迁模型与升 TFM 必须分两阶段」是上游自己的流程主张，MS Learn 的 .NET 10 标签页是一次完成，不采纳。
+- AKS 错误码：exit 50/51/52 与 `VMExtensionError_*` 对应、52 的自定义 DNS 需条件转发 `privatelink.<region>.azmk8s.io` 到 168.63.129.16、
+  `ZonalAllocationFailed` 用 `maxSurge=0` + `maxUnavailable>0`、`OverconstrainedAllocationRequest` 去掉 PPG、`LinkedAuthorizationFailed`
+  授权到被链接作用域 —— 均见 learn.microsoft.com/troubleshoot/azure/azure-kubernetes/error-codes/*。
+  `NodePoolMcVersionIncompatible` 官方为「节点池落后控制面超过 **2** 个 minor 或高于控制面」（评估报告写的 3 个有误，按官方）。
+- AKS 升级：维护窗口不开启自动升级（`planned-maintenance`）、N-3 将掉到 N-4 时强制升到 N-2、Stopped 节点池启动时才应用、
+  Automatic 固定 `stable` + `NodeImage`、节点 OS 通道改动最长 24 小时生效（`auto-upgrade-cluster`、`auto-upgrade-node-os-image`）。
+- AKS GPU：`gpuProfile.driver`、`nvidia.managementMode`、`migStrategy` 创建后不可改；仅驱动（driver only）不广播 `nvidia.com/gpu`；
+  删除 KAITO Workspace 需另删其 GPU 节点池（`aks-managed-gpu-nodes`、`ai-toolchain-operator` 清理一节）。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| azure-functions-update（in-process → isolated） | 不合入 | 场景 6 基线 6/6：自行引用 MS Learn 给出截止日期、Linux Consumption 不支持 .NET 10 → Flex（无 slot）、`Azure.Functions.Sdk`、AZFW0108、`[JsonProperty]` 静默失效 |
+| aks-known-issues（节点池错误码对照） | 不合入 | 场景 7 基线 5/5：按嵌套码判 exit 52、条件转发到 168.63.129.16、`maxSurge 0`/`maxUnavailable 1`、Dsv5 不支持 Ephemeral |
+| aks-troubleshooting v1.2.1（自动升级证据等） | 不合入 | 场景 8 基线 4/4：通道 `none`、窗口不开启升级、24 小时、Stopped 池、Automatic 通道固定 |
+| aks-gpu-inference（gpuProfile、KAITO 清理） | 不合入 | 场景 9 基线 4/4：driver-only 无 device plugin、profile 不可原地改、删 Workspace 需另删节点池 |
+| **事实更正**：`aks-control-plane.md` 生产集群示例 `Standard_D4s_v5` + `--node-osdisk-type Ephemeral` | 更正 | Dsv5 页面「Ephemeral OS Disk: Not Supported」（无本地 temp 盘），该组合直接 `VMCannotFitEphemeralOSDisk`；改为 `Standard_D4ds_v5`（temp 150 GiB ≥ AKS 默认 128 GiB 门槛，Ddsv5 页面 Ephemeral Supported），并在 Node pools 一节补一句 SKU 需有足够本地盘、类型与大小按池固定（`aks/concepts-storage`） |
+
+评测（omp + `openai/gpt-6.1-sol` medium，VM；场景 6–9 为本次新增，留作哨兵）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 Functions in-process → .NET 10 isolated | gpt-6.1-sol medium | 无 | false | EB1–EB6 全部 | 选 Flex 新应用；EB6 中 slot 部分以「Flex 无 slot / 若留 Premium 则 setting 不设 slot sticky」体现 |
+| 7 三个节点池失败 | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | npcache 建议改 Managed 或换支持 Ephemeral 的 SKU，并指出 runbook 组合错误 |
+| 8 自动升级「坏了」/ Automatic 改通道 | gpt-6.1-sol medium | 无 | false | EB1–EB4 全部 | |
+| 9 GPU Pending + 删 KAITO Workspace | gpt-6.1-sol medium | 无 | false | EB1–EB4 全部 | 先按 `kaito.sh/workspace` 标签确认节点池再删 |
+
+结论：四个候选基线均已达成，均不合入；只做上述事实更正（无需评测）。SOURCES 不变（无上游内容合入）。
+产物：`/tmp/hs-evals-MergeM2/azure/omp-openai-gpt-6.1-sol-medium/baseline/{6,7,8,9}`。

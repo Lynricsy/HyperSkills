@@ -1,0 +1,38 @@
+### Cluster A - aks-erp-prod (owner: ERP team)
+
+$ az aks show -g rg-erp-prod -n aks-erp-prod --query '{sku:sku.name, tier:sku.tier, upgradeChannel:autoUpgradeProfile.upgradeChannel, nodeOSUpgradeChannel:autoUpgradeProfile.nodeOSUpgradeChannel, kubernetesVersion:kubernetesVersion}'
+{
+  "sku": "Base",
+  "tier": "Standard",
+  "upgradeChannel": "none",
+  "nodeOSUpgradeChannel": "NodeImage",
+  "kubernetesVersion": "1.33.7"
+}
+
+$ az aks maintenanceconfiguration list -g rg-erp-prod --cluster-name aks-erp-prod -o table
+Name                              ResourceGroup    MaintenanceWindow.Schedule
+--------------------------------  ---------------  ------------------------------------
+aksManagedAutoUpgradeSchedule     rg-erp-prod      Weekly, Saturday 01:00 UTC, 4h
+aksManagedNodeOSUpgradeSchedule   rg-erp-prod      Weekly, Sunday 01:00 UTC, 4h
+
+$ az aks nodepool list -g rg-erp-prod --cluster-name aks-erp-prod --query '[].{name:name, power:powerState.code, version:orchestratorVersion}' -o table
+Name      Power    Version
+--------  -------  ---------
+npsystem  Running  1.33.7
+npbatch   Stopped  1.33.7
+
+ERP team: "We configured the weekly auto-upgrade window in March and the cluster is still on 1.33. AKS auto-upgrade is broken. Also npbatch never got the September node image."
+
+### Cluster B - aks-web-prod (owner: Web team)
+
+$ az aks show -g rg-web-prod -n aks-web-prod --query '{sku:sku.name, upgradeChannel:autoUpgradeProfile.upgradeChannel, nodeOSUpgradeChannel:autoUpgradeProfile.nodeOSUpgradeChannel, kubernetesVersion:kubernetesVersion}'
+{
+  "sku": "Automatic",
+  "upgradeChannel": "stable",
+  "nodeOSUpgradeChannel": "NodeImage",
+  "kubernetesVersion": "1.34.3"
+}
+
+Web team: "We want the newest Kubernetes minor as soon as it ships. Please switch aks-web-prod to the rapid channel and the node OS channel to SecurityPatch."
+
+### Supported AKS minors at the time of the question: 1.35 (N), 1.34, 1.33

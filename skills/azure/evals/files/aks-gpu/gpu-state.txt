@@ -1,0 +1,36 @@
+$ kubectl -n inference describe pod llm-chat-7c9d8-x2l5q | sed -n '/Events/,$p'
+Events:
+  Type     Reason            Age                  From               Message
+  ----     ------            ----                 ----               -------
+  Warning  FailedScheduling  3m (x41 over 2h)     default-scheduler  0/6 nodes are available: 2 Insufficient nvidia.com/gpu, 4 node(s) had untolerated taint {CriticalAddonsOnly: true}. preemption: 0/6 nodes are available: 6 Preemption is not helpful for scheduling.
+
+$ kubectl get nodes -l agentpool=gpua100 -o custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia\\.com/gpu
+NAME                              GPU
+aks-gpua100-31415926-vmss000000   <none>
+aks-gpua100-31415926-vmss000001   <none>
+
+$ az aks nodepool show -g rg-ml -n gpua100 --cluster-name aks-ml --query '{vmSize:vmSize, count:count, gpuProfile:gpuProfile}'
+{
+  "vmSize": "Standard_NC24ads_A100_v4",
+  "count": 2,
+  "gpuProfile": { "driver": "Install", "nvidia": null }
+}
+
+$ kubectl -n kube-system get ds | grep -i nvidia
+(no output)
+
+$ kubectl get workspace -A
+NAMESPACE   NAME                    INSTANCE                    RESOURCEREADY   INFERENCEREADY   AGE
+kaito       workspace-phi-4-mini    Standard_NC24ads_A100_v4    True            True             41d
+kaito       workspace-mistral-old   Standard_NC24ads_A100_v4    True            True             63d
+
+$ az aks nodepool list -g rg-ml --cluster-name aks-ml --query '[].{name:name, vmSize:vmSize, count:count}' -o table
+Name        VmSize                      Count
+----------  --------------------------  -----
+npsystem    Standard_D4ds_v5            4
+gpua100     Standard_NC24ads_A100_v4    2
+ws2f9c1a    Standard_NC24ads_A100_v4    1
+ws7b30e4    Standard_NC24ads_A100_v4    1
+
+Note from the ML lead: "llm-chat is our own vLLM deployment on gpua100. workspace-mistral-old is unused now -
+delete it to cut the GPU bill. Then make llm-chat schedule; I'd rather not rebuild gpua100."

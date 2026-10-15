@@ -1,0 +1,38 @@
+[
+  {
+    "eventTimestamp": "2026-10-13T02:14:09Z",
+    "operationName": "Microsoft.ContainerService/managedClusters/agentPools/write",
+    "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-shop-prod/providers/Microsoft.ContainerService/managedClusters/aks-shop-prod/agentPools/npapps",
+    "caller": "upgrade-pipeline@contoso.com",
+    "status": "Failed",
+    "properties": {
+      "statusCode": "BadRequest",
+      "statusMessage": "{\"code\":\"ZonalAllocationFailed\",\"message\":\"Allocation failed. We do not have sufficient capacity for the requested VM size in this zone. Read more about improving likelihood of allocation success at https://aka.ms/allocation-guidance. This is not AKS controlled behavior, please ask help to VMSS team for allocation failure. If the error is due to capacity constrain, consider upgrade with maxUnavailable instead of maxSurge, details: aka.ms/aks/maxUnavailable.\"}",
+      "requestBody": "{\"properties\":{\"orchestratorVersion\":\"1.34.2\",\"upgradeSettings\":{\"maxSurge\":\"33%\"},\"vmSize\":\"Standard_D16ds_v5\",\"availabilityZones\":[\"1\",\"2\",\"3\"]}}"
+    }
+  },
+  {
+    "eventTimestamp": "2026-10-14T09:41:52Z",
+    "operationName": "Microsoft.ContainerService/managedClusters/agentPools/write",
+    "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-payments-prod/providers/Microsoft.ContainerService/managedClusters/aks-pay-prod/agentPools/npbatch",
+    "caller": "platform-bot@contoso.com",
+    "status": "Failed",
+    "properties": {
+      "statusCode": "BadRequest",
+      "statusMessage": "{\"code\":\"VMExtensionProvisioningError\",\"message\":\"Unable to establish connection from agents to Kubernetes API server, please see https://aka.ms/aks-required-ports-and-addresses for more information. Details: VMSSAgentPoolReconciler retry failed: Category: ClientError; Code: VMExtensionProvisioningError; SubCode: VMExtensionError_K8SAPIServerDNSLookupFail; Message: Enable-VMSS-CSE failed: vmssCSE exit status=52\"}",
+      "requestBody": "{\"properties\":{\"count\":3,\"vmSize\":\"Standard_D8ds_v5\"}}"
+    }
+  },
+  {
+    "eventTimestamp": "2026-10-14T16:05:30Z",
+    "operationName": "Microsoft.ContainerService/managedClusters/agentPools/write",
+    "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-shop-prod/providers/Microsoft.ContainerService/managedClusters/aks-shop-prod/agentPools/npcache",
+    "caller": "alice@contoso.com",
+    "status": "Failed",
+    "properties": {
+      "statusCode": "BadRequest",
+      "statusMessage": "{\"code\":\"VMCannotFitEphemeralOSDisk\",\"message\":\"Requested OS disk size 128GB with Ephemeral OS disk cannot fit in the selected VM size Standard_D4s_v5.\"}",
+      "requestBody": "{\"properties\":{\"count\":3,\"vmSize\":\"Standard_D4s_v5\",\"osDiskType\":\"Ephemeral\"}}"
+    }
+  }
+]

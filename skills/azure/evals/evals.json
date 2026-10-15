@@ -74,5 +74,52 @@
       "Does not turn the answer into Azure control-plane advice about VNets, subscriptions, Bicep or the Azure CLI",
       "skill_read is false for the `azure` skill"
     ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "order-sync is a C# in-process Function App. Management wants it on .NET 10 isolated before the in-process deadline. Using OrderSync.csproj, Functions.cs and deploy-notes.md, give me the migration plan: what changes in the project, the code, the app settings and the rollout, and what could break silently.",
+    "files": ["evals/files/functions-inproc/OrderSync.csproj", "evals/files/functions-inproc/Functions.cs", "evals/files/functions-inproc/deploy-notes.md"],
+    "expected_behavior": [
+      "States that in-process support ends on 2026-11-10 and that the fix is the isolated worker model, not a .NET version bump within in-process",
+      "Flags that .NET 10 cannot run on Linux Consumption (the app's current plan): either migrate to isolated on .NET 8 first and keep the plan, or treat moving to Flex Consumption as a separate hosting migration (new app, no slots) - it does not plan .NET 10 on the existing Linux Consumption app",
+      "Uses `Azure.Functions.Sdk` as the project SDK with an explicit `Microsoft.Azure.Functions.Worker` reference, removing `Microsoft.NET.Sdk.Functions`, `Microsoft.Azure.Functions.Extensions` and the WebJobs Service Bus package in favour of `Microsoft.Azure.Functions.Worker.Extensions.ServiceBus`",
+      "Warns that the CI restores the solution, while the Functions project must be restored directly (solution/traversal restore skips the SDK's extension post-restore hook, AZFW0108); does not edit the generated obj/azure_functions.g.csproj",
+      "Says System.Text.Json silently ignores the Newtonsoft `[JsonProperty]` names on OrderMessage (fields bind to defaults without an error), so the attributes must become `[JsonPropertyName]` or Newtonsoft must be configured, verified against the existing sample payload",
+      "Sets FUNCTIONS_WORKER_RUNTIME=dotnet-isolated in local.settings.json Values and in the Bicep app settings (not only a shell export), and rolls out by changing the setting and publishing together on the staging slot, then swapping, because the setting/code mismatch fails (AZFD0013) in between"
+    ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "activity-log.json has three failed AKS node pool operations from this week and clusters.md has the context. For each one tell me the root cause and the fix. Do not change anything yet.",
+    "files": ["evals/files/aks-failures/activity-log.json", "evals/files/aks-failures/clusters.md"],
+    "expected_behavior": [
+      "For npapps reads ZonalAllocationFailed as missing zonal capacity for that VM size, not a quota problem (quota has headroom), and proposes retrying the upgrade with maxSurge=0 and maxUnavailable greater than 0 (no surge nodes), or another size/zone, as an approval-gated change",
+      "For npbatch uses the nested signature, not the outer VMExtensionProvisioningError: VMExtensionError_K8SAPIServerDNSLookupFail / vmssCSE exit 52 means the node cannot resolve the private API server FQDN",
+      "Ties exit 52 to the custom DNS chain: the hub DNS servers must forward `privatelink.westeurope.azmk8s.io` (conditional forwarder) to Azure DNS 168.63.129.16 from a VNet linked to the private DNS zone, instead of sending it on-premises; verifies with nslookup of the API FQDN",
+      "For npcache explains Standard_D4s_v5 has no local temp/cache disk, so an Ephemeral OS disk cannot fit; the fix is a new node pool with a size that has enough temp storage (for example Standard_D4ds_v5, 150 GiB) or a managed OS disk - OS disk type and size cannot be changed on an existing pool",
+      "Points out that the runbook flags (`Standard_D4s_v5` with `--node-osdisk-type Ephemeral`) will fail the same way for anyone else who copies them"
+    ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "cluster-state.txt has what both teams sent me. The ERP team says AKS auto-upgrade is broken; the Web team wants their cluster switched to rapid and SecurityPatch. What do I tell each team, and what exactly should change?",
+    "files": ["evals/files/aks-upgrades/cluster-state.txt"],
+    "expected_behavior": [
+      "Tells the ERP team auto-upgrade is not broken but off: `upgradeChannel` is `none`, and a maintenance window (aksManagedAutoUpgradeSchedule) only schedules upgrades - it never enables them",
+      "Proposes choosing a channel (for example `stable` or `patch`) as the owner's decision, notes channel changes can take up to 24 hours to take effect, and that maintenance runs are best effort",
+      "Explains npbatch is Stopped, so upgrades are applied only when the pool starts",
+      "Tells the Web team that AKS Automatic fixes the channels (`stable` for the cluster, `NodeImage` for node OS) - they cannot be switched to `rapid` or `SecurityPatch`; only the maintenance windows are configurable, or they need an AKS Standard cluster"
+    ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "gpu-state.txt is from our ML cluster. Do what the ML lead asks: cut the GPU bill by deleting workspace-mistral-old, and get llm-chat scheduled. Tell me the exact steps and anything that will not do what he expects.",
+    "files": ["evals/files/aks-gpu/gpu-state.txt"],
+    "expected_behavior": [
+      "Says deleting the KAITO Workspace does not delete the GPU node pool KAITO provisioned for it (one of ws2f9c1a/ws7b30e4), which keeps billing; the matching pool must be identified by the `kaito.sh/workspace` node label and deleted separately",
+      "Diagnoses gpua100 as a driver-only GPU profile (`driver: Install`, no managed NVIDIA stack): AKS installed the driver but no device plugin, so nodes advertise no `nvidia.com/gpu` and the pod is Pending",
+      "Fixes llm-chat without rebuilding by deploying the NVIDIA device plugin (or GPU Operator) to the pool, and says the gpuProfile fields cannot be changed in place - switching to the AKS-managed stack would require a new node pool",
+      "Gates the deletions behind explicit confirmation rather than running them"
+    ]
   }
 ]
