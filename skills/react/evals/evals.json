@@ -134,5 +134,19 @@
       "Grounds the patched versions in the published advisory, `npm audit` or `npm view`, and verifies the installed versions afterwards (`npm ls react-server-dom-webpack next` or equivalent) instead of quoting version numbers from memory",
       "Tells the user that RSC packages get repeated security releases on every supported line, so the rule is to stay on the latest patch of the line in use rather than a one-off bump to a number"
     ]
+  },
+  {
+    "skills": ["react"],
+    "query": "We are upgrading this app from Next.js 15.5 to 16.4.1 (package.json, next.config.mjs). Update the scripts and config for 16.4 — we still want a bundle-size report we can diff between releases. Separately, like-button.tsx: when someone clicks, the count jumps and then falls back to the old number while the request is still in flight, and the console shows an error. Fix that too and explain each change.",
+    "files": [
+      "evals/files/upgrade/package.json",
+      "evals/files/upgrade/next.config.mjs",
+      "evals/files/upgrade/like-button.tsx"
+    ],
+    "expected_behavior": [
+      "States that from Next.js 16 Turbopack is the default for both `next dev` and `next build` (on 15.x only `dev` was stable, behind the flag, and `build` still used webpack), so the `--turbopack` flag can go and production builds switch bundler with the upgrade",
+      "Produces the diffable report with `next analyze --output` (the 16.4 name; `next experimental-analyze` is the 16.1-16.3 name kept as an alias) instead of the webpack-only `@next/bundle-analyzer` / `ANALYZE=true next build`, or keeps that plugin only by explicitly building with `--webpack`",
+      "Diagnoses the like button: the `useOptimistic` setter is called from a plain async `onClick`, outside any transition or Action, so React logs an optimistic-update-outside-transition error and the value reverts; wraps the setter and the awaited request in `startTransition(async () => ...)` (or moves it into a form action)"
+    ]
   }
 ]

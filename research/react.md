@@ -364,3 +364,29 @@ re-pin、版本号改为 2026.10.15。`pin_check.py`：PIN CHECK CLEAN。
 | react-security-advisories | RSC 公告一次修补全部受支持发布线 | https://github.com/facebook/react/security/advisories | 一致（今日已读；`gh api repos/facebook/react/security-advisories` 仍为 10 条，最新 GHSA-xqc2-xf4c-x3h3 / GHSA-h3gv-c5rc-p453，2026-10-14） |
 
 处理：两处 references 更正；`react-docs`、`nextjs-docs` 的 notes 更新 npm 当前版本与核对方式，`synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`1d9f587`（上游同步：只新增场景 6–8）、`567b254`（`next analyze` 更正、核心规则 21 与「RSC security releases」节、场景 9）、`b95ce21`（`useOptimistic` setter 须在 Action/transition 内、Turbopack 自 Next.js 16 起 `dev` 与 `build` 默认）。最后正文提交 13:12:58；此前唯一的有 skill 结果（场景 9，11:30）早于它，不复用。
+
+选场景：今天新增的 6–9 全选（必选，此前 6–8 从未跑过有 skill）；`useOptimistic`、Turbopack、`next analyze` 三处更正没有场景覆盖，**新增场景 10**（夹具 `evals/files/upgrade/`：Next.js 15.5.4 → 16.4.1 升级，`--turbopack` 脚本、webpack 版 `@next/bundle-analyzer`、在普通 `onClick` 里调 `useOptimistic` setter；版本号已在 npm 核实存在）；场景 4 负例。场景 6–9 基线复用 `/tmp/hs-evals/react/…/baseline/{6..9}`（query、期望逐字一致，夹具首读逐行一致；副本 `/tmp/hs-d2/D2G5/reused/react-b{6..9}`），判定沿用上两节。有 skill 首轮 6–10 在 14:25–14:51 遇 provider `503 No available providers`，全部重跑，下表为重跑结果。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/D2G5/react/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无（复用） | False | 5 / 5 | 判定见上文 |
+| 6 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ EB5 ✔ | 516 s。Trace/TraceLine（`status` 驱动）、`CodeBlockContent wrap className="max-h-64"`、先跑 `shadcn info`/`docs`；EB2 未说明 Marker 用途（本 skill 无此内容） |
+| 7 | gpt-6.1-sol medium | 无（复用） | False | 6 / 6 | 判定见上文 |
+| 7 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✘ EB5 ✔ EB6 ✔ | 246 s。字号写成 `--text-*` 主题键，未用 `type-*` `@utility`、也未提与 `text-*` 颜色类在 tailwind-merge 中冲突；本 skill 无此内容（上游该条因基线已会未合入） |
+| 8 | gpt-6.1-sol medium | 无（复用） | False | 3 / 5（EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✘ EB5 ✘） | 判定见上文 |
+| 8 | gpt-6.1-sol medium | 有 | True | EB1 ✘ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ◐ | 223 s。为保住 403 契约刻意保留布局顶部鉴权（`instant = false`），提出鉴权移到 `proxy.ts` 后才能做真正的静态外壳；usage 与 limits 各自 Suspense 但 fallback 只是文字；只列出未能运行 `instant()` 验证 |
+| 9 | gpt-6.1-sol medium | 无（复用） | False | 3 / 4（EB4 ✘） | 判定见上文 |
+| 9 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ **EB4 ✘** | 95 s。读了 `nextjs-ops-and-debug.md`，按公告给出 `next` 16.4.1、`react-server-dom-webpack` 19.3.1 与 `npm ls`/`npm audit` 关单证据，列出各版本线修复号，但没讲「每条线都会反复出补丁，规则是停在所在线最新补丁」 |
+| 10（新增） | gpt-6.1-sol medium | 无 | False | EB1 ◐ EB2 ✔ EB3 ✔ | 200 s。`next analyze --output` 取代 webpack 版 analyzer；`startTransition(async …)` 包住 setter 与请求；只说 Turbopack 成为默认，未讲 15.x 上 `build` 仍是 webpack |
+| 10（新增） | gpt-6.1-sol medium | 有 | True | EB1 ◐ EB2 ✔ EB3 ✔ | 241 s。同上三处修正，另把 `await` 之后的 `setLikes` 包进第二个 `startTransition`，浏览器实测 10→11→12 无控制台报错；EB1 同基线 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | 全部 ✔ | 63 s。按 Vue 3 组合式 API 作答 |
+
+结论：`useOptimistic`、`next analyze` 两处更正在有 skill 时达成且不差于基线；Turbopack 默认版本（场景 10 EB1）两侧都只半达成。**场景 9 EB4（规则 21 的「停在所在线最新补丁」）本轮有 skill 未达成**，上节同场景有 skill 达成，正文自上节以来未改该段；provider 再次不可用，重跑没能完成，单个样本不足以判定措辞问题，正文未改。负例 `skill_read == false`。
+
+遗留：① provider 恢复后重跑场景 9 有 skill；若再次漏掉 EB4，把规则 21 的「state that rule」提到 `nextjs-ops-and-debug.md`「RSC security releases」节首句并要求写进答复。② 场景 7 EB4、场景 8 EB1 有 skill 低于复用基线，均为本 skill 未覆盖的内容（上游同步时因基线已会未合入），单样本，留观察。
