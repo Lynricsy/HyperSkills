@@ -132,5 +132,16 @@
       "Computes savings on the input side only (cached tokens times the input-minus-cache-read price difference, minus write premiums), never applying the cache discount to output tokens as the current `saved` formula does",
       "Notes that a prompt shorter than the provider's minimum cacheable length reports zero cache tokens without any error (the 830-token `classify` and 900-token `summarise-2` calls), so those rows are expected rather than a caching failure"
     ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "contract_extract.py still uses the forced-tool trick to get JSON out of Claude. We want to move it to Claude's native structured outputs, staying on claude-sonnet-5-5. Rewrite extract() and tell me what in the Terms model the API will reject or treat differently. Separately: the 'too long' branch has never fired, even on our 400-page contracts, but about one nightly result in fifty comes back with fields missing at the end. Why?",
+    "files": ["evals/files/contract-terms/contract_extract.py"],
+    "expected_behavior": [
+      "Moves the extraction to Anthropic's response-level structured output (`output_config.format` with a JSON schema, or the SDK helper built on it) instead of a forced tool call, and keeps tools for actions",
+      "Says the free-form `extra: dict` cannot be expressed: Anthropic's structured outputs require `additionalProperties: false` on every object, so an unconstrained object is rejected, and replaces it with declared fields or a list of key/value pairs",
+      "Does not claim that every property becomes required as under OpenAI strict mode: the `Optional` fields may stay optional on Anthropic (optional properties are allowed, within a per-request limit), and the code still handles them being absent",
+      "Explains that on Claude 4.5 and newer an input plus `max_tokens` larger than the window is accepted and generation stops with `stop_reason: \"model_context_window_exceeded\"` when the window fills - a truncation, not a 400 - so the except branch never runs and the output is cut off; checks `stop_reason` (and `max_tokens`) before parsing and budgets the input up front, e.g. with the token-counting endpoint"
+    ]
   }
 ]

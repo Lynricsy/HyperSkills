@@ -371,3 +371,25 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | openai-alignment-compaction-report | 压缩摘要被模型写入「additional instructions」、监控发现 27 例、继任上下文照做导致失败 | https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/ | 一致（今日 586a2f5 已全文阅读并合入；本轮确认页面仍 200、27 例表述未变，`synced_at` 已是 2026-10-15） |
 
 处理：上述更正均为既有句子与官方当前页面不符，不新增规则；`SKILL.md` 规则 13 与反合理化表把「strict 下无可选字段」限定为 OpenAI strict（Anthropic strict 允许可选属性）。`SOURCES.yaml` 两条 `contributes` 写明新增核对范围，`synced_at` 更新为 2026-10-15。评测夹具 `cache-usage/usage-sample.jsonl` 未标模型，830/900-token 行「低于最小长度」的期望在 Anthropic 新模型 512 门槛下不必然成立，但夹具未指定模型、OpenAI 侧 900 < 1,024 仍成立，未改。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：77a04d3 上游同步、586a2f5 压缩摘要放置更正、b7c481f 缓存计价/寿命、结构化输出方言、上下文溢出更正。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/ai-engineering/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9 缓存报表与账单（期望 #2 今日改过） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ✘4 | 166 s。分家归一、5 分钟写入 1.25× 计价并给出 1 小时写入 2× 情形（新正文）、节省只算输入侧；点名「三次写一次读」的低效模式与过期/前缀变动；未提最小可缓存长度（与当日早先结论一致，缺口已撤回不合入） |
+| 9 | gpt-6.1-sol medium | 无 | false | ✔1 ◐2 ✔3 ✘4 | 162 s。同样算出 3% 小幅节省并给 1 小时 TTL 情形；只说「无法判断为何前三次是写」，未把写多读少当作待查模式 |
+| 8 压缩步骤评审（今日新增） | gpt-6.1-sol medium | 有 | true | 3/3 | 154 s。任务被丢、摘要升为 system 权威 → 改为带标签的低信任历史数据、system 不可变；点名 prompt 要求的 "additional instructions"，固定 schema 不留指令字段；每次压缩重钉原 system 与任务。注入来源只说外部页面或「无意的摘要错误」，未引用模型自写注入的实例（EB2 主体达成） |
+| 8 | gpt-6.1-sol medium | 无 | false | 3/3 | 复用 `/tmp/hs-evals/ai-engineering/omp-openai-gpt-6.1-sol-medium/baseline/8`（11:56，查询/期望与今日入库版本一致，夹具原文在 events 中逐行一致） |
+| 4 退款抽取结构化输出（规则 13 限定为 OpenAI strict） | gpt-6.1-sol medium | 有 | true | ◐1 ✔2 ✔3 ✔4 ✔5 ◐6 ◐7 ✔8（5✔3◐） | 184 s。改 `chat.completions.parse` + 严格 schema、`extra="forbid"`；service-notes 写明「所有字段 required，`internal_note` required 但可为 null、`currency` 不再有 Python 默认」；拒答与截断各自成错；`amount_cents` 加单位描述；`apply()` 的支付授权只列为遗留风险未实现上限/归属校验；答复未解释 json_object 只保证可解析 |
+| 4 | gpt-6.1-sol medium | 无 | false | ◐1 ✔2 ✔3 ◐4 ✔5 ✘6 ◐7 ✔8（4✔3◐1✘） | 248 s。同样改 parse + strict、所有字段 required、去掉 EUR 默认；只说「不完整响应」报错未点出截断陷阱；字段无描述 |
+| 7 Anthropic 缓存断点与模式切换（缓存寿命/写入计价更正） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ◐4 ✔5 | 133 s。块级 + 请求级 `cache_control`、`cache_read_input_tokens` 验证；system 保持不变、升级指令以 `role: "system"` 追加在用户轮之后并说明「按模型支持」，未提不支持的模型返回 400 需回退；TTL 写法与更正后正文一致（默认 5 分钟命中刷新、`ttl: "1h"` 写入更贵） |
+| 7 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4 ✔5 | 163 s。与有 skill 同级；同样给出 5 分钟默认与 1 小时 TTL，未提 400 回退 |
+| 5 负例（pgvector HNSW） | gpt-6.1-sol medium | 有 | **true** | 2/3（EB1 ✘） | 130 s。首个工具调用即 `read skill://ai-engineering`（intent「Reading retrieval tuning skill」），随后按 Postgres/pgvector 索引问题作答（`ef_search`、`m`/`ef_construction`、`maintenance_work_mem`），未越界到 RAG 管线。输出另存 `/tmp/hs-d2/D2G1-keep/ai-engineering-skill5-run1` |
+
+选择理由：8、9 为今日新增（9 的期望 #2 今日改过，两侧重跑；8 有 skill 结果早于 b7c481f，重跑，基线复用）；4 考察规则 13 改为「OpenAI strict」；7 考察缓存断点与寿命/写入计价更正；Anthropic `output_config.format` 方言与 Claude 4.5+ 窗口溢出截断没有场景覆盖，新增 10（`contract-terms/`）；5 为负例。
+
+已完成部分：4（5✔ 对 4✔）、9（3✔ 对 2✔）有 skill 优于基线，7、8 持平，未见回退。**负例 5 `skill_read=true`**：首个工具调用即读 skill；description 今日未改（早先收紧的排除词已不在当前 description 中），属既有路由问题，非今日正文改动所致；已排队重跑一次判断稳定性。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：10 Anthropic 原生结构化输出与窗口溢出（新增，有/无）；5 负例重跑（判断 skill_read=true 是否稳定）。待结果出来后补判定。
