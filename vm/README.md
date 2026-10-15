@@ -10,7 +10,8 @@ advisor、MCP、记忆，以及 agent 在测试中写下的文件。这些都会
 的对照里，日志 0078 记录的 advisor 干扰就是一例。VM 里只有镜像内容加上本次挂载的东西：
 
 - 没有宿主的 agent 配置、上下文文件或 skill 目录；VM 内 omp 只有镜像自带的最小配置
-  （advisor、memory 关闭）；基线运行连被测 skill 都看不到。
+  （advisor、memory 关闭；`smol` 角色显式钉为评测模型，否则 omp 会按内置表落到已下线的
+  `gpt-5.3-codex-spark` 去压缩 skill 描述）；基线运行连被测 skill 都看不到。
 - 被测 skill 以**只读**方式挂载，agent 改不动仓库。
 - 工作区是宿主 `/tmp` 下的一次性目录，每次运行都是全新 VM（`msb run` 不带 `--name`）。
 - 模型密钥由 msb `--secret` 注入：VM 里只有占位符，msb 只在发往 API 主机的 HTTPS
@@ -49,7 +50,7 @@ vm/
     │   ├── 40-user.sh            # 以 agent 身份：/opt/venv Python 库、uv tools、Rust
     │   └── 50-omp.sh             # omp 官方二进制（钉版本 + sha256），升级频繁故放最后
     └── rootfs/                   # 原样复制进镜像的文件
-        ├── home/agent/.omp/agent/config.yml     # omp 最小配置：advisor/memory 关闭、skill 目录
+        ├── home/agent/.omp/agent/config.yml     # omp 最小配置：advisor/memory 关闭、smol 钉死、skill 目录
         └── usr/local/bin/hs-verify-tools        # VM 内工具自检
 tools/vm.py                       # 宿主侧入口：build / verify / run / shell / clean
 ```

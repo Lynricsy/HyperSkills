@@ -4,6 +4,10 @@ setupVersion: 2
 modelRoles:
   # 与 tools/run_evals.py 的默认评测模型一致；评测运行仍显式传 --model / --thinking。
   default: openai/gpt-6.1-sol:medium
+  # smol 必须显式指定：未设置时 omp 按内置优先级表选 smol，在 openai provider 下落到已下线的
+  # gpt-5.3-codex-spark。每次挂载 skill 的运行都会用 smol 压缩 skill 描述（结果写进随 VM 销毁的
+  # 缓存，本次会话不用），于是每个场景多一次必失败的请求，累积会触发网关熔断。
+  smol: openai/gpt-6.1-sol:minimal
 # advisor 是第二个模型，会审阅每一轮并注入建议；开着就测成了模型组合（日志 0078）。
 advisor:
   enabled: false
