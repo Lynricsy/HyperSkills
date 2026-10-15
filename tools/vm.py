@@ -60,6 +60,24 @@ PROVIDERS = {
         "ANTHROPIC_API_KEY", "HS_VM_ANTHROPIC_BASE_URL", "https://api.anthropic.com"
     ),
 }
+# VM 内 omp 的 smol 角色（镜像 config.yml 的 `modelRoles.smol: workbuddy/deepseek-v4.1-flash`）。
+# omp 每次挂载 skill 都会用 smol 把描述压成路由提示；smol 解析不到时按内置优先级表回落到
+# 已下线的 gpt-5.3-codex-spark，每个场景一次必失败的请求，累积触发网关熔断（日志 0089）。
+# 所以它的凭据是每次运行的必需项，而不是可选 provider。
+SMOL_PROVIDER = "workbuddy"
+SMOL_KEY_ENV = "WORKBUDDY_API_KEY"
+SMOL_BASE_URL_ENV = "HS_VM_WORKBUDDY_BASE_URL"
+SMOL_MODEL = {
+    "id": "deepseek-v4.1-flash",
+    "name": "DeepSeek V4.1 Flash",
+    "reasoning": True,
+    "input": ["text"],
+    "supportsTools": True,
+    "contextWindow": 1000000,
+    "maxTokens": 32000,
+    "thinking": {"mode": "effort", "efforts": ["low", "high", "max"], "defaultLevel": "high"},
+    "compat": {"supportsReasoningEffort": True, "maxTokensField": "max_tokens"},
+}
 # 评测模型由维护者指定为 GPT-6.1 Sol、medium 思考；基线与有 skill 同一配置才可比。
 DEFAULT_MODEL = "openai/gpt-6.1-sol"
 DEFAULT_THINKING = "medium"
@@ -124,7 +142,7 @@ def model_access(root: Path, workdir: Path, providers: Sequence[str]) -> list[st
     """
     load_local_env(root)
     args: list[str] = []
-    overrides: dict[str, dict[str, str]] = {}
+    overrides: dict[str, dict[str, Any]] = {}
     for name in providers:
         provider = PROVIDERS[name]
         if not os.environ.get(provider.key_env):
@@ -141,6 +159,26 @@ def model_access(root: Path, workdir: Path, providers: Sequence[str]) -> list[st
         if base_url:
             overrides[name] = {"baseUrl": base_url}
         args += ["--secret", f"{provider.key_env}@{host}"]
+    # smol 角色的自定义 provider 每次都挂：apiKey 写环境变量名，omp 先按变量名解析，
+    # VM 里该变量是 msb 的占位符，只在发往该主机的连接上被替换成真实值。
+    smol_key = os.environ.get(SMOL_KEY_ENV, "").strip()
+    smol_url = os.environ.get(SMOL_BASE_URL_ENV, "").strip()
+    smol_host = urlparse(smol_url).hostname
+    if not smol_key or not smol_host:
+        raise SystemExit(
+            f"error: {SMOL_KEY_ENV} and {SMOL_BASE_URL_ENV} must both be set for the "
+            f"VM's smol role (see vm/local.env.example); without them omp falls back "
+            f"to a retired model on every skill run."
+        )
+    overrides[SMOL_PROVIDER] = {
+        "baseUrl": smol_url,
+        "apiKey": SMOL_KEY_ENV,
+        "api": "openai-completions",
+        "authHeader": True,
+        "auth": "apiKey",
+        "models": [SMOL_MODEL],
+    }
+    args += ["--secret", f"{SMOL_KEY_ENV}@{smol_host}"]
     # JSON 是合法 YAML，省掉对宿主 YAML 序列化的依赖。
     models = workdir / "models.yml"
     models.write_text(json.dumps({"providers": overrides}, indent=2) + "\n", "utf-8")
