@@ -65,7 +65,7 @@ upstreams:
     url: https://reactnative.dev/architecture/landing-page
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Architecture facts and every version floor: JSI replacing the bridge, Fabric and synchronous layout, lazily initialized Turbo Native Modules, the interop layer and its lack of custom Shadow Node and concurrent-feature support, the Turbo Native Module spec and codegenConfig contract (Native prefix, NativeComponent suffix, iOS componentProvider), getEnforcing versus get, Hermes and global.HermesInternal, and the 0.76/0.82/0.83/0.84/0.87 boundaries including Hermes V1, precompiled iOS binaries and the Strict TypeScript API default."
     notes: "Sourced from reactnative.dev (facebook/react-native-website, MIT) including the 0.84 release announcement and the Turbo Native Modules, Fabric Native Components, Hermes, glossary and native-debugging pages. Only technical facts were taken; all wording here is original."
   - id: expo-docs
@@ -73,7 +73,7 @@ upstreams:
     url: https://docs.expo.dev/eas-update/how-it-works/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "EAS Update compatibility rules (runtime-version policy as the boundary, channel-to-branch mapping, what can never ship over the air), development build versus Expo Go behaviour, prebuild and config-plugin semantics, npx expo install version resolution, and the EXPO_PUBLIC_ environment-variable rule."
     notes: "Sourced from docs.expo.dev (expo/expo, MIT). Used to verify and correct the EAS facts taken from expo/skills; only technical facts were taken."
   - id: maiko-awesome-rn

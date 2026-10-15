@@ -251,3 +251,14 @@ paths 的完整 patch。`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`。
 | callstack-rn | 61e6e7d → 59e9d17（1 提交：59e9d17） | 仅 `react-native-brownfield-migration`：新增 `cli-and-config.md`（`brownfield.config.*`、CLI 全量参数、产物目录 `ios/.brownfield/package/build`）与 `runtime-api.md`；`package:ios` 默认加 `--destination simulator`；Expo iOS 的 `--add-spm-package`、`--use-prebuilt-expo` 与 `usePrecompiledModules`、`preferEmbeddedBundleInDebug`、`ensureExpoModulesProvider()` 必须在 `startReactNative` 之前；`expo-router/entry` 只注册 `main`，宿主要挂命名模块须改入口并 `AppRegistry.registerComponent`；Android `createView`/`ReactNativeFragment` 新签名 | 不合入：都是 `@callstack/react-native-brownfield` CLI 与 API 的操作细节。本 skill 的 brownfield 小节刻意停在「选一条轨道、facade、打包产物、宿主检查点」这一层，CLI 参数交给官方文档；现有「注册名不对时运行时空白而不是编译失败」已覆盖 expo-router 入口问题的症状面，与上游无冲突 |
 
 正文未变，未跑 D2。只改 SOURCES.yaml（re-pin）与版本号 `2026.10.15`。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| rn-docs | 当前稳定版 0.87（npm `latest` 0.87.1，`next` 0.88.0-rc.6）；0.87 `engines.node` 为 `^22.13.0 \|\| ^24.3.0 \|\| >= 26.0.0` | `npm view react-native` | 一致 |
+| rn-docs | 0.82 起 New Architecture 为唯一架构、Hermes V1 实验性；0.84 Hermes V1 默认、iOS 预编译二进制默认；0.87 Strict TypeScript API 默认 | [0.82](https://reactnative.dev/blog/2025/10/08/react-native-0.82)、[0.84](https://reactnative.dev/blog/2026/02/11/react-native-0.84)、[0.87](https://reactnative.dev/blog/2026/08/11/react-native-0.87) 发布博文 | 一致 |
+| rn-docs | JSI 取代桥、同步布局；interop layer 不支持自定义 Shadow Node 与并发特性；`getEnforcing` 缺模块抛错、`get` 返回 `null` | [Architecture](https://reactnative.dev/architecture/landing-page)、[The New Architecture is here](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)、[Turbo Native Modules](https://reactnative.dev/docs/turbo-native-modules-introduction) | 一致 |
+| expo-docs | 运行时版本是 JS-原生接口边界、channel 写入构建、原生改动须升 runtime version；`EXPO_PUBLIC_` 前缀变量才内联进 JS；Expo SDK 57 为当前（npm `expo` 57.0.29） | [How EAS Update works](https://docs.expo.dev/eas-update/how-it-works/)、[Environment variables](https://docs.expo.dev/guides/environment-variables/) | 一致 |
+
+4 组事实全部一致，正文未改，`rn-docs`、`expo-docs` 的 `synced_at` 更新为 2026-10-15。
