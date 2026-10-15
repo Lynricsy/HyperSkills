@@ -162,7 +162,7 @@ Worth alerting on:
 | Metric | Why |
 |---|---|
 | `vllm:num_preemptions_total` | rising means the KV cache is undersized |
-| `vllm:gpu_cache_usage_perc` | approaching 1.0 means capacity is saturated |
+| `vllm:kv_cache_usage_perc` | approaching 1.0 means capacity is saturated; the old name `vllm:gpu_cache_usage_perc` was deprecated in 0.9.2 and is gone from 0.12 on, so a dashboard still querying it is blank |
 | `vllm:num_requests_waiting` | queue depth — the scaling signal |
 | TTFT histogram | the SLO most users feel |
 

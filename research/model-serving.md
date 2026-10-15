@@ -690,3 +690,17 @@ dynamo、trtllm、nvidia-skills 报告为 behind（too large）但完整区间�
 - 上游原文（`de2b869` 的 `.agents/skills/model-recipes/SKILL.md`）：`gpu_count` "describes the profile, not necessarily the number of GPUs used by the command"，与实测一致。该文件 2026-10-06（#57786）才加入 main，不在 v0.29.0/v0.31.0 中，故 SOURCES 新增 `vllm-model-recipes`（ref main），不并入钉在 v0.29.0 的 `vllm-source`。
 
 事实更正，未新增评测场景、未跑 D2。
+
+## 2026-10-15 文档上游复核
+
+范围：`vllm-docs`（唯一 `kind: docs` 条目）的 `contributes` 事实 + `SKILL.md`、`references/benchmarking.md`、`engine-configuration.md`、`kv-reuse-and-routing.md` 中标 `[official]` 或引用该来源的事实。docs.vllm.ai `latest` 以 `Accept: text/markdown` 取回；当前 PyPI 版本 vLLM 0.31.0（2026-10-05），正文仍按 0.29.0 固定，名称差异另用已登录 `gh` 读 `vllm/v1/metrics/loggers.py` 的各发布 tag 核对。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| vllm-docs | chunked prefill 在 V1「尽可能默认开启」、调度优先 decode，`max_num_batched_tokens` 小（约 2048）利 ITL、大（>8192）利 TTFT/吞吐；关闭时须 ≥ `max_model_len` | https://docs.vllm.ai/en/latest/configuration/optimization/ | 一致 |
+| vllm-docs | V1 默认 `PreemptionMode.RECOMPUTE` 而非 SWAP（重算开销更低）；预抢占警告文本；频繁抢占是 KV 容量不足的信号 | https://docs.vllm.ai/en/latest/configuration/optimization/ | 一致（官方修复清单把提高 `gpu_memory_utilization` 列第一，正文按代价重排并注明理由，属取舍而非事实冲突） |
+| vllm-docs | Prometheus 指标在 OpenAI 兼容 API server 的 `/metrics`（同端口，示例 `:8000/metrics`），无独立指标端口 | https://docs.vllm.ai/en/latest/usage/metrics/ | 一致 |
+| vllm-docs | KV 占用、排队、抢占三项饱和信号的指标名 | https://docs.vllm.ai/en/latest/usage/metrics/ | **已变化 → 更正**：官方指标表只有 `vllm:kv_cache_usage_perc`（Gauge）；正文与评测写的 `vllm:gpu_cache_usage_perc` 在 0.9.2 弃用改名，0.11 起隐藏（需 `--show-hidden-metrics-for-version=0.10`），0.12.0 起删除。`gh api repos/vllm-project/vllm/contents/vllm/v1/metrics/loggers.py?ref=<tag>`：v0.11.0 第 210–215 行「Deprecated in 0.9.2 … TODO: remove in 0.12.0」且仅在 `show_hidden_metrics` 下注册；v0.12.0、v0.29.0（第 562 行）、v0.31.0（第 577 行）只声明 `vllm:kv_cache_usage_perc`。`vllm:num_requests_waiting`（Gauge）与 `vllm:num_preemptions`（Counter，暴露为 `_total`）不变 |
+| vllm-docs | `vllm bench serve`：`--request-rate` 默认 `inf` 即 t=0 全发；有限速率用 Poisson/gamma 合成到达；`--burstiness` 默认 1.0、仅有限速率生效、<1 更突发 >1 更均匀；`--max-concurrency` 与 `--request-rate` 同用时实际速率可低于设定；`--num-warmups` 默认 0 | https://docs.vllm.ai/en/latest/cli/bench/serve/ 、https://docs.vllm.ai/en/latest/benchmarking/cli/ | 一致。闭环客户端「测的是自身并发」的 Little's law 推论在 vLLM 文档中无独立段落（全文无 closed loop 字样），正文该段的 `[official]` 来自 dynamo 上游，vLLM 文档的 Maximum Throughput 模式说明与之相容 |
+
+处理：`SKILL.md` 规则 11、`references/engine-configuration.md` 告警表（并注明旧名弃用与删除版本，避免沿用旧看板查询得到空结果）、`references/kv-reuse-and-routing.md` 计数器/仪表命名段、`evals/evals.json` 三条 expected_behavior 与夹具 `evals/files/scale/hpa-and-startup.md` 统一改为 `vllm:kv_cache_usage_perc`。夹具 `evals/files/spec/spec-decoding.md` 只写「KV cache usage (vllm gauge)」，未改。`synced_at` 更新为 2026-10-15。

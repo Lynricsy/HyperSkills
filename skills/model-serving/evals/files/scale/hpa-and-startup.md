@@ -69,7 +69,7 @@ Behaviour at peak:
 - `kubectl get pods` at peak: 4 Running, 4 Pending, and the Running ones carry
   RESTARTS counts of 3 to 7.
 - Meanwhile the vLLM metrics on the same replicas during peak:
-  `vllm:gpu_cache_usage_perc` 0.97, `vllm:num_requests_waiting` 40-70,
+  `vllm:kv_cache_usage_perc` 0.97, `vllm:num_requests_waiting` 40-70,
   `vllm:num_preemptions_total` climbing steadily.
 - TTFT p99 is 31 s against a 5 s SLO. Liveness restarts happen during the
   worst bursts.

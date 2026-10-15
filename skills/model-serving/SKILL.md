@@ -73,7 +73,7 @@ Not covered:
    requests in flight and at three hundred; a metric that is nearly constant
    cannot drive an autoscaler.
 11. Use KV cache occupancy, queue depth and preemption as the saturation
-   signals: `vllm:gpu_cache_usage_perc`, `vllm:num_requests_waiting`,
+   signals: `vllm:kv_cache_usage_perc`, `vllm:num_requests_waiting`,
    `vllm:num_preemptions_total`. Preemption is a capacity signal, not a bug.
 12. Scale on queue depth or latency against the SLO, not on GPU utilization.
    Before prescribing any damping, read the scaling events and pod states to

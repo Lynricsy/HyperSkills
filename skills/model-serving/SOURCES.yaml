@@ -27,7 +27,7 @@ upstreams:
     url: https://docs.vllm.ai/
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-15"
+    synced_at: "2026-10-15"
     contributes: "The prose-level mechanisms behind the flags: what a closed-loop client measures, chunked prefill's scheduler priority for decodes, preemption by recomputation as a capacity signal, the metrics endpoint living on the API server port with no separate metrics flag for `vllm serve`, and the latency-versus-throughput tradeoff table."
     notes: "Used for mechanism and intent; every number quoted alongside was verified against vllm-source at v0.29.0."
   - id: vllm-model-recipes

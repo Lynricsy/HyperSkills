@@ -45,7 +45,7 @@ hit_rate = rate(vllm:prefix_cache_hits_total[5m])
 ```
 
 The same rule explains why `vllm:num_preemptions_total` carries the suffix while
-`vllm:gpu_cache_usage_perc` and `vllm:num_requests_waiting` do not — the first is
+`vllm:kv_cache_usage_perc` and `vllm:num_requests_waiting` do not — the first is
 a Counter, the other two are Gauges. Reading a metric name out of the source and
 pasting it into PromQL silently returns no data for every counter.
 
