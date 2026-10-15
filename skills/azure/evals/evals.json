@@ -121,5 +121,16 @@
       "Fixes llm-chat without rebuilding by deploying the NVIDIA device plugin (or GPU Operator) to the pool, and says the gpuProfile fields cannot be changed in place - switching to the AKS-managed stack would require a new node pool",
       "Gates the deletions behind explicit confirmation rather than running them"
     ]
+  },
+  {
+    "skills": ["azure"],
+    "query": "We are moving func-doc-intake-prod to Flex Consumption next Thursday. app-inventory.md has the current app and the target state security signed off. Give me the migration checklist in order, and call out anything in the inventory that will block the move or silently stop working after it.",
+    "files": ["evals/files/flex-migration/app-inventory.md"],
+    "expected_behavior": [
+      "Says a Windows Consumption app can move to Flex Consumption, which runs on Linux, only once its Windows-only dependencies are gone, and names the ones in the inventory - the `Cert:\\CurrentUser\\My` certificate-store lookup and the `D:\\local\\Temp` path - with Premium on Windows as the target if they cannot be removed; it does not treat the Windows OS alone as making Flex impossible",
+      "Says PowerShell managed dependencies (`managedDependency` with requirements.psd1) are not supported on Flex Consumption, so Az.Accounts and Az.Storage must be saved into the app's root `Modules` folder and deployed with the app",
+      "Converts the polling Blob trigger to `source: EventGrid` with an Event Grid subscription",
+      "Flags that Event Grid push delivery cannot reach a private endpoint and VNet integration gives no inbound reachability, so disabling public network access as planned would leave the Blob trigger silently never firing; requires settling event delivery (for example a queue destination read over the private endpoint) before public access is turned off"
+    ]
   }
 ]

@@ -364,3 +364,54 @@ learn.microsoft.com 页面上逐条比对那些数字是否仍与站点一致。
 - 新增「轮询式 Blob 触发器须改为 `source: EventGrid`，且私有化目标须先解决事件投递」：Event Grid push 投递不支持私有终结点（`articles/event-grid/consume-private-endpoints.md`），VNet 集成也不提供入站可达性。原清单同时建议 `publicNetworkAccess: Disabled`，两者叠加会让 Blob 触发静默失效，故把关闭公网访问的条目标注为「在 Event Grid 检查之后」。
 
 `--pin` 写入 azure-docs = caabee6（等于审阅 HEAD）；另两条 awesome-copilot 等条目随 pin 前移，check 报 tracked paths unchanged。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：fb5c0dd（上游同步：Flex 默认配额 250 核 / Free Trial 与 Azure for Students 15 核；Service Bus 扩展 4.x 及其库已退役，
+bundle 不匹配改到 v4 / 扩展 5.x）、8e28959（`aks-control-plane.md` Ephemeral OS 盘机型 `Standard_D4ds_v5`；新增场景 6–9）、
+f56f2ee（`functions.md` Consumption → Flex 迁移清单：Windows 应用可迁、PowerShell managed dependencies 不支持、轮询 Blob 触发改
+Event Grid 且与私有化冲突）。b141cac 只动 research / SOURCES。这些更正当时未跑模型；场景 6–9 只跑过基线。
+
+复用判定：今天没有任何有 skill 结果，全部新跑。场景 6–9 基线复用 `/tmp/hs-evals-MergeM2/azure/omp-openai-gpt-6.1-sol-medium/baseline/{6,7,8,9}`
+（11:28–11:32）：四份 `result.json` 的 query 与 expected_behavior 与当前 `evals.json` 逐字一致，8e28959 加入场景后夹具与期望未再改动。
+
+选场景：
+- 场景 4（`functionapp.json`）：期望 3 含 250 核配额、期望 5 为 bundle 区间，覆盖 fb5c0dd 两处更正。
+- 场景 6、7、8、9：今天新增，必选（7 直接考察 Ephemeral 机型更正；6 涉及迁往 Flex）。
+- **新增场景 10**（夹具 `evals/files/flex-migration/app-inventory.md`）：没有既有场景覆盖 f56f2ee 的迁移清单更正。夹具是一个
+  Windows Consumption 的 PowerShell 应用：`managedDependency`、轮询 Blob 触发、`Cert:\CurrentUser\My` 与 `D:\local\Temp`，
+  目标是私有终结点 + 关闭公网访问的 Flex。
+- 负例：场景 5。
+
+运行：`uv run tools/run_evals.py azure --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/D2G2/azure/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 4 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3◐ 4✔ 5✔ 6✔ 7✔ 8◐ 9✔ | 94 s。读 `functions.md`；bundle 升到 `[4.*, 5.0.0)` 载入扩展 5.x，「Do not move settings into the obsolete `messageHandlerOptions` schema … the old Service Bus SDK family is already retired」（与更正一致）；3：Linux、2048 MB 有，只写「check regional quota」，未给 250 核与 1000 / 200；8：把 `maxConcurrentCalls` 失效归因于版本不匹配，称 prefetch 0 不是原因 |
+| 4 | gpt-6.1-sol medium | 无 | False | 1◐ 2◐ 3✘ 4◐ 5✔ 6✔ 7✘ 8◐ 9✔ | 67 s。首推 Elastic Premium，Flex 只作备选；未给 Flex 规格与配额；Node 24 但未说 Flex 只接受 22 / 24；未提迁 Flex 时删 `WEBSITE_RUN_FROM_PACKAGE` 等；bundle 升级正确，未提扩展 4.x 已退役 |
+| 6 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ 6◐ | 142 s。读 `functions.md` 并联网核对；新建 Linux Flex 应用（无 slot，需要 slot 则 Premium）；`Azure.Functions.Sdk` + Worker 2.50+；单独 `dotnet restore OrderSync.csproj`；`[JsonProperty]` 被 System.Text.Json 静默忽略；6：Flex 下改用 `functionAppConfig.runtime`，本地 settings 设 `dotnet-isolated`，未提 AZFD0013（目标无 slot，期望里的 slot 交换不适用） |
+| 6 | gpt-6.1-sol medium | 无（复用） | False | 1–6 全部 | 复用 MergeM2 `baseline/6`（见上节新增内容评估） |
+| 7 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 77 s。读 `aks-control-plane.md`（今日改过的 Ephemeral 段）；npcache：`Standard_D4ds_v5` 的 150 GiB 临时盘可容 128 GiB OS 盘，或保留 D4s_v5 改 `Managed`，并要求改 runbook；npapps `maxSurge=0` / `maxUnavailable=1`；npbatch 嵌套码 exit 52、条件转发到 168.63.129.16 |
+| 7 | gpt-6.1-sol medium | 无（复用） | False | 1–5 全部 | 复用 MergeM2 `baseline/7` |
+| 8 | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ 4✔ | 94 s。通道 `none`、维护窗口只排期不开启；推荐 `stable`、24 小时生效；Stopped 池启动时才应用；Automatic 通道固定，需要时改用 Base SKU。2：未提维护运行为尽力而为 |
+| 8 | gpt-6.1-sol medium | 无（复用） | False | 1–4 全部 | 复用 MergeM2 `baseline/8` |
+| 9 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4◐ | 145 s。删 Workspace 不删其节点池，按 `kaito.sh/workspace` 确认后另删；driver-only 无 device plugin；装 device plugin 修复，gpuProfile 不可原地改；4：VM 内无 Azure 登录故未执行，给出「核实后再删」的命令序列，未明确要求用户确认 |
+| 9 | gpt-6.1-sol medium | 无（复用） | False | 1–4 全部 | 复用 MergeM2 `baseline/9` |
+| 10（新增） | gpt-6.1-sol medium | 有 | True | 1◐ 2✔ 3✔ 4✔ | 243 s。读 `functions.md`（今日改过的迁移清单）；判 No-go：Event Grid 推送到不了私有终结点、VNet 集成不给入站，建议 Event Grid → 队列 → 队列触发；轮询 Blob 触发改 `source: EventGrid`；Az 模块打包进 `Modules/`；`Cert:\` 与 `D:\local\Temp` 改 Linux 写法。1：未提去不掉 Windows 依赖时改选 Windows Premium |
+| 10（新增） | gpt-6.1-sol medium | 无 | False | 1◐ 2✔ 3✔ 4✔ | 160 s。联网后同样 No-go，结论与有 skill 一致，同样未提 Windows Premium 备选 |
+| 5（负例） | gpt-6.1-sol medium | 有 | **True** | — | 76 s。首个动作即 `read skill://azure`，随后只按 Terraform `count` → `for_each` 作答。原始产物另存 `/tmp/hs-d2/D2G2-azure-skill5-run1` |
+| 5（负例，复跑） | gpt-6.1-sol medium | 有 | **True** | — | 67 s。同样先 `read skill://azure`。产物 `/tmp/hs-d2/D2G2/azure/omp-openai-gpt-6.1-sol-medium/skill/5` |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：
+- 三组更正在有 skill 时无回退：场景 4 有 skill 按「扩展 4.x 已退役、升 bundle v4」作答，整体明显好于基线（基线首推 Premium、
+  漏掉 Flex 事实）；场景 7 给出 `Standard_D4ds_v5` 并要求改 runbook；场景 10 有 skill 达成迁移清单三项更正。场景 6–10 基线
+  也都能联网查官方文档答出，更正属消除正文错误陈述。250 核配额在场景 4 两侧都没被点名（有 skill ◐、基线 ✘）。
+- **负例未通过**：场景 5（Terraform `count` 删元素导致子网重建）两次运行 `skill_read == true`。description 与 Scope 今天都未改
+  （fb5c0dd 的 SKILL.md 改动只在规则 15 / 16 与版本号），这是 VM 口径下首次跑该负例暴露的既有路由歧义（2026-09 旧口径曾为此
+  收紧过 description，后经本地 description 收敛改回单句）。本轮不改 description：按 `docs/workflow.md`「本地 description 维护的
+  阶段映射」，需在固定正例、近似负例与保留样本上先记旧描述的路由基线再同条件对照，建议后续按该流程单独处理。
+
+遗留：负例 5 的路由歧义（见上）；场景 4 的 250 核配额未被点名、场景 10 未提 Windows Premium 备选（两侧相同）。各场景只有 1 次运行。
