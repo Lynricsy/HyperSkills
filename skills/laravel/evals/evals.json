@@ -49,6 +49,7 @@
       "Replaces `Carbon::setTestNow()` with the framework helpers `freezeTime()` / `travelTo()`",
       "Replaces the bare `Http::fake()` with `Http::preventStrayRequests()` plus a fake for the specific endpoint, and points out that `Event::fake()` with no class names both hides unexpected dispatches and suppresses model events used by factories",
       "Uses named response assertions (`assertOk()`, `assertForbidden()`) instead of `assertStatus(...)`, and notes that a cross-tenant request usually should answer 404 rather than 403 so it does not confirm the record exists",
+      "Keeps a status assertion (`assertOk()`) beside `assertSee('Express checkout')` in the rollout test, because `assertSee` only searches the body and would also pass on an error page that contains the text",
       "Mentions test-suite hygiene that applies here: `LazilyRefreshDatabase` instead of `RefreshDatabase`, and low `BCRYPT_ROUNDS` in the testing environment"
     ]
   },

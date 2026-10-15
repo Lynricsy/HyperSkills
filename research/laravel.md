@@ -312,3 +312,20 @@ paths 下确有提交。归因方法：laravel-framework、php-src 为 too-large
 | laravel-docs | 集合序列化恢复预加载关系；显式 domain 的路由优先匹配；`Js::from` 默认不转义 Unicode；测试间重置 `Str` 工厂 | Upgrade guide 对应小节 | 一致 |
 
 5 组事实全部一致，正文未改，`laravel-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：2e10e0d 锁租期规则 24 后半与 reference 段落、assertSee 更正；65cf01b 仅 research。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/laravel/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 锁租期（今日新增规则 24 后半） | gpt-6.1-sol medium | 有（第 1 次） | true | ◐1 ✔2 ✘3 | 172 s。讲清 5 秒租期、`block(10)` 只管等待、过期后第二台主机拿锁读旧值；改为事务内 `lockForUpdate()` 覆盖检查—授权—扣减，Redis 锁降为准入控制，未重设租期、支付调用仍在（数据库）锁内。只读到 reference 前 200 行（租期段在其后），读了 SKILL.md 规则 24。输出另存 `/tmp/hs-d2/D2G1-keep/laravel-skill6-run1` |
+| 6 | gpt-6.1-sol medium | 有（第 2 次） | true | ◐1 ✔2 ✘3 | 289 s。按两次尝试 + 500 ms 算出最坏约 40.5 秒、说明租期过期即重叠，但同样以行锁作正确性保证、Redis 锁仅作准入，未把租期提到最坏耗时之上；真实 Redis/PostgreSQL 双进程复现前后对比 |
+| 6 | gpt-6.1-sol medium | 无 | false | ◐1 ✔2 ✘3 | 复用 `/tmp/hs-evals-sync/SyncG6/laravel-b6/.../baseline/6`（09:54；场景 10:22 随提交入库后未改，夹具原文在 events 中逐行一致）。同样改为行锁、Redis 仅准入，未算最坏耗时 |
+| 4 负例（Spring 自调用） | gpt-6.1-sol medium | 有 | false | 3/3 | 42 s。按 Spring 代理自调用回答，无 Laravel 建议 |
+
+选择理由：6 为今日新增（考察规则 24 后半；有 skill 旧结果 10:01 早于 10:22 正文提交，重跑；基线复用）；assertSee 更正无期望覆盖，给场景 3 增加一条期望（Pest 夹具第 2 个测试只有 `assertSee`），两侧重跑；4 为负例。
+
+场景 6：两次有 skill 运行均为 ◐✔✘，与基线持平——模型讲清租期语义（第 2 次还算出最坏约 40.5 秒），但都改用事务内 `lockForUpdate()` 作为正确性保证、把 Redis 锁降为准入控制，因此没有重设租期。该方案本身正确（行锁覆盖检查到扣减），租期过期不再导致超卖，不属于正文错误，未改正文；遗留：规则 24 在「已有数据库锁」时不必然促成租期按最坏耗时设定，EB3（把外部授权移出锁区并作废授权）两侧仍未达成。负例 `skill_read=false`。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：3 Pest 文件（新增 assertSee 旁保留 assertOk 的期望，有/无）。待结果出来后补判定。
