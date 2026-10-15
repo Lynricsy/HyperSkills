@@ -108,8 +108,9 @@ well as the client bundle.
 
 ## Turbopack migration
 
-Turbopack is the default bundler from Next.js 15. A `webpack: (config) => ...`
-block in `next.config.js` does not run under it. Most real uses translate to
+Turbopack is the default bundler for `next dev` and `next build` from Next.js 16
+(stable for `dev` since 15.0). A `webpack: (config) => ...` block in
+`next.config.js` does not run under it. Most real uses translate to
 `serverExternalPackages` or `transpilePackages`; keep webpack only for a
 loader with no Turbopack equivalent, and note that this opts the project out of
 the default toolchain.

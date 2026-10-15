@@ -348,3 +348,19 @@ re-pin、版本号改为 2026.10.15。`pin_check.py`：PIN CHECK CLEAN。
 | 9 RSC 安全公告关单 | gpt-6.1-sol medium | 有 | true | #1 ✓ / #2 ✓ / #3 ✓ / **#4 ✓**（4/4） | 67 s。同样的修复与 `npm ls`/`npm audit` 证据清单，并明确「这是当前核实的目标、不是永久安全版本；应用时复核公告，用受支持版本线的最新补丁」；指出 Next 内置副本不会作为独立依赖出现在 `npm ls` 里，`next` 版本才是证据 |
 
 结论：缺口 #4 被填补（基线 3/4 → 有 skill 4/4）。另外 MergeM1 只跑了场景 9，其余场景正文未受影响（规则 21 与新节只在 RSC 安全语境触发）。
+
+## 2026-10-15 文档上游复核
+
+范围：3 条 `kind: docs` 条目的 `contributes` 事实 + `SKILL.md` 与 `references/` 中引用 react.dev / Next.js 文档的版本门槛、默认值与 API 用法。react.dev 读 `reactjs/react.dev` 的 `src/content/reference/**` 与 `blog/2025/10/01/react-19-2.md`、`blog/2026/09/09/react-19-3.md`（`gh api`，HEAD 046f17d042）；Next.js 读 `vercel/next.js` tag v16.4.1 的 `docs/` 树（`gh repo clone` 稀疏检出）并对照同 tag 的 `packages/next/src/server/config.ts`。npm 当前：react 19.3.1（2026-10-14）、next 16.4.1（2026-10-14）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| react-docs | `<Activity>` 与 `useEffectEvent` 自 React 19.2；`useActionState` 返回 `[state, action, isPending]`；`useFormStatus` 只报告其所在 `<form>` 的状态、须在子组件中调用 | https://react.dev/reference/react/Activity 、/reference/react/useEffectEvent 、/reference/react/useActionState 、/reference/react-dom/hooks/useFormStatus 、/blog/2025/10/01/react-19-2 | 一致（19.3 发布说明仅有修复，无相关弃用） |
+| react-docs | `useOptimistic` 示例 | https://react.dev/reference/react/useOptimistic | **已变化 → 更正**（原示例即与官方不符）：setter 必须在 Action 内调用（`startTransition` 或 Action prop）；`architecture-and-state.md` 原示例在普通 `onClick` 里直接 `setOptimisticTask` 再 await，官方 Troubleshooting 指出此时报错且乐观值一闪即回滚。实跑（react/react-dom 19.3.1 + jsdom，请求挂起期间读按钮文本）：普通处理器为 `open` 并打印「An optimistic state update occurred outside a transition or action」；包进 `startTransition` 为 `done`、无报错。示例改为 `startTransition(async () => …)` 并在正文写明规则 |
+| nextjs-docs | Turbopack 默认版本 | https://nextjs.org/docs/app/api-reference/turbopack（Version History） | **已变化 → 更正**：`nextjs-ops-and-debug.md` 原写「Next.js 15 起默认」；官方：v15.0.0 仅 `dev` 稳定，v16.0.0 `build` 稳定并成为默认打包器。改为「Next.js 16 起 `next dev` 与 `next build` 默认，15.0 起 `dev` 稳定」 |
+| nextjs-docs | `cacheComponents` 16.0 转为顶层选项；`experimental.dynamicIO` 旧键导致构建退出；`experimental.useCache` 为弃用别名；启用后导出 `dynamic`/`revalidate`/`fetchCache` 的路由段报错 | https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents 、/app/guides/migrating-to-cache-components 、/app/guides/upgrading/version-16 | 一致。升级指南写两者「have been removed」，但 v16.4.1 `config.ts` 对 `dynamicIO` 置 `shouldExit` 致命错误、对 `useCache` 只发弃用警告（与 `cacheComponents` 同开时提示可删除），正文按源码行为描述，不改 |
+| nextjs-docs | `instant` 路由段导出 16.3.0 稳定（取代 `unstable_instant`，仅 Cache Components）；`@next/playwright` 的 `instant()` 在生产构建需 `experimental.exposeTestingApiInProductionBuild` | https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config/instant 、/app/api-reference/config/next-config-js/exposeTestingApiInProductionBuild | 一致 |
+| nextjs-docs | `/_next/mcp` 自 Next.js 16 默认开启（`experimental.mcpServer: false` 关闭）；`proxy.ts` 自 16.0 取代 middleware、默认 Node.js 运行时；`next/font` `display` 默认 `'swap'`；ISR/服务端缓存默认存本地文件系统，多实例需共享 cache handler；`after()` 在出错、`notFound`、`redirect` 时也执行，可用于 Server Components / Server Functions / Route Handlers | https://nextjs.org/docs/app/guides/mcp 、/app/api-reference/file-conventions/proxy 、/app/api-reference/components/font 、/app/guides/self-hosting 、/app/api-reference/functions/after | 一致。另记（未合入）：Server Components 中的 `after` 回调不能调用 `cookies`/`headers`（正文示例用于 Route Handler，未写该限制）；属未覆盖细节，未在评测中证明缺口 |
+| react-security-advisories | RSC 公告一次修补全部受支持发布线 | https://github.com/facebook/react/security/advisories | 一致（今日已读；`gh api repos/facebook/react/security-advisories` 仍为 10 条，最新 GHSA-xqc2-xf4c-x3h3 / GHSA-h3gv-c5rc-p453，2026-10-14） |
+
+处理：两处 references 更正；`react-docs`、`nextjs-docs` 的 notes 更新 npm 当前版本与核对方式，`synced_at` 更新为 2026-10-15。

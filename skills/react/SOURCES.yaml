@@ -105,14 +105,14 @@ upstreams:
     url: https://react.dev/reference
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "Correctness arbiter and version floors; the sole source for the Actions form-state section (useActionState, useFormStatus, useOptimistic)."
-    notes: "React 19.2 release notes fix the availability floor for Activity and useEffectEvent; npm reports react 19.3.0 as current."
+    notes: "React 19.2 release notes fix the availability floor for Activity and useEffectEvent; npm reports react 19.3.1 as current (2026-10-15). The useOptimistic example follows the reference's rule that the setter runs inside an Action, re-checked by rendering it under react-dom 19.3.1."
   - id: nextjs-docs
     kind: docs
     url: https://nextjs.org/docs
     license: MIT
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "Arbiter for data-fetching and caching semantics, and for the cacheComponents and instant-navigation version facts."
-    notes: "Same repository and license as vercel/next.js; npm reports next 16.3.4 as current."
+    notes: "Same repository and license as vercel/next.js; npm reports next 16.4.1 as current (2026-10-15). Docs read from the vercel/next.js `docs/` tree at tag v16.4.1."

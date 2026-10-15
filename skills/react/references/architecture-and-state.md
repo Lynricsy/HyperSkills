@@ -159,19 +159,26 @@ function TaskListSkeleton() {
 
 For an action whose outcome is near-certain, render the result immediately and
 roll back on failure. In React 19 `useOptimistic(value, reducer?)` does this
-inside a transition, with the rollback handled for you:
+for the duration of an Action, with the rollback handled for you. The setter
+must run inside one — `startTransition`, or a prop React already calls as an
+Action such as `<form action>`; called from a plain event handler it logs an
+error and the optimistic value flashes, then reverts before the request ends:
 
 ```tsx
 'use client'
+
+import { startTransition, useOptimistic } from 'react'
 
 function TaskItem({ task, toggleTask }: { task: Task; toggleTask: (id: string) => Promise<void> }) {
   const [optimisticTask, setOptimisticTask] = useOptimistic(task)
 
   return (
     <button
-      onClick={async () => {
-        setOptimisticTask({ ...task, done: !task.done })
-        await toggleTask(task.id)
+      onClick={() => {
+        startTransition(async () => {
+          setOptimisticTask({ ...task, done: !task.done })
+          await toggleTask(task.id)
+        })
       }}
     >
       {optimisticTask.done ? 'Done' : 'Open'}
