@@ -89,7 +89,7 @@ upstreams:
     url: https://docs.aws.amazon.com/
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Final authority for every number and API fact in this skill: Lambda quotas, API Gateway integration timeouts and throttling, CloudFormation DescribeEvents and EventFilter, IAM policy evaluation logic, and pricing dimensions. Added 2026-09-29: the CloudWatch log alarm model (PutLogAlarm, scheduled-query role, aggregation functions, contributor limits, scheduled-query concurrency, describe-alarms --alarm-types) and the two-resource PutAlarmMuteRule permission; the Aurora DSQL quota page for the modified-rows transaction limit."
     notes: "Licence read from the AWS Site Terms (https://aws.amazon.com/terms/, LICENSE AND SITE ACCESS): prose on docs.aws.amazon.com is CC-BY-SA-4.0 and code therein is MIT-0. Structure and facts were taken; no sentence was copied."
   - id: itsmostafa-aws

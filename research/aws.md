@@ -469,3 +469,16 @@ revision 不会回到 Active、endpoint Active 也可能启动失败（`-trouble
 | 9 chat-gateway 迁 Web Functions | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | 另指出默认请求超时 30 s 需调高、流式超时会以 200 截断 |
 
 结论：无缺口，不合入；场景 9 与夹具 `evals/files/web-functions/` 留作哨兵。产物：`/tmp/hs-evals-MergeM2/aws/omp-openai-gpt-6.1-sol-medium/baseline/9`。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| aws-docs | Lambda 配额表：超时 900 s（Managed Instances 异步/ESM 除 MQ、DocumentDB 外 5,400 s）、内存 128–10,240 MB 且 1,769 MB = 1 vCPU、负载 6 MB/6 MB/1 MB/流式 200 MB、包 50 MB/250 MB/镜像 10 GB、5 层、环境变量 4 KB、`/tmp` 512–10,240 MB、并发 1,000、每函数每 10 s 1,000 个执行环境、控制面合计 15 rps | [Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html) | 一致 |
+| aws-docs | REST API 集成超时 50 ms–29 s，Regional/private 可调、edge-optimized 不可调，调高可能削减 Region 级限流配额；HTTP API 最大 30 s 不可调 | [REST API quotas](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-execution-service-limits-table.html)、[HTTP API quotas](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html) | 一致 |
+| aws-docs | `DescribeEvents` 按 operation id 分组、返回进度/早期校验/Hook 错误，`Filters` 为 `EventFilter`，含 `FailedEvents` | [DescribeEvents](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeEvents.html)、[EventFilter](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_EventFilter.html) | 一致 |
+| aws-docs | Aurora DSQL：每事务 3,000 行修改、10 MiB、5 分钟；每集群 10,000 连接、连接 60 分钟、每表 24 索引；认证令牌默认 15 分钟 | [DSQL quotas](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/CHAP_quotas.html)、[authentication token](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_authentication-token.html) | 一致 |
+| aws-docs | 日志告警：服务托管定时查询 + `ScheduledQueryRoleARN`、M-of-N（`QueryResultsToAlarm`/`ToEvaluate`）、聚合仅 `count(*)`/`avg`/`sum`/`min`/`max`、`by` 最多 5 字段、每次返回 500 个 contributor 且默认按字母序、`ALARM` 中最多 100 个、`\| sort desc`、定时查询并发上限 100 | [PutLogAlarm](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutLogAlarm.html)、[Log alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-log.html) | 一致 |
+| aws-docs | `PutAlarmMuteRule` 需对规则与每个目标告警两类资源授权、每条规则最多 100 个告警 | [PutAlarmMuteRule](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutAlarmMuteRule.html) | 一致 |
+
+6 组事实全部一致，正文未改，仅 `aws-docs` 的 `synced_at` 更新为 2026-10-15。Lambda 配额页新增的 Web Functions 配额（请求超时默认 30 s、范围 3–900 s）已在上节「上游新增内容评估」场景 9 中评估，无需重复。
