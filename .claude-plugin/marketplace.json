@@ -64,7 +64,7 @@
     },
     {
       "name": "azure",
-      "description": "Manages Azure architecture, Bicep deployments, identity and cloud services.",
+      "description": "Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL.",
       "source": "./",
       "strict": false,
       "skills": [

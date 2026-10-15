@@ -415,3 +415,20 @@ Event Grid 且与私有化冲突）。b141cac 只动 research / SOURCES。这些
   阶段映射」，需在固定正例、近似负例与保留样本上先记旧描述的路由基线再同条件对照，建议后续按该流程单独处理。
 
 遗留：负例 5 的路由歧义（见上）；场景 4 的 250 核配额未被点名、场景 10 未提 Windows Premium 备选（两侧相同）。各场景只有 1 次运行。
+
+## 2026-10-15 description 维护（路由）
+
+旧：`Manages Azure architecture, Bicep deployments, identity and cloud services.`  
+新：`Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL.`（97 字符）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，模型在系统提示里只看到 `name: description` 与「Matching skill → MUST read」；探针只判定是否读取 skill（`detect_skill_read`），不评答案。判定：读了=read；`agent_end` 正常结束、无 provider 错误且未读=not_read；超时未读 / 空事件流 / provider 错误=不确定，不计入。样本固定于 `/tmp/hs-desc/samples.json`：D2 失败的负例为调优负例（3 次），既有正例场景各 1 次，另写保留负例 / 保留正例各 1 条（2 次，只用于验收）。旧、新描述同模型同条件各跑一遍。约束：omp 渲染 skill 列表时把超过 100 字符的描述截断到词边界，所以新描述 ≤100 字符，否则排除限定词会被截掉；真实宿主第二次会话起看到的是 smol 模型压缩后的 ≤12 词提示，本对照只覆盖首次会话的原文路由。
+
+| 样本 | 类型 | 内容 | 旧描述（期望结果次数） | 新描述 |
+|---|---|---|---|---|
+| N5 | 调优负例 | 场景 5：hub_network.tf 里删掉 subnets 变量中的 "data" 之后，plan 显示要销毁重建 mgmt 和 bastion … | 0/3 | 3/3 |
+| P1 | 正例 | 场景 1：Review main.bicep before we ship it. It builds fine locally so CI pass… | 1/1 | 1/1 |
+| P2 | 正例 | 场景 2：provision-aks.sh is what we were about to run for our first production… | 1/1 | 1/1 |
+| HN | 保留负例 | 新写：After upgrading the azurerm provider from 3.x to 4.x, `terraform plan`… | 0/2 | 2/2 |
+| HP | 保留正例 | 新写：Should our new internal API run on Azure Container Apps or App Service… | 2/2 | 2/2 |
+
+结论：调优负例（Terraform `count`→`for_each`）0/3 → 3/3 未读，保留负例（azurerm provider 升级）0/2 → 2/2；正例与保留正例全部读取。采用新描述。

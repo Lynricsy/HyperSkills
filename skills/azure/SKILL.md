@@ -1,6 +1,6 @@
 ---
 name: azure
-description: "Manages Azure architecture, Bicep deployments, identity and cloud services."
+description: "Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
