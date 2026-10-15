@@ -45,5 +45,51 @@
       "Sets the checkbox to the widget's on-state name read from /AP /N with the leading slash kept (for example '/Yes'); True, 'Yes', '1' and '/1' all leave the box at /Off with no error raised",
       "Re-reads the written file and confirms each field, including the checkbox, actually holds the requested value rather than trusting that the write succeeded"
     ]
+  },
+  {
+    "skills": ["office"],
+    "query": "Write build-report.mjs using the `docx` npm package (9.11) that produces report.docx for our US clients: US Letter paper with 1-inch margins, a table of contents at the top, three Heading 1 sections, and chart.png (1600×900 px) at the full text width under the first heading. CI converts the file to PDF with LibreOffice and nobody opens it in Word, so the contents page in that PDF must show page numbers. Explain the sizing numbers you use.",
+    "expected_behavior": [
+      "Sizes the image in pixels at 96 per inch: the full Letter text width of 6.5 in is 624 px, so the chart becomes about 624×351, not 468×263 from treating the transformation as points; sets `type: \"png\"` on the `ImageRun`",
+      "Sets the section page size explicitly to Letter (`size: { width: 12240, height: 15840 }`, margins 1440 twips) because docx writes an A4 page when no size is given",
+      "For page numbers without Word, passes `pageNumbers: estimatePageNumbers` (from `docx/layout`) to the `Document` — knowing that docx already writes one entry per heading into the TOC field but leaves page numbers to Word and LibreOffice does not update fields — rather than claiming the contents page will be blank, relying on `updateFields`, or hand-writing entries without numbers"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "Write make_invoice.py with reportlab 5 that renders invoice.pdf from a list of line items. Our brand font is Inter (Inter-Regular.ttf and Inter-Bold.ttf are in ./fonts). Item descriptions come straight from our CRM and can contain text like `AT&T <EMEA> renewal`; each description starts with the product name in bold. Tell me what would go wrong if we skipped any of the font or text handling.",
+    "expected_behavior": [
+      "Registers both TTF files with `pdfmetrics.registerFont(TTFont(...))` and maps the family with `registerFontFamily` (normal and bold) so `<b>` inside a `Paragraph` resolves to Inter-Bold",
+      "States that an unregistered font name fails the build (`KeyError` from `setFont`, `ValueError` from a paragraph style) rather than silently falling back to Helvetica",
+      "Escapes CRM text (`xml.sax.saxutils.escape`, `html.escape` or equivalent) before inserting it into `Paragraph` markup, and describes the unescaped failure accurately: `&` produces garbled output such as `AT&T;`, a tag-shaped `<EMEA>` silently disappears, and an unclosed tag raises an error"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "Fill intake-form.pdf for vendor Acme Ltd, amount 42000, with the approved box ticked, then produce intake-final.pdf for the auditor: it must not be editable as a form any more, but the text has to stay selectable and searchable. Use Python.",
+    "files": ["evals/files/intake-form.pdf"],
+    "expected_behavior": [
+      "Flattens with pypdf itself — `update_page_form_field_values(..., flatten=True)` followed by `remove_annotations(subtypes=\"/Widget\")` — rather than rasterising the pages or claiming pypdf has no flatten operation",
+      "Removes the `/AcroForm` entry (or its `/Fields`) after the widgets are gone so the file holds no references to deleted fields, and verifies the result: `get_fields()` returns nothing and the filled values appear in extracted text",
+      "Writes the values with `auto_regenerate=False` and does not call `set_need_appearances_writer(True)`, relying on the appearance streams pypdf writes itself"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "Write export_orders.py: stream about 900,000 rows from our Postgres `orders` table into orders.xlsx with openpyxl inside a 2 GB container, on a sheet named Orders with a bold header row. Also add a helper that counts the data rows in incoming workbooks of the same size without loading them into memory. Point out any openpyxl gotchas in these modes.",
+    "expected_behavior": [
+      "Uses `Workbook(write_only=True)` and creates the sheet with `wb.create_sheet(\"Orders\")`, because a write-only workbook starts with no worksheet (`wb.active` is `None`)",
+      "Saves the write-only workbook exactly once at the end and says it cannot be saved a second time, so there are no periodic checkpoint saves",
+      "Reads with `load_workbook(..., read_only=True)` and closes it explicitly (`wb.close()`), tying the close requirement to read-only mode rather than claiming both modes need it"
+    ]
+  },
+  {
+    "skills": ["office"],
+    "query": "We build report.docx with `pandoc report.md --reference-doc=brand.docx -o report.docx`. The markdown wraps notes in `::: {custom-style=\"Callout Box\"}` blocks, but in the output they look like ordinary body paragraphs, with none of the shading the designers put in brand.docx. pandoc prints no warning. How do I find out what is going on, and how do I fix it? Answer in this conversation.",
+    "expected_behavior": [
+      "Explains that when the named style is not found in the reference document pandoc silently creates a style of that name based on body text, so the block renders as a plain paragraph with no error",
+      "Diagnoses from `word/styles.xml` (of the output and/or brand.docx), not only `document.xml`: an invented style carries just its name, `w:basedOn w:val=\"BodyText\"` and `w:qFormat`, with none of the designed shading or border; and checks that the style name in brand.docx matches `Callout Box` exactly, including spaces and capitalisation",
+      "Fixes it by defining a paragraph style named exactly `Callout Box` in the reference document (or correcting the name in the markdown) and re-running"
+    ]
   }
 ]

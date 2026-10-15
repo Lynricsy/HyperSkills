@@ -425,3 +425,56 @@ openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 man
 | ecma-376 | `w:ins`/`w:del`/`w:delText`、段落标记修订、`rPrChange`、批注部件、内容类型与关系 | https://ecma-international.org/publications-and-standards/standards/ecma-376/ | 页面有效，Part 1 仍为第 5 版（2021-12），语义未变；pandoc 3.12.1 对 `w:del`+`w:delText` 夹具的 accept/reject 结果与正文一致 |
 
 正文改动：`references/docx.md`、`markdown-to-docx.md`、`pdf.md`、`pdf-forms-tables-ocr.md`、`xlsx.md`、`docx-tracked-changes-comments.md`（版本行）与 `scripts/md_to_docx.mjs`、`scripts/pdf_form_fields.py`。均为按官方文档与实跑更正既有陈述，不新增规则，未新增评测场景、未跑 D2；evals 夹具与断言不涉及被改语句。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：b6d2efe（文档上游复核的事实更正：docx 图片 `transformation` 为 96 dpi 像素、默认 A4 与 TOC 页码 `estimatePageNumbers`，
+`md_to_docx.mjs` 同一单位错误；pypdf `auto_regenerate=False` 与 `flatten=True` 配方，`pdf_form_fields.py` 去掉
+`set_need_appearances_writer(True)`；reportlab 未注册字体报错、转义行为、破折号字形；openpyxl write-only / read-only；pandoc
+缺失 `custom-style` 的实际行为）。bc9bef2 只动 SOURCES 与版本号。当时这些更正未跑模型，今天也无可复用结果。
+
+选场景：
+- 场景 5（填写 `intake-form.pdf`）：有 skill 时会调用今天改过的 `scripts/pdf_form_fields.py` 与 `pdf-forms-tables-ocr.md`。
+- 其余更正没有既有场景覆盖（场景 1–3 不涉及图片单位、TOC、扁平化、reportlab 字体、openpyxl 流式模式或 pandoc 样式），
+  按更正点新增 5 个回归场景，各自直接考察对应事实：
+  - 场景 6：docx-js 生成 Letter 报告——图片像素单位、默认 A4、无 Word 时 TOC 页码；
+  - 场景 7：reportlab 发票——注册 TTF 与字体族、未注册字体的失败方式、CRM 文本转义；
+  - 场景 8：同一表单填写后扁平化——`flatten=True` + 删 widget + 删 `/AcroForm`、`auto_regenerate=False`；
+  - 场景 9：openpyxl 90 万行流式导出与读取——write-only 无默认表、只能保存一次、read-only 需 `close()`；
+  - 场景 10：pandoc `custom-style` 不生效的诊断——缺失样式被静默创建为基于正文的样式、看 `styles.xml`。
+  reportlab 破折号字形一条（U+2010/2011/2012）未单独设场景：注册 Inter 后不走内置 Type 1 字体，难以在同一场景里自然考察。
+- 负例：场景 4。
+
+运行：`uv run tools/run_evals.py office --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/D2G2/office/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md`、`events.jsonl` 中的工具调用与 `workspace/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 85 s。读 `pdf-forms-tables-ocr.md` 后用改过的 `scripts/pdf_form_fields.py` 先 `list`、再 `fill --set approved=/Yes`、再 `list` 复核并渲染；宿主用 pypdf 复核输出：`/NeedAppearances False`，字段值 `Acme Ltd` / `42000` / `/Yes` |
+| 5 | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 102 s。自行 `get_fields` 并逐个检查 widget，`'/Yes'`、`auto_regenerate=False`，写后断言字段值 |
+| 6（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ | 391 s。读 `docx.md`；`transformation` 624×351 并写明「96-dpi pixels: 6.5 × 96」、`type: "png"`；`size` 12240×15840、页边距 1440（2：未说明不设即 A4）；`pageNumbers: estimatePageNumbers`（`docx/layout`），LibreOffice 转 PDF 后目录页码为 2；VM 内 LO 25.2 导出带超链接的目录失败，故关掉 TOC 超链接 |
+| 6（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2◐ 3✔ | 645 s。读 `node_modules/docx` 的 `index.d.ts` 与 `layout.d.ts` 后同样给出 624×351（96 px/in）、`type: "png"`、Letter `size`、`estimatePageNumbers`；LO 转 PDF 目录页码 2/3/4 |
+| 7（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3◐ | 172 s。读 `pdf.md`；两个 TTF `registerFont` + `registerFontFamily(normal, bold)`；未注册写成「font-resolution error」，未称回退 Helvetica（未点名异常类型）；`xml.sax.saxutils.escape` 分段转义，`<EMEA>` 消失、未闭合标签报错写对，`&` 只说「may be misinterpreted」；VM 内下载 Inter 实跑 reportlab 5.0.1 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3◐ | 250 s。与有 skill 同型：注册两个 TTF 与字体族、先 `escape` 再加 `<b>`；「cannot use an unregistered font name」；`&` 只说「can be interpreted」 |
+| 8（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 219 s。照 `pdf-forms-tables-ocr.md` 配方：`update_page_form_field_values(..., auto_regenerate=False, flatten=True)` → `remove_annotations(subtypes='/Widget')` → `del writer.root_object['/AcroForm']`；断言 `get_fields()` 为空、无 widget、文本可提取，并渲染两页 |
+| 8（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 143 s。读 `update_page_form_field_values` 源码后同样 `flatten=True` + `remove_annotations('/Widget')` + 去掉 `/AcroForm`、`auto_regenerate=False`，断言无字段、文本可提取 |
+| 9（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 321 s。读 `xlsx.md`；`Workbook(write_only=True)` + `create_sheet("Orders")`，「no default sheet … allows only one save」；读侧 `read_only=True` 并写明「Read-only workbooks must be closed」；VM 内起 Postgres 实测 90 万行导出 RSS 62 MiB |
+| 9（新增） | gpt-6.1-sol medium | 无 | False | 1◐ 2✔ 3✔ | 284 s。`write_only=True` + `create_sheet`（只写「requires create_sheet()」，未说明没有默认表）、「can be saved just once」、「Read-only workbooks must be closed」；同样实测 90 万行 |
+| 10（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 97 s。读 `markdown-to-docx.md`；「silently creates a plain replacement」，给出 `styles.xml` 里只有 `w:name`、`w:basedOn BodyText`、`w:qFormat` 的伪造样式特征并按 `w:name` 精确比对；VM 内 pandoc 3.1.11.1 实测缺失样式得到该最小定义、stderr 为空 |
+| 10（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2◐ 3✔ | 147 s。读 pandoc 手册与 `StyleMap.hs` 后答出「unknown custom-style can become a new, ordinary-looking style」、按 `w:name` 查 `styles.xml`；2：只说「new, unshaded paragraph style」，未给识别特征 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **True** | 1✘ 2◐ | 98 s。工作区为空后即 `read skill://office`，再试用浏览器打开 Google Sheets，最后请用户给链接或导出 `.xlsx`。原始产物另存于 `/tmp/hs-d2/D2G2-office-skill4-run1` |
+| 4（负例，复跑） | gpt-6.1-sol medium | 有 | **True** | 1✘ 2◐ | 71 s。同样先 `read skill://office`，再试浏览器访问 Google Sheets。产物 `/tmp/hs-d2/D2G2/office/omp-openai-gpt-6.1-sol-medium/skill/4` |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：
+- 今天改动相关的行为在有 skill 时全部达成或与基线持平，无回退：场景 5 实际执行了改过的 `pdf_form_fields.py`（输出无
+  `/NeedAppearances`）；场景 8–10 有 skill 都照正文新写法作答，场景 9、10 的期望 1 / 2 略好于基线。场景 6–8 基线也能从
+  已安装包的类型声明或源码自行得出，这些更正只是消除正文里的错误陈述。
+- **负例未通过**：场景 4 两次运行 `skill_read == true`。description 与 Scope 今天都未改动（b6d2efe、bc9bef2 均未碰
+  frontmatter），这是 VM 口径下首次跑该负例暴露的既有路由歧义（description 只写 Word/PowerPoint/Excel/PDF，模型对 Google
+  Sheets 请求先读 skill 再自行按 Scope 放弃），不是今天改动带来的回归。本轮不改 description：按 `docs/workflow.md`「本地
+  description 维护的阶段映射」，需在固定正例、近似负例与保留样本上先记旧描述的路由基线，再同条件对照新旧描述，建议后续按该
+  流程单独处理。
+
+遗留：负例 4 的路由歧义（见上）；reportlab 破折号字形一条无场景；各场景只有 1 次运行。
