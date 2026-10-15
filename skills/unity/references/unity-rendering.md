@@ -137,12 +137,18 @@ Per-renderer eligibility — a Mesh Renderer that:
 - is not on a GameObject with a Text Mesh component;
 - is **not** on a GameObject whose MonoBehaviours implement `OnWillRenderObject`,
   `OnBecameVisible` or `OnBecameInvisible`;
-- is in the hierarchy of Animation/Animator components.
+- does not have its visibility (enabled state) driven by an Animation/Animator. The 6.6
+  manual phrases this as "in the hierarchy of Animation or Animator components" inside the
+  *works only with* list, which reads as a requirement; the Editor's own exclusion reasons
+  (`GRDExclusionReasonText` in UnityCsReference master, `AnimationVisibility`: "Renderer
+  visibility controlled by animation") make it an exclusion.
 
-That third-from-last item is the one that catches teams: a visibility callback used for
-audio or AI culling silently removes the renderer from the drawer. Note it is the
-*visibility* callbacks that exclude, and `OnRenderObject` is not on the list — the
-intuitive guess is backwards.
+The callback item is the one that catches teams: a visibility callback used for audio or AI
+culling silently removes the renderer from the drawer. Note it is the *visibility* callbacks
+that exclude — the Editor's `RenderCallback` reason names exactly `OnWillRenderObject`,
+`OnBecameVisible` and `OnBecameInvisible` — and `OnRenderObject` is not on the list, even
+though the *Make a GameObject compatible* page uses it as its example of a per-instance
+callback.
 
 Costs of enabling it: build times grow because all `BatchRendererGroup` shader variants are
 compiled, and Probe Atlas Blending becomes the default with Forward+/Deferred+. LOD Group

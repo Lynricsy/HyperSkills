@@ -53,7 +53,7 @@ upstreams:
     url: https://docs.unity3d.com/Manual/index.html
     license: CC-BY-NC-ND-4.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Authority for every [official] claim: the collision and trigger message matrix, SRP Batcher behaviour and shader CBUFFER requirements, GPU Resident Drawer prerequisites and per-renderer exclusions, the runtime/Editor UI recommendation table, Unity serialization rules, Editor command-line arguments, and the Unity Test Framework command-line reference."
     notes: "Manual/TermsOfUse.html read in full: code snippets are under the Unity Companion License and all other manual and Scripting Reference content is CC BY-NC-ND 4.0. NonCommercial plus NoDerivatives means it cannot be merged, so the official-vendor exception in docs/roadmap.md does not apply to this skill and it was filed under criterion 2 instead. Facts were verified and restated; no wording was reused."
   - id: unity-cs-reference

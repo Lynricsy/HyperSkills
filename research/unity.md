@@ -390,3 +390,20 @@ patch；两仓库区间内均无 LICENSE 变更。unity-official-skills 为 refe
 SOURCES 的 unity-official-skills `notes` 补记本次目录变动。
 
 结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号与 SOURCES notes。
+
+## 2026-10-15 文档上游复核
+
+docs.unity3d.com/Manual 当前默认渲染 Unity 6.6（6000.6，页脚 Built on 2026-10-14）；按需对照 `/6000.3/Documentation/Manual/` 同名页。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| unity-docs | 6.3 LTS（6000.3）为当前 LTS、6.6（6000.6）为当前 Update 版 | Unity release API（`services.api.unity.com/unity/editor/release/v1/releases`）：6000.3.26f1 LTS、6000.6.5f1 SUPPORTED（2026-10-08），6000.7 beta、7000.0 alpha | 一致 |
+| unity-docs | 碰撞/触发消息矩阵：碰撞消息需至少一方动态；静态触发器只对动态/运动学碰撞体报告 | [Interaction between collider types](https://docs.unity3d.com/Manual/collider-types-interaction.html) | 一致 |
+| unity-docs | SRP Batcher 减少的是渲染状态切换而非 draw call 数、按 shader variant 批处理；自定义 shader 需 `UnityPerDraw`/`UnityPerMaterial`；MPB 使对象不兼容 | [SRP Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html)、[Check compatibility](https://docs.unity3d.com/Manual/SRPBatcher-Materials.html) | 一致 |
+| unity-docs | GPU Resident Drawer 前提与逐渲染器排除 | [Enable the GPU Resident Drawer in URP](https://docs.unity3d.com/Manual/urp/gpu-resident-drawer.html)（6.6）、[6000.3 同名页](https://docs.unity3d.com/6000.3/Documentation/Manual/urp/gpu-resident-drawer.html)、[Make a GameObject compatible](https://docs.unity3d.com/Manual/urp/make-object-compatible-gpu-rendering.html) | **部分更正**：① `references/unity-rendering.md` 列表末项「is in the hierarchy of Animation/Animator components」照搬了 6.6 页「works only with」清单的字面措辞，读作必要条件；UnityCsReference master `Editor/Mono/Graphics/GRDExclusionReasonText.cs` 的排除原因 `AnimationVisibility`（"Renderer visibility controlled by animation"）表明它是排除条件——改为「可见性不由 Animation/Animator 驱动」并注明官方措辞。② 6000.3 页只写 Forward+，但 Graphics `6000.3/staging` 的 `UniversalRendererData.usesClusterLightLoop` = ForwardPlus \|\| DeferredPlus、`IsGPUResidentDrawerSupportedBySRP` 报错文案为 "Forward+ or Deferred+"——判 6.3 文档滞后，正文「Forward+ or Deferred+」不变。③ Make-compatible 页以 `OnRenderObject` 为「per-instance callback」示例，而同一排除原因表的 `RenderCallback` 只列 `OnWillRenderObject`/`OnBecameVisible`/`OnBecameInvisible`，Graphics 测试 `GPUDrivenRenderingTests.cs` 也只覆盖这三个——正文「`OnRenderObject` 不在名单」保留，补上依据并提及该页示例 |
+| unity-docs | UI 推荐表：运行时 uGUI（备选 UI Toolkit），Editor 用 UI Toolkit（备选 IMGUI） | [Comparison of UI systems](https://docs.unity3d.com/Manual/UI-system-compare.html) | 一致 |
+| unity-docs | 序列化：多维/锯齿数组与直接嵌套容器不序列化；`[SerializeField] Dictionary<TKey,TValue>` 仅 6.6 支持（6.3 页仍把 dictionaries 列为不支持的 multilevel 类型）；`[MakeSerializable]` | [Serialization rules](https://docs.unity3d.com/Manual/script-serialization-rules.html)（6.6 与 6000.3） | 一致 |
+| unity-docs | `-executeMethod` 脚本须在 Editor 文件夹、方法 static；`-quit` 可能隐藏错误、与 `-runTests` 冲突；失败需抛异常或 `EditorApplication.Exit(非零)` | [Editor command line arguments](https://docs.unity3d.com/Manual/EditorCommandLineArguments.html) | 一致 |
+| unity-docs | UTF：`-testPlatform` 缺省为 EditMode、可取 BuildTarget；测试期间不支持 `-quit`；无统一退出码定义；`-playerHeartbeatTimeout` 默认 10 分钟；`-runSynchronously` | [UTF command-line reference](https://docs.unity3d.com/Manual/test-framework/reference-command-line.html) | 一致 |
+
+一处更正（GRD 动画项由「必要条件」改为「排除条件」，证据为引擎 Editor 源码），其余一致；`unity-docs` 的 `synced_at` 更新为 2026-10-15。
