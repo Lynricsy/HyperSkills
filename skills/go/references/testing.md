@@ -175,9 +175,11 @@ func TestExpiry(t *testing.T) {
 - The bubble must be self-contained: no real network, no external processes, no goroutines
   started outside it. A mutex, real network or file I/O and system calls are not durable
   blocking, so the clock stalls behind them: `httptest.NewServer` inside a bubble hangs the
-  test. Use `httptest.NewTestServer(t, handler)` (Go 1.27+), which serves over an in-memory
-  network built for bubbles; below 1.27 give the client a fake `http.RoundTripper`.
-  [verified]
+  test. When `go.mod` says 1.27 or later, the fix is `httptest.NewTestServer(t, handler)`:
+  it serves the same handler over an in-memory network built for bubbles, so the test still
+  exercises the real client, transport and handler path. Do not swap in a hand-written
+  `http.RoundTripper` there - it skips that path and tests a stub instead. The fake
+  `RoundTripper` is only the fallback below Go 1.27. [verified]
 - This replaces both `time.Sleep` padding and deadline polling loops. A polling loop with a
   two-second budget is still a wall-clock test — it is slow on a loaded runner and it
   cannot prove the timer fired at the right moment.

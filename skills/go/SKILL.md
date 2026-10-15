@@ -87,7 +87,9 @@ Paths below are relative to this skill's directory.
     so the parent's `defer` fires first. [verified]
 19. No `time.Sleep` in tests. Use `testing/synctest` (Go 1.25+) for anything involving
     timers, timeouts or context deadlines: its fake clock advances only when every
-    goroutine in the bubble is blocked.
+    goroutine in the bubble is blocked. A real server never blocks durably, so inside a
+    bubble use `httptest.NewTestServer` (Go 1.27+), not `httptest.NewServer` or a stub
+    `RoundTripper`.
 20. Profile before optimising, change one thing, measure again with `benchstat`. Write
     benchmarks as `for b.Loop()` (Go 1.24+), which keeps setup out of the timed region and
     stops the compiler eliding the call.

@@ -374,3 +374,14 @@ ticker，评审意见称两者都泄漏）直接考察 `time.After` 更正——
 遗留：场景 5 期望 2——建议下一轮把 `testing.md` 该条改成以 `NewTestServer` 为默认做法并写明理由（同一个 handler 仍走真实的
 client / transport / handler 路径，手写 `RoundTripper` 会跳过），只把 `RoundTripper` 留作 1.27 以下的退路，然后重跑场景 5。
 各场景只有 1–2 次运行。
+
+### 同日修正与复测（主代理）
+
+按上面遗留建议修正：`references/testing.md` 该条改为「`go.mod` ≥ 1.27 时用 `httptest.NewTestServer`，它仍走真实 client / transport / handler 路径；手写 `RoundTripper` 只是 1.27 以下的退路」；`SKILL.md` Core rule 19 补一句「bubble 内用 `NewTestServer`，不用 `NewServer` 或桩 `RoundTripper`」（规则条数不变）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 有（修正后第 1 次） | True | 1✔ 2✔ 3✔ 4✔ | 78 s，`/tmp/hs-d2/main-go-r1/…/skill/5/`。`synctest.Test` 移进每行 `t.Run`；`httptest.NewTestServer` 并说明真实 socket I/O 会挡住假时钟；`time.Sleep` 后 `synctest.Wait()`；`-race -count=100` 通过 |
+| 5 | gpt-6.1-sol medium | 有（修正后第 2 次） | True | 1✔ 2◐ 3✔ 4✔ | 79 s，`/tmp/hs-d2/main-go-r2/…/skill/5/`。同样改用 `NewTestServer`，但只说「替换真实网络服务器」，未讲非持久阻塞的原因 |
+
+结论：期望 2 由修正前两次 ◐（手写 `RoundTripper`）变为一次 ✔、一次 ◐（做法正确、解释不全），基线不变（◐），无回退；场景 5 遗留关闭。
