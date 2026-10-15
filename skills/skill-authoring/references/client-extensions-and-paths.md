@@ -186,11 +186,13 @@ long description may never reach the model that has to choose.
 
 Claude Code's whole-listing overflow is different: a rarely invoked skill keeps
 its name and loses its entire description, so the model can still call it by
-name but has no keywords to select it on its own. Shortening the entry cannot
-fix that; the fixes are a larger budget fraction, fewer installed skills, or
-marking low-priority skills `"name-only"` in `skillOverrides` so they stop
-spending budget. `/doctor` estimates the listing's cost, `/context` reports its
-size after the budget is applied, and a debug-log warning records the overflow.
+name but has no keywords to select it on its own. Front-loading inside one
+description does not protect it from that; what helps is spending less of the
+shared budget or raising it: trim `description` and `when_to_use` at the source
+(key use case first), raise the budget fraction, install fewer skills, or mark
+low-priority skills `"name-only"` in `skillOverrides` so they stop spending
+budget. `/doctor` estimates the listing's cost, `/context` reports its size after
+the budget is applied, and a debug-log warning records the overflow.
 
 ## Capability differences worth knowing
 

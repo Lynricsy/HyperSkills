@@ -488,7 +488,7 @@ docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 - `https://code.claude.com/docs/en/env-vars`：`SLASH_COMMAND_TOOL_CHAR_BUDGET` 覆盖该预算，按上下文窗口 1% 动态计算，回退值 8,000 字符。
 - 评估报告转述的设置名 `skillListingBudgetFraction`、`skillListingMaxDescChars`、`SLASH_COMMAND_TOOL_CHAR_BUDGET` 三个全部与官方文档一致。
 
-改动：Claude Code 行拆成整体预算与单条上限两部分；原「Both cut from the end」改为只对单条上限成立，并新增一段说明整体超额丢的是整段描述（模型仍能按名字调用，但没有关键词可供自动选中），修法是调预算、少装或 `"name-only"`，缩短描述无济于事。`SOURCES.yaml` 的 claude-code-skills-docs 更新 `contributes`/`notes`/`synced_at`，新增 melodic 条目（reference）。
+改动：Claude Code 行拆成整体预算与单条上限两部分；原「Both cut from the end」改为只对单条上限成立，并新增一段说明整体超额丢的是整段描述（模型仍能按名字调用，但没有关键词可供自动选中），修法是调预算、少装或 `"name-only"`，以及在源头精简 `description`/`when_to_use`。（同日复核更正：本节最初写成「缩短描述无济于事」，与官方「Skill descriptions are cut short」节明列的 trim 修法相悖，已改正；单条内的前置关键词仍挡不住整体丢描述，这一区别保留。）`SOURCES.yaml` 的 claude-code-skills-docs 更新 `contributes`/`notes`/`synced_at`，新增 melodic 条目（reference）。
 `--pin` 写入 melodic f0d9185，并按惯例把 hyperskills-self 顺带前移到 fc381f0（repo moved, tracked paths unchanged）。
 
 评测：事实更正，按简报不需要基线缺口，未新增场景、未跑 D2。
