@@ -296,3 +296,21 @@ refresh」），`skills/rsync/SKILL.md` 无提交判噪声。用裸仓库缓存 
 `pin_check.py` 输出 `PIN CHECK CLEAN`。
 
 结论：正文未变，未跑 D2；仅 re-pin 与版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：9 条 `kind: docs` 条目的 `contributes` 事实 + SKILL.md 与 references 实际引用的命令、选项、版本号。freedesktop.org 对脚本 UA 返回 418，systemd 手册经 read 工具渲染核对，版本变化另用已登录 `gh` 读 `systemd/systemd` v262 的 `NEWS` 与 `man/*.xml` SPDX 头。当前 `latest` 手册为 **systemd 262**（v262 发布于 2026-09-22；正文原记 261.2）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| systemd-exec | `CapabilityBoundingSet=` 只限定集合、同时影响 effective/permitted/inheritable；`NoNewPrivileges=` 阻止经 execve 的 setuid/文件能力提权；`AmbientCapabilities=` 自 229；`BindPaths=`/`BindReadOnlyPaths=` 自 233、隐含挂载命名空间、多次赋值追加、空赋值同时清空两类列表；`PrivateMounts=` 自 239，命名空间按 manager fork 的每个命令单独建立；`LimitRSS=` 在 Linux 无效；`LimitNPROC=` 按真实 UID 计；LimitNOFILE 软限制超过 1024 会破坏 select(2) | https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html | 一致（引入版本另用 NEWS 逐条确认：229/233/239）；v262 man XML 仍为 LGPL-2.1-or-later |
+| systemd-service | `Type=exec` 报告 execve 失败但不表示就绪（NEWS：240 引入）；`notify` 需 READY=1；`notify-reload` 自 253 并有 RELOADING=1/READY=1 协议；信号式 `ExecReload` 异步、建议同步等待；`Restart=always` 也重启干净退出；`OOMPolicy=continue` 只记录不停止单元 | https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html | 一致。另记（未合入）：262 起 `Type=notify-reload` 服务在发送 READY=1 时若既未捕获也未阻塞 `ReloadSignal=` 会以协议错误启动失败（NEWS v262「Announcements…」段与手册新增的处理器校验说明）；正文已要求「只在实现其 reload 协议时使用 notify-reload、不盲目转换 Type」，属既有规则的加强情形，未证明基线缺口，不新增 |
+| systemctl-manual | `daemon-reload` 重新加载单元文件与依赖树、与 `reload` 区分；`reload` 重载服务自身配置；`enable`/`disable` 不隐式 start/stop（需 `--now`）；`cat` 显示磁盘文件而非 manager 已加载内容；`show` 暴露 MainPID 等运行态 | https://www.freedesktop.org/software/systemd/man/latest/systemctl.html | 一致 |
+| linux-unlink | 最后一个名字删除但仍有进程打开时，文件存续到最后一个引用它的 fd 关闭 | https://man7.org/linux/man-pages/man2/unlink.2.html | 一致（man-pages 6.19，2026-02-08，未变） |
+| linux-path | 每个非末级组件需要搜索权限否则 EACCES；`/` 起点为进程根目录（chroot/openat2 RESOLVE_IN_ROOT）；私有挂载命名空间改变解析 | https://man7.org/linux/man-pages/man7/path_resolution.7.html | 一致（man-pages 6.19 未变） |
+| openssh-sshd | `-t` 仅检查配置与密钥合法性；`-T` 配合 `-C` 关键字 addr/user/host/laddr/lport/rdomain 应用 Match 后输出有效配置；`-p` 会使配置文件 `Port` 被忽略（`ListenAddress` 端口仍覆盖命令行） | https://man.openbsd.org/sshd | 一致（OpenBSD-current，页面日期 2026-09-02） |
+| nft-manual | `-c/--check` 只检查不应用；`inet` 族同时处理 IPv4 与 IPv6 | https://netfilter.org/projects/nftables/manpage.html | 一致 |
+| nginx-tls | SNI 在 TLS 握手中携带名字以选择证书（先于 HTTP 请求）；证书链须完整下发 | https://nginx.org/en/docs/http/configuring_https_servers.html | 一致 |
+| rsync-manual | `-a` 等于 `-rlptgoD`，不含 -A/-X/-U/-N/-H；源路径尾斜杠复制内容而非目录名；`-H` 只能识别传输集内的硬链接；`host::module`/`rsync://` 守护进程连接不加密；`--fake-super` 以 xattr 存取特权属性；`--numeric-ids` 不按名映射 | https://download.samba.org/pub/rsync/rsync.1 | 一致（手册现标注「current for version 3.5.1」，日期 2026-09-21，新增的安全使用指南与正文传输结论一致） |
+
+处理：无事实更正；三份 reference 的 "Verified against" systemd 版本由 261.2 更新为 262，SOURCES notes 同步。另记：`references/backup-and-restore.md` 版本行仍写 restic 文档 commit `ba802d4`，而 `restic-docs`（`kind: repo`，不在本轮 docs 范围）已于 2026-10-15 上游同步 re-pin 到 `9da3b87`（tracked paths 未变），留待该条目的仓库同步处理。

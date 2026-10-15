@@ -1,6 +1,6 @@
 # Service privileges, activation and process limits
 
-Verified against: systemd 261.2 manuals; Linux man-pages 6.19.
+Verified against: systemd 262 manuals; Linux man-pages 6.19.
 
 ## Contents
 

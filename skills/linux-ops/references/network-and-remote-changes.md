@@ -1,6 +1,6 @@
 # Network diagnosis and recoverable remote changes
 
-Verified against: systemd 261.2; OpenSSH sshd(8); nftables nft(8).
+Verified against: systemd 262; OpenSSH sshd(8); nftables nft(8).
 
 ## Contents
 

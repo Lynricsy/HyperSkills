@@ -1,6 +1,6 @@
 # Storage capacity and process-held objects
 
-Verified against: Linux man-pages 6.19; systemd 261.2 execution limits.
+Verified against: Linux man-pages 6.19; systemd 262 execution limits.
 
 ## Identify the exhausted resource
 

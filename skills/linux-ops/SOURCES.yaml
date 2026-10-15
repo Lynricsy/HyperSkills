@@ -42,31 +42,31 @@ upstreams:
     url: https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html
     license: LGPL-2.1-or-later
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks capability, privilege, bind-list, per-command namespace and rlimit facts in the service, storage and network references."
-    notes: "Read relevant systemd 261.2 sections; license confirmed in upstream man/systemd.exec.xml; no manual prose copied."
+    notes: "Read relevant systemd 262 sections; license confirmed in upstream man/systemd.exec.xml at v262; no manual prose copied."
   - id: systemd-service
     kind: docs
     url: https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html
     license: LGPL-2.1-or-later
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks readiness, reload and restart semantics in SKILL.md and references/service-privileges-and-limits.md."
-    notes: "Official systemd 261.2 manual; reference only."
+    notes: "Official systemd 262 manual; reference only."
   - id: systemctl-manual
     kind: docs
     url: https://www.freedesktop.org/software/systemd/man/latest/systemctl.html
     license: LGPL-2.1-or-later
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks the disk, manager and runtime distinction and enable/reload activation boundaries."
-    notes: "Official systemd 261.2 manual; reference only."
+    notes: "Official systemd 262 manual; reference only."
   - id: linux-unlink
     kind: docs
     url: https://man7.org/linux/man-pages/man2/unlink.2.html
     license: Linux-man-pages-copyleft
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks the object-lifetime mechanism behind deleted-open space in references/storage-and-processes.md."
     notes: "Linux man-pages 6.19 rendered manual; historical source license header also inspected through the authenticated mkerrisk/man-pages API; no text copied."
   - id: linux-path
@@ -74,7 +74,7 @@ upstreams:
     url: https://man7.org/linux/man-pages/man7/path_resolution.7.html
     license: Linux-man-pages-copyleft
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks ancestor search permissions and process-root and mount-namespace path resolution."
     notes: "Linux man-pages 6.19 rendered manual; historical source license header inspected through the authenticated mkerrisk/man-pages API; no text copied."
   - id: openssh-sshd
@@ -82,7 +82,7 @@ upstreams:
     url: https://man.openbsd.org/sshd
     license: SSH-OpenSSH
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks syntax/key validation, Match-aware effective configuration and listener overrides in references/network-and-remote-changes.md."
     notes: "The inspected sshd.8 header contains the Tatu Ylonen SSH terms and two-clause BSD terms; no manual prose copied."
   - id: nft-manual
@@ -90,7 +90,7 @@ upstreams:
     url: https://netfilter.org/projects/nftables/manpage.html
     license: CC-BY-SA-4.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks check-only parsing, inet address-family scope and ruleset serialization semantics for recoverable firewall changes."
     notes: "The manual explicitly licenses documentation CC-BY-SA-4.0, separately from the GPL-2.0 program; no text copied."
   - id: nginx-tls
@@ -98,7 +98,7 @@ upstreams:
     url: https://nginx.org/en/docs/http/configuring_https_servers.html
     license: BSD-2-Clause
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks served certificate chains and SNI selection before HTTP processing in references/network-and-remote-changes.md."
     notes: "Documentation license confirmed through authenticated nginx/nginx.org LICENSE; no server configuration or manual prose copied."
   - id: rsync-manual
@@ -106,7 +106,7 @@ upstreams:
     url: https://download.samba.org/pub/rsync/rsync.1
     license: GPL-3.0-or-later
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks archive-mode omissions, transport, deletion preview and hard-link transfer boundaries in references/backup-and-restore.md."
     notes: "Manual refers to COPYING; GPL version confirmed in upstream source, with additional linking exceptions in COPYING. No GPL prose or code copied."
   - id: restic-docs
