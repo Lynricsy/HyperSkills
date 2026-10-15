@@ -71,5 +71,15 @@
       "Fixes it by giving the slab a kinematic Rigidbody and moving it with MovePosition in FixedUpdate, so the physics system treats it as a moving body that wakes and carries what rests on it, or by calling Rigidbody.WakeUp() on the resting crates when the trapdoor opens; also notes that moving a static collider every frame is itself unsupported/expensive",
       "Explains LandingCheck: with automatic transform syncing off by default, a Transform change made in Update is not visible to physics queries until the next simulation step, so the raycast still hits the slab at its old position; Physics.SyncTransforms() before the same-frame query (once, not every frame) fixes it"
     ]
+  },
+  {
+    "skills": ["unity"],
+    "query": "grd-checklist.md is our plan for getting the warehouse level onto the GPU Resident Drawer. Review it item by item before we run the editor script over ~3,000 prefabs: which items are right, which are backwards, and what should we do instead?",
+    "files": ["evals/files/grd-checklist.md"],
+    "expected_behavior": [
+      "Rejects item 1: being driven by Animation/Animator is an exclusion condition for the GPU Resident Drawer, not a requirement - the manual's wording reads as a requirement but the Editor's exclusion reason is 'Renderer visibility controlled by animation' - so static props need no Animator and adding one gains nothing",
+      "Says the doors in item 2 are the renderers the drawer excludes, because an Animator keys their `MeshRenderer.enabled` (visibility controlled by animation), the opposite of the checklist's conclusion",
+      "Corrects items 3 and 4: `OnRenderObject` does not exclude a renderer, whereas `OnBecameVisible` / `OnBecameInvisible` (and `OnWillRenderObject`) do - so LampFlicker can stay as far as the drawer is concerned, and the crate audio culling is what silently removes ~400 crates and should move to a non-visibility mechanism (for example a CullingGroup or a distance check)"
+    ]
   }
 ]

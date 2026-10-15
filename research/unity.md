@@ -407,3 +407,17 @@ docs.unity3d.com/Manual 当前默认渲染 Unity 6.6（6000.6，页脚 Built on 
 | unity-docs | UTF：`-testPlatform` 缺省为 EditMode、可取 BuildTarget；测试期间不支持 `-quit`；无统一退出码定义；`-playerHeartbeatTimeout` 默认 10 分钟；`-runSynchronously` | [UTF command-line reference](https://docs.unity3d.com/Manual/test-framework/reference-command-line.html) | 一致 |
 
 一处更正（GRD 动画项由「必要条件」改为「排除条件」，证据为引擎 Editor 源码），其余一致；`unity-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：f30fdd8 上游同步、67ca979 GPU Resident Drawer 动画项改为排除条件。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/unity/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 URP SetPass 报告（GRD 前提，含 `OnBecameVisible`） | gpt-6.1-sol medium | 有 | true | 6/6 | 58 s。MPB 使 SRP Batcher 不兼容且每帧分配；`.material` 私有副本；UnityPerDraw/UnityPerMaterial；SRP Batcher 减少状态切换而非 draw 数；Standard 品红；GRD 需 Forward+ 与 Keep All，MPB 与可见性回调排除，建议改 CullingGroup。未把「受 Animator 控制」说成要求 |
+
+选择理由：3 的期望 #6 考察 GRD 资格（今日更正的动画项所在清单）；动画驱动可见性为排除条件没有场景直接考察，新增 7（`grd-checklist.md`）；5 为负例。
+
+已完成部分：场景 3 有 skill 6/6，未把「位于 Animator 层级」误当要求。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：3 基线；5 负例；7 GRD 动画排除条件（新增，有/无）。待结果出来后补判定。
