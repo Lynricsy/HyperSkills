@@ -1,0 +1,39 @@
+$ npx wrangler versions list --name checkout-api
+Version ID:  c41d7e2a-8b90-4f3e-a1d2-5e6f7a8b9c0d
+Created:     2026-10-15T07:42:11.000Z
+Author:      dana@example.com
+Source:      Upload
+Tag:         extra-logging
+Message:     -
+
+Version ID:  2b9c0f17-6d4e-4a8b-9c3f-1e2d3c4b5a69
+Created:     2026-10-08T14:03:55.000Z
+Author:      ci@example.com
+Source:      Upload
+Tag:         release-412
+Message:     promo-code evaluation
+
+Version ID:  8e7f6a5b-4c3d-4e2f-9a1b-0c9d8e7f6a5b
+Created:     2026-09-30T10:11:12.000Z
+Author:      ci@example.com
+Source:      Upload
+Tag:         release-411
+Message:     -
+
+$ npx wrangler deployments list --name checkout-api
+Created:     2026-10-08T14:04:20.000Z
+Author:      ci@example.com
+Source:      Unknown (deployment)
+Message:     release-412
+Version(s):  (100%) 2b9c0f17-6d4e-4a8b-9c3f-1e2d3c4b5a69
+                 Created:  2026-10-08T14:03:55.000Z
+                     Tag:  release-412
+
+$ npx wrangler deployments list --name cart-store
+Created:     2026-10-02T09:30:00.000Z
+Author:      ci@example.com
+Source:      Unknown (deployment)
+Message:     cart-store release-77
+Version(s):  (100%) 5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c8d
+                 Created:  2026-10-02T09:29:41.000Z
+                     Tag:  release-77

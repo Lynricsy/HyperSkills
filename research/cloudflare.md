@@ -309,3 +309,25 @@ Cloudflare Mesh（原 WARP Connector）。SOURCES：cloudflare-skills 删除 `sk
 场景 8 基线已会「先迁移再用 cf 项目命令」，有 skill 无增益；未迁移项目护栏保留为路由规则的安全对偶（压缩为一段），其余未证缺口的
 「cf 命令安全执行」细节已撤回。场景 9 只跑基线（事实更正不依赖评测）；负例与旧场景未重跑。
 产物：`/tmp/hs-evals/cloudflare/omp-openai-gpt-6.1-sol-medium/{baseline,skill}/{7,8}`、`baseline/9`。
+
+## 2026-10-15 上游新增内容评估
+
+候选：cloudflare/skills `skills/workers-profiling`（Apache-2.0，`be68fd8db614`）。上游 SKILL.md 本身只是指向官方文档
+`workers/observability/profiling-in-production`（页面 2026-10-10）的薄流程；可合入的硬事实全部来自该文档：CPU/Heap 两类、Heap 每分配
+512 kB 采样且不是存活内存/heap snapshot、抓取对象是最近活跃且已加载的 isolate（需抓取期间有流量，日志时间范围不控制抓取）、
+时长 1000–50000 ms（dashboard 默认 10000）、`latest` 是最近创建而非已部署的版本、DO 要填拥有 namespace 的 Worker 且
+`--namespace-id`/`--actor-id`（64 位十六进制）成对、CLI 输出原始 pprof 而 API 返回 gzip pprof、Workers Scripts Read 或 Content
+Read-Only、429 + `Retry-After`、`upload_source_maps: true` 后重新部署。以上逐条对照官方页面核实无误。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| workers-profiling（生产环境 CPU/Heap profiling） | 不合入 | 两个场景基线均全部达成：VM 中的基线会自行检索到官方 profiling 页面并给出正确的版本、DO 归属、流量与 heap 语义；无缺口可填 |
+
+我们的 `observability.md:85-88`（「本地 profiling 用 DevTools」）不是错误陈述，不构成事实更正，保持不变。场景 10、11 留作哨兵。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10 生产 profiling（明确要求在生产抓） | gpt-6.1-sol medium | 无 | false | EB1–EB6 全部 | 用 2b9c0f17 而非 `latest`、`--worker-id cart-store` + 成对 ID、heap≠存活内存、补 `upload_source_maps` |
+| 11 生产 profiling（只问怎么定位，不提示 profiling） | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | 主动提出 `cf workers versions profile`，并补本地 DevTools heap snapshot 证明保留路径 |
+
+结论：基线 11/11，未跑有 skill 一侧。产物：`/tmp/hs-evals-MergeM2/cloudflare/omp-openai-gpt-6.1-sol-medium/baseline/{10,11}`。

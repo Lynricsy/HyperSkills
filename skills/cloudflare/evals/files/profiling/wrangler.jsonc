@@ -1,0 +1,21 @@
+// checkout-api/wrangler.jsonc
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "checkout-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "minify": true,
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 }
+  },
+  "durable_objects": {
+    "bindings": [
+      // CartDO is defined and deployed by the cart-store Worker; checkout-api only calls it.
+      { "name": "CARTS", "class_name": "CartDO", "script_name": "cart-store" }
+    ]
+  },
+  "kv_namespaces": [
+    { "binding": "PROMOS", "id": "0f1e2d3c4b5a69788796a5b4c3d2e1f0" }
+  ]
+}

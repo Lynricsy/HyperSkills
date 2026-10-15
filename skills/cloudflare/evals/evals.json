@@ -125,5 +125,30 @@
       "Rejects the consultant's Audit SSH advice: Gateway's Audit SSH action reached end of life (2026-07-15) and no longer works; SSH command logging comes from Access for Infrastructure targets (which also replace the static keys with short-lived certificates), and those command logs are encrypted with a customer-provided public key and exported rather than read in the dashboard",
       "Explains the empty Microsoft 365 CASB view as expected timing rather than a fault: API CASB is periodic and out of band, the initial scan can take several hours and later scans run roughly every 24-48 hours, and reauthorizing can restart scan state, so it should not be reconnected yet"
     ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "Read incident.md, wrangler.jsonc and versions.txt. We want to profile checkout-api and the CartDO carts in production to find the CPU hotspot and the memory growth. Give me the exact capture commands and tell me how to read what comes back.",
+    "files": ["evals/files/profiling/incident.md", "evals/files/profiling/wrangler.jsonc", "evals/files/profiling/versions.txt"],
+    "expected_behavior": [
+      "Uses Cloudflare's production profiling (`cf workers versions profile`, or the dashboard Flamegraph / the profile API) with `--profile-type cpu` for the exceededCpu path and `heap` for the cart memory, instead of only local DevTools or `wrangler tail`",
+      "Does not profile `latest` for checkout-api: `latest` is the most recently created version (Dana's undeployed c41d7e2a upload), not the deployed one, so it targets the deployed version 2b9c0f17 (full UUID or an 8+ character prefix)",
+      "For the Durable Object capture uses `--worker-id cart-store` (the Worker that owns the CartDO namespace per `script_name`), not checkout-api, and passes both `--namespace-id` and `--actor-id` with the 64-character instance id",
+      "Says the capture records only live activity during the capture window (1000-50000 ms) on an already-loaded isolate, so traffic must hit that version/instance during capture; the Workers Logs time filter does not select what is profiled and yesterday's window cannot be profiled",
+      "Says a heap profile samples allocations (every 512 kB allocated), not retained memory or a heap snapshot, so it shows which code allocates but does not by itself prove which objects leak",
+      "Flags that the Worker is minified without `upload_source_maps: true`, so source maps must be enabled and redeployed before capturing, or frames point at the minified bundle"
+    ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "checkout-api keeps ending quote requests with exceededCpu in production and some CartDO carts grow until exceededMemory, but nothing reproduces under wrangler dev. incident-triage.md, wrangler.jsonc and versions.txt are attached. How do we find out which code is responsible? Give me concrete next steps.",
+    "files": ["evals/files/profiling/incident-triage.md", "evals/files/profiling/wrangler.jsonc", "evals/files/profiling/versions.txt"],
+    "expected_behavior": [
+      "Proposes capturing CPU and heap profiles of the deployed code in production (Workers profiling via `cf workers versions profile`, the dashboard Flamegraph or the profile API) rather than only adding logging, `wrangler tail`, or local DevTools that cannot reproduce the issue",
+      "Targets the deployed checkout-api version 2b9c0f17 rather than `latest`, which is Dana's undeployed upload",
+      "Captures the Durable Object through the owning Worker `cart-store` with both the namespace id and the 64-character actor id, and keeps traffic flowing to that instance during the capture",
+      "Says a heap profile shows sampled allocations, not retained memory, so it narrows allocating code but does not alone prove a leak",
+      "Flags missing `upload_source_maps: true` with `minify: true` as a prerequisite for readable frames"
+    ]
   }
 ]
