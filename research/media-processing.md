@@ -591,3 +591,35 @@ TerminalSkills 三条为 repo moved、tracked paths unchanged，前移到 511ec2
 
 结论：基线已全部做到，上游新增内容不合入；正文与 references 未改，场景 5 与夹具留作哨兵。仅 re-pin、更新改名仓库的
 `repo`/`url`、版本号改为 2026.09.30，未跑有 skill 的 D2，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 的 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因结果（`/tmp/hs-attr/attribution.md`、
+`skills_real.json`）。paths 下确有提交的是 kajisho-ffmpeg 与 maxazure-video；terminalskills-ffmpeg / -imagemagick / -sharp
+三条为 too-large，主代理按完整区间归因为空，我又在其缓存 `/tmp/hs-attr/TerminalSkills__skills` 上对
+`511ec20..6edcf94 -- skills/ffmpeg skills/imagemagick skills/sharp` 跑 `git log`，同样为空，判噪声。归因方法：kajisho 与 maxazure
+用 `gh repo clone --filter=blob:none` 克隆到 `/tmp/sg5/`，对 `<pin>..<head> -- <paths>` 跑 `git log`、`git diff --stat`、`git diff`，
+修复类提交另读提交说明与所引 issue（#316）。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`；vertex-genmedia-av（a7f6308 → 7a70f3b）、
+einverne-imagemagick（c6c0686 → 4fd1346）为 repo moved、tracked paths unchanged，随之前移。十一条 docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| kajisho-ffmpeg | df5d273 → f62e7d0（30 提交，其中 15 个是 `chore(release)` 版本号） | 24 个文件 +3678/−368。新功能：3b04a9c `cut.py --edit-list`（单段 MP4 流复制保留 edit list 以隐藏 pre-roll，默认仍是 `-avoid_negative_ts make_zero`）、`--keep-hevc`、`--vfr-guard sampled`、拼接后按包数复核；231130b Parakeet 转写引擎与 `--engine auto` 路由；61d94ba / ecd87c2 / 146dee9 VideoToolbox（`--hw` 选择加入；构建里没有 libx264/libx265 时自动用 VideoToolbox；被拒时回退 CPU 并说明，输出不与 CRF 等价）；607a4db `loop.py --boomerang`；f0727a1 静音片段带 `at`/`end`。修复：d6f3318 无转场拼接时 concat 滤镜按上一段较长的那条流起算下一段，音频长于画面会在视频里留洞，改为每段音画取同一长度；8375657 / #316 FFmpeg 8.1 下多个 `-ss -t -i` 输入跨中途色彩标签变化时重建滤镜图死锁，加 `-reinit_filter 0`；c1a9d43 / e51e18a macOS 上 Homebrew 精简版 `ffmpeg` 缺 drawtext/subtitles/zscale，改用 keg-only 的 `ffmpeg-full`；9687a0a whisper.cpp 加 `-mc 0` 防止幻觉行重复；b51c470 drawtext 经 `textfile=` 换行与 `text_align=C`（FFmpeg ≥ 6.1）；0682a83 doctor 用实际 `fontfile=` 探测 drawtext | 已覆盖 / 范围外 / 不合入，见下 |
+| maxazure-video | 76f8c56 → 8750290（12 提交） | `SKILL.md` +58/−7：新增包装脚本 `program_breaks.py`、`border_crop.py`、`motion_center.py`、`transcript_silence_qa.py`、`transcript_lookup.py`、`visual_transcript_index.py`、`photo_montage.py`、`lut_grade.py`、`metadata_scrub.py`、`hls_vod.py`，`frame_grid.py` 加 `locate`，`chapter_markers.py` 导出 WebVTT 章节 | 噪声：都是它自己的脚本调用面与人工复核关；可提炼的事实（HLS 按分片强制关键帧并逐片核对首包为关键帧、完整解码再交付）与 `references/streaming-packaging.md`、`probing-and-verification.md` 一致，HDR 转换与审片代理的既有合入面未改 |
+
+kajisho 逐项：
+
+- d6f3318 与 2026-09-30 节的 1afbcbc 同一原理（每段音画取同一长度），场景 5 基线当时已 5/5 做到，不重复合入。
+- c1a9d43 / e51e18a：用 `gh api` 读 `Homebrew/homebrew-core` 的 `Formula/f/ffmpeg.rb` 核实——依赖里没有 freetype、libass、zimg；
+  `ffmpeg-full.rb` 有 `libass`、`zimg`、`freetype` 与 `--enable-libass` / `--enable-libzimg` / `--enable-libfreetype`，且 `keg_only`。
+  事实成立，但正文 Environment 已要求「在陌生机器上先查 `-encoders` / `-filters`，再依赖 libass、zscale」，缺滤镜会被这条探测拦下，
+  只是平台特例，不另加规则。
+- 8375657：FFmpeg 8.1.2 特定的死锁规避，只出现在「同一源多个 `-ss -t -i` 输入经 concat 滤镜重切」这种包装脚本用法，
+  正文没有这种命令，不合入。
+- VideoToolbox 三个提交与 `references/video-encoding.md`「硬件编码器是机器属性：先探测、首次编码成功才算数、不接受 CRF、同码率质量更差」一致。
+- Parakeet / whisper.cpp `-mc 0` 属于语音识别本身，正文只覆盖识别前的 16 kHz 单声道 PCM 预处理（`references/audio.md`），范围外。
+- `--edit-list`、`--keep-hevc`、`--vfr-guard`、`--boomerang` 是包装脚本的新开关；正文流复制剪切仍写 `-avoid_negative_ts make_zero`，
+  与它的默认值相同。
+
+结论：没有事实更正，也没有需要评测的新增规则。正文与 references 未变，只做 re-pin，`metadata.version` 与 `SOURCES.yaml` 的
+`version` 改为 2026.10.15；正文未变，未跑 D2。
