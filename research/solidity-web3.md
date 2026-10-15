@@ -477,3 +477,14 @@ tob-secure-contracts / tob-property-testing（82fe822 → e1f86a3）、erc-7201�
 （6ef6b72 → db4b27c）、wshobson-solsec（156b7a5 → 46891e7）为「repo moved, tracked paths unchanged」，随 pin 前进。
 
 结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| solidity-docs | 当前稳定版 0.8.37（2026-09-10） | `gh api repos/argotorg/solidity/releases`：最新仍为 v0.8.37，无 0.8.38 | 一致 |
+| solidity-docs | 六个 bug 的 severity/introduced/fixed：`TransientStorageClearingHelperCollision` high 0.8.28→0.8.34；`InheritanceOrderReversalOnStorageEndWarning` medium 0.8.29→0.8.36；`UnsoundSpillInMutualRecursion` medium 0.7.2→0.8.36；`SpillSlotCollisionAcrossMutualRecursion` low/medium 0.7.2→0.8.37；`MemoryByteArrayElementDeleteClearsWholeWord` low/medium —→0.8.37；`MisorderedNamedParametersInRequireWithCustomErrors` very low 0.8.26→0.8.37 | [docs/bugs.json](https://github.com/argotorg/solidity/blob/develop/docs/bugs.json)（develop，`gh api` 读取） | 一致 |
+| solidity-docs | 「0.8.37 的 `bugs_by_version` 条目为空、是首个无已知 bug 的版本」 | [docs/bugs_by_version.json](https://github.com/argotorg/solidity/blob/develop/docs/bugs_by_version.json)、提交 [09dea748fa](https://github.com/argotorg/solidity/commit/09dea748fa)（2026-10-13） | **已变化 → 更正**：新增 `YulOptimizerKnowledgeBaseStaleBookkeeping`（SOL-2026-7，low，introduced 0.8.19，fixed 0.8.38，条件 `yulOptimizer: true`），0.8.37 条目现为 `["YulOptimizerKnowledgeBaseStaleBookkeeping"]`，0.8.38 尚未发布。SKILL.md 规则 2 末句由「0.8.37 is the first release with an empty known-bug list」改为「仍是最新版但条目已非空，pin 时重读 bug 列表」；`references/solidity-baseline.md` bug 表补该行、「首个空列表」段改为「发布时为空、10-13 新增」、实践下限段加「每次发布前重读」；SOURCES `contributes` 同步。下限选择（0.8.34/0.8.36/0.8.37）不变——0.8.37 仍是含已知 bug 最少的发布版 |
+| solidity-docs | 数据文件位置 | 提交 [9833e8bd7a](https://github.com/argotorg/solidity/commit/9833e8bd7a)（2026-09-23「Use YAML as source for known bugs」） | URL 仍有效：`docs/bugs.json` 继续发布，改由 `docs/bugs.yaml` 经 `scripts/update_bugs_json.py` 生成；正文补一句来源说明，url 不变 |
+
+`solidity-docs` 的 `synced_at` 更新为 2026-10-15。

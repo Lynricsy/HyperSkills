@@ -42,11 +42,13 @@ yet will reject the bytecode. `MCOPY` and `SELFDESTRUCT` semantics also changed 
 ## The known-bug list is a document you can read
 
 The Solidity repository publishes machine-readable bug data: `docs/bugs.json` (one entry per
-bug, with `introduced`, `fixed`, `severity`) and `docs/bugs_by_version.json` (the bug names open
-in each release). Read it instead of guessing whether a version is safe. As of 0.8.37:
+bug, with `introduced`, `fixed`, `severity`; generated from `docs/bugs.yaml` since 2026-09) and
+`docs/bugs_by_version.json` (the bug names open in each release). Read it instead of guessing
+whether a version is safe. As of 2026-10-15, with 0.8.37 the newest release:
 
 | Bug | Severity | Introduced | Fixed | Why it matters |
 |---|---|---|---|---|
+| `YulOptimizerKnowledgeBaseStaleBookkeeping` | low | 0.8.19 | 0.8.38 (unreleased) | With the Yul optimizer on, a reassigned base variable could make two coinciding memory or storage addresses look distinct, so a load returns a stale value or a needed store is removed. |
 | `TransientStorageClearingHelperCollision` | high | 0.8.28 | 0.8.34 | Clearing storage and transient storage in the same contract may clear only one. A transient reentrancy guard can be left set or unset unexpectedly. |
 | `InheritanceOrderReversalOnStorageEndWarning` | medium | 0.8.29 | 0.8.36 | Emitting one warning reversed `linearizedBaseContracts`, so inheritance resolved in the wrong order. Miscompilation, not a warning. |
 | `UnsoundSpillInMutualRecursion` | medium | 0.7.2 | 0.8.36 | Locals of mutually recursive functions could be spilled to fixed memory offsets and overwritten. |
@@ -54,11 +56,13 @@ in each release). Read it instead of guessing whether a version is safe. As of 0
 | `MemoryByteArrayElementDeleteClearsWholeWord` | low/medium | — | 0.8.37 | `delete` on one element of a memory `bytes` zeroes up to 31 bytes past it. |
 | `MisorderedNamedParametersInRequireWithCustomErrors` | very low | 0.8.26 | 0.8.37 | Named-parameter custom-error arguments in `require` were encoded in call-site order under via-IR. |
 
-0.8.37 is the first release whose `bugs_by_version` entry is empty. `[verified]`
+0.8.37 was released with an empty `bugs_by_version` entry `[verified]`, but the list is not
+frozen: on 2026-10-13 `YulOptimizerKnowledgeBaseStaleBookkeeping` was added against 0.8.19
+through 0.8.37, so no release is free of known bugs until 0.8.38 ships.
 
 Practical floor: **0.8.34** if anything in the tree uses transient storage, **0.8.36** if any
 contract has mutual recursion or deep inheritance, **0.8.37** otherwise — and whatever you pick,
-pin it and state it in the README.
+pin it, state it in the README, and re-read `bugs_by_version.json` before each release.
 
 ## Pragma discipline
 

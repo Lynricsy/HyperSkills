@@ -108,8 +108,8 @@ upstreams:
     url: https://github.com/argotorg/solidity/blob/develop/docs/bugs.json
     license: GPL-3.0
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "The authoritative known-bug data used for the compiler-version policy: docs/bugs.json and docs/bugs_by_version.json, read directly, giving the severity, introduced and fixed versions for TransientStorageClearingHelperCollision, InheritanceOrderReversalOnStorageEndWarning, UnsoundSpillInMutualRecursion, SpillSlotCollisionAcrossMutualRecursion, MemoryByteArrayElementDeleteClearsWholeWord and MisorderedNamedParametersInRequireWithCustomErrors, and the fact that 0.8.37's entry is empty."
+    synced_at: "2026-10-15"
+    contributes: "The authoritative known-bug data used for the compiler-version policy: docs/bugs.json (generated from docs/bugs.yaml since 2026-09) and docs/bugs_by_version.json, read directly, giving the severity, introduced and fixed versions for YulOptimizerKnowledgeBaseStaleBookkeeping, TransientStorageClearingHelperCollision, InheritanceOrderReversalOnStorageEndWarning, UnsoundSpillInMutualRecursion, SpillSlotCollisionAcrossMutualRecursion, MemoryByteArrayElementDeleteClearsWholeWord and MisorderedNamedParametersInRequireWithCustomErrors, and the fact that 0.8.37 shipped with an empty entry that gained YulOptimizerKnowledgeBaseStaleBookkeeping on 2026-10-13."
     notes: "The Solidity repository moved from ethereum/solidity to argotorg/solidity and its LICENSE.txt is GPL-3.0, with no separate licence for docs/, so this upstream is reference-only. Only version numbers, bug names, severities and release facts are cited; no documentation prose was copied. The current stable release was confirmed as 0.8.37 (published 2026-09-10) through the releases API."
 
   - id: foundry-book

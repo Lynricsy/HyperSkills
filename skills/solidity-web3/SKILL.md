@@ -47,7 +47,9 @@ CI runners belong to `containers`, `github` and the cloud skills.
 2. **Use 0.8.34+ if any contract or dependency touches transient storage.**
    `TransientStorageClearingHelperCollision` (high severity, introduced 0.8.28, fixed 0.8.34) can
    leave one of storage or transient storage uncleared — which silently disarms a transient
-   reentrancy guard. 0.8.37 is the first release with an empty known-bug list. `[verified]`
+   reentrancy guard. 0.8.37 is still the newest release, but since 2026-10-13 its
+   `bugs_by_version.json` entry is no longer empty (`YulOptimizerKnowledgeBaseStaleBookkeeping`,
+   low, fixed in the unreleased 0.8.38): re-read the bug list when you pin, not once.
 3. **Order every state-changing function checks, effects, interactions.** With the external call
    before the balance write, a re-entering recipient drained a fixture vault from 10 ETH to 0 in
    one transaction. `[verified]`
