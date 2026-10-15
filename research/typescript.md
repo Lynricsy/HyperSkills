@@ -359,3 +359,20 @@ paths/url 迁移、版本号与本节。
 遗留：负例 5 的路由歧义待 description 维护流程处理。`tsconfig-and-modules.md`「Path aliases without baseUrl」末句「Prefer `imports` with `#/`
 when the runtime is Node」未带版本下限，与同文件上一节的下限说明并存，评测中未造成误导，未改。本机全局 `tsc` 是 6.0.3，此后核对 TS 7 行为须用
 `npx -p typescript@7 tsc` 或项目内安装的版本。
+
+## 2026-10-15 description 维护（路由）
+
+旧：`Designs TypeScript types, fixes type errors and configures typed package builds.`  
+新：`Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components.`（97 字符）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，模型在系统提示里只看到 `name: description` 与「Matching skill → MUST read」；探针只判定是否读取 skill（`detect_skill_read`），不评答案。判定：读了=read；`agent_end` 正常结束、无 provider 错误且未读=not_read；超时未读 / 空事件流 / provider 错误=不确定，不计入。样本固定于 `/tmp/hs-desc/samples.json`：D2 失败的负例为调优负例（3 次），既有正例场景各 1 次，另写保留负例 / 保留正例各 1 条（2 次，只用于验收）。旧、新描述同模型同条件各跑一遍。约束：omp 渲染 skill 列表时把超过 100 字符的描述截断到词边界，所以新描述 ≤100 字符，否则排除限定词会被截掉；真实宿主第二次会话起看到的是 smol 模型压缩后的 ≤12 词提示，本对照只覆盖首次会话的原文路由。
+
+| 样本 | 类型 | 内容 | 旧描述（期望结果次数） | 新描述 |
+|---|---|---|---|---|
+| N5 | 调优负例 | 场景 5：ProjectList.tsx recomputes the filtered and sorted list on every paren… | 0/3 | 3/3 |
+| P2 | 正例 | 场景 2：We bumped the typescript devDependency and now `npm run build` fails w… | 1/1 | 1/1 |
+| P3 | 正例 | 场景 3：Review src/config/load-config.ts (attached) for type-safety problems a… | 1/1 | 1/1 |
+| HN | 保留负例 | 新写：In our Next.js App Router page, the client component refetches the pro… | 2/2 | 2/2 |
+| HP | 保留正例 | 新写：Select.tsx: passing `onChange={setValue}` fails with TS2322 'Type Disp… | 2/2 | 2/2 |
+
+结论：调优负例（`.tsx` 组件 `useMemo`）0/3 → 3/3 未读；保留负例（Next.js server component）两侧都是 2/2；正例与保留正例（`.tsx` 里的泛型 props 类型错误）全部读取。采用新描述。

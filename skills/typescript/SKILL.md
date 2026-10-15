@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: "Designs TypeScript types, fixes type errors and configures typed package builds."
+description: "Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
