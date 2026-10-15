@@ -1,6 +1,6 @@
 ---
 name: ai-engineering
-description: "Builds LLM applications, prompts, tool-using agents, RAG pipelines and model evaluations."
+description: "Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills

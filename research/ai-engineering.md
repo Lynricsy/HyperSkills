@@ -396,3 +396,20 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 结论：4（5✔ 对 4✔）、9（3✔ 对 2✔）有 skill 优于基线；7、8、10 持平（10 两侧 3✔1◐，都未用 `count_tokens` 预先预算输入），未见回退。未改正文。
 
 **负例 5 两次均 `skill_read=true`**（两次都是首个工具调用即读 skill），属稳定的既有路由问题，与今日改动无关：`git log ab38c43..HEAD -- skills/ai-engineering/SKILL.md` 只有 77a04d3 与 b7c481f，两者都只改版本号、规则 13 与 Rationalizations 表一行，description 未动；`git log -G'^description:'` 显示 description 最后一次修改是 5e5cb1a（2026-09-12，压缩为单句路由），早先收紧的排除词在那次压缩中丢失。按本轮约定不改 description，留待下次描述路由复核（`docs/workflow.md` 描述压缩流程 D 步对照路由）处理。
+
+## 2026-10-15 description 维护（路由）
+
+旧：`Builds LLM applications, prompts, tool-using agents, RAG pipelines and model evaluations.`  
+新：`Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning.`（92 字符）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，模型在系统提示里只看到 `name: description` 与「Matching skill → MUST read」；探针只判定是否读取 skill（`detect_skill_read`），不评答案。判定：读了=read；`agent_end` 正常结束、无 provider 错误且未读=not_read；超时未读 / 空事件流 / provider 错误=不确定，不计入。样本固定于 `/tmp/hs-desc/samples.json`：D2 失败的负例为调优负例（3 次），既有正例场景各 1 次，另写保留负例 / 保留正例各 1 条（2 次，只用于验收）。旧、新描述同模型同条件各跑一遍。约束：omp 渲染 skill 列表时把超过 100 字符的描述截断到词边界，所以新描述 ≤100 字符，否则排除限定词会被截掉；真实宿主第二次会话起看到的是 smol 模型压缩后的 ≤12 词提示，本对照只覆盖首次会话的原文路由。
+
+| 样本 | 类型 | 内容 | 旧描述（期望结果次数） | 新描述 |
+|---|---|---|---|---|
+| N5 | 调优负例 | 场景 5：Retrieval for our handbook search is at 2.8 seconds p95 against a 150m… | 0/3 | 3/3 |
+| P2 | 正例 | 场景 2：Our handbook answers are wrong a lot and sometimes the call just error… | 1/1 | 1/1 |
+| P7 | 正例 | 场景 7：Our Anthropic bill for the support chat tripled after we added escalat… | 1/1 | 1/1 |
+| HN | 保留负例 | 新写：Our pgvector HNSW index build on 40M rows runs out of maintenance_work… | 1/2 | 1/2 |
+| HP | 保留正例 | 新写：Our RAG bot answers from the wrong policy version. Retrieval returns 2… | 2/2 | 2/2 |
+
+结论：调优负例（向量索引调参）0/3 → 3/3 未读；保留负例（pgvector HNSW 参数）两侧都是 1/2，无变化；正例与保留正例全部读取，无回退。采用新描述。
