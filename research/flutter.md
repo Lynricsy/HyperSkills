@@ -278,3 +278,17 @@ Genkit / Firebase 属本 skill Scope 外、从未合入，判定噪声，仅 re-
 提为 Core rule 13（原 gate 规则顺延为 14），并在 Topic router 的 Dart 3 行加上 `package:path`。第二轮通过 D2：
 基线未达成的三条在有 skill 时全部达成。负例（场景 4）未改 description / Scope，未重跑。
 输出目录：`/tmp/hs-evals-sync/SyncG3/flutter-b5`（基线）、`flutter-s5`（首轮）、`flutter-s5r2`（终版）。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与主代理归因清单 `/tmp/hs-attr/attribution.md`。
+本 skill 两条 `behind`：dart-official、evanca-rules；flutter-official、sgruhier-flutter、jeffallan-flutter 为
+「repo moved, tracked paths unchanged」，随 `--pin` 前移。归因方法：`gh api repos/<o>/<r>/compare/<pinned>...<head>`
+读 tracked paths 下的完整 patch。`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| dart-official | 0d9f1c4 → b046fa1（2 提交：0b8dc54、b046fa1） | `skills/dart-use-pattern-matching/SKILL.md`：新增「3 个以上字段跨多条语句使用、`MapEntry(:key, :value)` 遍历、`:field!` 提升可空字段时用对象解构；单属性、1–2 个字段、直接透传给一个调用、需补 import、与外层变量赋值混用、长度可能为 1 的 `[first, ..., last]` 时保留属性访问」 | 不合入：何时解构是风格取舍，不对应正确性缺陷；本 skill `dart-language.md` 只写模式语法表与快速失败解析，不收风格偏好 |
+| evanca-rules | 7b9cce2 → 30f908d（1 提交：30f908d） | 删除 `skills/store-listing-assets/`（及 README/ATTRIBUTION 索引行） | 噪声：商店素材不在本 skill 范围，也不在该上游的 `contributes` 内 |
+
+正文未变，未跑 D2。只改 SOURCES.yaml（re-pin）与版本号 `2026.10.15`。

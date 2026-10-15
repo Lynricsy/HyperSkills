@@ -1,5 +1,5 @@
 skill: flutter
-version: "2026.09.29"
+version: "2026.10.15"
 upstreams:
   - id: flutter-official
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/flutter/agent-plugins
     paths: [skills, rules]
     ref: main
-    commit: 8da8c54ecd740fded70f908ad9c46b72a1f21fb5
+    commit: 0ef3972f93e2baa4156ba1cbb1e515cd53079c68
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-10-15"
     contributes: "Task-shaped workflows and checklists, layered architecture baseline, responsive layout and layout-error decoding, widget/integration testing, declarative routing with native deep-link configuration, localization, JSON serialization and http usage."
     notes: "Vendor-maintained and generated from docs.flutter.dev; its localization skill still documents the deprecated synthetic-package option, which was corrected against the current official docs."
   - id: dart-official
@@ -19,10 +19,10 @@ upstreams:
     url: https://github.com/dart-lang/skills
     paths: [skills]
     ref: main
-    commit: 0d9f1c4a0ae29d6f5180bf6143d7997ec3bacf49
+    commit: b046fa14cf8c2cbc203c6ccd08354653e41d17d1
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-10-15"
     contributes: "Dart 3 language surface (pattern matching, primary constructors, fast-fail parsing instead of silent if-case filtering), package:path idioms for cross-platform file paths, analyzer configuration and dart fix, runtime error triage, test mocks and coverage, ffigen and FFI asset setup."
   - id: evanca-rules
     kind: repo
@@ -30,10 +30,10 @@ upstreams:
     url: https://github.com/evanca/flutter-ai-rules
     paths: [skills]
     ref: main
-    commit: 7b9cce235714ae17acbae896b1e8c8627e128f4c
+    commit: 30f908d3878ac8f2fe2c62c86b724be161d75a55
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-10-15"
     contributes: "State-management backbone (Riverpod, Bloc, Provider/ChangeNotifier), feature-first folder policy, test validity rules, mocktail and patrol usage, common Flutter error catalogue."
   - id: sgruhier-flutter
     kind: repo
@@ -49,10 +49,10 @@ upstreams:
       - skills/flutter-clean-architecture
       - skills/dart
     ref: main
-    commit: 4c0034f267c4e79d2f5e04200c18d4adf9d347fc
+    commit: f5b6ba0101f040d9e7b3c52a76a43224b092ae06
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-10-15"
     contributes: "Riverpod 3 correctness (legacy provider list, provider selection table, autoDispose/family discipline), sealed state with value equality, go_router and auto_route patterns, numbered widget rules."
     notes: "LICENSE file is MIT; the GitHub API reports NOASSERTION because of a trailing attribution note. Only the flutter/dart subset was used; the inherited generic workflow skills were not."
   - id: jeffallan-flutter
@@ -61,10 +61,10 @@ upstreams:
     url: https://github.com/Jeffallan/claude-skills
     paths: [skills/flutter-expert/references/performance.md]
     ref: main
-    commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+    commit: 1be15d8064f88fc25216442406d40add8fd23b53
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-10-15"
     contributes: "Performance checklist seed: const widgets, selective watching, RepaintBoundary, image cache sizing, compute for heavy work, frame budget."
     notes: "Only references/performance.md was used. Its Riverpod examples use StateNotifierProvider, which is legacy in Riverpod 3 and was deliberately not adopted."
   - id: harish-flutter-tester
@@ -76,7 +76,7 @@ upstreams:
     commit: 114379ad2864d024eb11369e0d28b57e55b2c066
     license: MIT
     relation: merged
-    synced_at: "2026-09-29"
+    synced_at: "2026-10-15"
     contributes: "Layered testing patterns, Riverpod provider testing with fresh containers and dependency overrides, widget testing depth (keys, deterministic surface size, pump vs pumpAndSettle)."
   - id: flutter-docs
     kind: docs

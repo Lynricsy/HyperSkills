@@ -4,7 +4,7 @@ description: "Develops cross-platform Flutter apps with Dart, widgets and state 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.10.15"
   category: platform
 ---
 
