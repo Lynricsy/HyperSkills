@@ -390,3 +390,5 @@ re-pin、版本号改为 2026.10.15。`pin_check.py`：PIN CHECK CLEAN。
 结论：`useOptimistic`、`next analyze` 两处更正在有 skill 时达成且不差于基线；Turbopack 默认版本（场景 10 EB1）两侧都只半达成。**场景 9 EB4（规则 21 的「停在所在线最新补丁」）本轮有 skill 未达成**，上节同场景有 skill 达成，正文自上节以来未改该段；provider 再次不可用，重跑没能完成，单个样本不足以判定措辞问题，正文未改。负例 `skill_read == false`。
 
 遗留：① provider 恢复后重跑场景 9 有 skill；若再次漏掉 EB4，把规则 21 的「state that rule」提到 `nextjs-ops-and-debug.md`「RSC security releases」节首句并要求写进答复。② 场景 7 EB4、场景 8 EB1 有 skill 低于复用基线，均为本 skill 未覆盖的内容（上游同步时因基线已会未合入），单样本，留观察。
+
+补跑（主代理，provider 恢复后）：场景 9 有 skill 重跑一次（`/tmp/hs-d2/main/react/omp-openai-gpt-6.1-sol-medium/skill/9/`，68 s，`skill_read == true`）：EB1 ✔ EB2 ✔ EB3 ✔ **EB4 ✔**——给出 `next` 16.4.1 与 `react-server-dom-webpack` 19.3.1 并附 `npm ls`/`npm audit` 关单证据，结尾明确「下次公告要复核所在受支持版本线的最新补丁，不要把这些数字当永久安全目标」。三次有 skill 样本中两次达成 EB4，与基线（未达成）相比无回退；遗留 ① 关闭，正文不改，继续留作观察项。
