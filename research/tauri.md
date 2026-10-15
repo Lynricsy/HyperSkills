@@ -306,3 +306,23 @@ v2.tauri.app 由 tauri-apps/tauri-docs `v2` 分支渲染，用 `gh api` 读源�
 | tauri-docs | `emit_to` 定向 webview；收任意目标需 `listen_any` | [Calling the Frontend](https://v2.tauri.app/develop/calling-frontend/) | 一致 |
 
 一处更正（State 不匹配为运行时拒绝而非 panic），其余 7 组一致。属于既有规则的事实更正，未新增规则，evals 断言随之更正。`tauri-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`9a9f065`（State 类型不匹配改为「能编译、每次 invoke 以 `state not managed for field ...` 被拒；`handle.state::<T>()` 才 panic」，
+SKILL.md 规则 7、Review 示例、`references/ipc-commands.md`，并改写场景 1 EB4、场景 2 EB5）；`0072ef2` 只改版本号与 re-pin，无正文内容。
+
+选场景：1、2 的断言今天改过且未重跑，必选；两侧都重跑（场景改过，基线不可复用）。负例 4（OrderTable.tsx 性能，React 问题）。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；产物 `/tmp/hs-d2/D2G3/tauri/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 打包后命令/状态/权限故障 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✔ EB7 ✔ | EB4：指出 `Arc<Mutex<AppState>>` 与 `State<AppState>` 不匹配、修复后「两条命令都会在状态注入时失败」、去掉 Arc；未明说「能编译」也未给出报错原文，但没有再说 panic。EB2 只说加导出权限修不了注册问题，未讲自定义命令默认对所有窗口放行 |
+| 1 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✔ EB7 ✔ | EB4 同样只说「命令取不到注册的状态」+ Arc 多余；EB2 同上 |
+| 2 commands.rs 审查 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ◐ EB7 ✔ | EB5 明写「This compiles, but invoking `current_cache` fails」，并否认它是第二个编译错误；EB6 用自定义 `CommandError`（须 Serialize），未写 thiserror/枚举 |
+| 2 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ EB6 ✘ EB7 ✘ | EB5「invocation-time failure, not a compilation failure」；仍用 `String` 错误；未提 `read_note` 路径校验 |
+| 4 负例 | gpt-6.1-sol medium | 有 | **false** | — | 41.9 s，未读 tauri |
+
+结论：改动相关行为（State 不匹配是运行时失败而非编译错误/panic）在有 skill 时达成——场景 2 明确，场景 1 部分（未点明「能编译」），两侧都不再出现「panic」说法；
+有 skill 不比基线差（场景 2：6✔1◐ 对 4✔1◐2✘；场景 1 持平）。负例 skill_read 为 false。正文无需再改。
+遗留：场景 1 EB4 的「能编译」一点两侧都没主动说，属模型取舍，正文已写明，不再加码。
