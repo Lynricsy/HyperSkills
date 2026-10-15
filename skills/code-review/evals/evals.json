@@ -46,7 +46,8 @@
       "Treats comment 4 as a YAGNI question: says it would grep for callers of getRateHistory before building cursor pagination, and proposes deleting or deferring it if nothing calls it",
       "Acknowledges correct feedback by stating the fix rather than with performative agreement — no 'You're absolutely right', no 'Great point', no thanks",
       "Plans the implementation order as blocking first, then trivial fixes, then anything structural, testing each item separately instead of one bulk edit",
-      "Notes that replies to inline review comments belong in the comment thread on the PR"
+      "Notes that replies to inline review comments belong in the comment thread on the PR",
+      "Words every numbered question so that answering 'yes' accepts the recommended answer given with it — no question whose recommendation is 'no' or the opposite of what the question proposes"
     ]
   },
   {
@@ -68,6 +69,24 @@
       "Before the verdict, gives an explicit list of the behaviours it considered and set aside as outside the issue — for example row ordering, very large exports held in memory, date formatting, or spreadsheet formula injection — one line each with the reason it set it aside, instead of silently dropping them or leaving them unmentioned",
       "Notes that the only test covers a note with no comma or quote, so it would not catch the escaping bug, and asks for a test with a comma, a quote and a newline in the note",
       "Ends with an explicit merge verdict — Ready to merge: No or With fixes — naming the escaping finding as what drove it"
+    ]
+  },
+  {
+    "skills": ["code-review"],
+    "query": "Review my branch feature/member-free-shipping before I merge it. shipping.diff has the commit list and the three-dot diff against origin/main, shipping.py and test_shipping.py are the two files as they stand on the branch, and ISSUE-640.md is the issue it implements. `python3 -m unittest` runs the suite from this directory.",
+    "files": [
+      "evals/files/shipping.diff",
+      "evals/files/shipping.py",
+      "evals/files/test_shipping.py",
+      "evals/files/ISSUE-640.md"
+    ],
+    "expected_behavior": [
+      "Runs `python3 -m unittest` and quotes its actual output instead of assuming the suite is green",
+      "Answers whether the tests would catch a regression by experiment, not by reading: changes one condition the branch added (for example `and` to `or`, dropping `is_member and`, or `>=` to `>`), runs the suite against that mutant, and reports the result it observed",
+      "Reports that the mutant stays green — the suite passes even with the members-only condition broken or removed — and treats that as a finding with a file reference, not as a passing check",
+      "Names the missing test case the surviving mutant reveals: a non-member with a domestic order at or above 5000 cents must pay 799 (the ISSUE-640 acceptance line no test exercises), and optionally the exact-5000 boundary",
+      "Leaves the reviewed code as it found it: the mutation is made in a scratch copy, or the file is restored and the restoration is confirmed (re-run or diff), so shipping.py ends identical to the branch version",
+      "Ends with an explicit merge verdict — Ready to merge: No or With fixes — naming the missing non-member test as what drove it"
     ]
   }
 ]

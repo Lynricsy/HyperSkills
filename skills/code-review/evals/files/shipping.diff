@@ -1,0 +1,48 @@
+# git log --oneline origin/main..HEAD
+76f8b20 shipping: free shipping over the threshold is members-only (ISSUE-640)
+# merge-base: 853420a (origin/main)
+# git diff origin/main...HEAD
+diff --git a/shipping.py b/shipping.py
+index 477e2a2..e7d926e 100644
+--- a/shipping.py
++++ b/shipping.py
+@@ -3,10 +3,13 @@ INTERNATIONAL_FLAT_CENTS = 2500
+ DOMESTIC_RATE_CENTS = 799
+ 
+ 
+-def shipping_cents(subtotal_cents: int, country: str) -> int:
+-    """Shipping fee in cents for one order."""
++def shipping_cents(subtotal_cents: int, is_member: bool, country: str) -> int:
++    """Shipping fee in cents for one order.
++
++    Free domestic shipping at or above the threshold is a member benefit (ISSUE-640).
++    """
+     if country != "US":
+         return INTERNATIONAL_FLAT_CENTS
+-    if subtotal_cents >= FREE_SHIPPING_THRESHOLD_CENTS:
++    if is_member and subtotal_cents >= FREE_SHIPPING_THRESHOLD_CENTS:
+         return 0
+     return DOMESTIC_RATE_CENTS
+diff --git a/test_shipping.py b/test_shipping.py
+index f4ef7e9..eeb8ce5 100644
+--- a/test_shipping.py
++++ b/test_shipping.py
+@@ -4,14 +4,14 @@ from shipping import shipping_cents
+ 
+ 
+ class ShippingTest(unittest.TestCase):
+-    def test_order_over_threshold_ships_free(self):
+-        self.assertEqual(shipping_cents(6000, "US"), 0)
++    def test_member_over_threshold_ships_free(self):
++        self.assertEqual(shipping_cents(6000, True, "US"), 0)
+ 
+     def test_small_order_pays_domestic_rate(self):
+-        self.assertEqual(shipping_cents(1200, "US"), 799)
++        self.assertEqual(shipping_cents(1200, False, "US"), 799)
+ 
+     def test_international_flat_rate(self):
+-        self.assertEqual(shipping_cents(6000, "DE"), 2500)
++        self.assertEqual(shipping_cents(6000, True, "DE"), 2500)
+ 
+ 
+ if __name__ == "__main__":

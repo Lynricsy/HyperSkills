@@ -304,3 +304,49 @@ SKILL.md 与 reviewer-prompt.md 均含 Set aside。`validate_skills.py` 0 error�
 
 本次改动不涉及与 `test-driven-development`、`debugging` 共享的四段文字（完成门、grilling 提问格式、
 seam 定义、重构归属），无需三处同步。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因（`/tmp/hs-attr/attribution.md`）。
+paths 下确有提交的 4 条：obra-requesting-review、mattpocock-review、mattpocock-grilling、addyosmani-review。在
+`/tmp/SyncG8-up/<owner>__<repo>` blobless 克隆里按 `<旧pin>..<审阅HEAD> -- <paths>` 读 `git diff`；mattpocock 的三处改动另用
+已登录 `gh issue view` 读 #706、#937、#1065、#1073 原文核对动机。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| obra-requesting-review | 8ca22db → bb92a77（1 提交，v7.0.0） | `requesting-code-review/SKILL.md` 示例里取 SHA 的 `awk '{print $1}'` 改为 `cut -d' ' -f1` | 噪声：本 skill 未收录该示例命令 |
+| mattpocock-review | d81f3a1 → 49dd158（52 提交，命中 1） | 3da8c01（#937/#1065/#1073）：tracker 文档不再写死 `docs/agents/issue-tracker.md`；标准文件从「诸如 CODING_STANDARDS.md 或 CONTRIBUTING.md」改为「搜索仓库里所有说明代码该怎么写的文件，存在 CODING_STANDARDS.md / CONTRIBUTING.md 时必须在列」；两个审阅 subagent 同时、前台派发并汇总其返回报告 | 不合入，正文未变。tracker 路径是上游自家 setup 约定，本 skill 从未写死；标准文件一条，review-changes 已写「whatever the repo documents (`CONTRIBUTING.md`, `CODING_STANDARDS.md`, house style)」，#1065 的失败（凭记忆列标准文件、漏读根目录 CODING_STANDARDS.md）发生在大仓库，本仓库评测夹具无法造出区分度，且措辞已要求以仓库实际文档为准；前台派发是 Claude Code 后台 agent 与消息传递的宿主问题（#1073），本 skill 核心规则 11 只规定可并行、审阅者不再派发，不涉及传输方式 |
+| mattpocock-grilling | d81f3a1 → 49dd158（52 提交，命中 1） | 95249b0（#706）：问题措辞让 "yes" 即接受推荐答案 | 需合入（共享提问格式段落，与 test-driven-development、debugging 三处同步；见下方评测）。同时修正 `references/receiving-review.md` 示例里正是 #706 所述矛盾的一题：「Does the history endpoint stay?」配推荐「delete the endpoint」，回答 yes 会被读成保留——改为「Do we delete the history endpoint?」；Q1 由开放式「Which service…」改为「Does the retry contract follow the billing client?」 |
+| addyosmani-review | 2686b62 → aeac41d（112 提交，命中 1） | 28f435e：「测试能否抓住回归」改为用实验回答——翻转改动新增的一个条件（去掉否定、把逻辑与换成逻辑或）跑套件再从副本还原，存活的变异即发现，指出缺的测试用例 | 基线已会，不合入。新增场景 6 证明（见下） |
+
+其余条目（obra-receiving-review、obra-verification、mattpocock-codebase-design、trailofbits-diffreview、anthropic-claude-code）报告为
+tracked paths unchanged，随 `--pin` 前移。`--pin` 后 `pin_check.py` 结果 `PIN CHECK CLEAN`。
+
+### 正文改动
+
+- `SKILL.md` respond-to-review 的提问步骤：加「Word each question so that "yes" accepts your recommendation」。
+- `references/receiving-review.md`「Unclear items block everything」：同一规则并说明原因；示例两题改成 yes 即接受推荐的问法。
+- `SOURCES.yaml` mattpocock-grilling `contributes` 补记。
+- 新增评测场景 6 与夹具 `evals/files/shipping.diff`、`shipping.py`、`test_shipping.py`、`ISSUE-640.md`（会员包邮：分支把免运费限定为会员，
+  测试只覆盖会员超门槛、非会员小额与国际单；本机实测 `and`→`or`、去掉 `is_member and`、`>=`→`>` 三个变异全部仍绿）；
+  场景 3 增加一条 expected_behavior（每题措辞 yes 即接受推荐）。
+
+### 评测
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals-SyncG8/code-review/…`；「旧 skill」= 本轮改动前的正文
+（`/tmp/hs-evals-SyncG8/old/code-review/…`），用来确认缺口不是旧 skill 已经填上的。逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 变异实验 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✘ | 51 s。实跑 `python3 -m unittest`（3 tests OK）；在内存里把资格条件换回旧规则再跑套件，「all three tests still passed」，据此报告去掉 `is_member` 不会被发现，要求补非会员 ≥5000 与恰好 5000 的断言；未改文件。缺的只是显式合并结论（既有规则 9，非本次上游内容） |
+| 3 收到评审意见 | gpt-6.1-sol medium | 无 | False | EB2 ✘ EB9 ✘（其余未计） | 128 s。直接改了 `rates.ts`，4、5 两条记为 blocked，没有编号带推荐答案的问题 |
+| 3 | gpt-6.1-sol medium | 有（旧 skill） | True | EB1 ✔ EB2 ✘ EB9 ✘（其余未计） | 75 s。未改文件、停下等澄清，但两条问题是不带推荐答案的项目符号 |
+| 3 | gpt-6.1-sol medium | 有（本轮正文） | True | EB1 ✔ EB2 ✔ EB9 ✔（其余未计） | 30 s。未改文件；第 4 条「Should we defer pagination… until a consumer requirement… is available? Recommended: yes」、第 5 条「Should we retain that behavior unless the reviewer supplies the reference service's retry policy? Recommended: yes」 |
+
+结论：addyosmani 的变异实验是基线已会的行为（场景 6 自发做了变异并点名缺失用例），不合入，场景 6 留作哨兵。grilling 的 yes 措辞：
+无 skill 与旧 skill 均未达成，本轮正文达成，合入。tdd 场景 6 的基线/有 skill 对照见 `research/test-driven-development.md`。
+
+### 共享段落
+
+本次改动了与 `test-driven-development`、`debugging` 共享的 grilling 提问格式：三处同时加入「措辞让 yes 即接受推荐」，其余三段
+（完成门、seam 定义、重构归属）未动。

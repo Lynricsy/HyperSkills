@@ -4,7 +4,7 @@ description: "Reviews code changes and pull-request diffs, or evaluates review f
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: task
 ---
 
@@ -178,8 +178,8 @@ Expanded, with worked replies, in `references/receiving-review.md`.
       will undo.
 - [ ] Count the unclear items. **One or more unclear: no file is edited this turn.** Ask about
       all of them in one round and wait, the clear items included — an answer can change what
-      an apparently clear item should do. Look up facts yourself; only decisions go to the
-      reviewer or the user:
+      an apparently clear item should do. Word each question so that "yes" accepts your
+      recommendation. Look up facts yourself; only decisions go to the reviewer or the user:
 
       ```
       ❓ Q1 — <short title>

@@ -33,9 +33,10 @@ assuming; correctness over comfort.
 If any item is unclear, implement nothing until every unclear item is answered. Items relate to
 each other, and half-understood feedback produces work that has to be undone.
 
-Ask the whole set in one round, each question numbered and carrying your recommended answer.
-Facts are yours to find — look them up rather than asking. Decisions are the reviewer's or the
-user's:
+Ask the whole set in one round, each question numbered and carrying your recommended answer,
+and word each question so that "yes" accepts that recommendation — a question that proposes
+the opposite of your recommendation leaves "yes" meaning two things. Facts are yours to find —
+look them up rather than asking. Decisions are the reviewer's or the user's:
 
 ```text
 ❓ Q1 — <short title>
@@ -54,12 +55,12 @@ Right:
 ```text
 Items 1, 2, 3 and 6 are clear. Two questions first, because 4 changes what 6 should do.
 
-❓ Q1 — Which service sets the retry contract?
+❓ Q1 — Does the retry contract follow the billing client?
 Comment 5 asks for retries "consistent with the other service". Two candidates exist:
 the billing client retries 3 times with jitter, the search client retries twice.
 ➡️ Recommended: match the billing client, since this path is also payment-adjacent.
 
-❓ Q2 — Does the history endpoint stay?
+❓ Q2 — Do we delete the history endpoint?
 Comment 4 asks for cursor pagination on getRateHistory; grep shows no caller in this
 repository or the web client.
 ➡️ Recommended: delete the endpoint in this change and drop the pagination work.
