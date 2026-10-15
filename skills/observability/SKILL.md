@@ -4,7 +4,7 @@ description: "Instruments production systems with OpenTelemetry traces, metrics,
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: task
 ---
 
@@ -66,11 +66,14 @@ Paths below are relative to this skill's directory.
 6. Record exceptions as a log record inside the active span context, carrying `exception.type`,
    `exception.message` and `exception.stacktrace`, rather than `span.recordException`. The Span
    Event API is on a published deprecation path (OTEP 4430) in favour of log-based events.
-7. Leave the SDK sampler at its default `AlwaysOn` and sample in the Collector. A head decision is
-   made before the request's outcome is known, so `TraceIdRatioBased(0.05)` discards errors and
-   latency outliers at the same 95% rate as everything else. The one escape hatch is a hop whose
-   cost is itself unacceptable (egress billing, Lambda invocations) — and then say out loud that
-   the tail is being sacrificed (`references/sampling.md`).
+7. Set the SDK sampler to `AlwaysOn` explicitly (`OTEL_TRACES_SAMPLER=always_on`) and sample in
+   the Collector. A head decision is made before the request's outcome is known, so
+   `TraceIdRatioBased(0.05)` discards errors and latency outliers at the same 95% rate as
+   everything else. The SDK default is not `AlwaysOn` but `ParentBased(root=AlwaysOn)`: an
+   incoming `traceparent` with the sampled flag cleared makes this service record nothing. The
+   one escape hatch is a hop whose cost is itself unacceptable (egress billing, Lambda
+   invocations) — and then say out loud that the tail is being sacrificed
+   (`references/sampling.md`).
 8. Materialise RED metrics from spans **before** any sampling step, with a connector. Rate and
    error rate computed after head sampling are scaled down; after tail sampling they are biased
    towards errors. Both are wrong, in opposite directions.

@@ -380,3 +380,76 @@ metadata 含 `container.image.tag`；`filter/drop-loadtest` 与 `routing/by-team
 
 D1：`validate_skills.py` 0 error / 0 warning，`build_catalog.py --check` 通过；`npx skills@latest add … --skill observability
 --agent universal --copy` 安装冒烟，`.agents/skills/observability/` 下 `SKILL.md` 与 9 个 references 与工作树逐字一致。
+
+## 2026-10-15 上游同步
+
+依据：`/tmp/hs-upstream.json`（2026-10-15 `check_upstream.py --json`）与主代理归因 `/tmp/hs-attr/attribution.md`，本 skill
+有 7 条上游在 tracked paths 下确有提交。归因方法：otel-collector-contrib 区间 205 提交，用主代理的 blobless 裸仓库缓存
+`/tmp/hs-attr/open-telemetry__opentelemetry-collector-contrib` 跑 `git diff --name-only <pinned>..<head> -- <paths>` 按组件计数，
+再对本 skill 正文点名的组件（`k8s_attributes`、`tail_sampling`、`transform`、`filter`、`redaction`、`routing`、
+`load_balancing`、`span_metrics`、`signal_to_metrics`、`count`、`exceptions`、`probabilistic_sampler`、`resource`、
+`attributes`、`file_storage`、`prometheus`、`host_metrics`、`file_log`、`resource_detection`、`interval`、`lookup`、
+`elasticsearch`、`service_graph`）逐个读去掉 go.mod/go.sum/测试后的 diff，并以根 `CHANGELOG.md` 新增的 v0.163.0 节作索引；
+其余上游用已登录 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch，只看 tracked paths。各仓库区间内均无 LICENSE 变更。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| dash0-agent-skills | b809d93 → fd27094（2 提交） | 2cf5901、fd27094：`otel-instrumentation` 与 `otel-collector/rules/sampling.md` 更正「AlwaysOn 是 SDK 默认」——规范默认是 `ParentBased(root=AlwaysOn)`，未采样的入站 `traceparent` 会让服务不记录，改为显式设 `always_on`；JS 示例迁到 SDK 2.x（构造器 `spanProcessors`、`parentSpanContext`）；orphan 判定区分捕获范围外的远端父 span | **需更正** | 本 skill 规则 7、`instrumentation.md`、`sampling.md` 都写了同样的错误默认值，`instrumentation.md` 的测试片段也是 1.x API。核实与实跑见下 |
+| ollygarden-otel-skills | bf82138 → 9900032（9 提交） | Collector 0.161/0.162 刷新：`k8s_attributes` 三信号 Stable（Go 模块 v1.x）、`load_balancing` 新增 `routing_key: randomness`、metrics 改 Alpha；`interval` 开始聚合 delta 序列；`ottl.set.allowNil` 0.162 Stable（nil 源会清空/置空目标）；`Base64Decode` 0.161 删除；`prometheus` 的 `IgnoreScopeInfoMetric` Stable；`PermissiveLabelSanitization` Beta；OCB 版本对齐；Go Logs API 1.47 稳定、Java contrib bridge 删除；其余为 v0.161/v0.162 生成的遥测清单 | 噪声 | 本 skill 没写这些组件的稳定级、`interval` 行为或 OCB；唯一的 OTTL `set` 示例（`collector-pipelines.md`）本来就带 `where … != nil` 守卫，不受 allowNil 影响 |
+| o11y-dev-otel | 5801948 → 6d46bed（4 提交） | `references/collector.md` 新增 0.160/0.162 升级检查表（Kafka auth、keepalive、Elasticsearch `flush` 移除、`queue_batch` 改名等）与 Kafka 缓冲拓扑；`instrumentation.md` 新增 Python 1.44 `LogRecord.event_name`、GenAI token 直方图、Go 1.47 / Java 1.66 要点；`monitoring.md` 新增 k8s_attributes 内部遥测格式 gate；`SKILL.md` 精简 | 噪声 | 均为版本升级清单与 AI 遥测，本 skill 无相反陈述；GenAI 仍按既有边界不覆盖 |
+| otel-semconv | 7055027 → 9878377（3 提交） | `docs/README.md` 新增 Network 领域条目；`non-normative/rpc-migration.md` 与 `compatibility/grpc.md` 把 `rpc.*.metadata.<key>` 拆成 header/trailer；`cpu-metrics-guidelines.md` 删一句 k8s 例外 | 噪声 | 未发版（最新仍 v1.44.0，CHANGELOG 未动）；本 skill 不涉及 RPC metadata 属性 |
+| rampstack-monitoring | 3d4510a → 482c9bf（1 提交） | 新增自动生成的 `README.md`（站点测试状态） | 噪声 | — |
+| otel-collector-contrib | af47528 → ac07ded（205 提交） | 本 skill 点名组件中只有 `tail_sampling`（拆 trace 改 move 而非 copy）、`transform`（`shared_cache` 去掉 experimental）、`redaction`（链式处理器保留摘要属性、`summary: silent` 不再认领上游摘要）、`routing`（配置期校验 OTTL）、`load_balancing`（core 依赖升级后 `sending_queue` 默认开启）、`probabilistic_sampler`（README 措辞）、`service_graph`（识别新 semconv 属性）、`resource_detection`（各 detector 的 `omit_detector_*` 构建 tag）、`host_metrics`、`file_log`、`elasticsearch` 有实质改动；`k8s_attributes`、`filter`、`span_metrics`、`signal_to_metrics`、`count`、`exceptions`、`resource`、`attributes`、`file_storage`、`prometheus` 只动了 go.mod | 噪声 | 本 skill 对 redaction 只写「allow/block-list 掩码」、对 routing 没写配置期是否校验、对 load_balancing 没写队列默认值；其余同理无相反陈述。v0.163.0 只是在 CHANGELOG 里准备发布，镜像尚未发布，故用最新发布的 0.162.0 复测本 skill 依赖的默认值（见下） |
+| prometheus | c45b13b → 6e69e84（6 提交） | `CHANGELOG.md` promtool `--allow-incompatible-block-duration`；`docs/querying/api.md` search 端点的警告与 metadata 家族匹配；`operators.md` 说明 `type-and-unit-labels` 下 `__type__`/`__unit__` 与 `__name__` 一样被丢弃；`storage.md` 回填块时长 | 噪声 | 本 skill 的 cardinality 材料（TSDB status 字段、原生直方图、`_created`、exemplar、`info()` gate）未受影响 |
+
+### 事实更正与实跑证据
+
+1. **SDK 默认采样器**（SKILL.md 规则 7；`instrumentation.md`「Sampling belongs elsewhere」；`sampling.md`「Where the decision
+   belongs」）：旧文「Leave the SDK sampler at its default `AlwaysOn`」「`AlwaysOn` is the default and needs no variables」错误。
+   证据：opentelemetry-specification@bb85bf4 `specification/trace/sdk.md`「The default sampler is `ParentBased(root=AlwaysOn)`」，
+   `specification/configuration/sdk-environment-variables.md` 中 `OTEL_TRACES_SAMPLER` 默认 `"parentbased_always_on"`。
+   实跑（`uv run`，opentelemetry-sdk 1.45.1，InMemorySpanExporter）：不设变量时 sampler 为
+   `ParentBased{root:AlwaysOnSampler,…,remoteParentNotSampled:AlwaysOffSampler,…}`，入站 flags `01` 导出 1 个 span、`00` 导出 0 个、
+   无父 1 个；`OTEL_TRACES_SAMPLER=always_on` 时三种都导出 1 个。据此改为「显式设 `always_on`」，并写明默认值下入站
+   `traceparent` 的 sampled 位为 0 时本服务什么都不记录。这是把原规则的本意（导出全部 span）按正确事实落地，不是新规则。
+   otel-spec 条目的 `paths` 补上这两个规范文件、`contributes`/`notes` 同步；同一 `sdk.md` 把 `TraceIdRatioBased` 标为弃用、
+   改推 `ProbabilitySampler`（2027-01-01 前 SDK 不得改其行为），但 `OTEL_TRACES_SAMPLER` 仍只定义 `traceidratio`，逃生口措辞未改。
+2. **JS SDK 2.x 测试片段**（`instrumentation.md`「Asserting on trace shape in tests」）：旧片段 `provider.addSpanProcessor(...)` 与
+   `!s.parentSpanId`。证据：opentelemetry-js `doc/upgrade-to-2.x.md`「removed `BasicTracerProvider#addSpanProcessor(...)` -> use
+   constructor options」「`span.parentSpanId` -> `span.parentSpanContext?.spanId`」。实跑（@opentelemetry/sdk-trace-node 2.12.0）：
+   `typeof provider.addSpanProcessor` 为 `undefined`，调用抛 `TypeError: … addSpanProcessor is not a function`；子 span 的
+   `parentSpanId` 为 `undefined` 而 `parentSpanContext.spanId` 有值，旧过滤器会把每个 CLIENT span 都判成根。改为构造器
+   `spanProcessors` + `AlwaysOnSampler` + `parentSpanContext`，新片段实跑：嵌套 CLIENT 通过、无父 CLIENT 被报出。
+3. **评测期望措辞**：场景 2 期望 1「leaves the default AlwaysOn sampler」含同一错误事实，改为中性的「in favour of an `AlwaysOn`
+   sampler」，未新增要求。
+
+### Collector 默认值复测（0.162.0）
+
+`otel/opentelemetry-collector-contrib:0.162.0`（0.163.0 镜像在 Docker Hub 尚不存在，releases 仓库最新为 v0.162.0）：
+`memory_limiter` + `batch` 管道启动日志无任何 deprecat/warn，`Everything is ready`；`otlp` 接收器 `grpc: {}` 的
+`Starting GRPC server` 行 `"endpoint": "127.0.0.1:4317"`；`extensions: memory_limiter` 仍报 `'extensions' unknown type:
+"memory_limiter"`；`featuregate` 中 `processor.k8sattributes.EmitV1K8sConventions`/`DontEmitV0K8sConventions` 为 Beta true，
+`pkg.exporterhelper.queueBatchEnabled` 为 Alpha false（`sending_queue.batch` 仍需显式开启）。本 skill 以 0.160.0 为基线的
+Collector 陈述全部仍成立，正文不动；结论记入 otel-collector-contrib `notes`。
+
+### 评测
+
+事实更正不需证明基线缺口；为确认改写后的规则 7 不引入回归，跑了一次有 skill 的场景 2（`checkout-telemetry.ts`）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 | gpt-6.1-sol medium | 有 | True | 1、2、3、5、6、7、10 达成；4、9 部分；8 未达成 | 410 s。`NodeSDK({ sampler: new AlwaysOnSampler() })`，注释写明「Record even when an upstream parent is unsampled」，与更正后的规则一致；span 名改路由模板、标识移到属性；SERVER 4xx 保持 UNSET；异常改结构化日志带 `exception.*` 与 trace/span id；指标去掉 user/order/error/path；SIGTERM 先排空再 `sdk.shutdown()`。4：设了 `OTEL_SEMCONV_STABILITY_OPT_IN=http` 但没讲 `http/dup` 分阶段迁移；9：加了 INTERNAL 根 span，但逐行 span 未合并为带 `batch.size` 的批 span；8：没提直方图按桶数放大标签 |
+
+`pin_check.py`：除 otel-collector-contrib 外全部与审阅 HEAD 一致（9900032、fd27094、6d46bed、9878377、482c9bf、bb85bf4、
+6e69e84）；grafana-skills 未动，addyosmani-agent-skills（2686b62 → aeac41d）、awesome-copilot-appinsights（15ed97c → 3cf7c7e）
+为「repo moved, tracked paths unchanged」，otel-spec 随 pin 从 91ad232 前进到 bb85bf4（新增两个 paths 在该 commit 读过）。
+otel-collector-contrib 的 `--pin` 写入 fc79b95，比审阅 HEAD ac07ded 多 1 提交：fc79b95「[receiver/kafka] Add
+partition_processing.max_in_flight.bytes」只改 `receiver/kafkareceiver`，本 skill 不涉及 Kafka 接收器，噪声；脚本因此报
+`DELTA`，差额已按上述归因。
+
+结论：两处事实更正（SDK 默认采样器、JS SDK 2.x 测试片段），均经规范/升级文档核实并在本机实跑；无新增行为规则；
+版本号改为 2026.10.15。
+
+D1：`validate_skills.py skills/observability` 0 error / 0 warning，`build_catalog.py --check` 通过；安装冒烟
+（`npx skills@latest add <worktree> --skill observability --agent universal --copy --yes`）后 `.agents/skills/observability/`
+的 SKILL.md、SOURCES.yaml、NOTICE.md、evals 与 9 个 references 齐全，与源目录 `diff -r` 一致。

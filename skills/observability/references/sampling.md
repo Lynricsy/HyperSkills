@@ -25,9 +25,11 @@ Three places can drop a trace, and they differ in what they know when they decid
 | Collector agent (head) | Same as the SDK, plus resource attributes | Same blindness, but changeable centrally without a redeploy |
 | Collector gateway (tail) | The whole trace: status, duration, attributes | Can keep exactly the interesting traces — at the cost of buffering and a stateful tier |
 
-The default: SDKs run `AlwaysOn` and export everything to a local Collector; the Collector decides.
-That single choice is what makes "keep every error" possible at all, because at the moment the
-SDK decides, nothing knows whether the request will fail.
+The default design: SDKs run `AlwaysOn` and export everything to a local Collector; the Collector
+decides. `AlwaysOn` has to be set (`OTEL_TRACES_SAMPLER=always_on`) — the SDK's own default,
+`ParentBased(root=AlwaysOn)`, records nothing for a request whose incoming `traceparent` carries
+the sampled flag cleared. That single choice is what makes "keep every error" possible at all,
+because at the moment the SDK decides, nothing knows whether the request will fail.
 
 The one situation that justifies head sampling in the SDK is a hop whose cost is itself the
 problem — metered egress, per-invocation serverless billing, a constrained device link. Take it
@@ -250,4 +252,4 @@ tail sampling configured as if it were stateless.
   policy cannot match a failure that the instrumentation recorded as `UNSET` — which is what
   happens when a `CLIENT` span sets `OK` regardless of the response.
 
-<!-- sources: dash0-agent-skills, ollygarden-otel-skills, o11y-dev-otel, otel-collector-contrib, otel-docs -->
+<!-- sources: dash0-agent-skills, ollygarden-otel-skills, o11y-dev-otel, otel-collector-contrib, otel-docs, otel-spec -->

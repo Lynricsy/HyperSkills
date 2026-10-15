@@ -260,8 +260,18 @@ single info metric and join at query time.
 
 ## Sampling belongs elsewhere
 
-Leave the SDK sampler at its default `AlwaysOn`. Do not configure `TraceIdRatioBased`,
+Set the SDK sampler to `AlwaysOn` explicitly. Do not configure `TraceIdRatioBased`,
 `ParentBased` with a ratio, or anything else that drops spans in the application.
+
+`AlwaysOn` is not the default. The specification's default is `ParentBased(root=AlwaysOn)`
+(`OTEL_TRACES_SAMPLER=parentbased_always_on`): it records every root span, but a span with a
+remote parent follows that parent's sampled flag. A request arriving with
+`traceparent: 00-<trace-id>-<span-id>-00` therefore produces no spans in this service, and
+anything downstream that also follows the flag records nothing either; whoever sends the
+header — including a client outside your control — decides. `OTEL_TRACES_SAMPLER=always_on`
+records the request either way and keeps the incoming trace ID and parent. Measured with the
+Python SDK 1.45.1: with no variable set, a flag `00` parent exports 0 spans and a flag `01`
+parent exports 1; with `always_on`, both export 1. [verified]
 
 The reason is timing, not taste: a head sampler decides before the request's outcome is known. A
 trace that looked unremarkable at its first span may turn out to contain the error, the latency
@@ -272,7 +282,8 @@ There is one legitimate escape hatch: when the SDK-to-Collector hop is itself th
 cost — metered egress, per-invocation serverless billing, a device on a slow link. Then sample in
 the SDK (`OTEL_TRACES_SAMPLER=traceidratio` with `OTEL_TRACES_SAMPLER_ARG`), and state plainly
 that errors and tail latency are being discarded at the same rate as everything else. In a normal
-service, setting those two variables is the bug; `AlwaysOn` is the default and needs no variables.
+service, setting those two variables is the bug; the only variable it needs is
+`OTEL_TRACES_SAMPLER=always_on`.
 
 ## Graceful shutdown
 
@@ -289,19 +300,28 @@ is a local Collector with a persistent queue, not a longer flush timeout.
 
 Trace shape is a functional requirement: span names, parent-child relations, kinds, status codes
 and attributes are what the dashboards and alerts are built on. An in-memory span exporter makes
-them assertable in ordinary integration tests.
+them assertable in ordinary integration tests. The example uses the JavaScript SDK 2.x API, which
+removed `addSpanProcessor` (span processors go to the provider constructor) and replaced
+`parentSpanId` with `parentSpanContext`; code written for 1.x fails with
+`provider.addSpanProcessor is not a function`, and a `!s.parentSpanId` filter flags every span as
+a root. Checked against `@opentelemetry/sdk-trace-node` 2.12.0. [verified]
 
 ```typescript
 import { SpanKind } from "@opentelemetry/api";
-import { InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { AlwaysOnSampler, InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 
 const exporter = new InMemorySpanExporter();
-provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+const provider = new NodeTracerProvider({
+  sampler: new AlwaysOnSampler(),
+  spanProcessors: [new SimpleSpanProcessor(exporter)],
+});
+provider.register();
 
 function assertNoParentlessOutboundSpans() {
   const bad = exporter
     .getFinishedSpans()
-    .filter((s) => (s.kind === SpanKind.CLIENT || s.kind === SpanKind.PRODUCER) && !s.parentSpanId);
+    .filter((s) => (s.kind === SpanKind.CLIENT || s.kind === SpanKind.PRODUCER) && !s.parentSpanContext);
   if (bad.length > 0) {
     throw new Error(`CLIENT/PRODUCER root spans: ${bad.map((s) => s.name).join(", ")}`);
   }
