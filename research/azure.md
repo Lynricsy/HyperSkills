@@ -268,3 +268,31 @@ learn-azure 为 manual check，本次未处理。
 | azure-dev | 973ffa9 → 95a1f83（首次 pin，tracked paths unchanged）→ 0755722（1 提交） | 0755722：`cli/azd/docs/environment-variables.md` 1 行——`AGENT_DEFINITION_PATH` 改为 AI agent 运行时不再支持、定义须写在 `azure.yaml` 的 `azure.ai.agent` 服务上 | 噪声 | azd 的 AI agent 扩展变量，本 skill 排除 AI/Foundry 范围，正文不含该变量 |
 
 未合入原因：三条均无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与 `/tmp/hs-attr/skills_real.json`，7 条 paths 下确有提交。归因方法：
+bicep-registry-modules、azure-dev、azure-docs、microsoft-azure-skills 用主代理缓存 `/tmp/hs-attr/<owner>__<repo>`，bicep、avm、
+microsoftdocs-agent-skills 用 `gh repo clone --bare --filter=blob:none` 克隆到 `/tmp/hs-up/SyncG2/`，均对 `<pinned>..<head> -- <paths>`
+跑 `git log`、`git diff --stat` 与 `git diff`（microsoft-azure-skills 另加 `-w --ignore-cr-at-eol` 剔除换行符噪声）逐文件读 diff。
+`--pin` 后 `pin_check.py` CLEAN（avm 又前进到 593f926，差额 1 提交未碰跟踪的 CSV）；aks-skills、azure-functions-skills、
+awesome-copilot 随 `--pin` 前移。learn-azure 为 manual check，未处理。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| microsoft-azure-skills | f07c053 → d1736f3（7 提交） | 去换行噪声后 29 文件：AKS Automatic readiness 脚本与 MCP 集成、autoscaler 不再建议 `skip-nodes-with-system-pods=false`、Spot 改为 preferred affinity 且注明 PDB 挡不住 Spot 回收、Container Apps serverless GPU、Functions 触发器/Durable 排障新文档、Ubuntu 24.04 `ssh.socket`、check-quota.sh 修注入 | 噪声 | 本 skill 无 autoscaler profile、Spot affinity、SSH 排障内容；Spot 只写「有状态不上 Spot」与上游一致；GPU 一句仍成立（节点级 GPU 调度属 AKS）；触发器排障为新内容且属其诊断深度，未合入 |
+| bicep | cec7951 → 20c8e39（3 提交） | `UseRecentAzPowerShellVersionRule` 默认最低版本 11.0 → 15.0；新增 `no-conflicting-version-constraints`、`no-incompatible-entrypoint-version` 两条 bicep.version 约束规则；重排格式 | 噪声 | 本 skill 不写 deploymentScripts 的 Az 版本，也不涉及 bicep.version 约束 |
+| avm | 50ff01c → c5e54a7（3 提交，pin 时至 593f926） | 两个 CSV 例行同步：named-value 拼写、若干子模块路径、SQL server 行、owner 变更；表头未变 | 噪声 | 本 skill 只引用 `avm/res/storage/storage-account`，其行未变 |
+| azure-docs | a3dfc42 → cc1910c（3 提交） | 30d833a：Functions 的 Azure OpenAI 扩展 2027-04-20 退役、Preview bundle ≥4.60.0 不再包含；bb63da0：Service Bus 扩展 4.x 已于 2025-03-31 退役，其 `Microsoft.Azure.ServiceBus` 库于 2026-09-30 退役；同区间 `flex-consumption-plan.md` 补 Free Trial / Azure for Students 默认区域配额 15 核；另有 deployment script 示例版本、stack what-if 保留期、deny assignment 预览措辞 | **事实更正 2 处**，其余噪声 | Flex 配额与 Service Bus 4.x 状态是本 skill 已写的事实（Core rule 15/16、`references/functions.md`），按官方文档改正；OpenAI 扩展本 skill 不覆盖（路由到 ai-engineering）；其余条目正文未涉及 |
+| bicep-registry-modules | bd4ef88 → 61dcfb4（28 提交） | 全在 `avm/res/*` 具体模块：API 版本升级（hybrid-compute、azure-stack-hci 等）、测试夹具、CI/README 生成、NSG/SQL MI/Data Factory 修复 | 噪声 | 本 skill 只取 `br/public:avm/res/...` 路径形态与版本形式，无改动；storage-account 模块未被触及 |
+| azure-dev | 0755722 → 28ef16e（17 提交） | 只动 `cli/azd/docs`：扩展 SDK/契约版本、`azd exec --shell` 歧义、pipeline config 安装扩展说明、重新登录清缓存；`schemas` 未变 | 噪声 | 本 skill 的 azd 内容（azure.yaml、hooks、`pipeline config --auth-type federated`）均未被改写 |
+| microsoftdocs-agent-skills | 326540f → ba74e8f（1 提交） | `azure-container-apps/SKILL.md` 描述与目录行重新生成 | 噪声 | 仅生成元数据 |
+
+正文改动（均为事实更正，依据 MicrosoftDocs/azure-docs cc1910c）：
+- Core rule 15 与 `references/functions.md`：Flex Consumption 区域配额默认 250 核（512,000 MB），Free Trial 与 Azure for Students 为
+  15 核（30,720 MB）——`articles/azure-functions/flex-consumption-plan.md`。
+- Core rule 16 与 `references/functions.md`：Service Bus 扩展 4.x 已退役（2025-03-31），其 `Microsoft.Azure.ServiceBus` 库 2026-09-30 退役，
+  因此 bundle 不匹配的修法是换到 bundle v4 / 扩展 5.x，而不是写 4.x 形状的设置——`migrate-service-bus-version-4-version-5.md`、
+  `functions-bindings-service-bus.md`。
+
+结论：两处事实更正按官方文档改正文，无新增行为规则，未新增评测场景；未跑 D2（场景 4 已覆盖 bundle 区间这一行为，本次未重跑）。

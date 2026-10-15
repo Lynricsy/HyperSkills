@@ -4,7 +4,7 @@ description: "Manages Azure architecture, Bicep deployments, identity and cloud 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: platform
 ---
 
@@ -97,13 +97,16 @@ Paths below are relative to this skill's directory.
     not a setting (`references/functions.md`).
 15. Flex Consumption is the recommended serverless Functions plan: Linux only, 512 / 2048 /
     4096 MB instances, up to 1000 instances against Consumption's 200, and a shared regional
-    quota of 250 cores per subscription that can cap scale below the configured maximum.
+    quota of 250 cores per subscription (15 on Free Trial and Azure for Students) that can cap
+    scale below the configured maximum.
     `alwaysOn` does nothing on Consumption; cold starts there are fixed with always-ready
     instances (Flex) or pre-warmed instances (Premium), never with a keep-alive timer.
 16. An extension bundle range is a version contract: `[4.*, 5.0.0)` loads Service Bus extension
     5.x with flat `maxConcurrentCalls`, while bundle v2 and v3 load extension 4.x where the same
     setting lives under `messageHandlerOptions`. The host silently ignores settings it does not
-    recognise, so a mismatched `host.json` runs entirely on defaults.
+    recognise, so a mismatched `host.json` runs entirely on defaults. Extension 4.x is retired
+    and so is the `Microsoft.Azure.ServiceBus` library it uses (2026-09-30): fix a mismatch by
+    moving to bundle v4 and extension 5.x, not by writing 4.x settings.
 17. AKS Day-0 decisions - pod IP model, service CIDR, node subnet, availability zones,
     private-cluster mode - cannot be changed on an existing cluster. Say which bucket a finding
     is in before proposing it (`references/aks-control-plane.md`).

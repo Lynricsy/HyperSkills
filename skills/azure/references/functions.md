@@ -52,7 +52,8 @@ The decision usually reduces to two questions:
 - Always-ready instances default to 0. With zone redundancy enabled the minimum is **2** per
   function or group, not 1.
 - **Regional subscription quota: 250 cores (equivalent to 512,000 MB) per region per
-  subscription**, shared by every Flex Consumption app there. Cores used = instances x cores per
+  subscription** by default - **15 cores (30,720 MB)** on Free Trial and Azure for Students -
+  shared by every Flex Consumption app there. Cores used = instances x cores per
   instance, so 1,000 instances of a 512 MB app and 125 instances of a 4,096 MB app both exhaust
   it. Apps that have scaled to zero do not count; always-ready instances do. A high
   `maximumInstanceCount` is not a guarantee - the quota can cap it first. It can be raised on
@@ -115,7 +116,10 @@ and then silently fails to fire triggers.
   ignores settings it does not recognise without logging anything.** Extension bundle `[4.*, 5.0.0)`
   brings Service Bus extension 5.x, which takes the flat form below. Bundle v2 and v3 bring
   extension 4.x, where the same knobs live under `messageHandlerOptions`. A `host.json` written
-  for one and deployed against the other runs entirely on defaults:
+  for one and deployed against the other runs entirely on defaults. Extension 4.x was retired on
+  2025-03-31 and the `Microsoft.Azure.ServiceBus` library it exposes was retired on 2026-09-30,
+  so the fix for a mismatch is moving to bundle v4 / extension 5.x (`Azure.Messaging.ServiceBus`
+  types, a breaking change for code that binds SDK types), not writing 4.x-shaped settings:
 
   | Setting | Extension 5.x (bundle v4) | Extension 4.x (bundle v2/v3) | Default |
   |---|---|---|---|
