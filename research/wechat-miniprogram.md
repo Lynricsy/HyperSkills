@@ -326,3 +326,19 @@ packageA 的 JS 与组件，同事建议改用 `await import()`。
 
 未改。基线已达成场景 6 的全部 expected_behavior，按流程不合入，场景保留作哨兵。只改 SOURCES.yaml（re-pin）、
 版本号 `2026.09.30` 与 evals。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`，
+三条 `behind`：dcloud-uni-app、cloudbase-ai-toolkit、sonofmagic-skills；taro 为「repo moved, tracked paths unchanged」，随
+`--pin` 前移到 c48bec6。归因方法：uni-app 与 CloudBase-AI-Toolkit 用主代理缓存的 blobless 裸仓库
+（`/tmp/hs-attr/<owner>__<repo>`）跑 `git diff <pinned>..<head> -- <paths>`；sonofmagic/skills 用 `gh api compare`。
+`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| dcloud-uni-app | ada5149 → fb45bda（5 提交：a0c8a6f、2baa0ec、33884df、049dffd、3ec2a2b） | 只有 `docs/mp/README.md`：重排为「uni-app x 编译到小程序的优势 / 差异」，补支付宝小程序基础库 2.10.38、`v-bind="$attrs"` 在小程序内置组件上只透传 id/class/style/click、`enableUcssReset` 锚点、去掉「native-view 暂不支持支付宝」；`docs/compiler/platform.md` 区间内无改动 | 噪声：均为 uni-app x 的多端差异，本 skill 只取条件编译语法、平台常量与 glass-easel 开关，三者未变 |
+| cloudbase-ai-toolkit | 6032e5d → 2ba79cc（7 提交，命中 paths 的实质改动为 07b0eda、0849393/9c71064） | 07b0eda：Nightly 开发者工具 + `wechatide` 改为默认路径，缺 `wechatide` 视为一次性安装缺口，须告知、主动提出安装并等用户决定，禁止自行降级到「稳定版 + 手动导入」；0849393/9c71064：skill 目录内附 `LICENSE.md`（MIT）；其余为版本号 | 不合入：relation 仍为 reference，Nightly `wechatide` 属 CloudBase 工作流且本 skill 无法核实；许可未变（同为 MIT），只在 SOURCES.yaml notes 记录 |
+| sonofmagic-skills | c4cfd3c → c44f95b（12 个同步提交） | weapp-vite 系列：DevTools E2E 的机器租约与「只清理本任务资源」、默认用本机最新 Stable、`wv doctor`、独立 `upload --json/--timeout`、实验性标准 Vite 插件、Wot UI/uview-plus 兼容基线版本号、React 19.3 组合；新增 `weapp-acceptance` | 噪声：作者自有工具链的用法，未涉及本 skill 交叉核对的 WXSS 类名转义与 rpx 处理 |
+
+正文未变，未跑 D2。只改 SOURCES.yaml（re-pin、cloudbase notes）与版本号 `2026.10.15`。
