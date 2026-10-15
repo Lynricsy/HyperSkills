@@ -4,7 +4,7 @@ description: "Develops Apple platform apps with Swift, SwiftUI and UIKit."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.10.15"
   category: platform
 ---
 
@@ -16,8 +16,9 @@ Swift and SwiftUI application code for iOS, iPadOS, macOS, watchOS, tvOS, and vi
 SwiftUI-first: UIKit and AppKit are covered where the two meet — hosting, representables,
 scene lifecycle, macOS windows — not as an application architecture in their own right.
 
-Default deployment target for new apps is **iOS 26** and its coordinated releases; Swift 6.2
-or later with strict concurrency. iOS 27 is the newer SDK and its APIs are marked as such.
+Default deployment target for new apps is **iOS 27** and its coordinated releases (Xcode 27,
+Swift 6.4) with strict concurrency. Existing projects keep their deployment target; APIs
+newer than it are gated.
 
 Not covered: server-side Swift, App Store submission, ASO, Core Data (SwiftData is the
 default; say so rather than improvising), and cross-platform frameworks (`flutter`,

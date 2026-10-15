@@ -58,8 +58,10 @@ ForEach(items.enumerated(), id: \.element.id) { index, item in
 }
 ```
 
-Since Swift 6.1 `enumerated()` conditionally conforms to `RandomAccessCollection`, so no
-`Array(...)` wrapper is needed; the wrapper also forces an eager copy on every body pass.
+On an iOS 26 / macOS 26 (or later) target no `Array(...)` wrapper is needed, and the
+wrapper forces an eager copy on every body pass. The `RandomAccessCollection` conformance
+of `enumerated()` ships in the Swift 6.2 standard library, so it is availability-gated to
+those OS releases; earlier targets keep `ForEach(Array(items.enumerated()), id: \.element.id)`.
 
 ## Identity must outlive the view
 

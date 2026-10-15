@@ -1,6 +1,7 @@
 # Modern API index
 
-Verified against: iOS 26.6 SDK (shipping), iOS 27 RC SDK.
+Verified against: iOS 26.6 SDK and the iOS 27 RC SDK. iOS 27 and Swift 6.4 have since
+shipped (September 2026).
 
 Read this before writing or reviewing any SwiftUI code. Model training data is dense with
 API shapes that still compile but are soft-deprecated, and this file is the fastest way to
@@ -110,8 +111,9 @@ iOS 16. `[verified]`
 
 ## iOS 27 additions and breakages
 
-iOS 27 is the newer SDK; iOS 26 remains the default deployment target for new apps. Gate
-everything here and keep an iOS 26 path, except where an item says it back-deploys.
+iOS 27 is the current SDK and the default deployment target for new apps. A project that
+deploys below 27 gates everything here and keeps an older path, except where an item says
+it back-deploys.
 
 - `@State` became a **macro**. Views that compiled before can now fail with "variable used
   before being initialized", "invalid redeclaration of synthesized property", or "extraneous
@@ -129,6 +131,14 @@ everything here and keep an iOS 26 path, except where an item says it back-deplo
   container. iOS/macOS/watchOS/visionOS 27; unavailable on tvOS.
 - `swipeActionsContainer()` extends swipe actions to any scrollable container, not just
   `List`. iOS/macOS/watchOS/visionOS 27; unavailable on tvOS.
+- `.sidebarAdaptable` morphs between tab bar and sidebar only on iPadOS; on iPhone it
+  resolves statically to a tab bar, and size classes cannot change that. From iOS 27,
+  `.defaultTabBarPlacement(.sidebar)` picks the sidebar where the style cannot morph
+  (iPhone, including iPhone Duo's inner display; macOS, tvOS, visionOS) and is a no-op on
+  iPadOS, where `defaultAdaptableTabBarPlacement(_:)` (iOS 18) applies instead. Inside tab
+  content, `@Environment(\.isTabViewSidebarAvailable)` (27) says whether a sidebar can
+  show; keep nested-tab content reachable when it cannot. Gate with
+  `#available(iOS 27, *)` and leave the tab bar as the older path. `[verified]`
 - `confirmationDialog` and `alert` gained `item: Binding<T?>` overloads matching the
   `sheet(item:)` shape. They need the 27 SDK to compile but back-deploy to iOS 15 /
   macOS 12 / tvOS 15 / watchOS 8 / visionOS 1, so no `#available` gate. Prefer them over an
@@ -152,9 +162,11 @@ plausible code sample. Verify against developer.apple.com or the SDK interface. 
 
 - Wrapping a `Shape` fill and stroke in an `overlay` to get both. Since iOS 17 you can chain
   `.fill()` and `.stroke()` directly.
-- `Array(items.enumerated())` before `ForEach`. Since Swift 6.1 `enumerated()` conditionally
-  conforms to `RandomAccessCollection`, so `ForEach(items.enumerated(), id: \.element.id)`
-  works without the eager copy.
+- `Array(items.enumerated())` before `ForEach` — **on an iOS 26+ target**. `enumerated()`
+  gained its `RandomAccessCollection` conformance in the Swift 6.2 standard library, which
+  ships with the iOS 26 / macOS 26 runtime, so `ForEach(items.enumerated(), id: \.element.id)`
+  works without the eager copy only there. Below iOS 26 the `Array(...)` wrapper is still
+  required; it is not a finding.
 - `import Combine` being implied by `import SwiftUI`. It no longer is; a file that still
   uses `ObservableObject` or a publisher needs the explicit import.
 - `showsIndicators: false` in a `ScrollView` initialiser. Use `.scrollIndicators(.hidden)`.

@@ -81,5 +81,16 @@
       "Replaces the isPresented plus presenting: pair with confirmationDialog(_:item:titleVisibility:actions:message:) and states that the item overload back-deploys to iOS 15, so no #available gate is needed",
       "Replaces presentationMode with @Environment(\\.dismiss)"
     ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "Our next App Store submission of Ledger will be built with Xcode 27 (iOS 27 SDK); the deployment target stays iOS 17. Review LedgerInfo.plist and LedgerRoot.swift: what will break or must change for this submission, and what should we fix while we are here? Show the changes.",
+    "files": ["evals/files/LedgerInfo.plist", "evals/files/LedgerRoot.swift"],
+    "expected_behavior": [
+      "Flags that the Info.plist declares no launch screen (none of UILaunchStoryboardName, UILaunchStoryboards, UILaunchScreen or UILaunchScreens) and that apps built with the iOS 27 SDK without one are rejected by App Store review, and adds one (for example an empty `UILaunchScreen` dictionary)",
+      "Keeps `ForEach(Array(entries.enumerated()), id: \\.element.id)` at the iOS 17 target, or gates the unwrapped form; does not tell them to drop the `Array(...)` wrapper unconditionally, because `enumerated()`'s collection conformance needs the iOS 26 runtime",
+      "Explains that a `.sidebarAdaptable` TabView cannot morph on iPhone, so the sidebar on wide iPhones needs `defaultTabBarPlacement(.sidebar)` behind `#available(iOS 27, *)`, with the tab bar remaining on older systems",
+      "Replaces `sizeClass != .compact` with `sizeClass == .regular`, because the size class is optional and `nil` must not be treated as wide"
+    ]
   }
 ]

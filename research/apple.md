@@ -269,3 +269,43 @@ dbe7b3a / ee97b1f（Xcode 27.1）、6702cf7（可缩放布局）、6572a7f（iPh
 遗留风险：`ArrangementView`、`ReservedRegion`、iPhone Duo 相关 API 在 Apple 文档中仍标 beta（iOS 27.1），
 正式版语义可能变化，下次同步需复核；液态玻璃两处更正只删除了错误说法、补写签名，覆盖该主题的场景 2
 本次未重跑。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`，两条
+`behind`：twostraws-swiftui、avdlee-swiftui；avdlee-update-apis 为「tracked paths unchanged」，随 `--pin` 前移。
+归因方法：`gh api repos/<o>/<r>/compare/<pinned>...<head>` 读 tracked paths 的完整 patch。事实核对只用一手来源：
+`swiftlang/swift` 源码（`gh api`）、developer.apple.com 的文档 JSON（`/tutorials/data/documentation/…json`）与
+iOS & iPadOS 27 发行说明。`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| twostraws-swiftui | be297ff → f980071（1 提交：f980071「Updated for Xcode 27.2 and iPhone Duo」，2.0.0） | Core Instructions：iOS 27 为新 App 默认部署目标、Swift 6.4、Xcode 27.1 可用、先读部署目标再给版本相关建议 | **状态更新**：2026-09-10 裁决 A2 定 iOS 26 的理由是「iOS 27 处于 RC」。复核：Apple 发行说明索引已列 iOS & iPadOS 27 与 27.2；`swiftlang/swift` 有 `swift-6.4.0-RELEASE`（2026-09-15），`utils/availability-macros.def` 中 `SwiftStdlib 6.4: anyAppleOS 27.0`；Xcode 27.1 发行说明含 iOS 27.1 SDK 与 Swift 6.4。据此把 Scope 与 `latest-apis.md` 的默认目标改为 iOS 27（Xcode 27 / Swift 6.4），「既有项目保持部署目标、更新的 API 门控」不变 |
+| 同上 | 同上 | `api.md`：`ForEach(items.enumerated(), …)` 标为 iOS 26+，更早目标保留 `Array(...)` | **事实更正**：本 skill `latest-apis.md` 与 `swiftui-lists-foreach.md` 写「Swift 6.1 起 `enumerated()` 条件遵循 `RandomAccessCollection`」且无 OS 限制。`swiftlang/swift` `stdlib/public/core/EnumeratedSequence.swift` 的 `Collection` 扩展标 `@available(SwiftStdlib 6.2, *)`，而 `SwiftStdlib 6.2: anyAppleOS 26.0`——是 Swift 6.2 标准库、需 iOS 26 运行时。两处改为「iOS 26 / macOS 26 起无需包装，更早目标保留 `Array(...)`，不算问题」 |
+| 同上 | 同上 | 新增 `resizability.md`（iPhone Duo、`== .regular`、`safeAreaBar`、垂直工具栏）、`localization.md`、`performance-plus.md`；`api.md` 新增软弃用（`accentColor`、`colorScheme()`、`coordinateSpace(name:)`、`Color.cgColor`）、`@Entry` 默认值、语义化工具栏位置、`ToolbarOverflowMenu`；`hygiene.md`：iOS 27 SDK 必须声明启动屏、`UIRequiresFullScreen`；`views.md`：`reorderable()`、`swipeActionsContainer()` | 多数已覆盖（`latest-apis.md` 已有 `accentColor`、`colorScheme(`、`coordinateSpace(name`、`reorderable`、`swipeActionsContainer`、`LocalizedStringResource`/`#bundle` 等）。启动屏要求与 `== .regular` 进入场景 7 测基线：基线已会，**未合入** |
+| avdlee-swiftui | 9808b06 → 204dba7（2 提交：d137c91、f333989） | `sheet-navigation-patterns.md` 新增「Tab Bar and Sidebar (iOS 27+)」：iPhone 上 `.sidebarAdaptable` 不能形变，`defaultTabBarPlacement(.sidebar)` 选侧边栏，iPadOS 上无效改用 `defaultAdaptableTabBarPlacement`；`isTabViewSidebarAvailable`；`layout-best-practices.md` 断点用 size class、不要在两个自适应容器间按 size class 切换；`iphone-duo.md` 检查极端尺寸；f333989 删去 iPhone Mirroring 一句 | **新增 → 基线缺口，合入**：Apple 文档 JSON 核实 `defaultTabBarPlacement(_:)` 与 `isTabViewSidebarAvailable` 均为 iOS 27.0，`defaultAdaptableTabBarPlacement(_:)` 为 iOS 18.0，摘要写明「在 iPhone 等静态解析平台生效、iPadOS 上无效」。场景 7 基线称「iPhone 上要侧边栏只能自建导航」（E3 ✘），有 skill 时达成。其余布局建议本 skill `design-hig.md` 已覆盖，未合入 |
+
+### 评测（omp + `openai/gpt-6.1-sol`，thinking `medium`）
+
+新增场景 7（夹具 `evals/files/LedgerInfo.plist`、`evals/files/LedgerRoot.swift`）：用 Xcode 27 构建提交、部署目标保持 iOS 17；
+plist 无启动屏，根视图 `.sidebarAdaptable` 期望宽屏 iPhone 显示侧边栏，列表用 `sizeClass != .compact` 与
+`ForEach(Array(entries.enumerated()), …)`。E2 是本次 `enumerated()` 更正的哨兵。
+
+| 场景 | 模式 | skill_read | 结果 | 证据摘录 |
+|---|---|---|---|---|
+| 7 | 基线 | false | E1 ✔ E2 ✔ E3 ✘ E4 ✔ | 查了 iOS 27 发行说明，补 `UILaunchScreen`；`#available(iOS 26.0, *)` 才去掉 `Array(...)`；改 `== .regular`；但称「`.sidebarAdaptable` 在 iPhone 上不提供侧边栏，宽屏 iPhone 要侧边栏只能自建导航」 |
+| 7 | 有 skill（改后正文） | **true** | E1 ✔ E2 ✔ E3 ✔ E4 ✔ | `#available(iOS 27.0, *)` 分支 `.defaultTabBarPlacement(sizeClass == .regular ? .sidebar : .tabBar)`，注明 iPadOS 上无效、iOS 17–26 保留标签栏；「`Array(entries.enumerated())` 在 iOS 17 路径仍必需，`enumerated()` 的集合遵循只在 iOS 26 起可用」；列表改 `NavigationSplitView` 并指出 `!= .compact` 把未定的 size class 当成宽屏 |
+
+读取核查：有 skill 运行读了 `skill://apple` 下的 SKILL.md 与 6 篇 references 及 Apple 文档页，没有读到 `evals/`。
+D2 判定：基线未达成的 E3 在有 skill 时达成；E1、E4 基线已会，对应内容（启动屏要求、`== .regular`）不合入，场景留作哨兵。
+负例（场景 4）未改 description / Scope，未重跑。输出目录：`/tmp/hs-evals-sync/SyncG3/apple-b7`（基线）、`apple-s7`（有 skill）。
+
+### 正文改动
+
+- `SKILL.md` Scope：新 App 默认部署目标 iOS 27（Xcode 27、Swift 6.4），既有项目保持目标并门控更新的 API。
+- `references/latest-apis.md`：页首验证说明补「iOS 27 与 Swift 6.4 已于 2026-09 发布」；iOS 27 小节改为「默认目标；低于 27 的项目门控」；新增 `.sidebarAdaptable` 在 iPhone 上的 `defaultTabBarPlacement(.sidebar)`；`enumerated()` 旧模式条目限定 iOS 26+。
+- `references/swiftui-lists-foreach.md`：`enumerated()` 的可用性更正。
+- `SOURCES.yaml`：twostraws、avdlee `contributes`；re-pin；版本号 `2026.10.15`。
+
+遗留风险：`ArrangementView` 等 iOS 27.1 API 在 `design-hig.md` 仍标 beta；Xcode 27.1 发行说明详情页仍写 RC，下次同步复核。
+iOS 27 SDK 正式版本身未在本机（无 Xcode）编译验证，「Verified against: iOS 27 RC SDK」措辞保留。
