@@ -75,5 +75,17 @@
       "Says the exception counter and the crash marker (and the WithoutOverlapping lock) live in the worker's default cache store, so `CACHE_STORE=file` on three hosts counts and locks per host; the workers need a shared store such as Redis or the database",
       "Fixes the memory cause: stream the CSV (SplFileObject/fgetcsv or a LazyCollection) and insert in chunks or batches instead of `file()` plus `array_map` holding the whole statement and one `create()` per row"
     ]
+  },
+  {
+    "skills": ["laravel"],
+    "query": "We still oversell seats for popular events, a few times a week, always when PayHub is having a slow day - even though every reservation goes through the cache lock in SeatReservationService.php. Redis is shared by all six web hosts. Find the cause and give me the corrected service.",
+    "files": [
+      "evals/files/SeatReservationService.php"
+    ],
+    "expected_behavior": [
+      "Identifies that the lock's 5-second lease is shorter than the callback can run (a 20-second response timeout across up to three attempts, plus connect timeouts and retry sleeps), so on a slow PayHub day the lock expires mid-callback, a second request acquires it and reads the old `seats_remaining`, and both decrement - and states that the lease must exceed the worst-case duration of the locked work, derived from those timeouts, not its typical duration",
+      "Makes the decrement safe in the database instead of trusting the cache lock alone - a `lockForUpdate()` re-read inside the transaction, or an atomic conditional decrement (`where('seats_remaining', '>=', $seats)` plus `decrement()` and a check of the affected rows) - because `seats_remaining - $seats` computed from an earlier read loses updates whenever two writers overlap",
+      "Shrinks what the lock covers by taking the slow external authorisation out of the critical section (or otherwise bounding it), and handles the seats running out after the card was authorised by voiding or releasing that authorisation"
+    ]
   }
 ]

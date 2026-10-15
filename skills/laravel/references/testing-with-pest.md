@@ -111,7 +111,9 @@ in the documentation rather than inventing one.
 - Named response assertions (`assertOk()`, `assertForbidden()`, `assertNotFound()`) over
   `assertStatus(200)` — the failure then names the broken contract.
 - `assertModelExists($model)` over `assertDatabaseHas('users', ['id' => $user->id])`.
-- Assert each fact once; a `200` before an `assertSee` adds nothing.
+- Assert each fact once, but status and content are separate facts: `assertSee()` only searches
+  the body, so it also passes on an error page that happens to contain the text. Keep `assertOk()`
+  beside it whenever the status is part of the behaviour.
 - Write the expected value literally, or derive it a different way. Computing it with the
   implementation's own logic makes the test pass when that logic is wrong.
 - A write operation's complete result is the response **plus** the database state **plus** the

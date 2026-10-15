@@ -200,6 +200,17 @@ DB::transaction(function () use ($id) {
 `lockForUpdate()` is meaningless outside a transaction. `Cache::lock()` requires a store with
 atomic locks (`redis`, `memcached`, `database`, `dynamodb`, `file`, `array`).
 
+The second argument of `Cache::lock()` is a **lease**, not a timeout, and `block()` only says how
+long to wait to acquire it. When the lease runs out the lock is free while the callback is still
+running, so a second process takes it and the two critical sections overlap — the exact race the
+lock was for. Size the lease above the worst case of the locked work, not its typical duration:
+for anything that calls out, that bound comes from its timeouts times its attempts plus retry
+sleeps. Better still, keep slow external calls outside the locked section. The first holder's
+eventual `release()` checks ownership and will not free the second holder's lock, but by then the
+overlap has already happened.
+[verified: `Lock::block()` in the framework's `src/Illuminate/Cache/Lock.php` and the owner-checked
+`releaseLock` Lua script in `LuaScripts.php`]
+
 Validating against mutable state does not prevent a race between the check and the write. Stock
 levels, uniqueness and quota limits need a database constraint, an atomic update or a lock.
 

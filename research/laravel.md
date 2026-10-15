@@ -254,3 +254,47 @@ worker 的默认 cache store，多主机 worker 需要共享 store。
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 | 5 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3、4（4/4） | 从 GitHub 读 13.x 队列源码找到 `CountCrashesAsExceptions` 与 `job-processing:` 标记；指出 `CACHE_STORE=file` 让锁和计数按主机分裂；改成 `fgetcsv` 流式 + 500 行批量 `insert()` 并本地实测峰值内存 166 MB → 2 MB |
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与归因结果 `/tmp/hs-attr/attribution.md`。本 skill 4 条上游在 tracked
+paths 下确有提交。归因方法：laravel-framework、php-src 为 too-large 条目，用主代理的 blobless 裸仓库缓存
+`/tmp/hs-attr/<owner>__<repo>` 跑 `git diff <pinned>..<head> -- <paths>` 并读 HEAD 上的完整文件；laravel-boost 用
+`gh api repos/laravel/boost/compare/<pinned>...<head>` 取 patch 后按 paths 过滤；leeovery 的 compare 文件过多、后半 patch 被截断，
+另做 blobless 克隆（`/tmp/hs-g6/leeovery`）读 HEAD 上的 `laravel/skills` 全树与逐提交 diff。框架两处修复所在发版用
+`gh api repos/laravel/framework/compare/v13.3x.0...<sha>` 定位。awesome-copilot-laravel 为 too-large 但主代理归因为空（噪声），
+随 `--pin` 前移。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| laravel-boost | a85db6b → 3813996（4 提交命中） | 75c269a（#1061）：`rules/architecture.md` 给 `Cache::lock()` 加「租期必须长于回调可能的运行时间，过期后别的进程能拿到锁」；`testing-best-practices/rules/assertions.blade.php` 把「`assertSee` 前断言 200 是多余的」改为「`assertSee` 在含该文本的错误页上也会通过，状态是行为一部分时保留 `assertOk()`」。5c0a822（#1065）：PHPUnit 分支里单元测试改继承 `PHPUnit\Framework\TestCase`。749c4b6（#1042）：常驻 guideline 精简（PHP 8.4/8.5 函数清单压成一句、Laravel 12 目录结构压成一句、Vite manifest 报错并入 Frontend Bundling）。7f8f045（#1046）：命令改走 `$assist->artisanCommand()` 以兼容 Sail，规则文件改为 `.blade.php` | assertSee：**事实更正**；锁租期：**新规则，评测后合入**；单元测试基类：无影响（本 skill 以 Pest 为主，规则 3 已要求用 `make:test --unit` 生成，桩本身就继承 PHPUnit 的 TestCase）；其余：噪声 |
+| laravel-framework | 6070a6d → c3e5868（2 提交命中） | 1e3185d（#61826，随 v13.35.0）：`ReadsClassAttributes::propertyOverridesAttribute()` 加 `! is_null(...)`，子类 `use Queueable` 时 trait 声明的 null 属性不再盖掉父类上的队列属性；88aadc1（#61974，随 v13.36.0）：`Queue::registerRollbackCallbacksForJobsThatDispatchAfterCommit()` 对 `CallQueuedListener` 的 `shouldBeUnique()` 也注册回滚释放锁 | 无影响：两处都是让框架符合已文档化的行为。正文写的「属性值与声明默认值不同时覆盖 attribute、两者别同时声明」在 HEAD 的 `getAttributeValue()` 仍成立；正文未对继承或唯一监听器回滚作任何断言。`notes` 记下两个修复版本 |
+| leeovery-agentic-skills | 7a11090 → 88b5924（10 提交命中） | 5 段「Rewrite Laravel skills」重写全部 skill、新增 event-sourcing/workflows 占位 skill；0d88669「queue worker 每个 job 前 `forgetScopedInstances()`，boot 时配置的 scoped 实例会丢，改用 `callAfterResolving()`」；ed0d881「可能执行两次的副作用要加幂等键」；7dcd640「链/批次视作多步流程」 | 无影响：本 skill 从它合入的两点（`#[UseEloquentBuilder]` 专用 builder 作逃生口、job 只是委托给 action 的薄层）在 HEAD 的 laravel-query-builders / laravel-jobs 中仍在；其「从不用 local scope」「`#[Scope]` 也不行」仍被裁决 2 否决。scoped 实例在 worker 中被重置属容器扩展/包作者话题，社区单源、超出本 skill 应用层范围，未合入；幂等与链/批次本 skill 已覆盖（`queues-events-and-scheduling.md`） |
+| php-src（reference） | cc7612b → eec8328（14 提交命中） | `UPGRADING`（PHP 8.7 dev）新增：curl `CURLOPT_POSTFIELDS` 嵌套数组抛 `TypeError`、同名多文件上传；session `cookie_path`/`cookie_domain` 含分隔符时告警并拒绝；`Locale::acceptFromHttp()` 可选可用 locale 列表；unix socket 应用 `so_linger` 等；`stream_select()` 突破 `FD_SETSIZE`；若干性能条目与错字修正 | 噪声：全是 8.7 开发分支条目。`gh` 侧核对 tag：8.6 最新为 `php-8.6.0RC3`，8.5 仍是当前稳定系列，`modern-php.md` 版本门不变；`notes` 更新为 RC3 |
+
+### 事实更正
+
+`references/testing-with-pest.md`「Assert each fact once; a `200` before an `assertSee` adds nothing」改为：状态与内容是两件事，
+`assertSee()` 只搜响应体，含该文本的错误页也会通过，状态属于行为时保留 `assertOk()`。依据：读 HEAD
+`src/Illuminate/Testing/TestResponse.php::assertSee()`，只对 `getContent()` 做 `assertStringContainsString`，不看状态码。
+
+### 新规则：锁租期（评测先行）
+
+新增场景 6（夹具 `evals/files/SeatReservationService.php`）：`Cache::lock('event-seats:'.$id, 5)->block(10, ...)` 内调用
+`timeout(20)->retry(2, 500)` 的支付预授权，再读-改-写 `seats_remaining`；症状为 PayHub 慢时超卖。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ✔ EB3 ✘ | 指出 5 秒租期会在 PayHub 调用中过期、第二个请求拿到锁；改为事务内 `lockForUpdate()`。**未按最坏耗时重设租期**（保持 5 秒），支付调用仍在锁内。输出 `/tmp/hs-evals-sync/SyncG6/laravel-b6` |
+| 6 | gpt-6.1-sol medium | 有（仅改 reference） | true | EB1 ◐ EB2 ✔ EB3 ✘ | 读了 `eloquent-and-data-access.md`（含新段落）但答案与基线相同，缺口未填补。输出 `laravel-s6` |
+| 6 | gpt-6.1-sol medium | 有（reference + 规则 24） | true | EB1 ✔ EB2 ✔ EB3 ✘ | 按两次尝试算出最坏约 40.5 秒，把租期提到 60 秒，并保留 `lockForUpdate()` 作为正确性兜底。输出 `laravel-s6b` |
+
+首轮只在 reference 写入时有 skill 与基线打平，按 Phase D 回到正文：把同一事实压成一句并入核心规则 24（出站 HTTP 的超时×尝试次数
+同时是包住该调用的 `Cache::lock()` 租期下限；更好的做法是把调用移出锁区），重跑后 EB1 达成。EB3（把外部预授权移出临界区并在
+售罄时作废授权）两侧都未达成，属支付补偿设计，超出上游规则范围，不再为它改正文。
+
+最终合入：`references/eloquent-and-data-access.md`「Transactions and locks」加一段租期语义（租期不是超时、`block()` 只是等待、
+按最坏耗时取租期、首个持有者的 `release()` 按 owner 校验不会释放第二个持有者的锁——读 HEAD `Illuminate\Cache\Lock::block()`
+与 `LuaScripts::releaseLock()` 核实）；`SKILL.md` 规则 24 末尾两句。
+
+结论：assertSee 一处事实更正；锁租期规则基线 ◐ → 有 skill ✔ 后合入；其余为噪声或已覆盖。

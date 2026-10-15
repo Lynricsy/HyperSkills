@@ -4,7 +4,7 @@ description: "Develops Laravel PHP applications with Eloquent, queues, Blade and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: framework
 ---
 
@@ -121,7 +121,10 @@ Not covered:
 24. Every outbound `Http::` call sets `connectTimeout()` and `timeout()` and either calls
     `->throw()` or checks the status before reading the body. The client defaults to a 30-second
     response timeout that retries multiply, and it returns 4xx/5xx as ordinary responses — so a
-    bare `->json()` silently parses an error page into your domain.
+    bare `->json()` silently parses an error page into your domain. Those timeouts times the
+    attempts are also the floor for any `Cache::lock()` lease held around the call: an expired
+    lease admits a second holder mid-callback. Size the lease above that worst case, or better,
+    move the call out of the locked section.
 25. Finish with the project's own gate: `vendor/bin/pint --dirty`, the narrowest test selection
     that covers the change (`php artisan test --compact --filter=...`), then the wider suite, plus
     whatever static analysis the project runs. Report the commands and their output; when a
