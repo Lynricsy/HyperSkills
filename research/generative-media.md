@@ -549,3 +549,16 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 结论：上游新增的调度器指引（flow-matching 保留默认调度器、`from_config`、自定义 sigmas 的前提）基线已全部做到，不合入，
 场景 5 留作哨兵。determinism helper 与 generator 设备两处按上游文档与源码直接更正。场景 5 的第 5 条在有无 skill 时都
 没达成；正文「五个条件」已把步数列为复现条件，这不是本次上游带来的内容，留作后续观察，本次不改。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告与主代理归因清单 `/tmp/hs-attr/attribution.md`。
+归因方法：diffusers-docs 用 blobless 裸仓库缓存 `git diff fef717f..efe46a5 -- <paths>`；comfyui 用 `gh api .../compare/a65316b...ba99487`（98 提交、219 文件，未超 compare 上限）取 `comfy_extras/` 下文件 patch。
+其余条目 up to date 或 tracked paths unchanged，随 `--pin` 前移；`pin_check.py` 输出 PIN CHECK CLEAN。许可经 gh api 复核：diffusers Apache-2.0、ComfyUI GPL-3.0，均未变。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| diffusers-docs | fef717f → efe46a5 | 122b1e1：`image_quality.md` 重写 FreeU 一节（仅适用 UNet 管线，不支持 Flux/Qwen-Image 等 transformer 管线；先保持 `s1/s2`、调 `b1/b2`；四个系数为 1.0 等价于关闭），删去各模型示例；`reusing_seeds.md`、`schedulers.md` 区间内无改动 | 噪声：本 skill 从该上游取的是生成器状态、CPU/GPU 随机数与全确定性开关的复现边界（`reusing_seeds.md`），全文不涉及 FreeU（已 grep） |
+| comfyui | a65316b → ba99487（paths 15 提交） | `comfy_extras/`：Latent 几何节点、ReferenceMultiLatent、ImageSDRToHDR、EXR 16 位浮点与压缩、LatentOperationBlend、原生 LoRA 堆叠加载节点、CameraAngle/CreateCameraInfo、3D 输出统一等 | 噪声：GPL-3.0 仅作 reference，用途是判定节点图工作流的覆盖面（采样/调度、引导、latent、适配器加载、蒙版、托管 API 节点）；新增节点不改变该覆盖判定，也未复制任何内容 |
+
+结论：正文与 references 未改，未新增评测场景、未跑 D2；只 re-pin 并把版本号改为 2026.10.15。
