@@ -33,7 +33,7 @@ upstreams:
     url: https://laravel.com/docs/13.x
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Everything version-specific and everything the official skills omit: the Laravel 13 support and PHP matrix, the whole 12-to-13 breaking-change table, queue attributes and Queue::route, ShouldBeUniqueUntilProcessing, DeleteWhenMissingModels, the #[Scope]/#[Table]/#[ObservedBy] model attributes, chaperone() and automaticallyEagerLoadRelationships, controller #[Middleware]/#[Authorize] attributes, contextual container attributes, PreventRequestForgery and its Sec-Fetch-Site check, Response::denyAsNotFound, Pennant storage semantics, purging, nullable scope, rich values and eager loading, Cache::touch and the failover driver, Concurrency::run, and the Octane container/request injection hazards."
     notes: "Licence verified by reading laravel/docs LICENSE and license.md on the 13.x branch (MIT, Taylor Otwell), and `gh api repos/laravel/docs` reports spdx_id MIT, so this is merged rather than reference."
   - id: laravel-framework

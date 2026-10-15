@@ -298,3 +298,17 @@ paths 下确有提交。归因方法：laravel-framework、php-src 为 too-large
 与 `LuaScripts::releaseLock()` 核实）；`SKILL.md` 规则 24 末尾两句。
 
 结论：assertSee 一处事实更正；锁租期规则基线 ◐ → 有 skill ✔ 后合入；其余为噪声或已覆盖。
+
+## 2026-10-15 文档上游复核
+
+经 `gh api repos/laravel/docs/contents/<file>?ref=13.x` 读源文件。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| laravel-docs | Laravel 13（2026-03-17）PHP 8.3–8.5；Laravel 12 PHP 8.2–8.5，bug 修复至 2026-08、安全修复至 2027-02 | [Release notes](https://laravel.com/docs/13.x/releases) 支持矩阵 | 一致 |
+| laravel-docs | 升级依赖下限 `laravel/tinker ^3.0`、`phpunit/phpunit ^12.0` | [Upgrade guide](https://laravel.com/docs/13.x/upgrade) | 一致 |
+| laravel-docs | CSRF 中间件改名 `PreventRequestForgery`（`VerifyCsrfToken`/`ValidateCsrfToken` 为弃用别名），先查 `Sec-Fetch-Site` 再回退令牌，`preventRequestForgery(...)` | [Upgrade guide](https://laravel.com/docs/13.x/upgrade#request-forgery-protection)、[CSRF](https://laravel.com/docs/13.x/csrf) | 一致 |
+| laravel-docs | 缓存 `serializable_classes` 默认 `false`、会话 `serialization` 为 `json` | Upgrade guide 对应小节 | 一致 |
+| laravel-docs | 集合序列化恢复预加载关系；显式 domain 的路由优先匹配；`Js::from` 默认不转义 Unicode；测试间重置 `Str` 工厂 | Upgrade guide 对应小节 | 一致 |
+
+5 组事实全部一致，正文未改，`laravel-docs` 的 `synced_at` 更新为 2026-10-15。
