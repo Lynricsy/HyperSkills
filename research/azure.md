@@ -334,3 +334,17 @@ awesome-copilot 随 `--pin` 前移。learn-azure 为 manual check，未处理。
 
 结论：四个候选基线均已达成，均不合入；只做上述事实更正（无需评测）。SOURCES 不变（无上游内容合入）。
 产物：`/tmp/hs-evals-MergeM2/azure/omp-openai-gpt-6.1-sol-medium/baseline/{6,7,8,9}`。
+
+## 2026-10-15 文档上游复核
+
+`learn-azure` 只是人工比对入口：正文事实取自 `azure-docs`（MicrosoftDocs/azure-docs，今日已 re-pin）。本次在渲染后的
+learn.microsoft.com 页面上逐条比对那些数字是否仍与站点一致。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| learn-azure | 每订阅 5000 个角色分配、固定不可提额；每管理组 500 个 | [Troubleshoot Azure RBAC limits](https://learn.microsoft.com/en-us/azure/role-based-access-control/troubleshoot-limits) | 一致 |
+| learn-azure | 每订阅 980 个资源组、部署历史 800 条、标签 50 个 | [Azure subscription and service limits](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits) | 一致 |
+| learn-azure | Flex Consumption 实例 512 / 2,048 / 4,096 MB 对应 0.25 / 1 / 2 核；区域默认配额 250 核（512,000 MB），可经容量评审提额 | [Flex Consumption plan](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan) | 一致 |
+| learn-azure | 每个应用或用户分配托管标识最多 20 个联合身份凭据 | [Workload identity federation considerations](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations) | 一致 |
+
+4 组事实全部一致，正文未改，仅 `learn-azure` 的 `synced_at` 更新为 2026-10-15。

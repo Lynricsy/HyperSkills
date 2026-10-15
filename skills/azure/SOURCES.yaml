@@ -204,6 +204,6 @@ upstreams:
     url: https://learn.microsoft.com/azure
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Human comparison entry point for product documentation."
     notes: "Terms of Use read in full at https://learn.microsoft.com/en-us/legal/termsofuse. The 'Personal and Non-Commercial Use Limitation' forbids modifying, distributing or creating derivative works without written consent, and the documents permission is conditioned on non-commercial use with no modification. The site therefore cannot be merged; the same article text is taken from MicrosoftDocs/azure-docs under CC BY 4.0 instead."
