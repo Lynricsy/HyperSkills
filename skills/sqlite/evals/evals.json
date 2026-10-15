@@ -54,5 +54,17 @@
       "The negative-price legacy database is rejected with product 1 and its invalid price identified, leaving original rows, shipments, audit, schema objects, AUTOINCREMENT state and user_version=1 unchanged, with foreign-key enforcement restored.",
       "Does not hide migration errors, discard malformed data, reset historical ID allocation to the largest surviving row, or repair the supplied fixtures by removing their existing consumer contracts."
     ]
+  },
+  {
+    "skills": ["sqlite"],
+    "query": "stock_migration_v7.py has the draft of our v7 migration: from now on stock.quantity must never be negative. The header explains which SQLite versions can open this database. Review the draft and give me the migration we should ship; demo_db() builds a copy shaped like production.",
+    "files": ["evals/files/stock_migration_v7.py"],
+    "expected_behavior": [
+      "Uses SQLite 3.53.0's native `ALTER TABLE stock ADD [CONSTRAINT name] CHECK (quantity >= 0)` instead of the full table rebuild, because every engine that opens the file is 3.53.2 or newer — and guards the migration on the runtime `sqlite_version()` being at least 3.53.0 rather than assuming it",
+      "Says that ADD CHECK validates the existing rows and fails while one violates it (SKU-2 at -3), so the violating rows are reported and resolved as a deliberate decision before the constraint is added, rather than silently clamped with `MAX(quantity, 0)` as the draft does",
+      "Handles SKU-3's NULL quantity explicitly: `CHECK (quantity >= 0)` accepts NULL on later writes, but on 3.53.x engines the existing-row test of ADD CHECK also fails on a row where the expression is NULL (3.54.0 accepts it), so the migration either resolves the NULL rows first (adding NOT NULL with `ALTER COLUMN quantity SET NOT NULL` if unknown stock is not allowed) or writes the check as `quantity IS NULL OR quantity >= 0`, and states which NULL policy it chose",
+      "Names the constraint so it can later be removed with `ALTER TABLE stock DROP CONSTRAINT <name>`, and notes that DROP CONSTRAINT only removes named CHECK or NOT NULL constraints, not a primary key, UNIQUE or foreign key",
+      "Flags that the draft rebuild would also have dropped the `stock_touch` trigger without recreating it, and keeps the change and `user_version = 7` in one transaction"
+    ]
   }
 ]

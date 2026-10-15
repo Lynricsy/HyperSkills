@@ -78,7 +78,7 @@ supported by the oldest engine that will open the migrated database.
 | Add column | Check restrictions: no PRIMARY KEY/UNIQUE, restricted defaults, NOT NULL needs non-NULL default, no STORED generated column |
 | Drop column (3.35.0+) | Native DROP COLUMN exists but fails for indexed, key, generated-expression or other schema references; resolve dependencies deliberately |
 | Set/drop column NOT NULL (3.53.0+) | Use `ALTER TABLE t ALTER COLUMN c SET NOT NULL` or `DROP NOT NULL` when it is the needed change; check data and resulting definition |
-| Add/drop a CHECK constraint (3.53.0+) | `ALTER TABLE t ADD [CONSTRAINT name] CHECK(expr)` tests existing rows and fails on a violation; `DROP CONSTRAINT name` removes only a named CHECK or NOT NULL, never UNIQUE, key or FK constraints |
+| Add/drop a CHECK constraint (3.53.0+) | `ALTER TABLE t ADD [CONSTRAINT name] CHECK(expr)` tests existing rows and fails on a violation. On 3.53.x that test also fails a row where `expr` is NULL, which a CHECK otherwise accepts (3.54.0 adds it) — when a 3.53 engine may run the migration, resolve those rows first or write `c IS NULL OR …`. `DROP CONSTRAINT name` removes only a named CHECK or NOT NULL, never UNIQUE, key or FK constraints |
 | Change affinity/type, table options, arbitrary key or relationship structure | Use the generalized transactional rebuild |
 
 SET NOT NULL on an already nonnullable column is a no-op. If legacy DDL contains

@@ -456,3 +456,32 @@ D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读�
 | sqlite-analyze | 3.46.0 起 PRAGMA optimize 自限 ANALYZE 范围、无需 analysis_limit；固定统计结果作为稳定计划选项；更旧版本查对应文档 | https://www.sqlite.org/lang_analyze.html | 一致 |
 
 其他观察（仅记录，未合入）：3.54.0 起 ALTER TABLE 对名为 ROWID/_ROWID_/OID 的列做增删改名会报错（本机 3.53.4 仍接受 `ADD COLUMN rowid`）；与本 skill 核心规则无直接关系。四份 reference 的 "Verified against" 版本行更新为 3.54.0 文档。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的提交 e0703ea（文档复核：规则 18 与 `types-and-migrations.md` 原生 ALTER 决策表补上 3.53.0 的 `ADD [CONSTRAINT name] CHECK` / `DROP CONSTRAINT`；四份 reference 版本行改为 3.54.0）。d9cea14 只 re-pin，正文未变。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/sqlite/omp-openai-gpt-6.1-sol-medium/`。今天此前没有本 skill 的 VM 评测结果，全部新跑。VM 内 Python 链接的 SQLite 为 3.46.1。
+
+选场景：
+
+- 场景 5（STRICT 迁移 + 非负价格）：规则 18 改写后最可能被误用的场景——STRICT 仍须重建，检查模型不会因新增的原生 CHECK 而改走 ALTER。
+- 新增场景 6（夹具 `evals/files/stock_migration_v7.py`）：现有场景都要求 STRICT 或类型变更，没有一个考察「只加 CHECK 时用原生 `ADD CONSTRAINT … CHECK`」。夹具是一份整表重建的 v7 草稿（会丢掉 `stock_touch` 触发器、用 `MAX(quantity, 0)` 静默钳位），表里有一条 -3 和一条 NULL，并声明所有引擎 ≥ 3.53.2。
+- 场景 4：负例。
+
+本地核实（写场景 6 期望时）：`sqlite-tools` 3.53.0 CLI 与本机 Python 3.53.4 上，表中有 NULL 行时 `ALTER TABLE s ADD CONSTRAINT nn CHECK (q >= 0)` 报 `constraint failed`，而加上约束后插入 NULL 成功；3.54.0 CLI 上同样的 ADD 成功（NULL 按 CHECK 语义通过）；`CHECK (q IS NULL OR q >= 0)` 两版均成功。3.54.0 发布说明未提及此变化，官方 ALTER 页也未描述 ADD CHECK 对既有行的判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 STRICT 迁移 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 189 s。事务内整表重建为 STRICT + `CHECK(price_cents>=0)`，高水位 900、下一个 ID 901，shipment、唯一索引、审计触发器、视图均保留；-5 的旧库被拒且快照比对不变。未误用原生 ADD CHECK |
+| 5 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 133 s。同样的重建方案与证据 |
+| 6 v7 加非负约束（正文修正前） | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ | 340 s。原生 `ADD CONSTRAINT stock_quantity_nonnegative CHECK (quantity IS NULL OR quantity >= 0)`，`BEGIN IMMEDIATE`，运行时拒绝低于 3.53.2 的引擎；自建 SQLite 3.53.2 实测发现裸 `CHECK (quantity >= 0)` 被既有 NULL 行拒绝。保留草稿的钳位策略（显式写成修复步骤，未列出违例行）；命名了约束但没说 DROP CONSTRAINT 的限制。产物另存 `/tmp/hs-d2/D2G4-keep/sqlite-skill-6-before-fix/` |
+| 6（正文修正后） | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ | 163 s。同一方案；直接写明「3.53.2 对既有 NULL 拒绝裸 CHECK」并自建 3.53.2 验证；这次只检查 `user_version`，未在运行时校验 `sqlite_version()`（EB1 ◐，与正文修正无关） |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ | 282 s。同样用原生 ADD CHECK + `IS NULL OR`，同样自建 3.53.2 发现 NULL 行问题；钳位负值；未做运行时版本校验；用 savepoint 让三步同成同败 |
+| 4 负例（D1 / wrangler） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ | 95 s。按环境声明 D1 绑定、`--env production --remote` 应用迁移，未涉及 WAL / busy_timeout |
+
+（场景 6 基线首两次与修正后有 skill 的首次运行均因上游 `503 No available providers` 失败、无回答，14:53 起恢复后重跑，不计入。）
+
+正文修正（fix）：`references/types-and-migrations.md` 决策表的 CHECK 一行原写「ADD CHECK 测试既有行、遇违例失败」，对 3.53.x 不完整——该版本的既有行测试把表达式为 NULL 的行也判为失败，而 CHECK 本身与 3.54.0 都放行 NULL。改为写明这一差异，并给出「先处理这些行或写 `c IS NULL OR …`」。依据为上面的三版本实测与两次有 skill 运行中模型自建 3.53.2 的观察；修正后重跑场景 6 无回退。SKILL.md 规则 18 只列能力，不改。
+
+结论：规则 18 的改写没有让场景 5 误用原生 ALTER（两侧 6/6）；新场景 6 中原生 ADD CHECK 在有 skill 与基线都被采用，NULL 行差异两侧都是靠自建 3.53.2 实测得出，有 skill 不比基线差，但也没有可测的增益。负例 `skill_read == false`。
+
+遗留：场景 6 的 EB2（报告并按决定处理违例行而非沿用钳位）与 EB4（DROP CONSTRAINT 的适用范围）两侧都只到 ◐；3.53.x 与 3.54.0 在 NULL 行上的差异未见官方说明，若后续发布说明或 ALTER 页补述，应据此复核该行措辞。
