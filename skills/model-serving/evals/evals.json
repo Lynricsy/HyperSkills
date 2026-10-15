@@ -58,5 +58,16 @@
       "Rejects buying H200s as the first answer, and does not propose inference-side levers such as KV cache sizing, `--max-model-len`, continuous batching, prefix caching or a serving benchmark, because no model is being served here",
       "skill_read is false for the `model-serving` skill"
     ]
+  },
+  {
+    "skills": ["model-serving"],
+    "query": "Finance signs our Q1 GPU reservation on Friday. capacity-plan.md is the draft and recipes.json holds the vLLM recipe responses it was computed from. Check the GPU arithmetic per model and tell me what we should actually reserve, and what to change in the script.",
+    "files": ["evals/files/recipe/capacity-plan.md", "evals/files/recipe/recipes.json"],
+    "expected_behavior": [
+      "Says `hardware_profile.gpu_count` describes the hardware profile (the GPUs in one node of that SKU), not the GPUs the command uses, so the 27B row is wrong: its command is `--tensor-parallel-size 1`, so one replica needs 1 H200 and 4 replicas need 4 GPUs (packable into one HGX node), not 32",
+      "Says the 2.4T recipe is not missing: a multi-node recipe has `head_command` and `worker_commands` instead of a flat `command`, which is a schema branch the script must handle rather than skip",
+      "Derives the 2.4T demand from the command itself - `--tensor-parallel-size 8` × `--pipeline-parallel-size 2` across `--nnodes 2` (head plus one worker) = 16 B300 per replica - and says the `node_count × gpu_count` rule only happens to give the same number here; it is not how the schema defines demand",
+      "Rewrites the script to compute GPUs per replica from the parallel flags (TP × PP × DP) and node count in the command(s), not from `hardware_profile.gpu_count`"
+    ]
   }
 ]

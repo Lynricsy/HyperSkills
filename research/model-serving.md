@@ -704,3 +704,41 @@ dynamo、trtllm、nvidia-skills 报告为 behind（too large）但完整区间�
 | vllm-docs | `vllm bench serve`：`--request-rate` 默认 `inf` 即 t=0 全发；有限速率用 Poisson/gamma 合成到达；`--burstiness` 默认 1.0、仅有限速率生效、<1 更突发 >1 更均匀；`--max-concurrency` 与 `--request-rate` 同用时实际速率可低于设定；`--num-warmups` 默认 0 | https://docs.vllm.ai/en/latest/cli/bench/serve/ 、https://docs.vllm.ai/en/latest/benchmarking/cli/ | 一致。闭环客户端「测的是自身并发」的 Little's law 推论在 vLLM 文档中无独立段落（全文无 closed loop 字样），正文该段的 `[official]` 来自 dynamo 上游，vLLM 文档的 Maximum Throughput 模式说明与之相容 |
 
 处理：`SKILL.md` 规则 11、`references/engine-configuration.md` 告警表（并注明旧名弃用与删除版本，避免沿用旧看板查询得到空结果）、`references/kv-reuse-and-routing.md` 计数器/仪表命名段、`evals/evals.json` 三条 expected_behavior 与夹具 `evals/files/scale/hpa-and-startup.md` 统一改为 `vllm:kv_cache_usage_perc`。夹具 `evals/files/spec/spec-decoding.md` 只写「KV cache usage (vllm gauge)」，未改。`synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：4260143（vLLM recipe `hardware_profile.gpu_count` 读法更正，`parallelism-and-topology.md`）与 68eb8c4（KV 占用指标名
+`vllm:gpu_cache_usage_perc` → `vllm:kv_cache_usage_perc`：规则 11、`engine-configuration.md`、`kv-reuse-and-routing.md`、场景 1–3
+各一条期望、夹具 `scale/hpa-and-startup.md`）。417ee17 只动 SOURCES 与版本号。今天此前没有本 skill 的 D2 运行，无可复用结果。
+
+选场景：
+- 场景 1、2、3：三条期望与场景 3 夹具今天改过，必选；有 skill 与基线都重跑。
+- **新增场景 5**（夹具 `evals/files/recipe/recipes.json`、`capacity-plan.md`）：没有既有场景覆盖 recipe `gpu_count` 更正。夹具按
+  research 里核实的线上 recipe 形状构造（单节点 `gpu_count: 8` 配 `--tensor-parallel-size 1`；多节点只有 `head_command` /
+  `worker_commands`、TP 8 × PP 2 × `--nnodes 2`），要求核对按 `node_count × gpu_count` 算出的 GPU 预留。
+- 负例：场景 4。
+
+运行：`uv run tools/run_evals.py model-serving --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/D2G2/model-serving/omp-openai-gpt-6.1-sol-medium/`。场景 5 的有 skill 与基线首轮都因模型服务 `503 No available
+providers` 中止（`events.jsonl` 中 `stopReason: error`，未产生 `result.json`），间隔 3 分钟重跑后完成；表中为完成的那次。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 有 | True | 1◐ 2◐ 3◐ 4◐ 5✔ 6✔ 7◐ 8◐ 9✔ 10✔ | 69 s。期望 6 写出 `vllm:num_requests_waiting`、`vllm:kv_cache_usage_perc`、`vllm:num_preemptions_total`（新指标名），并提 decode 受内存带宽限制；其余多为方向对、未落到具体参数（`--random-range-ratio`、`--num-warmups`、`--percentile-metrics`、数据集名） |
+| 1 | gpt-6.1-sol medium | 无 | False | 1✔ 2◐ 3✘ 4◐ 5✘ 6◐ 7◐ 8◐ 9◐ 10✔ | 167 s。期望 6：只说 95–99% 利用率「establishes activity」，未讲内存带宽，未点名任何 `vllm:` 饱和指标；未提 E2EL 缺失与 `--ignore-eos` |
+| 2 | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ 4◐ 5◐ 6✔ 7◐ 8✔ 9✔ | 120 s。期望 2：机制（草稿模型挤占 KV、抢占 0 → 14200、重算拖慢 TTFT 与吞吐）讲对，但只写「KV occupancy」未写指标名（夹具本身也只写 KV cache usage）；4：要求先测接受率，未给约 0.6 的门槛 |
+| 2 | gpt-6.1-sol medium | 无 | False | 1◐ 2◐ 3✔ 4◐ 5◐ 6✘ 7✘ 8◐ 9◐ | 61 s。回滚，但建议在生产并发下试 1–3 的小窗口（未把推测解码定位为低并发工具）；未提推测解码帮不了 TTFT、未提 700 token 共享前缀；同样未写指标名 |
+| 3 | gpt-6.1-sol medium | 有 | True | 1◐ 2◐ 3◐ 4✔ 5✔ 6✔ 7✔ 8◐ | 41 s。期望 2：引用 KV 0.97、排队 40–70、抢占上升，写作「KV occupancy」未写指标名；1：说明 DCGM 近乎常量但未讲内存带宽；3：4m41s 与分段正确，未写 90 s 决策周期无法收敛 |
+| 3 | gpt-6.1-sol medium | 无 | False | 1◐ 2◐ 3◐ 4✔ 5✔ 6✔ 7◐ 8◐ | 70 s。同样只写「KV-cache usage 0.97」；4m41s 无分段；其余与有 skill 同型 |
+| 5（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 153 s。读了 `parallelism-and-topology.md`；「`gpu_count: 8` describes the HGX node」→ 27B 每副本 1 卡、4 副本共 1 台节点；多节点 recipe 用 `head_command` / `worker_commands`；8 × 2 = 16 并指出 `node_count × gpu_count` 不是通用规则；脚本改为解析命令的 TP × PP 并核对 `--nnodes` |
+| 5（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ | 72 s。基线同样从命令读 TP × PP、识别多节点字段、指出乘法只是碰巧相等 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 123 s。按训练显存作答（gradient checkpointing、长尾序列），未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：两处更正都无回退。指标名在有 skill 时只在场景 1 被点名，用的是新名 `vllm:kv_cache_usage_perc`；场景 2、3 两侧都只用
+文字描述 KV 占用，旧名在所有 6 次运行中都未出现。场景 1、2 有 skill 明显好于基线（期望 6、1、6–7 等），场景 3 两侧相当。
+recipe 读法基线已会（场景 5 两侧 4/4），更正只是去掉正文的错误陈述。负例 `skill_read == false`。正文无需修改。
+
+遗留：场景 2、3 的期望 2 要求写出指标名，两侧都只给了文字描述（◐）；正文已在规则 11 与告警表写明新名，场景 1 证明模型会照用，
+未为此改正文。各场景只有 1 次运行。

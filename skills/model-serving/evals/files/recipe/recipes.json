@@ -1,0 +1,39 @@
+{
+  "_comment": "Saved responses from https://recipes.vllm.ai/<HF id>.json on 2026-10-14, trimmed to the fields we used.",
+  "Qwen/Qwen3.8-27B": {
+    "model_id": "Qwen/Qwen3.8-27B",
+    "deploy_type": "single_node",
+    "node_count": 1,
+    "recommended_command": {
+      "hardware_profile": {
+        "name": "H200 SXM 8-GPU HGX",
+        "gpu": "H200",
+        "gpu_count": 8,
+        "gpu_memory_gb": 141,
+        "multi_node": false
+      },
+      "command": "vllm serve Qwen/Qwen3.8-27B --tensor-parallel-size 1 --max-model-len 65536 --gpu-memory-utilization 0.90 --enable-prefix-caching"
+    },
+    "meta": { "vram_minimum_gb": 72, "hardware": ["H100", "H200", "B200"] }
+  },
+  "Qwen/Qwen3.8-2.4T-A95B": {
+    "model_id": "Qwen/Qwen3.8-2.4T-A95B",
+    "deploy_type": "multi_node",
+    "node_count": 2,
+    "recommended_command": {
+      "hardware_profile": {
+        "name": "B300 8-GPU HGX",
+        "gpu": "B300",
+        "gpu_count": 8,
+        "gpu_memory_gb": 288,
+        "multi_node": false
+      },
+      "head_command": "vllm serve Qwen/Qwen3.8-2.4T-A95B --tensor-parallel-size 8 --pipeline-parallel-size 2 --nnodes 2 --node-rank 0 --master-addr $HEAD_IP --enable-expert-parallel --max-model-len 131072",
+      "worker_command": "vllm serve Qwen/Qwen3.8-2.4T-A95B --tensor-parallel-size 8 --pipeline-parallel-size 2 --nnodes 2 --node-rank 1 --master-addr $HEAD_IP --enable-expert-parallel --max-model-len 131072 --headless",
+      "worker_commands": [
+        "vllm serve Qwen/Qwen3.8-2.4T-A95B --tensor-parallel-size 8 --pipeline-parallel-size 2 --nnodes 2 --node-rank 1 --master-addr $HEAD_IP --enable-expert-parallel --max-model-len 131072 --headless"
+      ]
+    },
+    "meta": { "vram_minimum_gb": 3900, "hardware": ["B300"] }
+  }
+}
