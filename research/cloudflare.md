@@ -331,3 +331,20 @@ Read-Only、429 + `Retry-After`、`upload_source_maps: true` 后重新部署。�
 | 11 生产 profiling（只问怎么定位，不提示 profiling） | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | 主动提出 `cf workers versions profile`，并补本地 DevTools heap snapshot 证明保留路径 |
 
 结论：基线 11/11，未跑有 skill 一侧。产物：`/tmp/hs-evals-MergeM2/cloudflare/omp-openai-gpt-6.1-sol-medium/baseline/{10,11}`。
+
+## 2026-10-15 文档上游复核
+
+`cloudflare-docs` 的 `synced_at` 已由本日上游同步写成 2026-10-15，但那次只重读了 Cloudflare CLI 与 Cloudflare One 页面；
+本节补齐 `contributes` 中其余核心数字的人工比对（页面以 `index.md` 变体读取）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| cloudflare-docs | Paid 计划 CPU 默认 30 s、`limits.cpu_ms` 上限 300,000；内存 128 MB；每次调用最多 6 个连接等待响应头；`waitUntil` 响应后最多延长 30 s | [Workers limits](https://developers.cloudflare.com/workers/platform/limits/) | 一致 |
+| cloudflare-docs | API 上传未指定兼容日期时默认 2021-11-02 | [Compatibility dates](https://developers.cloudflare.com/workers/configuration/compatibility-dates/) | 一致 |
+| cloudflare-docs | KV：本地立即可见、其他位置最多 60 s 或更久、否定查询也被缓存、同 key 每秒 1 次写、`cacheTtl` 默认 60（最小 30） | [How KV works](https://developers.cloudflare.com/kv/concepts/how-kv-works/)、[KV limits](https://developers.cloudflare.com/kv/platform/limits/)、[Read key-value pairs](https://developers.cloudflare.com/kv/api/read-key-value-pairs/) | 一致 |
+| cloudflare-docs | D1：Paid 10 GB / Free 500 MB 且 10 GB 不可提升、单线程一次一条查询、Time Travel 30 天 / 每 10 分钟 10 次恢复 | [D1 limits](https://developers.cloudflare.com/d1/platform/limits/) | 一致 |
+| cloudflare-docs | Durable Object：单对象约 1,000 req/s 软上限后 `overloaded`、10 GB 存储 | [Durable Objects limits](https://developers.cloudflare.com/durable-objects/platform/limits/) | 一致 |
+| cloudflare-docs | R2：对象 5 TiB、单次上传 5 GiB / 分片 4.995 TiB、同 key 每秒 1 次并发写 | [R2 limits](https://developers.cloudflare.com/r2/platform/limits/) | 一致 |
+| cloudflare-docs | Queues：消息 128 KB、每账户 10,000 队列、批量 100、`max_retries` 默认 3；无 DLQ 时耗尽重试的消息被永久删除 | [Queues limits](https://developers.cloudflare.com/queues/platform/limits/)、[Batching and retries](https://developers.cloudflare.com/queues/configuration/batching-retries/)、[Dead letter queues](https://developers.cloudflare.com/queues/configuration/dead-letter-queues/) | 一致 |
+
+7 组事实全部一致，正文未改，`synced_at` 维持 2026-10-15。
