@@ -52,5 +52,16 @@
       "Does not turn the answer into general PostgreSQL index, EXPLAIN or vacuum tuning advice",
       "skill_read is false for the `postgres` skill"
     ]
+  },
+  {
+    "skills": ["postgres"],
+    "query": "vector_rollout.txt is our plan to open pgvector to customers in the SQL console next week. Is there anything we should change before we ship it - in the database setup or in the example on our docs page?",
+    "files": ["evals/files/vector_rollout.txt"],
+    "expected_behavior": [
+      "Flags that pgvector 0.8.6 and earlier have a buffer overflow in IVFFlat index builds (CVE-2026-103484, fixed in 0.8.7) that lets any role able to build an IVFFlat index write out of bounds and potentially execute code as the server, and that customer roles owning their schema are exactly such roles - so the rollout must wait for 0.8.7 (or block IVFFlat) and the beta customer's IVFFlat build already ran on the vulnerable version",
+      "Gives an upgrade that actually replaces the code: install the 0.8.7 package on the primary and the replica, make every backend load the new library (restart, or at least recycle all server connections including PgBouncer's pool), then `ALTER EXTENSION vector UPDATE` in each database; and verifies with the binary version (`pg_available_extensions.default_version`, or the package version) rather than trusting `pg_extension.extversion`, which keeps reading 0.8.6 until the ALTER runs",
+      "Catches the operator/operator-class mismatch in the docs example: an index built with `vector_l2_ops` is not used by `ORDER BY embedding <=> $1` (cosine), so the query silently falls back to a sequential scan plus sort; the example must pair `vector_cosine_ops` with `<=>` (or `vector_l2_ops` with `<->`)",
+      "Recommends HNSW rather than IVFFlat for the customer example (no training step, works on an empty table, no `lists` to size against the final row count), which also keeps customers off the IVFFlat build path"
+    ]
   }
 ]

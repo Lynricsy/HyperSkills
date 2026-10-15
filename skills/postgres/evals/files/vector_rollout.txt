@@ -1,0 +1,22 @@
+== Environment (collected 2026-10-15) ==
+PostgreSQL 18.6 on Debian 13, primary + one streaming replica, packages from apt.postgresql.org.
+postgresql-18-pgvector 0.8.6-1 installed on both hosts.
+
+postgres=# SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
+ vector | 0.8.6
+
+App connects through PgBouncer (transaction mode, pool of 40 server connections).
+
+== What is changing ==
+"Bring your own search": each customer already has a schema and a login role that owns it, used
+by our in-product SQL console. We now want to tell customers they can add embedding columns and
+build their own vector indexes from the console. Our docs page for customers will show this
+example, which a beta customer already ran:
+
+CREATE TABLE acme.docs (id bigint PRIMARY KEY, body text, embedding vector(1536));
+CREATE INDEX ON acme.docs USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);
+SELECT id FROM acme.docs ORDER BY embedding <=> $1 LIMIT 10;
+
+== Our own table ==
+CREATE INDEX kb_chunks_emb ON public.kb_chunks USING hnsw (embedding vector_cosine_ops);
+-- ~3M rows, recall is fine, p95 18 ms

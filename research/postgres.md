@@ -397,3 +397,42 @@ policies, JWT claims, an SDK returning no rows, and the Supabase dashboard or CL
 
 正文未改动（只改 `metadata.version`），故未跑评测、未做安装冒烟。上一轮（2026-09-29，被中断）只留下
 SOURCES.yaml 中 prisma 的 paths 更正，本次复核属实后保留并补全措辞。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因清单：paths 下确有提交的是 `pgvector`、`neon-agent-skills`、`prisma-skills`；
+`awesome-copilot-pg` 报 `behind`（diff too large），主代理按完整区间 blobless 归因 paths 下无提交，判噪声。三条有效条目用
+`gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch 逐文件阅读。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| pgvector | 468fc77 → f37c13f（1 提交） | `README.md` 只把安装/镜像标签里的 0.8.6 换成 0.8.7。同区间 `CHANGELOG.md`：0.8.7（2026-10-01）修复 IVFFlat 建索引缓冲区溢出，issue #1036 定为 CVE-2026-103484（≤0.8.6 受影响，能建 IVFFlat 索引的数据库用户可越界写、可能执行任意代码） | 新内容，评测先行 → 基线已会，不合入 |
+| neon-agent-skills | 80164a2 → f333dd0（3 提交） | `skills/neon-postgres`：路由到新 `neon-realtime`；Lakebase BM25 查询加 `score < 0` 过滤与候选上限改写；AI Gateway 生成 embedding（`@neon/ai-sdk-provider`、OpenAI SDK `encoding_format: "float"`）；示例维度 1536 → 1024 | 范围外 |
+| prisma-skills | 82b88dd → be16a87（1 提交） | `prisma-postgres-setup/SKILL.md` 一句：ORM 交接改为直链 `prisma-orm-setup/SKILL.md` | 噪声 |
+
+裁决理由：
+
+- pgvector：README 变化本身只是版本号；本 skill `references/jsonb-and-search.md` 的「Verified against: pgvector 0.8.6」是核对记录，
+  不是推荐版本，不因新版发布失真。CVE 是本 skill 没有的新安全事实，按规则先证明基线缺口。本机核实升级路径：`pgvector/pgvector:pg18`
+  （0.8.6）建库 `CREATE EXTENSION vector` 后，换 `pgvector/pgvector:0.8.7-pg18` 挂同一数据卷启动：`pg_extension.extversion` 仍为
+  0.8.6，`pg_available_extensions.default_version` 为 0.8.7，`ALTER EXTENSION vector UPDATE` 后 extversion 变为 0.8.7。
+- neon-agent-skills：本 skill 只取其「事务模式连接池的错误特征与必须直连的工作」一节（SOURCES notes），本次改动全是 Neon/Lakebase
+  平台面（BM25 扩展、AI Gateway），本 skill 的混合检索基于 `ts_rank` + pgvector 的 RRF，与 Lakebase BM25 无关。
+- prisma-skills：仅为 reference，改动是一条链接。
+
+### 评测
+
+新增场景 5（`evals/files/vector_rollout.txt`：PG 18.6 主备、pgvector 0.8.6、PgBouncer 事务模式，准备让客户在 SQL 控制台自建向量索引，
+文档示例为 IVFFlat + `vector_l2_ops` 却用 `<=>` 查询）。4 条 expected_behavior：CVE 与暴露面、真正替换代码的升级与校验、算子类不匹配、
+新示例用 HNSW（后两条为既有正文的哨兵）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 pgvector 开放给租户 | omp + openai/gpt-6.1-sol（medium） | 无 | false | 4 / 4 | 74 s。联网读到 #1036，指出 CVE-2026-103484、≤0.8.6、客户角色可触发且 beta 客户已执行；主备都装包、主库各库 `ALTER EXTENSION vector UPDATE`、重启或回收含 PgBouncer 在内的全部后端、校验包版本而非只看 extversion；指出 `vector_l2_ops` 与 `<=>` 不匹配；示例改 HNSW + cosine |
+
+基线 4/4，无缺口，按规则不合入正文；场景 5 与夹具留作哨兵，未跑有 skill 一侧。
+
+`--pin` 同时对齐其余上游；`neon-agent-skills` 写入 6f86dab，超过审阅 HEAD f333dd0，`pin_check.py` 判差额 1 提交未碰 paths；
+输出 `PIN CHECK CLEAN`。
+
+结论：正文未变；新增评测场景 5（基线 4/4）作哨兵；version 改为 2026.10.15。
