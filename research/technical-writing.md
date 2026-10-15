@@ -254,3 +254,24 @@ addyosmani `2686b62`，与审阅 HEAD 逐条一致；jph-adr、standard-readme�
 ### 正文
 
 未改。只改 SOURCES.yaml（mblode `paths` 与 `notes`、re-pin）与版本号。未新增评测：没有「需合入」条目。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因（`/tmp/hs-attr/attribution.md`）。
+paths 下确有提交的 4 条：mblode-docs-writing、mattpocock-skills、addyosmani-skills、jph-adr（too large，主代理
+裸仓库缓存归因）。在 `/tmp/SyncG8-up/<owner>__<repo>` blobless 克隆与 `/tmp/hs-attr/joelparkerhenderson__architecture-decision-record`
+里按 `<旧pin>..<审阅HEAD> -- <paths>` 读 `git diff`。copilot-docs 报告同为 too large，主代理归因为空；本轮在
+`/tmp/hs-attr/github__awesome-copilot` 复核 4 个跟踪路径 `git log 15ed97c..3cf7c7e` 为空，噪声。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mblode-docs-writing | b42cf43 → 872bc83（52 提交，命中 1） | 7f8f7cb `skills/ghostwriter/references/docs.md`：Voice/Structure/Clarity/Code/Format/Hygiene/Review 七段压缩改写；「plain words、cut filler、一句一义、动词不用名词化」移出本文件（并入上游 ghostwriter 统一的 tells），删去「a fresh reader follows the page from scratch」「标题用读者搜索的词」两句 | 噪声：规则只是搬家与压缩，没有新事实、没有被否定的旧规则；本 skill 合入的类型门控、示例在干净 shell 跑、不编造数字、凭据测试前缀、新鲜度来自构建等要素在新文本里仍在 |
+| mattpocock-skills | d81f3a1 → 49dd158（52 提交，命中 1） | ad5400b `skills/productivity/teach/SKILL.md`：工作区路径相对 `/teach` 运行目录解析；测验正确答案位置要轮换。`.agents/writing-docs.md` 无变化 | 噪声：本 skill 只从 teach 取「自测题须不翻原文即可判断」，不含测验出题规则（grep `quiz` 无命中），路径解析是该 skill 自身文件布局 |
+| addyosmani-skills | 2686b62 → aeac41d（112 提交，命中 3） | 546bd84 ADR 模板 Status 行以 `Proposed` 开头；fe9f1f2/30f8862 新增「Prose Review」三步（先标出编辑中必须保留的名称、数字、命令、限定与不确定性并对照源核实；替换套话但不以虚构例子或更强保证代替无据之词；对照原文恢复丢失的限定、确认示例仍可用）与对应清单项 | 已覆盖，正文未变。`references/adr.md` 已写 `Proposed -> Accepted -> Deprecated | Superseded` 生命周期且承认 Proposed ADR 合法；`references/human-voice.md` 改写流程末尾已要求「第一稿里每个版本号、测量值、限制与名称在第二稿都要保留」，「什么都别编造」与「保留会花成本的 caveat」也已在该页与评测场景（README 去 AI 腔场景的 caveat 条）覆盖 |
+| jph-adr | 464354b → e13f6c2（96 提交，命中 4） | 875673a 删除两字母 locale 目录（en/es/fr/ja/ko/tr），规范改为 `<language>-<region>`，英文链接指向 `locales/en-001/`；3c48964/bb84d44 README 符号链接与实拷贝来回切换；7eee743 SvelteKit 迁移顺带触及 | 路径迁移，跟迁 `paths`。`locales/en-001` 由 938e6ae（2026-10-04）从 `locales/en` 播种；`git ls-tree` 对比旧 `locales/en/templates` 与审阅 HEAD 的 `locales/en-001/templates` 目录集合完全一致，内容差异只有 `.locale-peer-id`、README 链接形式与 `index.md` 两条链接改为相对路径。`paths` 改为 `locales/en-001/templates`，notes 记迁移；许可仍为 `LICENSE.md` 的 CC BY-NC-SA（实读，API 仍报 NOASSERTION），`relation: reference` 不变 |
+
+其余条目（google-styleguide、mcollina-skills、awesome-readme-skill、shields 为 tracked paths unchanged；keep-a-changelog、madr、
+neolab、standard-readme、github-readme-stats、best-readme-template up to date）随 `--pin` 对齐。`--pin` 后
+`pin_check.py` 结果 `PIN CHECK CLEAN`。
+
+结论：正文与 references 未改，未新增评测，未跑 D2；SOURCES.yaml 的 jph-adr `paths`/`notes` 跟迁、re-pin、版本号改为 2026.10.15。
