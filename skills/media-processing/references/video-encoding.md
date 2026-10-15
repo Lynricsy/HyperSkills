@@ -8,7 +8,7 @@ Verified against: ffmpeg N-126134-gc48230eb86-20260814 (libx264, libx265, libsvt
 - [Container and codec selection](#container-and-codec-selection)
 - [CRF is per-encoder, and the numbers do not transfer](#crf-is-per-encoder-and-the-numbers-do-not-transfer)
 - [libsvtav1: the defaults ffmpeg prints are not the defaults it uses](#libsvtav1-the-defaults-ffmpeg-prints-are-not-the-defaults-it-uses)
-- [libvpx-vp9: constant quality needs `-b:v 0` spelled out](#libvpx-vp9-constant-quality-needs--bv-0-spelled-out)
+- [libvpx-vp9: constant quality needs a zero bitrate](#libvpx-vp9-constant-quality-needs-a-zero-bitrate)
 - [Presets: three rows, not one magic default](#presets-three-rows-not-one-magic-default)
 - [CRF cannot hit a file size; two-pass ABR can](#crf-cannot-hit-a-file-size-two-pass-abr-can)
 - [Playback compatibility: the four things that break players](#playback-compatibility-the-four-things-that-break-players)
@@ -60,7 +60,7 @@ AV1 command produces a wildly different file, and nothing warns about it.
 | `libx264` | 0-51 | 23 | 17-28; 18 is visually lossless | `[official]` |
 | `libx265` | 0-51 | 28 | 22-32 | `[official]` |
 | `libsvtav1` | 0-63 | **35** | 25-45 | `[official]` `[verified]` |
-| `libvpx-vp9` | 0-63 | none; must be given | 15-35, always with `-b:v 0` | `[official]` |
+| `libvpx-vp9` | 0-63 | 32 when neither `-crf` nor `-b:v` is set (FFmpeg 4.3+, with a warning) | 15-35, with `-b:v 0` | `[official]` `[verified]` |
 
 Roughly, ±6 CRF halves or doubles the bitrate on the same encoder.
 `[community]` That heuristic is for estimating, never for promising a size.
@@ -104,7 +104,7 @@ enables CRF mode for it, and that its default preset is around 10. All three
 disagree with the encoder's own configuration log shown above. `[verified]`
 </details>
 
-## libvpx-vp9: constant quality needs `-b:v 0` spelled out
+## libvpx-vp9: constant quality needs a zero bitrate
 
 For VP9 constant quality, write both flags every time:
 
@@ -112,15 +112,21 @@ For VP9 constant quality, write both flags every time:
 ffmpeg -i in.mp4 -c:v libvpx-vp9 -crf 30 -b:v 0 -row-mt 1 -c:a libopus out.webm
 ```
 
-Omitting `-b:v 0`, or leaving a non-zero `-b:v` in place, silently switches the
-encoder into Constrained Quality mode. `[official]` The command still looks
-correct and still succeeds.
+Constant quality is selected only while the bitrate is zero. Any non-zero `-b:v`
+next to `-crf` switches the encoder into Constrained Quality mode, and the
+command still looks correct and still succeeds. `[official]`
+
+Since FFmpeg 4.3 the wrapper's default bitrate is 0, so `-crf 30` alone already
+selects constant quality. Before 4.3 the generic 200 kb/s default applied, and
+the same command silently ran Constrained Quality; that is what the FFmpeg wiki
+still describes. `[verified]` In the debug log of the build verified here,
+`-crf 30` and `-crf 30 -b:v 0` both report `rc_end_usage: 3` (constant quality),
+while `-crf 30 -b:v 256k` reports `rc_end_usage: 2` (Constrained Quality).
 
 Measured on one easy-to-encode source: `-crf 30` and `-crf 30 -b:v 0` produced
 byte-identical output (1,221,946 B), while `-crf 30 -b:v 256k` produced
-239,192 B. `[verified]` So the flag is invisible until the constraint binds,
-which is precisely why it must be written: the day a template that carries a
-`-b:v` is reused, quality collapses with no diagnostic.
+239,192 B. `[verified]` Write `-b:v 0` anyway: it states the mode, survives
+older builds, and overrides a `-b:v` inherited from a reused template.
 
 A non-zero `-b:v` alongside `-crf` is legitimate only when a bitrate ceiling is
 actually wanted. Say so in that case, and call it Constrained Quality rather

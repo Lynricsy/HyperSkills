@@ -56,17 +56,19 @@ is violated.
    `-1` can compute an odd dimension, which libx264 with `yuv420p` rejects
    outright, leaving a file with no `moov` atom. `[verified]`
 5. Do not append `setsar=1` to a `scale` as a reflex — `scale` preserves the
-   source SAR, so forcing 1:1 on an anamorphic source changes a correct
-   16:9 display into a squashed 4:3. `[verified]`
+   source display aspect ratio (adjusting SAR as needed), so forcing 1:1 on an
+   anamorphic source changes a correct 16:9 display into a squashed 4:3.
+   `[verified]`
 6. Put `-ss` before `-i` when re-encoding — input seeking has been
    frame-accurate since FFmpeg 2.1, and output seeking decodes and discards
    everything up to the cut point instead. `[official]`
 7. Treat a `-c copy` cut as landing on the nearest keyframe, not the
    requested timestamp — report the real cut point or switch to a re-encode;
    silently delivering a clip that starts seconds early is worse.
-8. Write libvpx-vp9 constant quality as `-crf N -b:v 0` — omitting `-b:v 0`
-   invokes Constrained Quality instead, which looks identical on easy
-   material and collapses the moment the constraint binds. `[official]`
+8. Write libvpx-vp9 constant quality as `-crf N -b:v 0` — any non-zero `-b:v`
+   (a reused template, or the 200 kb/s default before FFmpeg 4.3) invokes
+   Constrained Quality instead, which looks identical on easy material and
+   collapses the moment the constraint binds. `[official]`
 9. Do not copy that habit to libsvtav1 — CRF is already its default rate
    control, the effective default is 35, and the `default 0` that
    `ffmpeg -h` prints is a wrapper sentinel, not a value. `[official]`
@@ -79,7 +81,8 @@ is violated.
     start until the download does. Segmented delivery does not need it.
 12. Normalise loudness in two passes, and follow `loudnorm` with an explicit
     `aresample` — one pass runs the dynamic path and rewrites the loudness
-    range, and the filter silently resamples its output to 192 kHz. `[verified]`
+    range, and the dynamic path silently resamples its output to 192 kHz.
+    `[verified]`
 13. Resample every track to a common rate before `amix` or `concat` — mixing
     mismatched rates shifts pitch, and nothing in the output warns you.
 14. Fix the GOP and align it across every rendition of an ABR ladder

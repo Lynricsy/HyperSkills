@@ -163,7 +163,7 @@ upstreams:
     url: https://ffmpeg.org/ffmpeg-filters.html
     license: LGPL-2.1-or-later
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Option semantics for scale, pad, crop, setsar, overlay, subtitles, drawtext, trim and atrim, loudnorm, amix, afade, aresample, concat, zscale and tonemap."
     notes: "Documentation ships with FFmpeg under GPL/LGPL. Only parameter and behaviour semantics are used; every command example here was written from scratch and no sentence reproduced."
   - id: ffmpeg-formats-docs
@@ -171,7 +171,7 @@ upstreams:
     url: https://ffmpeg.org/ffmpeg-formats.html
     license: LGPL-2.1-or-later
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Semantics of the hls, dash, segment and tee muxers, including hls_time as a lower bound, hls_playlist_type, hls_flags, hls_segment_type fmp4, use_template and use_timeline, reset_timestamps, and -movflags."
     notes: "Same treatment as the filters documentation: semantics only, examples written here, no text reproduced."
   - id: ffmpeg-h264-docs
@@ -179,7 +179,7 @@ upstreams:
     url: https://trac.ffmpeg.org/wiki/Encode/H.264
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "The CRF scale and its usable band, medium as the encoder default with the quantified cost of slower presets that settles the preset ruling, the two-pass ABR procedure, the purpose of -movflags +faststart, and the profile restriction on lossless H.264."
     notes: "Trac wiki with no explicit licence grant; facts and numeric thresholds referenced, no text reproduced."
   - id: ffmpeg-av1-docs
@@ -187,7 +187,7 @@ upstreams:
     url: https://trac.ffmpeg.org/wiki/Encode/AV1
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "CRF as the default rate-control mode for libsvtav1 with an effective default of 35, the limitation of the -b:v 0 requirement to libaom before FFmpeg 4.3, and the short default keyframe interval of SVT-AV1."
     notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced. This page settles the AV1 ruling against the dcloud candidate, cross-checked against the encoder's own configuration log on the test machine."
   - id: ffmpeg-vp9-docs
@@ -195,15 +195,15 @@ upstreams:
     url: https://trac.ffmpeg.org/wiki/Encode/VP9
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
-    contributes: "Constant quality for libvpx-vp9 requires -crf together with -b:v 0, since any other value or its omission selects Constrained Quality instead; also the Constrained Quality and CBR forms and -row-mt."
-    notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced."
+    synced_at: "2026-10-15"
+    contributes: "Constant quality for libvpx-vp9 requires -crf with a zero bitrate, and any non-zero -b:v selects Constrained Quality; also the Constrained Quality and CBR forms and -row-mt."
+    notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced. The wiki's statement that omitting -b:v selects Constrained Quality only holds before FFmpeg 4.3; from 4.3 libvpxenc defaults the bitrate to 0 (FFmpeg commit 14941d386a), verified with the encoder's debug log."
   - id: ffmpeg-seeking-docs
     kind: docs
     url: https://trac.ffmpeg.org/wiki/Seeking
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Input-side -ss is frame-accurate when transcoding from FFmpeg 2.1 onward, stream copy can only cut at keyframes, -avoid_negative_ts matters when the fragments will be concatenated, and -t wins over -to when both are given."
     notes: "Trac wiki with no explicit licence grant; facts referenced, no text reproduced. This page is the basis for rejecting the output-side-seeking advice found in several candidates."
   - id: sharp-docs
@@ -211,21 +211,21 @@ upstreams:
     url: https://sharp.pixelplumbing.com/
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Metadata is removed by default and the output converted to sRGB, keepMetadata and withMetadata are the preserving calls, autoOrient applies EXIF orientation and parameterless rotate is its backwards-compatible alias, plus the fit and position semantics and composite."
   - id: imagemagick-docs
     kind: docs
-    url: https://imagemagick.org/script/command-line-options.php
+    url: https://imagemagick.org/command-line-options/
     license: ImageMagick
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Geometry suffix semantics including the caret meaning minimum coverage without cropping, -extent and -gravity, -auto-orient, -strip, -density for rasterisation, -colorspace, and magick as the v7 entry point."
   - id: libvips-docs
     kind: docs
     url: https://www.libvips.org/API/current/
     license: LGPL-2.1-or-later
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Shrink-on-load in vips thumbnail as the correct path for bulk thumbnails, smartcrop, ICC handling, arrayjoin for sprite sheets, and sequential access for streaming large images."
     notes: "libvips itself is LGPL, which governs linking; this skill only invokes the vips and vipsthumbnail command-line tools and cites documented behaviour, copying no text."
   - id: pillow-docs
@@ -233,13 +233,13 @@ upstreams:
     url: https://pillow.readthedocs.io/en/stable/
     license: MIT-CMU
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "ImageOps.exif_transpose as the explicit orientation step, Image.draft as the JPEG reduced-scale decode path, the in-place and never-enlarging behaviour of thumbnail, and the save arguments for quality, progressive, subsampling and icc_profile."
   - id: ebu-r128
     kind: docs
     url: https://tech.ebu.ch/publications/r128
     license: NONE
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Definitions of integrated loudness in LUFS, loudness range, true peak in dBTP and the gating model, which give loudnorm's I, LRA and TP parameters their meaning."
     notes: "Copyrighted standard text. Only the definitions are referenced; the per-destination loudness target table in this skill was compiled here from delivery conventions and is not taken from the standard."

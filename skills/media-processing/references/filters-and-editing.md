@@ -79,11 +79,14 @@ Three quantities, easy to conflate: storage dimensions (pixel counts), sample
 aspect ratio (SAR, the shape of one pixel), and display aspect ratio
 (DAR = width/height x SAR). A 640x480 frame with SAR 4:3 displays as 16:9.
 
-`scale` preserves the source SAR. It does not distort the picture and it does
-not need correcting. On the 640x480 SAR 4:3 source above,
-`scale=320:240` yields `320,240,SAR 4:3,DAR 16:9` — still correct. `[verified]`
+`scale` preserves the source DAR: it keeps SAR on proportional scaling and
+rewrites SAR when the new dimensions change proportions. `[official]` It does not
+distort the picture and it does not need correcting. On the 640x480 SAR 4:3
+source above, `scale=320:240` yields `320,240,SAR 4:3,DAR 16:9` — still correct;
+on a square-pixel 640x480 source, `scale=640:360` yields `SAR 3:4,DAR 4:3`.
+`[verified]`
 
-Appending `setsar=1` to that same command yields `320,240,SAR 1:1,DAR 4:3`.
+Appending `setsar=1` to the anamorphic `scale=320:240` command yields `320,240,SAR 1:1,DAR 4:3`.
 `[verified]` The picture is now displayed at the wrong shape. The habit of
 "always add `setsar=1` after `scale`" manufactures this defect on every
 non-square-pixel source, which is most DVD, broadcast and anamorphic footage.

@@ -1,6 +1,6 @@
 # Images
 
-Verified against: ffmpeg N-126134-gc48230eb86-20260814, libvips 8.18.6, Pillow 12.3.0
+Verified against: ffmpeg N-126134-gc48230eb86-20260814, libvips 8.18.7, Pillow 12.3.0
 
 ## Contents
 
@@ -199,13 +199,17 @@ different order of magnitude of work, and it also keeps memory flat.
 
 ```bash
 vipsthumbnail in/*.jpg --size 400x400 --smartcrop attention \
-  -o "out/%s.webp[Q=80,strip]"
+  --path "%c/out/%s.webp[Q=80,keep=none]"
 ```
 
 `--smartcrop attention` picks the crop window from image content rather than
 the geometric centre, which matters for faces and off-centre subjects.
-`[official]` The `%s` in the output pattern is the input basename; `strip`
-removes metadata, so drop it when provenance must survive.
+`[official]` In the `--path` pattern `%s` is the input basename and `%c` the
+current directory; a pattern without `%c` or an absolute path is resolved
+against each input's directory (the default is `%d/tn_%s.jpg`), so `out/%s.webp`
+would write to `in/out/`. `[official]` `[verified]` `keep=none` removes
+metadata (it replaces the deprecated `strip`), so drop it when provenance must
+survive.
 
 For anything above a few hundred files, process in parallel at the shell level
 (`xargs -P`) rather than inside one process, and keep a per-file failure from

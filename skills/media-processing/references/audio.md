@@ -20,11 +20,13 @@ Verified against: ffmpeg N-126134-gc48230eb86-20260814
 (LRA) in LU, and true peak in dBTP. `[official]`
 
 Single-pass `loudnorm` is not normalisation. Its `linear` option defaults to
-true but is documented as "normalize linearly *if possible*", and linear
-operation is only possible when all four `measured_*` values are supplied.
-`[verified]` Without them the filter runs its dynamic path, which applies
-gain that varies over time and rewrites LRA — so the output does not have the
-dynamics of the input, and the LRA it reports is not the LRA it produced.
+true, but linear scaling needs all four `measured_*` values, a target LRA no
+lower than the source LRA, and a gain change that keeps the true peak within
+the target TP; if any condition fails, the filter reverts to dynamic mode.
+`[official]` `[verified]` The dynamic path applies gain that varies over time
+and rewrites LRA — so the output does not have the dynamics of the input, and
+the LRA it reports is not the LRA it produced. With `print_format=json` on pass
+2, the report's `normalization_type` says which path actually ran.
 
 Measure, then apply:
 
@@ -45,8 +47,10 @@ Single-pass is acceptable only for a rough preview that nobody delivers.
 
 ## `loudnorm` silently changes the sample rate
 
-`loudnorm` runs internally at 192 kHz and does not resample back. Nothing in
-the log mentions it.
+In dynamic mode `loudnorm` upsamples to 192 kHz to detect true peaks and does
+not resample back. `[official]` A linear second pass keeps the input rate, but
+the fallback to dynamic mode is silent, and nothing in the log mentions the
+rate change.
 
 Measured on a 44,100 Hz source: `-af loudnorm=I=-16 -vn out.wav` produced
 `pcm_s16le, 192000 Hz`; `-af loudnorm=I=-16:TP=-1.5 -c:v copy out.mp4`
