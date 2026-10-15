@@ -243,3 +243,26 @@ code-review 场景 3：无 skill ✘、旧 skill ✘、本轮正文 ✔）。场
 | 6 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 83 s。`shell: bash` + 先写 `$RUNNER_TEMP/*.log` 再 head/tail 并 `exit "$status"`；在临时夹具上验证退出码 0/1/7 保留。基线已达成，不合入 |
 
 结论：analyze-profile（含 climb 两条测量纪律）填补了场景 5 的 EB1/EB5 缺口，合入；pipefail/SIGPIPE 基线已具备，不合入，场景 6 留作哨兵。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的两个提交——fc381f0（上游同步：「When to stop and ask」要求问题措辞让 "yes" 即接受推荐答案，场景 3 新增 EB7）与 1a0aebc（合入 melodic analyze-profile：新建 `references/profiles.md`、Phase 5 核心要点与路由表一行，新增场景 5、6）。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`，正文与 main `311a6c7` 相同）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/debugging/omp-openai-gpt-6.1-sol-medium/`。
+
+选场景与复用：
+
+- 场景 3（今天加了 EB7）：上午的有 skill 结果（10:49）早于最后一次正文提交 1a0aebc（12:03），重跑有 skill；基线复用 `/tmp/hs-evals-SyncG8/debugging/omp-openai-gpt-6.1-sol-medium/baseline/3/`（10:45，`result.json` 中的 query 与 expected_behavior 与当前 evals.json 逐字相同，`handler.log` 与夹具逐字节相同，`webhook_handler.py` 的差异是该次运行自己的修复）。
+- 场景 5（今天新增，覆盖 `profiles.md`）：有 skill 结果（11:56）早于 1a0aebc 提交，重跑；基线复用 `/tmp/hs-evals/debugging/omp-openai-gpt-6.1-sol-medium/baseline/5/`（11:47，query、expected_behavior 相同，7 个夹具逐字节相同）。
+- 场景 6 不选：其 pipefail/SIGPIPE 内容未合入正文，与正文改动无关（基线 4/4 已记录在上一节）。
+- 场景 4：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 webhook 丢事件 | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ✔ EB3 — EB4 ✔ EB5 ✔ EB6 ✔ EB7 — | 234 s。先写 failure→retry 回归测试见红（outbox 为 `[]`）再修：先 `enqueue` 后记 ID；未把「先有红信号」说成规则（EB1 ◐）。三条假设分级；未向用户提任何问题，EB3/EB7 无从判定；未执行日志中的远程脚本、未引用 token、无 try/except 包裹 |
+| 3 | gpt-6.1-sol medium | 无（复用） | false | EB1 ◐ EB2 ✔ EB3 — EB4 ✔ EB5 ✔ EB6 ✔ EB7 — | 91 s。同一机制，before/after 复现后修复（去掉进程内去重缓存）；同样未提问 |
+| 5 堆快照 + CPU profile | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 178 s。保留路径追到 `session-cache.js:4/8` 的模块级 Map；越过 NumberFormat 自身样本走到 `receipt.js:5`；注明 V8 0 基行号已换算；两处均为「most probable」，写明第二份快照与改后再录 profile 才能确认；工作区 5 个源文件未改 |
+| 5 | gpt-6.1-sol medium | 无（复用） | false | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✘ EB6 ✔ | 143 s。见上一节：单快照不证明增长但未要第二份；两处原因以定论陈述 |
+| 4 负例（新增 /health 端点） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ◐ EB3 ✔ | 22 s。未进入诊断流程；因 `app.py` 没有任何数据库客户端，先问要检查哪个数据库再实现（EB2 ◐） |
+
+结论：`profiles.md` 带来的场景 5 增益在当前正文上复现（有 skill 6/6，基线 EB1 ◐、EB5 ✘）；场景 3 与基线持平、无回退，但与上午三次运行一样模型自己造出了复现、没有走到「停下提问」，yes 措辞（EB7）仍无法在本 skill 内测到，证据仍以 test-driven-development 与 code-review 的同句评测为准。负例 `skill_read == false`。正文未改。
+
+遗留：场景 3 对 gpt-6.1-sol 不构成「必须提问」的情境，EB3/EB7 需要一个无法本地复现的场景才能考察；本轮未新增（该措辞属三 skill 共享段落，已有他处证据）。
