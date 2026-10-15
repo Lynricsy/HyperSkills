@@ -390,3 +390,31 @@ fixup、降序复合 keyset 谓词、隐藏 `SaveChanges`、证据门）未写�
 | 8 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 83 s。SDK + `ContainerRuntimeIdentifiers` 出单个 OCI archive，逐架构 trivy 扫描后 skopeo 推送扫描过的 archive；从命令行覆盖 `ContainerImageTags` |
 
 结论：本次候选均为基线已具备的行为，不合入正文；场景 6–8 留作哨兵。
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照，接在今天的上游同步与新增内容评估之后。Learn 文档读源仓库 `dotnet/docs` 与
+`dotnet/AspNetCore.Docs`（`gh api`）；发布索引读 `dotnet/core` 的 `releases-index.json`。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| dotnet-docs | DI 反模式：容器捕获的 transient disposable、async DI factory 死锁、启用 scope validation | `docs/core/extensions/dependency-injection/guidelines.md`（目录已从 `extensions/dependency-injection-guidelines.md` 移到 `extensions/dependency-injection/` 下） | 一致 |
+| dotnet-docs | C# 版本绑定 TFM：C# 14 仅 .NET 10+，C# 15 仅 .NET 11+ | `docs/csharp/language-reference/language-versioning.md` | 一致 |
+| dotnet-docs | MTP：嵌入测试项目、支持 .NET 8+ 与 .NET Framework 4.6.2+、`Microsoft.Testing.Platform.MSBuild` 为 MSTest/NUnit/xUnit runner 默认并自动注册扩展、关闭 `GenerateTestingPlatformEntryPoint` 须手工注册 | `docs/core/testing/microsoft-testing-platform-intro.md` | 一致 |
+| dotnet-docs | `dotnet test` 如何运行 MTP 项目 | `docs/core/testing/unit-testing-with-dotnet-test.md`、`microsoft-testing-platform-migration-from-v1-to-v2.md` | **更正**，见下 |
+| aspnetcore-docs | 常规中间件构造函数注入 scoped 服务会抛运行时异常，改用 `InvokeAsync` 参数或 factory-based 中间件；`Add{GROUP NAME}` 约定；keyed services | `aspnetcore/fundamentals/dependency-injection.md`、`fundamentals/middleware/write.md` | 一致 |
+| aspnetcore-docs | 交互式组件默认预渲染；`RendererInfo`、`AssignedRenderMode` | `aspnetcore/blazor/components/render-modes.md` | 一致 |
+| dotnet-releases | 11.0 go-live STS（11.0.0-rc.2，2026-10-13）、10.0 active LTS（EOL 2028-11-14）、9.0 与 8.0 maintenance（均 2026-11-10 EOL） | `release-notes/releases-index.json` | 一致（今日上游同步已读过，`synced_at` 已是当天；`references/upgrade.md` 的支持状态表与之相符） |
+
+更正：**.NET 10 SDK 上 `dotnet test` 运行 MTP v2 项目须在 `global.json` 打开 MTP 模式。** 原 `references/testing.md` 写「`dotnet test`
+works against MTP projects through the same MSBuild integration」，并给 `dotnet test -- --filter-query …` 作为通用 MTP 写法。当前
+`unit-testing-with-dotnet-test.md`：`dotnet test` 有 VSTest 模式（默认）与 .NET 10 SDK 引入的 MTP 模式（`global.json` 写
+`"test": { "runner": "Microsoft.Testing.Platform" }`，.NET 11 Preview 6 起也可用 `DOTNET_TEST_RUNNER`）；在 VSTest 模式下跑 MTP 项目
+需 `TestingPlatformDotnetTestSupport=true`，且「will be removed in MTP version 2 if run with .NET 10 SDK」。
+`microsoft-testing-platform-migration-from-v1-to-v2.md`：「Running MTP test projects with .NET 10 SDK now requires opting-in to the
+MTP-based `dotnet test`」，否则报「Testing with VSTest target is no longer supported by MTP on .NET 10 SDK and later」。本 skill
+默认目标是 .NET 10、默认新测试项目是 xUnit v3 on MTP，原写法会直接撞上这条错误。改为写明两种模式与 `global.json` 开关、过滤参数
+按框架区分（xUnit v3 `--filter-query`/`--filter-trait`，MSTest `--filter`，互不接受）。本机只有 .NET 9 SDK，无法实跑 .NET 10
+行为，证据以上述两页为准。
+
+SOURCES：dotnet-docs、aspnetcore-docs 的 `synced_at` 改为 2026-10-15，dotnet-docs 的 `contributes` 补上 `dotnet test` 两种模式。

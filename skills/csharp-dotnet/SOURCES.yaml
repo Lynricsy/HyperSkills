@@ -168,15 +168,15 @@ upstreams:
     url: https://learn.microsoft.com/dotnet
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "The authoritative rulings this skill is built on: dependency-injection guidelines and their anti-patterns (container-captured transient disposables, deadlocking async factories, scope validation), IDisposable ownership rules, the Microsoft.Testing.Platform model and its support matrix, C# language version being bound to the target framework, ConfigureAwait semantics and the ConfigureAwaitOptions overload, and the diagnostic tool set."
+    synced_at: "2026-10-15"
+    contributes: "The authoritative rulings this skill is built on: dependency-injection guidelines and their anti-patterns (container-captured transient disposables, deadlocking async factories, scope validation), IDisposable ownership rules, the Microsoft.Testing.Platform model and its support matrix including the two dotnet test modes (the .NET 10 SDK's MTP mode opted into through global.json, required for MTP v2 projects), C# language version being bound to the target framework, ConfigureAwait semantics and the ConfigureAwaitOptions overload, and the diagnostic tool set."
     notes: "Source repository dotnet/docs; its LICENSE was read directly and is the full Creative Commons Attribution 4.0 text, so this is merged rather than reference. Attribution: (c) Microsoft, CC BY 4.0. All wording here is original; only technical facts were taken."
   - id: aspnetcore-docs
     kind: docs
     url: https://learn.microsoft.com/aspnet/core
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Service lifetimes and why constructor injection of a scoped service into conventional middleware throws, the Add{GROUP} registration convention, keyed services, and the Blazor render-mode table with prerendering enabled by default for interactive modes plus RendererInfo and AssignedRenderMode."
     notes: "Source repository dotnet/AspNetCore.Docs; its LICENSE was read directly and is the full Creative Commons Attribution 4.0 text. Attribution: (c) Microsoft, CC BY 4.0. All wording here is original."
   - id: dotnet-releases

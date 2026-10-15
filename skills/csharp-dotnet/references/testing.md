@@ -46,7 +46,12 @@ What follows from that:
   disable the generated entry point with `<GenerateTestingPlatformEntryPoint>false</...>`, you
   must register each extension by hand in `Main`.
 - Supported targets are .NET 8+ and .NET Framework 4.6.2+.
-- `dotnet test` works against MTP projects through the same MSBuild integration.
+- `dotnet test` has two modes. The .NET 10 SDK added an **MTP mode**, opted into per
+  repository in `global.json` — `{ "test": { "runner": "Microsoft.Testing.Platform" } }` —
+  and it is required for MTP v2 projects: under the default VSTest mode, `dotnet test` on the
+  .NET 10 SDK fails with "Testing with VSTest target is no longer supported by MTP on .NET 10
+  SDK and later". The older `TestingPlatformDotnetTestSupport` bridge only works with MTP v1
+  or a .NET 9 SDK.
 
 The practical reason to prefer it: determinism. No reflection-based discovery, no
 `AppDomain`/`AssemblyLoadContext` isolation, so a test that passes locally and fails in CI is
@@ -57,9 +62,13 @@ a real difference rather than a host artefact.
 ```bash
 dotnet test                                  # builds, then runs everything
 dotnet test --no-build --no-restore          # reuse an existing build
-dotnet test --filter "FullyQualifiedName~Orders"       # VSTest-style filter
-dotnet test -- --filter-query "/*/*/OrderTests/*"      # MTP filter, after --
+dotnet test --filter "FullyQualifiedName~Orders"       # VSTest mode, VSTest filter
+dotnet test -- --filter-query "/*/*/OrderTests/*"      # MTP mode, xUnit v3 filter
 ```
+
+In MTP mode, options after `--` go to the test application, and the filter flags are the
+framework's own (`--filter-query`/`--filter-trait` for xUnit v3, `--filter` for MSTest);
+each framework rejects the others'.
 
 `dotnet test` builds by default; do not run a build "just in case" first. Identify which
 platform the project is on before quoting a filter — the syntaxes are not interchangeable, and
