@@ -459,3 +459,21 @@ pin 写入的 commit 与审阅 HEAD 逐条一致（f6c7f0d、82fe822、32b5b8c�
 
 结论：与 9a02119 相关的行为（b1、b2、b6）基线已达成，正文不改，场景 6 留作哨兵。有 skill 时多出的 b3、b5 来自正文已有的
 「修复附带测试」和非标准 ERC-20 / SafeERC20 规则，与本次上游无关。正文未改，未跑 D1/安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：`/tmp/hs-upstream.json`（2026-10-15 `check_upstream.py --json`）与主代理归因 `/tmp/hs-attr/attribution.md`，本 skill
+有 3 条上游在 tracked paths 下确有提交。归因方法：已登录 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch，只看
+tracked paths；三个仓库区间内均无 LICENSE 变更。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| pashov-auditor | f6c7f0d → 92b0ea6（2 提交） | 8ce544c：`shared-rules.md` 删除强制的 `[Feynman:]`/`[Socratic:]`/`[Inversion:]` 标记协议，`senior-auditor-sop.md` 改为三种思维工具只在内部使用、不写进回复；92b0ea6：`VERSION` 4 → 4.1 | 噪声 | 都是上游编排/输出格式，本 skill 合入时已丢弃其多 agent 编排，正文从未要求输出这些标记；漏洞分类未变 |
+| oz-contracts | 32b5b8c → 97430aa（tracked 1 提交） | 6c2ab37 `contracts/proxy/Clones.sol`：新增 `fetchCloneArgs(instance, start)` 与 `fetchCloneArgs(instance, start, length)` 切片读取变体，原函数改为委托 | 噪声 | 新增 API，原 `fetchCloneArgs` 行为不变；本 skill 不涉及 Clones。区间其余改动（ERC4337Utils、Paymaster、ERC6909Pausable）不在 tracked paths |
+| foundry-book | da261b4 → a5c3aaa（1 提交） | c23a7fc `config/reference/build-and-runtime.mdx`、`default-config.mdx`：新配置 `fork_state_by_number`（默认 false；按块号而非块哈希读 fork 状态，用于不支持按哈希取状态的 RPC；`vm.transact` 与按交易哈希建 fork 不可用） | 噪声 | 本 skill 的 fork 规则（`createSelectFork` 钉块号、`[rpc_endpoints]`、`--no-match-test testFork`）都不依赖读状态的寻址方式；`fork_block_number` 语义未变 |
+
+`--pin` 后 `pin_check.py` 为 `PIN CHECK CLEAN`：写入的 commit 与审阅 HEAD 一致（92b0ea6 ×3、97430aa、a5c3aaa）；
+tob-secure-contracts / tob-property-testing（82fe822 → e1f86a3）、erc-7201（5993dff → b146a0e）、tenequm-foundry
+（6ef6b72 → db4b27c）、wshobson-solsec（156b7a5 → 46891e7）为「repo moved, tracked paths unchanged」，随 pin 前进。
+
+结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号。
