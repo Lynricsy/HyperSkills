@@ -4,7 +4,7 @@ description: "Turns requirements into executable plans with dependencies and ver
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: task
 ---
 

@@ -417,3 +417,22 @@ speckit-docs〔`diff too large`〕、mattpocock-spec）。归因一律在 `/tmp/
 结论：本次合入闭合 EB1（抄本）；EB5 由既有规则 6/7 闭合，属非本次新增文字的效果；EB2–EB4 为非区分项。
 另注：本场景有 skill 的计划仍有 472 行（主要是假设、调查问题与风险表，而非代码），Proportion 检查以「代码块占大半」
 为抄本信号，未把篇幅本身判为缺陷。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因（`/tmp/hs-attr/attribution.md`）。
+paths 下确有提交的 4 条：obra-brainstorming、obra-executing、addy-planning、speckit-docs。均在
+`/tmp/SyncG8-up/<owner>__<repo>` blobless 克隆里按 `<旧pin>..<审阅HEAD> -- <paths>` 读 `git diff`。copilot-plan 报告为
+too large，主代理归因为空；本轮在 `/tmp/hs-attr/github__awesome-copilot` 复核 5 个跟踪路径 `git log 15ed97c..3cf7c7e` 为空，噪声。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| obra-brainstorming | 8ca22db → bb92a77（1 提交，v7.0.0 release squash） | `skills/brainstorming/SKILL.md` 整体重写（454 行改动）：先判断「请求里是否已有一切」，首条消息只给「可跳过提问」一行 + 一个开放问题；此后每条消息只问一个问题；边听边回放 200–300 词；按 quick/small/project 三档定规模；项目级写设计文档后派新 subagent 用新增的 `builder-check-prompt.md` 以「建造者」身份提问，问题分三堆（已答 / 小事自定 / 必须问人）；HARD-GATE 保留「批准前不动手」。删除 `spec-document-reviewer-prompt.md`、probe/bounded/structural 分类器、2-3 方案步骤与 spec 自查；`scripts/server.cjs` 修 `String.replace` 的 `$` 替换串问题 | 不合入，正文未变。本 skill 取用的分类器、2-3 方案、present-then-stop 门、四项自查都来自 8ca22db，上游删除不使其变错；新方向（一次一问、面向非技术用户的对话式访谈）与本 skill 核心规则 4 和 `clarifying-requirements.md`「一轮问完、每题带推荐答案」正面冲突，按既有裁决保留 grilling 式一轮提问。builder check 与本 skill 的 review-plan 工作流（对照仓库逐条找缺陷）及 plan 工作流的自查重叠，且依赖派 subagent 的宿主能力；「批准只覆盖你展示过的内容」已由 `exploring-options.md`「present it and stop」覆盖。visual companion 脚本修复与本 skill 无关。SOURCES notes 记录 v7.0.0 的删改与保留理由 |
+| obra-executing | 8ca22db → bb92a77（1 提交） | `executing-plans/scripts/task-done`：日志为空时 `tail` 管道失败改为回退 "(no output)"；`subagent-driven-development/scripts/sdd-workspace`：仓库根改用 `pwd -P` 物理路径（Git Bash 下 `C:/` 与 `/c/` 两种拼写不一致）、`.superpowers/sdd/.gitignore` 改为只在不存在时创建 | 噪声：本 skill 未取用这两个脚本（只取计划重读、停止触发与证据规则），`verification-before-completion` 无变化 |
+| addy-planning | 2686b62 → aeac41d（112 提交，命中 1） | 7ade9d3 `spec-driven-development/SKILL.md`：写完 spec 后「CRITICAL：总结、列 Open Questions、请人批准，然后立即结束本轮；本轮不得开始 Phase 2、不得调用 planning-and-task-breakdown、不得写代码」，并加入反模式与清单项 | 已覆盖，正文未变。本 skill 的 clarify 工作流以「Decisions I need」一轮提问收尾，`exploring-options.md` 写明「Present it and stop. A design presented and immediately implemented in the same breath has not been agreed to」；本 skill 的产出就是计划文档本身，计划之后不写代码。上游的「spec 与 plan 不同轮」针对其 spec→plan→code 三段式 skill 链，不适用于把 clarify 与 plan 放在同一 skill 内、由请求决定走哪个工作流的本 skill |
+| speckit-docs | 2c0a57a → 3238fa9（105 提交，命中 2） | 60ac849/fe3de81 `spec-persistence.md`、`evolving-specs.md`：把三种持久化模型明确为**交付后**的维护约定；新增共享交付循环（specify → plan → tasks → implement → converge）；converge 只追加 tasks、analyze 只报告不改文件，核心没有自动对齐三份产物的命令，对齐由团队或扩展完成；「实现是决策的证据，接受代码不等于它自动成为意图契约」；「若同意改变意图，先在产物中写明再按其交付」 | 已覆盖，正文未变。`references/execution-tracking.md`「Which artefact to change first」与上游语义一致：默认需求是契约、先改需求再改计划与代码；逃生口是发现落在离工作最近的产物，再**决定**它改变了什么并更新所有不一致的产物，且「不在需求仍说另一套时留下低层改动」——上游这条原句仍保留。其余是 Spec Kit 自身命令（converge、analyze、扩展钩子）的职责划分，本 skill 不描述这些命令（grep 无命中） |
+
+其余条目（obra-writing-plans、mattpocock-spec 跟踪路径无提交；neolab-sdd up to date）随 `--pin` 对齐。`--pin` 后
+`pin_check.py` 结果 `PIN CHECK CLEAN`。许可核对：obra/superpowers、addyosmani/agent-skills、github/spec-kit 均仍 MIT（`gh api`）。
+
+结论：正文与 references 未改，未新增评测，未跑 D2；SOURCES.yaml obra-brainstorming notes 记 v7.0.0 重写、re-pin、版本号改为 2026.10.15。
