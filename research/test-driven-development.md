@@ -264,3 +264,39 @@ rounding.js、rounding.test.js、currency.js、currency.test.js；`make test` �
 | 5 | deepseek-v4.1-flash / max | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | advisor 开启（旧口径）。回归检查：现有「全量须干净」措辞没有诱导它去修或跳过 currency 失败；单跑 currency.test.js 证明既有，区分「本 diff 可合」与「仓库整体非全绿」。`/tmp/hs-evals-sync/SyncG24/test-driven-development-s5/…/skill/5` |
 
 结论：该上游新增段落是基线已具备的行为，不构成缺口，不合入；有 skill 时无回归。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因（`/tmp/hs-attr/attribution.md`）。
+paths 下确有提交的 3 条：mattpocock-tdd、mattpocock-grilling、addy-tdd。在 `/tmp/SyncG8-up/<owner>__<repo>` blobless 克隆里按
+`<旧pin>..<审阅HEAD> -- <paths>` 读 `git diff`，并用已登录 `gh issue view` 读上游 issue 原文核对动机。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mattpocock-tdd | d81f3a1 → 49dd158（52 提交，命中 1） | 3f59913 `skills/engineering/tdd/SKILL.md`：问「公开接口是什么、在哪些 seam 测」时，给每个候选 seam 一行「能抓住什么、会漏掉什么」 | 需合入（新行为，场景 6 证明基线缺口） |
+| mattpocock-grilling | d81f3a1 → 49dd158（52 提交，命中 1） | 95249b0（#706）`skills/productivity/grilling/SKILL.md`：「措辞让回答 yes 即接受你的推荐答案」。issue #706 原文：推荐 P 却问是否做非 P 时，用户只能答「不，但同意推荐」，含糊 | 需合入（场景 6 基线无推荐答案、无此措辞；有 skill 达成）。本句属与 debugging、code-review 逐字共享的提问格式段落，三处同步，另两处的基线/旧 skill 对照见各自 research |
+| addy-tdd | 2686b62 → aeac41d（112 提交，命中 1） | 7c47146 只改 description：代码内联粘贴、请求未提测试时也适用 | 不合入：description 属本地路由维护（`docs/workflow.md`「本地 description 维护」），本 skill description 不以「请求提到测试」为条件，正文不动 |
+
+obra-tdd、obra-verification 区间内跟踪路径无净变化（bb92a77 的 release 说明提到 TDD rationalization 表折叠，但 `git diff 8ca22db bb92a77 -- skills/test-driven-development` 为空）。`--pin` 后
+`pin_check.py` 结果 `PIN CHECK CLEAN`。
+
+### 正文改动
+
+- `SKILL.md` implement-feature「Name the seam」一步：多于一个 seam 可行时，每个候选一行写测在那里能抓住什么、会漏掉什么。
+- `SKILL.md`「Asking when the seam is ambiguous」：每题措辞让 "yes" 即接受推荐；问的是选哪个 seam 时，逐个候选列出 catches/misses（推荐项也要列），格式块增加一行 `- <candidate seam>: catches <…>; misses <…>`。
+- `SOURCES.yaml` mattpocock-tdd、mattpocock-grilling 的 `contributes` 补记上述两点。
+- 新增评测场景 6 与夹具 `evals/files/retry/`（INV-77 重试工单、`client.js` 带可注入 `fetchImpl`、`sync.js`、`package.json`）：要求先商定在哪个 seam 测重试、不写代码。
+
+### 评测
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals-SyncG8/test-driven-development/omp-openai-gpt-6.1-sol-medium/`；
+逐条读 `answer.md` 人工判定。有 skill 轮次 `skill_read=True`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无 | False | EB1 ✘ EB2 ✘ EB3 ✔ EB4 ✘ EB5 ✔ | 32 s。只提一个 seam（`syncInvoices` + 真 `getJson` + 假 fetch），顺带否定 mock `getJson`；没有任何 seam 的 catches/misses；无编号问题、无推荐答案，以「Implementation boundary to agree on」段落代替提问 |
+| 6 | gpt-6.1-sol medium | 有（r1，第一版措辞：只在 workflow 步骤里写 catches/misses） | True | EB1 ✔ EB2 ✘ EB3 ✔ EB4 ✔ EB5 ✔ | 36 s。比较了 `getJson` 与 `syncInvoices` 两个 seam 并推荐后者，但只写各自用途，没有逐个写「漏掉什么」；唯一问题 "shall we keep this invoice-specific…" 推荐 yes。据此把 catches/misses 写进提问格式块，重跑 |
+| 6 | gpt-6.1-sol medium | 有（r2，终版） | True | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ EB5 ✔ | 29 s。「Candidate seams」两项：`getJson` 写明 catches 与 misses；推荐的 `syncInvoices` 只写 catches 与所需前提，未写 misses，记半达成。Q1 措辞 yes 即接受推荐。副本 `/tmp/hs-evals-SyncG8/tdd-skill6-r2-copy` |
+| 6 | gpt-6.1-sol medium | 有（r3，终版） | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 37 s。三行 seam 表（`getJson` / `syncInvoices` 真客户端 / mock `getJson`），每行 Catches 与 Misses/risk 两列；受控时钟；Q1 "Shall we use the invoice-job seam…" 推荐 yes |
+
+结论：基线 EB2（逐 seam 的 catches/misses）与 EB4（编号、带推荐且 yes 即接受）均未达成；终版措辞两次有 skill 运行中 EB4 两次达成、EB2 一次全达成一次半达成，缺口被填补，合入。EB1 的改善来自同一步骤要求列出候选。

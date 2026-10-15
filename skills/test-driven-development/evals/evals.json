@@ -83,5 +83,22 @@
       "Says the currency failure is not caused by this change (it exists independently of rounding.js) and does not present the change as merge-ready on a green suite it did not observe",
       "Leaves currency.js and currency.test.js unmodified: does not fix, skip, delete or weaken the failing test to get a clean run"
     ]
+  },
+  {
+    "skills": ["test-driven-development"],
+    "query": "Ticket INV-77 (INV-77.md): add retry to the invoice sync. We'll do it test-first, but before any test or code gets written I want us to agree on where the retry gets tested. Look at client.js and sync.js and tell me what you propose; don't write code yet.",
+    "files": [
+      "evals/files/retry/INV-77.md",
+      "evals/files/retry/client.js",
+      "evals/files/retry/sync.js",
+      "evals/files/retry/package.json"
+    ],
+    "expected_behavior": [
+      "Proposes at least two concrete candidate seams from the files (for example getJson with the injected fetchImpl, syncInvoices with the client replaced, or a local fake HTTP server) and recommends one",
+      "Gives every proposed seam a short note on both what a test there would catch and what it would miss (for example: getJson with a fake fetchImpl catches the retry and no-retry-on-4xx rules but misses whether syncInvoices actually goes through the retrying path), not only the advantages of the recommended one",
+      "Notes that the 200/400/800 ms waits need a controllable delay or clock at the seam so the tests neither sleep for real nor go unasserted",
+      "Puts the open decisions as numbered questions in one round, each with a recommended answer, and words each question so that answering 'yes' accepts that recommendation",
+      "Writes no test or implementation code in this turn and ends by asking for agreement"
+    ]
   }
 ]

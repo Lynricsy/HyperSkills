@@ -4,7 +4,7 @@ description: "Drives implementation and bug fixes through test-first red-green-r
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: task
 ---
 
@@ -102,10 +102,12 @@ appear to.
       file for the project's conventions, and project context docs if present
       (CONTEXT.md, ADRs, CONTRIBUTING) for the domain vocabulary test names
       should use.
-- [ ] Name the seam and the behaviour of this slice in one sentence each. The
-      seam is ambiguous when the module's depth is unclear or two boundaries are
-      equally plausible — then ask, in one round, using the format below.
-      Otherwise proceed without asking.
+- [ ] Name the seam and the behaviour of this slice in one sentence each. When
+      more than one seam is plausible, give each candidate one line on what a
+      test there catches and what it misses; that trade-off is what the choice
+      is about. The seam is ambiguous when the module's depth is unclear or two
+      boundaries are equally plausible — then ask, in one round, using the
+      format below. Otherwise proceed without asking.
 - [ ] RED: write one test at that seam, named after the behaviour, with a
       hand-derived expected value (rules 8, 9). Read
       `references/writing-good-tests.md` before writing the assertion.
@@ -171,11 +173,16 @@ the `debugging` skill; come back with a reproduction.
 ### Asking when the seam is ambiguous
 
 Ask every open question in one round, numbered, each with your recommended
-answer. Look facts up yourself; only decisions go to the user.
+answer, and word each question so that "yes" accepts that recommendation.
+Look facts up yourself; only decisions go to the user. A question about which
+seam to use lists every candidate on its own line with what a test there
+catches and what it misses — the recommended one included — so the trade-off
+is on the page before anyone picks.
 
 ```
 ❓ Q1 — <short title>
 <the question, one or two lines>
+- <candidate seam>: catches <…>; misses <…>   (seam questions: one line per candidate)
 ➡️ Recommended: <your answer and why>
 ```
 
