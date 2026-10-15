@@ -575,3 +575,36 @@ microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f 
 
 - `@modelcontextprotocol/server` 2.3.0 的「一实例一连接」与 `expectedResource`、`maxToolInputElements`，以及 awesome-copilot 对裸包名/范围版本的识别，基线已会或未测，均未写入；若换更弱的基线模型需重测场景 7。
 - python-sdk 的去 3.10、Skills 扩展、prompt `-32602` 修正尚未发版，下一次 `mcp` 发版后应复测 `sdk-versions.md` 的 Python 行。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS1（modelcontextprotocol/typescript-sdk 新增 `skills/mcp-typescript-sdk-upgrade-to-v2/`，`9bc40e9`，Apache-2.0 过渡许可）与 NewS4 第 J1 条（TerminalSkills/skills 新增 `skills/fastmcp`，只取「stdio 客户端只传环境变量白名单」这一通用陷阱；fastmcp 专属部分不做）。
+
+| 候选要点 | 结论 | 理由 |
+|---|---|---|
+| codemod 在包根 `.` 跑（会改 package.json 与 test/）；zod 须 ^4.2 | 不合入 | 实测属实；评测 8 基线达成 |
+| 无 SDK import 的注入式模块不被 codemod 改写，v1 `setRequestHandler(Schema, …)` 在 v2 注册时抛 TypeError | 不合入 | 实测属实；评测 8 基线达成（基线直接找到并引用了上游这份 skill） |
+| `ctx.http?.req?.headers` 是 Web `Headers`，方括号取值为 undefined、codemod 不改 | 不合入 | 实测属实；评测 8 基线代码全部改成 `.get()`，只是没写原因（#3 判 ✗ 仅因缺解释），不足以构成缺口 |
+| 未知工具 → `ProtocolError(-32602)` 拒绝、去掉 `MCP error <code>:` 前缀、声明能力即装 handler 并宣告 `listChanged: true` | 不合入 | 实测属实；评测 8 基线达成 |
+| localhost 绑定的 `createMcpExpressApp` 默认校验 Origin，`Origin: null` 一律 403 且不可 allowlist | 不合入 | 实测属实；评测 10 基线达成 |
+| stdio `maxBufferSize` 默认 10 MB，超限 onerror 并关闭连接（客户端与服务端两侧） | 不合入 | 实测属实；评测 10 基线达成（#3 未达成的是「给结果设预算而不是只调大上限」，属本 skill 既有规则 7，不是上游新增） |
+| 实验性 tasks（SEP-2663）移除 | 不合入 | 本 skill 从未写 tasks API；无对应内容 |
+| stdio 客户端只继承环境变量白名单（POSIX：HOME、LOGNAME、PATH、SHELL、TERM、USER）+ 配置 `env` | 不合入 | 源码核实属实；评测 9 基线达成核心（复现了 KeyError、配 `env` 与 `-e`、带上代理/CA 变量）；#4 基线选择「延迟读取 + 工具错误」而非「启动即在 stderr 报缺失变量」，两种设计均合理，不据此合入 |
+
+核实证据（2026-10-15，本机 Node v26.10.0，`@modelcontextprotocol/{server,core,client,codemod}` 2.3.1、`node` 2.1.1、`express` 2.0.2；v1 对照 `@modelcontextprotocol/sdk` 1.32.1）：
+- 夹具 v1 工程（即 `evals/files/v1-migration/`）在 v1 下 4/4 测试通过；`npx @modelcontextprotocol/codemod@2.3.1 v1-to-v2 .`：改写 `src/server.ts` 与 `test/server.test.ts`、更新 `package.json`（移除 sdk，加 core/node/server/client）并警告 zod `^3.25.76` 不满足 `>=4.2.0`；`src/plugins/audit.ts`（无 SDK import）未被改动；`extra.requestInfo?.headers[...]` 改成 `ctx.http?.req?.headers[...]`，方括号保留。
+- 升级后跑测试：4 个用例全部在注册时报 `TypeError: '[object Object]' is not a spec request method; pass schemas as the second argument to setRequestHandler()`。`tsc --strict` 对方括号报 TS7052（`Headers` 无索引签名）——非 strict/JS 下运行时得 undefined（`Reflect.get(new Headers(...), 'x')` → undefined）。
+- 手工改完后：`getServerCapabilities()` → `{"prompts":{"listChanged":true},"resources":{"listChanged":true},"tools":{"listChanged":true}}`；`listPrompts()` → `{"prompts":[]}`（v1 为 `MCP error -32601`）；未知工具 → `ProtocolError`，`code -32602`，消息 `"Tool close_ticket not found"`（无前缀）。
+- `createMcpExpressApp({host:"127.0.0.1"})`：无 Origin 200、`Origin: null` 403、`http://localhost:5173` 200、`https://evil.example` 403；`allowedOrigins: ["null"]` 时 `Origin: null` 仍 403。
+- `StdioServerTransport` 收到 11 MB 单行、`StdioClientTransport` 收到子进程 11 MB 单行：均 `onerror: ReadBuffer exceeded maximum size of 10485760 bytes` 后 `onclose`。
+- 环境变量：python-sdk `754254c` `src/mcp/client/stdio.py` 的 `DEFAULT_INHERITED_ENV_VARS`（POSIX 6 项）与 `get_default_environment() | (server.env or {})`；typescript-sdk `9bc40e9` `packages/client/src/client/stdio.ts` 同一白名单并 `{...getDefaultEnvironment(), ...env}`；Inspector `074b810` `core/mcp/node/transport.ts` 把配置的 `env` 传给 `StdioClientTransport`、CLI 有 `-e <env>`。本机用 v2 客户端拉起子进程，父进程设了 `TICKETS_API_TOKEN`/`HTTPS_PROXY`，子进程只看到 `HOME,LOGNAME,PATH,TERM,USER`。
+
+评测（新增场景 8–10，夹具 `evals/files/{v1-migration,stdio-env,v2-regressions}/`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 v1→v2 迁移（注入式插件、Headers、测试重定基线） | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✗（代码对、未说原因）/ #4 ✓ | 335 s。联网找到并引用了上游 `mcp-typescript-sdk-upgrade-to-v2` 本身；包根跑 codemod、zod 4.2、audit.ts 手改为方法字符串并说明会在注册时失败、测试改为 `listChanged: true`、`{prompts: []}`、`InvalidParams`，并在隔离目录实测 |
+| 9 stdio 环境变量白名单 | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✓ / #4 ✗（设计取舍） | 228 s。复现 Inspector 下的 KeyError；README 配置加 `env`（token 占位、代理与 CA 同列）与 `-e`；服务端改为调用时读 token 并返回可操作的工具错误，而非启动时在 stderr 报缺失变量 |
+| 10 v2 回归：Origin null 403 与 10 MB stdio 上限 | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✗ | 202 s。两处机制都解释对并实测；首选修法是把客户端 `maxBufferSize` 调到 32 MiB，分页只作「再变大时」的后备——这是本 skill 既有规则 7（给结果设预算）覆盖的内容，不是上游新增 |
+
+结论：上游新增的 v2 迁移事实与 stdio 环境变量白名单均已实测核实，但基线都已做到（场景 8 基线直接读到了上游 skill），按简报不合入；正文未改，场景 8–10 留作哨兵，`mcp-typescript-sdk` 的 `paths` 加入该 skill 目录以便后续追踪。未跑有 skill 的 D2。

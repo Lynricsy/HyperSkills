@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tickets": {
+      "command": "uv",
+      "args": ["run", "--directory", "/Users/sam/src/tickets-mcp", "tickets_server.py"]
+    }
+  }
+}

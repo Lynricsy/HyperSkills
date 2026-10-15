@@ -84,5 +84,48 @@
       "Answers the reviewer: yes, such a token is accepted, because the verifier checks signature, issuer and expiry but never the audience, and requireBearerAuth does not compare the token's resource unless told to",
       "Fixes audience checking concretely for this SDK: passes expectedResource set to the server's canonical URL (https://notes.example.com/mcp) to requireBearerAuth, and makes the verifier fill AuthInfo.resource from the token's aud claim (or enforces the audience in jwtVerify), noting that expectedResource alone rejects every token if the verifier leaves resource unset"
     ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "tickets-mcp is on @modelcontextprotocol/sdk 1.32.1 and we want to move to the v2 TypeScript SDK packages this sprint. Real paths: tickets-package.json is package.json, tickets-server.ts is src/server.ts, audit-plugin.ts is src/plugins/audit.ts, tickets-server.test.ts is test/server.test.ts (src/store.ts is plain data access, not included). Give me the migration plan with the exact commands, every code change the migration needs in these files, and what will change in the tests.",
+    "files": [
+      "evals/files/v1-migration/tickets-package.json",
+      "evals/files/v1-migration/tickets-server.ts",
+      "evals/files/v1-migration/audit-plugin.ts",
+      "evals/files/v1-migration/tickets-server.test.ts"
+    ],
+    "expected_behavior": [
+      "Runs the official codemod (`npx @modelcontextprotocol/codemod@latest v1-to-v2 .`) from the package root rather than `./src`, because it also rewrites package.json and the SDK imports under test/; and raises zod to ^4.2, which the codemod only warns about",
+      "Says the codemod will not touch src/plugins/audit.ts because that file has no SDK import (the SDK surface is injected), and that its v1 `setRequestHandler(schemas.ListResourcesRequestSchema, ...)` calls throw a TypeError at registration under v2 - rewrites them to method strings (`'resources/list'`, `'resources/read'`) with `ctx` instead of `extra`, and stops injecting the schema constants",
+      "Rewrites every header read to `ctx.http?.req?.headers.get('x-tenant-id')`, explaining that v2 hands handlers a Web `Headers` object on which bracket access returns undefined, and that the codemod renames `extra` to `ctx` but leaves the bracket access in place",
+      "Re-baselines the tests for v2 runtime behaviour: the capabilities golden now shows `listChanged: true` on every declared primitive (or the server sets `listChanged: false`), `listPrompts()` resolves `{ prompts: [] }` instead of rejecting with -32601, error messages lose the `MCP error <code>:` prefix, and an unknown tool rejects with a `ProtocolError` whose code is -32602 instead of resolving `isError: true`"
+    ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "tickets_server.py is our MCP server and tickets-mcp.json is the client config block from our README. `uv run tickets_server.py` works fine in my terminal (I export TICKETS_API_TOKEN, plus our corporate HTTPS_PROXY and SSL_CERT_FILE, in ~/.zshrc) and the unit tests pass. But `npx @modelcontextprotocol/inspector --cli uv run tickets_server.py --method tools/list`, run from that same terminal, fails immediately, and in Claude Desktop the server shows as failed. What is going on, and what do we change in the server and the README config?",
+    "files": [
+      "evals/files/stdio-env/tickets_server.py",
+      "evals/files/stdio-env/tickets-mcp.json"
+    ],
+    "expected_behavior": [
+      "Explains that a stdio client spawns the server with only a small allowlist of inherited environment variables (on POSIX the SDKs' default is HOME, LOGNAME, PATH, SHELL, TERM, USER) plus whatever the config's `env` supplies, so TICKETS_API_TOKEN is missing even when the Inspector is started from the same terminal, and `os.environ[\"TICKETS_API_TOKEN\"]` raises KeyError at import before the handshake",
+      "Points out that HTTPS_PROXY and SSL_CERT_FILE are dropped the same way, so once the token is fixed the API calls will still fail on the corporate network unless those are passed explicitly too",
+      "Adds an `env` block to the README config listing every required variable with a placeholder or reference the user fills in (no real token in the README), and shows the Inspector CLI equivalent (`-e KEY=VALUE`)",
+      "Makes the server fail fast at startup with a message on stderr that names the missing variable (never stdout), instead of a bare KeyError traceback, and documents the required variables"
+    ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "Two regressions since we moved our audit MCP server (and our own CLI client) from @modelcontextprotocol/sdk 1.x to the v2 packages (server/client 2.3.1, express 2.0.2). local-http.mjs is the localhost HTTP entry our Electron dashboard widget calls; export-tool.mjs is one of our tools, which the CLI calls over stdio. (1) The widget now gets HTTP 403 on every request, and adding allowedOrigins did not help. (2) export_audit_log works for small tenants, but for our biggest tenant the CLI's connection just drops and nothing useful is logged. Explain both and fix them properly.",
+    "files": [
+      "evals/files/v2-regressions/local-http.mjs",
+      "evals/files/v2-regressions/export-tool.mjs"
+    ],
+    "expected_behavior": [
+      "Explains that v2's createMcpExpressApp validates `Origin` by default on a localhost bind, and that a sandboxed iframe or file:// page sends the opaque `Origin: null`, which is rejected with 403 and cannot be allowlisted (`\"null\"`/`\"file://\"` in allowedOrigins do nothing); fixes it by giving the widget a real origin (serve it from an http://localhost or app origin that is then allowlisted) or by using stdio/IPC - not by disabling Origin validation",
+      "Explains that v2 stdio transports cap a single message at `maxBufferSize` (10 MB by default) and close the connection via onerror when one is exceeded (v1 buffered without a limit), so the ~14 MB result kills the CLI's connection",
+      "Fixes the export by budgeting the result - paginate with a cursor, return a bounded page or summary plus a resource link/file reference, or stream to a file - rather than only raising `maxBufferSize`, and surfaces the transport `onerror` so the failure is logged"
+    ]
   }
 ]
