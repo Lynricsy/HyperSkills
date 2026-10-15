@@ -429,3 +429,30 @@ D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读�
 其余仓库上游（`moollm-sqlite`（8f6d840 → 90c8d51，7 commits）为 `repo moved, tracked paths unchanged`；`openfang-sqlite`、`harness-sqlite` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（6edcf94、90c8d51、acf2587、caa0c9b），`pin_check.py` 结果 PIN CHECK CLEAN。18 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：18 条 `kind: docs` 条目的 `contributes` 声明事实 + 正文（SKILL.md 与 4 份 references）实际引用的版本号、默认值、命令与限制。当前官方文档对应 SQLite 3.54.0（[releaselog/current](https://www.sqlite.org/releaselog/current.html)，2026-10-09）；本机实跑使用 Python 链接的 SQLite 3.53.4。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| sqlite-transactions | 默认 DEFERRED，首读开读事务、后续写升级可 BUSY；BEGIN IMMEDIATE 自身可 BUSY；WAL 下 EXCLUSIVE 与 IMMEDIATE 相同；COMMIT 因他人读连接 BUSY 时事务保持活动可重试；未完成语句保持隐式事务 | https://www.sqlite.org/lang_transaction.html | 一致 |
+| sqlite-isolation | 读事务升级失败报 SQLITE_BUSY_SNAPSHOT，须结束快照重新 BEGIN；BEGIN IMMEDIATE 成功后不再 BUSY；同连接边扫边改的可见性未定义 | https://www.sqlite.org/isolation.html | 一致 |
+| sqlite-pragma | foreign_keys 在事务内为 no-op；wal_checkpoint 返回三列（首列 1=被阻塞，后两列 -1=无 WAL），PASSIVE 不调用 busy handler 且可能 sync；WAL+NORMAL 一致但断电/系统崩溃可丢已提交事务；optimize 短连接关闭前、长连接 `0x10002` 打开时 + 周期性 + 建索引后；busy_timeout 替换 busy handler | https://www.sqlite.org/pragma.html | 一致。另记：`wal_checkpoint(NOOP)`（3.51.0 起）只取返回值不做检查点，正文未声称不存在只读探针，未改 |
+| sqlite-busy-handler | 每连接仅一个 busy handler，`busy_timeout`/`PRAGMA busy_timeout` 会清除既有 handler；可能死锁时不调用 handler 直接返回 BUSY | https://www.sqlite.org/c3ref/busy_handler.html | 一致 |
+| sqlite-wal | 并发读 + 单写；需同主机共享内存、不能在网络文件系统；FULL 每次提交 sync WAL、NORMAL 省略；3.11.0 起大事务不再受旧警告约束；WAL 持久；WAL-reset bug 影响 3.7.0–3.51.2，修复于 3.51.3+，回补 3.50.7、3.44.6，条件为两连接同文件并发写/检查点 | https://www.sqlite.org/wal.html | 一致（WAL-reset 版本边界逐字核对未变） |
+| sqlite-backup | 增量备份遇其他连接写入会重启，完成时为一致快照；频繁重启可能永不完成 | https://www.sqlite.org/backup.html | 一致 |
+| sqlite-vacuum | VACUUM INTO 目标须不存在或为空文件；输出为一致快照；无显式 INTEGER PRIMARY KEY 的表 rowid 可能改变 | https://www.sqlite.org/lang_vacuum.html | 一致 |
+| sqlite-types | NUMERIC/INTEGER 亲和对非数值文本保留原值，不拒绝 | https://www.sqlite.org/datatype3.html | 一致 |
+| sqlite-strict | STRICT 自 3.37.0；类型仅 INT/INTEGER/REAL/TEXT/BLOB/ANY；先尝试无损转换否则 SQLITE_CONSTRAINT_DATATYPE；STRICT ANY 不做类型转换；STRICT 主键隐式 NOT NULL | https://www.sqlite.org/stricttables.html | 一致 |
+| sqlite-foreignkeys | 子键含 NULL 无需父行；"foreign key mismatch" 属 DML 期错误；每连接启用 | https://www.sqlite.org/foreignkeys.html | 一致 |
+| sqlite-create-table | CHECK 结果为 NULL 不算违反；UNIQUE/PK 中 NULL 互不相同；普通 rowid 表 PK 可为 NULL（INTEGER PRIMARY KEY、WITHOUT ROWID、STRICT 或 NOT NULL 除外）；`INTEGER PRIMARY KEY DESC` 列内声明不是 rowid 别名 | https://www.sqlite.org/lang_createtable.html | 一致 |
+| sqlite-alter | ADD COLUMN 限制（无 PK/UNIQUE、默认值限制、NOT NULL 需非 NULL 默认、无 STORED 生成列）；DROP COLUMN 失败条件；3.53.0 起 ALTER COLUMN SET/DROP NOT NULL 及冗余 NOT NULL 语义；writable_schema 跳过解析错误；安全重建顺序（建新表→拷贝→删旧→改名） | https://www.sqlite.org/lang_altertable.html | **更正（遗漏）**：页面语法图与 [3.53.0 发布说明](https://www.sqlite.org/releaselog/3_53_0.html)（"Enhance ALTER TABLE to permit adding and removing NOT NULL and CHECK constraints"）表明 3.53.0 同时新增 `ADD [CONSTRAINT name] CHECK(expr)` 与 `DROP CONSTRAINT name`；正文规则 18 与原生 ALTER 决策表只列 NOT NULL。本机 3.53.4 实跑：已有违例行时 ADD CHECK 报 `constraint failed` 且不改表；清理后添加成功并拒绝后续违例写入；`DROP CONSTRAINT` 可删命名 CHECK 与命名 NOT NULL，对命名 UNIQUE/FK 报 `constraint may not be dropped`，不支持 `ADD CONSTRAINT ... UNIQUE`。已在 SKILL.md 规则 18 与 `references/types-and-migrations.md` 决策表补一行，contributes 同步。注：该页概述与第 8 节正文仍只列四种原生形式，与语法图/发布说明不一致，以发布说明 + 实跑为准 |
+| sqlite-autoincrement | 防止复用已提交的历史 rowid、回滚的可复用；高水位存 sqlite_sequence；最大 rowid 时 AUTOINCREMENT 报 SQLITE_FULL | https://www.sqlite.org/autoinc.html | 一致 |
+| sqlite-eqp | 输出仅供交互调试、格式可随版本变化；SCAN/SEARCH、COVERING INDEX、USE TEMP B-TREE 含义 | https://www.sqlite.org/eqp.html | 一致 |
+| sqlite-optimizer | 最左列须受约束；不等式列右侧列通常不用于索引（skip-scan 例外）；OR、LIKE 优化条件 | https://www.sqlite.org/optoverview.html | 一致 |
+| sqlite-expression-indexes | 自 3.9.0；仅本表列、确定性函数、无子查询；按文本匹配（仅空白差异容忍），`x+y` ≠ `y+x` | https://www.sqlite.org/expridx.html | 一致 |
+| sqlite-partial-indexes | WHERE 不可含绑定参数/子查询/非确定函数；W⇒X 仅两条简单规则、项须精确匹配 | https://www.sqlite.org/partialindex.html | 一致 |
+| sqlite-analyze | 3.46.0 起 PRAGMA optimize 自限 ANALYZE 范围、无需 analysis_limit；固定统计结果作为稳定计划选项；更旧版本查对应文档 | https://www.sqlite.org/lang_analyze.html | 一致 |
+
+其他观察（仅记录，未合入）：3.54.0 起 ALTER TABLE 对名为 ROWID/_ROWID_/OID 的列做增删改名会报错（本机 3.53.4 仍接受 `ADD COLUMN rowid`）；与本 skill 核心规则无直接关系。四份 reference 的 "Verified against" 版本行更新为 3.54.0 文档。

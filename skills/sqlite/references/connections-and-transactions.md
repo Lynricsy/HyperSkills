@@ -1,6 +1,6 @@
 # Connections and transactions
 
-Verified against: SQLite 3.53.0 transaction and isolation documentation.
+Verified against: SQLite 3.54.0 transaction and isolation documentation.
 
 ## Contents
 

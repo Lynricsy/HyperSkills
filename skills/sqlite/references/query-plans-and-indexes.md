@@ -1,6 +1,6 @@
 # Query plans and indexes
 
-Verified against: SQLite 3.53.0 planner documentation; bounded PRAGMA optimize
+Verified against: SQLite 3.54.0 planner documentation; bounded PRAGMA optimize
 behavior since 3.46.0.
 
 ## Inspect the workload before the index

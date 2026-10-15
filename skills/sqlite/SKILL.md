@@ -48,7 +48,7 @@ Not covered:
 15. Make NULL policy explicit for CHECK, UNIQUE and non-rowid primary keys; those constraints do not all imply rejection of NULL.
 16. Rebuild schemas atomically with their dependencies and historical AUTOINCREMENT state; copying present rows alone does not preserve the database's contract.
 17. Run foreign-key and integrity checks before committing a rebuild, and consume their results; executing a check does not make returned violations fatal.
-18. Use native ALTER syntax supported by every deployed engine; SQLite 3.53.0 adds ALTER COLUMN SET/DROP NOT NULL, not arbitrary type alteration.
+18. Use native ALTER syntax supported by every deployed engine; SQLite 3.53.0 adds ALTER COLUMN SET/DROP NOT NULL and CHECK ADD/DROP CONSTRAINT, not arbitrary type alteration.
 19. Compare query behavior and measured work, not just index presence; a scan can be optimal and EXPLAIN QUERY PLAN text is not a stable machine interface.
 20. Reproduce destructive operations on an isolated representative copy; investigation permission is not permission to migrate, overwrite or stress a production file.
 

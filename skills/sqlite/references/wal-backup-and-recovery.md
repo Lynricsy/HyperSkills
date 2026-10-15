@@ -1,6 +1,6 @@
 # WAL, backup and recovery
 
-Verified against: SQLite 3.53.0 documentation; WAL-reset fixes in 3.51.3,
+Verified against: SQLite 3.54.0 documentation; WAL-reset fixes in 3.51.3,
 3.50.7 and 3.44.6.
 
 ## Contents
