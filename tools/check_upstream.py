@@ -56,6 +56,10 @@ class NotFound(Exception):
     """Repository or ref does not exist."""
 
 
+class EmptyRepository(Exception):
+    """The repository exists but has no commits (HTTP 409): its content was removed."""
+
+
 class TransportUnavailable(Exception):
     """The transport itself failed; try the next one rather than reporting drift."""
 
@@ -99,6 +103,8 @@ def gh_api(path: str) -> Any:
     code = int(match.group(1)) if match else 0
     if code == 404:
         raise NotFound(path)
+    if code == 409:
+        raise EmptyRepository(path)
     if code in (403, 429):
         raise RateLimited(f"gh api rate limited: {(proc.stderr or '').strip()[:200]}")
     raise TransportUnavailable((proc.stderr or "gh api failed").strip()[:200])
@@ -131,6 +137,8 @@ def http_get(path: str) -> Any:
             ) from exc
         if exc.code == 404:
             raise NotFound(path) from exc
+        if exc.code == 409:
+            raise EmptyRepository(path) from exc
         raise
 
 
@@ -157,7 +165,9 @@ def head_commit(repo: str, ref: str) -> tuple[str | None, str]:
         if isinstance(data, list) and data:
             return data[0]["sha"], "api"
         return None, "api"
-    except RateLimited:
+    except (RateLimited, EmptyRepository):
+        # 409 "Git Repository is empty" has also been observed from the API while
+        # `git ls-remote` still lists the branch; trust git refs before reporting it.
         sha = ls_remote_head(repo, ref)
         if sha is None:
             raise
@@ -243,6 +253,9 @@ def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
         sha, source = head_commit(repo, ref)
     except NotFound:
         result["status"] = "missing"
+        return result
+    except EmptyRepository:
+        result["status"] = "empty"
         return result
     if sha is None:
         result["status"] = "no_head"
@@ -335,6 +348,8 @@ def print_result(skill_name: str, res: dict[str, Any]) -> None:
         print(f"  OK  {tag}: up to date ({res['pinned'][:7]})")
     elif status == "missing":
         print(f" FAIL {tag}: MISSING (repo moved/deleted?)")
+    elif status == "empty":
+        print(f" FAIL {tag}: repository is EMPTY (content removed upstream?)")
     elif status == "no_head":
         print(f" FAIL {tag}: could not resolve HEAD of ref '{res['ref']}'")
     elif status == "paths_unchanged":

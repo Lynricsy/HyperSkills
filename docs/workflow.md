@@ -230,6 +230,7 @@ uv run tools/check_upstream.py [<skill>...]
 | `diverged` | `ref` 已不再包含 pin | 上游改了分支策略，按 Phase B 重新裁决 |
 | `pinned commit is unreachable` | pin 在 `ref` 上找不到 | 上游 force-push 或重写了历史，重新审阅并重新 pin |
 | `MISSING` | 仓库 404 | 上游被删或改名，按 Phase B 重新裁决 |
+| `EMPTY` | API 报 409「仓库为空」，且 `git ls-remote` 也取不到该分支 | 上游清空了仓库，按 Phase B 重新裁决。API 偶发对仍有分支的仓库报 409，此时以 git refs 为准，不报 `EMPTY` |
 | `manual check` | `kind: docs` | 人工打开链接比对 |
 
 传输按配额优先级自动选择：已登录的 `gh api`（5000 次/小时）→ `GITHUB_TOKEN` → 匿名
