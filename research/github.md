@@ -340,3 +340,19 @@ untouched`，结论 `PIN CHECK CLEAN`。
 `references/actions-triggers-and-injection.md` 的 `pull_request_target` 加固条目点明 `cache-mode: write` 就是绕过保护；
 SKILL.md 的 audit-workflows 清单加一条缓存访问检查，write-or-speed-up 的缓存建议注明低信任触发器只读。`SOURCES.yaml` 的
 github-docs 条目补 cache-mode 来源页并把 `synced_at` 改为 2026-10-15，zizmor 条目加 notes 说明其文档只是线索。
+
+## 2026-10-15 文档上游复核
+
+上节已为 cache-mode 重读 `dependency-caching` 并把 `github-docs` 的 `synced_at` 改为 2026-10-15；本节补齐其余 `contributes`
+事实的比对（经 `gh api repos/github/docs/contents/...` 读源文件）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| github-docs | `actions/checkout` 拒绝在 `pull_request_target` 下检出 fork PR 代码，除非 `allow-unsafe-pr-checkout: true` | [Securely using pull_request_target](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target)；`actions/checkout` README「Checkout v7 / What's new」与 `src/unsafe-pr-checkout-helper.ts`（v7.0.1） | **已变化 → 更正**：守卫同样覆盖 `workflow_run`（按触发运行的 head 仓库与提交判定），且是 v7 新增，固定在 v6 及更早版本的 checkout 没有守卫。SKILL.md 规则 4 与 `references/actions-triggers-and-injection.md`「What actions/checkout blocks now」据此改写 |
+| github-docs | `pull_request_target` 等低信任触发器对默认分支缓存只读、可写触发器清单、`cache-mode` 四值与优先级、可复用工作流封顶 | [Dependency caching reference](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching) | 一致（上节已核） |
+| github-docs | 关闭关键字只在 PR 指向默认分支时生效 | [Linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue) | 一致 |
+| github-docs | CODEOWNERS 位置（`.github/`、根、`docs/`）、使用 PR 基分支上的版本、所有者须有写权限、最后匹配优先 | [About code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) | 一致 |
+| github-docs | 规则集无优先级、聚合后最严格版本生效 | [About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) | 一致 |
+| github-docs | 不可变发布锁定资产与标签、自动生成 release attestation | [Immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) | 一致 |
+
+6 组事实，5 组一致、1 组更正（事实更正，未新增行为规则，不跑基线评测）；`synced_at` 维持 2026-10-15。

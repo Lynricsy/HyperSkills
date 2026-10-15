@@ -74,10 +74,12 @@ Other vulnerable shapes to grep for:
 
 ## What `actions/checkout` blocks now
 
-`actions/checkout` refuses to check out fork pull-request head refs from a
-`pull_request_target` workflow unless the workflow sets `allow-unsafe-pr-checkout: true`. The
+`actions/checkout` (v7) refuses to check out fork pull-request code from a workflow triggered by
+`pull_request_target` or `workflow_run` unless the step sets `allow-unsafe-pr-checkout: true`;
+for `workflow_run` it compares against the triggering run's head repository and commit. The
 input is deliberately named to stand out in review and static analysis, so its presence *is* the
-finding — do not treat it as configuration. [official]
+finding — do not treat it as configuration. An older pinned major (v6 and earlier) has no such
+guard. [official]
 
 The protection covers fork PR refs only. Checking out an unrelated third-party repository,
 fetching code with `git fetch` or `gh pr checkout`, or running a downloaded artifact is not
