@@ -30,6 +30,18 @@ upstreams:
     synced_at: "2026-09-15"
     contributes: "The prose-level mechanisms behind the flags: what a closed-loop client measures, chunked prefill's scheduler priority for decodes, preemption by recomputation as a capacity signal, the metrics endpoint living on the API server port with no separate metrics flag for `vllm serve`, and the latency-versus-throughput tradeoff table."
     notes: "Used for mechanism and intent; every number quoted alongside was verified against vllm-source at v0.29.0."
+  - id: vllm-model-recipes
+    kind: repo
+    repo: vllm-project/vllm
+    url: https://github.com/vllm-project/vllm/tree/main/.agents/skills/model-recipes
+    paths: [.agents/skills/model-recipes]
+    ref: main
+    commit: f46021a7faa62015016f2862d02f2a64c24bb960
+    license: Apache-2.0
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "The recipe-JSON reading trap in references/parallelism-and-topology.md: `hardware_profile.gpu_count` describes the hardware SKU rather than the GPUs a command uses, so demand is read from the command's parallel flags, `node_count` and every `worker_commands` entry; and multi-node command objects carry `head_command`/`worker_commands` with no flat `command`. This replaced an unsourced claim that `gpu_count` is a per-node count to multiply by `node_count`."
+    notes: "Tracked separately from vllm-source because this file exists only on main (added 2026-10-06 in #57786, absent from v0.29.0 and v0.31.0), while vllm-source is pinned to a release tag. Both facts were checked against the live published JSON on recipes.vllm.ai on 2026-10-15 (Qwen/Qwen3.8-27B: profile `gpu_count` 8 with `--tensor-parallel-size 1`; Qwen/Qwen3.8-2.4T-A95B: `node_count` 2, `head_command`/`worker_commands`, no `command`). The rest of the file - the lookup workflow, `read_recipe.sh`, and the recipe-authoring steps - is vLLM-recipes tooling and was not taken."
   - id: dynamo
     kind: repo
     repo: ai-dynamo/dynamo
@@ -47,7 +59,7 @@ upstreams:
       - agent-docs/guides/knob-tuning/tuning-hierarchy.md
       - agent-docs/guides/knob-tuning/dynamo.md
     ref: main
-    commit: 96d921fe5ece8589d2013200a69d4dafecb36f58
+    commit: 41a537a533d5c56a1136494a28b9a0800568cfcd
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"
@@ -69,7 +81,7 @@ upstreams:
       - .claude/skills/perf-nsight-compute-analysis/references/roofline-analysis.md
       - .claude/skills/trtllm-serve-config-guide/references/knob-heuristics.md
     ref: main
-    commit: e87862cfc844cefba49612f5978f275d928fca37
+    commit: 15f060c9f861079aacac5efafd87b6a03382f2d0
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"
@@ -100,7 +112,7 @@ upstreams:
       - .agents/skills/clean-startup-log
       - python/sglang/srt/entrypoints/http_server.py
     ref: main
-    commit: a12814c1585b0c954234f776bba93dbdd04b1151
+    commit: 2528cd2b910a8cf64a179d2c8dc36d5a23152d4b
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"

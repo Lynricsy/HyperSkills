@@ -672,3 +672,21 @@ dynamo、trtllm、nvidia-skills 报告为 behind（too large）但完整区间�
 | amd-skills | ed7b7e6 → 880babb | 880babb：`serving-llms-on-epyc` 改为从 `amd/ZenDNN-pytorch-plugin` 联邦同步（新增 `.federated.json`），`skill-card.md` 许可 MIT → Apache-2.0；脚本改 `shlex.quote` 与 flake8 排版，`reference.md` 去掉一个链接；`SKILL.md` 未变 | 正文噪声；**许可元数据更新**：仓库根 LICENSE 仍为 MIT（gh api 与 README 徽章），但 epyc 目录现为 ZenDNN 插件仓库的联邦副本；读了该仓库 LICENSE 全文为 Apache-2.0（API 报 NOASSERTION 是因首行前言）。`SOURCES.yaml` 的 `license` 改为 `MIT AND Apache-2.0`，`notes` 记录两条 path 各自的许可与来源 commit；两者均为宽松许可，内容裁决不变 |
 
 结论：正文与 references 未改，未新增评测场景、未跑 D2；re-pin、版本号改为 2026.10.15，amd-skills 许可元数据同步。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS1（vllm-project/vllm 新增 `.agents/skills/*`，Apache-2.0）。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `model-recipes`：`hardware_profile.gpu_count` 描述硬件档位、不等于命令所用 GPU 数；多节点对象只有 `head_command`/`worker_commands` | **合入（事实更正）** | 我们 `parallelism-and-topology.md` 原写「多节点响应里 `gpu_count` 是每节点数，总需求 = `node_count × gpu_count`」，标 `[official]` 但 research 与 SOURCES 都查不到出处；对照线上 recipe JSON 证伪，改为「从命令的并行参数、`node_count`、`worker_commands` 读真实需求」 |
+| `model-recipes`：recipe URL 用完整 HF id 保留大小写、`recipe_verified_hardware` 不等于每条命令已验证、`vram_minimum_gb` 只是估算 | 不合入 | 线上已发布 JSON（2026-10-15）里没有 `hardware`/`default`/`recipe_verified_hardware` 顶层字段（实为 `recommended_command`、`meta.hardware`），上游描述的 schema 与线上不一致，暂不写入；属于 recipe 站点使用细节，不是本 skill 的部署判断 |
+| `model-microbenchmark`（`vllm bench forward`） | 不做 | 引入它的 #61339 未进任何 release（v0.31.0、v0.32.0rc0 均无），按简报属「未发布」 |
+| `check-api-compat`、`pr-checklist`、`transformers-upgrade` | 不合入 | 评估报告已 REJECT：vLLM 贡献者流程 |
+
+核实证据（2026-10-15 直接读 `https://recipes.vllm.ai/<HF id>.json`）：
+- `Qwen/Qwen3.8-27B`：`recommended_command.hardware_profile` 为 H200 8-GPU HGX 节点，`gpu_count: 8`，而命令是 `--tensor-parallel-size 1`（单节点、只用 1 卡）——`gpu_count` 既不是命令用卡数，也不能拿来乘。
+- `Qwen/Qwen3.8-2.4T-A95B`：`node_count: 2`、`deploy_type: multi_node`，对象键为 `head_command`、`worker_command`、`worker_commands` 等，**没有** `command`；`hardware_profile.gpu_count: 8`、`multi_node: false`（描述单台 B300 节点），命令为 `--tensor-parallel-size 16 --nnodes 2`。此例恰好 16 = 2 × 8，但第一例说明这个乘法不是 schema 保证。
+- 上游原文（`de2b869` 的 `.agents/skills/model-recipes/SKILL.md`）：`gpu_count` "describes the profile, not necessarily the number of GPUs used by the command"，与实测一致。该文件 2026-10-06（#57786）才加入 main，不在 v0.29.0/v0.31.0 中，故 SOURCES 新增 `vllm-model-recipes`（ref main），不并入钉在 v0.29.0 的 `vllm-source`。
+
+事实更正，未新增评测场景、未跑 D2。

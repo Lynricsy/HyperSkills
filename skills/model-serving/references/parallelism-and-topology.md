@@ -270,9 +270,14 @@ per-feature checklist. Known incompatibilities in one engine's matrix:
   together with large-scale parallelism or P/D separation is unvalidated
   territory.
 
-Multi-node recipes carry a reading trap: `gpu_count` in a multi-node response is
-**per node**, so total demand is `node_count × gpu_count`. A missing flat field
-is a schema branch, not a missing recipe. [official]
+vLLM recipe JSON (`recipes.vllm.ai/<HF id>.json`) carries a reading trap:
+`hardware_profile.gpu_count` describes the hardware SKU — the GPUs in one node
+of that profile — not the GPUs the command uses. A single-node recipe can show
+`gpu_count: 8` next to `--tensor-parallel-size 1`. Read the real demand from the
+command itself: the parallel flags (TP × PP × DP), `--nnodes` / `node_count`,
+and every entry of `worker_commands`. A multi-node command object has
+`head_command` and `worker_commands` and no flat `command`; that is a schema
+branch, not a missing recipe. [official]
 
 ## Controls that reverse direction with load
 
@@ -288,4 +293,4 @@ single-operating-point measurement misleads: [official]
 - **CUDA graph capture** — must cover the peak engine batch shape observed at
   *every* target operating point, not just one.
 
-<!-- sources: trtllm, dynamo, amd-skills -->
+<!-- sources: trtllm, dynamo, amd-skills, vllm-model-recipes -->
