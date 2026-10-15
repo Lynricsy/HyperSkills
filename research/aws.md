@@ -428,3 +428,20 @@ skill 弃用，继任者为 `aws/agent-toolkit-for-aws` 的 `aws-well-architecte
 | aws-agent-toolkit | 8164a8f → decfb6f（5 提交） | bc597f3：`aws-database/SKILL.md` +5/-5——metadata.version 2→3、路由表 ID 改为指向已有的 `references/select.md` 等链接、Neptune 行补上对应的服务 skill 名 `amazon-neptune` | 噪声 | 路由/打包层面的元数据改动，不含新的数据库选型事实或限制；本 skill 的数据服务选型不依赖其路由表 |
 
 未合入原因：无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 的 `check_upstream.py --json` 报告与 `/tmp/hs-attr/skills_real.json` 归因清单，2 条 paths 下确有提交。
+归因方法：awslabs/agent-plugins 用 `gh repo clone --bare --filter=blob:none` 克隆到 `/tmp/hs-up/SyncG2/`，aws-agent-toolkit
+用主代理缓存 `/tmp/hs-attr/aws__agent-toolkit-for-aws`，均对 `<pinned>..<head> -- <paths>` 跑 `git log`、`git diff --stat` 与 `git diff`
+逐文件读真实 diff，再对照 `references/data-services.md`（DSQL）、`references/eks-control-plane.md`（Action Logs）、
+`references/cloudwatch.md` 与 `references/well-architected.md` 的现有表述。`--pin` 后 `pin_check.py` 为 CLEAN；
+awesome-copilot-aws（compare 超限、归因为空）随 `--pin` 前移。aws-docs 为 manual check，本次未处理。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| awslabs-agent-plugins | 097fe8a → fbefb37（3 提交） | `databases-on-aws/skills/dsql`：fbefb37 新增 `references/limits-and-error-codes.md`（每条限制的 SQLSTATE 与报错原文、实测 key size 约 1,981 字节、超大协议消息只见 EOF 等）、e32b05b 更正部分索引/表达式索引/函数支持；`deploy-on-aws/skills/deploy`：da51970 在 `cost-estimation.md` 加 Elastic Beanstalk Cluster mode 成本项 | 噪声 | 本 skill 的 DSQL 表（3,000 行修改、10 MiB、5 分钟、10,000 连接、24 个索引、`40001` 须重试、`23503` 不可重试、`CREATE INDEX ASYNC`）与上游新表逐项一致，无被推翻的事实；上游新增的是 DSQL 专项排障深度（报错文本匹配、EOF 后提交结果未知），超出本 skill 的选型粒度；本 skill 不涉及 Beanstalk |
+| aws-agent-toolkit | decfb6f → a2c98f2（3 提交） | `aws-containers/references/action-logs.md`：59fde65 把告警指标 `ForwardingErrors` 改为 `AWS/Logs` 的 `DeliveryErrors`/`DeliveryThrottling`；`aws-observability`：34b3ecc 升 v7，把 Application Signals 接入指南（16 个平台×语言文件）移交 setup skill、`list-spaces` 为账号全局需按 Region 过滤；`aws-security`：df2ab44 新增安全服务选型推荐工作流（`references/service-recommendations/`） | 噪声 | 本 skill 只写 Action Logs 的用途、未写任何告警指标名；不覆盖 CloudWatch Omni/Application Signals 接入；安全服务只在 Well-Architected 检测层列名，上游新工作流是其 MCP 只读盘点流程，不涉及本 skill 的事实 |
+
+结论：两条均为噪声，正文与 references 未改，未新增评测场景、未跑 D2。仅 `metadata.version` 与 `SOURCES.yaml` 的 `version` 改为
+`2026.10.15`，commit/synced_at 由 `--pin` 写入。
