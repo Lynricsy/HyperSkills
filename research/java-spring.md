@@ -297,3 +297,19 @@ attempts」，不能解释该提示的事务管理器会静默忽略它；`Hiber
 | openjdk-jeps | 21：JEP 441/440/431/451；22：456；23：467/474/471；24：485/484/491/472/486/490/479；25：511/512/506/510/514/515/503，470 与 505 为预览；421 自 18 | https://openjdk.org/projects/jdk/25/ 及各 JEP 页（Release 字段逐个核对） | 其余一致。**更正 5**：Flexible Constructor Bodies 标为 25 正式却给出预览 JEP 447/482/492，25 的正式 JEP 为 513；改为「JEP 513（预览 447/482/492）」。**更正 6**：GC 段写「24 移除非分代模式，`-XX:-ZGenerational` 现在无法启动」；JEP 490 规定该选项 obsolete（打印警告、仍用分代 ZGC），本机 Temurin 25.0.4.1 实跑为「Ignoring option ZGenerational; support was removed in 24.0」且正常启动，26.0.2.1 与 27 报「Unrecognized VM option」拒绝启动；已改为 24/25 忽略并警告、26 起拒绝启动 |
 
 结论：3 条复核完毕，6 处既有正文事实更正已合入（均为纠错、非新增内容，未新增评测场景、未跑评测）；3 个条目 `synced_at` 改为 2026-10-15，`spring-boot-wiki` notes 记录 GA 复核。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：a187d7d 上游同步、d8d1edf Security 7 弃用项、layertools 移除、熔断、JEP 513 / ZGC。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/java-spring/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 Boot 3.5 → 4 迁移（SecurityConfig 含 `@EnableGlobalMethodSecurity`，pom 含 spring-retry） | gpt-6.1-sol medium | 有 | true | ✔1–4 ◐5 ✔6–11 ◐12（10✔2◐） | 123 s。`@EnableGlobalMethodSecurity` → `@EnableMethodSecurity`、`DaoAuthenticationProvider` 构造器注入，未把弃用项说成编译错误；spring-retry 写「Boot 4 不再管理版本，迁到 Framework 7 resilience API 或自行定版本」，未点名 `@Retryable`/`@EnableResilientMethods`；properties-migrator 与 `spring.jackson.json.read` 改名均给出；基线要求缺 Framework 7 / Jakarta EE 11 明示 |
+| 2 | gpt-6.1-sol medium | 无 | false | ✔1–4 ◐5 ✔6–10 ◐11 ✔12（10✔2◐） | 234 s。与有 skill 同级：同样未点名核心 `@Retryable`；改了 Jackson 属性但未建议 properties-migrator |
+| 4 负例（Android 协程） | gpt-6.1-sol medium | 有 | false | 3/3 | 36 s。改用 `viewModelScope`，无 Spring 建议 |
+
+选择理由：2 的夹具含 `@EnableGlobalMethodSecurity` 与 spring-retry（Security 7 弃用项、熔断更正）；layertools 移除、`-XX:-ZGenerational`、核心无熔断、JEP 513 没有场景覆盖，新增 6（`Dockerfile` + `upgrade-plan.md`）；4 为负例。
+
+已完成部分：场景 2 两侧 10✔2◐ 持平，有 skill 未把弃用项说成编译错误；负例 `skill_read=false`。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：6 Boot 4.1 layertools 移除 / ZGenerational / 熔断 / JEP 513（新增，有/无）。待结果出来后补判定。

@@ -86,5 +86,16 @@
       "Fixes the expiry by moving the query, update and publishEvent into one @Transactional service method called from the scheduler (or explicitly sets fallbackExecution = true with the trade-off stated), and notes that AFTER_COMMIT delivery is still best effort without an outbox or persistent publication registry",
       "States that readOnly = true is only a hint and does not route anything by itself: with a single spring.datasource URL every transaction hits the primary, and replica routing needs a routing DataSource (for example LazyConnectionDataSourceProxy with a read-only DataSource, or AbstractRoutingDataSource keyed on the current transaction's read-only flag)"
     ]
+  },
+  {
+    "skills": ["java-spring"],
+    "query": "We are taking payments-service from Spring Boot 3.5 on Java 21 to Spring Boot 4.1 on Java 25 this sprint, and to Java 26 next quarter. Review the Dockerfile and upgrade-plan.md in this directory: which plan items and Dockerfile lines are wrong, and what should we do instead?",
+    "files": ["evals/files/Dockerfile", "evals/files/upgrade-plan.md"],
+    "expected_behavior": [
+      "Says Spring Boot 4.1 removes the already-deprecated `layertools` jar mode, so the `-Djarmode=layertools ... extract` step breaks, and replaces it with the `tools` jar mode (`-Djarmode=tools ... extract --layers`), adjusting the copied paths and the entry point to match",
+      "Says non-generational ZGC was removed in JDK 24: on Java 25 `-XX:-ZGenerational` is ignored with an obsolete-option warning and generational ZGC runs anyway (so the 2024 measurement no longer describes what runs), and on Java 26 the flag is unrecognised and the JVM refuses to start, so it must be deleted now",
+      "Rejects plan item 3: core Spring Framework provides `@Retryable` and `@ConcurrencyLimit` (enabled with `@EnableResilientMethods`) but no circuit breaker, so `@CircuitBreaker(name = \"ledger\")` needs Resilience4j or another circuit-breaker library to stay, while the retry can move to core",
+      "Rejects plan item 5: statements before `super(...)` (Flexible Constructor Bodies, JEP 513) are a standard feature in Java 25, so no `--enable-preview` is needed in the compiler, Surefire or the container"
+    ]
   }
 ]
