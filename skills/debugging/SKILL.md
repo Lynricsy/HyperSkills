@@ -4,7 +4,7 @@ description: "Diagnoses and fixes reproducible bugs, regressions, failures and p
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: task
 ---
 
@@ -220,8 +220,9 @@ Three triggers, and only these three, stop the work and hand the decision back:
    Return to Phase 1 rather than defending the theory.
 
 Ask every question that is currently open in one round. Number each one
-separately and give your recommended answer. Facts are yours to find; only
-decisions go to the user.
+separately, give your recommended answer, and word the question so that "yes"
+accepts that recommendation. Facts are yours to find; only decisions go to the
+user.
 
 ```
 ❓ Q1 — <short title>

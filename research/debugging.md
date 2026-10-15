@@ -173,3 +173,41 @@ skill 自身的路由相冲突，记录在案而非事后改写；下次同步�
 2 个 behind 条目 pin 写入的 commit 与审阅 HEAD 逐条一致（d81f3a1、8ca22db）。
 
 结论：全部为噪声，正文未改、未新增评测；仅 re-pin、notes 补记 `CONTEXT.md` → `GLOSSARY.md` 改名，版本号改为 2026.09.30。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因（`/tmp/hs-attr/attribution.md`）。
+paths 下确有提交的 2 条：mattpocock-diagnosing（含 `skills/productivity/grilling`）、obra-debugging。在
+`/tmp/SyncG8-up/<owner>__<repo>` blobless 克隆里按 `<旧pin>..<审阅HEAD> -- <paths>` 读 `git diff`，并用已登录 `gh issue view`
+读 mattpocock #955、#706 原文。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mattpocock-diagnosing | d81f3a1 → 49dd158（52 提交，命中 2） | f3fc563（#955）`diagnosing-bugs/SKILL.md` Phase 5「Watch it fail」：靠改代码或夹具强制出红时，先对照原始副本 `diff` 证明变异确实落地再信这个红。issue 的复现是 macOS BSD `sed -i '' '0,/…/'` 把 0 号地址当作永不开启的区间、退出 0 却什么都没改 | 不合入，正文未变。本 skill 的回归测试来自最小化复现、对未修复代码本就为红，Phase 6 已要求「Watch that test fail **for the right reason**」，Phase 1 要求确认是用户的那个失败而非邻近的另一个；「强制变异出红」只在测试先于修复已绿时出现，属 test-driven-development 的回归证明流程（revert 修复→见红→恢复），那里的 Gate 要求三次输出都被引用。单为 BSD sed 的空操作再加一步，收益低于它占的篇幅 |
+| mattpocock-diagnosing（grilling 路径） | 同上 | 95249b0（#706）`grilling/SKILL.md`：问题措辞让 "yes" 即接受推荐答案 | 需合入（与 test-driven-development、code-review 共享的提问格式段落三处同步）。`## When to stop and ask` 加入该措辞；SOURCES `contributes` 补记 |
+| obra-debugging | 8ca22db → bb92a77（1 提交，v7.0.0） | `systematic-debugging/SKILL.md` 多组件取证示例：`${IDENTITY:+SET}${IDENTITY:-UNSET}` 改为 `[ -n … ] && echo SET \|\| echo UNSET`，`env \| grep IDENTITY` 改为 `printenv IDENTITY >/dev/null`——旧写法在变量已设时会把密钥值本身打印出来 | 噪声：本 skill 只取了「每个组件边界一次性埋点」的方法，没有收录这段 shell 示例（grep `IDENTITY`、`:+SET`、`env \| grep` 无命中）；Core rule 3 已要求展示任何输出前先脱敏 |
+
+addy-debugging（tracked paths unchanged）、pproenca-debug（up to date）随 `--pin` 对齐。`--pin` 后 `pin_check.py` 结果 `PIN CHECK CLEAN`。
+
+### 正文改动
+
+- `SKILL.md`「When to stop and ask」：每题给推荐答案，且措辞让 "yes" 即接受该推荐。
+- `SOURCES.yaml` mattpocock-diagnosing `contributes` 补记。
+- 评测场景 3（webhook 丢事件）增加一条 expected_behavior：每个编号问题措辞让 yes 即接受推荐。
+
+### 评测
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals-SyncG8/debugging/…`，「旧 skill」= 本轮改动前正文
+（`/tmp/hs-evals-SyncG8/old/debugging/…`）。逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 webhook 丢事件 | gpt-6.1-sol medium | 无 | False | EB7 不适用（其余未计） | 91 s。在本地造出「先记 seen 再 enqueue，enqueue 失败后重试被 200 吞掉」的可复现机制，直接修复，未向用户提任何问题 |
+| 3 | gpt-6.1-sol medium | 有（旧 skill） | True | EB7 不适用（其余未计） | 80 s。同一机制，写回归测试后修复，未提问 |
+| 3 | gpt-6.1-sol medium | 有（本轮正文） | True | EB7 不适用（其余未计） | 108 s。同一机制，四个测试通过；未提问。脱敏 token、不执行日志里的远程脚本，行为与旧 skill 一致，无回归 |
+
+（另：第一次误跑了场景 2〔flaky ingest 测试〕的基线与旧 skill，两者都直接修复、无提问，与本条目无关，不计。）
+
+结论：gpt-6.1-sol 在场景 3 能自己造出复现，三次运行都没有走到「停下提问」，因此本 skill 内无法测得 yes 措辞的差异；该句作为与
+test-driven-development、code-review 逐字共享的提问格式同步合入，缺口证据见那两份 research（tdd 场景 6：基线 ✘、有 skill ✔；
+code-review 场景 3：无 skill ✘、旧 skill ✘、本轮正文 ✔）。场景 3 新增条目保留作哨兵。
