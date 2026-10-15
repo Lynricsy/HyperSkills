@@ -283,7 +283,7 @@ def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
         # The pinned sha is not reachable: the branch was rewritten or force-pushed.
         result["status"] = "unknown_base"
         return result
-    except (RateLimited, TransportUnavailable) as exc:
+    except (RateLimited, TransportUnavailable, EmptyRepository) as exc:
         result["status"] = "behind"
         result["reason"] = f"range not resolved ({exc})"
         return result
@@ -334,7 +334,7 @@ def check_upstream(up: dict[str, Any]) -> dict[str, Any]:
     for p in changed:
         try:
             commits[p] = path_commits(repo, ref, p, rng["shas"])
-        except (RateLimited, NotFound, TransportUnavailable):
+        except (RateLimited, NotFound, TransportUnavailable, EmptyRepository):
             commits[p] = []
     return result
 

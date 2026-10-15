@@ -22,6 +22,9 @@ ROUTES = {
     "/repos/o/emptied/commits": (409, {"message": "Git Repository is empty."}),
     "/repos/o/gone/commits": (404, {"message": "Not Found"}),
     "/repos/o/live/commits": (200, [{"sha": PIN}]),
+    # HEAD 已前进，但 compare 接口报 409：区间无法确认。
+    "/repos/o/flaky/commits": (200, [{"sha": "b" * 40}]),
+    f"/repos/o/flaky/compare/{PIN}...main": (409, {"message": "Git Repository is empty."}),
 }
 
 
@@ -70,6 +73,12 @@ class RepositoryStateTests(unittest.TestCase):
 
     def test_deleted_repository_stays_missing(self) -> None:
         self.assertEqual(self.status_of("gone"), "missing")
+
+    def test_compare_409_reports_behind_instead_of_aborting(self) -> None:
+        upstream = {"id": "flaky", "kind": "repo", "repo": "o/flaky", "ref": "main", "commit": PIN, "paths": ["x"]}
+        result = check_upstream.check_upstream(upstream)
+        self.assertEqual(result["status"], "behind")
+        self.assertIn("range not resolved", result["reason"])
 
 
 if __name__ == "__main__":
