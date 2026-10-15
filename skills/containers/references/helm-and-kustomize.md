@@ -41,8 +41,9 @@ twelve nearly identical overlays is a chart that was never written.
 Helm 4 shipped in November 2025 and is current (v4.3.x at the time of writing). Helm 3
 is in security-fix-only maintenance. The differences that change how you write things:
 
-- **Server-side apply** is supported, which changes conflict behaviour on fields also
-  managed by a controller.
+- **Server-side apply** is the default for new releases (a release created by Helm 3
+  stays on client-side apply when Helm 4 upgrades it), which changes conflict behaviour
+  on fields also managed by a controller.
 - **Resource waiting uses kstatus**, so `--wait` understands readiness of custom
   resources instead of only built-in kinds.
 - **Post-renderers are plugins** rather than an executable path.

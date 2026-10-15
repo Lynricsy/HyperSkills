@@ -302,7 +302,7 @@ semantics themselves are in `references/kubernetes-workloads.md`.
 
 | Contract | Consequence |
 |---|---|
-| DRA **stable since 1.35** | Locked `DynamicResourceAllocation` gate ignores explicit settings without error [official] |
+| DRA **stable since 1.34**; gate locked from 1.35 | From 1.35 the locked `DynamicResourceAllocation` gate ignores explicit settings without error [official] |
 | API **`resource.k8s.io/v1`** | `DeviceClass`, `ResourceClaim`, `ResourceClaimTemplate`, `ResourceSlice`, `DeviceTaintRule`; CEL selection via `selectors[].cel.expression` [official] |
 | **No scheduler preemption for DRA resources** | High-priority Pods cannot take lower-priority Pods' devices: they stay Pending until the other Pod terminates or is deleted; PriorityClass offers no protection here [official] |
 | `ResourceClaim` | **Shares one device across Pods**, self-managed lifecycle; `ResourceClaim.status.reservedFor` caps sharing at **256** entries/Pods [official] |

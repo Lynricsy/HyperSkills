@@ -60,15 +60,20 @@ ago, and a removed version is a hard rejection, not a warning.
    `helm version`, and the cluster's minor version. Half the container guidance in
    circulation predates BuildKit-by-default, Compose v2 and Kubernetes 1.25.
 2. A credential passed as `ARG` / `--build-arg` is leaked, whether or not the stage that
-   used it is shipped and whether or not the file it wrote was deleted. BuildKit records
-   build arguments verbatim in the image's provenance attestation. Use
-   `RUN --mount=type=secret,id=<name>` and read `/run/secrets/<name>`; the mount exists
-   only for that instruction and lands in no layer. [verified]
+   used it is shipped and whether or not the file it wrote was deleted. BuildKit keeps
+   build-argument values in the build record of every build, and writes them into the
+   provenance attestation whenever it is generated with `mode=max` (the default `mode=min`
+   omits them). Use `RUN --mount=type=secret,id=<name>` and read `/run/secrets/<name>`;
+   the mount exists only for that instruction and lands in no layer, record or
+   attestation. [verified]
 3. `docker history` is the wrong check for a leak. On an image built with a bare `ARG`,
    `docker history` and `docker inspect .Config.Env` both return nothing while the token
-   sits in cleartext in the attestation. The check that can fail is
-   `docker buildx imagetools inspect <ref> --format '{{json .Provenance}}'`, grepped for
-   the *credential pattern* rather than the argument name. [verified]
+   sits in cleartext in the build record (`docker buildx history inspect <build-ref>`,
+   refs from `docker buildx history ls`) and in any `mode=max` attestation. For the
+   attestation, build with `--provenance=mode=max` and grep `docker buildx imagetools
+   inspect <ref> --format '{{json .Provenance}}'` for the *credential pattern* rather
+   than the argument name; a default `mode=min` attestation reads clean either way.
+   [verified]
 4. Order a Dockerfile by rate of change: copy the dependency manifest, install, then copy
    the source. `COPY . .` before the install re-runs the install on every source edit,
    because `COPY` invalidates on the copied files' metadata. [verified]
@@ -176,10 +181,10 @@ ago, and a removed version is a hard rejection, not a warning.
 - [ ] Move every build-time credential to `--mount=type=secret`, and remove the `ARG`
       and any `ENV` that carried it (`references/image-security.md`).
 - [ ] Add `USER`, exec-form `CMD`, and a digest or full-version base image pin.
-- [ ] **Gate — the numbers and the attestation:** re-run the build, quote both sizes and
-      the cached-versus-rebuilt step list for a source-only change, and show
-      `docker buildx imagetools inspect <ref> --format '{{json .Provenance}}'` grepped for
-      the credential pattern returning zero.
+- [ ] **Gate — the numbers and the leak checks:** re-run the build, quote both sizes and
+      the cached-versus-rebuilt step list for a source-only change, and show the build
+      record (`docker buildx history inspect`) plus a `--provenance=mode=max` attestation
+      grepped for the credential pattern, both returning zero.
 
 ### review-a-kubernetes-manifest
 
@@ -323,8 +328,10 @@ give the before/after snippet.
 
 - Docker Engine 24+ with BuildKit for `--mount=type=secret` and `--mount=type=cache`;
   `docker buildx imagetools inspect` needs an image in a registry or an OCI export, and
-  provenance attestations require the `docker-container` builder driver, not the default
-  `docker` driver.
+  provenance attestations and multi-platform images need the containerd image store
+  (the default on Docker Engine 29+ and Docker Desktop; an engine upgraded from an older
+  version may still use classic storage) or a `docker-container` builder. Without either
+  the build fails with "Attestation is not supported for the docker driver".
 - `kubeconform` is the offline schema validator used by the gates above; it is a single
   binary or `ghcr.io/yannh/kubeconform`. It needs network access the first time to fetch
   the schema set for the requested Kubernetes version.

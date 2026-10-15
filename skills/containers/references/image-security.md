@@ -27,17 +27,26 @@ docker history --no-trunc <ref> | grep -c glpat        # 0
 docker inspect <ref> --format '{{json .Config.Env}}' | grep -c glpat   # 0
 ```
 
-Both clean. And yet BuildKit attaches a provenance attestation to the build and records
-the build arguments **verbatim** in it: [verified]
+Both clean. And yet BuildKit keeps the build-argument values in the record of every
+build, and writes them **verbatim** into the provenance attestation when provenance is
+generated with `mode=max`: [verified]
 
 ```
-{"frontend":"dockerfile.v0","args":{"build-arg:NPM_TOKEN":"glpat-…"}, …
+docker buildx history inspect <build-ref>  # BUILD ARG  NPM_TOKEN  glpat-…   (refs: docker buildx history ls)
+{"frontend":"dockerfile.v0","args":{"build-arg:NPM_TOKEN":"glpat-…"}, …   # mode=max attestation
  "request":{"args":{"build-arg:NPM_TOKEN":"glpat-…"}}}
 ```
 
-The check that can actually fail:
+The default `mode=min` attestation leaves build-argument values out (Docker's provenance
+documentation says so, and the same build with `mode=min` greps clean), so a clean
+default attestation proves nothing. `mode=max` is also what Docker recommends for
+analysis, and it is exactly the setting that publishes the argument.
+
+The checks that can actually fail:
 
 ```bash
+docker buildx history inspect <build-ref> | grep -cE 'glpat-|ghp_|AKIA'   # the build record
+docker buildx build --provenance=mode=max … --push -t <ref> .
 docker buildx imagetools inspect <ref> --format '{{json .Provenance}}' \
   | grep -oE 'glpat-[A-Za-z0-9_-]{10,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}' \
   | sort -u | wc -l
@@ -45,8 +54,8 @@ docker buildx imagetools inspect <ref> --format '{{json .Provenance}}' \
 
 Grep for the **credential pattern**, never for the argument name. The attestation also
 embeds commit messages and `RUN` command lines, so searching for `NPM_TOKEN` matches
-your own commit text and reports a leak that is not there. A pre-fix tag returning a
-non-zero count and a post-fix tag returning zero is the proof; a single post-fix zero
+your own commit text and reports a leak that is not there. A pre-fix build returning a
+non-zero count and a post-fix build returning zero is the proof; a single post-fix zero
 proves nothing on its own.
 
 Layer deletion does not help either, for a separate reason: layers are additive, so
@@ -68,8 +77,8 @@ docker build --secret id=npm_token,src=./token.txt .
 ```
 
 The mount exists for the duration of that one instruction, is not part of the layer,
-and is not recorded in the attestation — the same provenance grep returns zero on an
-otherwise identical build. [verified]
+and is recorded in neither the build record nor the attestation — the same checks
+return zero on an otherwise identical build, `mode=max` included. [verified]
 
 Two details that get missed:
 

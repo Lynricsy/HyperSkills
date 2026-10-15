@@ -757,3 +757,23 @@ blobless 归因 paths 下无提交，判噪声。compose-spec 与三条 NVIDIA �
 | 8 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ | 88 s。`HOST: 0.0.0.0` 加在 compose 环境；保留宿主侧 `127.0.0.1` 绑定并在注释里说明区别；VM 无 docker daemon，只验证了 compose 配置与 Node 实际监听 |
 
 结论：基线已具备，不合入正文；新增场景 8 与夹具 `bind-compose.yaml`、`bind-server.js`、`bind-symptoms.txt` 留作哨兵。
+
+## 2026-10-15 文档上游复核
+
+范围：5 条 `kind: docs` 条目的 `contributes` 事实 + `SKILL.md` 与 references 中的版本门槛、移除表、默认值与命令。kubernetes/website（HEAD fee8387，2026-10-14）、docker/docs（79e20f3，2026-10-14）、helm/helm-www 用已登录 `gh repo clone` 稀疏检出读源文件；containers.dev 与 docs.nvidia.com 页面脚本取回去标签；本机 Docker Engine 29.8.2 / buildx 0.37.2 / BuildKit v0.32.2（`docker-container` 驱动）实跑。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| kubernetes-docs | 当前稳定 1.37（1.37.2）；最近一次 API 移除在 1.32，1.33–1.37 无移除；移除表各行 | https://kubernetes.io/docs/reference/using-api/deprecation-guide/ 、`data/releases/schedule.yaml` | 一致 |
+| kubernetes-docs | 特性门 stage：SidecarContainers 1.29 beta→1.33 GA；UserNamespacesSupport 1.33 beta 默认开→1.36 GA；InPlacePodVerticalScaling 1.33 beta→1.35 GA；PodLevelResources 1.34 beta；PodLifecycleSleepAction 1.30 beta→1.34 GA；CronJobTimeZone 1.27；PDBUnhealthyPodEvictionPolicy 1.27 beta 默认开；ResourceHealthStatus 1.36 beta；DRAPrioritizedList 1.36 GA；DRAPartitionableDevices / DRAConsumableCapacity 1.36 beta；DRADeviceTaints 1.37 GA；DRADeviceCompatibilityGroups 1.37 alpha；DRAWorkloadResourceClaims 1.37 beta 默认关 | https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/ （各 gate 的 `stages` 字段） | 一致 |
+| kubernetes-docs | DRA 稳定版本 | `feature-gates/DynamicResourceAllocation.md`：stable 1.34（未锁定）、1.35 起 locked | **已变化 → 更正**：`kubernetes-gpu.md` 原写「DRA stable since 1.35」，改为「1.34 GA，1.35 起门锁定」 |
+| kubernetes-docs | PSS restricted：`runAsNonRoot: true`、`allowPrivilegeEscalation: false`、drop ALL（仅可加 `NET_BIND_SERVICE`）、seccomp 必须显式为 `RuntimeDefault`/`Localhost` | https://kubernetes.io/docs/concepts/security/pod-security-standards/ | 一致 |
+| docker-docs | 缓存失效：ADD/COPY 与 `RUN --mount=type=bind` 按文件元数据计算校验和、不计 mtime；其余指令只比对命令串；一次未命中使后续全部重建 | https://docs.docker.com/build/cache/invalidation/ | 一致 |
+| docker-docs | Compose 顶层 `version` 已过时、仅提示性、出现即告警 | https://docs.docker.com/reference/compose-file/version-and-name/ | 一致 |
+| docker-docs | 构建参数与 provenance | https://docs.docker.com/build/metadata/attestations/slsa-provenance/ | **已变化 → 更正**：官方：默认 `mode=min` **不含**构建参数值，`mode=max` 才暴露（并警告勿用 build-arg 传密钥）。正文与评测写成「BuildKit 把 build-arg 原样写进镜像的 provenance」（原实验即用 `--provenance=mode=max`）。实跑同一 Dockerfile（builder 阶段 `ARG NPM_TOKEN` 写 `.npmrc` 后 `rm -f`）：OCI 导出后 `mode=min` 0 命中、`mode=max` 1 命中；`docker buildx history inspect` 在三种模式下都列出 `NPM_TOKEN glpat-…`；改用 `--mount=type=secret` 后 `mode=max` attestation 与构建记录均 0 命中。`SKILL.md` 规则 2/3 与 Gate、`references/image-security.md`、`evals/evals.json` 场景 1 前两条改为「构建记录始终保存 + `mode=max` attestation 公开」，检查方法改为构建记录与 `--provenance=mode=max` 的 attestation 两项 |
+| docker-docs | 多平台与 attestation 的驱动前提 | https://docs.docker.com/build/building/multi-platform/ （Prerequisites）、https://docs.docker.com/build/metadata/attestations/ | **已变化 → 更正**：Docker Engine 29.0+ 与 Docker Desktop 默认 containerd 镜像存储，默认 `docker` 驱动即可构建多平台与 attestation；只有经典存储才需 `docker-container` 驱动（否则报「Attestation is not supported for the docker driver」）。`dockerfile.md` 与 `SKILL.md` Environment 原写「必须 docker-container 驱动」，已改。`BUILDPLATFORM`/`TARGETOS`/`TARGETARCH` 自动参数、registry 缓存 `mode=max` 一致 |
+| helm-docs | Helm 4 于 2025-11 发布；当前 v4.3.1（2026-10-15）；Helm 3 最后功能版 v3.22.0（2026-09-09/10）后不再修 bug，安全修复至 2027-02-10；kstatus 等待、post-renderer 插件化、可复现归档 | https://helm.sh/blog/helm-v3-end-of-life/ 、https://helm.sh/blog/helm-4-released/ 、`gh api repos/helm/helm/releases` | 一致；**更正（精确化）**：官方写服务端应用是新 release 的**默认**、Helm 3 创建的 release 升级时沿用客户端应用，`helm-and-kustomize.md` 原写「supported」，已改 |
+| devcontainers-spec | 🏷️ 标注可存入 `devcontainer.metadata` 标签；合并时 devcontainer.json 最后生效；生命周期顺序 initialize → onCreate → updateContent → postCreate → postStart → postAttach；`waitFor` 默认 `updateContentCommand`；顶层 `extensions`/`settings`/`devPort` 不在属性表 | https://containers.dev/implementors/json_reference/ 、https://containers.dev/implementors/spec/ | 一致 |
+| nvidia-cuda-docs | 13.x ≥580、12.x ≥525（<580）、11.x ≥450（<525）、10.x 无小版本兼容；PTX 在旧驱动不可用；前向兼容仅数据中心 GPU / 部分 RTX / Jetson，需自行配置 `LD_LIBRARY_PATH`；错误码 803/804；compat 包不支持 OpenGL/Vulkan 互操作 | https://docs.nvidia.com/deploy/cuda-compatibility/latest/minor-version-compatibility.html 、/forward-compatibility.html （Last updated 2026-09-09） | 一致（旧 url 重定向到 `/latest/`，未改） |
+
+处理：上述五处更正；`docker-docs` 的 `contributes` 写明 min/max 差异与镜像存储前提，`helm-docs` notes 更新版本与 Helm 3 时间线；`synced_at` 5 条更新为 2026-10-15。

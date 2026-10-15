@@ -8,7 +8,7 @@ upstreams:
     url: https://kubernetes.io/docs/
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authority for every Kubernetes fact here: the removed-API table and each version's structural changes, probe semantics and the kubelet's behaviour on failure, QoS classes and eviction order, OOMKill and CFS throttling, the Pod Security Standards field lists and the restricted profile's requirements, PodDisruptionBudget eviction semantics, topology spread, NetworkPolicy's additive allow-only model, Service and Ingress shape, Job and CronJob fields, and the exact stability release of every gated field (sidecar containers 1.33, in-place resize 1.35, user namespaces 1.36, pod-level resources beta 1.34, preStop sleep 1.34)."
     notes: "Source repository kubernetes/website, licence CC-BY-4.0 per the repository metadata. Attribution: portions of this skill are derived from the Kubernetes documentation by the Kubernetes Authors, used under CC-BY-4.0; no text is copied verbatim. Version gates were read from the feature-gate data files' own stages fields rather than from prose, and the removal table from content/en/docs/reference/using-api/deprecation-guide.md."
   - id: docker-docs
@@ -16,8 +16,8 @@ upstreams:
     url: https://docs.docker.com/
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "Build cache invalidation rules (which instructions hash file metadata, that mtime is excluded, that one miss invalidates the rest), cache and secret mount syntax and behaviour, build-arg handling and the provenance attestation, multi-platform builds and the automatic platform args, registry cache export, and the statement that the Compose top-level `version` property is obsolete."
+    synced_at: "2026-10-15"
+    contributes: "Build cache invalidation rules (which instructions hash file metadata, that mtime is excluded, that one miss invalidates the rest), cache and secret mount syntax and behaviour, build-arg handling and the provenance attestation (the default `mode=min` omits build-argument values, `mode=max` exposes them), multi-platform builds and the automatic platform args together with the containerd-image-store prerequisite, registry cache export, and the statement that the Compose top-level `version` property is obsolete."
     notes: "Licence verified by reading docker/docs LICENSE: Apache-2.0, so merged rather than reference. Docker has no official agent-skills repository (the full org repository list was checked), so the documentation is the primary vendor source for this skill."
   - id: compose-spec
     kind: repo
@@ -125,9 +125,9 @@ upstreams:
     url: https://helm.sh/docs/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Chart layout and the chart-version versus app-version distinction, values design and values.schema.json, capability guards for templated apiVersions, hook lifecycle and hook-delete policies, helm test, and the Helm 4 changes that affect authoring (server-side apply, kstatus-based waiting, post-renderers as plugins, reproducible chart archives) together with the Helm 3 support timeline."
-    notes: "Source repository helm/helm-www, MIT. Helm 4 currency verified against the release list (v4.3.0 current, v3.22.0 still published) and the 2025-11-17 release announcement; the local toolchain used for the validation gates is v4.2.2."
+    notes: "Source repository helm/helm-www, MIT. Helm 4 currency verified against the release list (v4.3.1 current on 2026-10-15; v3.22.0 of 2026-09-10 is the final Helm 3 feature release) and the 2025-11-17 release announcement; the Helm 3 timeline from the 2026-06-02 end-of-life post (bug fixes ended with that release, security fixes until 2027-02-10). The local toolchain used for the validation gates is v4.2.2."
   - id: kustomize
     kind: repo
     repo: kubernetes-sigs/kustomize
@@ -145,7 +145,7 @@ upstreams:
     url: https://containers.dev/implementors/json_reference/
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Cross-check for every devcontainer rule: the property reference's tagging of which properties can be stored in the devcontainer.metadata image label, the image-metadata merge order that makes devcontainer.json win, the lifecycle command order, and the current names for the deprecated top-level extensions, settings and devPort properties."
     notes: "Source repository devcontainers/spec, CC-BY-4.0; attribution recorded here, no text copied verbatim. Last pushed 2026-03-20, outside the six-month freshness window used for community upstreams, but it is the normative specification and its content is unchanged in the areas used."
   - id: impertio-docker
@@ -253,6 +253,6 @@ upstreams:
     url: https://docs.nvidia.com/deploy/cuda-compatibility/
     license: proprietary
     relation: reference
-    synced_at: "2026-09-15"
+    synced_at: "2026-10-15"
     contributes: "Consulted for the driver/CUDA compatibility facts that are not in any Apache-2.0 repository: the minimum driver per CUDA family (13.x >= 580, 12.x >= 525, 11.x >= 450, none for 10.x), the three boundaries that void minor-version compatibility including the PTX-JIT restriction, the forward-compatibility package's hardware limits and its need for an explicit loader path, and the error codes 803 and 804 - plus the GPU Operator upgrade state-machine labels and the MIG reconfiguration interruption."
     notes: "Proprietary licence, so reference only per AGENTS.md: no text, table or data file was copied. Only version numbers, field names, error codes and behaviour were taken as facts and rewritten; the tables in references/kubernetes-gpu.md are our own organisation of them. Where the same fact existed in an Apache-2.0 repository (sharing defaults, upgrade defaults, environment-variable semantics) that repository was used instead and the value verified there."

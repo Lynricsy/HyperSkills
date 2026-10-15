@@ -218,8 +218,11 @@ not present in a minimal image and would have to be added just for this.
 docker buildx build --platform linux/amd64,linux/arm64 -t example.com/app:1.2.3 --push .
 ```
 
-Multi-platform builds need the `docker-container` driver and push the result as an
-index (manifest list); the default `docker` driver can only load a single platform.
+Multi-platform builds need an image store that holds manifest lists: the containerd image
+store, default on Docker Engine 29+ and Docker Desktop, or a `docker-container` builder.
+An engine upgraded from an older version may still run classic storage, where the
+default `docker` driver can only load a single platform. Push the result as an index
+(manifest list).
 
 In the Dockerfile, use the automatic args instead of hard-coding:
 
