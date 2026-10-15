@@ -96,5 +96,22 @@
       "Explains that `Cookie` (like `Host`, `Content-Length`, `Sec-Fetch-*`) is attached by the browser's network stack after the route handler runs, so it is not reliably present in `route.request().headers()` and differs by engine; asserts on it without routing — `request.allHeaders()` on an observed request (e.g. `page.waitForRequest`) or `context.cookies()` — instead of reading it inside the handler",
       "Explains that a request and its redirects are one unit to routing: the handler runs once for `/account` and the browser follows the 301 itself, so `['/account']` is correct; checks the hop with `response.request()` (the final `/settings/profile` request) and `request.redirectedFrom()` rather than expecting a second handler call"
     ]
+  },
+  {
+    "skills": [
+      "web-testing"
+    ],
+    "query": "We bumped @playwright/test from 1.63.0 to 1.64.1 last week. Three questions. (1) checkout-iframe.spec.ts was green for a year and now fails on the card field, see the comment in the file; should we take the teammate's `force: true` fix? (2) org-settings.spec.ts has a test that fails about once a week on CI and never locally, and we think more of our ~300 tests only pass because of the order files happen to run in. Our nightly `--fully-parallel` job is green. How do we flush out these order dependencies across the suite, and once one shows up, how do we reproduce that exact run? (3) Every test in org-settings.spec.ts repeats `{ lock: 'org-flags' }` and two more tests are coming; is there a cleaner way to express that on this version?",
+    "files": [
+      "evals/files/checkout-iframe.spec.ts",
+      "evals/files/org-settings.spec.ts"
+    ],
+    "expected_behavior": [
+      "Explains the iframe failure as a Playwright 1.64 behaviour change: elements inside an iframe that is not visible (here the collapsed `visibility: hidden` accordion panel) are now treated as hidden by actions, `isVisible()` and `toBeVisible()`, so the 1.63 run was filling a field the shopper could not see — a false pass, not a regression in the app",
+      "Rejects `force: true` and fixes the test by doing what the shopper does first — clicking the \"Pay by card\" header (and, if useful, asserting the panel is expanded) before filling the frame",
+      "Recommends `npx playwright test --shuffle` (Playwright 1.64+) to run test files, and tests in parallel mode, in a random order so hidden order dependencies surface, and states that a green fixed-order or `--fully-parallel` run does not rule them out",
+      "Reproduces a failing shuffled run by passing the seed printed at the start of that run back as `--shuffle <seed>`, then fixes the dependency (reset or isolate the flag the billing test leaves on) rather than pinning the order",
+      "Replaces the repeated per-test option with one `test.describe.configure({ lock: 'org-flags' })` (Playwright 1.64+) at file or describe level, so new tests in the file inherit the lock"
+    ]
   }
 ]

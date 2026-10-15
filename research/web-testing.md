@@ -763,3 +763,49 @@ v1.63.0（2026-09-04），区间两端 `package.json` 均为 `1.64.0-next`，即
 
 **正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
 （`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 的 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因结果（`/tmp/hs-attr/attribution.md`、
+`skills_real.json`）。paths 下确有提交的是 playwright-runtime、playwright-docs、testdino-playwright、vercel-agent-browser；
+awesome-copilot 为 too-large，主代理按完整区间归因为空，判噪声。归因方法：playwright 与 playwright.dev 用主代理的 blobless
+裸仓库缓存（`/tmp/hs-attr/microsoft__playwright`、`microsoft__playwright.dev`）对 `<pin>..<head> -- <paths>` 逐提交 `git show`；
+testdino 与 agent-browser 用 `gh api .../compare/<pin>...<head>` 取 patch，只读 paths 内文件。版本背景（`gh api releases`）：
+v1.64.0 于 2026-10-07 发布，v1.64.1 于 10-14 发布；main 在 6936b23（10-06）标为 1.65.0-next，此后的提交（CDPSession 选项、
+reporter `secrets`、`printOnlyFailures`、`test.skip(description)` 等）尚未发版。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`；
+addyosmani-devtools、lambdatest-playwright、anthropics-webapp-testing、wshobson-e2e 为 repo moved、tracked paths unchanged，随之前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| playwright-runtime | 5b8c4a0 → 5c42a39（23 提交） | `types.d.ts` / `test.d.ts` +681/−633。功能：4aa4428 `CDPSession.send(method, params, { timeout, signal })`；b630e71 / 2bb76e1 `APIRequestContext.addCookies` / `cookies` / `clearCookies`；3cf9b39 `page.getByRef()` 与 d469960 `normalize()` 的 ref 示例；ec17ddf 虚拟凭据 `signCount`；adf0514 reporter `secrets` 脱敏；4e049ee `failures` reporter 与 `onlyFailures`；1f31b8a `test.skip(description)` / `test.fixme(description)`。撤回 / 隐藏：95c973c evaluate `world`、6152cce Map/Set 序列化、9c0afca `clientCertificates.noCertificate`、8885bdf WebMCP enable/disable、46c9a53 trace `coverage`、f9864e5 list reporter `printWorkerIndex`。文档：9690e49 修正调用不存在 API 的示例（`screencast.start({ onFrame })`、`selectOption([...])`、`routeWebSocket` 的 `connectToServer()`、`baseURL` 拼写）、5be1676 补 `await`、9d305c9 类型名排版、ece43bf `headersArray()` 说明、a18dade `connectOptions`、3b5535e `httpCredentials` 数组要再包一层、15e926b coverage、bf587e9 `within()` 描述 | 噪声：正文不用 CDPSession、screencast、routeWebSocket、`selectOption` 多值、WebMCP、coverage；被修正的示例本 skill 从未引用。正文已有的「`test.skip` 必须带理由」（`flakiness.md`、`test-architecture.md`）与 `test.skip(description)` 不冲突；评测 6 期望里的 `context.clearCookies()` / `addCookies()` 是 BrowserContext 方法，未变 |
+| playwright-docs | 1cc5be9 → c6b1fb8（2 次 roll） | `nodejs/docs` 148 个文件 +877/−140，多数是每页加一行 `[WebMCP]` 链接。实质：`release-notes.mdx` 新增 1.64 一节（`--shuffle`、`test.describe.configure({ lock })`、`testProject.default`、`locator.within()`、`page.getByRef()`、`page.content({ includeShadow })`、视频 `fps` 与 VP9；破坏性变更：设备描述符转发 `screen`、JSX 按 tsconfig、`--update-snapshots=missing` 改为通过、隐藏 iframe 内的元素视为隐藏）；`test-cli.mdx` 加 `--shuffle [seed]`、`--debug [mode]`、`install --list` / `--no-progress`；`locators.mdx` 把组合两个定位器的推荐写法改为 `saveButton.within(dialog)`；`test-snapshots.mdx` 讲清 `threshold` 决定哪些像素算不同；`class-tracing.mdx` 的 `start()` 返回 Disposable | 事实无冲突，新增内容按评测判定不合入（见下）。`dialog.locator(saveButton)` 式链接仍然有效，`within()` 只是另一种写法；`threshold` 说明与 2026-09-30 节已记录的 `test.d.ts` 注释同源 |
+| testdino-playwright | 400e425 → 178d1cb（3 提交） | 777bdfa / 178d1cb：把上面的 1.64 功能写进 `core/flaky-tests.md`（`--shuffle`）、`core/locators.md`（`within()`、`getByRef()`）、`core/iframes-and-shadow-dom.md`（隐藏 iframe）、`ci/parallel-and-sharding.md`（describe 级 lock）、`ci/projects-and-dependencies.md`（`default: false`）、`core/visual-regression.md`（`--update-snapshots=missing`）；`--retry-strategy` 改为「只有 config 选项」（与本 skill 2026-09-29 的否决一致）；`navigationTimeout` 默认改写为 0（无上限），与规则 12 一致；actions 版本号 v4 → v7、容器镜像 v1.64.0。d4f1e33 新增的 `frontend/` data-testid 技能包不在 paths 内，paths 内只改了 `SKILL.md` 的路由表 | 新增内容同上，不合入；其余是它自己旧错的更正，本 skill 本来就是对的 |
+| vercel-agent-browser（reference） | d01253d → 518f6e5（2 提交命中） | 6d3e22c 文档站迁到 Geistdocs，只改 `AGENTS.md` 中文档路径；1b1a683 加实验性 Obscura 引擎的测试命令 | 噪声：仍是贡献者说明，没有可合入的使用规则 |
+| awesome-copilot | e7c25a4 → 3cf7c7e | too-large，按完整区间对 paths 归因为空 | 噪声 |
+
+### 1.64 实跑核对
+
+在 `/tmp/sg5/pw` 装 `@playwright/test@1.64.1`（Chrome Headless Shell 156.0.8078.4）、`/tmp/sg5/pw163` 装 1.63.0，用同一份
+夹具对照：
+
+- 隐藏 iframe：外层面板 `visibility:hidden;height:0` 内的 iframe 里的输入框，1.63.0 上 `fill` 成功、`isVisible()` 为 `true`
+  （3/3 通过）；1.64.1 上 `fill` 超时，call log 为 `element is inside a hidden frame, retrying`，`isVisible()` 为 `false`；
+  先点开面板再 `fill` 在 1.64.1 上通过。
+- `--shuffle`：`a-reads.spec.ts` 断言标志文件不存在、`z-toggle.spec.ts` 写入它且不清理。默认顺序 `--workers=1` 3/3 通过、
+  `--fully-parallel` 3/3 通过；`--shuffle --workers=1` 6 次中 2 次失败，启动行打印 `shuffle seed N`；用失败那次的
+  `--shuffle 795707505` 重跑 3/3 失败。同一文件内不并行时 `--shuffle` 不打乱测试顺序（与 `--help` 的
+  「Schedule test files, and tests in parallel mode, in a random order」一致）。
+- `test.describe.configure({ lock: 'org-flags' })`：4 个测试 `--fully-parallel --workers=4` 无重叠；去掉该行后 3 个报 `OVERLAP`。
+
+### 评测
+
+新增场景 7（夹具 `checkout-iframe.spec.ts`、`org-settings.spec.ts`）：升级到 1.64.1 后折叠面板里的支付 iframe 失败、
+同事提议 `force: true`；跨文件顺序依赖与夜间 `--fully-parallel` 全绿；每个测试重复写 `{ lock }`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 1.64 升级：隐藏 iframe / `--shuffle` / describe 级 lock | gpt-6.1-sol medium | 无 | false | 5 / 5 | 51 s。`web_search` 后读 playwright.dev 的 release-notes、test-parallel、test-cli、`describe.configure` 页：把失败归为 1.64 破坏性变更并指出旧版是假通过、拒绝 `force` 改为先点开 "Pay by card"；给 `--shuffle`（含 `--workers=1` 与并行两种）并说明 `--fully-parallel` 不打乱顺序，按打印的 seed `--shuffle <seed>` 重放，修复为每个测试自建标志状态、teardown 复原；改为文件级 `test.describe.configure({ lock: 'org-flags' })` |
+
+结论：基线靠查官方文档已全部做到，1.64 新增内容不合入，场景 7 与夹具留作哨兵。正文与 references 未变（「Facts here are
+written against Playwright 1.63.0」的版本声明仍然成立，1.63+ 的门槛写法不受影响），只做 re-pin，`metadata.version` 与
+`SOURCES.yaml` 的 `version` 改为 2026.10.15；正文未变，未跑有 skill 的 D2。
