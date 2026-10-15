@@ -99,5 +99,38 @@
       "Explains that ReadingTime's script computes words/minutes/label once from the initial prop, so the values do not update when the text prop changes",
       "Fixes ReadingTime with $derived for words, minutes and label, and removes the {#key} block, noting that {#key} destroys and recreates everything inside it on each change and is costly as a workaround"
     ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "We upgraded acme-console to SvelteKit 3.1 and kept our old svelte.config.js, where we had turned on remote functions and async last week. Now `vite build` fails in the account route, and before that we were already getting a 'remote functions are not enabled' error from usage.remote.ts. Fix the config and the route files for 3.1 and explain each change. A reviewer also wants `path: '/'` added to the theme cookie - is that needed?",
+    "files": [
+      "evals/files/kit3-upgrade/package.json",
+      "evals/files/kit3-upgrade/vite.config.js",
+      "evals/files/kit3-upgrade/svelte.config.js",
+      "evals/files/kit3-upgrade/+page.server.ts",
+      "evals/files/kit3-upgrade/+page.svelte"
+    ],
+    "expected_behavior": [
+      "Moves `remoteFunctions` and `compilerOptions.experimental.async` into the `sveltekit({...})` plugin options in vite.config.js, with `experimental` as a top-level key there rather than under `kit`, and says the flags in svelte.config.js are not where SvelteKit 3 reads its configuration",
+      "Says `$app/stores` is removed in SvelteKit 3 (not merely deprecated) and replaces `$page.url` with `page.url` from `$app/state`, and replaces `$app/environment` with `$app/env`",
+      "Replaces `$lib/server/db` with a `#lib` import that carries an explicit file extension and is declared through `package.json` `imports`, and moves the private env import to `$app/env/private` (declared with `defineEnvVars` in src/env.js), describing `$env/*` as deprecated aliases rather than a hard failure",
+      "Rewrites `error(404, { message, code })` so the second argument is the message string, with the extra `code` moved to the third argument",
+      "Answers the reviewer that SvelteKit 3 defaults the cookie `path` to `'/'`, so the call without `path` is correct as written (an explicit path only narrows it), and treats SvelteKit 3 as the current stable line without suggesting a move back to 2.x"
+    ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "Counter.svelte.test.ts was green on Vitest 4. We bumped vitest to 5.0 and vitest-browser-svelte to 3.1 (package.json is here) and now all three tests fail; nobody touched Counter.svelte. Explain why each test fails and fix the tests, not the component.",
+    "files": [
+      "evals/files/vitest5/Counter.svelte",
+      "evals/files/vitest5/Counter.svelte.test.ts",
+      "evals/files/vitest5/package.json"
+    ],
+    "expected_behavior": [
+      "Says `render` from vitest-browser-svelte 3 is async and awaits it in every test",
+      "Says Vitest 5 matches locator names and text exactly by default, so `getByRole('button', { name: 'Increment' })` no longer finds the button named 'Increment: 0' and `getByText('Save')` misses 'Save draft'; fixes them with the full string, a RegExp or `{ exact: false }`",
+      "Says `toHaveTextContent` compares the whole text in Vitest 5, so `toHaveTextContent('1')` and `toHaveTextContent('5')` must assert 'Increment: 1' / 'Increment: 5' (or use a RegExp or `toMatchTextContent` for a partial check)",
+      "Leaves Counter.svelte unchanged and does not reach for `{ force: true }`, `container.querySelector` or added test ids"
+    ]
   }
 ]

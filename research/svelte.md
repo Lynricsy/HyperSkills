@@ -341,3 +341,23 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
 | svelte-dev-docs | Svelte 5：`$state.raw` 只能重新赋值；`{@attach}` 在 effect 中运行、读到的 state 变化时重跑；`createEventDispatcher` 弃用 | [$state](https://svelte.dev/docs/svelte/$state)、[{@attach}](https://svelte.dev/docs/svelte/@attach)、[legacy on:](https://svelte.dev/docs/svelte/legacy-on) | 一致 |
 
 7 组事实全部一致，正文未改，`svelte-dev-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：25e5638 上游同步（SvelteKit 3 GA 更正、Vitest 5 测试写法）；692c640 仅 research。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/svelte/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 pending 边界 SSR + `#key` | gpt-6.1-sol medium | 有 | true | 4/4（EB4 说明 remount 未提代价，与基线同口径判 ✔） | 196 s。新跑 `/tmp/hs-d2/D2G1/svelte/.../skill/6` |
+| 6 | gpt-6.1-sol medium | 无 | false | 4/4 | 复用 `/tmp/hs-evals/svelte/omp-openai-gpt-6.1-sol-medium/baseline/6`（10:03，场景 10:14 随提交入库后未改；events 中夹具原文逐行一致） |
+| 2 server/universal 数据流 | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ◐4 ◐5 ✔6 ✘7 ✘8 ◐9 ✔10（4✔4◐2✘） | 207 s。只给 plain data，未提 `transport`；`cachedRates` 判为不过期而非跨用户共享；去掉返回的 token 未提 `$env`；`depends('app:rates')` 落地；并行 `parent()` 与 fetch。保留 `export let`/`$app/stores` 并说明「无 package.json，按 SvelteKit 2 legacy 文件修 bug 不做迁移」（与 skill 既有「legacy 文件 → 是迁移不是修 bug」一致，非今日改动所致） |
+| 2 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ◐3 ◐4 ◐5 ✔6 ✘7 ✘8 ◐9 ✘10（3✔4◐3✘） | 156 s。同样只给 plain data；`await parent()` 仍在 fetch 之前 |
+| 3 form actions | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ✔3 ◐4 ✔5 ✔6 ◐7 ✔8 ✘9 —10（5✔3◐1✘，第 10 条不适用） | 195 s。代码去掉 `throw`、加 `path: '/'`、303，但答复不解释原因；未 runes 化。按 SvelteKit 2 处理（无版本信息），cookie path 结论与改后规则 21 的 2.x 分支一致 |
+| 3 | gpt-6.1-sol medium | 无 | false | ✔1 ◐2 ✔3 ◐4 ✔5 ✔6 ◐7 ✔8 ✘9 —10（5✔3◐1✘） | 321 s。代码几乎与有 skill 相同 |
+| 4 负例（Vue） | gpt-6.1-sol medium | 有 | false | 3/3 | 30 s。按 Vue 3 回答，无 Svelte 建议 |
+
+选择理由：6 为今日新增（必选，基线复用）；2（`$lib/server`、devalue、`transport`、`$app/stores`）与 3（cookie `path`、`error`/`redirect`）用到被改的规则 14–17、21；SvelteKit 3 对照表、`$app/stores` 移除、cookie 默认 `/`、配置位置与 Vitest 5 写法没有既有场景覆盖，新增 7（`kit3-upgrade/`）与 8（`vitest5/`）；4 为负例。
+
+已完成部分：改动相关行为在 2、3、6 上不比基线差（2：4✔ 对 3✔；3、6 持平）；负例 `skill_read=false`。场景 2、3 两侧都保留 `export let` / `$app/stores`（夹具为 legacy 文件、无 package.json，模型按「legacy 文件 → 迁移而非修 bug」处理），非今日改动所致。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：7 SvelteKit 3.1 升级（新增，有/无）；8 Vitest 5 精确匹配与 async render（新增，有/无）。待结果出来后补判定。
