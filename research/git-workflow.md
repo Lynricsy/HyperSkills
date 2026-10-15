@@ -497,3 +497,29 @@ git 2.55.0 一次性仓库补测：主检出里的 `.env`（ignored）与 `notes
 
 结论：基线已全部做到，`--no-commit` 一条不合入正文，场景 6 保留作哨兵。正文与 references 未改，仅新增评测场景与夹具、
 re-pin、mattpocock-conflicts 改永久链接与 notes、parham-worktree 记录裁决，版本号改为 2026.09.30；未跑有 skill 的 D2。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告（`/tmp/hs-upstream.json`）与主代理归因
+（`/tmp/hs-attr/attribution.md`、`skills_real.json`）。git-workflow 段 paths 下确有提交的 3 条：mattpocock-conflicts、
+melodic-resolve、git-docs；parham-worktree 仍 `MISSING`。归因方法：mattpocock 与 git/git 在
+`/tmp/SyncG8-up/<owner>__<repo>` blobless 克隆、melodic（too large）在主代理裸仓库缓存
+`/tmp/hs-attr/melodic-software__claude-code-plugins`，均按 `<旧pin>..<审阅HEAD> -- <paths>` 读 `git diff`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mattpocock-conflicts | d81f3a1 → 49dd158（52 提交，命中 1） | dfe7549 只改 `docs/engineering/resolving-merge-conflicts.md`（归档页逐句「unslop」改写，如 "The failure mode this exists to kill is…" → "The skill exists to prevent…"）；skill 路径早已删除，无变化 | 噪声：纯措辞，规则未变 |
+| melodic-resolve | 15058ac → af75193（1119 提交，命中 5） | `resolve-conflicts/SKILL.md` 与 `evals/evals.json`：8b25b8f2 新增 CI 模式（`[ci]` 参数：无人值守、不询问只升级、`git show :1:/:2:/:3:` 读三方、整理完语义扫描后才 `git add`、不跑门禁、不 `--continue`/提交/推送、不碰 `.github/workflows/`、无法据证据解决的路径留为未合并交给人）；09498662 description 增加「要求整边取 `--ours/--theirs` 或 abort 时也触发」；64845985 `gh` 改称 forge CLI；d0991e36 版本号冲突脚本增加 changelog fragment 模式分支；681ca49e `argument-hint` 记法 | 不合入，正文未变。CI 模式是该仓库 pr-unblock 流水线的运行契约（runner 已 `merge --no-commit`、已跑版本号脚本、由 runner 从索引建提交并推送），不是通用 git 知识；其中可通用的部分——`:1:/:2:/:3:` 读三方、逐路径 `git add` 不用 `-A`、未解决不 abort——本 skill 的 resolve-conflicts 工作流与 `references/conflict-resolution.md` 已写明。take-one-side/abort 触发是上游自身路由措辞，本 skill 核心规则 12 与 conflict-resolution.md 已把 `-X ours/theirs`、`checkout --ours` 定性为整边删除、把 `--abort` 定性为放弃集成的决定。forge CLI 改称、fragment 模式、argument-hint 均为该仓库约定 |
+| git-docs | a018953 → 6de20f6（116 提交，30 个触及 `Documentation`；2.98 开发周期） | 实质改动：`--ref-format` 系列改名 `--ref-storage-format`（init/clone/submodule/refs/rev-parse，旧名保留为弃用别名）、`init.defaultRefFormat` → `init.defaultRefStorageFormat`；新 `git history squash` 子命令；`core.useNanosec` 运行时开关；服务端 `receive-report` 钩子与 proc-receive 文档；name-rev 哈希描述；其余为 AsciiDoc 交叉引用（`<<ANCHOR,…>>`）、git-add/git-rm 逗号修正与 2.98 RelNotes | 噪声：本 skill 不涉及 ref 存储格式、`git history`、nsec 与服务端钩子（grep 无命中；`git check-ref-format` 不受影响），交叉引用与标点不改语义；均为未发布的 2.98 周期改动，本 skill 以 git 2.55.0 实测为准 |
+| parham-worktree | 97a62c4（无 head） | — | 仍 `MISSING`，保留条目 |
+
+parham-worktree 复核（已登录 `gh`）：`gh api repos/1995parham/parham-plugins` 仍 `404 Not Found`；
+`search/repositories?q=parham-plugins` 为 0；`users/1995parham` 仍存在（100 个公开仓库）。裁决同 2026-09-30：保留条目
+（MIT 署名义务不因上游消失而消失），`commit` 仍为唯一审阅过的 97a62c4，`--pin` 未写入任何值；notes 追加本轮复核日期。
+
+其余条目（obra-worktrees、obra-finishing、addyosmani-git、awesome-copilot-commit/branch、getsentry-commit、
+mattpocock-guardrails、fvadicamo-commit）区间内跟踪路径无提交，随 `--pin` 前移。`--pin` 后
+`pin_check.py` 结果 `PIN CHECK CLEAN`：melodic-resolve 写入 904db68，比审阅 HEAD af75193 多 5 个提交，compare 确认未触及
+跟踪路径。git/git 许可仍 GPL-2.0（reference-only 不变），melodic、mattpocock 仍 MIT（`gh api` 核对）。
+
+结论：正文与 references 未改，未新增评测，未跑 D2；仅 re-pin、parham-worktree notes 补复核日期、版本号改为 2026.10.15。
