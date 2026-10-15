@@ -176,11 +176,19 @@ Tier-1 metadata is a shared budget, and hosts enforce it differently:
 | Host | Budget | Behaviour when exceeded |
 |---|---|---|
 | Codex | 2% of the context window, or 8,000 characters when the window is unknown | Shortens descriptions first; may omit skills entirely and warn |
-| Claude Code | 1,536 characters for the description plus its extra triggering field, per skill | Truncates the entry |
+| Claude Code | Whole listing: 1% of the context window (8,000 characters as the fallback), changed with the `skillListingBudgetFraction` setting or a fixed `SLASH_COMMAND_TOOL_CHAR_BUDGET`. Per entry: 1,536 characters of description plus its extra triggering field (`skillListingMaxDescChars`) | Each entry is cut at its cap. Over the whole budget, every name stays but whole descriptions are dropped, starting with the least-invoked skills |
 
-Both cut from the end. This is the entire justification for front-loading the
-key use case and the trigger words — text at the tail of a long description may
-never reach the model that has to choose.
+Per-entry caps cut from the end. This is the entire justification for
+front-loading the key use case and the trigger words — text at the tail of a
+long description may never reach the model that has to choose.
+
+Claude Code's whole-listing overflow is different: a rarely invoked skill keeps
+its name and loses its entire description, so the model can still call it by
+name but has no keywords to select it on its own. Shortening the entry cannot
+fix that; the fixes are a larger budget fraction, fewer installed skills, or
+marking low-priority skills `"name-only"` in `skillOverrides` so they stop
+spending budget. `/doctor` estimates the listing's cost, `/context` reports its
+size after the budget is applied, and a debug-log warning records the overflow.
 
 ## Capability differences worth knowing
 

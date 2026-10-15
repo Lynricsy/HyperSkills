@@ -57,9 +57,9 @@ upstreams:
     url: https://code.claude.com/docs/en/skills
     license: NONE
     relation: merged
-    synced_at: "2026-09-10"
-    contributes: "The full table of that host's non-standard frontmatter fields, its 1536-character listing truncation, its inverted enterprise-over-personal-over-project precedence, its reserved directory name, and its own warning that only specification fields may be used elsewhere."
-    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. Every field is labelled non-standard in the reference file."
+    synced_at: "2026-10-15"
+    contributes: "The full table of that host's non-standard frontmatter fields, its 1536-character per-entry listing cap (skillListingMaxDescChars), its whole-listing budget of 1% of the context window with an 8,000-character fallback (skillListingBudgetFraction, SLASH_COMMAND_TOOL_CHAR_BUDGET) that drops the descriptions of the least-invoked skills first while keeping every name, the name-only skillOverrides escape, its inverted enterprise-over-personal-over-project precedence, its reserved directory name, and its own warning that only specification fields may be used elsewhere."
+    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. Every field is labelled non-standard in the reference file. The 2026-10-15 whole-listing budget correction was read from the skills page's 'Skill descriptions are cut short' section, the settings reference entries for skillListingBudgetFraction (default 0.01) and skillListingMaxDescChars (default 1536), and the environment-variable reference for SLASH_COMMAND_TOOL_CHAR_BUDGET (8,000-character fallback)."
   - id: cursor-skills-docs
     kind: docs
     url: https://cursor.com/docs/skills
@@ -118,7 +118,7 @@ upstreams:
     url: https://github.com/Lynricsy/HyperSkills
     paths: [docs/skill-standard.md, docs/workflow.md, tools]
     ref: main
-    commit: b0a42d44e9049673c8b86638b517ed86ac845a37
+    commit: fc381f02be420f2910537eaf975f45a868edacc1
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -147,3 +147,15 @@ upstreams:
     relation: reference
     synced_at: "2026-10-15"
     contributes: "Read only, as a cross-check on task routing, drift over long sessions and auditing a skill before installing it. No text copied; its quoted-trigger description style was rejected in favour of the specification's third-person what-and-when form."
+  - id: melodic-audit-skill-visibility
+    kind: repo
+    repo: melodic-software/claude-code-plugins
+    url: https://github.com/melodic-software/claude-code-plugins
+    paths: [plugins/harness-ops/skills/audit-skill-visibility]
+    ref: main
+    commit: f0d918572c261fe3451eebef8612e8f4de17f153
+    license: MIT
+    relation: reference
+    synced_at: "2026-10-15"
+    contributes: "Read only, as the pointer that Claude Code's skill listing has a whole-listing budget beyond the per-entry 1,536-character cap. Every fact in references/client-extensions-and-paths.md was taken from code.claude.com; no text or scoring logic copied."
+    notes: "The rest of the skill (usage counters, pair co-occurrence scoring, the bundled doctor) audits one harness's installed fleet and is outside this skill's scope."

@@ -472,3 +472,27 @@ anthropic-skill-creator、obra-writing-skills 为 repo moved / tracked paths unc
 docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 
 结论：正文与 references 未改，未跑 D2。提交含 re-pin、版本号与本节。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS5（melodic-software/claude-code-plugins 新增文件）。本 skill 只分到一条 MAYBE。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| melodic `plugins/harness-ops/skills/audit-skill-visibility`（MIT） | 合入（事实更正），上游记为 `relation: reference` | `references/client-extensions-and-paths.md` 的 Claude Code 行只写了「每个 skill 截断到 1,536 字符」，且断言两家主机都「从末尾截断」——遗漏了整体列表预算，而整体超额时的行为是整段丢弃描述，不是从末尾截断。事实全部改按 code.claude.com 官方文档写；上游的使用计数、共现打分、doctor 脚本是单一宿主的运维工具，不取。 |
+
+核实证据（2026-10-15 读取）：
+
+- `https://code.claude.com/docs/en/skills` 「Skill descriptions are cut short」节：列表始终包含所有 skill 名字；预算按模型上下文窗口的 1% 计；超额时从调用最少的 skill 开始丢描述；`/doctor` 估算列表成本，`/context` 的 Skills 行报的是应用预算后的大小，超额时 debug 日志有警告；可用 `skillListingBudgetFraction` 或环境变量 `SLASH_COMMAND_TOOL_CHAR_BUDGET`（固定字符数）调大，或在 `skillOverrides` 里把低优先级条目设成 `"name-only"`；每条 `description` + `when_to_use` 不论预算都封顶 1,536 字符，由 `skillListingMaxDescChars` 配置。
+- `https://code.claude.com/docs/en/settings-reference`：`skillListingBudgetFraction` 默认 `0.01`，取值 (0, 1]；`skillListingMaxDescChars` 默认 `1536`。
+- `https://code.claude.com/docs/en/env-vars`：`SLASH_COMMAND_TOOL_CHAR_BUDGET` 覆盖该预算，按上下文窗口 1% 动态计算，回退值 8,000 字符。
+- 评估报告转述的设置名 `skillListingBudgetFraction`、`skillListingMaxDescChars`、`SLASH_COMMAND_TOOL_CHAR_BUDGET` 三个全部与官方文档一致。
+
+改动：Claude Code 行拆成整体预算与单条上限两部分；原「Both cut from the end」改为只对单条上限成立，并新增一段说明整体超额丢的是整段描述（模型仍能按名字调用，但没有关键词可供自动选中），修法是调预算、少装或 `"name-only"`，缩短描述无济于事。`SOURCES.yaml` 的 claude-code-skills-docs 更新 `contributes`/`notes`/`synced_at`，新增 melodic 条目（reference）。
+`--pin` 写入 melodic f0d9185，并按惯例把 hyperskills-self 顺带前移到 fc381f0（repo moved, tracked paths unchanged）。
+
+评测：事实更正，按简报不需要基线缺口，未新增场景、未跑 D2。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| — | gpt-6.1-sol medium | — | — | — | 事实更正，未跑 |
