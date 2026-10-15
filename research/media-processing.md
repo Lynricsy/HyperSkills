@@ -653,9 +653,16 @@ kajisho 逐项：
 | 1 夜间转码（期望 #1、#3 今日改过） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ✔4 ◐5 ✔6 ◐7（4✔3◐） | 397 s。VP9 补 `-b:v 0` 并说明「旧版默认会施加码率约束、新版默认已为 0」，未误称 4.3+ 下 `-crf` 单独即 CQ；复现 1280×733 失败改 `-2`；删 `setsar=1` 但理由只写「保留 SAR 防止变形」未点出 scale 保持 DAR；`veryslow` 保留未给耗时倍数；造合成素材（含变形 SD）验证输出而非先 ffprobe 源 |
 | 1 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ✘3 ✔4 ✘5 ✘6 ◐7（1✔3◐3✘） | 357 s。`-b:v 0` 只说「让 CRF 控制更明确」；奇数高度改成自写 `trunc/round` 表达式；保留 `setsar=1` 并改按 DAR 计算高度来补偿；未提 `veryslow`、未加 `+faststart` |
 | 4 负例（next/image） | gpt-6.1-sol medium | 有 | false | 3/3 | 52 s。只改 `next.config.mjs`（deviceSizes、AVIF/WebP）并提示 `sizes`，未引入 ffmpeg/ImageMagick |
+| 6 loudnorm 线性条件与 192 kHz（新增），修正前 | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ◐3 ✔4（2✔2◐） | 184 s。读了 `references/audio.md`。两条线性条件（14.8 > 7 LU；+7.12 dB 使峰值到 +6.81 dBTP）讲对，动态路径与 192 kHz 讲对、加 `aresample=48000` + `-ar 48000`；但脚本把条件当成闸门：保留 `LRA=7`、不满足就 `exit 1` 拒绝 ep142，没有让线性可达；pass 2 用 `print_format=summary`，不解析也不据 `normalization_type` 判失败。输出另存 `/tmp/hs-d2/D2G1-keep/media-processing-skill6-run1` |
+| 6 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ◐3 ✔4（3✔1◐） | 164 s。同样讲清两条条件与 192 kHz；改用 `volume` 施加 `min(-16 − I, -1.5 − TP)` 的固定增益（接受更低响度）并 `-ar` 源采样率；pass 2 不再走 loudnorm，故没有检查 `normalization_type`（判部分） |
+| 6，修正后重跑 | gpt-6.1-sol medium | 有 | true | 4/4 | 153 s。目标 LRA 取 `max(7, measured)`、积分目标取峰值允许的上限（`min(-16, I − 1.51 − TP)`），`offset=0`；pass 2 `print_format=json` 存档并在 `normalization_type != "linear"` 时拒绝发布；`aresample=$rate` + `-ar $rate`；合成素材验证为线性、48 kHz、恒定增益 |
+| 7 vipsthumbnail 输出路径与 keep=none（新增） | gpt-6.1-sol medium | 有 | true | 3/3 | 168 s。相对输出模式按输入文件目录解析 → `--path "%c/thumbs/%s.webp[Q=80,keep=none]"`；`strip` 已弃用、`keep=none` 去掉全部元数据（含 GPS）；保留 vipsthumbnail、Q=80、`%s`、smartcrop；libvips 8.18.7 实测无 EXIF/XMP/ICC |
+| 7 | gpt-6.1-sol medium | 无 | false | 3/3 | 135 s。同样指出 `-o` 相对输入目录，改用 `--path 'thumbs/%s.webp[Q=80,keep=none]'`（相对工作目录），`keep=none` 替代弃用的 `strip`，8.18.0 实测 |
 
 选择理由：1 的期望 #1/#3 今日改过（必选，两侧重跑）；loudnorm 线性条件 / 192 kHz 与 vipsthumbnail 输出路径 / `keep=none` 没有场景覆盖，新增 6（`normalize_episode.sh` + `ep142.pass1.json`）与 7（`thumbs.sh`）；4 为负例。
 
-已完成部分：场景 1 有 skill 4✔3◐ 对基线 1✔3◐3✘，VP9 一条按更正后口径表述（未误称 4.3+ 下 `-crf` 单独即 CQ）；负例 `skill_read=false`。
+正文修正（场景 6）：修正前有 skill 2✔2◐ 低于基线 3✔1◐——`references/audio.md` 只列出线性缩放的条件，没说条件不满足时怎么办，模型据此把条件当闸门直接拒绝文件。在该段补两点：条件不成立时改输入让线性可达（目标 LRA 不低于实测 LRA；峰值受限时先限峰或把积分目标降到峰值允许的值，固定增益上限 `min(I - measured_I, TP - measured_TP)` dB），以及 pass 2 解析 `normalization_type`、为 `dynamic` 时让任务失败。示例数字未用夹具里的值。重跑后 4/4，高于基线。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：6 loudnorm 线性条件与 192 kHz（新增，有/无）；7 vipsthumbnail 输出路径与 keep=none（新增，有/无）。待结果出来后补判定。
+结论：场景 1 有 skill 4✔3◐ 对基线 1✔3◐3✘，VP9 一条按更正后口径表述（未误称 4.3+ 下 `-crf` 单独即 CQ）；6 修正后 4/4 对 3✔1◐；7 两侧 3/3（基线已会，作哨兵保留）；负例 `skill_read=false`。
+
+遗留：场景 1 E3 有 skill 删掉 `setsar=1` 但只说「保留 SAR 防止变形」，没点出 scale 本身保持 DAR（基线 ✘），为部分达成。

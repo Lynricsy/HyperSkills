@@ -26,7 +26,17 @@ the target TP; if any condition fails, the filter reverts to dynamic mode.
 `[official]` `[verified]` The dynamic path applies gain that varies over time
 and rewrites LRA — so the output does not have the dynamics of the input, and
 the LRA it reports is not the LRA it produced. With `print_format=json` on pass
-2, the report's `normalization_type` says which path actually ran.
+2, the report's `normalization_type` says which path actually ran; parse it and
+fail the job when it reads `dynamic`.
+
+When pass 1 shows a condition cannot hold, change the inputs so linear scaling
+can happen, rather than accepting the fallback or refusing the file. Set the
+target LRA at or above the measured LRA — a tight `LRA=7` against a source
+measured at 12 LU guarantees the dynamic path. If the gain to the integrated
+target would push the true peak past TP, either peak-limit the source before
+measuring, or lower the integrated target to what the peak allows: the
+largest fixed gain is `min(I - measured_I, TP - measured_TP)` dB. Which of the
+two is a delivery decision; state it rather than leave it to the filter.
 
 Measure, then apply:
 
