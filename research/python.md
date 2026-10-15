@@ -349,3 +349,22 @@ repo moved / tracked paths unchanged，`--pin` 顺带前移。
 `PIN CHECK CLEAN`。
 
 结论：三条均为搬移/无关偏好/他域内容，正文与 references 未改，未跑 D2。提交含 re-pin、版本号与本节。
+
+### lint 棘轮
+
+2026-10-15 上游新增内容评估的一部分（与 uv 条目分开记录）。来源：评估报告 NewS5，melodic-software/claude-code-plugins `plugins/review/skills/ratchet`、`plugins/code-metrics/skills/audit-suppressions`（MIT）。结论：不合入正文，评测场景 5（`evals/files/lint-ceiling/`）留作哨兵。合并时若 uv 条目也新增了场景 5，本场景顺延编号。
+
+| 候选要点 | 结论 | 理由 |
+|---|---|---|
+| 计数命令必须在被测 linter 失败时自己失败（上游原话：配置解析失败的 linter「报 0 个违规」，从而通过上限） | 不合入 | 字面说法经实测需更正：ruff 配置出错退出 2、stdout 为空，不是报 0；读成 0 的是丢弃退出码的计数管道。基线已自行做到：只接受 ruff 退出码 0/1，其余一律失败，并严格解析 JSON 报告、核对退出码与诊断条数是否一致。 |
+| 计数为 0 时直接把规则设为 error，不保留上限 | 不合入 | 夹具没有源码，基线实测计数为 0 并明确说明这是快照所致、要求在完整仓库重新初始化；本场景无法区分这一条，不构成缺口证据。 |
+| 只对计数做棘轮、不对时长做 | 不合入 | 本 skill 没有时长类上限的内容，无对应缺口。 |
+
+实测（2026-10-15，ruff 0.16.10，`/tmp/m5-lint/ruff`）：
+
+- `pyproject.toml` TOML 语法错误、`[tool.ruff.lint]` 未知键（`selectt`）、未知规则选择器（`F4O1`）三种情况：`ruff check --exit-zero --statistics .` 均退出 2、stdout 为空，`--exit-zero` 不掩盖配置错误；`echo violations=$(ruff check --exit-zero --output-format concise . | grep -c F401)` 均输出 `violations=0` 且整体退出 0；管道给 `json.load` 则因空输入失败（退出 1）。
+- 真正的「静默 0」：`extend-exclude` 排除了全部文件时，`ruff check .` 输出 `All checks passed!` 并退出 0，`--output-format json` 输出 `[]`。基线脚本按 `.` 检查，没有专门防这一条；属于少见配置，未单独设场景。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 lint-ceiling | gpt-6.1-sol medium | 无 | False | 1、2（全部） | 写了 `scripts/check_lint_ceiling.py`：退出码不在 0/1 即报错退出 2，严格解析 JSON；上限文件按基线提交比对，禁止调高；计数下降时要求同步调低。缺口不存在，未跑有 skill。跑完后删去了原第 3 条「计数为 0 即开规则」：夹具无源码、计数必为 0，该条无法区分。 |

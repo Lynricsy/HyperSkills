@@ -57,5 +57,17 @@
       "Does not mention Python typing constructs such as `TypedDict`, `Protocol` or mypy",
       "skill_read is false for the `python` skill"
     ]
+  },
+  {
+    "skills": ["python"],
+    "query": "We want to adopt ruff's BLE001 (blind except) and S110 (try-except-pass) rules, but running them across the repo shows about 300 existing violations - too many to fix in one PR. Set up a CI gate so the number of those violations can only go down: give me the script, the checked-in ceiling file and the change to the workflow. The project config is evals/files/lint-ceiling/pyproject.toml and the workflow is evals/files/lint-ceiling/ci.yml.",
+    "files": [
+      "evals/files/lint-ceiling/pyproject.toml",
+      "evals/files/lint-ceiling/ci.yml"
+    ],
+    "expected_behavior": [
+      "Records the measured current count as a checked-in ceiling, fails CI only when the count rises above it, and lowers the ceiling as violations are fixed rather than ever raising it to turn a build green",
+      "Makes the counting step fail when ruff itself fails instead of reading that run as zero violations: ruff exits 2 on a configuration parse error or an unknown rule selector even with `--exit-zero`, so the script checks ruff's exit status (0 and 1 are counts, anything else aborts) or otherwise fails on a missing or unparsable report - no `|| true`, no status-discarding command substitution or `grep -c` / `wc -l` over a run whose exit code is lost"
+    ]
   }
 ]
