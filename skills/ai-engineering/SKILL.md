@@ -113,9 +113,10 @@ costs.
 12. Output shape is enforced by the provider's schema mode, not by asking for
     JSON in the prompt. A free-text request plus `json.loads` gives you a
     value that parses and a shape nobody checked.
-13. Under strict schema mode every property is required and language-level
-    defaults stop applying: an `Optional[str] = None` field is emitted as
-    `null` on every call and a defaulted field must be produced by the model.
+13. Under OpenAI's strict schema mode every property is required and
+    language-level defaults stop applying: an `Optional[str] = None` field is
+    emitted as `null` on every call and a defaulted field must be produced by
+    the model.
     Code that tests `if "field" in data` is always true, and
     `data["field"].strip()` is the production `NoneType` crash
     [verified: openai 3.13.0 `to_strict_json_schema`].
@@ -277,7 +278,7 @@ Building an offline eval, or fixing one that passes everything.
 | "The prompt tells it not to obey ticket text" | It obeyed anyway. That sentence is a request, not a control. |
 | "It's just a retry, it's harmless" | It re-sent the refund. Retries are only harmless around pure calls. |
 | "Four characters per token is close enough" | Off by 41% on JSON and 67% on ids — in the direction that overflows. |
-| "The schema has optional fields" | Strict mode has no optional fields. It has nullable required ones. |
+| "The schema has optional fields" | OpenAI strict mode has no optional fields. It has nullable required ones. |
 | "It parsed, so it's fine" | Parsing checks syntax. Nothing checked the amount, the order, or the unit. |
 | "Average score is 8.4, we're good" | One catastrophic case cannot move a mean of 200. That is the case you care about. |
 | "We use the same model as judge for consistency" | You are asking it to grade its own homework, consistently. |

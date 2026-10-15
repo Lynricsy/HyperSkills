@@ -163,17 +163,17 @@ upstreams:
     url: https://platform.claude.com/docs
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "Fact-checking the Messages API shapes, prompt-caching behaviour, token-counting endpoint and context-overflow error text quoted in the references."
+    synced_at: "2026-10-15"
+    contributes: "Fact-checking the Messages API shapes, prompt-caching behaviour (automatic and explicit breakpoints, 5-minute and 1-hour lifetimes, write and read multipliers), token-counting endpoint, context-overflow error text and the Claude 4.5+ `model_context_window_exceeded` stop, and the Anthropic column of the schema-dialect table (`output_config.format`, strict tools, property ordering, the 24-optional-parameter limit)."
     notes: "Licence ruling: read Anthropic's Commercial Terms of Service; section F states the terms grant neither party rights to the other's content or intellectual property, and no open content licence is published for the documentation. Reference only, nothing copied."
   - id: openai-docs
     kind: docs
-    url: https://platform.openai.com/docs
+    url: https://developers.openai.com/api/docs
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "Fact-checking structured-output and JSON-mode guarantees, strict-schema constraints and rate-limit semantics quoted in the references."
-    notes: "Licence ruling: no content licence is declared on the documentation site or in the Terms of Use (JS-rendered, no licence grant found); treated as proprietary. Reference only; the same guidance was merged from the MIT-licensed openai/openai-agents-python repository instead."
+    synced_at: "2026-10-15"
+    contributes: "Fact-checking structured-output and JSON-mode guarantees, strict-schema constraints including schema-order key output, prompt-caching lifetimes, write pricing and the implicit/explicit cache modes, and rate-limit semantics quoted in the references."
+    notes: "Licence ruling: no content licence is declared on the documentation site or in the Terms of Use (JS-rendered, no licence grant found); treated as proprietary. Reference only; the same guidance was merged from the MIT-licensed openai/openai-agents-python repository instead. The former platform.openai.com/docs address 301-redirects to developers.openai.com/api/docs (checked 2026-10-15)."
   - id: openai-alignment-compaction-report
     kind: docs
     url: https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/

@@ -86,7 +86,11 @@ retrieval code.
 ## Reserving output tokens
 
 The output reservation is part of the input budget on every provider: input +
-output must fit the window. Two consequences:
+output must fit the window. What differs is when you find out: some APIs
+reject a request whose input plus `max_tokens` exceeds the window, while
+Claude 4.5 and newer accept it and stop generation with
+`stop_reason: "model_context_window_exceeded"` once the window fills — a
+truncation, not an error. Two consequences:
 
 - Set `max_tokens` / `max_completion_tokens` deliberately, from the largest
   legitimate output. Leaving it at the model's default reserves a large

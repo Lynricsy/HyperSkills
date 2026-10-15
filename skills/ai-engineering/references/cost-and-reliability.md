@@ -156,9 +156,10 @@ Structural costs worth knowing before optimising:
 
 ## Prompt caching
 
-A cached prefix is billed at a fraction of the input rate (and Anthropic
-charges a premium on the initial cache write). Three rules decide whether you
-get it:
+A cached prefix is billed at a fraction of the input rate, but the write that
+creates it can cost more than plain input: Anthropic charges 1.25× the input
+rate for a 5-minute write and 2× for a 1-hour one, OpenAI 1.25× on GPT-5.6
+and later. Three rules decide whether you get it:
 
 - **Order matters.** Stable content first, volatile last
   (`prompt-structure.md`). A timestamp or request id near the top means
@@ -166,12 +167,19 @@ get it:
 - **Any earlier change invalidates everything after it.** Editing a tool
   description invalidates the cache for every request using that tool set, so
   batch schema changes rather than tuning them one at a time in production.
-- **Caches expire in minutes.** Caching helps within a conversation or a
-  burst; it does nothing for a request that arrives hourly.
+- **Caches expire, on a clock the model and settings decide.** Anthropic
+  defaults to 5 minutes, refreshed on every hit, with `ttl: "1h"` at the
+  higher write price. OpenAI keeps an entry at least 30 minutes on GPT-5.6
+  and later, around 5–10 idle minutes under `in_memory`, and up to 24 hours
+  under `24h` retention on the listed earlier models (their default for
+  organisations without Zero Data Retention). A request that arrives hourly
+  misses a 5-minute cache; read the lifetime the model and organisation
+  actually get before counting on reuse.
 
 Verify from the response's cached-token counts rather than by reasoning about
-the layout. A prompt you believe is cached and is not is a silent 5–10×
-overcharge.
+the layout. A prompt you believe is cached and is not costs 10× or more on
+the prefix: reads are billed at 0.1× of input or less on current Anthropic and
+OpenAI models (0.05× and 0.025× on some).
 
 ## Model selection and fallback
 

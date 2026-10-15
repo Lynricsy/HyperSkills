@@ -149,8 +149,11 @@ Prompt caching bills the prefix once and reuses it, but it matches on an
 - Anthropic caches only up to a breakpoint: an explicit `cache_control`
   marker on a block, or a request-level `cache_control` that places the
   breakpoint on the last cacheable block for you; with neither, nothing is
-  cached. OpenAI and Google cache automatically above a minimum prefix
-  length. Either way, reordering the prompt to put a tool schema after the
+  cached. OpenAI caches automatically above a minimum prefix length (1,024
+  tokens on GPT-5.6 and later) unless the request sets
+  `prompt_cache_options.mode` to `explicit`, which writes only at marked
+  breakpoints; Google caches automatically above a minimum length. Either way,
+  reordering the prompt to put a tool schema after the
   user message throws away every cached token that followed it.
 
 Editing a tool description also invalidates the cache for every request, so

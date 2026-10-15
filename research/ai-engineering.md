@@ -349,3 +349,25 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | 9 缓存报表与账单 | gpt-6.1-sol medium | 有（含临时加入的 usage 字段小节） | true | #1 ✓ / #2 ✓ / #3 ✓ / #4 ✗ | 133 s。仍只说 `classify` 无缓存活动「不能单独说明失败」，没点出最小长度 → 缺口未填补，正文改动已撤回 |
 
 结论：只合入 compaction 摘要的事实更正；usage 字段内容不合入。
+
+## 2026-10-15 文档上游复核
+
+范围：3 条 `kind: docs` 条目的 `contributes` 事实 + `SKILL.md` 与 `references/{context-budget,cost-and-reliability,prompt-structure,structured-output}.md` 中引用这两家文档的 API 形状、默认值、倍率与错误文本。Anthropic 页面用 `https://platform.claude.com/docs/en/<path>.md` 取 Markdown 原文；OpenAI 页面用 `https://developers.openai.com/api/docs/<path>.md`。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| anthropic-docs | 缓存只写在断点：块级 `cache_control` 或请求级 `cache_control`（自动缓存，断点落在最后一个可缓存块），两者都无则不缓存；前缀精确匹配、前面任何改动使其后失效；用 `cache_read_input_tokens`/`cache_creation_input_tokens` 验证命中；Anthropic `input_tokens` 不含缓存读写（三者相加为总输入）；低于最小长度不缓存且不报错 | https://platform.claude.com/docs/en/build-with-claude/prompt-caching | 一致 |
+| anthropic-docs | 缓存写溢价与寿命 | 同上（Pricing、1-hour cache duration 两节） | **已变化 → 更正**：正文称「只有 Anthropic 收写入溢价」「缓存几分钟就过期、按小时到达的请求毫无收益」「未命中是 5–10× 多付」。官方：5 分钟写 1.25×、1 小时写（`ttl: "1h"`）2×，读 0.1×（Opus 5.5 / Sonnet 5.5 为 0.05×，Fable 5.1 / Mythos 5.1 为 0.025×）；默认 5 分钟、每次命中刷新。`cost-and-reliability.md` 改写写入溢价（含 OpenAI，见下）、寿命按模型与设置区分、未命中多付改为「10× 及以上」 |
+| anthropic-docs | `client.messages.count_tokens` / `POST /v1/messages/count_tokens` 计数端点 | https://platform.claude.com/docs/en/build-with-claude/token-counting | 一致 |
+| anthropic-docs | 输入本身超窗口返回 400 `invalid_request_error`「prompt is too long」，不可重试；SDK 默认重试 2 次、遵守 `retry-after` | https://platform.claude.com/docs/en/build-with-claude/context-windows 、https://platform.claude.com/docs/en/api/errors | 一致 |
+| anthropic-docs | 「输出预留属于输入预算，input + output 必须装进窗口」 | https://platform.claude.com/docs/en/build-with-claude/context-windows（Context window overflow behavior） | **已变化 → 更正**：Claude 4.5 及更新模型在 input + `max_tokens` 超窗口时接受请求，生成写满窗口后以 `stop_reason: "model_context_window_exceeded"` 停止（截断而非报错），旧模型才返回校验错误。`context-budget.md` 补明两种发现方式，结论（预算仍要预留输出）不变 |
+| anthropic-docs | 结构化输出方言表的 Anthropic 列与「Anthropic 只能靠工具 schema 约束」 | https://platform.claude.com/docs/en/build-with-claude/structured-outputs | **已变化 → 更正**：JSON outputs（`output_config.format`，GA，旧 `output_format` 已弃用）与 strict tool use（`strict: true`）已提供响应级约束；对象须 `additionalProperties: false`（因此无约束 dict 被 API 拒绝）；不支持外部 `$ref` 与递归 schema；可选属性允许但每请求合计上限 24；属性按 schema 顺序输出但 required 在前、可选在后。`structured-output.md` 方言表 Anthropic 列改为 `output_config.format` / strict 工具并据此更新各行，三级表的 schema 模式加 `output_config.format`，「Old patterns」去掉「Anthropic 仍靠工具 schema」的说法 |
+| anthropic-docs | 限流按组织（另有工作区限额），分 RPM / ITPM / OTPM | https://platform.claude.com/docs/en/api/rate-limits | 一致。另记（未合入）：月度消费上限触发的 429 不带 `retry-after`、恢复前 SDK 重试也必然失败；正文已要求遵守 `Retry-After` 并区分可重试状态，未构成新规则 |
+| openai-docs | JSON mode 只保证可解析不保证 schema；strict 下所有字段必须 `required`、可选用 `[T, null]` 模拟、每个对象 `additionalProperties: false`；拒答以 `refusal` 程序化可检 | https://developers.openai.com/api/docs/guides/structured-outputs | 一致 |
+| openai-docs | 方言表「Key order：OpenAI strict 不可控」 | 同上（Key ordering 节） | **已变化 → 更正**（原表即与官方不符）：Structured Outputs 按 schema 中键的顺序输出。改为「schema order」 |
+| openai-docs | 自动缓存、最小前缀、寿命与写入计价 | https://developers.openai.com/api/docs/guides/prompt-caching | **已变化 → 更正**：GPT-5.6 及以后最小 1,024 可见 token，写入 1.25×、读 0.1×（GPT-6.1 Sol 0.05×），寿命至少 30 分钟（`prompt_cache_options.ttl: "30m"`），并新增 `prompt_cache_options.mode: "explicit"`（只在标记断点写入，无断点则不缓存）；更早模型 `in_memory` 约 5–10 分钟空闲、`24h` 保留（列出的模型上无 ZDR 组织默认 `24h`）；`input_tokens` 已含 `cached_tokens` 与 `cache_write_tokens`（与评测 7 的期望一致）。`prompt-structure.md` 补充 explicit 模式例外与 1,024 门槛，`cost-and-reliability.md` 同上 |
+| openai-docs | 限流在组织与项目级，按 RPM/TPM 等计量；429 遵守 `Retry-After`，缺失时加抖动退避 | https://developers.openai.com/api/docs/guides/rate-limits | 一致 |
+| openai-docs | 页面地址 | `https://platform.openai.com/docs` → **301** → `https://developers.openai.com/api/docs/overview` | **url 迁移**：`url` 改为 `https://developers.openai.com/api/docs`，notes 记录重定向 |
+| openai-alignment-compaction-report | 压缩摘要被模型写入「additional instructions」、监控发现 27 例、继任上下文照做导致失败 | https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/ | 一致（今日 586a2f5 已全文阅读并合入；本轮确认页面仍 200、27 例表述未变，`synced_at` 已是 2026-10-15） |
+
+处理：上述更正均为既有句子与官方当前页面不符，不新增规则；`SKILL.md` 规则 13 与反合理化表把「strict 下无可选字段」限定为 OpenAI strict（Anthropic strict 允许可选属性）。`SOURCES.yaml` 两条 `contributes` 写明新增核对范围，`synced_at` 更新为 2026-10-15。评测夹具 `cache-usage/usage-sample.jsonl` 未标模型，830/900-token 行「低于最小长度」的期望在 Anthropic 新模型 512 门槛下不必然成立，但夹具未指定模型、OpenAI 侧 900 < 1,024 仍成立，未改。

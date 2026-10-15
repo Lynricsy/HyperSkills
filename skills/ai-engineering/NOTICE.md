@@ -17,5 +17,5 @@ Reference-only sources (no content copied):
 
 - huggingface/skills (Apache-2.0) — https://github.com/huggingface/skills
 - https://platform.claude.com/docs (Proprietary) — https://platform.claude.com/docs
-- https://platform.openai.com/docs (Proprietary) — https://platform.openai.com/docs
+- https://developers.openai.com/api/docs (Proprietary) — https://developers.openai.com/api/docs
 - https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/ (Proprietary) — https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/

@@ -20,7 +20,7 @@ Verified against: openai 3.13.0, pydantic 2.13.5, google-genai 2.23.0.
 |---|---|---|
 | Prompt asks for JSON | Nothing | Output may be prose, fenced, or truncated |
 | JSON mode (`response_format={"type": "json_object"}`) | The text parses as JSON | Keys, types, enums, nesting — all unchecked |
-| Schema mode (strict JSON schema / `response_schema`) | The output conforms to the schema | That the values are *correct* |
+| Schema mode (strict JSON schema / `output_config.format` / `response_schema`) | The output conforms to the schema | That the values are *correct* |
 
 The middle level is the dangerous one, because it looks like the third. Code
 that does `json.loads(message.content)` on JSON mode output and then
@@ -127,14 +127,14 @@ error is the symptom; the length condition is the cause, and it is available.
 
 The schema languages are similar enough to be mistaken for the same one.
 
-| Feature | OpenAI strict | Anthropic tool `input_schema` | Gemini `response_schema` |
+| Feature | OpenAI strict | Anthropic `output_config.format` / `strict: true` tools | Gemini `response_schema` |
 |---|---|---|---|
-| `$ref` / `$defs` | supported | supported | supported (`ref`, `defs` fields exist on `types.Schema` in google-genai 2.23.0) |
+| `$ref` / `$defs` | supported | supported; no external `$ref`, no recursive schemas | supported (`ref`, `defs` fields exist on `types.Schema` in google-genai 2.23.0) |
 | Unions | `anyOf` | `anyOf` | `any_of` |
 | Nullability | `anyOf: [T, null]` | `anyOf: [T, null]` | `nullable: true` |
-| Every field required | enforced | not enforced | not enforced |
-| Key order | not controllable | not controllable | `property_ordering` |
-| Unconstrained object (`dict`) | accepted by the converter, rejected by the API | accepted | accepted |
+| Every field required | enforced | not enforced; optional properties count against a per-request limit of 24 | not enforced |
+| Key order | schema order | schema order, but required properties first, then optional | `property_ordering` |
+| Unconstrained object (`dict`) | accepted by the converter, rejected by the API | rejected by the API, which accepts no `additionalProperties` other than `false` | accepted |
 
 Two traps:
 
@@ -201,11 +201,11 @@ schema was never the thing protecting you.
 
 Before schema-constrained responses existed, the standard trick was to
 declare a single "tool" whose parameters were the desired shape and force the
-model to call it. It still works and is still how Anthropic tool schemas are
-enforced, but for a pure extraction on OpenAI or Gemini it adds a tool-call
-round trip and an extra failure mode (the model answering in text instead of
-calling the tool). Use the response-schema path for extraction; keep tools
-for actions.
+model to call it. It still works, but OpenAI, Anthropic (`output_config.format`)
+and Gemini all constrain the response itself now, and for a pure extraction the
+tool route adds a tool-call round trip and an extra failure mode (the model
+answering in text instead of calling the tool). Use the response-schema path for
+extraction; keep tools for actions.
 
 </details>
 
