@@ -1,6 +1,6 @@
 ---
 name: mcp-server
-description: "Builds Model Context Protocol servers with tools, resources, transports and authorization."
+description: "Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills

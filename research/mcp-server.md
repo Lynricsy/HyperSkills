@@ -665,3 +665,20 @@ microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f 
 - 场景 10 EB3（给结果设预算，而不是只调大 `maxBufferSize`）两侧都没达成，正文规则 7 在有 skill 时也没被用上，可在下次正文修订时考虑在规则 7 处点名 stdio 单消息上限。
 - 场景 8 EB2 的 TypeError 后果、场景 7 的 `expectedResource` 注意事项都不在正文。这是两次评估有意以基线划界的结果，若换更弱的基线模型需重测。
 - 除场景 8 外，各场景只有 1 次运行。
+
+## 2026-10-15 description 维护（路由）
+
+旧：`Builds Model Context Protocol servers with tools, resources, transports and authorization.`  
+新：`Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'.`（98 字符）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，模型在系统提示里只看到 `name: description` 与「Matching skill → MUST read」；探针只判定是否读取 skill（`detect_skill_read`），不评答案。判定：读了=read；`agent_end` 正常结束、无 provider 错误且未读=not_read；超时未读 / 空事件流 / provider 错误=不确定，不计入。样本固定于 `/tmp/hs-desc/samples.json`：D2 失败的负例为调优负例（3 次），既有正例场景各 1 次，另写保留负例 / 保留正例各 1 条（2 次，只用于验收）。旧、新描述同模型同条件各跑一遍。约束：omp 渲染 skill 列表时把超过 100 字符的描述截断到词边界，所以新描述 ≤100 字符，否则排除限定词会被截掉；真实宿主第二次会话起看到的是 smol 模型压缩后的 ≤12 词提示，本对照只覆盖首次会话的原文路由。
+
+| 样本 | 类型 | 内容 | 旧描述（期望结果次数） | 新描述 |
+|---|---|---|---|---|
+| N5 | 调优负例 | 场景 5：I added the official GitHub MCP server to my editor's config and it sh… | 0/3 | 3/3 |
+| P4 | 正例 | 场景 4：mcp.json in this directory is the config block we put in our README fo… | 1/1 | 1/1 |
+| P9 | 正例 | 场景 9：tickets_server.py is our MCP server and tickets-mcp.json is the client… | 1/1 | 1/1 |
+| HN | 保留负例 | 新写：Which is better for our team to install in our editors, the Linear MCP… | 1/2 | 2/2 |
+| HP | 保留正例 | 新写：I'm writing an MCP server in Python with FastMCP that wraps our intern… | 2/2 | 2/2 |
+
+结论：调优负例（用户接入第三方 MCP server）0/3 → 3/3 未读，保留负例（选装哪个 server）1/2 → 2/2；正例全部读取。P9 新描述首轮为空事件流（VM 启动卡住，旧描述首轮也出现过一次），单独重跑为读取。采用新描述。
