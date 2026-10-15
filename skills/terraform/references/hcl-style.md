@@ -180,7 +180,7 @@ conversion, so the module body can read `each.value.volume_size` without a `coal
 `map(any)` the caller's typo becomes a runtime error inside a provider instead of a type
 error at the boundary. [official]
 
-`convert()` (Terraform 1.15+, Terraform-only) performs a precise inline conversion where the
+`convert()` (Terraform 1.15+/OpenTofu 1.13+) performs a precise inline conversion where the
 implicit rules would guess wrong.
 
 ## Expressions worth knowing

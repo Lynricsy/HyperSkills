@@ -1,7 +1,8 @@
 # Terraform and OpenTofu: what is actually different
 
-Verified against: Terraform 1.16.2, OpenTofu 1.12.6. Every version in this file was read from
-the two projects' `CHANGELOG.md` on the corresponding release branch, not from release notes
+Verified against: Terraform 1.16.2, OpenTofu 1.12.6; the gap tables were rechecked against the
+OpenTofu 1.13 `CHANGELOG.md` and a 1.13.1 binary. Every version in this file was read from the
+two projects' `CHANGELOG.md` on the corresponding release branch, not from release notes
 summaries.
 
 ## Contents
@@ -53,7 +54,6 @@ the README and its real proof in a CI job that runs the test suite under both bi
 | Actions (`action` blocks, resource action triggers, `-invoke`) | 1.14 | Provider-defined imperative operations outside the CRUD model, with `on_failure` modes of `halt`/`taint`/`continue` from 1.16 |
 | `import` blocks inside child modules | 1.16 | Below 1.16 they must live in the root module even when the target is in a child |
 | `terraform_data` `store` block | 1.16 | Holds ephemeral and sensitive values across plan and apply |
-| `convert()` function | 1.15 | Precise inline type conversion |
 | Explicit type constraints on `output` blocks | 1.15 | |
 | Sentinel policy enforcement | — | HCP Terraform / Terraform Enterprise only |
 
@@ -72,6 +72,7 @@ not transfer:
 | Variables and locals in `module` source/version | **1.15** | 1.8 |
 | Identity-based `import` blocks (`identity = {...}`) | 1.12 | 1.12 |
 | Write-only arguments (`*_wo`) | 1.11 | 1.11 |
+| `convert()` function | 1.15 | 1.13 |
 
 Where a module must support both, the effective floor is the later of the two. A mocked test
 suite, for instance, needs Terraform 1.7 **and** OpenTofu 1.8.

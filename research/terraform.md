@@ -587,3 +587,37 @@ nitinjain-platform-skills、wshobson-terraform-specialist、tflint 为 repo move
 | opentofu | 1d2a117 → f0f818d（3 提交） | `CHANGELOG.md` 的 `## 1.14.0 (Unreleased)`：8d1b7c0/e7a069d 新增「registry 与 network mirror 在服务端明确 opt-in 时可把认证凭据转发到包下载 URL」（#4584）；0f0b323 新增「OpenTelemetry 追踪支持 `OTEL_RESOURCE_ATTRIBUTES`」（#4621）；顺带删去 `mock_provider` `source` 条目前的空行 | 无影响：两条都在未发布的 1.14 线，本 skill 的 OpenTofu 版本门只取已发布 v1.N 分支的 CHANGELOG；正文不涉及 provider 镜像凭据转发与 OTel 追踪配置。`mock_provider` `source` 一条仅排版，2026-09-29 已按 R14 划界不合入 |
 
 结论：正文与 references 未改，未跑 D2；`pin_check.py` 为 `PIN CHECK CLEAN`。提交含 re-pin、版本号与本节。
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照。OpenTofu 文档读 `opentofu/opentofu` 的 `website/docs/`（`v1.13.1` tag，即 opentofu.org/docs
+当前版本）；HashiCorp 文档读站点页面（BUSL，只核事实）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| opentofu-docs | `enabled` meta-argument 自 OpenTofu 1.11，放在 `lifecycle` 内 | `language/meta-arguments/enabled.mdx` | 一致 |
+| opentofu-docs | `lifecycle { destroy = false }` 把 destroy 变为 forget、此时 `prevent_destroy` 不生效；`prevent_destroy` 不能阻止删除 resource 块后的销毁 | `language/resources/behavior.mdx` | 一致 |
+| opentofu-docs | S3 `use_lockfile` 原生锁（条件写 `If-None-Match`），DynamoDB 为另一选项 | `language/settings/backends/s3.mdx` | 一致 |
+| opentofu-docs | backend 块不能引用 state 派生值；凭据走环境变量 | `language/settings/backends/configuration.mdx` | 一致 |
+| opentofu-docs | `import` 块支持 `identity = {...}` 或 `id` | `language/import/index.mdx` | 一致 |
+| opentofu-docs | `moved`/`removed`/`check`、`for_each` 与 `count`、`optional()`/`nullable`、workspace、state encryption | `language/modules/develop/refactoring.mdx`、`language/checks/index.mdx`、`language/values/variables.mdx`、`language/state/workspaces.mdx`、`language/state/encryption.mdx` | 一致 |
+| opentofu-docs | 「当前稳定版」与运行时差异表 | OpenTofu v1.13.0（2026-09-30）/ v1.13.1 发布，`CHANGELOG.md`@v1.13 | **更正**，见下 |
+| terraform-docs-site | 风格指南：meta-argument（count/for_each）在前、资源参数、嵌套块、`lifecycle`、`depends_on` 最后；`variables.tf`/`outputs.tf` 字母序；两空格缩进、对齐等号 | https://developer.hashicorp.com/terraform/language/style | 一致 |
+| terraform-docs-site | `moved`/`import`/`removed`/`check`、backend 与锁、workspace、`terraform test` 语法、plugin framework 与验收测试 | developer.hashicorp.com/terraform 对应页面；Terraform 最新 v1.16.6，正文以 1.16.2 实跑的结论不受 patch 版影响 | 一致 |
+
+更正：
+
+1. **`convert()` 不再是 Terraform 独有。** `references/opentofu-differences.md` 把 `convert()` 列在 Terraform-only（1.15），
+   `references/hcl-style.md` 写「Terraform 1.15+, Terraform-only」。OpenTofu `CHANGELOG.md`@v1.13 的 1.13.0 ENHANCEMENTS：「New function
+   `convert` allows converting a given value to a specified type constraint (#4449)」。实跑：OpenTofu 1.13.1 对
+   `output "c" { value = convert({ a = 1 }, map(string)) }` 输出 `tomap({ "a" = "1" })`，1.12.6 报错。改为两处都写「Terraform 1.15 /
+   OpenTofu 1.13」，并移入「Same feature, different version」表。同时复核表中其他 Terraform-only 项：`output` 块显式 `type` 在
+   1.13.1 上仍报 `Unsupported argument`，其余（Stacks、list resources、actions、模块内 `import`、`terraform_data` `store`、Sentinel）
+   1.13 CHANGELOG 均无对应，维持不变。
+2. **「OpenTofu 1.12 是当前稳定版」已过时。** SKILL.md 写「Terraform 1.16 and OpenTofu 1.12 (the current stable releases)」；OpenTofu
+   1.13 已于 2026-09-30 发布。按「写版本、不写时间条件」改为「written against Terraform 1.16 and OpenTofu 1.12, with the runtime gaps
+   rechecked against OpenTofu 1.13」，`opentofu-differences.md` 的 Verified against 同步注明。1.13 其余变化（WinRM 移除、32 位最后
+   一个系列、`assume…` 函数、lint 与 symbol library 实验、`tofu test` override 支持实例与通配）不触及本 skill 的版本门；symbol
+   libraries 早已在差异表里。
+
+两处都是对照官方 CHANGELOG 与实跑的事实更正，不改规则，不需要评测。SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15。

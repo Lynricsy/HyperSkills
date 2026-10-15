@@ -20,10 +20,10 @@ provider and runtime version constraints, `terraform test`, policy-as-code and c
 scanning, environment layering, the concrete feature gaps between the two runtimes, and an
 entry point to writing a provider.
 
-The body is written against **Terraform 1.16** and **OpenTofu 1.12** (the current stable
-releases). Every rule that needs a newer runtime than 1.6 carries a gate such as
-`(Terraform 1.11+)`; where the two runtimes differ the gate names both, because they have
-diverged and a single number is now a wrong answer.
+The body is written against **Terraform 1.16** and **OpenTofu 1.12**, with the runtime gaps
+rechecked against OpenTofu 1.13. Every rule that needs a newer runtime than 1.6 carries a
+gate such as `(Terraform 1.11+)`; where the two runtimes differ the gate names both, because
+they have diverged and a single number is now a wrong answer.
 
 Not covered:
 

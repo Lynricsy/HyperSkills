@@ -61,7 +61,7 @@ upstreams:
     url: https://opentofu.org/docs/
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The permissively licensed authority for language semantics shared by both runtimes, used wherever the equivalent HashiCorp page could not be merged: moved/import/removed/check block semantics, for_each versus count expansion, the lifecycle meta-arguments, variable validation and the nullable and optional() rules, backend configuration and state locking behaviour, workspace semantics, and the state encryption and `enabled` meta-argument that exist only on this side."
     notes: "Licence verified by reading the LICENSE of the docs source repository opentofu/opentofu.org: Apache-2.0, so this is merged rather than reference. This is the only official documentation source in this skill that can be merged - see the terraform-docs-site entry."
   - id: awesome-copilot-terraform
@@ -81,7 +81,7 @@ upstreams:
     url: https://developer.hashicorp.com/terraform
     license: BUSL-1.1
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Read only to verify facts before writing them: the official style guide's block and argument ordering and file-organisation conventions, moved/import/removed/check semantics, backend and locking behaviour, workspace semantics, test-framework syntax, and the plugin-framework and acceptance-testing guidance behind references/provider-development.md."
     notes: "No content copied. The GitHub API reports NOASSERTION for the documentation source repository hashicorp/web-unified-docs; its LICENSE was read and is the Business Source License 1.1 (Licensor: IBM), a source-available rather than open-source licence, so this official documentation is reference rather than merged - the exception to this library's usual practice of merging official docs. Facts taken from it were independently confirmed either by running Terraform 1.16.2 locally or against the Apache-2.0 OpenTofu documentation."
   - id: hashicorp-terraform
