@@ -15,7 +15,7 @@ This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
 - marp-team/marpit (MIT) — https://github.com/marp-team/marpit @ 9f2075143a56bba189730bf04b037450320941a0 — paths: docs — The theme size contract: absolute units only, one size per theme, the slide size doubling as the PDF page size, and rem resolving against the slide rather than the document root.
 - microsoft/playwright (Apache-2.0) — https://github.com/microsoft/playwright @ 5c42a39d3bcdfb622838d8f53d9680db5a247ebf — paths: packages/playwright-core/types/types.d.ts — Screenshot, PDF and evaluation semantics used by scripts/deck_qa.mjs, including the printBackground and preferCSSPageSize defaults and the print media type of page.pdf().
 - astefanutti/decktape (MIT) — https://github.com/astefanutti/decktape @ 6aa7ec0d337bd7d10a842e8cff76d457199448b4 — paths: README.adoc, plugins — Key-driven export of a deck project that cannot be modified, plus three reproduced traps: browser discovery, screenshot path joining, and the DOM-mutation halting condition.
-- https://developer.chrome.com/docs/chromium/headless (NONE) — https://developer.chrome.com/docs/chromium/headless — The no-Node export fallback: sandbox flag requirement, paper size coming only from the page's own @page rule, and virtual time replacing arbitrary sleeps.
+- https://developer.chrome.com/docs/automation-and-testing/headless-cli (NONE) — https://developer.chrome.com/docs/automation-and-testing/headless-cli — The no-Node export fallback: sandbox flag requirement, paper size coming only from the page's own @page rule, and virtual time replacing arbitrary sleeps.
 
 Reference-only sources (no content copied):
 

@@ -322,3 +322,14 @@ tracked paths unchanged，随之前移。chromium-headless 为 manual check，�
 
 结论：没有事实更正，也没有需要评测的新增规则。正文与 references 未变；`SOURCES.yaml` 只改 re-pin、`version` 与
 ohmyagent-oma-slide 的 notes（记录上游删除 reduced-motion 而本 skill 保留的依据）；`metadata.version` 改为 2026.10.15。正文未变，未跑 D2。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| chromium-headless | 页面位置 | 原 URL `developer.chrome.com/docs/chromium/headless` 301 到 [/docs/automation-and-testing/headless](https://developer.chrome.com/docs/automation-and-testing/headless)，该页只讲 Headless 模式本身（Chrome 132.0.6793.0 起旧模式拆成 `chrome-headless-shell`）；CLI 参数移到 [/docs/automation-and-testing/headless-cli](https://developer.chrome.com/docs/automation-and-testing/headless-cli) | **页面迁移 → 更新 url**：`url` 改为 headless-cli 页 |
+| chromium-headless | `--print-to-pdf`、`--no-pdf-header-footer`、`--screenshot` 配 `--window-size` | headless-cli 页 | 一致 |
+| chromium-headless | `--virtual-time-budget` 快进计时器与加载，代替猜测的 sleep | headless-cli 页 §--virtual-time-budget | 一致 |
+| chromium-headless | root 下不加 `--no-sandbox` 不产出文件；无 `@page` 时 PDF 为 Letter | 官方页面均未记载（本条一直是本地实测）；本机 Chromium 153.0.8010.52 重跑：stderr `Running as root without --no-sandbox is not supported`、目录里无 PDF；加 `--no-sandbox` 后无 `@page` 的页面 `MediaBox [0 0 612 792]` | 一致（重新实测） |
+
+正文未改；`chromium-headless` 的 `url`、`synced_at`（2026-10-15）与 notes 更新。

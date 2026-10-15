@@ -157,12 +157,12 @@ upstreams:
     contributes: "Key-driven export of a deck project that cannot be modified, plus three reproduced traps: browser discovery, screenshot path joining, and the DOM-mutation halting condition."
   - id: chromium-headless
     kind: docs
-    url: https://developer.chrome.com/docs/chromium/headless
+    url: https://developer.chrome.com/docs/automation-and-testing/headless-cli
     license: NONE
     relation: merged
-    synced_at: "2026-09-19"
+    synced_at: "2026-10-15"
     contributes: "The no-Node export fallback: sandbox flag requirement, paper size coming only from the page's own @page rule, and virtual time replacing arbitrary sleeps."
-    notes: "Flag behaviour was verified locally against Chromium rather than quoted; the documentation has no single reference page for these switches."
+    notes: "Flag behaviour was verified locally against Chromium rather than quoted (re-run 2026-10-15 on Chromium 153: no --no-sandbox as root still writes no file, and a page without @page still prints Letter 612 x 792 pt). The old URL /docs/chromium/headless now redirects to /docs/automation-and-testing/headless, which only covers the mode itself; --print-to-pdf, --no-pdf-header-footer, --screenshot with --window-size and --virtual-time-budget are documented on the headless-cli page used here. Neither page documents the sandbox or paper-size behaviour."
   - id: guizang-ppt
     kind: repo
     repo: op7418/guizang-ppt-skill
