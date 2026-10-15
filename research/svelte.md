@@ -355,9 +355,13 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
 | 3 form actions | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ✔3 ◐4 ✔5 ✔6 ◐7 ✔8 ✘9 —10（5✔3◐1✘，第 10 条不适用） | 195 s。代码去掉 `throw`、加 `path: '/'`、303，但答复不解释原因；未 runes 化。按 SvelteKit 2 处理（无版本信息），cookie path 结论与改后规则 21 的 2.x 分支一致 |
 | 3 | gpt-6.1-sol medium | 无 | false | ✔1 ◐2 ✔3 ◐4 ✔5 ✔6 ◐7 ✔8 ✘9 —10（5✔3◐1✘） | 321 s。代码几乎与有 skill 相同 |
 | 4 负例（Vue） | gpt-6.1-sol medium | 有 | false | 3/3 | 30 s。按 Vue 3 回答，无 Svelte 建议 |
+| 7 SvelteKit 3.1 升级（新增） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ✔4 ✔5（4✔1◐） | 352 s。两个开关移入 `sveltekit({...})`（`experimental` 为顶层键）并删掉 svelte.config.js、说明 3 不再读它；`$app/stores` 判为已移除 → `page.url` from `$app/state`，`$app/environment` → `$app/env`；`#lib/server/db.js` 带扩展名并在 package.json 加 `imports`；私有 env 迁到 `$app/env/private` 并新增 `src/env.js`，但未说明 `$env/*` 只是弃用别名；`error(404, '…', { code })`；cookie `path` 默认 `/`、无需添加，未建议退回 2.x |
+| 7 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ◐3 ✔4 ✔5（4✔1◐） | 304 s。配置、`$app/state`/`$app/env`、`#lib/server/db.ts` + `imports`、`error` 三参、cookie 结论均与有 skill 同级；`$env/static/private` 保留不动并说明「弃用而非移除」，未迁到 `$app/env/private` |
+| 8 Vitest 5 精确匹配与 async render（新增） | gpt-6.1-sol medium | 有 | true | 4/4 | 126 s。三个测试均 `await render`；locator 名称与 `getByText` 默认精确匹配、`toHaveTextContent` 比较全文，改用 `/^Increment: /`、`'Save draft'`、`'Increment: 1'`/`'Increment: 5'`；组件未动，无 `force`/test id；VM 内 Vitest 5.0.4 实跑 3 passed |
+| 8 | gpt-6.1-sol medium | 无 | false | 4/4 | 243 s。同样三处原因与修法，实跑 3 passed |
 
 选择理由：6 为今日新增（必选，基线复用）；2（`$lib/server`、devalue、`transport`、`$app/stores`）与 3（cookie `path`、`error`/`redirect`）用到被改的规则 14–17、21；SvelteKit 3 对照表、`$app/stores` 移除、cookie 默认 `/`、配置位置与 Vitest 5 写法没有既有场景覆盖，新增 7（`kit3-upgrade/`）与 8（`vitest5/`）；4 为负例。
 
-已完成部分：改动相关行为在 2、3、6 上不比基线差（2：4✔ 对 3✔；3、6 持平）；负例 `skill_read=false`。场景 2、3 两侧都保留 `export let` / `$app/stores`（夹具为 legacy 文件、无 package.json，模型按「legacy 文件 → 迁移而非修 bug」处理），非今日改动所致。
+结论：改动相关行为在 2、3、6、7、8 上均不比基线差（2：4✔ 对 3✔；3、6、7、8 持平——7、8 为今日新增的 SvelteKit 3 / Vitest 5 场景，基线已会，作为哨兵保留）；负例 `skill_read=false`。未改正文。场景 2、3 两侧都保留 `export let` / `$app/stores`（夹具为 legacy 文件、无 package.json，模型按「legacy 文件 → 迁移而非修 bug」处理），非今日改动所致。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：7 SvelteKit 3.1 升级（新增，有/无）；8 Vitest 5 精确匹配与 async render（新增，有/无）。待结果出来后补判定。
+遗留：场景 7 两侧都没有把 `$env/*` 明确说成弃用别名（有 skill 直接迁到 `$app/env/private`，基线保留旧导入并说明弃用），EB3 均为部分达成。
