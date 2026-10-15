@@ -407,3 +407,20 @@ D2 判定：场景 7 基线未达成的 E1、E2、E4 在有 skill 时达成（E1
 
 - `references/kotlin-coroutines.md` Structured concurrency：`viewModelScope` 条目更正清理顺序与释放资源的做法；来源注释补 `android-official`。
 - `SOURCES.yaml`：`android-official` 的 `paths` 加 `device-ai/litert/litert-runtime`，`contributes` / `notes` 记录只取这一条。
+
+## 2026-10-15 文档上游复核
+
+范围：2 条 `kind: docs` 条目的 `contributes` 事实 + `SKILL.md` 与 `references/{architecture,gradle-build,compose-performance,kotlin-coroutines,kmp-compose-multiplatform,platform-runtime}.md` 中的版本门槛、默认翻转与 DSL 事实。developer.android.com 页面脚本取回去标签；kotlinlang.org 的 KMP 页面为前端渲染，经 read 工具读取，模板结构另用已登录 `gh` 读 `JetBrains/kotlin` 的 `KotlinHierarchyTemplate.kt`。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| android-docs | ViewModel 事件应始终落为 UI 状态更新（不用 Channel/SharedFlow 一次性事件） | https://developer.android.com/topic/architecture/ui-layer/events | 一致（Key Point 原文仍在） |
+| android-docs | AGP 9.0 兼容矩阵：最低 Gradle 9.1.0、JDK 17、Build Tools 36.0.0、最高 API 36.1；运行时依赖 KGP 2.2.10 并上调更低的 KGP/KSP；默认翻转 `android.newDsl`、`android.builtInKotlin`、`defaultTargetSdkToCompileSdkIfUnset`、`androidx.test.runner`、`r8.proguardAndroidTxt.disallowed`、`r8.strictFullModeForKeepRules`；`newDsl=false` 的退出能力在 AGP 10 移除 | https://developer.android.com/build/releases/agp-9-0-0-release-notes | 一致 |
+| android-docs | AGP 9.3：最低 Gradle 9.5.0；`optimization { enable = true }` 同时开代码与资源优化并含 `proguard-android-optimize.txt` 等价默认规则；项目规则放 `src/<variant>/keepRules/*.keep`；`:app:analyzeReleaseR8Config`；9.3.3 修复新 DSL 不设置 `isMinifyEnabled` 的变体问题 | https://developer.android.com/build/releases/agp-9-3-0-release-notes 、https://developer.android.com/topic/performance/app-optimization/enable-app-optimization 、/keep-rules-overview | 一致 |
+| android-docs | 当前 AGP 线 | https://developer.android.com/build/releases/gradle-plugin → AGP 9.4.0（2026-09，Gradle 9.6.0、最高 API 37） | 正文版本行不改（规则按 9.0/9.3 门槛表述）。另记（未合入）：9.4 新增按模块 `android.newDsl.optOut=:module` 过渡退出，并对动态功能模块风味维度 1:1 一致性先告警（AGP 10 起报错）；正文已要求迁移后删除过渡开关，未构成新规则 |
+| android-docs | targetSdk 35 起在 Android 15+ 强制 edge-to-edge；强跳过在 Kotlin 2.0.20 默认开启 | https://developer.android.com/develop/ui/views/layout/edge-to-edge 、https://developer.android.com/develop/ui/compose/performance/stability/strongskipping | 一致 |
+| kotlin-docs | 显式 backing field 在 Kotlin 2.4 转为 Stable | https://kotlinlang.org/docs/whatsnew24.html（2026-07-14）、https://kotlinlang.org/docs/properties.html | 一致 |
+| kotlin-docs | 默认层级模板 | https://kotlinlang.org/docs/multiplatform/multiplatform-hierarchy.html | **已变化 → 更正**：`kmp-compose-multiplatform.md` 原树把 `appleMain` 直接挂在 `commonMain` 下、`jsMain`/`wasmJsMain` 也直挂。KGP 模板（`KotlinHierarchyTemplate.kt`，v2.4.0 注释图与 `group(...)` 定义）为 common → native → apple（ios/macos/tvos/watchos）/linux/mingw/androidNative，common → web → js/wasmJs；`web` 组在 v2.2.0 不存在、v2.2.20 起存在。树已改正并标注 `webMain` 的版本门槛；补一句官方 Additional configuration 段的事实：手写 `dependsOn` 会使模板不再应用（插件告警），需显式 `applyDefaultHierarchyTemplate()` |
+| kotlin-docs | 页面地址 | 旧地址 `kotlinlang.org/docs/multiplatform-hierarchy.html` 返回 200 但只含 meta refresh 到 `/docs/multiplatform/multiplatform-hierarchy.html` | **url 迁移**：`url` 更新，notes 记录 |
+
+处理：一处 reference 更正 + kotlin-docs url 迁移；`synced_at` 2 条更新为 2026-10-15。

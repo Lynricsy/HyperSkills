@@ -136,13 +136,14 @@ upstreams:
     url: https://developer.android.com/topic/architecture
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authoritative ruling that ViewModel-originated UI actions must become UI state, the definition of the architecture layers, AGP 9 behaviour changes and the compatibility matrix, testing fundamentals, and the performance and Baseline Profile guidance every rule here was checked against. Added 2026-09-30: the AGP 9.3 optimization DSL (default rules included, keepRules source set with .keep files, legacy DSL still supported, analyzeReleaseR8Config, the pre-9.3.3 isMinifyEnabled variant bug) from the R8 enablement, keep-rules overview and AGP 9.3.0 release-notes pages."
     notes: "developer.android.com prose is CC BY 4.0. All wording here is original; only the technical facts are taken."
   - id: kotlin-docs
     kind: docs
-    url: https://kotlinlang.org/docs/multiplatform-hierarchy.html
+    url: https://kotlinlang.org/docs/multiplatform/multiplatform-hierarchy.html
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "Language-feature stability levels (explicit backing fields are experimental in Kotlin 2.3 and stable in 2.4), coroutine and Flow semantics, and the default Kotlin Multiplatform source-set hierarchy template."
+    synced_at: "2026-10-15"
+    contributes: "Language-feature stability levels (explicit backing fields are experimental in Kotlin 2.3 and stable in 2.4), coroutine and Flow semantics, and the default Kotlin Multiplatform source-set hierarchy template (common → native → apple/linux/mingw/androidNative, and web → js/wasmJs from Kotlin 2.2.20)."
+    notes: "The former kotlinlang.org/docs/multiplatform-hierarchy.html address now only meta-refreshes to /docs/multiplatform/multiplatform-hierarchy.html (checked 2026-10-15). The template tree was cross-checked against KotlinHierarchyTemplate.kt in JetBrains/kotlin at v2.2.0, v2.2.20 and v2.4.0."

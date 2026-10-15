@@ -27,18 +27,23 @@ the configuration with the best effort-to-risk ratio.
 
 ## Source-set hierarchy
 
-Use the default hierarchy template unless the project genuinely needs custom wiring:
+Use the default hierarchy template unless the project genuinely needs custom wiring. The
+Kotlin Gradle plugin creates only the intermediate source sets your declared targets need:
 
 ```
 commonMain
-├── androidMain
-├── jvmMain
-├── appleMain
-│   ├── iosMain
-│   │   ├── iosX64Main / iosArm64Main / iosSimulatorArm64Main
-│   └── macosMain
-└── jsMain / wasmJsMain
+├── androidMain / jvmMain
+├── nativeMain
+│   ├── appleMain
+│   │   ├── iosMain  (iosArm64Main / iosSimulatorArm64Main / iosX64Main)
+│   │   └── macosMain / tvosMain / watchosMain
+│   └── linuxMain / mingwMain / androidNativeMain
+└── webMain          (Kotlin 2.2.20+)
+    └── jsMain / wasmJsMain
 ```
+
+Any manual `dependsOn` edge switches the template off for the module (the plugin warns);
+call `applyDefaultHierarchyTemplate()` explicitly before adding extra source sets.
 
 The rule is **place code in the highest source set where it is valid**. Duplicated logic
 in `androidMain` and `iosMain` that could live in `commonMain`, or an `actual` repeated
