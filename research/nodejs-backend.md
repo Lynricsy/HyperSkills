@@ -230,3 +230,16 @@ secondsky-hono（`repo moved, tracked paths unchanged`）与其余 up to date �
 `kind: docs` 条目不在本次范围。
 
 结论：正文未变，仅 re-pin 与版本号改为 2026.09.29；正文未变，未跑 D2。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与归因结果 `/tmp/hs-attr/attribution.md`。本 skill 只有
+amirtaherkhani-nestjs 在 tracked path 下确有提交；awesome-copilot 为 too-large，但主代理按完整区间归因为空（噪声），随
+`--pin` 前移。归因方法：`gh api repos/amirtaherkhani/nestjs-agent-skills/compare/4495222...b688def` 取 patch，按
+`skills/nestjs-architecture-principles` 过滤，命中 5 个文件。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| amirtaherkhani-nestjs | 4495222 → b688def（2 提交命中：7c6a415、b688def） | `SKILL.md`：预执行冲突守卫压缩、与作者其他 skill 的协作清单改写（本 skill 合入时已整段剥离）；`evals/evals.json` 加两个上游自有场景；`references/dependency-injection.md`：抽象类作 token 时注册的适配器不必继承它（结构兼容即可 `useClass`），Symbol 与抽象类都不保证行为可替换；`references/module-boundaries.md` 加一行链接；新增 `references/module-contracts.md`（模块契约记录表、真实容器才能证明导入/导出、同描述的两个 Symbol 是不同 token、引入 port 不会自动消除 A→B→A 模块导入环、带 `forwardRef` 能启动不等于图无环） | 无影响：本 skill `references/nestjs.md` 已写「模块环是设计信号，`forwardRef` 只让环能编译、抽出第三个模块才消除」「接口运行时消失，token 才是容器解析的对象，Symbol 避免字符串冲突」，与新增内容一致且无冲突；抽象类 token 的细节、契约记录表与上游自建 fixture 属架构咨询，超出本 skill 范围（合入时已排除其 architecture-ladder/CQRS 材料） |
+
+结论：正文与 references 未变，仅 re-pin 与版本号改为 2026.10.15；正文未变，未跑 D2。
