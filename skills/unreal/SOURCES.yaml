@@ -65,7 +65,7 @@ upstreams:
     url: https://dev.epicgames.com/documentation/en-us/unreal-engine
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The factual base: every rule in SKILL.md and every reference claim was verified against the UE 5.8 pages for reflection, object pointers, replication, RPCs, ticking, Enhanced Input, GAS, Lumen, Nanite, UMG, Chaos, modules, Live Coding, packaging and automation testing."
     notes: "Epic's documentation site carries no open licence, so it is reference-only: no text was copied and every statement was rewritten. Read through a rendered browser session because the site is client-rendered."
   - id: quodsoler-ue

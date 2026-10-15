@@ -366,3 +366,19 @@ Cloudflare 429。本轮用受控浏览器渲染后抓 `innerText`，共取到 40
 0a70cfc）、benjaminastera-skills（ecd7038 → 7f5e06c）为「repo moved, tracked paths unchanged」，随 pin 前进。
 
 结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号。
+
+## 2026-10-15 文档上游复核
+
+dev.epicgames.com 文档当前仍服务 UE 5.8（页面 title「Unreal Engine 5.8 Documentation」；`unreal-engine-5-9-release-notes` 无内容）。本次页面可直接 HTTP 抓取正文，无需浏览器渲染。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| epic-ue-docs | 文档当前版本为 5.8 | [UE 5.8 Release Notes](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-8-release-notes) | 一致 |
+| epic-ue-docs | Nanite 只支持 Opaque/Masked，其余替换为默认材质并在 Output Log 警告；不支持变形目标、Forward、VR stereo、MSAA；场景实例上限 16 million（含所有流入实例） | [Nanite Virtualized Geometry](https://dev.epicgames.com/documentation/en-us/unreal-engine/nanite-virtualized-geometry-in-unreal-engine) | 一致 |
+| epic-ue-docs | Lumen 不支持 Static 光源（贡献在 lightmap，开 Lumen 即禁用）；UE4 升级项目不自动开 Lumen；HWRT 超 100,000 实例有显著场景更新成本 | [Lumen GI and Reflections](https://dev.epicgames.com/documentation/en-us/unreal-engine/lumen-global-illumination-and-reflections-in-unreal-engine) | 一致 |
+| epic-ue-docs | RPC 默认 unreliable、reliable 耗带宽；`WithValidation` 失败断开调用方；NetMulticast 在服务器及相关客户端执行；连按输入可撑爆 reliable RPC 队列 | [Remote Procedure Calls](https://dev.epicgames.com/documentation/en-us/unreal-engine/remote-procedure-calls-in-unreal-engine)、[Networking Overview](https://dev.epicgames.com/documentation/en-us/unreal-engine/networking-overview-for-unreal-engine) | 一致 |
+| epic-ue-docs | ASC 不向所有客户端复制全部状态；Gameplay Cue 非 reliable；GE 复制模式 Full/Mixed/Minimal 语义 | [Understanding GAS](https://dev.epicgames.com/documentation/en-us/unreal-engine/understanding-the-unreal-engine-gameplay-ability-system)、[EGameplayEffectReplicationMode](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/GameplayAbilities/EGameplayEffectReplicationMode) | 一致 |
+| epic-ue-docs | Enhanced Input 同一 Action 多 context 时取最高优先级；`TG_PostPhysics` 使用本帧物理数据；子步进把碰撞回调延到最后子步、同帧可同时收到重叠与结束重叠 | [Enhanced Input](https://dev.epicgames.com/documentation/en-us/unreal-engine/enhanced-input-in-unreal-engine)、[Actor Ticking](https://dev.epicgames.com/documentation/en-us/unreal-engine/actor-ticking-in-unreal-engine)、[Physics Sub-Stepping](https://dev.epicgames.com/documentation/en-us/unreal-engine/physics-sub-stepping-in-unreal-engine) | 一致 |
+| epic-ue-docs | Automation：纯单元测试用 Low-Level Tests；测试可乱序/跨机并行；Smoke 测试须 1 秒内完成；`TObjectPtr` 为 UE5 引入的可选替代 | [Automation Test Framework](https://dev.epicgames.com/documentation/en-us/unreal-engine/automation-test-framework-in-unreal-engine)、[UE5 Migration Guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-migration-guide) | 一致 |
+
+7 组事实全部一致，正文未改，`epic-ue-docs` 的 `synced_at` 更新为 2026-10-15。
