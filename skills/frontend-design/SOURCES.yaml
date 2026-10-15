@@ -113,7 +113,7 @@ upstreams:
     url: https://www.w3.org/TR/WCAG22/
     license: W3C-20150513
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "Authoritative source for every accessibility number and conformance level used, including SC 2.5.8 (AA, 24 by 24 CSS px) and SC 2.5.5 (AAA, 44 by 44 CSS px), contrast, reflow, text spacing, focus and authentication criteria."
     notes: "W3C Document License. Only criterion identifiers, levels and numeric requirements were used; no specification prose was copied."
   - id: web-dev-vitals
@@ -121,7 +121,7 @@ upstreams:
     url: https://web.dev/articles/vitals
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "Core Web Vitals thresholds (LCP 2.5s, INP 200ms, CLS 0.1) and the 75th-percentile, mobile-and-desktop-segmented evaluation method."
   - id: wshobson-a11y
     kind: repo

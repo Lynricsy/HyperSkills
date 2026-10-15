@@ -563,3 +563,14 @@ D2 判定：基线未达成 / 部分达成的场景 13 E1、E3、E6 在有 skill
   按成因修 → 按字段选截断），以「每个值有限值或 unbounded、每个问题有 path:line、写明哪些宽度实际渲染过」为门。
 - `SOURCES.yaml`：`emil-animations` 的 `paths` 加 `skills/break-ui/SKILL.md`，`contributes` / `notes` 更新（含 animation-performance 未合入的理由）。
 - event4u-app/agent-config 未合入任何内容，不新增 SOURCES 条目。
+
+## 2026-10-15 文档上游复核
+
+范围：2 条 `kind: docs` 条目的 `contributes` 事实 + `SKILL.md`、`references/accessibility.md`、`color-and-tokens.md`、`forms-and-inputs.md`、`layout-density-motion.md`、`performance-core-web-vitals.md`、`review-checklist.md` 实际引用的 SC 编号、级别与数字。WCAG 页面用 curl 取回后去标签逐条比对；Core Web Vitals 的「poor」阈值不在 vitals 总览页，另读 web.dev 的 LCP/INP/CLS 单项页。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| w3c-wcag22 | 1.4.3 AA 4.5:1 / 大字 3:1 及四类豁免；大字定义 18pt 或 14pt 粗体（正文换算 24px / 18.66px）；1.4.6 AAA 7:1 / 4.5:1；1.4.4 AA 200%；1.4.10 AA 320 CSS px 宽 / 256 CSS px 高；1.4.11 AA 3:1；1.4.12 AA 行高 1.5×、段距 2×、字距 0.12×、词距 0.16×；1.4.13 AA；2.2.2 A「超过五秒」；2.3.3 AAA；2.4.7 AA；2.4.11 AA / 2.4.12 AAA；2.4.13 AAA 2 CSS px 周长 + 3:1；2.5.5 AAA 44×44（含 Inline 豁免）；2.5.7 AA；2.5.8 AA 24×24 与五项豁免（Spacing 24 px 直径圆、Equivalent、Inline、User Agent Control、Essential 含 legally required）；3.2.6 A；3.3.7 A；3.3.8 AA；3.3.9 AAA | https://www.w3.org/TR/WCAG22/ | 一致（仍为 2024-12-12 W3C Recommendation，`This version` 未变） |
+| web-dev-vitals | LCP ≤2.5 s、INP ≤200 ms、CLS ≤0.1；按页面加载 75 百分位、分移动/桌面评估；三项都达标才算通过；poor 阈值 LCP >4.0 s、INP >500 ms、CLS >0.25 | https://web.dev/articles/vitals（Last updated 2024-10-31）；poor 阈值见 https://web.dev/articles/lcp 、/inp 、/cls | 一致 |
+
+处理：无事实更正，仅 `synced_at` 更新为 2026-10-15。
