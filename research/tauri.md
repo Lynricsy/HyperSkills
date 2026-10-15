@@ -264,3 +264,28 @@ Apache-2.0 文本双重声明，根 `LICENSE` 只是内容放错。`SOURCES.yaml
 
 未合入原因：区间内无 Tauri 技术内容，正文与 references 未改，仅更正 `SOURCES.yaml` notes；未新增评测场景、
 未跑评测，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因（`/tmp/hs-attr/skills_real.json`）。
+`epicenter-tauri` 为 too-large，按主代理的 blobless bare 缓存（`/tmp/hs-attr/EpicenterHQ__epicenter`）以完整区间
+`git log/diff <旧pin>..<审阅HEAD> -- .agents/skills/tauri` 归因；`full-stack-skills-tauri` 用
+`gh api .../compare` 取 patch。其余条目（`hairyf-tauri` repo moved / paths unchanged，`nodnarbnitram`、`pinkpixel`
+up to date）随 `--pin` 对齐；`tauri-docs` 为 manual check，未处理。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| `full-stack-skills-tauri` | `5ecdcba → 77b57c4`（1 提交） | `77b57c4`：给 52 个 skill 各新增 `agents/openai.yaml`（Codex 展示名、短描述、默认提示词），无正文改动 | 噪声（agent 绑定文件） |
+| `epicenter-tauri` | `f9441c8 → 6100613`（2 提交命中） | `9a79dfa` / `e963e76`：`SKILL.md` 三处改为 Epicenter 自身现状（能力按窗口 label 授权、提议中的 ADR-0402、删除能力时同步删文档与 UI）；新增 `references/rust-command-errors.md`：tauri-specta `ErrorHandlingMode::DataError` 生成 `{ data, error }` 结果、错误枚举派生 `Serialize + specta::Type` 并用 `#[serde(tag = "name")]`、错误类型不可为 nullable、该模式依赖未发版的 tauri-specta git 修订 | 不合入（应用私有 / 许可限制） |
+
+归因要点：
+
+- `epicenter-tauri` 是 `relation: reference`（AGPL-3.0-or-later，不得合入文字）。新增内容是 Epicenter 两个 app 的
+  绑定再生成流程与 Wellcrafted `Result` 约定，且 `DataError` 模式明确「钉在未发布的 tauri-specta git 修订上」，
+  不是可移植的 Tauri 事实。本 skill 的通用部分已覆盖：规则 9（`thiserror` 枚举 + 手写 `Serialize`、按 `{ kind,
+  message }` 打标签）与 `references/ipc-commands.md`（错误类型须自行实现 `Serialize`、`tauri-specta` 生成绑定并把
+  生成文件当派生物、`tauri::ipc::Response` 无法被 specta 生成）。
+- `full-stack-skills-tauri` 的 `openai.yaml` 与既有对 `agents/openai.yaml` 的处理一致（agent 绑定文件，忽略）。
+
+结论：**正文未变**，仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin 更新为 2026.10.15；
+未新增评测场景，未跑 D2。`pin_check.py`：PIN CHECK CLEAN。
