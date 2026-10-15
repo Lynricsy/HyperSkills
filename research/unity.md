@@ -372,3 +372,21 @@ paths unchanged」，随 pin 前进到 a149d3e、156b7a5。
 | 6 | workbuddy/deepseek-v4.1-flash（thinking max） | 无 | False | 1、2、3（3/3） | 解释休眠阈值与静态碰撞体不唤醒；改 kinematic Rigidbody + FixedUpdate 中 `MovePosition`；查询前 `Physics.SyncTransforms()` 并指出 autoSyncTransforms 默认关闭 |
 
 结论：候选缺口基线已会，按规则不合入，场景 6 保留作哨兵；正文与 references 未改动，故未做安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：`/tmp/hs-upstream.json`（2026-10-15 `check_upstream.py --json`）与主代理归因 `/tmp/hs-attr/attribution.md`，本 skill
+有 2 条上游在 tracked paths 下确有提交。归因方法：已登录 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取文件清单与
+patch；两仓库区间内均无 LICENSE 变更。unity-official-skills 为 reference，按原裁决只用目录清单，新增目录只读 frontmatter
+分类，未读正文。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| unity-official-skills | 36e1a6a → 9d28210（3 提交） | 目录仍为 34 个：`tilemap-palette-create`、`tilemap-ruletile-createempty`、`tilemap-ruletile-createfromsegment` 合并为 `create-tile-palette-or-rule-tiles`；新增 `create-2d-physics`（2D Physics Core 与旧 Rigidbody2D 两套系统）、`unity-pipeline`（经 unity-pipeline 包驱动运行中的 Editor/开发版 Player）；`unity-cli` 正文与 references 扩充 | 不合入 | 只作覆盖清单。Tilemap 与驱动在线 Editor 不在本 skill 的 Scope 列表；2D 物理已有「独立引擎、回调与 3D 不互通」一节，2D Physics Core 的底层 API 在 6000.3 的 `Modules/Physics2D/LowLevel` 确实存在，但 Scope 只承诺内置 3D 物理，不构成缺口；Unity CLI 原本就在清单内 |
+| unity-cs-reference | 2f6cef6 → c57f9f0（1 提交，Unity 6000.3.26f1） | tracked 路径 17 个源码文件：BuildProfile 切换 Windows 架构到 BuildTarget 的映射、`ScriptCompilers.Cleanup` 改用 VBCSCompiler `-shutdown`、IMGUI 文本框光标、UI Toolkit 世界变换奇异矩阵标志、VectorGraphics SVG 解析、Profiler Bottlenecks 图表 | 噪声 | 补丁版内部实现；新增成员均为 `internal`，diff 中无 `[Obsolete]` 变化，不涉及本 skill 引用的任何公开 API 形状或版本边界 |
+
+`--pin` 后 `pin_check.py` 为 `PIN CHECK CLEAN`：写入的 commit 与审阅 HEAD 一致（9d28210、c57f9f0）；gamedev-unity
+（d4b0e35 → 0a70cfc）、wshobson-unity-ecs（156b7a5 → 46891e7）为「repo moved, tracked paths unchanged」，随 pin 前进。
+SOURCES 的 unity-official-skills `notes` 补记本次目录变动。
+
+结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号与 SOURCES notes。
