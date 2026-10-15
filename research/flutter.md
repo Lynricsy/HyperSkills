@@ -292,3 +292,16 @@ Genkit / Firebase 属本 skill Scope 外、从未合入，判定噪声，仅 re-
 | evanca-rules | 7b9cce2 → 30f908d（1 提交：30f908d） | 删除 `skills/store-listing-assets/`（及 README/ATTRIBUTION 索引行） | 噪声：商店素材不在本 skill 范围，也不在该上游的 `contributes` 内 |
 
 正文未变，未跑 D2。只改 SOURCES.yaml（re-pin）与版本号 `2026.10.15`。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| flutter-docs | `StandardMessageCodec` 支持的类型（含 `Uint8List`/`Int32List`/`Int64List`/`Float32List`/`Float64List`）与 Kotlin/Swift 对照 | [Platform channels](https://docs.flutter.dev/platform-integration/platform-channels) 编解码表 | 一致 |
+| flutter-docs | 处理器默认在平台主线程，可用 `makeBackgroundTaskQueue()` 建后台 `TaskQueue`；调用 Flutter 必须回主线程；后台 isolate 先 `BackgroundIsolateBinaryMessenger.ensureInitialized(token)` | 同上 §Threading | 一致 |
+| flutter-docs | Pigeon 作为类型安全的代码生成方案 | 同上 §Pigeon | 一致 |
+| flutter-docs | gen_l10n 配置：`pubspec.yaml` 的 `generate: true`、`l10n.yaml` 的 `arb-dir`/`template-arb-file`/`output-localization-file`，`flutter pub get`/`flutter run` 自动生成、`flutter gen-l10n` 手动生成、输出在 `arb-dir`/`output-dir` | [Internationalizing Flutter apps](https://docs.flutter.dev/ui/internationalization) | 一致 |
+| flutter-docs | `synthetic-package`「已弃用」 | [Localized messages are generated into source](https://docs.flutter.dev/release/breaking-changes/flutter-generate-i10n-source)（3.32 稳定版起默认生成到源码，「下一个稳定版移除 `package:flutter_gen` 支持」）；`flutter/flutter` stable 分支（`flutter-3.47-candidate.0`）`packages/flutter_tools/lib/src/localizations/localizations_utils.dart`：`synthetic-package: true` 直接 `throwToolExit('Cannot enable "synthetic-package", this feature has been removed…')`，`false` 只警告无效 | **已变化 → 更正**：`references/localization.md` 的折叠块由「deprecated」改为「removed」，写明 `true` 会使 `flutter gen-l10n` 报错、`false` 仅警告；失败目录补一行该报错。官方 i18n 页的选项表仍写 `synthetic-package` 默认 `true`，与工具实际行为不符，记入 SOURCES notes，以工具源码为准 |
+
+5 条事实，4 条一致、1 条更正（事实更正，未新增行为规则，不跑基线评测）。`flutter-docs` 的 `synced_at` 更新为 2026-10-15，
+`contributes` 补注 3.32 起源码生成，`flutter-official` 的 notes 同步「已移除」措辞。

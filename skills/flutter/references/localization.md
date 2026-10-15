@@ -61,14 +61,17 @@ The generated `app_localizations.dart` is written next to the ARB files
 snippet above.
 
 <details>
-<summary>Old pattern: synthetic package (pre-deprecation)</summary>
+<summary>Old pattern: synthetic package (removed)</summary>
 
 Older projects set `synthetic-package: true` in `l10n.yaml` and imported
-`package:flutter_gen/gen_l10n/app_localizations.dart`. That option is deprecated;
-current tooling generates into `arb-dir` (or `output-dir`). If you inherit such a
-project, drop the option and change the import to the relative path — an import
-of `package:flutter_gen/...` that "cannot be resolved" is this, not a broken
-install.
+`package:flutter_gen/gen_l10n/app_localizations.dart`. Flutter 3.32 switched the
+default to generating into source, and current stable has removed the option:
+`synthetic-package: true` (in `l10n.yaml` or on the command line) stops
+`flutter gen-l10n` with `Cannot enable "synthetic-package", this feature has been
+removed`, and `false` only warns that it no longer has any effect. Output goes to
+`arb-dir` (or `output-dir`). If you inherit such a project, delete the option and
+change the import to the relative path — an import of `package:flutter_gen/...`
+that "cannot be resolved" is this, not a broken install.
 </details>
 
 ## ARB syntax
@@ -155,6 +158,7 @@ package never assumes the app's locale list.
 |---|---|
 | `Target of URI hasn't been generated` | `generate: true` missing, or `flutter pub get` not run after adding `l10n.yaml` |
 | `package:flutter_gen/...` unresolved | project still uses the removed synthetic package; import the relative path |
+| `Cannot enable "synthetic-package", this feature has been removed` | `l10n.yaml` still sets `synthetic-package: true`; delete the line |
 | `AppLocalizations.of(context)` is null | the delegate is not in `localizationsDelegates`, or the context is above `MaterialApp` |
 | Generation fails after adding a translation | placeholder set differs from the template |
 | Plural renders the ICU source text | missing `other` case, or `count` not declared as a placeholder |

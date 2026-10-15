@@ -12,7 +12,7 @@ upstreams:
     relation: merged
     synced_at: "2026-10-15"
     contributes: "Task-shaped workflows and checklists, layered architecture baseline, responsive layout and layout-error decoding, widget/integration testing, declarative routing with native deep-link configuration, localization, JSON serialization and http usage."
-    notes: "Vendor-maintained and generated from docs.flutter.dev; its localization skill still documents the deprecated synthetic-package option, which was corrected against the current official docs."
+    notes: "Vendor-maintained and generated from docs.flutter.dev; its localization skill still documents the synthetic-package option, which has since been removed from flutter_tools, and was corrected against the current official docs and tool."
   - id: dart-official
     kind: repo
     repo: dart-lang/skills
@@ -83,6 +83,6 @@ upstreams:
     url: https://docs.flutter.dev/platform-integration/platform-channels
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-10"
-    contributes: "Platform channel architecture, standard codec type mapping, threading and background-isolate rules, Pigeon workflow; and the current internationalization setup that supersedes the synthetic-package pattern."
-    notes: "docs.flutter.dev prose is CC BY 4.0; all wording here is original, only the technical facts are taken."
+    synced_at: "2026-10-15"
+    contributes: "Platform channel architecture, standard codec type mapping, threading and background-isolate rules, Pigeon workflow; and the current internationalization setup that supersedes the synthetic-package pattern (generated into source since Flutter 3.32, per the flutter-generate-i10n-source breaking-change page)."
+    notes: "docs.flutter.dev prose is CC BY 4.0; all wording here is original, only the technical facts are taken. The internationalization page's option table still lists synthetic-package as defaulting to true; flutter_tools on the stable branch rejects synthetic-package: true as a removed feature, and that tool behaviour is what the skill states."
