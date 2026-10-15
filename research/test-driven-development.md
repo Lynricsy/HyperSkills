@@ -338,3 +338,29 @@ obra-tdd、obra-verification 区间内跟踪路径无净变化（bb92a77 的 rel
 | 10 | gpt-6.1-sol medium | 有（改动后） | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 99 s。`COMMITTEE_CODES.length <= LIST_LIMIT`，名字带 #123；注释写明提高上限仍通过、加 total 则删除此测试；把上限改成 7 看到断言失败后改回；ISSUE-123 标记关闭并指向测试 |
 
 结论：定点反例（场景 9 EB2/EB3）与 tripwire（场景 10 EB1/EB3/EB5）基线缺口被填补，合入；其余候选基线已具备，不合入，场景 7、8 留作哨兵。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`ecc3fad`（上游同步：seam 候选逐个写 catches/misses、提问 yes 即接受推荐，新增场景 6）与 `60cd4c2`（新增内容：规则 13 定点反例、tripwire 规则与 `writing-good-tests.md` 新节，新增场景 7–10）。最后正文提交 12:03:31；上节所有有 skill 结果（10:36–11:43）都早于它，不复用，全部重跑。
+
+选场景：今天新增的场景 6–10 全选（必选）；场景 4 负例。基线全部复用今日同场景结果——query、期望与当前逐字一致、夹具首读逐行一致：场景 6 `/tmp/hs-evals-SyncG8/…/baseline/6`，场景 7–10 `/tmp/hs-evals/test-driven-development/…/baseline/{7..10}`（副本 `/tmp/hs-d2/D2G5/reused/tdd-b{6..10}`），判定沿用上两节。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），新跑产物 `/tmp/hs-d2/D2G5/test-driven-development/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无（复用） | False | EB1 ✘ EB2 ✘ EB3 ✔ EB4 ✘ EB5 ✔ | 判定见上文 |
+| 6 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ EB5 ✔ | 36 s。三个候选 seam，推荐 `syncInvoices`；`getJson` 与新 helper 写了 catches/misses，推荐项只写 catches 与前提；Q1「Shall we use the `syncInvoices` seam…?」推荐即 yes |
+| 7 | gpt-6.1-sol medium | 无（复用） | False | EB1–EB4 ✔ EB5 ◐ EB6 ✔ | 判定见上文 |
+| 7 | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ◐ EB6 ✔ | 81 s。未读 skill（与上文一致），结果属模型波动：把旧实现会失败写成事实而非静态预测 |
+| 8 | gpt-6.1-sol medium | 无（复用） | False | EB1 ✔ EB2 ✔ EB3 ✘ EB4–EB6 ✔ | 判定见上文 |
+| 8 | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ◐ EB4–EB6 ✔ | 86 s。仍未读 skill（评审类请求的路由，上文已记） |
+| 9 | gpt-6.1-sol medium | 无（复用） | False | EB1 ✔ EB2 ✘ EB3 ✘ EB4 ◐ | 判定见上文 |
+| 9 | gpt-6.1-sol medium | 有 | True | EB1–EB4 ✔ | 183 s。RED 为 `Missing expected exception: 5x`（断言失败，以 `import * as` 避免缺导出）；保留 `DurationError` 导出、只恢复原解析逻辑再次失败；恢复后 5/5 |
+| 10 | gpt-6.1-sol medium | 无（复用） | False | EB1 ✘ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ | 判定见上文 |
+| 10 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ | 147 s（首跑遇 provider 503，重跑）。`COMMITTEE_CODES.length` 对比导入的 `LIST_LIMIT`、名字带 #123、注释列两种解决办法；改 7 看到断言失败；先 `cp` 存了副本，但恢复是改回 10 而非从副本还原（未用 `git checkout`），记 ◐；ISSUE-123 标记关闭 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **True** | EB1 ✘ EB2 ✔ EB3 ✔ | 65 s。读完 `ci.yml` 与 setup-node README 后 `read skill://test-driven-development`（intent「Reading test-first guidance」），答案仍是纯 CI 配置（`cache: pnpm`），未施加 red-green。副本 `/tmp/hs-d2/D2G5/tdd-s4-r1`。重跑 4 次均因 provider 不可用失败，无第二个样本 |
+
+结论：改动相关行为（场景 6 的 seam 列举与 yes 措辞、场景 9 的定点反例、场景 10 的 tripwire）在有 skill 时达成，均优于基线。**负例未通过**：`skill_read == true`。路由只取决于 `description`，而今天的提交没有改 description（仍是 2026-09-12 压缩后的单句「Drives implementation and bug fixes through test-first red-green-refactor cycles.」，不再含 CI/缓存的否定边界；`## Scope` 正文里的排除项要读入后才生效），所以这不是本轮正文改动造成的回退；按简报「只改有证据的问题」，正文无可修，未改。
+
+遗留：负例需走「本地 description 维护」流程（同模型同条件对照新旧描述的路由结果，含保留样本）后决定是否在 description 加回否定边界，并在 provider 恢复后补跑场景 4 第二个样本；场景 7、8 有 skill 不读 skill 的问题上文已记。
