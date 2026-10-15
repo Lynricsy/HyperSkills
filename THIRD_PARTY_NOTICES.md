@@ -647,9 +647,9 @@ Reference-only sources (no content copied):
 
 This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
 
-- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 56037efc04d0ffd20a0a85b18894115df74bd70f — paths: skills/systemd/SKILL.md — Contributes the service lifecycle and unit-hardening organization, rewritten in SKILL.md and references/service-privileges-and-limits.md with explicit activation and recovery gates.
-- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 56037efc04d0ffd20a0a85b18894115df74bd70f — paths: skills/ssh/SKILL.md — Contributes SSH identity, port, jump-path and forwarding distinctions rewritten in references/network-and-remote-changes.md.
-- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 56037efc04d0ffd20a0a85b18894115df74bd70f — paths: skills/rsync/SKILL.md — Contributes trailing-slash and deletion-preview guidance rewritten in references/backup-and-restore.md with metadata and consistent-cutover constraints.
+- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 6edcf94159d9f46b0759d2e1b59dd545cfaca254 — paths: skills/systemd/SKILL.md — Contributes the service lifecycle and unit-hardening organization, rewritten in SKILL.md and references/service-privileges-and-limits.md with explicit activation and recovery gates.
+- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 6edcf94159d9f46b0759d2e1b59dd545cfaca254 — paths: skills/ssh/SKILL.md — Contributes SSH identity, port, jump-path and forwarding distinctions rewritten in references/network-and-remote-changes.md.
+- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 6edcf94159d9f46b0759d2e1b59dd545cfaca254 — paths: skills/rsync/SKILL.md — Contributes trailing-slash and deletion-preview guidance rewritten in references/backup-and-restore.md with metadata and consistent-cutover constraints.
 
 Reference-only sources (no content copied):
 

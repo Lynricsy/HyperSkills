@@ -1,5 +1,5 @@
 skill: linux-ops
-version: "2026.09.12"
+version: "2026.10.15"
 upstreams:
   - id: terminal-systemd
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/systemd/SKILL.md]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 6edcf94159d9f46b0759d2e1b59dd545cfaca254
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Contributes the service lifecycle and unit-hardening organization, rewritten in SKILL.md and references/service-privileges-and-limits.md with explicit activation and recovery gates."
     notes: "One of three distinct skills read from the same repository, not three independent teams; the universal Restart=always recommendation is rejected."
   - id: terminal-ssh
@@ -19,10 +19,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/ssh/SKILL.md]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 6edcf94159d9f46b0759d2e1b59dd545cfaca254
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Contributes SSH identity, port, jump-path and forwarding distinctions rewritten in references/network-and-remote-changes.md."
     notes: "Unconditional password disabling and key-algorithm superiority claims are not adopted."
   - id: terminal-rsync
@@ -31,10 +31,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/rsync/SKILL.md]
     ref: main
-    commit: 56037efc04d0ffd20a0a85b18894115df74bd70f
+    commit: 6edcf94159d9f46b0759d2e1b59dd545cfaca254
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Contributes trailing-slash and deletion-preview guidance rewritten in references/backup-and-restore.md with metadata and consistent-cutover constraints."
     notes: "The upstream deployment script and its unchecked failure paths are not copied."
   - id: systemd-exec
@@ -115,9 +115,9 @@ upstreams:
     url: https://github.com/restic/restic
     paths: [doc/045_working_with_repos.rst, doc/050_restore.rst]
     ref: master
-    commit: ba802d42b7294c98b62c16d1157ea3e80820c019
+    commit: 9da3b87b07706956e8dc5fd5cb259b99ec940f51
     license: BSD-2-Clause
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Checks structural versus payload verification, snapshot selection, restore scope, overwrites and metadata behavior in references/backup-and-restore.md."
     notes: "Both documentation files read at the resolved branch HEAD through authenticated gh api; repository LICENSE metadata inspected."

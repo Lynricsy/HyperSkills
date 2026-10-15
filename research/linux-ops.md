@@ -270,3 +270,29 @@ D2“至少关闭一个基线缺口”的增益门未通过；不把更长方案
 冒充净提升。按用户获知基线后仍明确继续的决定交付完整skill，
 保留原场景和上面的附加缺陷，不再追加知识题迫使差异。
 每配置每场单次运行，不外推跨模型、重复运行稳定性或真实主机操作结果。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因清单：`terminal-systemd`、`terminal-ssh`、`terminal-rsync` 三条同仓库
+条目均报 `behind`（diff too large）；主代理按完整区间 blobless 归因，只有前两者 paths 下有提交（同一个 a021875，#551「full-catalog
+refresh」），`skills/rsync/SKILL.md` 无提交判噪声。用裸仓库缓存 `/tmp/hs-attr/TerminalSkills__skills` 读两份 SKILL.md 的完整 diff。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| terminal-systemd | 56037ef → 6edcf94（1 提交 a021875） | `skills/systemd/SKILL.md` +60/−38 整篇重写：示例单元改 `Type=exec`、`Restart=on-failure`、`After=/Wants=network-online.target` + `Requires=postgresql.service`、`EnvironmentFile` 移到 `/etc`、加 `PrivateTmp`；管理步骤加 `systemd-analyze verify`、`enable --now`、`systemctl edit` drop-in、`journalctl -p err/-b`、`--failed`；定时器加 `RandomizedDelaySec`、`systemd-analyze calendar`；指南改为「默认 `on-failure`，`always` 会在应用正常退出后也重启」并补 `StartLimitBurst`/`reset-failed`、`systemd-analyze security`、journal 持久化 | 无影响 |
+| terminal-ssh | 56037ef → 6edcf94（1 提交 a021875） | `skills/ssh/SKILL.md` +97/−54 整篇重写：OpenSSH 10.x 变化（DSA 移除、`mlkem768x25519-sha256` 默认、10.1 `WarnWeakCrypto`、scp/sftp 传 `ControlMaster no`）；`ssh-keygen -a 100`、`IdentitiesOnly`、`ControlMaster`/`ControlPersist`、`ssh -G`；隧道 `-N`/`-f` 与只监听回环、`GatewayPorts`；加固改写为 `sshd_config.d` drop-in，`sshd -t && sshd -T` 校验、`reload ssh`（RHEL 为 sshd）；示例讲 cloud-init `50-cloud-init.conf` 先读先赢、换主机密钥后带外核对指纹；指南「优先 ProxyJump 而非 `-A`」 | 无影响 |
+
+裁决理由（逐条对照本 skill 现有正文）：
+
+- systemd：上游这次把 `Restart=always` 一刀切改成 `on-failure` 优先，正好与本 skill 当初拒绝该建议的裁决（SOURCES notes）一致；
+  `Type=exec`（240+）已在 `references/service-privileges-and-limits.md`。其余是命令清单与示例重写，模型已会，本 skill 按标准不收录命令速查。
+- ssh：本 skill 的 SSH 内容是「改远程访问前的验证与回滚」流程：`sshd -t`、带 `-C user=…,addr=…` 的 `sshd -T`（含 Match 的有效配置）、
+  不假设 unit 名为 sshd.service、关闭多路复用后新开 TCP 连接验证、主机密钥变化带外核对、不开 agent 转发。上游新增的
+  「`sshd_config.d` 先读先赢、cloud-init 覆盖 `PasswordAuthentication`」正是 `sshd -T` 有效配置检查要抓的情形，现有门已覆盖；
+  OpenSSH 10.x 密钥交换/DSA 变化与本 skill 范围（主机变更安全）无关，`WarnWeakCrypto` 提示属客户端告警。均与正文不冲突，不构成事实更正；
+  无新增行为规则需要评测。
+
+`--pin` 同时对齐 `terminal-rsync`（同 commit）与 `restic-docs`（ba802d4 → 9da3b87，报告为 `repo moved, tracked paths unchanged`）；
+`pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+结论：正文未变，未跑 D2；仅 re-pin 与版本号改为 2026.10.15。

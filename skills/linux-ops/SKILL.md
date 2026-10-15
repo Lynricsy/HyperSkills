@@ -4,7 +4,7 @@ description: "Operates Linux hosts with systemd, permissions, networking, storag
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.12"
+  version: "2026.10.15"
   category: platform
 ---
 
