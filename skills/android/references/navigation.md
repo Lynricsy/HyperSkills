@@ -73,8 +73,12 @@ Consequences of "the back stack is just a list":
 - Use `rememberNavBackStack` (not a bare `mutableStateListOf`) so the stack is saved and
   restored across configuration change and process death; keys must be `@Serializable`
   and implement `NavKey`.
-- Each entry gets its own scope, so a `ViewModel` scoped to an entry is retained while the
-  entry stays on the stack.
+- Entry-scoped `ViewModel`s need `rememberViewModelStoreNavEntryDecorator()` (artifact
+  `androidx.lifecycle:lifecycle-viewmodel-navigation3`) in `entryDecorators`. `NavDisplay`'s
+  default list holds only `rememberSaveableStateHolderNavEntryDecorator()`, so without it
+  `viewModel()` inside an entry resolves to the Activity's store and outlives the entry.
+  Passing your own list replaces the default — keep the saveable-state decorator in it,
+  and give every back stack (one per tab) the same pair.
 - Multiple back stacks (bottom-bar tabs) are multiple lists plus a selector, not a
   framework feature.
 - Adaptive layouts are **scene strategies**: a scene can read more than one entry from the

@@ -68,8 +68,14 @@ Strong skipping is the default from Kotlin **2.0.20**. It does two things:
 
 The common misreading is "stability no longer matters". It does, for a concrete reason:
 `===` on a freshly allocated `List` is always false, so a composable taking
-`List<Article>` that is rebuilt by `map` upstream never skips. Strong skipping made
-skipping *possible* everywhere; stable types are what make it *happen*.
+`List<Article>` that is rebuilt by `map` upstream never skips. The opposite misreading is
+just as costly: "make it stable" is not free. A stable parameter is compared with
+`equals` on every recomposition, so `ImmutableList`, `@Immutable` or a stability-config
+entry on a model that holds a large collection turns the O(1) identity check into an O(N)
+walk — per card, per emission — which can cost more than the recomposition it avoids.
+Skipping itself is not free either: every parameter is stored and compared. Fix the
+allocation instead: emit the same instance when nothing changed, and keep composables
+cheap rather than forcing them to skip.
 
 Escape hatches, both rare:
 
@@ -125,12 +131,12 @@ because the algorithm bails on cycles; `@Immutable` on the class short-circuits 
 | Cause | Fix |
 |---|---|
 | `var` property | make it `val`; model change as a new instance |
-| `List`/`Set`/`Map` field or parameter | `kotlinx.collections.immutable` `ImmutableList` etc., or `@Immutable` on a type you can guarantee |
-| Java or third-party type you cannot edit | add its fully-qualified name to a stability configuration file and wire it with `composeCompiler { stabilityConfigurationFiles.add(...) }` |
+| `List`/`Set`/`Map` field or parameter | keep the read-only `List` and stop re-allocating it upstream when nothing changed, so `===` succeeds; do **not** default to `ImmutableList` or `@Immutable` — a stable collection is compared with `equals`, O(N) per recomposition |
+| Java or third-party type you cannot edit | add its fully-qualified name to a stability configuration file and wire it with `composeCompiler { stabilityConfigurationFiles.add(...) }` — for small, flat types with a cheap `equals`, never for collections |
 | `Flow<T>` parameter | remove it; collect in the caller with `collectAsStateWithLifecycle()` and pass the value |
 | Interface-typed parameter | narrow to the concrete stable type where you can |
 
-Two things that look like fixes and are not:
+Three things that look like fixes and are not:
 
 - Wrapping the call site in `Row`/`Column`/`Box`. Those are **inline** composables: they
   are not restartable or skippable to begin with, so the wrap creates a new restart scope
@@ -138,6 +144,11 @@ Two things that look like fixes and are not:
 - Annotating `@Stable` on a class that still mutates. That is a broken contract, and the
   symptom is a missing recomposition — a correctness bug, worse than the slow frame it was
   meant to remove.
+- `ImmutableList` or `@Immutable` on a model that feeds a lazy list with large or nested
+  collections. Leave such annotations where the collections are small and bounded, but in
+  a large feed remove them: the deep `equals` runs for every item on every emission.
+  `@Stable`/`@Immutable` earn their place on small, flat models without collections whose
+  source (Room, a reducer) allocates new instances for unchanged items.
 
 Prefer `@Immutable` over `@Stable` when the type genuinely never changes: `@Stable` only
 promises change notification, `@Immutable` additionally lets the compiler promote property

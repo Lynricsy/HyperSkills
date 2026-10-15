@@ -326,3 +326,55 @@ D2 判定：场景 6 的缺口是「有 skill 时被旧规则 16 带回旧 DSL�
 
 - 改后正文只有 1 次干净且读到 skill 的运行（r12）；该场景下模型读 skill 的比例很低（改后 11 次里 2 次，其中 1 次读到了 evals 被作废），E5 未满分。
 - 「9.3.1 仍接受旁置 `proguardFiles`」只在 9.3.1 实测，官方文档措辞为 must；未来版本可能收紧。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`，两条
+`behind`：android-official、meetmiyani-compose。归因方法：android/skills 用 blobless 裸克隆
+（`/tmp/hs-up-SyncG3/android__skills`）对 `42dc227..5bda39f` 跑 `git log`/`git diff --stat`/`git diff -- <paths>`（区间 5 个提交，
+命中 paths 的是 83f4f20、ac598b6，另外 3 个是插件版本号与 Claude 插件清单）；Meet-Miyani/compose-skill 用主代理缓存的
+裸仓库 `/tmp/hs-attr/Meet-Miyani__compose-skill`。`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`；meetmiyani 的 paths
+迁移后重跑仍为 CLEAN，`check_upstream.py android` 报 `up to date (f60bf88)`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| android-official | 42dc227 → 5bda39f（2 个内容提交：83f4f20、ac598b6） | **新增 `jetpack-compose/jetpack-compose-performance/`**（SKILL.md + 7 篇参考，含 `strongskipping.md`、`backwards-write.md`、`custom-modifiers.md` 文档镜像）：「Skipping isn't free」，强跳过下不稳定参数按 `===` 比较、稳定参数按 `equals` 比较，**禁止为含集合的模型加 `@Stable`/`@Immutable`、禁止把 `List<T>` 换成 `ImmutableList<T>` 或写进 `stability_config.txt`**，大数据量懒列表里已有的注解应移除；另有 `computedStateOf`（Compose 1.13+）、backwards write、`Modifier.Node` 迁移等 | **更正（官方 > 社区、更新 > 更旧）**：本 skill 4 处沿用 skydoves 的「用 `ImmutableList`/`@Immutable` 修不稳定集合」——SKILL.md 规则 9 与输出示例、`compose-performance.md` 修复表、`architecture.md` UI 状态示例与要点。按官方改写，并跑场景 7 验证（见下）。`computedStateOf` 依赖仍为 beta 的 Compose 1.13，属新增内容，未合入 |
+| 同上 | 同上 | `navigation-3/recipes/multiple-backstacks.md` 给每个返回栈补 `rememberViewModelStoreNavEntryDecorator()`；`bottomsheet.md` 改用 `OverlayScene.onRemove()` 播放收起动画 | **事实更正**：`navigation.md` 写「每个 entry 有自己的作用域，entry 级 ViewModel 随 entry 存活」，读起来是默认行为。用 androidx 源码核实：`navigation3-ui` `NavDisplay.kt` 两个重载的 `entryDecorators` 默认值都只有 `rememberSaveableStateHolderNavEntryDecorator()`；ViewModel 装饰器在独立制品 `lifecycle/lifecycle-viewmodel-navigation3`。已改为「需显式加装饰器；自定义列表会替换默认值，须保留保存状态装饰器；每个返回栈同一组」。bottom sheet 收起动画为新增细节，未合入 |
+| 同上 | 同上 | `testing-setup` 的 `common-patterns.md` 新增 `TestFailurePolicy`/`TestFailureHandler`（失败时自动截图与层级）；`adaptive` 改链到 AGP test suites 截图测试文档、删 Layout Inspector 文档镜像、FlexBox/Grid 去掉 experimental 注记（Compose 1.13.0-beta01） | 不合入：失败产物抓取是可选新能力，无对应默认失败模式；截图 test suites 在 2026-09-29 已判定基线会；本 skill 不写 FlexBox/Grid |
+| 同上 | 同上 | `profilers/android-profiler`：description 重写、hints 目录扁平化、`triage.md` 改为章节式并建议常驻 `trace_processor server`、`sql.md` 大改 | 噪声：分诊顺序（数据完整性 → 系统指标 → 症状窗口并向上游扩展）未变，本 skill 只取这一条 |
+| 同上 | 同上 | `navigation-event` 括号笔误；`testing-setup` 链接；各 SKILL.md `last-updated` | 噪声 |
+| meetmiyani-compose | 982c240 → f60bf88（命中 paths 1 提交：afb7d9e「Compose Kit v6.0.0-preview.1」） | 单一根 skill 拆成 `skills/` 下 7 个 skill，根 `SKILL.md`、`references/cross-platform.md`、`anti-patterns.md` 删除 | **路径迁移**：本 skill 取的两条规则仍在——「项目已有连贯模式（Hilt/MVVM/Nav2）就沿用、迁移另立任务」在 `skills/compose-architecture/references/existing-projects.md`，「声称 commonMain 前先确认 multiplatform 制品（如 `-iosarm64`）存在」在 `skills/compose-platform/references/sharing-and-bridges.md` 规则 5。paths 改为这两个文件并在 notes 说明；LICENSE 仍为 MIT。新增内容（Koin、MVI 模板、guard 脚本）属其自有工具链，未用 |
+
+### 稳定性更正的依据
+
+- 官方：android/skills `jetpack-compose-performance` 第 1 节与 `references/state-and-stability.md` §4（2026-10-13），以及随附的 developer.android.com 强跳过文档镜像（不稳定参数 `===`、稳定参数 `Object.equals()`；「需要对象相等时才继续标 `@Stable`」，例子是 Room 为未变项重新分配对象）。
+- 与 skydoves 的冲突按 Phase B 裁决：官方 > 公认专家，且官方更新。保留 skydoves 的正确部分（`===` 下重新分配的 `List` 无法跳过、注解是契约），只改「修法」：不再默认换 `ImmutableList`/加 `@Immutable`，改为上游保持实例不变；小而扁平、无集合、来源会重新分配的模型仍可加注解。
+
+### 评测（omp + `openai/gpt-6.1-sol`，thinking `medium`）
+
+新增场景 7（夹具 `evals/files/FeedScreen.kt`）：约 3000 条帖子的首页，每条带 50–400 条评论，ViewModel 每次发射都 `toList()`
+复制并重建全部 `PostUi`；编译报告称 `tags`/`comments` 不稳定，要求「让卡片正确跳过」。场景 1 的 EB1 同步放宽为「`val` +
+只读集合整体替换即可，不要求 `ImmutableList`」。
+
+| 场景 | 模式 | skill_read | 结果 | 证据摘录 |
+|---|---|---|---|---|
+| 7 | 基线 | false | E1 ✘ E2 ✘ E3 ✔ E4 ✘ | 加 `kotlinx-collections-immutable`，`FeedUiState.posts: ImmutableList<PostUi>`、`PostUi` 标 `@Immutable` 且 `tags: ImmutableList<String>`；靠「新 `PostUi` 与旧的 equals 相等」跳过，没有保持实例；评论只取前两条以避免大集合比较（未说明 equals 代价）；只说未做编译报告验证，没给 release 构建核验 |
+| 7 | 有 skill（改后正文） | **true** | E1 ◐ E2 ✔ E3 ✔ E4 ✔ | 开头即「把含大集合的模型标 `@Immutable` 不是修法」，删除冗余 `PostUi`，`copy(likeCount=…)` 保留未变集合引用、未变帖子原样返回，指出「若 `observePosts()` 每次重建嵌套列表，屏幕侧无法保证跳过，须修生产者」；`items(key = { it.id })` 并解释插入/重排身份；「在 release 构建里核对跳过次数与帧时间」。E1 记 ◐：未明说 `equals` 是 O(N) |
+| 1 | 有 skill（改后正文，回归） | true | EB1 ✔ EB2 ✘ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ EB7 ✘ | EB1：去掉 `@Immutable`，`val readCount`、`tags: List<String>`，`_articles.update { … copy(…) }` 并指出 `StateFlow` 因相等而不发射；EB2 未提强跳过的 `===`，EB7 明确「保留原 padding/background 语义」未指出点击区问题。两条缺失与本次改动的稳定性措辞无关 |
+
+读取核查：场景 7 有 skill 运行只读了 `skill://android`、`references/compose-performance.md` 与夹具，没有读到 `evals/`。
+D2 判定：场景 7 基线未达成的 E1、E2、E4 在有 skill 时达成（E1 部分达成）。负例（场景 4）未改 description / Scope，未重跑。
+输出目录：`/tmp/hs-evals-sync/SyncG3/android-b7`（基线）、`android-s7`、`android-s1`（有 skill）。
+
+### 正文改动
+
+- `SKILL.md` 规则 9 改写（`===` / `equals` 两种比较，禁止用 `ImmutableList`/`@Immutable` 包大集合）；输出示例的 after 改为去掉注解、`List<String>`。
+- `references/compose-performance.md`：「Stability」段补反向误读；修复表的集合行与第三方类型行改写；「看起来像修复其实不是」增第三条。
+- `references/architecture.md`：UI 状态示例改回 `List`，要点改为「只读、整体替换、未变不重分配」。
+- `references/navigation.md`：entry 级 ViewModel 需要 `rememberViewModelStoreNavEntryDecorator()`。
+- `SOURCES.yaml`：android-official `contributes`、skydoves `notes`、meetmiyani `paths`/`notes`；re-pin；版本号 `2026.10.15`。
+
+### 遗留风险
+
+- 场景 7 只有 1 次有 skill 运行；场景 1 回归的 EB2/EB7 未达成，原因不在本次改动，未继续调。
+- `computedStateOf` 等待 Compose 1.13 稳定后再评估。

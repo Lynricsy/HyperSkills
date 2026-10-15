@@ -4,7 +4,7 @@ description: "Develops native Android apps with Kotlin, Jetpack Compose and Grad
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: platform
 ---
 
@@ -53,9 +53,11 @@ Paths below are relative to this skill's directory.
    `Dispatchers.IO` inside a class — a hardcoded dispatcher cannot be replaced in a test.
 8. Keep domain and model modules pure Kotlin with no `android.*` import. That is what
    makes them unit-testable off-device and reusable from `commonMain`.
-9. Strong skipping (Kotlin 2.0.20+) makes every restartable composable skippable, but
-   unstable parameters are compared with `===`, so a freshly allocated `List` still fails
-   the skip. Stability work is not obsolete; it changed shape.
+9. Strong skipping (Kotlin 2.0.20+) makes every restartable composable skippable: unstable
+   parameters are compared with `===`, stable ones with `equals`. A freshly allocated
+   `List` still fails the skip, so stop re-allocating unchanged data upstream. Do not
+   "fix" it with `ImmutableList` or `@Immutable` on a model holding a large collection —
+   that swaps an O(1) identity check for an O(N) `equals` on every recomposition.
 10. `@Stable` and `@Immutable` are contracts, not hints. On a class holding a `var` or a
     mutable collection they cause silently missed recompositions — a correctness bug, not
     a slow frame.
@@ -243,7 +245,7 @@ feature/news/src/main/kotlin/.../NewsScreen.kt
   L48 blocking - @Immutable on Article, which holds `var readCount` and a MutableList.
        The contract is broken, so edits are not recomposed.
        before: @Immutable data class Article(..., var readCount: Int, val tags: MutableList<String>)
-       after:  @Immutable data class Article(..., val readCount: Int, val tags: ImmutableList<String>)
+       after:  data class Article(..., val readCount: Int, val tags: List<String>)
   L71 important - items(articles) has no key; insert/remove discards composition state
        and scroll position. Use items(articles, key = { it.id }).
   L96 minor - .clickable before .padding makes the 16dp margin tappable.

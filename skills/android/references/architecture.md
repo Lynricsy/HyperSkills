@@ -38,7 +38,7 @@ Expose exactly one state object per screen, immutable and compared by value:
 
 ```kotlin
 data class NewsUiState(
-    val articles: ImmutableList<Article> = persistentListOf(),
+    val articles: List<Article> = emptyList(),
     val isRefreshing: Boolean = false,
     val userMessage: String? = null,
 )
@@ -46,7 +46,7 @@ data class NewsUiState(
 class NewsViewModel(private val repo: NewsRepository) : ViewModel() {
     val uiState: StateFlow<NewsUiState> = /* … */
         repo.observeArticles()
-            .map { NewsUiState(articles = it.toImmutableList()) }
+            .map { NewsUiState(articles = it) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NewsUiState())
 }
 ```
@@ -59,8 +59,10 @@ class NewsViewModel(private val repo: NewsRepository) : ViewModel() {
   stable from Kotlin 2.4).
 - Update with `update { it.copy(...) }` rather than read-modify-write on `.value`, which
   loses concurrent updates.
-- Keep collections inside the state stable (`ImmutableList`) so the composables reading
-  them can actually skip.
+- Keep collections read-only and replace them rather than mutate them, and do not
+  re-allocate them when nothing changed: under strong skipping an unchanged instance skips
+  on `===`. Wrapping a large list in `ImmutableList` or annotating its holder `@Immutable`
+  swaps that O(1) check for an O(N) `equals` (see `compose-performance.md`).
 
 ## ViewModel-originated actions
 

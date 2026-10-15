@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin android
 skill: android
-version: "2026.09.30"
+version: "2026.10.15"
 upstreams:
   - id: android-official
     kind: repo
@@ -17,11 +17,11 @@ upstreams:
       - system/edge-to-edge
       - security/android-intent-security
     ref: main
-    commit: 42dc2270e96032bd860bb94511e440aa00a43125
+    commit: 5bda39f154fb859a08d45e2392f3568e049f83fb
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
-    contributes: "AGP 9 migration sequence (built-in Kotlin, kapt to KSP or legacy-kapt, BuildConfig, new DSL and variant API, default-flag flips), testing strategy and source-set placement, R8 keep-rule discipline, edge-to-edge and window insets, Intent and exported-component security, Navigation 3 and type-safe destinations (including the 1.2 result event bus and its process-death caveat, and deep-link matchers), incremental XML-to-Compose migration, adaptive layout, Perfetto triage order."
+    synced_at: "2026-10-15"
+    contributes: "AGP 9 migration sequence (built-in Kotlin, kapt to KSP or legacy-kapt, BuildConfig, new DSL and variant API, default-flag flips), testing strategy and source-set placement, R8 keep-rule discipline, edge-to-edge and window insets, Intent and exported-component security, Navigation 3 and type-safe destinations (including the 1.2 result event bus and its process-death caveat, deep-link matchers, and the ViewModelStore entry decorator that entry-scoped ViewModels need), incremental XML-to-Compose migration, adaptive layout, Perfetto triage order. Its 2026-10 jetpack-compose-performance skill is the source of the stability-cost ruling: a stable parameter is compared with equals, so ImmutableList or @Immutable on a model holding a large collection is not a default fix."
     notes: "Every SKILL.md here declares `license: Complete terms in LICENSE.txt`. The repository tree contains exactly one licence file, the root LICENSE.txt, which is the full Apache License 2.0; each referenced directory was checked and none carries its own licence, so all of them are merged under Apache-2.0. Upstream frontmatter fields metadata.last-updated and metadata.keywords were stripped."
   - id: skydoves-compose-perf
     kind: repo
@@ -40,9 +40,9 @@ upstreams:
     commit: 1b32f81724c0d71fe9ef093ca44697f559fdab6e
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Three-phase model and deferring state reads into lambda modifiers, stability inference and what strong skipping actually changed, compiler-report reading, lazy-layout key and contentType rules, modifier-order semantics, derivedStateOf versus snapshotFlow, release-only measurement, Baseline Profile plus Macrobenchmark workflow, Compose-specific R8 configuration."
-    notes: "The hot-reload and IDE-plugin directories were deliberately not used: they are tool surfaces rather than platform rules."
+    notes: "The hot-reload and IDE-plugin directories were deliberately not used: they are tool surfaces rather than platform rules. Its advice to fix unstable List parameters with kotlinx ImmutableList was overruled on 2026-10-15 by android/skills jetpack-compose-performance (official, newer), which forbids that for large collections; see research/android.md."
   - id: aldefy-compose
     kind: repo
     repo: aldefy/compose-skill
@@ -52,7 +52,7 @@ upstreams:
     commit: 954ef54ea32288fbc90745f012d09d7b791f0d8a
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Side-effect API selection table and effect-key discipline, CompositionLocal boundaries, View-to-Compose and Compose-to-View interop rules, the catalogue of superseded Compose patterns, composable API naming and slot design."
     notes: "The GitHub API reports NOASSERTION; the LICENSE file is MIT, with an appended note that references/source-code/ excerpts are Apache-2.0 material from androidx/androidx. No source excerpts were used. Its styles-experimental.md was not adopted because the Compose Styles API is still alpha."
   - id: silvermoon-android
@@ -64,7 +64,7 @@ upstreams:
     commit: 82900eacc8dbe13de93c6310af27b9df4b2bd2f6
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Layered architecture and data-layer single-source-of-truth rules, UI-state modelling and explicit backing fields, coroutine scope, dispatcher-injection and lifecycle-aware collection rules, RxJava-to-coroutines mapping, Gradle build-speed checklist, accessibility checks."
     notes: "Its android-viewmodel skill recommends SharedFlow for one-off ViewModel events; that was overruled by developer.android.com's UI-events guidance, which requires such actions to become UI state. See research/android.md ruling 1."
   - id: drjacky-ninja
@@ -76,7 +76,7 @@ upstreams:
     commit: 5d40f862493a5e43daffa2cfaf5619a013b8f114
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "build-logic convention-plugin layout and one-concern-per-plugin structure, version-catalog organisation with bundles and BOMs, multi-module layout, and the brownfield-first rule of reading settings.gradle.kts plus the version catalog before changing a build. Its 2026-09-29 switch of the template to the AGP 9.3 optimization { } DSL with src/main/keepRules/*.keep was the cue for the version-aware shrinking rule; the facts themselves were taken from developer.android.com."
     notes: "Only the structure was taken. The version pins inside assets/libs.versions.toml.template were deliberately not copied, since pinned versions rot."
   - id: jetbrains-kotlin
@@ -91,7 +91,7 @@ upstreams:
     commit: c2f90697bf71966a117a13340d5fff787f004140
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The Kotlin Multiplatform branch of AGP 9 migration (com.android.kotlin.multiplatform.library, splitting the Android application into its own subproject, no kapt), and Java-to-Kotlin conversion discipline including preserving file history across the rename."
     notes: "kotlin-backend-jpa-entity-mapping is server-side Kotlin and falls outside this skill's scope; the CocoaPods-to-SPM skill was read only to keep the KMP section from straying into Xcode integration."
   - id: mmiani-kmp
@@ -103,21 +103,21 @@ upstreams:
     commit: 939786cb13b49daacea7d5fb0a10877b6005e6be
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The source-set placement ladder (highest valid source set, then intermediate source sets, then injected interfaces, and only then expect/actual), rules against leaking platform types into shared logic, and the Compose Multiplatform versus Android-only AndroidX boundary."
     notes: "The GitHub API reports NOASSERTION; the LICENSE file is the full Apache License 2.0 text with a modified header. The upstream frontmatter field allowed-tools was stripped."
   - id: meetmiyani-compose
     kind: repo
     repo: Meet-Miyani/compose-skill
     url: https://github.com/Meet-Miyani/compose-skill
-    paths: [SKILL.md, references/cross-platform.md, references/anti-patterns.md]
+    paths: [skills/compose-architecture/references/existing-projects.md, skills/compose-platform/references/sharing-and-bridges.md]
     ref: main
-    commit: 982c240e47718b3b0525c5bbe85bf19ff0bb7bec
+    commit: f60bf889aa0fb8a579ede3fb315d0613bbf39de8
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Two cross-cutting rules: adapt to a project's existing conventions instead of forcing a migration, and verify that an AndroidX artifact actually publishes multiplatform variants before adding it to commonMain."
-    notes: "Its library-specific references (Ktor, Paging, DataStore) were out of scope. Its description requires explicit user invocation, an agent-binding pattern this repository forbids, so it was not used as a model for triggering."
+    notes: "v6.0.0 (2026-10-01) split the single root skill into seven skills under skills/; the root SKILL.md and references/cross-platform.md and anti-patterns.md were removed, so paths now track the two files where the adopted rules live (existing-projects.md for following a coherent existing pattern, sharing-and-bridges.md rule 5 for confirming multiplatform artifacts). Its library-specific references (Ktor, Paging, DataStore) were out of scope. The pre-v6 description required explicit user invocation, an agent-binding pattern this repository forbids, so it was not used as a model for triggering."
   - id: maxrave-footguns
     kind: repo
     repo: maxrave-dev/kotlin-footguns
@@ -127,7 +127,7 @@ upstreams:
     commit: f5f0b495113c54fe8451d88528610442bef15554
     license: GPL-3.0
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Coverage self-check only: its topic catalogue (224 traps, grouped into nine area skills since v2.0.0) was compared against this skill's sections to find gaps."
     notes: "GPL-3.0, so it cannot be merged under this repository's licence policy. No text, script or data file was copied; only the topic list was read, and its Android-relevant topics were already covered by the merged upstreams. v2.0.0 regenerated CATALOG.md as an index over the area skills; the trap names are identical to the pre-v2 list apart from the new footgun-scan tool skill."
   - id: android-docs
