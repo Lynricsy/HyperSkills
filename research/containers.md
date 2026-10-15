@@ -777,3 +777,40 @@ blobless 归因 paths 下无提交，判噪声。compose-spec 与三条 NVIDIA �
 | nvidia-cuda-docs | 13.x ≥580、12.x ≥525（<580）、11.x ≥450（<525）、10.x 无小版本兼容；PTX 在旧驱动不可用；前向兼容仅数据中心 GPU / 部分 RTX / Jetson，需自行配置 `LD_LIBRARY_PATH`；错误码 803/804；compat 包不支持 OpenGL/Vulkan 互操作 | https://docs.nvidia.com/deploy/cuda-compatibility/latest/minor-version-compatibility.html 、/forward-compatibility.html （Last updated 2026-09-09） | 一致（旧 url 重定向到 `/latest/`，未改） |
 
 处理：上述五处更正；`docker-docs` 的 `contributes` 写明 min/max 差异与镜像存储前提，`helm-docs` notes 更新版本与 Helm 3 时间线；`synced_at` 5 条更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`beaf557`（build-arg 泄漏途径改为「构建记录始终保存 + `mode=max` attestation」、多平台/attestation 的镜像存储前提、
+DRA 1.34 GA 与 1.35 门锁定、Helm 4 SSA 只是新 release 的默认；场景 1 前两条 expected_behavior 随之改写）；`623fb93` 与 `44b6da1`
+正文未变，只新增场景 7、8 与夹具。
+
+选场景：1（今天改过 expected_behavior，必选，直接考察 build-arg 更正）；7、8（今天新增，必选，均为哨兵）；镜像存储、DRA、Helm 4 三处更正
+没有场景覆盖，新增回归场景 9（`evals/files/platform-upgrade-plan.md`：新装 Engine 29 的 runner-a 能多平台构建、升级来的 runner-b 不能，
+计划据此断言默认 `docker` 驱动「永远不行」；1.34.4 GPU 集群按「DRA 仍是 beta」用 `v1beta2` 并开门；按「Helm 4 首次升级会把 140 个
+release 全部切到 SSA」安排两周冻结）。负例 5（Terraform `count`/`for_each`，`skills: []`）。旧场景 2–4、6 不涉及改动内容。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；新跑产物 `/tmp/hs-d2/D2G3/containers/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`。
+有 skill 一侧全部新跑（15:13–16:17，均晚于最后一次正文提交 `beaf557` 13:13）。
+
+复用说明：基线 8（`/tmp/hs-evals/containers/omp-openai-gpt-6.1-sol-medium/baseline/8`）的 query 与 expected_behavior 与当前逐字相同，
+三个夹具自创建提交 `44b6da1` 后未改（工作区差异是 agent 自己加的 `HOST` 与注释），按简报复用；按本节同一标准重判 EB3 为 ◐
+（两侧都只保留 `127.0.0.1:` 发布，没有明说两个 127.0.0.1 不是一回事；原记录为达成）。基线 1、7、9 新跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 Node 镜像瘦身与 NPM_TOKEN | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ◐ EB6 ◐ EB7 ◐ EB8 ✔ | 198 s。点名构建记录与 `mode=max` provenance 会保留 ARG，后续删 `.npmrc` 无用，但没给 `buildx history inspect`/`imagetools inspect` 检查；secret mount + `--secret id=npm_token,env=NPM_TOKEN`；先拷清单再装依赖、`.dockerignore`、slim 运行时只带 dist 与生产依赖、`USER 1000:1000`、exec 形式 `node dist/index.js` 都做了，但多数缺原因说明；钉到 `node:22.23.3-bookworm-slim` |
+| 1 | gpt-6.1-sol medium | 无（新跑） | false | EB1 ✘ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ◐ EB6 ◐ EB7 ◐ EB8 ✘ | 359 s。只说 build-arg「可能经构建元数据或缓存暴露」，没有构建记录/provenance 与检查方法；保留 `node:20-bookworm-slim` 浮动标签与 `CMD ["npm","start"]` |
+| 7 自建 runner 的 502 与残留 state lock | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3–EB6 ✔ | 226 s。`/var/run`→`/run` 别名遮住 socket、改 tmpfs 为 `/run`，未提在 web 内看挂载表；健康检查改走 PHP；124、shell PID 1 不转发、`--rm`、`compose ps` 不够用 `docker ps -a`；先找存活容器、信号发给 terraform 进程、确认无写者再 force-unlock；`exec terraform apply`，调大超时不是根因 |
+| 7 | gpt-6.1-sol medium | 无（新跑） | false | EB1 ✔ EB2 ◐ EB3–EB6 ✔ | 316 s。与有 skill 一侧要点相同，另引 Compose 5.6.0 源码说明默认 `ps` 隐藏 one-off |
+| 8 容器内只监听 127.0.0.1 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ | 85 s。compose 加 `HOST: 0.0.0.0`，保留 `127.0.0.1:3000:3000` |
+| 8 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ◐ | 88 s，`/tmp/hs-evals/.../baseline/8`，改动与有 skill 一侧几乎逐字相同 |
+| 9 Q4 平台升级计划 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ | 306 s。新装 29+ 默认 containerd 镜像存储、升级来的保留经典存储，runner-a 正常，runner-b 开 `containerd-snapshotter` 或用 `docker-container`；DRA 1.34 GA、默认开、直接用 `resource.k8s.io/v1`，未提 1.35 起门锁定；Helm 4 新 release 默认 SSA、Helm 3 release 升级仍为客户端应用，冻结理由不成立 |
+| 9 | gpt-6.1-sol medium | 无（新跑） | false | EB1–EB3 ✔ | 315 s。联网读到同一组官方页面与 Helm v4.3.1 源码，三处都答对，并提到 1.35 锁门 |
+| 5 负例 | gpt-6.1-sol medium | 有 | **false** | — | 152 s，按 Terraform `for_each` 作答，未读 containers |
+
+结论：build-arg 更正（场景 1 EB1）在有 skill 时按新口径点出构建记录与 `mode=max` attestation，基线没有；场景 1 整体 2✔6◐ 对 1✔5◐2✘。
+镜像存储、DRA、Helm 4 三处更正（场景 9）有 skill 2✔1◐，基线 3✔：有 skill 一侧的核心更正（1.34 GA、`v1`、无需开门）均已达成，只缺
+「1.35 起锁门」这一句，对 1.34.4 集群的处置没有影响，正文 `kubernetes-gpu.md` 已写，不属正文问题。哨兵 7、8 两侧持平。负例 skill_read 为 false。
+正文无需修改。
+
+遗留：场景 1 有 skill 一侧没给泄漏的检查命令，`SKILL.md` 规则 2/3 与 `image-security.md` 都写了，属模型在无 Docker daemon 的 VM 里的取舍；
+场景 9 基线已满分，三处更正模型联网即可查到，场景作回归哨兵。

@@ -117,5 +117,15 @@
       "Makes the server listen on all interfaces inside the container (HOST=0.0.0.0 in the compose environment or the default changed), not network_mode: host",
       "Keeps the host side restricted by leaving the publish as 127.0.0.1:3000:3000 rather than widening it to 3000:3000, and states that the two 127.0.0.1s are different (the container's loopback versus the host interface the port is published on)"
     ]
+  },
+  {
+    "skills": ["containers"],
+    "query": "platform-upgrade-plan.md is Jonas's Q4 plan for our build runners, the new GPU training cluster and the move to Helm 4. Review it before we commit to it: which parts are based on wrong assumptions, and what should we do instead?",
+    "files": ["evals/files/platform-upgrade-plan.md"],
+    "expected_behavior": [
+      "Explains the runner difference by the image store, not by accident: Docker Engine 29+ installs (and Docker Desktop) default to the containerd image store, with which the default `docker` driver builds multi-platform images and attestations, while an engine upgraded from an older version may still run classic storage; so runner-a is correct as is, and runner-b needs the containerd image store turned on (or a `docker-container` builder), rather than declaring the default driver incapable everywhere",
+      "Corrects the DRA premise: Dynamic Resource Allocation is GA (stable) since Kubernetes 1.34 with the `resource.k8s.io/v1` API enabled by default, so on 1.34.4 there is no feature gate to switch on and the manifests should use `v1`, not `v1beta2`; from 1.35 the gate is locked and an explicit setting is ignored",
+      "Corrects the Helm 4 premise: server-side apply is the default for releases created by Helm 4, while a release created by Helm 3 stays on client-side apply when Helm 4 upgrades it, so the 140 existing releases do not all switch on the first upgrade and the blanket two-week freeze is not needed for that reason; the SSA conflict work applies to new releases or an explicit switch"
+    ]
   }
 ]
