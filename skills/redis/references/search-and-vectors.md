@@ -104,9 +104,11 @@ Rule: if a human would not read the value as a sentence, it is a `TAG`. Escape `
 - `RETURN n f1 f2` restricts the reply to the fields you need; `NOCONTENT` returns ids only.
   Both matter: the default returns whole documents.
 - `SORTBY field [ASC|DESC]` needs the field to be `SORTABLE` to be cheap.
-- `DIALECT 2` is the default since Redis 8 and is required for vector query syntax. On older
-  servers pass it explicitly; a query written for dialect 2 silently parses differently under
-  dialect 1.
+- The default is still `DIALECT 1` on 8.x, even though Redis 8 deprecates dialects 1, 3 and 4:
+  8.10.2 reports `search-default-dialect 1`, and a KNN query sent without `DIALECT 2` fails
+  with `SEARCH_SYNTAX Syntax error` `[verified]`. Pass `DIALECT 2` on every query, or set
+  `CONFIG SET search-default-dialect 2` on the instance; a query written for dialect 2
+  silently parses differently under dialect 1.
 - `PARAMS 2 name value` plus `$name` in the query is how to pass a value — required for
   vectors (binary) and the right habit for user input generally.
 - Stop words are dropped from `TEXT` queries, so a search for a phrase made of stop words

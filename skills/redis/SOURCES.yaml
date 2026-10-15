@@ -55,8 +55,8 @@ upstreams:
     url: https://redis.io/docs/latest/
     license: CC-BY-NC-SA-4.0
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "Read to verify every fact that was not measured locally: each command's Available-since version and ACL category membership, the exact semantics of the eight maxmemory-policy values, the lazy-plus-active expiry algorithm, RDB save-point and AOF appendfsync durability windows, the Cluster specification's CRC16 slot mapping and hash-tag rule, MOVED and ASK redirection, Stream consumer-group delivery and XAUTOCLAIM, keyspace notification classes, WAIT semantics, and the Redis Query Engine field types and query dialects."
+    synced_at: "2026-10-15"
+    contributes: "Read to verify every fact that was not measured locally: each command's Available-since version and ACL category membership, the exact semantics of the maxmemory-policy values (ten from 8.6, which added allkeys-lrm and volatile-lrm), the lazy-plus-active expiry algorithm, RDB save-point and AOF appendfsync durability windows, the Cluster specification's CRC16 slot mapping and hash-tag rule, MOVED and ASK redirection, Stream consumer-group delivery and XAUTOCLAIM, keyspace notification classes, WAIT semantics, and the Redis Query Engine field types and query dialects (DIALECT 1 still the default on 8.x)."
     notes: "Licence checked by reading redis/docs LICENSE: the site and documentation are CC-BY-NC-SA-4.0 (NonCommercial), with only the portions inherited from the archived redis/redis-doc under CC-BY-SA-4.0. NonCommercial is not an open-source licence, so under docs/skill-standard.md section 9 this cannot be a merged source: it is used for verification only, no wording, table or list structure was copied, and every rule here is stated in this skill's own terms or from local measurement. This is the exception to the usual rule that official documentation is merged."
   - id: redis-oss
     kind: repo

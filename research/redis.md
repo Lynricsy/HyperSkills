@@ -450,3 +450,19 @@ D1：`validate_skills` / `build_catalog --check` 通过；`npx skills@latest add
 `pin_check.py` 输出 `PIN CHECK CLEAN`。
 
 结论：正文未变，未跑 D2；仅 re-pin 与版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| redis-io-docs | 当前稳定版 8.10（8.10.2），8.8/8.6/8.4/8.2/7.4/7.2/6.2 仍在维护 | redis.io [release notes](https://redis.io/docs/latest/operate/oss_and_stack/stack-with-enterprise/release-notes/) 指向 GitHub releases；`gh api repos/redis/redis/releases`：8.10.2 等 2026-09-17 发布，之后无新版 | 一致 |
+| redis-io-docs | 命令 since：`HEXPIRE` 7.4.0、`HGETEX`/`HGETDEL` 8.0.0、`FT.HYBRID` 8.4.0、`VADD` 8.0.0、`XAUTOCLAIM` 6.2.0（删除条目列表 7.0 起）、`CLUSTER SHARDS` 7.0.0；`VADD` 默认 int8 量化、`NOQUANT` 关闭 | [hexpire](https://redis.io/docs/latest/commands/hexpire/)、[hgetex](https://redis.io/docs/latest/commands/hgetex/)、[ft.hybrid](https://redis.io/docs/latest/commands/ft.hybrid/)、[vadd](https://redis.io/docs/latest/commands/vadd/)、[xautoclaim](https://redis.io/docs/latest/commands/xautoclaim/)、[cluster-shards](https://redis.io/docs/latest/commands/cluster-shards/) | 一致 |
+| redis-io-docs | `maxmemory-policy` 取值与 `volatile-*` 无 TTL 键时等同 `noeviction` | [Key eviction](https://redis.io/docs/latest/develop/reference/eviction/) | **已变化 → 更正**：官方现列 10 个策略，8.6 起新增 `allkeys-lrm`/`volatile-lrm`（最近最少*修改*，读不刷新时间戳）。实测 `redis:8.10.2-alpine` `CONFIG SET maxmemory-policy allkeys-lrm` 返回 `OK`，`redis:8.4-alpine`（8.4.6）拒绝并列出 8 个旧值；`gh api` 读 `redis.conf`：8.4.0 无 `lrm`，8.6.0 起有。`references/keyspace-and-expiry.md` 小节标题「the eight policies」改为「the eviction policies」（含目录锚点），表格补两行 `(8.6+)` 并写明实测；SOURCES `contributes` 同步。`volatile-*` 等同 `noeviction` 一致 |
+| redis-io-docs | 查询方言：正文称「`DIALECT 2` is the default since Redis 8」 | [Query dialects](https://redis.io/docs/latest/develop/ai/search-and-query/advanced-concepts/dialects/) | **错误 → 更正**：官方写明 Redis 8 弃用方言 1/3/4，但「DIALECT 1 remains the default」。实测 `redis:8.10.2`：`CONFIG GET search-default-dialect` → `1`，`FT.CONFIG GET DEFAULT_DIALECT` → `1`；KNN 查询不带 `DIALECT 2` 报 `SEARCH_SYNTAX Syntax error at offset 1 near >[`，带上或 `CONFIG SET search-default-dialect 2` 后正常返回。`references/search-and-vectors.md` 改为「8.x 默认仍是 1，每条查询传 `DIALECT 2` 或改实例默认值」 |
+| redis-io-docs | `HASH_SLOT = CRC16(key) mod 16384`、hash tag 规则 | [Cluster spec](https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/) | 一致 |
+| redis-io-docs | `appendfsync everysec` 约丢 1 秒；`latency-monitor-threshold` 默认 0（关闭）；`slowlog-*` 指令语义 | [Persistence](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/)、[Latency monitor](https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency-monitor/)、[SLOWLOG](https://redis.io/docs/latest/commands/slowlog/) | 一致（默认数值本就是 `[verified]` 实测） |
+| redis-io-docs | `tls-cluster yes` 为集群总线启用 TLS；`tls-expected-peer-name`、`cluster-bus-port-protected-mode` | [TLS](https://redis.io/docs/latest/operate/oss_and_stack/management/security/encryption/) | `tls-cluster` 一致；后两项 redis.io 尚未收录，正文依据为 8.10.2 实测与 `redis.conf`（8.10.2 第 251–321、1786–1797 行），不变 |
+
+新增的 LRM 策略属于对既有「策略清单」的事实更正（清单在 8.6+ 上不完整），未扩写选型规则，未新增 eval。`redis-io-docs` 的 `synced_at` 更新为 2026-10-15。
+
+注：`references/keyspace-and-expiry.md` 的 LRM 改动因本代理误写主工作区，最早已随 9e88465（rust 文档上游复核集成）落入 main；本提交内容与之相同，集成时该文件为空变更。
