@@ -118,7 +118,7 @@ upstreams:
     url: https://github.com/Lynricsy/HyperSkills
     paths: [docs/skill-standard.md, docs/workflow.md, tools]
     ref: main
-    commit: fc381f02be420f2910537eaf975f45a868edacc1
+    commit: f56f2ee08185447812e3e9871e733cdcaa5ccff7
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -153,7 +153,7 @@ upstreams:
     url: https://github.com/melodic-software/claude-code-plugins
     paths: [plugins/harness-ops/skills/audit-skill-visibility]
     ref: main
-    commit: f0d918572c261fe3451eebef8612e8f4de17f153
+    commit: 5810ed741afcad1d9990f9cc2c1125bd2d3c1ab7
     license: MIT
     relation: reference
     synced_at: "2026-10-15"

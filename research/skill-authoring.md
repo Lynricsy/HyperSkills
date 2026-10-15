@@ -510,3 +510,10 @@ docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 | codex-skills-docs | 初始列表预算 2% / 未知窗口 8,000 字符，先缩短描述、必要时省略并告警；`agents/openai.yaml` 的 interface / policy（`allow_implicit_invocation` 默认 true）/ dependencies；REPO/USER/ADMIN（`/etc/codex/skills`）/SYSTEM 范围 | https://learn.chatgpt.com/docs/build-skills | 数字与 schema 一致（官方示例另有 `icon_large`，正文示例为子集）。**更正**：仓库范围原文写「工作目录、其父目录与仓库根」，官方为「从工作目录到仓库根的每一级目录」，已改；同名技能不合并、在选择器中并列（补入冲突一节）；预算可经 `skills.max_context_tokens` 调整（上限 10,000 tokens），补入预算表 |
 
 正文改动：`references/spec-reference.md`（约束归属）、`references/client-extensions-and-paths.md`（Codex 发现路径与预算配置、Claude Code 保留名、Codex 同名不合并）；`SOURCES.yaml` 两条 contributes 同步。均为按官方页面更正既有陈述，不新增规则，未新增评测场景、未跑 D2。
+
+## 2026-10-15 上游同步（当日增量）
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| hyperskills-self | fc381f0 → f56f2ee（81 提交，compare 超限，本地 `git log -- docs/skill-standard.md docs/workflow.md tools` 归因） | 仅 4977859：`check_upstream` 处理 API 409、`docs/workflow.md` 状态表加 `EMPTY` | 上游检查工具自身的健壮性修复，不涉及 skill 写作规范，正文不动，仅 re-pin |
+| melodic-audit-skill-visibility | f0d9185 → 5810ed7（1 提交，3 文件） | 无（gh compare 文件列表不含 `plugins/harness-ops/skills/audit-skill-visibility`） | 仅 re-pin |
