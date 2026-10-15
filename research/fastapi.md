@@ -400,3 +400,17 @@ OpenTelemetry configuration fails」——`_runtime.lifespan` 把 `_configure_fr
 与 2026-09-30 的 deepseek 结果不同模型，不做对比。
 
 结论：正文按 0.142.2 与 0.143.0 两处行为变化更正；Asyncer 偏好对齐官方；模板条目为噪声。
+
+## 2026-10-15 文档上游复核
+
+范围：5 条 `kind: docs` 条目的 `contributes` 事实 + SKILL.md 与 references 中引用的版本、行为与配置名。当前版本：FastAPI 0.143.1（2026-10-14）、Starlette 1.8.0、Pydantic 2.14.1、httpx2 2.13.1、AnyIO 4.15.1、ruff 0.17.0、SQLModel 0.0.48。实跑均用 `uv run --no-project --with <pkg>==<ver>` 隔离环境。fastapi-docs 已在 2026-10-15 上游同步中核过原生 OpenTelemetry 部分，本次复读 0.141.1–0.143.1 发布说明并补测其余事实。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| fastapi-docs | 裸 `TestClient(app)` 不跑 lifespan；`on_event` 弃用且有 lifespan 时不触发；安全工具 0.122 起缺凭据返回 401 + `WWW-Authenticate`、可覆写 `make_not_authenticated_error`；`separate_input_output_schemas`；ORM 行无需 `from_attributes` 即可作为响应；`fastapi.sse`；OTel 0.142 / 0.143 门控 | https://fastapi.tiangolo.com （release-notes、how-to/authentication-error-status-code） | 一致。0.143.1 实跑：裸 TestClient 访问 lifespan 状态抛 `AttributeError`、`with` 形式正常；`on_event` 发 `DeprecationWarning` 且有 lifespan 时不触发；`HTTPBearer` / `OAuth2PasswordBearer` 无凭据 401 + `Bearer`；三类安全类均有 `make_not_authenticated_error`；ORM 行响应 200；`fastapi.sse.EventSourceResponse` 存在。0.141.1–0.143.1 发布说明除 OTel（0.142 原生、0.142.2 失败不再中止、0.142.4 排除请求隔离、0.143 自动导出改为 opt-in，均已在正文）外无影响正文的变更 |
+| pydantic-docs | `from_attributes`、`populate_by_name`、校验 / 序列化别名、`field_validator` 需 `@classmethod`、v1→v2 映射 | https://docs.pydantic.dev/latest/api/config/ 、 https://docs.pydantic.dev/latest/migration/ | **更正**：配置 API 页对 `populate_by_name` 标注「usage is not recommended in v2.11+ and will be deprecated in v3. Instead, you should use the validate_by_name」，迁移指南映射为「`allow_population_by_field_name` → `populate_by_name` (or `validate_by_name` starting in v2.11)」。`pydantic-models.md` 别名一节与 v1→v2 表改为推荐 `validate_by_name`，注明旧名仍可用；2.14.1 实跑 `ConfigDict(validate_by_name=True)` 同时接受字段名与别名（`validate_by_alias` 默认 True）、不设则字段名构造报 `ValidationError`。评测场景 3 的对应 `expected_behavior` 同步为 `validate_by_name=True`（`populate_by_name=True` 仍算达成），以免把官方不再推荐的写法当成唯一正确答案；contributes / notes 同步 |
+| starlette-docs | TestClient 基于 httpx2、plain httpx 已弃用；TestClient 仅作上下文管理器时跑 lifespan；BackgroundTask / BackgroundTasks；StreamingResponse；纯 ASGI 中间件；默认线程池 40 | https://starlette.dev/testclient/ 、 /background/ 、 /middleware/ 、 /responses/ 、 /threadpool/ | 一致。1.8.0 实跑：仅装 httpx 时导入 `starlette.testclient` 发 `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.`，装 httpx2 时无警告；`anyio` 默认限流 40；httpx2 2.13.1 的 `AsyncClient` 无 `app` 参数、`ASGITransport` 不跑 lifespan。`testing.md` 版本行补「re-checked on Starlette 1.8.0 / httpx2 2.13.1」，并把「Starlette 1.6's test client」改为「1.6 through 1.8」 |
+| ruff-fast-rules | FAST 组默认关闭；FAST001 冗余 `response_model`、FAST002 非 Annotated 依赖（可修复）、FAST003 路径参数未入签名 | https://docs.astral.sh/ruff/rules/#fastapi-fast | 一致。ruff 0.17.0 `rule --all` 中 FAST 仍只有 001–003；默认规则集对示例路由「All checks passed」，`--select FAST` 报出三条 |
+| sqlmodel-docs | 仅用于确认「SQL + Pydantic 模型用 SQLModel、已有 SQLAlchemy 项目沿用」的适用条件 | https://sqlmodel.tiangolo.com | 页面有效，定位未变（0.0.48）；ORM 不在本 skill 范围，正文未改 |
+
+正文改动：`references/pydantic-models.md`（别名配置与迁移表、版本行）、`references/testing.md`（版本行）；`evals/evals.json` 场景 3 一条断言措辞；`SOURCES.yaml` 中 `pydantic-docs` 的 contributes / notes。SKILL.md 的「written against FastAPI 0.141 …」行未改（正文规则在当前版本复核成立）。未新增规则与场景、未跑 D2。

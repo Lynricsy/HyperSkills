@@ -39,9 +39,9 @@ upstreams:
     url: https://docs.pydantic.dev
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "ConfigDict fields used at the HTTP boundary (from_attributes, populate_by_name), validation and serialisation aliases, the field_validator classmethod requirement, and the Pydantic v1 to v2 mapping table."
-    notes: "Licence verified via `gh api repos/pydantic/pydantic/license` -> MIT; docs are built from that repository."
+    synced_at: "2026-10-15"
+    contributes: "ConfigDict fields used at the HTTP boundary (from_attributes, validate_by_name replacing populate_by_name from 2.11), validation and serialisation aliases, the field_validator classmethod requirement, and the Pydantic v1 to v2 mapping table."
+    notes: "Licence verified via `gh api repos/pydantic/pydantic/license` -> MIT; docs are built from that repository. The 2026-10-15 review followed the configuration API page's caution that populate_by_name is not recommended from 2.11 and will be deprecated in v3."
   - id: zhanymkanov-best-practices
     kind: repo
     repo: zhanymkanov/fastapi-best-practices
@@ -71,14 +71,14 @@ upstreams:
     url: https://starlette.dev
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "TestClient lifespan semantics and the httpx-to-httpx2 migration, run_in_threadpool, BackgroundTask versus BackgroundTasks, StreamingResponse subclassing, and the pure ASGI middleware shape."
   - id: ruff-fast-rules
     kind: docs
     url: https://docs.astral.sh/ruff/rules/#fastapi-fast
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The FastAPI-specific lint group that is off by default: FAST001 redundant response_model, FAST002 non-Annotated dependency with an autofix, FAST003 unused path parameter."
   - id: microsoft-skills-py
     kind: repo
@@ -122,5 +122,5 @@ upstreams:
     url: https://sqlmodel.tiangolo.com
     license: MIT
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Read only to confirm the conditions under which the official skill's SQLModel-over-SQLAlchemy recommendation applies; ORM and database work is out of this skill's scope."

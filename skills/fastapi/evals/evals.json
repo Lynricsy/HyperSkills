@@ -36,7 +36,7 @@
     "files": ["evals/files/users_schemas.py"],
     "expected_behavior": [
       "Fixes the leak structurally - a separate public response model that simply does not declare `password_hash` or `internal_notes` - instead of relying on `response_model_exclude` or deleting fields before returning",
-      "Migrates the Pydantic v1 leftovers: `class Config` / `orm_mode` / `allow_population_by_field_name` become `model_config = ConfigDict(from_attributes=True, populate_by_name=True)`, and `@validator` becomes `@field_validator` with `@classmethod`",
+      "Migrates the Pydantic v1 leftovers: `class Config` / `orm_mode` / `allow_population_by_field_name` become `model_config = ConfigDict(from_attributes=True, validate_by_name=True)` (`populate_by_name=True` also passes; Pydantic no longer recommends it from 2.11), and `@validator` becomes `@field_validator` with `@classmethod`",
       "Replaces the `assert \"@\" in v` inside the validator with a raised `ValueError`, because assertions are stripped under `python -O` and a `ValueError` in a body model is what FastAPI turns into a 422",
       "Drops the `Field(...)` ellipsis defaults, which are unnecessary noise for required fields",
       "Replaces the `RootModel` wrapper with a plain `list[User]` return type or response model",

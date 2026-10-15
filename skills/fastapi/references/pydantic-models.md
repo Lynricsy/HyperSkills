@@ -1,6 +1,7 @@
 # Pydantic models at the HTTP boundary
 
-Verified against: Pydantic 2.13, FastAPI 0.141.
+Verified against: Pydantic 2.13, FastAPI 0.141; aliases and the ORM-row response re-checked on
+Pydantic 2.14.1 and FastAPI 0.143.1.
 
 ## Contents
 
@@ -139,8 +140,10 @@ fetched.
 - `validation_alias` — the name accepted on input.
 - `serialization_alias` — the name emitted on output.
 - `alias_generator=to_camel` — for a whole model of `camelCase` names.
-- `populate_by_name=True` — also accept the Python field name on input. Without it, an aliased field
+- `validate_by_name=True` — also accept the Python field name on input. Without it, an aliased field
   can only be populated by its alias, which breaks constructing the model in your own code and tests.
+  It replaces `populate_by_name=True`, which still works but Pydantic no longer recommends from 2.11
+  and plans to deprecate in v3; `validate_by_alias` (default `True`) keeps the alias accepted.
 
 Response serialisation uses aliases only when you ask for it; `response_model_by_alias` defaults to
 true for path operations, so a `serialization_alias` does show up in JSON while `model_dump()` in
@@ -210,7 +213,7 @@ instantiated once and injected like any other dependency. Two rules that matter 
 |---|---|
 | `class Config:` | `model_config = ConfigDict(...)` |
 | `orm_mode = True` | `from_attributes=True` |
-| `allow_population_by_field_name` | `populate_by_name` |
+| `allow_population_by_field_name` | `validate_by_name` (`populate_by_name` before 2.11) |
 | `@validator` | `@field_validator` + `@classmethod` |
 | `@root_validator` | `@model_validator(mode="before"/"after")` |
 | `.dict()` / `.json()` | `.model_dump()` / `.model_dump_json()` |

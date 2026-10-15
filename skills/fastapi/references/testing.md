@@ -1,6 +1,7 @@
 # Testing a FastAPI application
 
-Verified against: FastAPI 0.141, Starlette 1.6, httpx2 2.12.
+Verified against: FastAPI 0.141, Starlette 1.6, httpx2 2.12; re-checked on FastAPI 0.143.1,
+Starlette 1.8.0 and httpx2 2.13.1.
 
 ## Contents
 
@@ -30,7 +31,7 @@ Default to `TestClient`. It is shorter, it runs lifespan, and it needs no async 
 
 ## Install `httpx2`
 
-Starlette 1.6's test client imports `httpx2` and falls back to `httpx` with
+Starlette's test client (1.6 through 1.8) imports `httpx2` and falls back to `httpx` with
 `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2
 instead.` [verified]. `fastapi[standard]` pulls in httpx v1 only, so a default install hits the
 warning — and a project with `filterwarnings = ["error"]` fails on import.
