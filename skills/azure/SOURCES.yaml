@@ -38,7 +38,7 @@ upstreams:
       - skills/azure-resource-health-diagnose
       - skills/azure-pricing
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 36e95dfda72140a68f577d5c894a551607606bd3
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -118,7 +118,7 @@ upstreams:
       - articles/azure-functions
       - articles/azure-resource-manager/bicep
     ref: main
-    commit: cc1910cd6c2f9360210d3e9c1ff67a41c1cdb0a9
+    commit: caabee60f3898cf42b4e03280dba5d5d8d8c3c48
     license: CC-BY-4.0
     relation: merged
     synced_at: "2026-10-15"
@@ -162,7 +162,7 @@ upstreams:
       - schemas
       - cli/azd/docs
     ref: main
-    commit: 28ef16e5c3e97ee79e21d138cb4d8e75da13db1f
+    commit: 5667b6a8708d33b8f072d89149b3a97da80b8196
     license: MIT
     relation: reference
     synced_at: "2026-10-15"

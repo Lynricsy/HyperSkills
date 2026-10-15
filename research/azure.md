@@ -348,3 +348,19 @@ learn.microsoft.com 页面上逐条比对那些数字是否仍与站点一致。
 | learn-azure | 每个应用或用户分配托管标识最多 20 个联合身份凭据 | [Workload identity federation considerations](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations) | 一致 |
 
 4 组事实全部一致，正文未改，仅 `learn-azure` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-10-15 上游同步（当日增量）
+
+收尾复跑 `check_upstream` 时 azure-docs 在 pin（cc1910c）之后又前进到 caabee6（24 提交，13 个碰到 `articles/azure-functions`）。
+在缓存裸仓库上 `git log/diff cc1910c..caabee6 -- <paths>` 完整区间归因：
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| azure-docs | cc1910c → caabee6 | `migration/migrate-plan-consumption-to-flex.md`、`scenario-migrate-linux-consumption-to-flex.md`、`functions-bindings-dapr*.md`、`functions-hosted-skills-reference.md` | 迁移文档两处更正；Dapr 扩展退役与 Hosted Skills 不在本 skill 范围 |
+
+更正 `references/functions.md`「Migrating Consumption to Flex Consumption」清单（事实更正，不跑 D2）：
+
+- 原第一条「Confirm Linux」会被读成「只有 Linux 应用能迁」。官方迁移文档（92423fc 起）已支持 Windows Consumption → Flex：Flex 跑在 Linux 上，Windows 应用须先去掉 Windows 专属依赖（Windows API、原生二进制、路径与大小写假设、证书存储、.NET Framework / Windows RID）；PowerShell managed dependencies 不受支持，模块须打包进应用根目录 `Modules`；去不掉时改选 Windows Premium。
+- 新增「轮询式 Blob 触发器须改为 `source: EventGrid`，且私有化目标须先解决事件投递」：Event Grid push 投递不支持私有终结点（`articles/event-grid/consume-private-endpoints.md`），VNet 集成也不提供入站可达性。原清单同时建议 `publicNetworkAccess: Disabled`，两者叠加会让 Blob 触发静默失效，故把关闭公网访问的条目标注为「在 Event Grid 检查之后」。
+
+`--pin` 写入 azure-docs = caabee6（等于审阅 HEAD）；另两条 awesome-copilot 等条目随 pin 前移，check 报 tracked paths unchanged。

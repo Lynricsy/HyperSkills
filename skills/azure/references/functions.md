@@ -170,15 +170,22 @@ it provides rolling updates as the site update strategy instead.
 Flex Consumption is a different resource configuration, not an in-place SKU change. Create the new
 app and cut over:
 
-- [ ] Confirm Linux and a supported stack version. Node 18 or .NET in-process means a code
-      upgrade first.
+- [ ] Confirm a supported stack version: Node 18 or .NET in-process means a code upgrade first.
+      Flex runs on Linux, so a Windows Consumption app can migrate only after its Windows-only
+      dependencies are gone (Windows APIs, native binaries, paths and case assumptions, the
+      certificate store, .NET Framework or a Windows RID). PowerShell managed dependencies are not
+      supported: ship the modules in the app's root `Modules` folder. If the Windows dependencies
+      cannot be removed, Premium on Windows is the target instead.
+- [ ] Convert polling Blob triggers to `source: EventGrid` - and if the new app will be
+      private-only, settle event delivery first: Event Grid push delivery cannot reach a private
+      endpoint, and VNet integration does not provide inbound reachability.
 - [ ] Provision the new app with the same storage account or a new one, with a managed identity
       and its role assignments in place before the first start.
 - [ ] Move the extension bundle range to `[4.*, 5.0.0)` and re-test every binding.
 - [ ] Drop `WEBSITE_RUN_FROM_PACKAGE`, `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`,
       `WEBSITE_CONTENTSHARE` and `alwaysOn`.
 - [ ] Add VNet integration and set `publicNetworkAccess: Disabled` if the app should only be
-      reachable privately.
+      reachable privately (after the Event Grid check above).
 - [ ] Configure always-ready instances for the latency-sensitive function group, and check the
       regional 250-core quota covers the intended maximum.
 - [ ] Cut traffic over at the front door (Front Door, API Management or DNS), then decommission
