@@ -124,7 +124,9 @@ Not covered:
     bare `->json()` silently parses an error page into your domain. Those timeouts times the
     attempts are also the floor for any `Cache::lock()` lease held around the call: an expired
     lease admits a second holder mid-callback. Size the lease above that worst case, or better,
-    move the call out of the locked section.
+    move the call out of every lock — a `lockForUpdate()` row held across it pins a connection and
+    blocks other writers just as long. Call first, lock only the re-check and write, and undo the
+    external effect (void the authorisation) when the re-check fails.
 25. Finish with the project's own gate: `vendor/bin/pint --dirty`, the narrowest test selection
     that covers the change (`php artisan test --compact --filter=...`), then the wider suite, plus
     whatever static analysis the project runs. Report the commands and their output; when a

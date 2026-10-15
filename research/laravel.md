@@ -320,12 +320,17 @@ paths 下确有提交。归因方法：laravel-framework、php-src 为 too-large
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 | 6 锁租期（今日新增规则 24 后半） | gpt-6.1-sol medium | 有（第 1 次） | true | ◐1 ✔2 ✘3 | 172 s。讲清 5 秒租期、`block(10)` 只管等待、过期后第二台主机拿锁读旧值；改为事务内 `lockForUpdate()` 覆盖检查—授权—扣减，Redis 锁降为准入控制，未重设租期、支付调用仍在（数据库）锁内。只读到 reference 前 200 行（租期段在其后），读了 SKILL.md 规则 24。输出另存 `/tmp/hs-d2/D2G1-keep/laravel-skill6-run1` |
-| 6 | gpt-6.1-sol medium | 有（第 2 次） | true | ◐1 ✔2 ✘3 | 289 s。按两次尝试 + 500 ms 算出最坏约 40.5 秒、说明租期过期即重叠，但同样以行锁作正确性保证、Redis 锁仅作准入，未把租期提到最坏耗时之上；真实 Redis/PostgreSQL 双进程复现前后对比 |
+| 6 | gpt-6.1-sol medium | 有（第 2 次） | true | ◐1 ✔2 ✘3 | 289 s。按两次尝试 + 500 ms 算出最坏约 40.5 秒、说明租期过期即重叠，但同样以行锁作正确性保证、Redis 锁仅作准入，未把租期提到最坏耗时之上；真实 Redis/PostgreSQL 双进程复现前后对比。输出另存 `/tmp/hs-d2/D2G1-keep/laravel-skill6-run2` |
+| 6 | gpt-6.1-sol medium | 有（正文修正后） | true | ◐1 ✔2 ◐3 | 134 s。事件中可见读到修正后的规则 24。仍以事务内 `lockForUpdate()` 覆盖检查—授权—扣减，但明确写出代价（慢 PayHub 占住连接与行锁），并说明把授权移出事务需要在售罄时作废授权的补偿流程、而夹具没有提供作废 API，所以未实现（EB3 由 ✘ 变为部分）；租期只说「两次 20 秒尝试会超过租期」，未给最坏值 |
 | 6 | gpt-6.1-sol medium | 无 | false | ◐1 ✔2 ✘3 | 复用 `/tmp/hs-evals-sync/SyncG6/laravel-b6/.../baseline/6`（09:54；场景 10:22 随提交入库后未改，夹具原文在 events 中逐行一致）。同样改为行锁、Redis 仅准入，未算最坏耗时 |
 | 4 负例（Spring 自调用） | gpt-6.1-sol medium | 有 | false | 3/3 | 42 s。按 Spring 代理自调用回答，无 Laravel 建议 |
+| 3 Pest 文件（新增 E8：`assertSee` 旁保留 `assertOk`） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ✔4 ✔5 ◐6 ◐7 ✔8 ✘9（5✔3◐1✘） | 115 s。Pennant 按 scope 存首次结果、Lottery 为不可控抛硬币 → 每个测试 `Feature::for($user)->activate/deactivate`；改赔率不会重算已存值，需 `pennant:purge`；首测改名并断言订单离开 `draft`，未断言派发的副作用；数据移入各测试；`travelTo()`；`Http::preventStrayRequests()` 但未给具体端点 fake，指出 `Event::fake()` 会压掉 checkout 监听器（未提工厂的模型事件）；`assertOk()`/`assertForbidden()` 但未提跨租户应答 404；启用/禁用两测都 `->assertOk()->assertSeeText(...)`（未解释为何保留）；仍用 `RefreshDatabase`、未提 `BCRYPT_ROUNDS`。前 4 次启动均为 VM `exited 1`（16:43–17:15，队列自动重排），第 5 次成功 |
+| 3 | gpt-6.1-sol medium | 无 | false | ✔1 ◐2 ◐3 ✘4 ✘5 ✘6 ✘7 ✔8 ✘9（2✔2◐5✘） | 223 s。同样识别 Lottery 与 Pennant 存值、改赔率不重新分桶，但未给 purge；首测断言离开 `draft`；数据仍在 `beforeEach()`；删掉 `setTestNow` 而未换 `freezeTime`/`travelTo`；保留裸 `Http::fake()`、`assertStatus(200/403)`；展示测试 `assertOk()` 后接 `assertSee` |
 
 选择理由：6 为今日新增（考察规则 24 后半；有 skill 旧结果 10:01 早于 10:22 正文提交，重跑；基线复用）；assertSee 更正无期望覆盖，给场景 3 增加一条期望（Pest 夹具第 2 个测试只有 `assertSee`），两侧重跑；4 为负例。
 
-场景 6：两次有 skill 运行均为 ◐✔✘，与基线持平——模型讲清租期语义（第 2 次还算出最坏约 40.5 秒），但都改用事务内 `lockForUpdate()` 作为正确性保证、把 Redis 锁降为准入控制，因此没有重设租期。该方案本身正确（行锁覆盖检查到扣减），租期过期不再导致超卖，不属于正文错误，未改正文；遗留：规则 24 在「已有数据库锁」时不必然促成租期按最坏耗时设定，EB3（把外部授权移出锁区并作废授权）两侧仍未达成。负例 `skill_read=false`。
+场景 6：前两次有 skill 运行均为 ◐✔✘，与基线持平——模型讲清租期语义（第 2 次还算出最坏约 40.5 秒），但都改用事务内 `lockForUpdate()` 作为正确性保证、把 Redis 锁降为准入控制，并把 PayHub 调用留在行锁内。证据是规则 24 与 `references/eloquent-and-data-access.md` 的「移出锁区」只针对 `Cache::lock()` 的租期写，模型换成行锁后不再认为该建议适用。修正：两处都改为「移出任何锁」，点明行锁跨外部调用同样占住连接、阻塞其他写入者，并给出顺序——先调用，只锁复查与写入，复查失败时撤销外部效果（作废授权）。重跑后 EB3 由 ✘ 变为 ◐：模型写出该方案与代价，但因夹具没有作废授权的 API 而没有落地（不编造接口是正确做法），EB1、EB2 不变，不比基线差。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：3 Pest 文件（新增 assertSee 旁保留 assertOk 的期望，有/无）。待结果出来后补判定。
+场景 3：有 skill 5✔3◐1✘ 对基线 2✔2◐5✘；今日新增的 E8（`assertSee` 只查响应体，需在旁保留 `assertOk()`）两侧均达成，有 skill 不比基线差。负例 `skill_read=false`。
+
+结论：改了 laravel 正文（规则 24 末句与 `references/eloquent-and-data-access.md` 租期段）。遗留：场景 6 EB1（租期按最坏耗时设定）三次有 skill 都只是部分达成，因为模型选行锁后租期不再承担正确性；EB3 受限于夹具没有作废授权的 API，只能部分达成。场景 3 E9（`LazilyRefreshDatabase`、低 `BCRYPT_ROUNDS`）与跨租户 404 两侧都未提。

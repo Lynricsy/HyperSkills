@@ -205,9 +205,12 @@ long to wait to acquire it. When the lease runs out the lock is free while the c
 running, so a second process takes it and the two critical sections overlap — the exact race the
 lock was for. Size the lease above the worst case of the locked work, not its typical duration:
 for anything that calls out, that bound comes from its timeouts times its attempts plus retry
-sleeps. Better still, keep slow external calls outside the locked section. The first holder's
-eventual `release()` checks ownership and will not free the second holder's lock, but by then the
-overlap has already happened.
+sleeps. Better still, keep slow external calls outside every lock, not only the cache one: a
+`lockForUpdate()` row held across the call pins a database connection and blocks every other
+writer of that row for the same worst case. Make the call first, take the lock only for the
+re-check and the write, and when the re-check fails undo the external effect — void the payment
+authorisation, release the hold. The first holder's eventual `release()` checks ownership and
+will not free the second holder's lock, but by then the overlap has already happened.
 [verified: `Lock::block()` in the framework's `src/Illuminate/Cache/Lock.php` and the owner-checked
 `releaseLock` Lua script in `LuaScripts.php`]
 
