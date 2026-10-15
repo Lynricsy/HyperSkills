@@ -1,0 +1,21 @@
+{
+  "name": "acme-app",
+  "private": true,
+  "packageManager": "npm@11.6.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "next": "16.1.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "pg": "8.16.3"
+  },
+  "devDependencies": {
+    "eslint": "10.12.0",
+    "eslint-mcp": "1.2.0",
+    "typescript": "6.0.3"
+  }
+}

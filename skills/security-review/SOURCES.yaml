@@ -136,7 +136,7 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/threat-model-analyst
     paths: [skills/threat-model-analyst]
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 36e95dfda72140a68f577d5c894a551607606bd3
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -148,7 +148,7 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/secret-scanning
     paths: [skills/secret-scanning]
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 36e95dfda72140a68f577d5c894a551607606bd3
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -161,7 +161,7 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/security-review
     paths: [skills/security-review]
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 36e95dfda72140a68f577d5c894a551607606bd3
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -197,6 +197,28 @@ upstreams:
     synced_at: "2026-09-11"
     contributes: "The ASVS 5.0.0 chapter set (V1 Encoding and Sanitization through V17 WebRTC) used as the coverage checklist for a whole-surface audit, and the renumbering against 4.0.x that makes an old chapter citation point at the wrong subject."
     notes: "LICENSE.md was read directly and is the full CC BY-SA 4.0 text. Chapter numbers and titles are cited as facts; no requirement text was copied."
+
+  - id: ecc-agent-hardening
+    kind: repo
+    repo: affaan-m/everything-claude-code
+    url: https://github.com/affaan-m/everything-claude-code
+    paths: [skills/agent-security-hardening]
+    ref: main
+    commit: b92f181b3b748d1abbc2afd94af6aa7d8c8fca29
+    license: MIT
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "The pointer that path containment for code shipping to Windows must reject reserved device names, names ending in a period or space, and ':' in every component. Every fact in references/injection-and-deserialization.md was rewritten from Microsoft's own documentation (ms-windows-paths), not from this skill's prose."
+    notes: "Community source. Its other points were not merged: component-wise containment, redirect re-validation and custom-header forwarding were already produced by the no-skill baseline (eval 9), and byte-bounded tool output and sentinel-secret log tests belong to agent-runtime engineering rather than auditing."
+
+  - id: ms-windows-paths
+    kind: docs
+    url: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    license: CC-BY-4.0
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "The Windows path-component facts: the reserved device names including the superscript-digit COM/LPT variants, trailing periods and spaces removed during normalization, ':' as drive-relative syntax and as the NTFS stream separator with 'file::$DATA' naming the default stream, and that a reserved name with an extension stopped mapping to a device in Windows 11."
+    notes: "Read on 2026-10-15 together with https://learn.microsoft.com/en-us/windows/win32/fileio/file-streams and https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats (legacy devices and trailing-character trimming). Licence from the public MicrosoftDocs/win32 and dotnet/docs repositories (CC-BY-4.0). Facts cited, no prose copied."
 
   - id: semgrep-skills
     kind: repo

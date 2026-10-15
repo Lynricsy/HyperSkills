@@ -168,6 +168,19 @@ holding broad cloud credentials is worse than the same sink in a sandboxed worke
   `..%2f`, `..\\`, unicode variants and symlinks all survive a pre-normalization check.
 - Absolute paths defeat a join in most languages: `os.path.join("/base", "/etc/passwd")`
   returns `/etc/passwd`.
+- Code that also runs on Windows needs checks on each path component that a POSIX reading never
+  shows, applied to the name before the OS normalizes it. `[official]`
+  - Win32 normalization drops trailing periods and spaces, so `report.php.` or `report.php `
+    passes an extension check and is stored as `report.php`.
+  - `:` makes a component drive-relative (`C:notes.txt` resolves against that drive's current
+    directory) or names an NTFS stream: `notes.txt:payload` hides data beside the file, and
+    `report.php::$DATA` opens `report.php` itself.
+  - `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9` and `LPT1`–`LPT9` open a device from any directory;
+    before Windows 11 the same names with an extension (`nul.txt`, `COM1.log`) did as well.
+
+  Reject, case-insensitively, any component that contains `:`, ends in a period or space, or is a
+  reserved name with or without an extension — on every platform the code ships to, rather than
+  depending on the Windows version it happens to run on.
 - Upload handling: the client-supplied filename, the client-supplied content type and the
   extension are all untrusted. Decide the stored name yourself.
 - Archive extraction: entries with `..` or absolute paths (zip slip), symlink entries, and
@@ -221,4 +234,4 @@ originated from a user — which is nearly always.
 Each of these becomes a finding the moment a caller-controlled value reaches it, so the
 distinguishing work is the data-flow trace, not the pattern match.
 
-<!-- sources: openai-secbase, sentry-secreview, owasp-top10, tob-insecure-defaults, trilwu-audit -->
+<!-- sources: openai-secbase, sentry-secreview, owasp-top10, tob-insecure-defaults, trilwu-audit, ecc-agent-hardening, ms-windows-paths -->

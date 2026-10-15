@@ -437,3 +437,33 @@ tob-diffreview、copilot-threatmodel / copilot-secrets / copilot-secreview（后
 其余仓库上游（`tob-semgrep-rules`（82fe822 → e1f86a3，13 commits）、`tob-brocards`（82fe822 → e1f86a3，13 commits）、`tob-insecure-defaults`（82fe822 → e1f86a3，13 commits）、`tob-supplychain`（82fe822 → e1f86a3，13 commits）、`tob-diffreview`（82fe822 → e1f86a3，13 commits）为 `repo moved, tracked paths unchanged`；`cloudflare-audit`、`sentry-secreview`、`openai-threatmodel`、`openai-secbase`、`openai-ownership`、`trilwu-audit`、`semgrep-skills` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（c1c8a8c、d18b7aa、49f948f、49f948f、49f948f、e1f86a3、e1f86a3、e1f86a3、e1f86a3、e1f86a3、3cf7c7e、3cf7c7e、3cf7c7e、ca53957、68177b8），`pin_check.py` 结果 PIN CHECK CLEAN。2 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS5（scrutineer `skills/audit-web`、ECC `skills/mcp-dependency-review`、ECC `skills/agent-security-hardening`）。`audit-embedded`（固件/IoT）需先定 Scope，本轮不做。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| scrutineer `audit-web` + `references/threat-model.md`（MIT，评估为 MERGE）：CSRF 四要素与导航/子资源之分、CORS 管读不管发、WebSocket 握手单独查 Origin、上传内容由哪个源下发、业务竞态要看约束/隔离级别/条件写、路由本地无检查要追父级中间件 | 不合入 | 两个场景基线全部达成（场景 7：5/5，场景 10：4/4），包括「通配 CORS 不等于可读凭据响应」「父路由挂载的鉴权被子路由继承」「附件 + 独立域名下发的 HTML 上传不是 XSS」「主键 / 条件 UPDATE 已阻止双花」这类反向判断。没有缺口，场景留作哨兵。 |
+| ECC `mcp-dependency-review`（MIT）：npx/uvx/pipx/bunx/dlx 在 MCP 与编辑器配置里运行时拉包、绕过 lockfile；Docker 只有 digest 才算钉死；修复钉「审过的版本」而非今天的最新版 | 不合入 | 场景 8 基线 4/4：逐条指出 npx/uvx 条目在锁文件之外按 dist-tag/范围/无版本解析并带着 GitHub token 运行，区分出本地已锁定的 `eslint-mcp`，要求镜像钉 digest，修复写「approved / reviewed exact dependency」。唯一没写的是「不要把今天的最新版当成审过的版本」这句显式警告，实质已覆盖。Docker digest 本已在 `references/dependencies-and-supply-chain.md`。 |
+| ECC `agent-security-hardening`（MIT，社区来源）：Windows 路径组件（保留设备名、结尾句点或空格、`:` 的盘符相对路径与 NTFS 流） | 合入 | 场景 9 基线只提到「拒绝盘符限定与 UNC 路径」，没提保留名、结尾字符和流；加入 `references/injection-and-deserialization.md` 后达成。事实全部改按 Microsoft 文档写。 |
+| 同上：路径包含要按组件比较（`/work/app` 与 `/work/application`）、跨源重定向剥离凭据并逐跳重验 | 不合入 | 场景 9 基线已自行做到：识别 `startswith` 兄弟前缀越权、重定向绕过白名单，并本地验证 `X-Api-Key` 随重定向转发。 |
+| 同上：工具输出按字节截断并清除控制字符、用哨兵秘密测日志泄露 | 不合入 | 属于 agent 运行时工程（`ai-engineering`），不是审计规则。 |
+
+核实证据：
+
+- Microsoft Learn「Naming Files, Paths, and Namespaces」（win32，CC-BY-4.0）：保留名 CON、PRN、AUX、NUL、COM1–9、LPT1–9 及上标数字变体 COM¹²³/LPT¹²³，「名字后紧跟扩展名」也应避免；名字不要以空格或句点结尾；`:` 为保留字符；`C:tmp.txt` 是相对于 C 盘当前目录的路径。
+- 「File Streams (Local File Systems)」：流全名为 `filename:stream:type`，`filename::$DATA` 等价于 `filename`。
+- .NET「File path formats on Windows systems」（dotnet/docs，CC-BY-4.0）：路径不以分隔符结尾时去掉所有结尾句点和空格；Windows 11 之前以保留名开头的路径（如 `CON.TXT`）被解释为设备，Windows 11 起不再如此——因此正文写「Windows 11 之前带扩展名也是设备」，并要求不论版本一律拒绝。
+- 本地实测重定向转发（2026-10-15）：requests 2.32.5 跨主机 302 后，`Authorization` 被剥离，`X-Api-Key` 与 `cookies=` 传入的 Cookie 被转发；Node v26.10.0 `fetch` 剥离 `Authorization` 与 `Cookie`，转发 `X-Api-Key`。基线已自行得出这一结论，未写入正文。
+- npm v11 `npm exec` 文档：不在本地项目依赖中的包装进 npm 缓存；无 TTY 或 CI 环境下默认 `--yes`；不带版本的包名匹配本地已装版本。uv 文档（`docs/concepts/tools.md`）：`uvx` 不带版本时首次调用取最新版，之后用缓存版本，`@latest` 每次刷新。用于核对场景 8 的期望行为。
+- 场景 9 首次基线被模型服务方的 `cyber_policy` 拦截（提示词含「prompt injection」与密钥泄露字样），把提问改写为防御性代码审查后重跑，期望行为不变。
+- `--pin` 顺带把三个 awesome-copilot 条目从 3cf7c7e 前移到 36e95df；`gh api …/compare` 显示区间 5 个提交、16 个文件，均不在 `skills/threat-model-analyst`、`skills/secret-scanning`、`skills/security-review` 下。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 web-boundaries | gpt-6.1-sol medium | 无 | False | 1、2、3、4、5（5/5） | CSRF（Lax 放行顶层 GET）、通配 CORS 非泄露、头像存储型 XSS、WebSocket 劫持均判对；礼品卡未误报竞态（未提及）。哨兵。 |
+| 8 mcp-config | gpt-6.1-sol medium | 无 | False | 1、2、3、4（4/4） | 第 4 条实质达成（approved/reviewed exact），缺「不钉今天最新版」的显式表述。哨兵。 |
+| 9 agent-tools | gpt-6.1-sol medium | 无 | False | 1、2、3（3/4） | 缺第 4 条：只说拒绝盘符限定与 UNC，未提保留设备名、结尾句点/空格、NTFS 流。 |
+| 9 agent-tools | gpt-6.1-sol medium | 有 | True | 1、2、3、4（4/4） | 读了 `injection-and-deserialization.md`；给出拒绝保留设备名、冒号、结尾句点/空格的可移植组件策略。重定向转发列为 needs-validation 并给出修复，仍算达成。 |
+| 10 web-fp | gpt-6.1-sol medium | 无 | False | 1、2、3、4（4/4） | 四类扫描器结论全部判为不成立并给出依据，另报一个转账收款人不存在时扣分不入账的完整性问题。哨兵。 |

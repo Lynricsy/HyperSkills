@@ -89,5 +89,50 @@
       "Reports the DELETE route as a cross-tenant destructive action by any tenant's admin, with likelihood and impact stated separately",
       "Names sameTenant(req.user, doc) (or the session tenantId) as the fix for every confirmed variant and states what it could not verify from two files, such as the NetworkPolicy and requireSession"
     ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "Partners start embedding our notifications widget next week. Audit evals/files/web-boundaries/server.js for browser-facing security problems before launch. db.js and csrf.js are not included; assume they do what their comments say.",
+    "files": ["evals/files/web-boundaries/server.js"],
+    "expected_behavior": [
+      "Reports GET /account/email/change as cross-site request forgery: the sid cookie is SameSite=Lax, which is still sent on a top-level cross-site GET navigation, and csrfCheck only guards the POST routes, so a link or redirect from any site changes the victim's email (account-takeover path through password reset)",
+      "Does not report the Access-Control-Allow-Origin: * on /api/catalog as a confidential data leak of /me/recommendations: a wildcard is never honoured for credentialed requests, so another origin cannot read a session-bound response (and the Lax cookie is not sent on a cross-site fetch anyway); at most it is hardening, and it says why",
+      "Reports the avatar upload as stored XSS: the extension filter checks only the client-supplied name, the browser-supplied MIME type is stored and replayed with res.type(), and the file is served inline from the authenticated application's own origin, so an SVG (or a file declared text/html) runs script there; the fix sets the type server-side from a sniffed allowlist and serves uploads as attachments or from a separate cookieless origin with nosniff",
+      "Reports the /ws/notifications upgrade as cross-site WebSocket hijacking: the handshake authenticates with the SameSite=None widget_session cookie and never checks the Origin header, so any site can open the socket, read the user's notifications and dismiss them; it says CORS does not apply to WebSocket handshakes and that the fix is an Origin allowlist (or a non-ambient token) at upgrade time",
+      "Does not report the gift-card redemption as a race or double-spend: the conditional UPDATE ... WHERE redeemed_by IS NULL with the rowCount check lets only one request claim a card, so the earlier read-then-check is not exploitable; at most it notes that the claim and the credit are not in one transaction, as an integrity issue rather than duplicated value"
+    ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "We're committing a shared MCP setup so everyone's editor and agent get the same servers. evals/files/mcp-config/mcp.json will be committed as .mcp.json next to evals/files/mcp-config/package.json (package-lock.json is committed and CI runs npm ci). Review it for supply-chain risk before we merge.",
+    "files": ["evals/files/mcp-config/mcp.json", "evals/files/mcp-config/package.json"],
+    "expected_behavior": [
+      "Says the npx and uvx entries fetch and run packages at launch time outside package-lock.json: an unversioned name, a dist-tag such as @latest or a range such as ^2.1.0 resolves to whatever the registry serves when each developer's editor starts the server (npx installs missing packages into the npm cache without prompting under -y or without a TTY; uvx without a version takes the latest release on that machine's first run), so different machines run different, unreviewed code holding the GitHub token and database access",
+      "Distinguishes the lint entry: eslint-mcp is a locked devDependency, and npx run without a version uses the version installed in the project, so it is covered by the lockfile once npm ci has run, unlike the other npx entries",
+      "Flags the docker entry: the 1.4 tag can be repointed, so the image is pinned only by an @sha256 digest",
+      "Recommends pinning each entry to an exact version the team has actually reviewed (pkg@x.y.z, uvx --from pkg==x.y.z or pkg@x.y.z, image@sha256:...) or moving it into the locked devDependencies, explicitly not to whatever version is newest today, and presents mutability as an unreviewed-code risk rather than evidence that any package is compromised"
+    ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "Do a defensive code review of evals/files/agent-tools/agent_tools.py before we enable the hosted agent for more customer tenants. The model chooses every tool argument based on partner docs and customer files it has read, so treat those arguments as untrusted. Tell me what needs fixing.",
+    "files": ["evals/files/agent-tools/agent_tools.py"],
+    "expected_behavior": [
+      "Reports that the containment check is a string-prefix test, so a sibling workspace whose slug extends another tenant's slug passes it: tenant acme's agent can read and write /srv/agent/workspaces/acme-labs/... via ../acme-labs/..., a cross-tenant read and write; the fix compares path components (os.path.commonpath, or Path.is_relative_to after resolve) or appends the separator to the root",
+      "Reports that fetch_docs validates only the first URL while requests follows redirects, so a redirect from a partner host can send the request anywhere, including internal addresses (SSRF), and the fix disables redirects or re-validates every hop",
+      "Reports that the X-Api-Key header follows a cross-host redirect: requests strips only the Authorization header when the host changes and forwards custom headers, so the partner API key leaks to the redirect target; the fix is redirects off, or re-validating each hop and attaching the key only for an approved host",
+      "For the Windows desktop edition, notes that path components need Windows-specific rejection the prefix check does not provide: reserved device names (CON, NUL, COM1 and the same names with an extension such as nul.txt), names ending in a dot or space, and ':' (drive-relative paths and NTFS alternate data streams)"
+    ]
+  },
+  {
+    "skills": ["security-review"],
+    "query": "Our pen-test vendor's scanner flagged the loyalty-points service for CSRF, missing authorization on the admin routes, stored XSS through receipt uploads and race conditions on points. Audit evals/files/web-fp/app.js, evals/files/web-fp/admin.js and evals/files/web-fp/schema.sql and tell me which of these are real. db.js, auth.js and storage.js are not included; assume they do what their comments say.",
+    "files": ["evals/files/web-fp/app.js", "evals/files/web-fp/admin.js", "evals/files/web-fp/schema.sql"],
+    "expected_behavior": [
+      "Does not report the /admin routes as missing authentication or authorization: requireAuth and requireRole('support') are mounted on the parent path in app.js, so every adminRouter route inherits them, and the absence of a local check in admin.js is not a finding",
+      "Does not confirm CSRF on the POST endpoints: the session cookie is SameSite=Lax, which is not sent on a cross-site POST, and express.json() parses only application/json, which a cross-site page cannot send without a CORS preflight the app never answers; at most it calls an Origin or Fetch Metadata check hardening",
+      "Does not report the HTML receipt upload as stored XSS: uploads are served from a separate registrable domain as application/octet-stream with Content-Disposition: attachment, so attacker HTML never renders in the application's origin",
+      "Does not report the welcome bonus or the transfer as a double-spend race: the (member_id, kind) primary key makes a concurrent second claim fail with 23505 inside its transaction, and the transfer debits with a conditional UPDATE ... AND points >= $1 backed by the CHECK constraint, so concurrency cannot create points"
+    ]
   }
 ]

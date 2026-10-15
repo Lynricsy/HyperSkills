@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@acme-labs/mcp-postgres@^2.1.0", "postgresql://localhost:5432/app_dev"]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "browser": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--headless"]
+    },
+    "docs": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "ghcr.io/acme-labs/docs-mcp:1.4"]
+    },
+    "lint": {
+      "command": "npx",
+      "args": ["eslint-mcp"]
+    }
+  }
+}
