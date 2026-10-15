@@ -1,6 +1,6 @@
 # Supabase CLI, local stack and migrations
 
-Verified against: Supabase CLI 2.117.
+Verified against: Supabase CLI 2.121.
 
 ## Contents
 
@@ -59,6 +59,12 @@ A project uses one or the other, and mixing them produces empty or conflicting d
 
 Detect which one before touching anything, and say which you found.
 
+Then detect the **diff engine**, because the same command behaves differently on each. A current
+`supabase init` writes `[experimental.pgdelta] enabled = true` into `config.toml`, so new projects
+use **pg-delta**; projects without that section stay on the legacy **migra** engine until someone
+adds it. `SUPABASE_EXPERIMENTAL_PG_DELTA=1` has the same effect for `db diff` and `db pull`, and
+`db diff --use-pg-delta` / `--use-migra` override it for one run.
+
 While iterating on either, run SQL directly against the local database (`supabase db query`, `psql`,
 or the MCP `execute_sql` tool if the project has the Supabase MCP server configured) so you can try
 things freely. Do **not** iterate with `apply_migration`-style calls that write a migration history
@@ -67,26 +73,45 @@ output and you are stuck with whatever SQL you passed first.
 
 ## Declarative schemas
 
+On **pg-delta** (any project with `[experimental.pgdelta] enabled = true`):
+
 ```bash
 # 1. edit supabase/schemas/<file>.sql — this is the source of truth
-# 2. generate the migration
-supabase db diff -f add_discount_pct
+# 2. generate the migration (--no-apply: write the file only, no prompt)
+supabase db schema declarative sync --name add_discount_pct --no-apply
 # 3. read the generated SQL in supabase/migrations/
 # 4. apply locally
 supabase migration up        # pending migrations only
 supabase db reset            # replay everything from scratch, then seed
 ```
 
-The trap that costs the most time: **`db diff` compares the schema files against the migrations. It
-does not read the live database.** A column added in Studio, the SQL editor or `psql` is invisible
-to it — the command reports "No schema changes found" and the change is silently dropped on the
-next `db reset`. Edit the file, always.
+On pg-delta, **`supabase db diff` never reads `supabase/schemas/`** — it diffs the live database
+against a shadow built from the migrations, so running it in a declarative project captures
+whatever was clicked into Studio and ignores the files. File order is resolved from dependencies;
+`schema_paths` is ignored (the CLI warns if it lists paths). `supabase db schema declarative
+generate` exports an existing database into per-object files; on a project with no migrations, run
+`supabase db pull` first for a baseline, or the first `sync` regenerates the whole schema as one
+migration that then fails on `db push`.
+
+On the legacy **migra** engine, `supabase db diff` is the generator, and it reads the schema files
+only while they exist:
+
+```bash
+supabase stop                       # generate with the local stack stopped
+supabase db diff -f add_discount_pct
+supabase start && supabase migration up
+```
+
+The trap that costs the most time is the same on both: **the generator compares the schema files
+against the migrations. It does not read the live database.** A column added in Studio, the SQL
+editor or `psql` is invisible to it — the command reports "No schema changes found" and the change
+is silently dropped on the next `db reset`. Edit the file, always.
 
 Two more rules that come straight from how diffs are produced:
 
 - **Append new columns at the end of the table.** Views and enums depend on column order, so an
   insertion in the middle produces a noisy diff or a recreated view.
-- **Schema files run in lexicographic order** by default, which matters for foreign keys — the
+- On migra only, **schema files run in lexicographic order**, which matters for foreign keys — the
   parent table must exist first. Control it explicitly when it stops being true:
 
   ```toml
@@ -97,23 +122,36 @@ Two more rules that come straight from how diffs are produced:
 Views and functions are the real payoff: edit them in place instead of restating the whole body in
 a migration.
 
-To adopt declarative schemas on an existing project, `supabase db dump > supabase/schemas/prod.sql`
-and split it up from there.
+To adopt declarative schemas on an existing migra project, `supabase db dump >
+supabase/schemas/prod.sql` and split it up from there. Do not run `supabase db pull --declarative`
+on migra: it writes a per-object tree for pg-delta and points `schema_paths` at it, and the next
+`db diff` fails on file order.
 
 ## What the diff engine misses
 
-Read every generated migration. The diff engine tracks most DDL but not these — hand-write them
-into a versioned migration:
+Read every generated migration. Both engines miss:
 
-- DML: `insert`, `update`, `delete`, and anything seed-like
-- view owner and grants, `security_invoker` on views, materialized views; and it does not recreate
-  a view when a column type changes underneath it
+- DML: `insert`, `update`, `delete`, and anything seed-like — including storage buckets, which are
+  rows in `storage.buckets`. On pg-delta a DML statement in a schema file is an error; named
+  `pg_cron` jobs declared with `cron.schedule(...)` are the exception, tracked as extension
+  configuration.
+- grants duplicated out of default privileges (safe to delete if you never customised them)
+
+**pg-delta** models tables, views, materialized views, functions, triggers, RLS policies, grants,
+comments, domains, partitions and publications. It does not track casts, operators and operator
+classes, text-search objects, statistics objects, languages, transforms or parameter ACLs; it
+reports those as warnings rather than dropping them, and `--strict-coverage` turns the warnings into
+failures for CI. Objects owned by an extension are excluded and changed through that extension's
+API.
+
+**migra** silently omits, in addition — hand-write these into a versioned migration:
+
+- view owner and grants, `security_invoker` on views, indexes on a recreated materialized view
 - `alter policy` statements, and column-level privileges
-- schema privileges (each schema is diffed separately), comments, partitions
+- comments and roles
 - `alter publication … add table …`, `create domain`
-- grants duplicated out of default privileges
 
-If you changed RLS policies in the dashboard, assume the diff did not capture it.
+If you changed RLS policies in the dashboard, assume a migra diff did not capture it.
 
 ## Deploying and rolling back
 

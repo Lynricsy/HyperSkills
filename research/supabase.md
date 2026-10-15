@@ -397,3 +397,57 @@ description 与 Scope 未改，负例场景未重跑。
 输出 `PIN CHECK CLEAN`。
 
 结论：`references/edge-functions.md` 一处事实更正；version 改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照。Supabase 文档读源仓库 `supabase/supabase` 的 `apps/docs/content/guides/`（`gh api`），先用
+`commits?path=...&since=2026-09-11` 找出上次复核后有改动的页面，再逐页读当前内容；未改动的页面也按正文引用的事实核了一遍。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| supabase-docs | `sb_publishable_…`/`sb_secret_…`、`eyJ` 开头即旧 JWT 键、两套并存、浏览器 UA 发 secret 键得 401 | `getting-started/api-keys.mdx` | 一致 |
+| supabase-docs | grant 先于 RLS：缺 grant 为 42501（含 service_role），策略不匹配为 200 + `[]` | `api/securing-your-api.mdx`、`database/postgres/row-level-security.mdx`（自 09-11 无改动） | 一致 |
+| supabase-docs | `getClaims` / `getUser` / `getSession` 分工 | `auth/server-side/creating-a-client.mdx`（a4106b01「correct what getClaims verifies」） | **更正**，见下 1 |
+| supabase-docs | `getAll`/`setAll` 适配器，`setAll` 须把缓存头写进响应 | 同上（Astro 示例补了 `responseHeaders`） | 一致 |
+| supabase-docs | `withSupabase` 四种 auth 模式、`ctx.supabase`/`supabaseAdmin`/`userClaims`/`authMode`、`createSupabaseContext`、与 `verify_jwt` 的配合 | `functions/auth.mdx`（10-05 #50886 等改写） | **更正**，见下 2 |
+| supabase-docs | 注入变量：`SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEYS`/`SUPABASE_SECRET_KEYS`（JSON 字典）、`SUPABASE_JWKS`、`SUPABASE_DB_URL`、`SB_REGION` 等；secret 立即生效无需重新部署；本地读 `supabase/functions/.env` | `functions/secrets.mdx`（09-18～10-14 多次改写） | 一致 |
+| supabase-docs | 四项运行时限制：256 MB、CPU 2 s、wall clock 免费 150 s / 付费 400 s、请求空闲 150 s | `functions/limits.mdx`（09-23 只改了函数互调速率限制：每 trace 60 s 内 30 次，正文未引用） | 一致 |
+| supabase-docs | 私有频道靠 `realtime.messages` 上的 RLS、`private: true`、`realtime.send` 的 private 标志须与频道一致、`broadcast_changes` | `realtime/authorization.mdx`、`realtime/broadcast.mdx` | 一致。authorization 页新增一句：撤销权限后已连接的客户端在 JWT 过期或换新 JWT 前仍收消息——属正文「加入时评估」的推论，未写入，只记录 |
+| supabase-docs | 声明式 schema 工作流与 diff 盲区清单 | `local-development/declarative-database-schemas.mdx`、`local-development/diff-engines.mdx`（09-21 #49280 起以 pg-delta 为默认引擎重写） | **更正**，见下 3 |
+| supabase-docs | 私有桶签名 URL 用独立内部密钥，轮换 Auth 密钥不使其失效 | `storage/serving/downloads.mdx` | 一致 |
+| supabase-docs | access-token hook 必需 claims、自定义 claim 下次刷新生效 | `auth/auth-hooks/custom-access-token-hook.mdx` | 一致 |
+| supabase-docs | `gen types typescript --local` / `--project-id` | `api/rest/generating-types.mdx` | 一致 |
+| supabase-docs | PAT：classic 覆盖现在与将来的全部组织/项目；scoped 以 `sbp_fc` 开头、只收窄本人角色；`SUPABASE_ACCESS_TOKEN` 优先于已保存登录；`supabase link` 需 Project Settings/API Keys/API Key Secrets 读；数据库密码命令不受 token 限制 | `platform/personal-access-tokens.mdx`（09-28 GA 准备） | 一致 |
+| postgres-docs | ALL/UPDATE 策略无 WITH CHECK 时 USING 兼作 WITH CHECK | https://www.postgresql.org/docs/current/sql-createpolicy.html | 一致 |
+
+更正（均以官方当前页面为证据，非新增规则）：
+
+1. **`getClaims()` 只在非对称密钥项目上本地验签。** 原 `references/auth-and-sessions.md` 写「新项目用非对称密钥，所以本地验签、
+   没有每请求往返」，并在「Never」清单里说 `getClaims()`「不需要往返」。当前 `creating-a-client.mdx`：「On projects with asymmetric
+   signing keys, the default for new projects, it verifies locally against a cached copy of the project's public keys. On projects
+   still using a symmetric secret, it calls the Auth server instead.」改为两种情况都写明，「Never」清单限定为非对称项目才省往返。
+2. **`auth: 'secret'` 只接受名为 `default` 的 secret key。** 原 `references/edge-functions.md` 表格写「secret key on `apikey`」，并说用
+   `'secret:jobs'`「收窄」到某个键——暗示 `'secret'` 接受任意 secret key。当前 `functions/auth.mdx`：「`auth: 'secret'` accepts only
+   the key named `default` … To accept any secret key on the project, use `auth: 'secret:*'`」，publishable 同理；`supabase/server`
+   README 注释一致（「validates the apikey header against the 'default' secret key」）。用非 default 命名键的 cron 调用会 401。改为
+   写明只认 `default`、命名键用 `'secret:<name>'`、任意键用 `'secret:*'`。
+3. **声明式迁移的生成命令随 diff 引擎而定，新项目默认 pg-delta。** 原 `references/cli-and-migrations.md` 与 SKILL.md 规则 23、
+   ship-a-schema-change 清单只写 `supabase db diff -f`，且说 `db diff` 比较 schema 文件与迁移。当前 `diff-engines.mdx`：新版
+   `supabase init` 写入 `[experimental.pgdelta] enabled = true`，pg-delta 上 `db diff`「Always the live database against a shadow
+   database built from your migrations. Never reads `supabase/schemas/`」，声明式迁移改用 `supabase db schema declarative sync`，
+   `schema_paths` 被忽略；旧项目未加该段则仍是 migra，`db diff` 读 schema 文件且须停栈。CLI 侧证据：supabase/cli #5511（2026-06-12
+   「enable pg-delta by default for new projects」，早于本 skill 写的 CLI 2.117）。实跑 CLI 2.121.0：`supabase init` 生成的
+   `config.toml` 第 408–409 行为 `[experimental.pgdelta]` / `enabled = true`；`db diff --help` 写「Declarative files under
+   supabase/schemas are not part of this baseline」；`db schema declarative sync --help` 有 `--name`/`--no-apply`。盲区清单也按引擎拆开：
+   pg-delta 已建模注释、domain、分区、publication 等，不追踪 cast/operator/文本检索对象等且会告警（`--strict-coverage`）；migra 的
+   清单按当前页面列（view owner/grants、`security_invoker`、物化视图索引、`alter policy`、列权限、注释、角色、`alter publication`、
+   `create domain`；当前页面已不再列 schema 权限与分区）。`Verified against` 改为 CLI 2.121。评测场景 4 的前两条期望改为引擎感知
+   （场景中 `db diff` 读到 schema 文件，说明是 migra）。
+
+为确认更正后正文不误导，跑了一次有 skill 的场景 4：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 4 | gpt-6.1-sol medium | 有 | True | 1、2、3、6 达成；4、5 部分 | 35 s。先查 `config.toml` 的 `[experimental.pgdelta]` 再分别给 migra（停栈 + `db diff -f`）与 pg-delta（`db schema declarative sync --name … --no-apply`）命令，并说明 pg-delta 上 `db diff` 不读 schema 文件；4：只提 DML 不被捕获和逐条审阅，未列 `security_invoker`/grants；5：讲了只加新迁移、不改已部署历史，未讲本地 `db reset --version` |
+
+SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，supabase-docs 的 `contributes` 随三处更正调整。

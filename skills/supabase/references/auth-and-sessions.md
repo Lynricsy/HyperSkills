@@ -40,9 +40,11 @@ the Postgres role the key resolves to. [official]
 
 Three functions, three jobs. Picking the wrong one is the single most common Supabase auth defect.
 
-- `getClaims()` — **use this to protect pages and data.** New projects sign with asymmetric keys,
-  so it verifies the JWT signature locally through WebCrypto against a cached JWKS. Claims come
-  from decoding the verified token, so there is no per-request round trip.
+- `getClaims()` — **use this to protect pages and data.** It verifies the token's signature on
+  every call. On a project with asymmetric signing keys (the default for new projects) it does so
+  locally through WebCrypto against a cached JWKS, so there is no per-request round trip; on a
+  project still signing with the legacy symmetric secret it calls the Auth server instead. Either
+  way the claims come from a server-verified token, not from whatever the cookie says.
 - `getUser()` — a network call to the Auth server for the freshest user record. Use it when you
   need current user *state* (email confirmed, metadata just changed), not merely identity.
 - `getSession()` — returns the raw access token, refresh token and expiry. Use it to forward a
@@ -175,8 +177,8 @@ carries the HTTP status.
   between them; port the client factories rather than shimming.
 - The per-cookie adapter `{ get, set, remove }` — replaced by `{ getAll, setAll }`. The old form
   cannot express a multi-cookie write, so chunked sessions get corrupted.
-- `getUser()` used purely as a page guard — `getClaims()` does the same verification without the
-  round trip. Keep `getUser()` where the fresh record matters.
+- `getUser()` used purely as a page guard — `getClaims()` does the same verification, and on an
+  asymmetric-key project without the round trip. Keep `getUser()` where the fresh record matters.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` — legacy JWT keys. New code reads
   `…_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`.
 - `auth.role() = 'authenticated'` inside a policy — deprecated, and broken once anonymous

@@ -105,12 +105,16 @@ Not covered:
 22. Edge Function limits are 256 MB of memory, roughly 2 s of CPU time per request, a wall clock
     ceiling that depends on the plan, and a 150 s idle timeout. CPU time is usually what you hit
     first, and it is routinely misdiagnosed as a network timeout.
-23. In a declarative project, `supabase/schemas/*.sql` is the source of truth and `db diff` never
-    reads the live database. A change made in Studio or the SQL editor is invisible to the diff,
-    reported as "No schema changes found", and silently dropped on the next reset.
-24. Read every generated migration before applying it. The diff engine does not capture DML, view
-    grants and `security_invoker`, `alter policy`, column privileges, comments or partitions — and
-    a generated down migration takes data with it.
+23. In a declarative project, `supabase/schemas/*.sql` is the source of truth and the migration
+    generator never reads the live database. Generate with the command for the project's diff
+    engine: `supabase db schema declarative sync` on pg-delta (`[experimental.pgdelta] enabled =
+    true`, which a current `supabase init` writes), `supabase db diff -f` on legacy migra — on
+    pg-delta, `db diff` ignores the schema files and diffs the live database instead. A change made
+    in Studio or the SQL editor is invisible to the generator, reported as "No schema changes
+    found", and silently dropped on the next reset.
+24. Read every generated migration before applying it. No engine captures DML, and legacy migra
+    also misses view grants and `security_invoker`, `alter policy`, column privileges and comments
+    — and a generated down migration takes data with it.
 25. `supabase-js` never throws for an API failure; it returns `{ data, error }`. Handle `error` on
     every call, and destructure to the value you want — `const { data: session }` from
     `getSession()` binds a truthy `{ session: null }` and turns "not signed in" into "RLS blocked
@@ -199,8 +203,9 @@ Not covered:
 - [ ] While iterating, run SQL directly against the local database rather than writing a migration
       history entry per attempt — that is what makes `db diff` come back empty afterwards.
 - [ ] Append new columns at the end of the table: views and enums depend on column order.
-- [ ] `supabase db diff -f <name>`, then read the generated SQL and hand-write anything the engine
-      misses (`references/cli-and-migrations.md`).
+- [ ] Generate the migration — `supabase db schema declarative sync --name <name> --no-apply` on
+      pg-delta, `supabase db diff -f <name>` (stack stopped) on migra — then read the generated SQL
+      and hand-write anything the engine misses (`references/cli-and-migrations.md`).
 - [ ] Apply locally with `migration up`, or `db reset` when the local database already drifted, and
       regenerate types.
 - [ ] `supabase db advisors`, then commit the schema file and the migration together.

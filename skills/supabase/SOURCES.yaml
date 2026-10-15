@@ -20,8 +20,8 @@ upstreams:
     url: https://supabase.com/docs
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "Every version-sensitive fact in this skill: the publishable/secret key system and how to recognise the legacy eyJ-prefixed pair, grants evaluated before RLS with 42501 versus an empty result, the getClaims/getUser/getSession split, the getAll/setAll cookie adapter and the cache headers setAll must write, the withSupabase entry point with its auth modes and ctx clients, SUPABASE_SECRET_KEYS as an injected dictionary, the four Edge Function limits, Realtime channel authorization on realtime.messages plus the Postgres-Changes-versus-Broadcast thresholds, realtime.broadcast_changes, the declarative-diff blind-spot list, private-bucket signed URLs and their independent signing key, custom claims through the access-token hook, and gen types. The Personal Access Tokens guide (guides/platform/personal-access-tokens) is the authority for the classic-versus-scoped token facts: classic tokens reach every current and future organization and project, scoped tokens start with `sbp_fc` and only ever narrow the creator's own role, `supabase link` needs Project Settings, API Keys and API Key Secrets read, and database-password commands are not bounded by the token."
+    synced_at: "2026-10-15"
+    contributes: "Every version-sensitive fact in this skill: the publishable/secret key system and how to recognise the legacy eyJ-prefixed pair, grants evaluated before RLS with 42501 versus an empty result, the getClaims/getUser/getSession split including that getClaims verifies locally only on asymmetric-key projects and calls the Auth server on symmetric ones, the getAll/setAll cookie adapter and the cache headers setAll must write, the withSupabase entry point with its auth modes (secret and publishable accepting only the key named default unless suffixed :<name> or :*) and ctx clients, SUPABASE_SECRET_KEYS as an injected dictionary, the four Edge Function limits, Realtime channel authorization on realtime.messages plus the Postgres-Changes-versus-Broadcast thresholds, realtime.broadcast_changes, the pg-delta versus legacy migra diff engines (which command generates declarative migrations on each, and each engine's blind-spot list), private-bucket signed URLs and their independent signing key, custom claims through the access-token hook, and gen types. The Personal Access Tokens guide (guides/platform/personal-access-tokens) is the authority for the classic-versus-scoped token facts: classic tokens reach every current and future organization and project, scoped tokens start with `sbp_fc` and only ever narrow the creator's own role, `supabase link` needs Project Settings, API Keys and API Key Secrets read, and database-password commands are not bounded by the token."
     notes: "Licence verified by reading the source repository: the docs content lives in supabase/supabase under apps/docs, that repository's root LICENSE is Apache-2.0 and apps/docs carries no separate LICENSE, so this is merged rather than reference. Pages were read as plain text by appending .md to each docs path."
   - id: magnus-agent-skills
     kind: repo
@@ -87,7 +87,7 @@ upstreams:
     url: https://www.postgresql.org/docs/current/sql-createpolicy.html
     license: PostgreSQL
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authoritative RLS semantics used to overrule an upstream claim: for ALL and UPDATE policies, when no WITH CHECK expression is defined the USING expression is used both to decide which rows are visible and which new rows may be written."
     notes: "Consulted because the official Supabase skill states the opposite; Postgres is the authority for Postgres semantics (research/supabase.md ruling 11)."
   - id: supabase-server-sdk

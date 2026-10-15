@@ -52,15 +52,18 @@ Two independent checks run: the platform's `verify_jwt` gate (before your code) 
 | `auth` | Accepts | `verify_jwt` |
 |---|---|---|
 | `'user'` | user JWT on `Authorization` | `true` (default) |
-| `'secret'` | secret key on `apikey` | `false` |
-| `'publishable'` | publishable key on `apikey` | `true` or `false` |
+| `'secret'` | the secret key named `default` on `apikey` | `false` |
+| `'publishable'` | the publishable key named `default` on `apikey` | `true` or `false` |
 | `'none'` | anyone, no check | `false` |
 
 - **User-facing function** — called through `supabase.functions.invoke` from a signed-in client.
   Keep `verify_jwt = true` and use `auth: 'user'`.
 - **Service-to-service** — cron, a worker, `pg_net`, another function. These send a secret key on
   `apikey` and no user JWT, so `verify_jwt = true` rejects them before your handler runs. Set
-  `verify_jwt = false` and `auth: 'secret'`. Narrow it to one named key with `auth: 'secret:jobs'`.
+  `verify_jwt = false` and `auth: 'secret'`. That accepts **only** the key named `default`: a
+  caller holding another named key needs `auth: 'secret:<name>'` (for example `'secret:jobs'`),
+  and `'secret:*'` accepts any secret key on the project. The publishable modes take the same
+  `:<name>` / `:*` suffixes.
 - **External webhook** (Stripe, GitHub) — the provider sends its own signature and no Supabase
   credentials. `auth: 'none'` plus `verify_jwt = false`, and then **your handler is solely
   responsible for authenticating the caller** by verifying the provider signature. Never leave
