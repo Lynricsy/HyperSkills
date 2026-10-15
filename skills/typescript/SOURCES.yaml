@@ -1,5 +1,5 @@
 skill: typescript
-version: "2026.09.30"
+version: "2026.10.15"
 upstreams:
   - id: mattpocock-codebase-design
     kind: repo
@@ -9,10 +9,10 @@ upstreams:
       - skills/engineering/codebase-design
       - skills/engineering/improve-codebase-architecture
     ref: main
-    commit: d81f3a183412e71a5b1e84ca21bc1a35eea03a60
+    commit: 49dd158d1076134a641b33efb035946536778336
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The deep-module vocabulary used verbatim as terminology (module, interface, implementation, depth, seam, adapter, leverage, locality) with its explicit list of words to avoid, the deletion test, depth-as-leverage in place of the implementation-to-interface line ratio, one-adapter-is-hypothetical / two-adapters-is-real, the internal-versus-external seam distinction, the interface-is-the-test-surface rule with replace-don't-layer, and the four dependency classes that decide where a seam goes."
     notes: "paths are narrowed to the two directories actually consulted: this repository already tracks skills/engineering/code-review, .../tdd and .../diagnosing-bugs for other skills, and a whole-repo path list would report unrelated commits as drift here. The upstream's harness-bound material (disable-model-invocation, Skill-tool cross-calls, the Tailwind/Mermaid HTML report, xdg-open) was dropped, and its domain-glossary/ADR workflow (the glossary file was CONTEXT.md, renamed GLOSSARY.md upstream in d80fa0f) was left out as belonging to documentation practice rather than to TypeScript."
 
@@ -22,25 +22,25 @@ upstreams:
     url: https://github.com/mcollina/skills/tree/main/skills/typescript-magician
     paths: [skills/typescript-magician]
     ref: main
-    commit: 856efd268ae85482d882f3d0bed869fd020b5c06
+    commit: 72b72751477157ebda36203eaffac701ac5df5ae
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The narrowing and generics body: the built-in narrowing constructs and their order, discriminated unions with never-based exhaustiveness, custom type predicates and generic guards, assertion functions together with the function-declaration requirement and the error it produces when broken, the control-flow-analysis failure cases (narrowing stored in a variable, narrowing across callbacks, uncorrelated optional properties), and branded types with the unique-symbol variant and validating constructors."
     notes: "metadata.tags frontmatter fields stripped. Its utility-type and type-challenge material was left out as content a capable model already has."
 
   - id: shipshitdev-ts-refactor
     kind: repo
     repo: shipshitdev/skills
-    url: https://github.com/shipshitdev/skills/tree/master/skills/typescript-refactor
-    paths: [skills/typescript-refactor]
+    url: https://github.com/shipshitdev/skills/tree/master/skills/typescript-expert/references/rules
+    paths: [skills/typescript-expert/references/rules]
     ref: master
-    commit: a0f9899c4254e9c000a390c00fbe5e11a52530bb
+    commit: cccb912bdd2f0ac33475ec39cebe1a3817c34e9d
     license: NONE
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The rule inventory and its impact ordering for type architecture, narrowing, modern syntax, generics, error safety and language quirks: satisfies over annotation, interfaces over intersections, readonly by default, union literals over enums, eliminating as-casts through narrowing chains, typed catch bindings, discriminated error unions, explicit return types on exported API, distributive conditional types and how to switch distribution off, excess-property checking on literals only, and the empty-object-type trap."
-    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Four rules (arch-satisfies-over-annotation, generic-avoid-distributive-surprises, quirk-excess-property-checks, modern-verbatim-module-syntax) were checked against the TypeScript handbook and against tsc 7.0.2 before adoption; all four held. Its compiler-performance and tooling-selection rules were re-derived from the official TypeScript 6.0/7.0 release notes instead, because the upstream predates those releases."
+    notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Four rules (arch-satisfies-over-annotation, generic-avoid-distributive-surprises, quirk-excess-property-checks, modern-verbatim-module-syntax) were checked against the TypeScript handbook and against tsc 7.0.2 before adoption; all four held. Its compiler-performance and tooling-selection rules were re-derived from the official TypeScript 6.0/7.0 release notes instead, because the upstream predates those releases. Upstream deleted the standalone typescript-refactor skill in c80ea6e and moved its 43 rule files plus _sections.md unchanged (identical blobs) into skills/typescript-expert/references/rules; url and paths follow the rules there. The rest of typescript-expert (pstack-derived material under separate licences) is not used and not tracked."
 
   - id: paldom-node-ts
     kind: repo
@@ -51,7 +51,7 @@ upstreams:
     commit: 6dca4a3cd4b3be4e6d6beea7b04c50a9420b5b13
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The explicit-configuration principle (never rely on a version default), the consumption-model decision axis for module and moduleResolution with the bundler-resolution-breaks-consumers failure, isolatedDeclarations as a library flag and noise in an application, the strictification ratchet (measure the error surface, enable per flag or per directory, gate CI on no-new-errors), and the publish-side verification gate of publint plus arethetypeswrong."
     notes: "The only candidate whose content was already correct for TypeScript 6/7. Its own tsconfig playbook was not copied: every configuration block here was rebuilt from the official release notes and then compiled against tsc 7.0.2."
 
@@ -89,10 +89,10 @@ upstreams:
       - skills/javascript-typescript-jest/SKILL.md
       - instructions/nodejs-javascript-vitest.instructions.md
     ref: main
-    commit: 15ed97c2ed66c8193eff0225f9686bbfaecc0149
+    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
     license: MIT
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Read to confirm the testing chapter had no missing topics. Neither file contains TypeScript-side configuration — the Jest skill is a matcher and structure checklist, and the Vitest instructions apply only to .js/.mjs/.cjs — so nothing was taken from either."
     notes: "paths list the two files consulted rather than the repository, which carries several hundred unrelated skills and instruction files."
 
@@ -102,9 +102,9 @@ upstreams:
     url: https://github.com/Jeffallan/claude-skills/tree/main/skills/typescript-pro
     paths: [skills/typescript-pro]
     ref: main
-    commit: 882ef55e377dbf9a4dbe496bb41ac6ccd0e555cf
+    commit: 1be15d8064f88fc25216442406d40add8fd23b53
     license: MIT
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Cross-checked the type-level examples (branded types, discriminated unions, custom utility types) against the material adopted from other upstreams. No content taken."
     notes: "Reference-only by ruling, not by licence: its references/configuration.md is a TypeScript 5.x configuration baseline that no longer compiles — baseUrl with paths, esModuleInterop presented as opt-in, moduleResolution node still listed, target es5 context. It is recorded in research/typescript.md as the worked example of why configuration advice must be version-gated."

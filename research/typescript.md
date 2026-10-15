@@ -244,3 +244,27 @@ repo moved 的 shipshitdev 顺带前移到 a0f9899）。三条 docs 为 manual c
 | awesome-copilot-ts-tests | 7568a48 → 15ed97c（64 提交，329 文件） | `skills/javascript-typescript-jest/SKILL.md`、`instructions/nodejs-javascript-vitest.instructions.md` 0 提交 | 噪声 | 区间改动全在其他目录；too-large 只是 compare 上限 |
 
 未合入原因：两条均无可合入内容，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`。
+tracked paths 下确有提交的 2 条：shipshitdev-ts-refactor（`diff too large`，按完整区间用缓存裸仓库
+`/tmp/hs-attr/shipshitdev__skills` 归因）与 jeffallan-ts-pro（`gh api …/compare` patch）。awesome-copilot-ts-tests
+同报 too large，缓存仓库 `git log 15ed97c..3cf7c7e -- <paths>` 为 0 提交（噪声）；mattpocock、mcollina 为 repo moved /
+tracked paths unchanged，`--pin` 顺带前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| shipshitdev-ts-refactor | a0f9899 → cccb912（3 提交） | `skills/typescript-refactor` 整个目录被删 | 路径迁移，内容无变化：b8213b0 只把 frontmatter/plugin.json 版本改为 2.2.2，574fe91 只缩短 description 并加 `when_to_use`；c80ea6e（BREAKING）删除独立的 typescript-refactor，把 43 条规则文件与 `_sections.md`、`_template.md` 原样移入 `skills/typescript-expert/references/rules/`。逐个比对 `git ls-tree` blob：旧 `references/*` 与新 `references/rules/*` 完全相同（`_template.md` 自 `assets/templates/` 移入，blob 亦同）。后续 10ec20d 删除 c80ea6e 新增的 `rules/index.md`，把优先级索引表搬进 typescript-expert 的 SKILL.md，八个类别与影响级别未变 |
+| jeffallan-ts-pro | 882ef55 → 1be15d8（2 提交） | `skills/typescript-pro/SKILL.md` | 噪声：只加 `metadata.company` 与一行维护者署名链接；本条为 reference |
+
+### 路径跟迁
+
+本 skill 从 shipshitdev 取的是规则清单与类别影响排序，这两样现在由 `skills/typescript-expert/references/rules/`
+（规则文件 + `_sections.md`）承载，因此 `url`、`paths` 改为该目录，`id` 保持不变以延续历史。不跟踪整个
+typescript-expert：其余内容来自 pstack（cursor/plugins，另有 MIT 许可文件），本 skill 未取用，跟踪整目录只会引入
+噪声。仓库仍无 LICENSE（`gh api repos/shipshitdev/skills/license` 返回 404），`license: NONE` 不变。`notes` 记录了
+删除提交与迁移关系。
+
+结论：正文与 references 未改，未跑 D2；`pin_check.py` 为 `PIN CHECK CLEAN`（以新 paths 计）。提交含 re-pin、
+paths/url 迁移、版本号与本节。
