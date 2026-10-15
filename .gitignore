@@ -1,5 +1,7 @@
 .agent-logs/
-.omp/
+# 本机会话配置不入库；仓库级 omp 命令（.omp/commands/）入库
+.omp/*
+!.omp/commands/
 node_modules/
 __pycache__/
 *.pyc

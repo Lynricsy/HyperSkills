@@ -211,6 +211,10 @@ skills:
 
 ## 更新流程
 
+批量合并上游（已追踪路径更新、已追踪仓库的新增内容、新仓库、docs 复核、D2 回归与多代理集成）
+的完整操作顺序见仓库级 omp 命令 `/sync-upstreams`（`.omp/commands/sync-upstreams.md`）；
+下文是单个 skill 的判定规则。
+
 ```bash
 uv run tools/check_upstream.py [<skill>...]
 ```

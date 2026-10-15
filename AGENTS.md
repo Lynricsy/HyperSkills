@@ -53,3 +53,4 @@
 | `templates/` | 新 skill 与 research 文档的脚手架 |
 | `tools/` | 校验、上游检查、目录生成、评测运行、测试 VM 入口（`tools/vm.py`） |
 | `vm/` | skill 测试 VM（microsandbox microVM + omp + 预装工具链），用法见 `vm/README.md` |
+| `.omp/commands/` | 仓库级 omp 斜杠命令；`/sync-upstreams [skill ...]` 是合并上游更新的完整操作流程 |
