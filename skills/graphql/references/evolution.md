@@ -1,6 +1,6 @@
 # Schema evolution
 
-Verified against: GraphQL specification (October 2025 edition), `@graphql-inspector/cli` 7,
+Verified against: GraphQL specification (September 2025 edition), `@graphql-inspector/cli` 7,
 graphql.org/learn/robust-applications.
 
 ## Contents

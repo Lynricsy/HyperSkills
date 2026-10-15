@@ -1,6 +1,6 @@
 # Error modelling
 
-Verified against: GraphQL specification (October 2025 edition), GraphQL Yoga 5, Apollo Server 5.
+Verified against: GraphQL specification (September 2025 edition), GraphQL Yoga 5, Apollo Server 5.
 
 ## Contents
 

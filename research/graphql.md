@@ -439,3 +439,26 @@ paths 下确有提交。归因方法：skillmedev-graphql-schema 为 too-large �
 | graphql-hive-tooling（reference） | e9db2c4 → bc73368（2 提交命中） | 588bd2e：`packages/commands/diff` 发版 7.0.1，仅随 `@graphql-inspector/core` 8.0.1 升依赖；该 core 修复（1912c6b）只改 `validate`（字符串字面量里的 `...` 不再被当作 fragment spread），不涉 diff 的破坏性分类。bc73368：测试 tsconfig 与 vitest 类型标注 | 噪声：diff 门的命令形态与退出码语义不变 |
 
 结论：正文与 references 未变，仅 re-pin 与版本号改为 2026.10.15；正文未变，未跑 D2。
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照。graphql.org 读站点源 `graphql/graphql.github.io`（分支 `source`）的 `src/pages/learn/*.mdx`：
+`gh api .../commits?path=src/pages/learn&since=2026-08-01` 为空，上次复核（2026-09-11）以来 learn 页无改动。规范读
+`graphql/graphql-spec` 的 `September2025` tag 与 main（工作草案）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| graphql-org-learn | 默认可空、`!` 的承诺 | `learn/schema.mdx` | 一致 |
+| graphql-org-learn | 顶层 errors 与 errors-as-data 的分类表 | `learn/error-handling.mdx` | 一致 |
+| graphql-org-learn | 游标分页理由、`nodes` 便捷字段 | `learn/pagination.mdx` | 一致 |
+| graphql-org-learn | 需求控制清单：trusted documents（不适用公共 API）、分页、深度限制且嵌套列表单独更小上限、广度/别名/批量上限、业务层按成本限流、复杂度分析；禁用内省仅是隐蔽；生产隐藏 "Did you mean" 提示 | `learn/security.mdx` | 一致 |
+| graphql-org-learn | 授权下放业务逻辑层；`GET` + 持久化文档便于 CDN 缓存 | `learn/authorization.mdx`、`learn/performance.mdx` | 一致 |
+| graphql-org-learn | federation 是模式非规范，标准化在 Composite Schema 工作组 | `learn/federation.mdx` | 一致（页面 2026-06 只在成员名单加了 WunderGraph） |
+| graphql-org-learn | 客户端健壮性：未知枚举值必须有 default 分支、抽象类型新成员、可空字段 | `learn/robust-applications.mdx` | 一致 |
+| graphql-spec | 当前版次名 | `September2025` tag（`spec/GraphQL.md` 标题 "_September 2025 Edition_"；spec.graphql.org/September2025/ 200，/October2025/ 404） | **更正**：`references/schema-design.md`、`operations.md`、`errors.md`、`evolution.md` 四处 "Verified against" 写的 "October 2025 edition" 不存在，改为 "September 2025 edition" |
+| graphql-spec | 执行错误按 null 处理并记入 errors、每位置至多一条；Non-Null 位置向父级传播；`[T!]` 一个元素为 null 整个列表为 null；根到故障全为 Non-Null 时 `data` 为 null | September2025 `Section 6 -- Execution.md` "Handling Execution Errors" | 一致。工作草案（#1183，2026-09-17 合入）把「每 response position 至多一条」改述为「errors 中每条的 response path 唯一」，属措辞澄清，语义不变，正文不改 |
+| graphql-spec | `@oneOf` 为规范指令；增量交付（`@defer`/`@stream`）不在当前版次 | September2025 `Section 3 -- Type System.md` "OneOf Input Objects"；版次中无 `@defer`/`@stream` | 一致 |
+| relay-connections | Connection/Edge/PageInfo 形状、`hasNextPage`/`hasPreviousPage` 非空布尔、`startCursor`/`endCursor` 无结果时可空、first/after 与 last/before | https://relay.dev/graphql/connections.htm | 一致 |
+
+更正只涉及版次名，不改任何规则，不需要评测。SOURCES：三个 docs 条目 `synced_at` 改为 2026-10-15；graphql-spec 的
+`contributes`/`notes` 写明核对的是 September 2025 版次。graphql-js 当前仍为 17.0.2，与 `references/servers.md` 一致。

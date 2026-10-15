@@ -24,7 +24,7 @@ upstreams:
     url: https://graphql.org/learn/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The adjudication baseline for every rule in this skill: why fields are nullable by default and what non-null promises, top-level errors versus errors-as-data with the per-failure-class table, cursor pagination reasoning and the nodes convenience field, the complete demand-control list (trusted documents, pagination, depth limiting with a separate smaller nested-list limit, breadth/alias/batch caps, cost-denominated rate limiting, complexity analysis), introspection as obscurity only plus error-hint masking, authorisation delegated to the business-logic layer, N+1 and GET-plus-persisted-document caching, federation as a pattern with standardisation in the Composite Schemas working group, and the client-robustness rules for unknown enum values, unknown abstract-type members and nullable fields."
     notes: "Licence verified rather than assumed: the site source is graphql/graphql.github.io (default branch `source`) whose GitHub API licence is MIT, so official documentation is merged rather than reference."
   - id: graphql-spec
@@ -32,9 +32,9 @@ upstreams:
     url: https://github.com/graphql/graphql-spec
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "Normative semantics restated in this skill's own words: execution errors are handled as a null at the raising response position with at most one error recorded per position; an error at a Non-Null position propagates to the parent, nulling a nullable parent or climbing further; a List wrapping a Non-Null becomes null entirely when one element is null; data itself is null when every position from the root to the failure is non-null; and @oneOf's status as a specified directive."
-    notes: "GitHub reports NOASSERTION; LICENSE.md was read in full and is the Joint Development Foundation / GraphQL Series IP policy under the working-group technical charter - a copyright notice and warranty disclaimer, not an SPDX open-source licence granting redistribution. Treated as proprietary: reference only, no text copied, semantics restated independently."
+    synced_at: "2026-10-15"
+    contributes: "Normative semantics restated in this skill's own words, checked against the September 2025 edition: execution errors are handled as a null at the raising response position with at most one error recorded per position; an error at a Non-Null position propagates to the parent, nulling a nullable parent or climbing further; a List wrapping a Non-Null becomes null entirely when one element is null; data itself is null when every position from the root to the failure is non-null; and @oneOf's status as a specified directive (OneOf Input Objects are in the September 2025 edition)."
+    notes: "GitHub reports NOASSERTION; LICENSE.md was read in full and is the Joint Development Foundation / GraphQL Series IP policy under the working-group technical charter - a copyright notice and warranty disclaimer, not an SPDX open-source licence granting redistribution. Treated as proprietary: reference only, no text copied, semantics restated independently. The current edition is tagged September2025 (published at spec.graphql.org/September2025/); there is no October 2025 edition."
   - id: graphql-js
     kind: repo
     repo: graphql/graphql-js
@@ -106,7 +106,7 @@ upstreams:
     url: https://relay.dev/graphql/connections.htm
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The normative Connection shape - edges/node/cursor, pageInfo with hasNextPage, hasPreviousPage, startCursor and endCursor, forward first/after and backward last/before argument pairs - and the fact that this is the Relay cursor connections specification rather than part of the GraphQL specification, which is why the field names must match exactly for client tooling to work."
     notes: "Licence verified: the specification is published from facebook/relay, whose GitHub API licence is MIT. graphql.org/learn/pagination cites it as the formal pattern to follow whether or not Relay is used."
   - id: skillmedev-graphql-schema

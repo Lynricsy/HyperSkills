@@ -1,6 +1,6 @@
 # Schema design
 
-Verified against: GraphQL specification (October 2025 edition), graphql-js 17.
+Verified against: GraphQL specification (September 2025 edition), graphql-js 17.
 
 ## Contents
 
