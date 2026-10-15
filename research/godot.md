@@ -724,3 +724,26 @@ run_tests.gd、godot-tests.yml）、场景 8（`subviewport-preview/`：inventor
 D1 静态门（`validate_skills.py` 0 error 0 warning、`build_catalog.py --check`）通过；安装冒烟
 （`npx skills@latest add <worktree> --skill godot --agent universal --copy --yes`）后 `.agents/skills/godot/` 的
 SKILL.md、SOURCES.yaml、NOTICE.md、evals 与 10 个 references 齐全，与源目录 `diff -r` 一致。
+
+## 2026-10-15 上游同步
+
+依据：`/tmp/hs-upstream.json`（2026-10-15 `check_upstream.py --json`）与主代理归因 `/tmp/hs-attr/attribution.md`，本 skill
+有 4 条上游在 tracked paths 下确有提交。归因方法：godot-engine、godot-docs、godot-prompter 用已登录的
+`gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch，只看 tracked paths；gd-agentic-skills 用主代理的 blobless 裸仓库
+缓存 `/tmp/hs-attr/thedivergentai__GD-Agentic-Skills` 跑 `git diff --name-status`/`git diff`。四个仓库区间内均无 LICENSE 变更。
+godot-docs 跟踪 master（4.8 开发线），涉及版本的条目一律用 `gh api` 读 godotengine/godot `4.6`、`4.7`、`master` 三个分支的
+`doc/classes` 核对。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| godot-engine | 83dec14 → fde53e7（1 提交） | `doc/classes/{Joint3D,RigidBody3D,VehicleBody3D,VehicleWheel3D}.xml`：Truck Town 演示链接改到 store.godotengine.org | 噪声（仅链接） |
+| godot-docs | 5f84895 → f81cf71（tracked 10 提交） | `rendering/renderers.rst` + `3d/using_decals.rst`：Compatibility 渲染器支持 Decal（每表面 8、每视图 64，`rendering/limits/opengl/max_decals`） | 不合入（4.8 特性）：4.6、4.7 分支的 `Decal.xml` 仍写「only supported in the Forward+ and Mobile」，`ProjectSettings.xml` 只有 master 才有 `rendering/limits/opengl/max_decals`（默认 64）；本 skill 目标 4.7，`godot-rendering.md` 矩阵「Decals: no」与 SKILL.md 渲染清单对 4.7 仍正确 |
+| 同上 | 同上 | `ui/gui_using_fonts.rst` COLR/CPAL emoji 字体改为支持；`export/feature_tags.rst` 可在 Customize Run Instances 对话框测试自定义 feature tag；`export/android_gradle_build.rst` 菜单改名 Setup Android Build 与 AAR 导出；`networking/high_level_multiplayer.rst` `peer_connected`/`peer_disconnected` 措辞澄清 | 噪声 | 本 skill 未写 emoji 字体格式、未称自定义 feature tag 在编辑器内不可用（`godot-build.md` 只说 `custom_features` 可用 `OS.has_feature` 查询）、不涉及 Android Gradle；多人信号语义未变，`godot-multiplayer.md` 的信号列表仍正确 |
+| godot-prompter | 3e8d0f0 → bd9d180（tracked 4 提交） | `csharp-godot` 把 GDScript 互操作挪到 references（内容不变）；`godot-debugging` C# 示例 `long` → `ulong`（`Time.GetTicksUsec()` 返回 ulong）；`godot-ui` 叠加描边/阴影改为 `LabelSettings` 的 `add_stacked_outline`/`add_stacked_shadow`，并更正 `RichTextLabel` 不能叠加 | 噪声 | 均为上游修自己示例；本 skill 没有 `GetTicksUsec` 的 C# 示例，也没写叠加文字效果，无相反陈述 |
+| gd-agentic-skills | 4c4d0ff → 002d004（13 提交，327 文件） | 除 `skills/godot-composition-apps/QA_REPORT.md`（删除内部评分报告）外全部是新增的 `skills/bevy-*` | 噪声；元数据同步 | 仓库已改名为 `thedivergentai/Game-Dev-Agentic-Skills`（`gh api` 返回新 full_name，LGPL-3.0 不变），SOURCES 的 `repo`/`url` 随之更新并在 notes 记录 |
+
+`--pin` 后 `pin_check.py` 为 `PIN CHECK CLEAN`：写入的 commit 与审阅 HEAD 一致（fde53e7、f81cf71、bd9d180、002d004）；
+awesome-gamedev-godot（d4b0e35 → 0a70cfc）、wshobson-godot（156b7a5 → 46891e7）为「repo moved, tracked paths unchanged」，
+随 pin 前进。
+
+结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号与 gd-agentic-skills 的仓库名元数据。
