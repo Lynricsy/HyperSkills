@@ -366,3 +366,20 @@ obra-tdd、obra-verification 区间内跟踪路径无净变化（bb92a77 的 rel
 遗留：负例需走「本地 description 维护」流程（同模型同条件对照新旧描述的路由结果，含保留样本）后决定是否在 description 加回否定边界，并在 provider 恢复后补跑场景 4 第二个样本；场景 7、8 有 skill 不读 skill 的问题上文已记。
 
 补跑（主代理，provider 恢复后）：场景 4 负例有 skill 第二个样本（`/tmp/hs-d2/main/test-driven-development/omp-openai-gpt-6.1-sol-medium/skill/4/`，41 s）：`skill_read == false`，EB1 ✔ EB2 ✔ EB3 ✔——只给 `actions/setup-node` 的 `cache: pnpm` 与诚实的提速预期，未施加 red-green。两个样本一次误读、一次正确，路由歧义是间歇性的；仍属既有 description 问题（今天未改 description），留给「本地 description 维护」流程，本轮不改。
+
+## 2026-10-15 description 维护（路由）
+
+旧：`Drives implementation and bug fixes through test-first red-green-refactor cycles.`  
+新：`Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config.`（96 字符）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，模型在系统提示里只看到 `name: description` 与「Matching skill → MUST read」；探针只判定是否读取 skill（`detect_skill_read`），不评答案。判定：读了=read；`agent_end` 正常结束、无 provider 错误且未读=not_read；超时未读 / 空事件流 / provider 错误=不确定，不计入。样本固定于 `/tmp/hs-desc/samples.json`：D2 失败的负例为调优负例（3 次），既有正例场景各 1 次，另写保留负例 / 保留正例各 1 条（2 次，只用于验收）。旧、新描述同模型同条件各跑一遍。约束：omp 渲染 skill 列表时把超过 100 字符的描述截断到词边界，所以新描述 ≤100 字符，否则排除限定词会被截掉；真实宿主第二次会话起看到的是 smol 模型压缩后的 ≤12 词提示，本对照只覆盖首次会话的原文路由。
+
+| 样本 | 类型 | 内容 | 旧描述（期望结果次数） | 新描述 |
+|---|---|---|---|---|
+| N4 | 调优负例 | 场景 4：Our CI reinstalls every dependency from scratch on each run. Add pnpm … | 2/3 | 3/3 |
+| P2 | 正例 | 场景 2：Bug report: toSlug('  Deploy -- v2! ') returns 'deploy----v2-' but it … | 1/1 | 1/1 |
+| P3 | 正例 | 场景 3：Review checkout.test.ts. For each test tell me whether it earns its pl… | 0/1 | 1/1 |
+| HN | 保留负例 | 新写：Configure Vitest coverage in vitest.config.ts: use the v8 provider, fa… | 2/2 | 2/2 |
+| HP | 保留正例 | 新写：parseDuration('1h30m') returns 90 but it should return 5400 (seconds).… | 2/2 | 2/2 |
+
+结论：调优负例（CI 缓存）2/3 → 3/3 未读；正例场景 3（测试评审）旧描述未读、新描述读取——新描述把「reviews tests」写进路由句；保留样本两侧一致。采用新描述。

@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: "Drives implementation and bug fixes through test-first red-green-refactor cycles."
+description: "Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
