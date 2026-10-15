@@ -423,3 +423,19 @@ graphql-inspector 视其为 dangerous；Breaking 行改为「非空且无默认�
 安装冒烟：`npx skills@latest add /tmp/hs-wt/SyncG29 --skill graphql --agent universal --copy --yes` 到
 `/tmp/hs-smoke-graphql`，`.agents/skills/graphql/` 下 SKILL.md、NOTICE.md、SOURCES.yaml、8 个 references、
 evals 与 7 个夹具齐全，与 worktree 内容 `diff -rq` 无差异。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与归因结果 `/tmp/hs-attr/attribution.md`。本 skill 3 条上游在 tracked
+paths 下确有提交。归因方法：skillmedev-graphql-schema 为 too-large 条目，用主代理的 blobless 裸仓库缓存
+`/tmp/hs-attr/SkillMedev__skills` 跑 `git diff <pinned>..<head> -- <paths>`；graphql-js、graphql-hive-tooling 用
+`gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch 后按 paths 过滤，inspector 的依赖修复另用
+`gh api repos/graphql-hive/graphql-inspector/commits/1912c6b` 读了实际改动。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| graphql-js | ee5ce41 → e35a025（1 提交命中） | e35a025（#4860）：`src/type/directives.ts` 一处 JSDoc 示例从 `extend directive @cacheControl(maxAge: Int) on FIELD_DEFINITION` 改为 `extend directive @cacheControl @tag`；`execute.ts` 无改动 | 噪声：文档注释示例，本 skill 引用的 `errorPropagation`、`@oneOf`、`@defer`/`@stream`、`hideSuggestions` 事实不受影响 |
+| skillmedev-graphql-schema | a28c4ce → 97a1360（1 提交命中） | bea4ea5：`skills/graphql-schema/SKILL.md` frontmatter `name` 改为 kebab-case，标题挪进 `metadata.title` | 噪声：仅元数据，规则正文未动 |
+| graphql-hive-tooling（reference） | e9db2c4 → bc73368（2 提交命中） | 588bd2e：`packages/commands/diff` 发版 7.0.1，仅随 `@graphql-inspector/core` 8.0.1 升依赖；该 core 修复（1912c6b）只改 `validate`（字符串字面量里的 `...` 不再被当作 fragment spread），不涉 diff 的破坏性分类。bc73368：测试 tsconfig 与 vitest 类型标注 | 噪声：diff 门的命令形态与退出码语义不变 |
+
+结论：正文与 references 未变，仅 re-pin 与版本号改为 2026.10.15；正文未变，未跑 D2。
