@@ -517,3 +517,42 @@ docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 |---|---|---|---|
 | hyperskills-self | fc381f0 → f56f2ee（81 提交，compare 超限，本地 `git log -- docs/skill-standard.md docs/workflow.md tools` 归因） | 仅 4977859：`check_upstream` 处理 API 409、`docs/workflow.md` 状态表加 `EMPTY` | 上游检查工具自身的健壮性修复，不涉及 skill 写作规范，正文不动，仅 re-pin |
 | melodic-audit-skill-visibility | f0d9185 → 5810ed7（1 提交，3 文件） | 无（gh compare 文件列表不含 `plugins/harness-ops/skills/audit-skill-visibility`） | 仅 re-pin |
+
+## 2026-10-15 D2 回归
+
+覆盖提交：127a2c5（Claude Code 整表预算与单条上限、整表超额丢整段描述）、311a6c7（整表超额时精简描述有用的同日更正）、
+6cb4de1（Codex 发现路径为工作目录到仓库根的每一级、`skills.max_context_tokens`、Codex 同名不合并、`anthropic-skills` 保留名；
+`spec-reference.md` 把无 XML、保留词归给 Anthropic 平台而非开放规范）。f84a4c5、d43839e 只动 SOURCES 与版本号。这些更正当时
+未跑模型，今天也没有本 skill 的 D2 结果可复用。
+
+选场景：
+- 场景 1（`widget-builder` 评审）：期望 2 / 7 涉及名称规则与非规范 frontmatter 字段，模型会用到 `spec-reference.md` 的约束表。
+- 场景 3（release-notes 描述）：期望 2「部分主机截断列表，所以前置关键词」与预算段落直接相关。
+- **新增场景 6**：既有场景都不考察整表超额丢描述、Codex 逐级发现与同名不合并、保留词归属。新增三问合一的场景：约 90 个 skill 时
+  低频 skill 不被自动选中、单仓多级 `.agents/skills/` 下 Codex 读哪些目录及同名 `deploy`、`claude-review` 能否用。
+- 负例：场景 4。
+
+运行：`uv run tools/run_evals.py skill-authoring --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），
+产物在 `/tmp/hs-d2/D2G2/skill-authoring/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5◐ 6✔ 7✔ | 124 s。读 `spec-reference.md`、`client-extensions-and-paths.md` 等；名称问题只按规范写「小写 / 数字 / 连字符、与目录一致」，没有把保留词或 XML 说成规范约束；单句描述 `Builds React and TypeScript UI widgets with the @acme/widgets design system.`；5：两个 reference 改为从 SKILL.md 直链，未说明嵌套链只会部分读取 |
+| 1 | gpt-6.1-sol medium | 无 | False | 1✘ 2✔ 3✔ 4✔ 5✔ 6✔ 7✔ | 165 s。联网读 Anthropic 与 Claude Code 文档；1：给出多句、带「Use when …」清单的长描述（超 160 字符） |
+| 3 | gpt-6.1-sol medium | 有 | True | 1✔ 2✘ 3✔ 4✔ 5✔ 6✔ | 80 s。读 `description-optimization.md`、`spec-reference.md`、`evaluation.md`（未打开改过的 `client-extensions-and-paths.md`）；约 20 条、近似负例、60/40 留出、每条 5 次；2：未提前置关键词与主机截断 |
+| 3 | gpt-6.1-sol medium | 无 | False | 1✘ 2✘ 3◐ 4◐ 5✔ 6✔ | 40 s。多句长描述并带否定句；未给规模，负例只写「hard negatives」；同样未提截断 |
+| 6（新增） | gpt-6.1-sol medium | 有 | True | 1◐ 2✔ 3✔ 4✔ | 76 s。读 `client-extensions-and-paths.md`、`spec-reference.md` 并联网核对；两级限额表（单条 1,536 从末尾截断，可靠前置关键词；整表 1% 超额丢整段描述、最少调用者先丢，前置无用）；修法含精简、`name-only`、`skillListingBudgetFraction` / `SLASH_COMMAND_TOOL_CHAR_BUDGET`、`/doctor`、`/context`；Codex 逐级扫描到仓库根、同名不合并；规范无保留词但 Anthropic 平台禁止。1：未写 8,000 字符回退值 |
+| 6（新增） | gpt-6.1-sol medium | 无 | False | 1◐ 2✔ 3✔ 4✔ | 103 s。联网读 Claude Code、Codex、agentskills 与 Anthropic 文档后答出同样内容（同样缺 8,000 回退值） |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 222 s。直接用 MCP TypeScript SDK 实现服务器，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：三处更正在有 skill 时都按新正文作答，无回退：场景 6 有 skill 全部给出整表超额与单条截断的区别、精简描述等修法（与
+311a6c7 的同日更正一致）、Codex 逐级发现与同名不合并、保留词归属；场景 1 的名称规则没有沿用旧的「规范禁止保留词」说法。
+场景 6 基线可联网读官方页面，同样达成，这些更正属消除正文错误陈述。场景 1、3 有 skill 在描述写法上明显好于基线。
+负例 `skill_read == false`。正文无需修改。
+
+遗留：场景 3 期望 2 两侧都未达成。有 skill 时模型读了写有「Front-load … Hosts can shorten」的 `description-optimization.md`，
+给出的描述本身也把任务放在最前，但没有把截断作为理由说出来；该规则今天未改，与今天的改动无关，未调整。各场景只有 1 次运行。
+另记：`references/description-optimization.md`「No XML tags … They are rejected」仍是不分主机的说法，与 6cb4de1 在
+`spec-reference.md` 改成「Anthropic's platform adds」的归属不一致；本轮各场景未因此出现错误行为，未改，留待下次复核统一措辞。

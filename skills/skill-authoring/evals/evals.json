@@ -60,5 +60,15 @@
       "Identifies that each scenario runs with its working directory inside the repository checkout (evals-out under REPO), where the skill's source and earlier transcripts are reachable, so the no-skill baseline can read the skill anyway — scenario 3's baseline did — and says to run in a scratch workspace outside the repository and the output tree",
       "Concludes the result is not yet citable as a closed gap and must be re-run under the corrected conditions before it counts"
     ]
+  },
+  {
+    "skills": ["skill-authoring"],
+    "query": "Three questions about how our skills get discovered; answer in this conversation. (1) We have about 90 internal skills installed for Claude Code. Some rarely used ones, like db-migrations, are never picked up on their own even though their descriptions put the trigger words first; asking for them by name works. Why does front-loading not help, and what should we do? (2) In our monorepo the shared skills live in `.agents/skills/` at the repository root and the payments team keeps its own in `services/payments/.agents/skills/`. Developers start Codex from `services/payments/api/`. Which skill directories does Codex read from there, and what happens with the `deploy` skill that both directories define? (3) The platform team wants to name a new skill `claude-review`; the open Agent Skills spec validator accepts it. Is that name fine?",
+    "expected_behavior": [
+      "Explains Claude Code's whole-listing budget (about 1% of the context window, 8,000 characters as the fallback) separately from the 1,536-character per-entry cap: when the listing is over budget every skill name stays but whole descriptions are dropped, starting with the least-invoked skills, so front-loading inside one description cannot help",
+      "Prescribes fixes for the overflow: trim `description`/`when_to_use` at the source, raise `skillListingBudgetFraction` (or set `SLASH_COMMAND_TOOL_CHAR_BUDGET`), install fewer skills, or mark low-priority skills `\"name-only\"` in `skillOverrides`; and says to confirm with `/doctor` or `/context`",
+      "Says Codex reads `.agents/skills/` in every directory from the working directory up to the repository root — so both `services/payments/.agents/skills/` and the root `.agents/skills/` (plus the user-level `~/.agents/skills/`) — and that two skills named `deploy` are not merged: both appear in Codex's selectors, so they need distinct names",
+      "Says the open specification lists no reserved words, which is why its validator accepts `claude-review`, but Anthropic's platform rejects names containing `claude` or `anthropic`, so a portable skill should be renamed"
+    ]
   }
 ]
