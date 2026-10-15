@@ -265,3 +265,47 @@ Preview URL 带 `X-Robots-Tag: noindex`、队列不能由 Preview 消费、Cron 
 输出目录（均在 `/tmp/hs-evals-sync/SyncG9/` 下）：`cloudflare/workbuddy-deepseek-v4.1-flash-max/baseline/6`（基线 1）、
 `cloudflare-b6`、`cloudflare-b6c`（基线 2、3）、`cloudflare-s6`（合入前）、`cloudflare-s6b`（作废）、`cloudflare-s6c`、
 `cloudflare-s6d`、`cloudflare-s6e`、`cloudflare-s6f`。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与 `/tmp/hs-attr/skills_real.json`，4 条 paths 下确有提交。归因方法：主代理缓存
+`/tmp/hs-attr/cloudflare__skills`、`cloudflare__workers-sdk`、`cloudflare__computer` 上对 `<pinned>..<head> -- <paths>` 跑 `git log`、
+`git diff --stat`、`git diff`（引用目录另用 `--word-diff` 确认只改链接）。`--pin` 后 `pin_check.py` CLEAN；jezweb-cloudflare 随 `--pin` 前移。
+官方文档核对：`developers.cloudflare.com/cf/`、`/cf/agents/`、`/cf/wrangler/`、`/cf/wrangler/migrate/`、`/cf/wrangler/reference/`、`/cf/projects/`
+（2026-09-29/30 版），Cloudflare One 的 network policies、Access for Infrastructure SSH、CASB troubleshooting、Passive Detection 页面。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| cloudflare-skills | 626547c → be68fd8（8 个命中提交，含合并） | cf56dd4/b90d284：新项目与无 Cloudflare 配置的项目默认用 `cf` CLI，有 `wrangler.*` 且无 `cloudflare.config.ts` 才用 Wrangler；580a8e0：Audit SSH 2026-07-15 EOL、Mesh/Cloudflare One Client 改名、CASB 扫描时间、DLP Passive Detection；0871dac：删除 `references/do-storage`（与 durable-objects skill 重复）；41e0d19/86af1a2：文档链接改 `index.md` 路由与 OTel 页面迁移 | **新增规则（已评测合入）+ 事实更正 + paths 迁移**；链接改动为噪声 |
+| workers-sdk | ae70e63 → b81efbc（7 提交，4.145.0–4.151.0） | 4.150.0：项目存在 `.cloudflare/output` 时 `wrangler deploy`/`versions upload`/`preview` 拒绝执行并指向 `cf deploy`；另有 source map 默认上传、`assets.base_path`、Preview secret 保留、K2/Basin 等 | 门槛一行；其余噪声 |
+| cloudflare-computer | ada6480 → ef00c0a（1 提交） | 736fcdd：链接从 `examples/container` 改为 `examples/container-legacy` | 噪声 |
+| cf-nextjs | 626547c → be68fd8（1 提交） | 41e0d19：链接改 `index.md` | 噪声 |
+
+### 裁决：「默认 cf CLI，除非项目已用 Wrangler」
+
+与现有 Core rule 1（「先读项目的 wrangler 版本与 config-schema」）冲突之处在于它默认每个项目都是 Wrangler 项目。官方文档的 coding-agent 页
+（`/cf/agents/`）明确建议在用户级 AGENTS.md 写「use the `cf` CLI unless the project has a Wrangler configuration file」，`/cf/wrangler/` 说明
+未迁移项目继续用 Wrangler、`cf` 资源命令可并用、`cf dev/build/deploy` 只读 `cloudflare.config.ts`。Workers 入门页仍用 C3，但 coding-agent
+场景以 `/cf/agents/` 为准（官方 > 社区、更新 > 更旧）。`cf` 为 beta，因此只合入路由与配套护栏，并要求按文档与 `cf cli search` 取命令。
+改动：Core rule 1 改写为先判定 CLI；新增 `references/cf-cli.md`（路由表、项目内钉住 `cf`、`cf auth login`、modes/ID/远端默认的差异表、
+未迁移项目的危险与迁移前置条件、4.150 反向护栏）；Scope、Topic router、Environment 各一处；`limits-and-versions.md` 增 4.150+/4.136+ 两行门槛。
+Passive Detection 与「cf 命令安全执行」小节起草后因基线已会/未证明缺口而撤回。
+
+事实更正（无需评测，按官方文档）：`references/cloudflare-one.md` Audit SSH 已 EOL、SSH 命令日志来自 Access for Infrastructure 且以客户公钥
+加密需导出；CASB 首扫数小时、之后约 24–48 小时一次；DLP profile 由 Gateway HTTP（DLP）policy 或 CASB 集成引用；Cloudflare One Client（原 WARP）、
+Cloudflare Mesh（原 WARP Connector）。SOURCES：cloudflare-skills 删除 `skills/cloudflare/references/do-storage` path。
+
+### 评测（omp + `openai/gpt-6.1-sol` medium，VM）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 新项目 | gpt-6.1-sol medium | 无 | false | EB5；EB1–EB3 ✘；EB4 不适用 | 写 `wrangler.jsonc`、`npx wrangler login/deploy`；链接存 D1，未涉及 KV |
+| 7 新项目 | gpt-6.1-sol medium | 有 | true | EB1、EB2、EB3、EB5；EB4 不适用 | `cloudflare.config.ts`、`cf` 钉为 devDependency（1.0.0-beta.17）、`npx cf auth login`、`cf d1 create`/按 ID 迁移；同样选 D1 |
+| 8 Wrangler 项目要求改 cf | gpt-6.1-sol medium | 无 | false | EB1、EB2；EB3 部分（`--mode` 有、ID 无）；EB4 ✘；EB5 部分（提到 beta） | 自行读 cf 文档，`cf migrate --dry-run` → `cf migrate`，升级 wrangler 后才跑 `cf deploy` |
+| 8 Wrangler 项目要求改 cf | gpt-6.1-sol medium | 有 | true | 同基线：EB1、EB2；EB3/EB5 部分；EB4 ✘ | 读了 `cf-cli.md`，流程与基线一致 |
+| 9 Cloudflare One 计划 | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | 自行检索到 Passive Detection、Audit SSH EOL、CASB 时间；故 Passive Detection 不合入，场景留作哨兵 |
+
+结论：新项目选 CLI 的缺口成立（基线 1/4 → 有 skill 4/4，EB4 两侧均不适用），据此合入 Core rule 1 与 `cf-cli.md` 的路由/设置部分。
+场景 8 基线已会「先迁移再用 cf 项目命令」，有 skill 无增益；未迁移项目护栏保留为路由规则的安全对偶（压缩为一段），其余未证缺口的
+「cf 命令安全执行」细节已撤回。场景 9 只跑基线（事实更正不依赖评测）；负例与旧场景未重跑。
+产物：`/tmp/hs-evals/cloudflare/omp-openai-gpt-6.1-sol-medium/{baseline,skill}/{7,8}`、`baseline/9`。

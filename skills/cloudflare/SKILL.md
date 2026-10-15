@@ -4,7 +4,7 @@ description: "Builds on Cloudflare Workers, Durable Objects, storage services an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: platform
 ---
 
@@ -13,7 +13,8 @@ metadata:
 ## Scope
 
 Covers the Cloudflare developer platform as a control plane and a runtime: the Workers
-isolate model and its limits, `wrangler` configuration and CLI, bindings, Durable Objects
+isolate model and its limits, `wrangler` configuration and CLI and when a project uses the
+Cloudflare CLI (`cf`) instead, bindings, Durable Objects
 (runtime semantics and class lifecycle), the storage products and how to choose between them
 on consistency and quota grounds, Workers static assets and the migration off Pages,
 Cloudflare's own observability surface, Workers testing, and Cloudflare One — Access, Gateway,
@@ -23,7 +24,8 @@ Verified against **wrangler 4.131.0** with **workerd 1.20260910.1**. Rules that 
 tool than the 4.x line carry a gate such as `(Wrangler 4.107+)`. Limits and defaults were
 re-read from the official documentation rather than recalled; every claim is marked
 `[verified]` (reproduced locally, see `## Environment`), `[official]` (documentation only) or
-`[community]`.
+`[community]`. The `cf` CLI (beta) was not run locally; its guidance follows the cf
+documentation of 2026-09-30 and is `[official]`.
 
 Not covered:
 
@@ -59,10 +61,17 @@ output are a stale limit or a retired plan name, not a wrong API call.
 
 ## Core rules
 
-1. Establish the toolchain before quoting anything: the project's own wrangler version
-   (`npx wrangler --version`), its `compatibility_date` and `compatibility_flags`, and
-   `node_modules/wrangler/config-schema.json` for which configuration fields exist. A field
-   that is not in the installed schema does not exist for this project, whatever the docs say.
+1. Establish the toolchain before quoting anything. A project with `wrangler.jsonc`,
+   `wrangler.json` or `wrangler.toml` and no `cloudflare.config.ts` is a Wrangler project: read
+   its own wrangler version (`npx wrangler --version`), its `compatibility_date` and
+   `compatibility_flags`, and `node_modules/wrangler/config-schema.json` — a field that is not
+   in the installed schema does not exist for this project, whatever the docs say. A new
+   project, one with no Cloudflare configuration, or one with `cloudflare.config.ts` uses the
+   Cloudflare CLI `cf` (beta), per Cloudflare's guidance for coding agents: do not add Wrangler
+   to it, and find each command with `cf cli search` instead of translating this skill's
+   wrangler commands from memory. Never run `cf dev`/`build`/`deploy` in an unmigrated
+   Wrangler project — they ignore `wrangler.jsonc` and rewrite `package.json`
+   (`references/cf-cli.md`).
 2. Prefer retrieval over recall for API surface and limits. Cloudflare ships runtime changes
    several times a week; the installed `wrangler --help` and the generated
    `worker-configuration.d.ts` are the project's truth, and `developers.cloudflare.com` is the
@@ -289,6 +298,7 @@ output are a stale limit or a retired plan name, not a wrong API call.
 |---|---|---|
 | Every quota, default and version gate in one table: CPU and wall time, memory, subrequests, asset and store limits, the wrangler/compat-date gates, retired names | Before quoting any number or any "since version X" claim | `references/limits-and-versions.md` |
 | Isolate lifecycle, request-scoped I/O, `waitUntil` and `passThroughOnException`, streaming, crypto, service bindings and RPC, Smart Placement, Cron Triggers, `nodejs_compat` | Writing or reviewing Worker code, or explaining a runtime error | `references/workers-runtime.md` |
+| Wrangler or `cf` for this project, `cf` setup and login, what changes (modes, IDs, remote-by-default data), why `cf dev`/`build`/`deploy` must not run before `cf migrate`, the migration steps | Starting a new project, a project with `cloudflare.config.ts`, or a request to use or switch to `cf` | `references/cf-cli.md` |
 | Configuration shape and schema, compatibility dates and flags, binding declarations, environments and non-inheritable keys, secrets and `.dev.vars`/`.env`, `limits`, `observability`, `wrangler types`, auto-provisioning | Editing `wrangler.jsonc`/`wrangler.toml` or adding a binding | `references/wrangler.md` |
 | Local versus remote dev and where state lives, data commands, `deploy --dry-run`, versions and gradual deployments, rollback constraints, secret commands, Workers roles and API token scope for deploys, diagnostics | Running wrangler, deploying, setting up CI credentials, or recovering a deployment | `references/wrangler.md` |
 | Durable Object modelling and sharding, stub creation, SQLite and key-value storage APIs, input/output gates and `blockConcurrencyWhile`, alarms, WebSocket hibernation, RPC | Writing or reviewing Durable Object code | `references/durable-objects.md` |
@@ -325,9 +335,10 @@ spellings of the same thing, and reporting them buries the findings that matter.
 
 ## Environment
 
-- `npx wrangler --version` is the first command of any diagnosis; pin wrangler in
-  `devDependencies` and run it through the project's package manager so CI and the laptop
-  agree.
+- In a Wrangler project, `npx wrangler --version` is the first command of any diagnosis; pin
+  wrangler in `devDependencies` and run it through the project's package manager so CI and the
+  laptop agree. A `cf` project pins `cf` the same way, and the global `cf` runs the project's
+  copy (`references/cf-cli.md`).
 - Local development needs no Cloudflare account and no real resource ids. `wrangler dev`
   simulates KV, R2, D1, Durable Objects and the Cache in workerd and persists them under
   `.wrangler/state/v3/`, which must be gitignored. `--persist-to` moves that directory.

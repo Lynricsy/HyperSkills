@@ -1,7 +1,7 @@
 # Cloudflare One: Access, Gateway, the device client and Tunnel
 
 Verified against: official documentation and the official `cloudflare-one` skill, re-read
-2026-09. **Nothing in this file was reproduced locally** — every claim needs an account, a
+2026-10. **Nothing in this file was reproduced locally** — every claim needs an account, a
 domain or the `cloudflared` binary, so treat all of it as `[official]` and retrieve current
 limits, category IDs and API bodies before acting. Never guess an application ID, a category
 ID, a wirefilter field or a request body.
@@ -53,10 +53,10 @@ Two more distinctions that get conflated:
   Troubleshoot against the user's **last authenticated identity**, not the IdP's current state.
 - SaaS federation handles authentication into the SaaS app. Authorization and tenant
   restrictions usually need SaaS-side roles plus Gateway tenant controls.
-- For SSH with the device client deployed, Zero Trust Infrastructure Access is the purpose-built
-  option: keystroke logging, control over target authentication, and short-lived certificates
-  that replace static keys. Short-lived certificates require the target's `sshd` to trust the
-  Cloudflare CA public key.
+- For SSH with the device client deployed, Zero Trust Infrastructure Access (Access for
+  Infrastructure) is the purpose-built option: keystroke logging, control over target
+  authentication, and short-lived certificates that replace static keys. Short-lived
+  certificates require the target's `sshd` to trust the Cloudflare CA public key.
 
 ## Service tokens and non-human clients
 
@@ -83,8 +83,11 @@ is stable enough to rely on:
 - Network policies are strict L4 controls; identity-aware L4 matching needs authenticated
   device context.
 - Access policy selectors can use IP lists but not Gateway domain or URL lists.
-- Audit SSH is a Gateway Network policy action that logs commands without blocking, and requires
-  the session to be proxied through Cloudflare.
+- SSH command logging comes from Access for Infrastructure targets. Gateway's **Audit SSH**
+  Network-policy action reached end of life on 2026-07-15 and remaining Audit SSH rules no
+  longer work; do not recommend it. Infrastructure SSH command logs are encrypted with a
+  customer-supplied public key and must be exported and decrypted — they are not readable in
+  the dashboard.
 
 ## TLS inspection and DLP
 
@@ -93,17 +96,18 @@ is stable enough to rely on:
   inspection without both is a self-inflicted outage.
 - HTTP inspection and DLP for encrypted traffic are impossible without TLS inspection. If
   inspection is off, DLP on HTTPS does nothing.
-- DLP profiles are **detection definitions only**. They have no effect until referenced by a
-  Gateway HTTP policy or CASB scan settings.
+- DLP profiles are **detection definitions only**. They enforce nothing until a Gateway HTTP
+  (DLP) policy or a CASB integration references them.
 - Sequence DLP as log → tune → block. Start with payload logging where policy allows it, drive
   the false-positive rate down, then enforce.
-- API CASB is out-of-band and periodic, not inline enforcement. Large SaaS integrations can
-  take 24–48 hours for an initial scan, and reauthorizing can restart scan state. For inline
-  control of specific SaaS actions, use Gateway granular application controls.
+- API CASB is out-of-band and periodic, not inline enforcement. The initial scan can take
+  several hours and later scans run roughly every 24–48 hours, so findings lag the SaaS state;
+  reauthorizing can restart scan state. For inline control of specific SaaS actions, use
+  Gateway granular application controls.
 
 ## The device client, enrollment and profiles
 
-Two separate things control the client:
+Two separate things control the client (the Cloudflare One Client, formerly WARP):
 
 1. **Enrollment rules** — who may connect. The enrollment rule is an **Access application of
    type `warp`**, and it accepts reusable Access policies. Debug enrollment in Access, not in
@@ -137,9 +141,9 @@ entry means traffic never enters the tunnel.
 
 ## Cloudflare Tunnel
 
-Tunnel is an off-ramp from a private network to Cloudflare; Cloudflare WAN and Mesh are
-off-ramps that can also be on-ramps. `cloudflared` is a separate binary from wrangler — check
-`cloudflared --version` before writing instructions.
+Tunnel is an off-ramp from a private network to Cloudflare; Cloudflare WAN and Cloudflare Mesh
+(formerly WARP Connector) are off-ramps that can also be on-ramps. `cloudflared` is a separate
+binary from wrangler — check `cloudflared --version` before writing instructions.
 
 **Quick tunnel** — temporary `https://*.trycloudflare.com`, no account, for demos and previews:
 

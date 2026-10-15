@@ -89,5 +89,41 @@
       "Replaces the all-accounts `Edit Cloudflare Workers` token with an account-owned API token carrying the Workers `Editor` role scoped to the `orders-api` Worker (not product-level Admin, which only creating new Workers needs), notes that `wrangler login` OAuth cannot express granular permissions, and keeps Preview secrets out of the config via `wrangler preview secret put` or the Previews Base configuration",
       "Adds cleanup on PR close with `wrangler preview delete --name <preview>` (using the same `--env` if an environment is targeted), and mentions that Cloudflare evicts the least recently deployed Preview once the per-Worker cap is reached (100 on Free, 500 on Paid)"
     ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "We're starting the shortlinks service described in README.md from scratch on Cloudflare. Set the project up for us: create the project configuration with whatever storage you think fits, write the Worker, and tell me the exact commands to log in, run it locally and deploy it. Nobody here has used Cloudflare tooling before.",
+    "files": ["evals/files/cf-new-project/README.md", "evals/files/cf-new-project/package.json"],
+    "expected_behavior": [
+      "Uses the Cloudflare CLI (`cf`) because this is a new project with no Cloudflare configuration - Cloudflare's guidance for coding agents is to use `cf` unless the project already has a Wrangler configuration file - and configures the Worker in `cloudflare.config.ts`; it does not create `wrangler.jsonc`/`wrangler.toml`, add `wrangler` as a dependency, or scaffold with `npm create cloudflare`/`wrangler init`",
+      "Treats `cf` as beta and does not present memorised or Wrangler-translated commands as fact: it finds or tells the user to find each command with `cf cli search \"<task>\"`, `--help` or the cf documentation, and uses `cf auth login` (not `wrangler login`) for sign-in",
+      "Installs `cf` as a development dependency of the project, so the global `cf` command runs the project's pinned copy, rather than relying only on an unpinned global install of a beta tool",
+      "Keeps KV for the read-heavy code-to-URL lookup but states its consistency consequence: a new link written in one location can take up to 60 seconds or more to become visible elsewhere, and a lookup that missed is cached the same way, so a freshly created code can 404 in another location for a while",
+      "Does not count clicks with a read-modify-write on a KV key (no atomic increment, and the same key accepts 1 write per second, which a viral link exceeds); clicks are appended as rows or events (D1 insert, Analytics Engine, a Queue) or counted in a Durable Object per link"
+    ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "Our team lead says Cloudflare wants everyone on the new `cf` CLI now. Switch billing-api over: replace the wrangler commands in package.json and in our GitHub Actions deploy.yml with `cf deploy` / `cf dev`, keep staging working, and run the deploy once so we know it works. wrangler.jsonc is attached.",
+    "files": ["evals/files/cf-wrangler-project/wrangler.jsonc", "evals/files/cf-wrangler-project/package.json", "evals/files/cf-wrangler-project/deploy.yml"],
+    "expected_behavior": [
+      "Does not run `cf deploy`, `cf dev` or `cf build` here and does not put them in the scripts or CI while the project is still a Wrangler project: those commands read only `cloudflare.config.ts` and ignore `wrangler.jsonc`, so in an unmigrated project they fail or auto-generate a new configuration without the Worker's entrypoint and bindings and rewrite `package.json` (including the deploy script) - in CI without asking",
+      "Makes migration the prerequisite and the user's decision: `cf migrate --dry-run` to preview, then `cf migrate`, then resolving the follow-up comments it leaves in the generated `cloudflare.config.ts`; notes that the pinned wrangler 4.131.0 must first be upgraded to 4.136.0 or later for the Wrangler-bundler migration; until then `wrangler deploy` stays the deploy path",
+      "Maps what changes for this configuration under `cf`: the `env.staging` block becomes a mode selected with `--mode` rather than `--env`, and `cf` resource commands take resource IDs rather than names",
+      "Covers credentials: `cf` does not reuse the Wrangler login (`cf auth login` locally), while CI keeps authenticating through `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which both tools read",
+      "Says that `cf` resource and account commands (for example `cf d1 list`) can already be used next to the unmigrated Wrangler project without changing it, and that `cf` is in beta"
+    ]
+  },
+  {
+    "skills": ["cloudflare"],
+    "query": "request.md is what our CISO sent about Cloudflare One. Give me the rollout plan for each of the three asks - what to enable in which order, what each step depends on, and what I should tell the CISO.",
+    "files": ["evals/files/zero-trust-dlp/request.md"],
+    "expected_behavior": [
+      "Makes TLS decryption the prerequisite for any DLP on HTTPS traffic and stages it safely: deploy the Cloudflare root certificate to the managed devices first and add Do Not Inspect exceptions for certificate-pinned applications before turning decryption on, scoped to a pilot group",
+      "Starts DLP with discovery instead of a guessed blocking policy: uses Passive Detection, which samples Gateway HTTP request and response bodies and reports which detection entries match and where without any DLP policy (it needs HTTP filtering, TLS decryption and the entries enabled in at least one DLP profile), then sequences log -> tune -> block for the customer-export rule",
+      "States that DLP profiles enforce nothing on their own: they act only when a Gateway HTTP (DLP) policy or a CASB integration references them",
+      "Rejects the consultant's Audit SSH advice: Gateway's Audit SSH action reached end of life (2026-07-15) and no longer works; SSH command logging comes from Access for Infrastructure targets (which also replace the static keys with short-lived certificates), and those command logs are encrypted with a customer-provided public key and exported rather than read in the dashboard",
+      "Explains the empty Microsoft 365 CASB view as expected timing rather than a fault: API CASB is periodic and out of band, the initial scan can take several hours and later scans run roughly every 24-48 hours, and reauthorizing can restart scan state, so it should not be reconnected yet"
+    ]
   }
 ]

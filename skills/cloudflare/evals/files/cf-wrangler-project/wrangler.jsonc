@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "billing-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "billing.example.com", "custom_domain": true }],
+  "kv_namespaces": [{ "binding": "RATES", "id": "3b9d2c7e1f0a4d5b8c6e2f1a0b9c8d7e" }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "billing-prod", "database_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d" }
+  ],
+  "observability": { "enabled": true },
+  "env": {
+    "staging": {
+      "routes": [{ "pattern": "billing-staging.example.com", "custom_domain": true }],
+      "kv_namespaces": [{ "binding": "RATES", "id": "9f8e7d6c5b4a4392a1b0c9d8e7f6a5b4" }],
+      "d1_databases": [
+        { "binding": "DB", "database_name": "billing-staging", "database_id": "f0e1d2c3-b4a5-4968-8776-655443322110" }
+      ]
+    }
+  }
+}
