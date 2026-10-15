@@ -348,3 +348,41 @@ Read-Only、429 + `Retry-After`、`upload_source_maps: true` 后重新部署。�
 | cloudflare-docs | Queues：消息 128 KB、每账户 10,000 队列、批量 100、`max_retries` 默认 3；无 DLQ 时耗尽重试的消息被永久删除 | [Queues limits](https://developers.cloudflare.com/queues/platform/limits/)、[Batching and retries](https://developers.cloudflare.com/queues/configuration/batching-retries/)、[Dead letter queues](https://developers.cloudflare.com/queues/configuration/dead-letter-queues/) | 一致 |
 
 7 组事实全部一致，正文未改，`synced_at` 维持 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`c775e16`（Core rule 1 先判定 Wrangler 还是 `cf`、新增 `references/cf-cli.md`、Scope/Topic router/Environment、
+`limits-and-versions.md` 增 Wrangler 4.150+/4.136+ 门槛；`cloudflare-one.md` 更正 Audit SSH EOL、SSH 命令日志来源与加密、CASB 扫描时间、
+DLP profile 的引用方、Cloudflare One Client / Mesh 改名；新增场景 7–9）；`6db32ac` 只加场景 10、11 与夹具，正文未改。
+
+选场景：7、8、9、10、11 均为今天新增，必选；其中 7、8 直接考察 CLI 选择规则，9 考察 Cloudflare One 的事实更正，10、11 只是哨兵。
+负例 5（React 组件性能）。旧场景 1–4、6 不涉及改动内容。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；新跑产物 `/tmp/hs-d2/D2G3/cloudflare/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`。
+
+复用说明：今天已有的有 skill 结果（`/tmp/hs-evals/.../skill/{7,8}`，10:11/10:14）早于正文提交 `c775e16`（10:22），不复用，7、8 有 skill 重跑。
+基线 7、9（`/tmp/hs-evals/cloudflare/omp-openai-gpt-6.1-sol-medium/baseline/{7,9}`）与基线 10、11
+（`/tmp/hs-evals-MergeM2/cloudflare/omp-openai-gpt-6.1-sol-medium/baseline/{10,11}`）的 result.json 中 query 与 expected_behavior 与当前逐字相同，
+夹具此后未改（工作区差异均为 agent 自己的改写），按简报复用，判定沿用本文件前两节。基线 8 的 expected_behavior 在跑完后改过，重跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 新项目从零搭建 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB5 ✔；EB4 不适用 | 487 s。`cloudflare.config.ts`、无 wrangler；多次 `npx cf cli search`、`npx cf auth login`；`cf` 1.0.0-beta.17 钉为 devDependency；选 D1、每次点击插入一行（并发 20 次得 20 行），未用 KV |
+| 7 | gpt-6.1-sol medium | 无（复用） | false | EB5 ✔；EB1–EB3 ✘；EB4 不适用 | `/tmp/hs-evals/.../baseline/7`：写 `wrangler.jsonc`、`npx wrangler login/deploy` |
+| 8 Wrangler 项目要求改用 cf | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ◐ | 138 s。不改文件、不部署；`cf` 不读 `wrangler.jsonc`；先 `cf migrate` 预览再迁移并处理生成项，wrangler 4.131→4.136+；`--mode staging`；ID 只提到「保留资源 ID」；只指出 token 变量未设，未提 `cf auth login`；说了 beta，未提资源命令可并用 |
+| 8 | gpt-6.1-sol medium | 无（重跑） | false | EB1 ✔ EB2 ◐ EB3 ◐ EB4 ✘ EB5 ◐ | 157 s。自行 `cf migrate`（未征求同意）、改写 package.json/deploy.yml、删 `wrangler.jsonc`，再跑 `npm run deploy:staging`（缺 `src/index.ts` 失败） |
+| 9 Cloudflare One 计划 | gpt-6.1-sol medium | 有 | true | EB1–EB5 ✔ | 355 s。先装根证书与 Do Not Inspect 再试点解密；Passive Detection 前提与 log→tune→block；Audit SSH 2026-07-15 EOL、改 Access for Infrastructure、日志以客户公钥加密不能在面板读；CASB 首扫最多 24 h、健康时不要反复重连 |
+| 9 | gpt-6.1-sol medium | 无（复用） | false | EB1–EB5 ✔ | `/tmp/hs-evals/.../baseline/9` |
+| 10 生产 profiling | gpt-6.1-sol medium | 有 | true | EB1–EB6 ✔ | 70 s。另指出 profiling 资源命令不需要先把 Wrangler 项目迁到 `cf` |
+| 10 | gpt-6.1-sol medium | 无（复用） | false | EB1–EB6 ✔ | `/tmp/hs-evals-MergeM2/.../baseline/10` |
+| 11 生产 profiling（不提示） | gpt-6.1-sol medium | 有 | true | EB1–EB5 ✔ | 106 s |
+| 11 | gpt-6.1-sol medium | 无（复用） | false | EB1–EB5 ✔ | `/tmp/hs-evals-MergeM2/.../baseline/11` |
+| 5 负例 | gpt-6.1-sol medium | 有 | **false** | — | 333 s（前两次因模型服务 503 无回答而中止，第三次完成），按 React 性能作答，未读 cloudflare |
+
+结论：CLI 选择规则（新项目用 `cf`、未迁移的 Wrangler 项目不跑 `cf dev/build/deploy`、迁移由用户决定）在有 skill 时达成，且优于基线
+（场景 7：4/4 对 1/4；场景 8：2✔3◐ 对 1✔3◐1✘，基线自行迁移并删除 `wrangler.jsonc`）。Cloudflare One 的事实更正（场景 9）有 skill 5/5，
+与基线持平；哨兵场景 10、11 有 skill 满分。负例 skill_read 为 false。正文无需修改。
+
+遗留：场景 8 的 EB3–EB5（资源命令按 ID、`cf` 不复用 Wrangler 登录、资源命令可与未迁移项目并用）两侧都只部分达成，`cf-cli.md` 已写明，
+属模型取舍。场景 9 有 skill 一侧发现 Cloudflare 文档自相矛盾：CASB 概览页写后续扫描「typically between every 1 hour and every 24 hours」、
+`troubleshooting/casb` 写首扫「up to 24 hours」，而 `integrations/cloud-and-saas/troubleshooting/casb` 写「several hours … approximately every
+24-48 hours」（本 skill 依据后者）。不影响「别急着重连」的结论，下次同步 Cloudflare One 时按届时官方口径统一。
