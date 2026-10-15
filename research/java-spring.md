@@ -307,9 +307,11 @@ attempts」，不能解释该提示的事务管理器会静默忽略它；`Hiber
 | 2 Boot 3.5 → 4 迁移（SecurityConfig 含 `@EnableGlobalMethodSecurity`，pom 含 spring-retry） | gpt-6.1-sol medium | 有 | true | ✔1–4 ◐5 ✔6–11 ◐12（10✔2◐） | 123 s。`@EnableGlobalMethodSecurity` → `@EnableMethodSecurity`、`DaoAuthenticationProvider` 构造器注入，未把弃用项说成编译错误；spring-retry 写「Boot 4 不再管理版本，迁到 Framework 7 resilience API 或自行定版本」，未点名 `@Retryable`/`@EnableResilientMethods`；properties-migrator 与 `spring.jackson.json.read` 改名均给出；基线要求缺 Framework 7 / Jakarta EE 11 明示 |
 | 2 | gpt-6.1-sol medium | 无 | false | ✔1–4 ◐5 ✔6–10 ◐11 ✔12（10✔2◐） | 234 s。与有 skill 同级：同样未点名核心 `@Retryable`；改了 Jackson 属性但未建议 properties-migrator |
 | 4 负例（Android 协程） | gpt-6.1-sol medium | 有 | false | 3/3 | 36 s。改用 `viewModelScope`，无 Spring 建议 |
+| 6 Boot 4.1 / Java 25→26 升级评审（新增） | gpt-6.1-sol medium | 有 | true | 4/4 | 133 s。`layertools` 在 4.1 移除 → `-Djarmode=tools … extract --layers`，入口改 `java -jar`；非分代 ZGC 自 JDK 24 移除，25 上 `-XX:-ZGenerational` 被忽略并告警、26 上拒绝启动，现在就删；核心 Spring 只有 `@Retryable`/`@ConcurrencyLimit`/`@EnableResilientMethods`，无断路器，保留 Resilience4j；JEP 513 在 25 已定稿，无需 `--enable-preview`。另提 4.1 `-DskipTests` 不再跳过测试 AOT |
+| 6 | gpt-6.1-sol medium | 无 | false | 4/4 | 197 s。四项结论与有 skill 一致（含 25 忽略 / 26 拒绝启动、`resilience4j-spring-boot4`、JEP 513 final） |
 
 选择理由：2 的夹具含 `@EnableGlobalMethodSecurity` 与 spring-retry（Security 7 弃用项、熔断更正）；layertools 移除、`-XX:-ZGenerational`、核心无熔断、JEP 513 没有场景覆盖，新增 6（`Dockerfile` + `upgrade-plan.md`）；4 为负例。
 
-已完成部分：场景 2 两侧 10✔2◐ 持平，有 skill 未把弃用项说成编译错误；负例 `skill_read=false`。
+结论：场景 2 两侧 10✔2◐ 持平，有 skill 未把弃用项说成编译错误；新增 6 两侧 4/4（基线已会，作哨兵保留）；负例 `skill_read=false`。未改正文。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：6 Boot 4.1 layertools 移除 / ZGenerational / 熔断 / JEP 513（新增，有/无）。待结果出来后补判定。
+遗留：场景 2 两侧都没有点名核心 `@Retryable` 的迁移目标，与基线持平。
