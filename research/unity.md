@@ -415,9 +415,11 @@ docs.unity3d.com/Manual 当前默认渲染 Unity 6.6（6000.6，页脚 Built on 
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 | 3 URP SetPass 报告（GRD 前提，含 `OnBecameVisible`） | gpt-6.1-sol medium | 有 | true | 6/6 | 58 s。MPB 使 SRP Batcher 不兼容且每帧分配；`.material` 私有副本；UnityPerDraw/UnityPerMaterial；SRP Batcher 减少状态切换而非 draw 数；Standard 品红；GRD 需 Forward+ 与 Keep All，MPB 与可见性回调排除，建议改 CullingGroup。未把「受 Animator 控制」说成要求 |
+| 3 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ✔3 ✔4 ✔5 ✔6（4✔2◐） | 85 s。MPB 使 crate 不兼容但未单独指出每帧 new 一个 MPB 的分配；`.material` 生成私有副本但未说泄漏，反对直接改 `sharedMaterial`、改用有意共享的材质；UnityPerDraw/UnityPerMaterial；SRP Batcher 减少设置开销而非合并 draw、按 variant；Standard 属 Built-in、改 URP/Lit；GRD 需 Forward+、Keep All，MPB 与 `OnBecameVisible` 排除 |
+| 5 负例（ASP.NET Core GC / BenchmarkDotNet） | gpt-6.1-sol medium | 有 | false | 3/3 | 102 s。给 dotnet-counters 的 Gen0/分配计数器、`ServerGarbageCollection` / `System.GC.Server`、`[MemoryDiagnoser]`，指出它不是 csproj 里的 job 属性；无 Unity 内容 |
+| 7 GRD 清单评审：动画为排除条件（新增） | gpt-6.1-sol medium | 有 | true | 3/3 | 125 s。第 1 项：Animator 不是前提，排除项是「renderer visibility controlled by animation」，静态道具不必加 Animator；第 2 项：门的 clip 键入 `MeshRenderer.enabled` 正是被排除的情形；第 3、4 项：排除回调为 `OnWillRenderObject`/`OnBecameVisible`/`OnBecameInvisible`，`OnRenderObject` 不在其中（并指出 6000.3 手册与 Editor 排除文本的冲突），crate 的音频剔除改 `CullingGroup` 或距离判断 |
+| 7 | gpt-6.1-sol medium | 无 | false | 3/3 | 176 s。四项结论与有 skill 一致，自行查到 7000.0 的 exclusion-reasons 参考页与 6000.3 兼容页的冲突 |
 
 选择理由：3 的期望 #6 考察 GRD 资格（今日更正的动画项所在清单）；动画驱动可见性为排除条件没有场景直接考察，新增 7（`grd-checklist.md`）；5 为负例。
 
-已完成部分：场景 3 有 skill 6/6，未把「位于 Animator 层级」误当要求。
-
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：3 基线；5 负例；7 GRD 动画排除条件（新增，有/无）。待结果出来后补判定。
+结论：场景 3 有 skill 6/6 对基线 4✔2◐，未把「位于 Animator 层级」误当要求；新增 7 两侧 3/3（基线已会，作哨兵保留）；负例 `skill_read=false`。未改正文，无遗留。
