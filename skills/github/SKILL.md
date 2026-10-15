@@ -47,11 +47,12 @@ registry expects is its own subject, and only the workflow's authentication to i
    vulnerability — the next step that builds, tests or installs it is, because `npm install`
    alone runs lifecycle scripts from the PR. Split into an unprivileged `pull_request` job that
    runs the code and a privileged job that consumes only its output.
-4. **`actions/checkout` v7 already blocks fork PR code under `pull_request_target` and
+4. **`actions/checkout` already blocks fork PR code under `pull_request_target` and
    `workflow_run`.** Reaching for `allow-unsafe-pr-checkout: true` is the decision to opt out of
-   that protection, so treat the flag itself as the finding; a checkout pinned to v6 or earlier
-   has no guard. It does not cover `git fetch`, `gh pr checkout` or a downloaded artifact — those
-   remain untrusted code with no guard at all.
+   that protection, so treat the flag itself as the finding. The guard is in v7 and in the
+   2026-07-20 backports to every older major except v1 (v6.1.0 … v2.8.0), so `@v4` has it; a
+   SHA or exact-version pin from before those releases does not. It does not cover `git fetch`,
+   `gh pr checkout` or a downloaded artifact — those remain untrusted code with no guard at all.
 5. **Every workflow declares `permissions:`.** With no block it inherits the repository default,
    which on older repositories is write to almost everything. Start from `permissions: {}` or
    `contents: read` at the top and elevate per job.

@@ -356,3 +356,49 @@ github-docs 条目补 cache-mode 来源页并把 `synced_at` 改为 2026-10-15�
 | github-docs | 不可变发布锁定资产与标签、自动生成 release attestation | [Immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) | 一致 |
 
 6 组事实，5 组一致、1 组更正（事实更正，未新增行为规则，不跑基线评测）；`synced_at` 维持 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`c75ba92`（checkout 守卫覆盖 `workflow_run`、「v7 新增，v6 及更早没有守卫」）；`d5a77a5`（cache-mode 一组规则，新增场景 5）。
+
+### 回归中发现的正文问题与修正
+
+新增回归场景 6 时核对 `c75ba92` 的版本表述，发现「固定在 v6 及更早版本的 checkout 没有守卫」已不成立：
+
+- `gh release list -R actions/checkout`：v7.0.0 于 2026-06-18 发布；2026-07-20 同日发布 v7.0.1 与 v6.1.0、v5.1.0、v4.4.0、v3.7.0、v2.8.0，
+  没有 v1.x。v4.4.0、v6.1.0 的 release notes 首条均为「**[BREAKING]** backport `allow-unsafe-pr-checkout` to v4/v6」（PR #2502、#2500），
+  并链接 GitHub changelog 2026-06-18「safer pull_request_target defaults」。
+- `gh api repos/actions/checkout/git/ref/tags/v4` 与 `tags/v4.4.0` 同为 `11d5960a…`：浮动主版本标签已带守卫；v6.0.2 等更早的 SHA 或精确版本固定没有。
+- `src/unsafe-pr-checkout-helper.ts`（v7.0.1）：只在 `pull_request_target` 与 `workflow_run` 下检查，`workflow_run` 仅当 `workflow_run.event`
+  以 `pull_request` 开头时才比对 head 仓库与提交。
+
+正文按此改写：`SKILL.md` 规则 4 写明守卫在 v7 与 2026-07-20 回移的各主版本（v1 除外）中，`@v4` 已有、回移之前的 SHA/精确版本固定没有；
+`references/actions-triggers-and-injection.md`「What actions/checkout blocks now」补 `workflow_run` 的触发条件，并单列「哪些固定带守卫」
+（建议升 SHA 而不是改浮动标签）；`SOURCES.yaml` / `NOTICE.md` 中 github-docs 的 contributes 同步（`THIRD_PARTY_NOTICES.md` 由 `build_catalog` 重新生成）。
+新增场景 6（`evals/files/pr-preview.yml`：`workflow_run` 预览工作流把 fork head 用 SHA 固定的 checkout v6.0.2 检出后 `npm ci`、构建并带
+`CLOUDFLARE_API_TOKEN` 部署，注释称「6 月的 checkout 改动让它安全」；另一 job 先 checkout 再 `gh pr checkout` 跑 Playwright）。
+
+### 评测
+
+选场景：5（今天新增，必选）；6（新增回归场景，直接考察守卫的版本范围与覆盖面）；1（`pull_request_target` 检出 PR head 后 `npm ci`，
+规则 4 的直接使用者）。负例 4（git 压缩提交，`skills: []`）。旧场景 2、3 不涉及改动内容。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；新跑产物 `/tmp/hs-d2/D2G3/github/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`。
+有 skill 的 1、5、6 都是在上述正文修正写入后（13:52）跑的（15:36–16:03）。
+
+复用说明：基线 5（`/tmp/hs-evals/github/omp-openai-gpt-6.1-sol-medium/baseline/5`）的 query 与 expected_behavior 与当前逐字相同，夹具自创建
+提交 `d5a77a5` 后未改（工作区差异是 agent 自己加的 `cache-mode: write`），按简报复用，判定与本文件「cache-mode：核实与评测」一节一致。基线 1、6 新跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 pr-triage.yml 审计 | gpt-6.1-sol medium | 有 | true | EB1–EB6 ✔ EB7 ◐ | 267 s。四处表达式注入改 `env:` + 引号变量；全部 action 换 40 位 SHA 加版本注释；`permissions: {}` 按 job 提权并说明缺省继承仓库默认；`pull_request_target` 检出 head 后 `npm ci && npm test` 是特权执行 PR 代码，并指出 `@v4` 现解析到带守卫的 v4.4.0、这次检出会被拒，旧版本则就是 pwn request，关掉守卫不算修复；拆成 `pull_request` 构建 + `workflow_run` 只发布产物；OIDC 只作为可选项提了一句 |
+| 1 | gpt-6.1-sol medium | 无（新跑） | false | EB1 ✔ EB2 ◐ EB3 ✘ EB4 ✔ EB5 ✔ EB6 ✔ EB7 ✘ | 202 s。注入改用 `github-script` 绕开 shell，不是 `env:` 模式；action 仍用 `@v4` 等标签；AWS 密钥移到 environment，未提 OIDC |
+| 5 cache-mode | gpt-6.1-sol medium | 有 | true | EB1–EB3 ✔ | 81 s。拒绝开写、摘要 job `cache-mode: read`、由可信 push 工作流预热；release `cache-mode: none` 并关 `cache: npm`、`package-manager-cache: false` |
+| 5 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✘ EB2 ✘ EB3 ✔ | 92 s，`/tmp/hs-evals/.../baseline/5`：给摘要 job 加 `cache-mode: write` |
+| 6 PR 预览 workflow_run | gpt-6.1-sol medium | 有 | true | EB1–EB3 ✔ | 240 s。v6.0.2 早于 v7 与 7-20 回移（引 v6.1.0 release 与 changelog 对浮动标签/精确固定的区分），fork 代码带 Cloudflare token 与 `pull-requests: write` 执行；升级只会让检出失败、不要加 `allow-unsafe-pr-checkout`，改为 `pull_request` 构建上传、`workflow_run` 只下载静态产物部署（unprivileged 一侧固定 v6.1.0 SHA）；`gh pr checkout` 任何版本都不受守卫保护 |
+| 6 | gpt-6.1-sol medium | 无（新跑） | false | EB1 ◐ EB2 ◐ EB3 ✔ | 237 s。只知守卫在 v7.0.0 引入，不知回移；拆分权限做对，但没说升级后检出会失败、opt-out 即发现项 |
+| 4 负例 | gpt-6.1-sol medium | 有 | **false** | — | 20 s，按交互式 rebase 作答，未读 github |
+
+结论：守卫版本范围的更正（场景 6）有 skill 3/3、基线 1✔2◐；场景 1 有 skill 按修正后的口径判断 `@v4` 已带守卫且不把关守卫当修复，
+6✔1◐ 对基线 4✔1◐2✘；cache-mode（场景 5）3/3 对 1/3。负例 skill_read 为 false。正文修正随本提交合入。
+
+遗留：场景 1 的 OIDC 两侧都只部分达成（有 skill 一侧提为可选项），正文已写，属模型取舍。

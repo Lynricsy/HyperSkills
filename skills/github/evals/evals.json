@@ -59,5 +59,15 @@
       "Makes the read-only intent explicit on the pull_request_target job with cache-mode: read (job or workflow level), optionally alongside a restore-only cache step, rather than only removing the setup-node cache input or leaving a save that can only fail",
       "Flags that release.yml restores a dependency cache (setup-node cache: npm) in a workflow that publishes to npm and creates a release with a write token, as a cache-poisoning sink, and disables cache access there with cache-mode: none at the workflow or job level"
     ]
+  },
+  {
+    "skills": ["github"],
+    "query": "pr-preview.yml is our PR preview workflow on github.com. Someone flagged it in a security review, but the comment in the file says the June actions/checkout change makes it safe. Is it safe? If not, what exactly is wrong and what should the workflow look like?",
+    "files": ["evals/files/pr-preview.yml"],
+    "expected_behavior": [
+      "Says the comment does not hold for this pin: checkout refuses fork PR code under `workflow_run` only from v7.0.0 and in the 2026-07-20 backports (v6.1.0, v5.1.0, v4.4.0 …, which floating major tags pick up); the step is SHA-pinned to v6.0.2, which predates them, so it checks out the fork's head commit and `npm ci` / the build run fork code with `CLOUDFLARE_API_TOKEN` and a `pull-requests: write` token — a pwn request",
+      "Does not make the fix a checkout upgrade alone or an opt-out: with a guarded pin (bumped SHA with a version comment, not a floating tag) this checkout would simply fail, and `allow-unsafe-pr-checkout: true` would be the finding; the fix is privilege separation — build the preview in the unprivileged `pull_request` workflow and have the `workflow_run` job only download the artifact and deploy it as data, never execute it",
+      "Flags the `screenshot` job separately: `gh pr checkout` followed by `npm ci` / Playwright runs fork code with no guard at all, whatever the checkout version, because the checkout guard does not cover `gh pr checkout` or `git fetch`"
+    ]
   }
 ]

@@ -74,12 +74,17 @@ Other vulnerable shapes to grep for:
 
 ## What `actions/checkout` blocks now
 
-`actions/checkout` (v7) refuses to check out fork pull-request code from a workflow triggered by
-`pull_request_target` or `workflow_run` unless the step sets `allow-unsafe-pr-checkout: true`;
-for `workflow_run` it compares against the triggering run's head repository and commit. The
-input is deliberately named to stand out in review and static analysis, so its presence *is* the
-finding — do not treat it as configuration. An older pinned major (v6 and earlier) has no such
-guard. [official]
+`actions/checkout` refuses to check out fork pull-request code from a workflow triggered by
+`pull_request_target`, or by `workflow_run` when the triggering run came from a `pull_request*`
+event, unless the step sets `allow-unsafe-pr-checkout: true`; for `workflow_run` it compares
+against the triggering run's head repository and commit. The input is deliberately named to
+stand out in review and static analysis, so its presence *is* the finding — do not treat it as
+configuration. [official]
+
+Which pins carry the guard: v7.0.0 introduced it, and on 2026-07-20 it was backported to every
+supported major — v6.1.0, v5.1.0, v4.4.0, v3.7.0, v2.8.0 — so a floating major tag (`@v4`)
+already enforces it. A SHA, minor or patch pin from before those releases (`@v4.3.1`, a v6.0.x
+SHA) and `@v1` have no guard; bump the SHA rather than switching to a floating tag. [official]
 
 The protection covers fork PR refs only. Checking out an unrelated third-party repository,
 fetching code with `git fetch` or `gh pr checkout`, or running a downloaded artifact is not
