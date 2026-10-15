@@ -1,0 +1,13 @@
+Run for tag v2.4.0 — conclusion: failure
+
+▶ Run dotnet publish src/Orders.Api/Orders.Api.csproj -c Release /t:PublishContainer -p:ContainerRegistry=ghcr.io -p:ContainerRepository=acme/orders-api -p:ContainerImageTag=v2.4.0
+  Determining projects to restore...
+  Restored /home/runner/work/orders/orders/src/Orders.Api/Orders.Api.csproj (in 1.21 sec).
+  Orders.Api -> /home/runner/work/orders/orders/src/Orders.Api/bin/Release/net10.0/Orders.Api.dll
+  Orders.Api -> /home/runner/work/orders/orders/src/Orders.Api/bin/Release/net10.0/publish/
+/usr/share/dotnet/sdk/10.0.103/Containers/build/Microsoft.NET.Build.Containers.targets(123,5): error CONTAINER2008: Both ContainerImageTag and ContainerImageTags were provided, but only one or the other is allowed. [/home/runner/work/orders/orders/src/Orders.Api/Orders.Api.csproj]
+Error: Process completed with exit code 1.
+
+Previous run, tag v2.3.0, before #212 — conclusion: success
+  Building image 'acme/orders-api' with tags 'latest' on top of base image 'mcr.microsoft.com/dotnet/aspnet:10.0'.
+  Pushed image 'acme/orders-api:latest' to registry 'ghcr.io'.

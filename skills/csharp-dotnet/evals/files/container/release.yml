@@ -1,0 +1,23 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      # Added in #212: images were only ever tagged :latest, so force the release tag.
+      - run: >
+          dotnet publish src/Orders.Api/Orders.Api.csproj -c Release /t:PublishContainer
+          -p:ContainerRegistry=ghcr.io
+          -p:ContainerRepository=acme/orders-api
+          -p:ContainerImageTag=${{ github.ref_name }}

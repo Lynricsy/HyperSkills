@@ -68,5 +68,53 @@
       "Explains the wrong stock: `ExecuteUpdateAsync` writes straight to the database and does not update the `Product` instances already loaded and tracked, so `product.Stock += row.Delivered` starts from the stale pre-release value and `SaveChangesAsync` overwrites the released reservations; the fix orders or unifies the writes (bulk release before loading, reload, or one tracked or one set-based path) and notes that the bulk update and the later saves are not one atomic unit unless a transaction wraps them",
       "Explains the plan-cache growth: `Expression.Constant(supplierCode)` embeds each supplier code in the expression tree as a constant, so EF compiles a new query and sends a different literal SQL text per supplier; the fix uses a captured variable (`p => p.SupplierCode == supplierCode`, or the captured-value member expression when building the tree dynamically) so the value becomes a SQL parameter and the query shape is reused"
     ]
+  },
+  {
+    "skills": ["csharp-dotnet"],
+    "query": "Our release job (release.yml) publishes the Orders.Api container with the SDK, no Dockerfile. Before #212 every release image came out tagged only :latest even though the csproj lists a version tag; #212 added -p:ContainerImageTag and now publish fails (release-log.txt). Fix it so pushing tag v2.4.0 publishes ghcr.io/acme/orders-api:2.4.0 and :latest. Orders.Api.csproj and Directory.Build.props are attached.",
+    "files": [
+      "evals/files/container/Orders.Api.csproj",
+      "evals/files/container/Directory.Build.props",
+      "evals/files/container/release.yml",
+      "evals/files/container/release-log.txt"
+    ],
+    "expected_behavior": [
+      "Explains CONTAINER2008: ContainerImageTag and ContainerImageTags cannot both be set, so the -p:ContainerImageTag added in #212 collides with the ContainerImageTags in the csproj, and removes one of them",
+      "Explains the original :latest-only images: $(VersionPrefix) is still empty when the project body is evaluated (the SDK's 1.0.0 default is applied later, in the SDK targets) and CI never passed a version, so ContainerImageTags evaluated to ';latest'",
+      "Fixes the workflow by feeding the version from outside the project body (for example -p:VersionPrefix=2.4.0 on the command line, or ContainerImageTags passed on the command line with the shell quoting the docs require) and derives 2.4.0 from the v2.4.0 tag instead of passing the leading v",
+      "Gives a way to verify the resolved tags without pushing, such as dotnet msbuild -getProperty:ContainerImageTags with the same properties, or publishing to ContainerArchiveOutputPath"
+    ]
+  },
+  {
+    "skills": ["csharp-dotnet"],
+    "query": "DiscountPolicy.cs is a new class in the Billing project. Add MSTest tests for it to Billing.Tests, including the invalid-percentage case. Follow how this repo already does things; build.cmd is what CI runs.",
+    "files": [
+      "evals/files/legacy/build.cmd",
+      "evals/files/legacy/Billing.csproj",
+      "evals/files/legacy/DiscountPolicy.cs",
+      "evals/files/legacy/Billing.Tests.csproj",
+      "evals/files/legacy/packages.config",
+      "evals/files/legacy/InvoiceCalculatorTests.cs"
+    ],
+    "expected_behavior": [
+      "Adds the new test file to Billing.Tests.csproj with an explicit <Compile Include=...> item, because a non-SDK project does not glob source files",
+      "Asserts the exception with Assert.ThrowsException<ArgumentOutOfRangeException> (available in the pinned MSTest 3.5.2), not Assert.ThrowsExactly or Assert.Throws, which need MSTest 3.8 or later",
+      "Keeps packages.config, the pinned 3.5.2 versions and the non-SDK project format: does not convert the project to SDK style, add PackageReference items or upgrade MSTest",
+      "Names build.cmd (nuget restore, msbuild, vstest.console) as the verification command instead of dotnet test, and says plainly if it could not run it in this environment"
+    ]
+  },
+  {
+    "skills": ["csharp-dotnet"],
+    "query": "Orders.Api (Orders.Api.csproj, net10.0) has no container build yet. Our CI agents are Kubernetes pods: no Docker daemon, no privileged mode, no Docker-in-Docker. Write the CI steps that build a linux-x64 + linux-arm64 image, scan it with trivy before anything is pushed, and then push it to ghcr.io/acme/orders-api tagged with the release version.",
+    "files": [
+      "evals/files/container/Orders.Api.csproj",
+      "evals/files/container/Directory.Build.props"
+    ],
+    "expected_behavior": [
+      "Builds the image with the SDK (dotnet publish /t:PublishContainer), which needs neither a Dockerfile nor a Docker daemon, instead of introducing kaniko, buildah or docker buildx",
+      "Writes the image to a tarball with ContainerArchiveOutputPath and scans that archive with trivy (trivy image --input) before any push",
+      "Produces the two architectures with ContainerRuntimeIdentifiers (a subset of RuntimeIdentifiers), which yields one OCI image index, rather than two separately tagged images",
+      "Pushes only after the scan passes, via ContainerRegistry on a publish or by pushing the scanned archive with a registry tool, and feeds the version from outside the project body so ContainerImageTags does not resolve to ';latest'"
+    ]
   }
 ]

@@ -358,3 +358,35 @@ fixup、降序复合 keyset 谓词、隐藏 `SaveChanges`、证据门）未写�
 `ExecuteUpdate` 三点另以官方文档核对：dotnet/EntityFramework.Docs `core/saving/execute-insert-update-delete.md` 的「Change tracking」
 （已跟踪实例不更新、`SaveChanges` 覆盖批量修改）、「Transactions」（每次调用各自提交、需显式事务）、「Concurrency control and rows affected」
 （不自动做并发控制，需自己在 `Where` 中带令牌并检查受影响行数）；split query 一致性以 `core/querying/single-split-queries.md` 核对。
+
+## 2026-10-15 上游新增内容评估
+
+依据：主代理的上游新增文件评估（NewS4 C：Aaronontheweb `skills/sdk-container-publishing` MERGE；D：dotnet/skills `plugins/dotnet-test/skills/code-testing` MAYBE）。E（dotnet `process-api-net11`）按同类 `system-text-json-net11` 的既有裁决等 .NET 11 GA，不在本次范围。原文：Aaronontheweb/dotnet-skills @ `ac0deb2`（`gh api` 读取，MIT）、dotnet/skills @ `9de888b`（MIT）。
+
+### 候选与裁决
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| sdk-container-publishing：`/t:PublishContainer` 不需要 Dockerfile 与 daemon、`ContainerArchiveOutputPath` 出 tarball、.NET 8 起不设 tag 即 `latest`、`ContainerImageTag(s)` 同设报 CONTAINER2008、项目正文里 `$(VersionPrefix)` 尚为空、`ContainerRuntimeIdentifiers` 出多架构、Windows 需显式 `ContainerBaseImage` | 不合入 | 场景 6、8 基线均 4/4：场景 6 自行解释 `;latest` 与 CONTAINER2008、改用 `-p:VersionPrefix="${GITHUB_REF_NAME#v}"` 并用 `ComputeContainerConfig` 验证；场景 8 在无 daemon 的 Kubernetes runner 上用 SDK 出单个多架构 OCI archive、trivy 扫描后用 skopeo `--all` 推送原 archive。场景保留作哨兵 |
+| containers `references/dockerfile.md` 指向 csharp-dotnet 的 SDK 出镜像一行 | 不做 | 依附于上一条；本 skill 未新增该内容，指向会落空 |
+| code-testing：非 SDK 老项目显式 `<Compile Include>`、保留 packages.config 与锁定版本、用仓库的 msbuild/vstest 命令；MSTest 3.5 用 `Assert.ThrowsException<T>`（`ThrowsExactly`/`Throws` 自 3.8 起） | 不合入 | 场景 7 基线 4/4：加了 `<Compile Include="DiscountPolicyTests.cs" />`、用 `Assert.ThrowsException`、未改 packages.config 与项目格式、说明 Linux 下无法跑 build.cmd |
+| process-api-net11 | 不做 | .NET 11 GA 前不评估（见 2026-10-15 上游同步一节对 `system-text-json-net11` 的裁决） |
+
+### 核实
+
+- 默认 tag `latest`（.NET 8 起）、`ContainerRepository` 默认 `AssemblyName`、Windows 基础镜像需显式指定、多 RID 版本门（8.0.405 / 9.0.102 / 9.0.2xx）、`ContainerPublishInParallel`（8.0.408 / 9.0.300 / 10.0）、`RUN` 不可模拟：learn.microsoft.com `core/containers/publish-configuration`（ms.date 2026-08-04）。
+- CONTAINER2008 文案：`gh api repos/dotnet/sdk/contents/src/Containers/Microsoft.NET.Build.Containers/Resources/Strings.resx`；`VersionPrefix` 默认值在 `Microsoft.NET.DefaultAssemblyInfo.targets`（SDK targets，晚于项目正文）。
+- 本机 .NET SDK 9.0.121 实测：项目正文写 `$(VersionPrefix);latest` 时 `dotnet msbuild -getProperty:ContainerImageTags` 得 `;latest`（`VersionPrefix` 同时为 `1.0.0`），`-p:VersionPrefix=2.4.0` 得 `2.4.0;latest`；`dotnet publish /t:PublishContainer -p:ContainerArchiveOutputPath=… -p:ContainerImageTag=2.4.0` 报 CONTAINER2008；去掉后输出 "Building image 'orders-api' with tags 'latest'"。
+- MSTest：dotnet/docs `mstest0039.md` —— 新 `Assert.Throws*` 与 MSTEST0039 自 3.8.0 引入，3.10 起警告，MSTest 4 移除旧 API。
+
+### 评测结果
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals/csharp-dotnet/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md` 与 `workspace/` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 61 s。根因两条都对（观测到 `;latest`）；`-p:VersionPrefix="${GITHUB_REF_NAME#v}"`；跑 `ComputeContainerConfig` 验证两个 tag |
+| 7 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 84 s。显式 Compile 项、`Assert.ThrowsException`、未动 packages.config；说明缺 Windows/.NET Framework 工具链无法跑 build.cmd |
+| 8 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 83 s。SDK + `ContainerRuntimeIdentifiers` 出单个 OCI archive，逐架构 trivy 扫描后 skopeo 推送扫描过的 archive；从命令行覆盖 `ContainerImageTags` |
+
+结论：本次候选均为基线已具备的行为，不合入正文；场景 6–8 留作哨兵。
