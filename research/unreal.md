@@ -351,3 +351,18 @@ Cloudflare 429。本轮用受控浏览器渲染后抓 `innerText`，共取到 40
 本次三处均为官方页证实的纯事实更正，未新增评测场景，也未跑评测。D1 静态门（`validate_skills.py` 0 error 0 warning、
 `build_catalog.py --check`）通过；安装冒烟（`npx skills@latest add <worktree> --skill unreal --agent universal --copy --yes`）
 后 `.agents/skills/unreal/` 的 SKILL.md、SOURCES.yaml、NOTICE.md、evals 与 10 个 references 齐全，与源目录 `diff -r` 一致。
+
+## 2026-10-15 上游同步
+
+依据：`/tmp/hs-upstream.json`（2026-10-15 `check_upstream.py --json`）与主代理归因 `/tmp/hs-attr/attribution.md`，本 skill
+只有 kevinpbuckley-ue 在 tracked paths 下有提交。归因方法：已登录 `gh api repos/kevinpbuckley/unreal-engine-skills/compare/
+27eb7c3...b22b11d` 取 patch，只看 `skills/core`；区间内无 LICENSE 文件出现（仍无许可文件，按原裁决处理）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| kevinpbuckley-ue | 27eb7c3 → b22b11d（3 提交） | 4ff8204/3acc82c：四个 skill 的 `description` 改成 YAML 折叠块（修 frontmatter 解析）；b22b11d：`ue-auto-landscape-materials` 新增跨关卡/项目复用地形材质一节（迁移父链与 layer info、对齐 paint layer 名、Landscape Grass Output、RVT 输出残留），`ue-material-graph-effects` 新增植物/海草随角色弯折的 WPO 参考（instance space 根遮罩、根到梢线段距离、MPC 驱动）与 Prismatiscape 插件笔记 | 噪声 / 不合入 | frontmatter 修复与本 skill 无关。新增内容是材质图与地形美术制作，不在本 skill 的 Scope（玩法编程、Lumen/Nanite 渲染限制、Niagara）；其中「WPO 不移动碰撞体」一句本 skill 未作相反陈述。另一新增类别 `skills/metahuman` 不在 tracked paths |
+
+`--pin` 后 `pin_check.py` 为 `PIN CHECK CLEAN`：写入的 commit 与审阅 HEAD 一致（b22b11d）；gamedev-unreal（d4b0e35 →
+0a70cfc）、benjaminastera-skills（ecd7038 → 7f5e06c）为「repo moved, tracked paths unchanged」，随 pin 前进。
+
+结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号。
