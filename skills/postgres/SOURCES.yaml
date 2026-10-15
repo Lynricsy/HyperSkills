@@ -8,7 +8,7 @@ upstreams:
     url: https://www.postgresql.org/docs/18/
     license: PostgreSQL
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The final authority for every fact in this skill: ALTER TABLE lock levels and rewrite rules, the table-level lock conflict matrix, RLS semantics (USING versus WITH CHECK, permissive versus restrictive, FORCE and BYPASSRLS, security_invoker views), isolation levels and serialization failures, MVCC, autovacuum and wraparound, index access methods and operator classes, JSONB operators, text search configuration, MERGE, NULLS NOT DISTINCT, generated columns, identity columns, and the PostgreSQL 18 deltas (buffers by default in EXPLAIN ANALYZE, not-null constraints as catalogue objects, B-tree skip scan, uuidv7, VIRTUAL generated columns, autovacuum_vacuum_max_threshold)."
     notes: "Licence verified by reading postgres/postgres COPYRIGHT: the PostgreSQL License, a permissive BSD-style licence, so this is merged rather than reference. Version currency verified against postgresql.org/support/versioning: 18 is the current major (18.6), 19 is in beta and is deliberately not covered."
   - id: neon-postgres-skills

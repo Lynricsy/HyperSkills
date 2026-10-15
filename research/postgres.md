@@ -436,3 +436,14 @@ SOURCES.yaml 中 prisma 的 paths 更正，本次复核属实后保留并补全�
 输出 `PIN CHECK CLEAN`。
 
 结论：正文未变；新增评测场景 5（基线 4/4）作哨兵；version 改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| postgresql-docs | 18 为当前大版本（18.6），19 仍在 beta | [Versioning policy](https://www.postgresql.org/support/versioning/)（18.6；首页 2026-09-24「PostgreSQL 19 Beta 4 Released」） | 一致 |
+| postgresql-docs | PG 18：`EXPLAIN ANALYZE` 自动带 `BUFFERS`、B-tree skip scan、`uuidv7()`、VIRTUAL 生成列（且为默认）、NOT NULL 存入 `pg_constraint` | [Release 18](https://www.postgresql.org/docs/18/release-18.html) | 一致 |
+| postgresql-docs | `autovacuum_vacuum_max_threshold` 默认 100,000,000 | [Automatic vacuuming](https://www.postgresql.org/docs/18/runtime-config-autovacuum.html) | 一致 |
+| postgresql-docs | 生成列语法 `GENERATED ALWAYS AS (...) [STORED \| VIRTUAL]` | [CREATE TABLE](https://www.postgresql.org/docs/18/sql-createtable.html) | 一致 |
+
+4 组事实全部一致，正文未改，`postgresql-docs` 的 `synced_at` 更新为 2026-10-15。
