@@ -341,3 +341,62 @@ extras 说明各一句。只写模型不会的：上游教程已有的「怎么�
 D1：`validate_skills.py` 0 error、`build_catalog.py --check` 通过；安装冒烟
 `npx skills@latest add <worktree> --skill fastapi --agent universal --copy --yes` 后
 `.agents/skills/fastapi/` 含 SKILL.md 与 8 个 references（含新增 `opentelemetry.md`），与仓库内容 `diff -r` 一致。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与归因结果 `/tmp/hs-attr/attribution.md`。本 skill 2 条上游在
+tracked paths 下确有提交：fastapi-official-skill、fastapi-full-stack-template。两条都用
+`gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch 后按 paths 过滤；fastapi 的 OpenTelemetry 提交另用
+`gh api repos/fastapi/fastapi/commits/<sha>` 读了同一提交在 tracked path 之外的实现（`fastapi/applications.py`、
+`fastapi/telemetry/_api.py`、`_runtime.py`）与教程页 `docs/en/docs/advanced/opentelemetry.md`（属 fastapi-docs 条目），
+并用 `commits?path=fastapi/telemetry` 列出 pin 之后遥测实现的全部改动。`--pin` 后 `pin_check.py` 报 `PIN CHECK CLEAN`；
+microsoft-skills-py 为 too-large 但主代理归因为空（噪声），随 `--pin` 前移；pydantic、wshobson 为 repo moved。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| fastapi-official-skill | 3e33a03 → 49a09a0（3 提交命中；区间含 0.142.2–0.143.1 五次发版） | af889e4（#16476，💥，随 0.143.0 发布）：`SKILL.md` 的 OpenTelemetry 节改为「用 `FASTAPI_OTEL_AUTO_CONFIGURE=true` 开启自动导出；别的库已配好 provider 时无需自动配置」；e73f34e：`references/other-tools.md` 加「Prefer it (Asyncer) over `run_in_threadpool()`」；5eb7186：依赖升级带来的两处空行 | **事实更正** ×2 + 偏好对齐 ×1，见下 |
+| fastapi-full-stack-template | cb740b6 → 7257e60（1 提交命中） | 754ff56：依赖组升级，`backend/app/models.py` 去掉 `created_at` 的 `sa_type=DateTime(timezone=True)` | 噪声：本 skill 不涉及 SQLModel 列类型与时区存储，ORM 本就不在范围 |
+
+### 事实更正（读源码 + 本地实跑）
+
+区间外但决定正文正确性的实现提交：1d4953d（#16418，2026-09-30，随 **0.142.2** 发布）「Allow startup when automatic
+OpenTelemetry configuration fails」——`_runtime.lifespan` 把 `_configure_from_environment` 的异常改为记一条
+`fastapi` WARNING 后继续启动。旧 pin 3e33a03 即 0.142.1 发版提交，`compare 3e33a03...1d4953d` 为 ahead 1，确认本 skill
+上次实测的「gRPC 环境 → `FastAPIError`、启动失败」只对 0.142.0–0.142.1 成立。
+
+本地实测（`uv venv` + `fastapi[standard]==0.143.1`、opentelemetry-sdk 1.45.1；探针 app 在自建 lifespan 里
+`set_tracer_provider` 并记录生效与否，`OTEL_EXPORTER_OTLP_ENDPOINT` 指向不可达端口）：
+
+| 环境 / 设置 | `auto_configure` | lifespan 前的全局 provider | lifespan 自建 provider | 结果 |
+|---|---|---|---|---|
+| 只设 endpoint | False | Proxy（未配置） | 生效 | 不导出、无告警（0.142→0.143 升级后静默断流） |
+| `FASTAPI_OTEL_AUTO_CONFIGURE=true` / `TRUE` | True | SDK `TracerProvider` | 被拒（`Overriding ... not allowed`） | 导出到 `/v1/traces`、`/v1/metrics` |
+| `FASTAPI_OTEL_AUTO_CONFIGURE=1` | False | Proxy | 生效 | 不导出（只认字符串 `true`，大小写不敏感） |
+| `=true` + `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` | True | Proxy | 生效 | 一条 `FastAPI automatic telemetry configuration failed` WARNING，启动成功，无导出器 |
+| `telemetry={"auto_configure": True}`，无环境变量 | True | SDK | 被拒 | 导出 |
+| `=true` + `telemetry={"auto_configure": False}` | False | Proxy | 生效 | 不导出（显式值覆盖环境变量） |
+
+据此改：`references/opentelemetry.md` 开头加版本门表（0.142.0–0.142.1 / 0.142.2+ / 0.143.0+ 的自动导出默认与
+坏环境行为）、最小导出配置改为三个变量并点明「只设 endpoint 不导出」的升级隐患、设置表 `auto_configure` 默认值按版本写、
+启动节第 3 条拆成两个版本、选型表的「关掉自动配置」按版本给出做法；`SKILL.md` 核心规则 22 改写为版本门控，迁移清单
+改为「跨 0.142 或 0.143」并纳入 `FASTAPI_OTEL_AUTO_CONFIGURE`；`references/tooling.md` 的 extras 说明补 0.143 开关。
+场景 5 的提问固定在 0.142.1，期望仍正确，保持不变。
+
+### 偏好对齐（官方 > 社区）
+
+官方 skill 现明确「优先 Asyncer 而非 `run_in_threadpool()`」。本地核对 asyncer 与 Starlette 源码：二者都走
+`anyio.to_thread.run_sync()`，同一个线程池，差别只在 `asyncify` 保留被包函数的参数与返回类型。原文
+「`run_in_threadpool` is enough for one call」与官方偏好冲突，改为：示例用 `asyncify`，说明官方偏好与原因，已有
+`run_in_threadpool` 的代码库保持一致即可；规则 7 与诊断清单把 `asyncify` 放前。这是既有规则内的取舍顺序调整，
+不新增行为，场景 1 的期望两者都接受，不单独跑基线。
+
+### 评测（回归，omp + `openai/gpt-6.1-sol` medium）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 FastAPI 0.142.1 遥测升级故障 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ◐ | 按版本门正确答出「0.142.1 下 gRPC 会让启动报错」、lifespan 里 `instrument_app` 静默无效、provider 被拒；改为 import 时建 provider + `auto_configure: False` + `exclude` + 中间件写 `tenant.id`，并在 0.142.1 + 本地 HTTP/gRPC 两种 OTLP 接收端实测。EB4 未明说双导出风险；EB6 指出卡号会随异常日志外泄但未改。输出 `/tmp/hs-evals-sync/SyncG6/fastapi-s5` |
+
+只跑有 skill 一侧：本次为事实更正，目的是确认版本门改写后对 0.142.1 场景不回退（模型未因 0.143 的新默认而误答）。
+与 2026-09-30 的 deepseek 结果不同模型，不做对比。
+
+结论：正文按 0.142.2 与 0.143.0 两处行为变化更正；Asyncer 偏好对齐官方；模板条目为噪声。

@@ -60,18 +60,20 @@ database pool moves the queue rather than shortening it.
 When a handler must stay `async def` — it awaits other things too — wrap the blocking call:
 
 ```python
-from fastapi.concurrency import run_in_threadpool
+from asyncer import asyncify
 
 @router.get("/report")
 async def report() -> Report:
-    data = await service.fetch()             # async
-    pdf = await run_in_threadpool(render_pdf, data)   # blocking, now off the loop
+    data = await service.fetch()                 # async
+    pdf = await asyncify(render_pdf)(data)       # blocking, now off the loop
     return Report(url=upload(pdf))
 ```
 
-`asyncer.asyncify(fn)(...)` is the same thing with a nicer type signature, and `asyncer.syncify`
-does the reverse for calling async code from a `def` handler. Add `asyncer` when a codebase crosses
-the boundary often; `run_in_threadpool` is enough for one call.
+FastAPI's own skill prefers `asyncer` over `fastapi.concurrency.run_in_threadpool` and over raw
+AnyIO/asyncio: `asyncify` keeps the wrapped function's parameter and return types for the type
+checker, and `asyncer.syncify` does the reverse for calling async code from a `def` handler. Both
+run in the same AnyIO threadpool, so `run_in_threadpool(render_pdf, data)` is not wrong — keep it
+where the codebase already uses it rather than mixing the two.
 
 Neither helps a CPU-bound call: the GIL means a thread does not give you a second core. Genuine
 computation goes to a process pool or an external worker.

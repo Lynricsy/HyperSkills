@@ -4,7 +4,7 @@ description: "Builds Python APIs with FastAPI, Pydantic, dependency injection an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: framework
 ---
 
@@ -65,8 +65,8 @@ Paths below are relative to this skill's directory.
 6. The threadpool has 40 slots by default, and `def` dependencies take slots too. If that is
    the real ceiling, raise `anyio.to_thread.current_default_thread_limiter().total_tokens` in
    `lifespan` — deliberately, and in step with the connection pool behind it.
-7. When a handler must stay `async def`, push the blocking call out with
-   `run_in_threadpool` or `asyncer.asyncify`, not by hoping it is fast enough.
+7. When a handler must stay `async def`, push the blocking call out with `asyncer.asyncify`
+   (or the project's existing `run_in_threadpool`), not by hoping it is fast enough.
 8. Annotate the return type and let FastAPI validate, filter, document and serialise from it.
    Use `response_model=` only when the public schema differs from what the function returns,
    and then annotate the return `-> Any`; declaring both for the same type is what `FAST001`
@@ -108,12 +108,14 @@ Paths below are relative to this skill's directory.
 21. `BackgroundTasks` runs in the same worker process after the response, with no retry and no
     persistence. If losing the work would page someone, return `202` with a job id and hand it
     to a real queue.
-22. On FastAPI 0.142+, request traces, metrics and exception logs are native and on by default;
-    configure them with `FastAPI(telemetry={...})` and the `OTEL_*` variables, and do not add
-    `opentelemetry-instrumentation-fastapi`. When anything else sets up OpenTelemetry providers,
-    run it at import time and pass `telemetry={"auto_configure": False}` — otherwise FastAPI
-    exports every span a second time, a provider set in `lifespan` is silently refused, and an
-    OTLP gRPC environment aborts startup. Exception messages are exported with the logs, so keep
+22. On FastAPI 0.142+, request traces, metrics and exception logs are recorded natively; configure
+    them with `FastAPI(telemetry={...})` and do not add `opentelemetry-instrumentation-fastapi`.
+    Exporting is version-gated: 0.142 attaches OTLP exporters from the `OTEL_*` variables by
+    default, 0.143+ only with `FASTAPI_OTEL_AUTO_CONFIGURE=true` (or `auto_configure: True`), so
+    an endpoint alone exports nothing. When anything else sets up providers, run it at import time
+    and keep automatic setup off — otherwise every span is exported twice and a provider set in
+    `lifespan` is silently refused. A gRPC or non-OTLP environment aborts startup on 0.142.0–0.142.1
+    and only logs a warning from 0.142.2. Exception messages are exported with the logs, so keep
     secrets out of them (`references/opentelemetry.md`).
 23. Override dependencies in tests with `app.dependency_overrides[dep] = fake`, and clear them
     in teardown. Patching the module attribute does nothing: the route captured the callable
@@ -159,7 +161,7 @@ Paths below are relative to this skill's directory.
       `time.sleep`, `subprocess`, synchronous database drivers, file IO. Each one is a stall for
       the whole worker.
 - [ ] For each, choose: make the handler `def` (whole body blocks), or keep `async def` and wrap
-      the call in `run_in_threadpool` / `asyncer.asyncify` (mixed body). Say which and why.
+      the call in `asyncer.asyncify` / `run_in_threadpool` (mixed body). Say which and why.
 - [ ] Count the threadpool consumers — `def` handlers plus `def` dependencies plus explicit
       threadpool calls — against the 40-slot default and against the connection pool behind
       them.
@@ -206,9 +208,10 @@ Paths below are relative to this skill's directory.
 - [ ] Drop `ORJSONResponse` / `UJSONResponse` (deprecated) and any `RootModel` wrappers in
       favour of declared return types.
 - [ ] Delete `response_model=` where it now duplicates the return annotation (`FAST001`).
-- [ ] Crossing 0.142: find every existing OpenTelemetry setup (`FastAPIInstrumentor`, provider
-      code, Logfire or vendor SDKs, the deployed `OTEL_*` variables) and settle each one against
-      native telemetry before deploying (`references/opentelemetry.md`).
+- [ ] Crossing 0.142 or 0.143: find every existing OpenTelemetry setup (`FastAPIInstrumentor`,
+      provider code, Logfire or vendor SDKs, the deployed `OTEL_*` and
+      `FASTAPI_OTEL_AUTO_CONFIGURE` variables) and settle each one against native telemetry
+      before deploying (`references/opentelemetry.md`).
 - [ ] Update the tests in the same change: `dependency_overrides` instead of patches,
       `ASGITransport` instead of `AsyncClient(app=...)`, `with TestClient(app)` for lifespan.
 - [ ] **Gate — same contract, new code:** `/openapi.json` before and after the migration differ

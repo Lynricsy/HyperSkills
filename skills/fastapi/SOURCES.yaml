@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin fastapi
 skill: fastapi
-version: "2026.09.30"           # must equal SKILL.md metadata.version
+version: "2026.10.15"           # must equal SKILL.md metadata.version
 upstreams:
   - id: fastapi-official-skill
     kind: repo
@@ -9,19 +9,19 @@ upstreams:
     url: https://github.com/fastapi/fastapi
     paths: [fastapi/.agents/skills/fastapi]
     ref: master
-    commit: 3e33a03bdaa3a89f27d5e0c390c4ba9032f14b5e
+    commit: 49a09a0d4e876b4e7d6d87fc049710263aaeaa7e
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
-    contributes: "Core FastAPI conventions: Annotated parameters and dependencies, reusable dependency type aliases, router-level prefix/tags/dependencies, return type before response_model, the bans on ellipsis defaults, RootModel and ORJSONResponse, async def versus def, yield-dependency exit scope, SSE and streaming shapes, the fastapi CLI entrypoint, and (from 0.142) preferring the framework's native OpenTelemetry support configured through the OTEL_* variables and FastAPI(telemetry={...})."
+    synced_at: "2026-10-15"
+    contributes: "Core FastAPI conventions: Annotated parameters and dependencies, reusable dependency type aliases, router-level prefix/tags/dependencies, return type before response_model, the bans on ellipsis defaults, RootModel and ORJSONResponse, async def versus def and asyncer over run_in_threadpool for blocking calls, yield-dependency exit scope, SSE and streaming shapes, the fastapi CLI entrypoint, and (from 0.142) preferring the framework's native OpenTelemetry support configured through the OTEL_* variables, FASTAPI_OTEL_AUTO_CONFIGURE (0.143+) and FastAPI(telemetry={...})."
     notes: "Official skill maintained in the framework repository; frontmatter carried only name and description, so no agent-specific fields needed stripping."
   - id: fastapi-docs
     kind: docs
     url: https://fastapi.tiangolo.com
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
-    contributes: "Everything the official skill omits: yield-dependency exception propagation and the must-re-raise rule, dependency_overrides, ASGITransport async tests, lifespan and its absence under a bare TestClient, Starlette-versus-FastAPI HTTPException handler registration, RequestValidationError, separate input/output OpenAPI schemas, background task semantics, the 0.122 move from 403 to 401 in the security utilities, and the 0.142 OpenTelemetry tutorial: default signals, operation spans, the telemetry settings table, auto_configure, exclude, and exception logs carrying messages and stack traces."
+    synced_at: "2026-10-15"
+    contributes: "Everything the official skill omits: yield-dependency exception propagation and the must-re-raise rule, dependency_overrides, ASGITransport async tests, lifespan and its absence under a bare TestClient, Starlette-versus-FastAPI HTTPException handler registration, RequestValidationError, separate input/output OpenAPI schemas, background task semantics, the 0.122 move from 403 to 401 in the security utilities, and the OpenTelemetry tutorial: default signals, operation spans, the telemetry settings table, auto_configure and its 0.143 opt-in through FASTAPI_OTEL_AUTO_CONFIGURE, exclude, and exception logs carrying messages and stack traces."
     notes: "Licence verified: the documentation lives in fastapi/fastapi under docs/en/docs and the repository LICENSE is MIT, so this is merged rather than reference."
   - id: pydantic-official-skill
     kind: repo
@@ -29,10 +29,10 @@ upstreams:
     url: https://github.com/pydantic/pydantic
     paths: [.agents/skills/pydantic]
     ref: main
-    commit: 26f7b8a1ad02951962c4073297fa9a2b1ce8d30c
+    commit: e0fb2cead13b1f604505ecb3621c5d6781e9307a
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Model-authoring rules: serialisation follows the declared type so subclass fields are dropped silently, discriminated unions as the fix, built-in constraints before custom validators, after-validators in the annotated form, the split between assignment-form and Annotated-form field metadata, and forward-reference and recursive-alias handling."
   - id: pydantic-docs
     kind: docs
@@ -51,7 +51,7 @@ upstreams:
     commit: 5e00aa6095521f0d00e4eec2ef0afa44cd566af4
     license: NONE
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Per-request dependency caching as a reason to decompose dependencies, the cost of FastAPI validating a response a second time, run_in_threadpool for unavoidable synchronous SDKs, the BackgroundTasks versus task-queue decision table, and ValueError in a body model becoming a 422."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its 'prefer async dependencies' guidance was overruled by the official skill's body-decides rule (research/fastapi.md ruling 1)."
   - id: kludex-fastapi-tips
@@ -63,7 +63,7 @@ upstreams:
     commit: a263df9b885a42a2c6446927eeb2a855c13b4871
     license: NONE
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The 40-token AnyIO thread limiter and how to raise it in lifespan, def dependencies also consuming threadpool slots, lifespan state read from request.state instead of app.state, pure ASGI middleware over BaseHTTPMiddleware, and pytest.mark.anyio for async tests."
     notes: "No licence file; used under the repository's permissive-attribution policy, no text copied verbatim. Its AsyncClient(app=app) example is obsolete and was replaced with the official ASGITransport form (research/fastapi.md ruling 3)."
   - id: starlette-docs
@@ -88,10 +88,10 @@ upstreams:
       - .github/plugins/azure-sdk-python/skills/fastapi-router-py
       - .github/plugins/azure-sdk-python/skills/pydantic-models-py
     ref: main
-    commit: 3495f50ae0d7b69dcb19c6922db9f80aab6cf79c
+    commit: d2f769fd9d7ee81b4d768301bcd2eae14ddcfd0a
     license: MIT
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Per-operation status-code conventions (201 on create, 204 with no body), the split between lifespan-managed long-lived resources and per-request Depends resources, and the Create/Update/Response model layering."
     notes: "Azure and frontend context stripped, along with the {{Placeholder}} template mechanics and the metadata.author/version frontmatter fields. Its Field(..., alias=...) ellipsis style and 403 authentication error were overruled by the official skill and docs (research/fastapi.md rulings 2 and 4)."
   - id: wshobson-fastapi-templates
@@ -100,10 +100,10 @@ upstreams:
     url: https://github.com/wshobson/agents
     paths: [plugins/api-scaffolding/skills/fastapi-templates]
     ref: main
-    commit: 156b7a5e7a8b93642628a339ee4039c925b34c7f
+    commit: 46891e7e60da0e52baf1050b7b6391b64e84c6d9
     license: MIT
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Read only to cross-check topic coverage (layered layout, conftest fixtures, middleware, rate limiting)."
     notes: "No content merged: its examples use the removed AsyncClient(app=...) argument and the event_loop fixture that pytest-asyncio dropped, so every fact would have needed re-deriving anyway."
   - id: fastapi-full-stack-template
@@ -112,10 +112,10 @@ upstreams:
     url: https://github.com/fastapi/full-stack-fastapi-template
     paths: [backend/app]
     ref: master
-    commit: cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+    commit: 7257e606cb94eada1dca40173e2b7f99dd549bc6
     license: MIT
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Read only to check the layout the framework's own template uses before deciding this skill would not mandate a directory tree."
   - id: sqlmodel-docs
     kind: docs

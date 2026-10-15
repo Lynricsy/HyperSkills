@@ -24,8 +24,9 @@ uv add --group test httpx2 pytest
 
 `fastapi[standard]` brings the `fastapi` CLI, uvicorn with `uvloop` and `httptools`, and the extras
 the tutorial assumes (`jinja2`, `python-multipart`, `email-validator`); from 0.142 it also brings the
-OpenTelemetry SDK and OTLP http/protobuf exporter that switch on native telemetry export once
-`OTEL_EXPORTER_OTLP_ENDPOINT` is set (`references/opentelemetry.md`). Plain `fastapi` is the minimal
+OpenTelemetry SDK and OTLP http/protobuf exporter that native telemetry exports through once
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set — plus, from 0.143, `FASTAPI_OTEL_AUTO_CONFIGURE=true`
+(`references/opentelemetry.md`). Plain `fastapi` is the minimal
 install for a service that brings its own server; there is no separate slim package to hunt for any
 more.
 
