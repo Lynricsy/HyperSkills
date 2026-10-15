@@ -102,7 +102,7 @@ upstreams:
     url: https://docs.spring.io/spring-boot/reference/
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authoritative basis for every version-sensitive statement here: auto-configuration and condition evaluation, external configuration and relaxed binding, the web and error-response model, Spring Data JPA and transaction semantics, Spring Security 7 configuration, testing and service connections, Spring Modulith verification and event publication, Actuator and Micrometer observability, and container and native packaging."
     notes: "Sources for these reference manuals live in spring-projects/spring-boot, spring-projects/spring-framework, spring-projects/spring-security, spring-projects/spring-data-jpa and spring-projects/spring-modulith; the licence of each of those repositories was checked and is Apache-2.0, so the documentation is merged rather than reference-only. All wording here is original; only the technical facts are taken."
   - id: spring-boot-wiki
@@ -110,14 +110,14 @@ upstreams:
     url: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The official 3.x-to-4.0 breaking-change list: the modular starter convention and rename table, the per-technology test starters, Undertow and Spock removal, Jackson 3 group IDs and renamed types, the properties migrator workflow, @MockBean and @SpyBean removal in favour of @MockitoBean, and RestTestClient. The 4.0 and 4.1 release notes supplied the HTTP service client and API versioning features, the Spock restoration in 4.1, and the current GA version."
-    notes: "Hosted in the spring-projects/spring-boot wiki, which carries that repository's Apache-2.0 licence. Current GA was confirmed as 4.1.1 (2026-08-20) through the releases API rather than assumed."
+    notes: "Hosted in the spring-projects/spring-boot wiki, which carries that repository's Apache-2.0 licence. Current GA was confirmed as 4.1.1 (2026-08-20) through the releases API rather than assumed, and rechecked on 2026-10-15 (still 4.1.1; 4.2.0-M2 is a milestone)."
   - id: openjdk-jeps
     kind: docs
     url: https://openjdk.org/projects/jdk/25/
     license: GPL-2.0
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Coverage and version check only: the JEP numbers and the exact release in which each language feature reached standard status (pattern matching for switch and record patterns in 21, unnamed variables in 22, generational ZGC default in 23, stream gatherers and virtual-thread pinning removal in 24, scoped values and flexible constructor bodies in 25)."
     notes: "openjdk.org site content is GPL-2.0, so it cannot be merged under this repository's licence policy. No text was copied; the pages were read only to confirm JEP numbers and standardisation versions, and every statement in the language reference is written from the MIT-licensed upstreams above."

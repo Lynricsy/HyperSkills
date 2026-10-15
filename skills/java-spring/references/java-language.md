@@ -87,7 +87,7 @@ threads are still threads.
 | Feature | Standard in | Why it matters here |
 |---|---|---|
 | Unnamed variables and patterns (`_`) — JEP 456 | 22 | Removes unused `catch`/lambda parameters that lint rules flag |
-| Statements before `super(...)` — JEP 447/482/492 (Flexible Constructor Bodies) | 25 | Validate arguments before delegating, instead of in a static helper |
+| Statements before `super(...)` — JEP 513 Flexible Constructor Bodies (previews 447/482/492) | 25 | Validate arguments before delegating, instead of in a static helper |
 | Stream gatherers — JEP 485 | 24 | Custom intermediate operations (windowing, batching) without collecting to a list |
 | Class-File API — JEP 484 | 24 | Replaces ad-hoc ASM use; relevant if you generate or inspect bytecode |
 | Markdown doc comments — JEP 467 | 23 | `///` comments instead of HTML in Javadoc |
@@ -119,9 +119,11 @@ an upgrade surfaces:
 ## Garbage collection
 
 Generational ZGC became the default ZGC mode in 23 (JEP 474) and the non-generational mode was
-removed in 24, so `-XX:-ZGenerational` now fails to start. G1 remains the JVM default and is the
-right choice for most Spring services; move to ZGC when a pause-time target, not throughput, is the
-constraint. Measure before switching — a GC change is not an upgrade step.
+removed in 24 (JEP 490). On 24 and 25, `-XX:-ZGenerational` is ignored with an obsolete-option
+warning and generational ZGC runs anyway; from 26 the flag is unrecognized and the JVM refuses to
+start, so delete it before that upgrade. G1 remains the JVM default and is the right choice for most
+Spring services; move to ZGC when a pause-time target, not throughput, is the constraint. Measure
+before switching — a GC change is not an upgrade step.
 
 ## Preview features
 

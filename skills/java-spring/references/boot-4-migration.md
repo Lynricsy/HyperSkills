@@ -194,7 +194,7 @@ Run in this order, fixing before moving on:
 - Spock integration was removed in 4.0 and restored in 4.1. A Groovy/Spock suite should target 4.1.
 - 4.1 adds `spring.http.clients.cookie-handling`, `InetAddressFilter` SSRF mitigation for HTTP
   clients, Spring gRPC support, and lazy JDBC connection fetching.
-- 4.1 deprecates Derby support and layertools, and raises the jOOQ baseline to 3.20, which requires
-  Java 21.
+- 4.1 deprecates Derby support, removes the already-deprecated `layertools` jar mode (use
+  `-Djarmode=tools`), and raises the jOOQ baseline to 3.20, which requires Java 21.
 
 <!-- sources: spring-boot-wiki, awesome-copilot, adityamparikh-boot4, rrezart-spring-boot, pavithraa-springboot -->

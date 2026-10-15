@@ -26,8 +26,6 @@ Spring Boot 4 ships Spring Security 7. These are compile errors, not deprecation
 | `AntPathRequestMatcher`, `MvcRequestMatcher` | `PathPatternRequestMatcher` (what `requestMatchers` uses) |
 | `AuthorizationManager#check` | `AuthorizationManager#authorize` |
 | `new DaoAuthenticationProvider()` + `setUserDetailsService(…)` | `new DaoAuthenticationProvider(userDetailsService)` |
-| `@EnableGlobalMethodSecurity` | `@EnableMethodSecurity` |
-| `SecurityJackson2Modules` | `SecurityJacksonModules` (Jackson 3) |
 | OpenSAML 4 support | OpenSAML 5 |
 
 Starter names moved into the security namespace as well:
@@ -37,10 +35,14 @@ now versioned with Spring Security itself, so any `spring-authorization-server.v
 override must be deleted.
 
 `AccessDecisionManager` and `AccessDecisionVoter` survive only behind an explicit
-`spring-security-access` dependency; they have been deprecated since 5.5 and should become
-`AuthorizationManager`. If a large security configuration must be migrated gradually, Security 6.5
-carries preparation flags for most of the 7.0 behaviour changes — move to 6.5, flip them, then
-upgrade.
+`spring-security-access` dependency; they have been deprecated since 5.8 and should become
+`AuthorizationManager`. Two older types are deprecated rather than removed, so they still
+compile: `@EnableGlobalMethodSecurity` is built on that Access API and fails at startup unless
+`spring-security-access` is present (replace it with `@EnableMethodSecurity`), and
+`SecurityJackson2Modules` is marked for removal (replace it with `SecurityJacksonModules` on a
+Jackson 3 `JsonMapper.Builder`). If a large security configuration must be migrated gradually,
+Security 6.5 carries preparation flags for most of the 7.0 behaviour changes — move to 6.5, flip
+them, then upgrade.
 
 ## The filter chain bean
 

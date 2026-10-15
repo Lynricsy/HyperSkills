@@ -147,10 +147,11 @@ forced to handle it, and Java code should too.
 ## Timeouts and resilience
 
 Every outbound call gets a connect and a read timeout; the JDK default is "wait forever", which
-turns one slow dependency into an exhausted thread pool. Retries, concurrency limits and
-circuit-breaking come from core Spring Framework in Boot 4 — `@Retryable` and `@ConcurrencyLimit`
-from `org.springframework.resilience.annotation` with `@EnableResilientMethods`, not the separate
-`spring-retry` dependency. Retry only idempotent operations, and only on transient failures.
+turns one slow dependency into an exhausted thread pool. Retries and concurrency limits come from
+core Spring Framework in Boot 4 — `@Retryable` and `@ConcurrencyLimit` from
+`org.springframework.resilience.annotation` with `@EnableResilientMethods`, not the separate
+`spring-retry` dependency. Core has no circuit breaker; keep the project's existing circuit-breaker
+library for that. Retry only idempotent operations, and only on transient failures.
 
 ## WebFlux specifics
 
