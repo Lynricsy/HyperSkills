@@ -417,3 +417,15 @@ D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读�
 15 条 sqlite.org `kind: docs` 条目为 manual check，本次上游无相关提示，未改。
 
 结论：唯一 behind 的命中改动是版权行，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.09.30。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py` 报告：`terminalskills-sqlite`（16 commits）一条 `behind`，为 diff too large to attribute to paths。主代理已在 shallow blobless 裸仓库缓存（`/tmp/hs-attr/TerminalSkills__skills`）上按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 归因为空；本次复跑 `git log --oneline <pinned>..<head> -- <paths>` 仍为空，并用不依赖提交历史完整性的树对比 `git diff --stat <pinned> <head> -- <paths>` 与两端 `git ls-tree` 复核（结果为空、所有追踪路径在两端均存在），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| terminalskills-sqlite | 511ec20 → 6edcf94（16 commits，全仓 1436 个文件变更） | 无：`skills/sqlite/SKILL.md`、`LICENSE` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+
+其余仓库上游（`moollm-sqlite`（8f6d840 → 90c8d51，7 commits）为 `repo moved, tracked paths unchanged`；`openfang-sqlite`、`harness-sqlite` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（6edcf94、90c8d51、acf2587、caa0c9b），`pin_check.py` 结果 PIN CHECK CLEAN。18 条 `kind: docs` 条目为 manual check，本次未改。
+
+结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
