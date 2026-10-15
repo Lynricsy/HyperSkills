@@ -430,3 +430,17 @@ Node 驱动默认把 JS number 发成 double，所以「shell 里能过、应用
 
 结论：新增内容无缺口不合入，只做两处事实更正（无需评测）；场景 6 与夹具 `evals/files/qe-sizing/` 留作哨兵。
 产物：`/tmp/hs-evals-MergeM2/mongodb/omp-openai-gpt-6.1-sol-medium/baseline/6`。
+
+## 2026-10-15 文档上游复核
+
+上节已就 Queryable Encryption 与 9.0 状态重读手册并把 `mongodb-docs` 的 `synced_at` 改为 2026-10-15；本节补核 `contributes`
+其余的核心数字（页面以 `.md` 后缀读取）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| mongodb-docs | 隐式默认写关注公式：有仲裁者且非仲裁成员数 ≤ 投票多数时为 `{ w: 1 }`，否则 `majority` | [Write concern](https://www.mongodb.com/docs/manual/reference/write-concern/#implicit-default-write-concern) | 一致 |
+| mongodb-docs | 事务运行时默认须少于 1 分钟（`transactionLifetimeLimitSeconds`） | [Production considerations](https://www.mongodb.com/docs/manual/core/transactions-production-consideration/) | 一致 |
+| mongodb-docs | `cursorTimeoutMillis` 默认 600000（10 分钟）；30 分钟无操作的会话过期（覆盖 `noCursorTimeout`） | [Server parameters](https://www.mongodb.com/docs/manual/reference/parameters/)、[Limits](https://www.mongodb.com/docs/manual/reference/limits/) | 一致 |
+| mongodb-docs | 阻塞阶段 100 MB 内存预算（超出需落盘）、每集合最多 64 个索引 | [Limits](https://www.mongodb.com/docs/manual/reference/limits/) | 一致 |
+
+4 组事实全部一致，正文未改，`synced_at` 维持 2026-10-15。
