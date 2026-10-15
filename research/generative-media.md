@@ -575,3 +575,26 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 | openai-docs | 转写单请求 25 MB 与格式白名单（mp3/mp4/mpeg/mpga/m4a/wav/webm）；>30 s 需 `chunking_strategy`；风格 `instructions` 的模型范围；TTS 4096 字符上限；AI 语音披露义务 | https://developers.openai.com/api/docs/guides/speech-to-text 、 https://developers.openai.com/api/docs/guides/text-to-speech 、 speech 创建接口参考 | 25 MB、白名单、`instructions`「Does not work with `tts-1` or `tts-1-hd`」、4096 字符、「usage policies require you to provide a clear disclosure … AI-generated」均一致。>30 s 的 `chunking_strategy` 要求在当前指南中只出现在说话人标注（diarize）模型一节，`speech.md` 补注「currently scoped to one vendor's speaker-labelling model」；「省略则返回截断转写而非报错」当前指南未述，该说法来自 `openai-skills-transcribe`，保留原标注 |
 
 正文改动：`references/image-generation.md`、`job-lifecycle.md`、`speech.md`、`video-generation.md`；`SOURCES.yaml` 中 `google-gemini-docs` 的 contributes/notes 同步。均为按官方页面更正既有陈述，不新增规则，未新增评测场景、未跑 D2。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的提交 5245eff（文档复核：图片计费改为「尺寸档决定 token、同档各宽高比同价」；语音输出格式按模型代际与是否流式区分、按 MIME 或 `RIFF` 判断、重复加头会出爆音；视频「current flagship」改为某厂商的高保真电影级模型；转写 `chunking_strategy` 注明仅限某厂商说话人标注模型）。7db57ec 只 re-pin。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/generative-media/omp-openai-gpt-6.1-sol-medium/`。今天此前没有本 skill 的 VM 评测结果，全部新跑。
+
+选场景：
+
+- 场景 3（旁白任务）：EB1 依赖 `speech.md` 被改写的「原始 PCM」一段；夹具固定早期 TTS 模型，检查改写后模型仍会给无头 PCM 加容器、不会因「当前一代返回 WAV」而漏加。
+- 新增场景 6（夹具 `evals/files/media_jobs.py`）：没有场景覆盖图片计费与当前一代 TTS 返回 WAV 两处更正。夹具的成本估算把 9:16 从 1K 升到 2K 计价（token 数取文档复核记录的 1K=1120、2K=1680），旁白在换到当前一代模型后仍无条件 `pcm_to_wav`，拼接时固定切掉 44 字节。
+- 视频模型称谓与转写 `chunking_strategy` 范围两处只是措辞收窄，不改变任何操作建议，未设场景。
+- 场景 4：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 长课旁白 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✘ EB6 ✘ EB7 ✔ | 218 s。按声明的 `audio/l16` MIME 校验后拼 PCM，ffmpeg 封装成 24 kHz 单声道 WAV；句/段边界切分、同一声音与指令、250 ms 静音拼接；未处理 markdown，未向学习者披露合成语音 |
+| 3 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✘ EB6 ✘ EB7 ✔ | 205 s。同样校验 `audio/l16` 后用 `wave` 加头、按句切分；固定声音但直接首尾相接，无控制静音 |
+| 6 成本估算 + 双重 WAV 头 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 129 s。去掉宽高比升档，4,000 × 1,120 token → $134.40（原估 $201.60）；指出内层头被当作样本播放；按 MIME 或 `RIFF` 前缀判断、只给裸 PCM 加头；改为解析 WAV 帧再拼接，并用带额外 chunk 的 WAV 验证 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 276 s。联网查官方语音页得知当前默认 WAV，结论与修法相同（按 MIME 分支、`wave` 拼帧） |
+| 4 负例（RAG 回答收紧） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 120 s。文章作为不可信数据分隔、只依据文章作答、严格 JSON 输出，按文本模型应用处理 |
+
+结论：更正相关的行为在有 skill 时全部达成且不差于基线——场景 3 改写后仍正确处理早期模型的无头 PCM（且按 MIME 判断，与新正文一致），场景 6 两处更正 5/5；基线靠联网查文档也能 5/5，耗时约为有 skill 的两倍。负例 `skill_read == false`。正文未改。
+
+遗留：场景 3 的 EB5（去 markdown）与 EB6（合成语音披露）两侧均未达成，属既有缺口，与本次更正无关；场景 6 的计费 token 数取自文档复核时的模型页数值，厂商调价后只需同步夹具常量，结论不变。

@@ -62,5 +62,17 @@
       "Says a preview rendered with a different scheduler or step count follows a different trajectory, so an approved preview seed cannot reproduce the final unless scheduler, steps and guidance match; the generation record carries them",
       "Uses a CPU `torch.Generator`, created per image, for seeds that must carry across runs or machines"
     ]
+  },
+  {
+    "skills": ["generative-media"],
+    "query": "Two problems in media_jobs.py since we moved to the vendor's current-generation image and speech models. (1) Finance says our estimator over-budgets the 9:16 story covers: it bills them at the 2K rate because a taller frame 'crosses into the next tier', but last week's invoice for 4,000 covers rendered at 1K came in well under the estimate. Is the estimator right, and what should it be? (2) Every narration clip now starts with a click and the stitched lessons click at every paragraph joint, although ffprobe reports each file as a valid 24 kHz mono WAV. Fix both in media_jobs.py.",
+    "files": ["evals/files/media_jobs.py"],
+    "expected_behavior": [
+      "Says the estimator's tier rule is wrong: the size tier is requested explicitly (`image_size`) and every aspect ratio within a tier is billed the same fixed number of output tokens, so a 9:16 cover at 1K costs the same as a square one at 1K; removes the aspect-ratio bump so the estimate keys on the requested size tier alone",
+      "Keeps the estimate a pre-run calculation of count × fixed tokens for the tier × price (for last week, 4,000 × 1,120 output tokens at 1K), not something derived from the prompt or from pixel arithmetic",
+      "Explains the click: the current-generation model returns a complete WAV with a RIFF header for a non-streaming request, so `pcm_to_wav` wraps a second header around it and the inner 44-byte header plays as audio samples — a click at the start and at every joint — while the file still probes as valid",
+      "Decides whether to add a header from the response's declared MIME type (`audio/wav` versus `audio/l16` / raw PCM) or from the first four bytes reading `RIFF`, not from the model name, and still wraps headerless PCM (older models, streaming) when it gets it",
+      "Stitches the lesson from decoded PCM frames of each clip (for example with the `wave` module) rather than by slicing a fixed 44 bytes off concatenated files"
+    ]
   }
 ]
