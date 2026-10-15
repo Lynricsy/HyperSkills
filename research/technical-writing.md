@@ -289,3 +289,14 @@ neolab、standard-readme、github-readme-stats、best-readme-template up to date
 | wikipedia-ai-signs | 结构性 vs 词汇性信号；词汇信号「一两个无意义」；em dash 两侧加空格、计数是弱信号；弯直引号混用；标题 Title Case；助手标记残留（`oaicite`、`contentReference`、`turn0search0`、`[cite: 1]`、`utm_source=openai`/`chatgpt.com`、`referrer=grok.com`）；多个死链；检测器错误率不低；少用 LLM 的人约等于随机 | https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing | 其余一致（各标记字符串在 wikitext 中均出现；「only Claude used em dashes more than professional writers, and ChatGPT used them less」支持正文）。**更正（措辞）**：`human-voice.md` 称成堆的 AI 词汇是「the strongest single indicator there is」，页面原意为「one of the strongest tells」，改为「one of the strongest tells」。页面新增「2026-09 起部分模型被硬编码为完全不用 em dash」，进一步说明计数是弱信号，与正文方向一致，仅记录 |
 
 正文改动：`references/plain-english.md`、`references/human-voice.md` 各一处措辞更正；其余仅更新 synced_at。未新增规则、未新增评测场景、未跑 D2。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：b1cd321 上游同步、caab44f 图片翻译与 AI 词汇信号措辞。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/technical-writing/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+
+选择理由：9（AI 腔 README）对应「AI 词汇信号」措辞更正；图片内文字仅在单独本地化后才被翻译的更正没有场景覆盖，新增 11（`ledgerly/`）；5 为负例。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：9 AI 腔 README（有/无）；5 负例；11 图片内信息不可翻译（新增，有/无）。待结果出来后补判定。

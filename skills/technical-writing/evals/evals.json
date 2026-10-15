@@ -189,5 +189,16 @@
       "Answers the request as a personal profile page: the `username/username` repository, the widget markup asked for, and where each block goes",
       "Does not classify the page as a Diataxis document type, does not demand a runnable quick start, a status line, an owner or a licence link, and does not audit any claim against source code"
     ]
+  },
+  {
+    "skills": ["technical-writing"],
+    "query": "install-server.md goes to our translation vendor next week (German, Japanese, Brazilian Portuguese), and the accessibility audit is the week after. screenshots.md transcribes what each image shows. Tell me what will go wrong with this page in translation and for screen-reader users, then give me the revised page.",
+    "files": ["evals/files/ledgerly/install-server.md", "evals/files/ledgerly/screenshots.md"],
+    "expected_behavior": [
+      "Identifies that the steps' essential facts (licence key format, the Server installation type, service account, port 8443, the two checkboxes, the config values, the troubleshooting logic) exist only inside images, and says translated readers lose them unless someone localises the images themselves - a separate, costly step - while screen-reader users lose them always",
+      "The revised page states every one of those facts in text, with the images kept only as illustrations of what the text already says and given alt text that describes them (no empty `![]()` left)",
+      "Replaces the configuration-file screenshot with a fenced code block (copyable and translatable) and turns the flowchart into text steps or a list",
+      "Does not invent facts beyond screenshots.md (no extra ports, fields or steps)"
+    ]
   }
 ]
