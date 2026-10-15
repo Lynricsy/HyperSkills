@@ -124,5 +124,18 @@
       "Builds the container itself with `ModelContainer(for:migrationPlan:configurations:)` and passes it to `.modelContainer(container)`, because the SwiftUI `.modelContainer(for:)` modifiers take no migration plan",
       "Preserves the existing column with `@Attribute(originalName: \"amountCents\")` on the renamed property and gives `category` a default so the lightweight migration fills existing rows"
     ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "ComposeScreen.swift was written from our WWDC25 notes and no longer builds on CI (Xcode 27, iOS 27 SDK; deployment target iOS 18). Fix it so it compiles, put each `#available` gate at the version the API actually needs (no more, no less), and tell me anything else in there that falls short of Apple's guidance. Edit the file directly.",
+    "files": ["evals/files/ComposeScreen.swift"],
+    "expected_behavior": [
+      "Replaces `navigationTransitionSource`/`navigationTransitionDestination`, which do not exist, with `matchedTransitionSource(id:in:)` on the source and `.navigationTransition(.zoom(sourceID:in:))` on the sheet content; ungated at iOS 18 when applied to the button view, or behind `#available(iOS 26, *)` when applied to the `ToolbarItem` (`ToolbarContent`)",
+      "Replaces `.sliderNeutralValue(0)`, which does not exist, with the `neutralValue:` parameter of the iOS 26 `Slider` initialiser inside the existing iOS 26 gate",
+      "Replaces `.rect(cornerRadius:style: .concentric)` (`RoundedCornerStyle` has no `.concentric` case) with `ConcentricRectangle()` or `.rect(corners: .concentric)` behind `#available(iOS 26, *)`, keeping a rounded-rectangle fallback",
+      "Raises the `dragContainer(for:…)` gate from iOS 26 to `#available(iOS 27, *)`, because `dragContainer` is iOS 27 (macOS 26)",
+      "Removes the needless iOS 26 gates: `Tab(role: .search)` and the `Tab` API are iOS 18 and `ControlSize.extraLarge` is iOS 17, so at an iOS 18 target both work ungated and the fallback branches go",
+      "Flags the 24×24 pt close button as below the HIG's 28×28 pt minimum control size on iOS (44×44 pt is the default to build to); the WCAG 24 px figure is not Apple's bar"
+    ]
   }
 ]

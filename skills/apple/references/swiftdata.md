@@ -100,10 +100,13 @@ Does not compile: `hasSuffix`, `lowercased`, `map`, `reduce`, `count(where:)`,
 Enum cases cannot be named inside the closure — a compile error from the `#Predicate` macro
 itself. `$0.status == .pending` fails with "member access without an explicit base is not
 supported in this predicate", and `$0.status == Status.pending` with "key path cannot refer
-to enum case". Capture the case in a local constant first. Verified only as far as the macro
-expansion and in-memory `Predicate.evaluate`; whether SwiftData translates this predicate into
-its store query (rather than failing at fetch time) is not yet confirmed on a real
-`ModelContainer` + `context.fetch`, so test the fetch on device before relying on it:
+to enum case". Capture the case in a local constant first and keep the filter in the
+predicate. Verified only as far as the macro expansion and in-memory `Predicate.evaluate`;
+whether SwiftData translates it into the store query (rather than failing at fetch time) is
+not yet confirmed on a real `ModelContainer` + `context.fetch`, so cover that fetch in a test
+run on a simulator or device. Do not answer the uncertainty by fetching every row and
+filtering in memory; if the fetch does fail, persist the raw value (a stored `String`
+property, with the enum as a computed accessor) and filter on that:
 
 ```swift
 let pending = Status.pending

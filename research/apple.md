@@ -370,3 +370,44 @@ D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达
 评测：`evals/evals.json` 场景 7 第一条原写「不用 `@Animatable` 宏，因为它需要 iOS 26」，与 ④ 冲突，改为「直接遵循 `ViewModifier` + `Animatable`，或使用 `@Animatable` 宏（需 26 SDK、文档标注自 iOS 13 可用，无需 gate）」，两种答法均可达成。
 
 另记（未合入）：文档 JSON 已对 `foregroundColor(_:)`、`cornerRadius(_:antialiased:)`、`tabItem(_:)`、`AnimatableModifier`、`statusBarHidden(_:)` 等软弃用 API 标出 `deprecatedAt: 27.2`；Xcode 27.2 仍为 beta（RSS 2026-10-14 为 beta 3），正式发布后这些将从「无警告的软弃用」变成真实弃用警告，届时需复核 `latest-apis.md`「soft-deprecated 不报警」一句。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`d604f89`（上游同步：默认目标 iOS 27、`enumerated()` 门槛、iPhone 上 `defaultTabBarPlacement(.sidebar)`）、`a343b38`（tenequm 新增：`#Predicate` 枚举 case、迁移计划自建容器、SIL 阶段诊断）、`26a1803`（文档复核：可用性门槛、三处不存在的 API 拼写、HIG 控件尺寸、`ControlActiveState` 27.2，场景期望同步）、`2ef72b2`（删去未验证的「过滤仍在 store 中执行」）。
+
+编号说明：上节写「场景 7 第一条」改了 `@Animatable` 期望，按 `evals.json` / `run_evals.py --only` 的 1 起编号，那是**场景 6**（`Legacy27.swift`）；场景 7 是 Ledger（`LedgerInfo.plist`）。两个场景本轮都跑。
+
+选场景与理由：
+
+- 场景 6：今天改了第一条期望且从未重跑，必选，两侧新跑。
+- 场景 7：今天新增；`latest-apis.md` 在其有 skill 结果（10:32）之后又被 `26a1803` 改过，有 skill 重跑；基线（`/tmp/hs-evals-sync/SyncG3/apple-b7`，10:28）query、期望与当前逐字一致、夹具首读逐行一致，复用（副本 `/tmp/hs-d2/D2G5/reused/apple-b7`），判定沿用上文。
+- 场景 8：今天新增；E3 直接对应 `swiftdata.md` Predicates 段（13:33 刚改），有 skill 重跑；基线（`/tmp/hs-evals-M3/apple-b8`）逐字一致，复用（副本 `reused/apple-b8`），判定沿用上文。
+- 场景 10：今天新增；有 skill 重跑。基线（`/tmp/hs-evals-M3/apple-b10`）跑时 E1 还是「`static let`, not `static var`」，之后改为允许计算属性，场景已改，基线重跑。
+- 场景 9：上文已记基线达成核心行为、对应内容未合入，未选。
+- **新增场景 11**（夹具 `ComposeScreen.swift`，部署目标 iOS 18、Xcode 27）：`26a1803` 的更正（`navigationTransitionSource`/`Destination`、`sliderNeutralValue`、`.rect(cornerRadius:style: .concentric)` 不存在；`dragContainer` 为 iOS 27；`Tab(role: .search)` iOS 18、`ControlSize.extraLarge` iOS 17 不需 26 门控；HIG 44 pt 默认 / 28 pt 最小）此前没有任何场景覆盖，按简报新增。签名与门槛已对照 developer.apple.com 文档 JSON（`metadata.platforms`）。
+- 场景 4：负例。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），新跑产物 `/tmp/hs-d2/D2G5/apple/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md`、`workspace/` 与 `events.jsonl` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无 | False | E1–E6 全 ✔ | 172 s。直接遵循 `ViewModifier, Animatable`；`.statusBar` iOS 27、`toolbarVisibility` iOS 18、iOS 17 用 `toolbar(.hidden, …)`；引 TN3211；`item:` 重载回溯 iOS 15 |
+| 6 | gpt-6.1-sol medium | 有 | True | E1–E6 全 ✔ | 118 s。用 `@Animatable` 宏并写明「the macro back-deploys to iOS 13」、无运行时门控——即改后的第一条期望；其余同基线 |
+| 7 | gpt-6.1-sol medium | 无（复用 `reused/apple-b7`） | False | E1 ✔ E2 ✔ E3 ✘ E4 ✔ | 判定见上文 |
+| 7 | gpt-6.1-sol medium | 有 | True | E1 ✔ E2 ✔ E3 ✔ E4 ◐ | 183 s。`#available(iOS 27.0, *)` 下 `defaultTabBarPlacement(sizeClass == .regular ? .sidebar : .tabBar)`；保留 `Array(entries.enumerated())` 并注明 iOS 26 运行时。E4：列表改 `NavigationSplitView` 去掉了 `!= .compact`，但没讲 `nil` 不能当宽屏（本 skill 无此内容，与改动无关） |
+| 8 | gpt-6.1-sol medium | 无（复用 `reused/apple-b8`） | False | E1 ✔ E2 ✔ E3 ◐ E4 ✘ E5 ✔ | 判定见上文 |
+| 8 | gpt-6.1-sol medium | 有（r1，`2ef72b2` 正文） | True | E1 ◐ E2 ✔ **E3 ◐** E4 ✔ E5 ✔ | 145 s。读了 `swiftdata.md` 后**放弃谓词**：`fetch` 全部再 `.filter { $0.status == .pending }`，注释「Codable enum predicates are not reliably store-translatable」——正是 `2ef72b2` 新加的「未在真实容器上确认」一句诱发的，退回到基线水平（上文 a343b38 时有 skill 为 ✔）。副本 `/tmp/hs-d2/D2G5/apple-s8-r1` |
+| 8 | gpt-6.1-sol medium | 有（r2，修正后正文） | True | E1 ◐ E2 ✔ **E3 ✔** E4 ✔ E5 ✔ | 108 s。`let pending = EntryStatus.pending` 后 `#Predicate { $0.status == pending }`，并说明谓词的 store 翻译仍待真机验证。E1 两轮都只说「避免 unique 约束受 CloudKit 要求影响」，未讲默认 `.automatic` 因 entitlement 开启同步（本 skill 无此内容） |
+| 10 | gpt-6.1-sol medium | 无 | False | E1 ✔ E2 ✔ E3 ✔ | 43 s。计算型 `versionIdentifier`；这次自建了 `ModelContainer(for:migrationPlan:)` 再 `.modelContainer(container)`（上文那次基线写了不存在的重载，属基线波动），未说明原因 |
+| 10 | gpt-6.1-sol medium | 有 | True | E1 ✔ E2 ✔ E3 ✔ | 66 s。同样自建容器；`@Attribute(originalName: "amountCents")`、`category` 默认 "General" |
+| 11（新增） | gpt-6.1-sol medium | 无 | False | E1–E6 全 ✔ | 174 s。联网读 Apple 文档 JSON 后逐项答对（含 `dragContainer` 27、`extraLarge` 17、44/28 pt） |
+| 11（新增） | gpt-6.1-sol medium | 有 | True | E1–E6 全 ✔ | 283 s。`matchedTransitionSource` 用在按钮视图上（iOS 18），并注明 `ToolbarContent` 重载需 26；`ConcentricRectangle()` + 圆角矩形回退；`dragContainer` 门控升到 27；去掉 `Tab(role: .search)` 与 `extraLarge` 的 26 门控；24 pt 关闭按钮按「44 默认、28 最小、WCAG 是 CSS px」判 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | E1 ✔ E2 ✔ | 51 s。只按 Flutter 作答 |
+
+### 正文修正（有证据）
+
+场景 8 r1 的回退直接来自 `2ef72b2` 的措辞：它如实删去了未验证的 store 保证，但只留下「未确认、依赖前先在设备上测」，模型据此把过滤挪到内存。修正 `references/swiftdata.md` Predicates 段：保留验证边界（只验证到宏展开与 `Predicate.evaluate`），改为「局部常量写法仍放在谓词里；用模拟器或设备上的测试覆盖这次 fetch；不要用全量取回再内存过滤来回避不确定性；若 fetch 真的失败，改存原始值（存储型 `String` 属性 + 枚举计算访问器）并在其上过滤」。没有新增任何未验证的 store 行为断言。r2 重跑 E3 恢复 ✔，其余不变。`build_catalog`（catalog already current）、`validate_skills.py skills/apple` 0 error 0 warning、安装冒烟（`npx skills@latest add /tmp/hs-wt/D2G5 --skill apple --agent universal --copy --yes`，安装后 `references/` 与工作树逐字一致）均通过。
+
+结论：今天各处改动相关的行为在有 skill 时均达成（场景 6 E1 的宏答法、场景 7 E2/E3、场景 8 E3/E4、场景 10 E2、场景 11 全部），修正后不比基线差；场景 11 基线联网即可答对，留作哨兵。负例 `skill_read == false`。
+
+遗留：场景 8 E1、场景 7 E4 的解释深度属模型波动，与本次改动无关；`#Predicate` 局部常量写法的 store 翻译仍待在真实 `ModelContainer` 上验证。
