@@ -1,6 +1,6 @@
 ---
 name: office
-description: "Creates, edits and converts Word, PowerPoint, Excel and PDF documents."
+description: "Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
