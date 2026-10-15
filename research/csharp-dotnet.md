@@ -432,8 +432,8 @@ SOURCES：dotnet-docs、aspnetcore-docs 的 `synced_at` 改为 2026-10-15，dotn
 
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
-| 1 MSBuild 三文件 | gpt-6.1-sol medium | 有 | true | EB2 ✔ EB3 ◐（其余未逐条判定） | 167 s。指出 `Directory.Build.props` 在项目体设置 `TargetFramework` 之前导入，`net10.0` 条件恒假；引号写法给出但实测显式 `-c Release` 时原条件也生效；另指出 `DefineConstants` 覆盖、分析器包缺 `PrivateAssets="all"`、`OutputPath` 被覆盖 |
-| 1 | gpt-6.1-sol medium | 无 | false | EB2 ✔ EB3 ◐（其余未逐条判定） | 224 s。同样判定 `.props` 过早求值，移到项目或 `Directory.Build.targets`；同样实测 Release 条件在显式传参时生效 |
+| 1 MSBuild 三文件 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ EB6 ✔ EB7 ✔ EB8 ◐ EB9 ✘ | 167 s。NU1008 去掉 `Version`，并给出 `VersionOverride` 备选；指出 `Directory.Build.props` 在项目体设置 `TargetFramework` 之前导入，`net10.0` 条件恒假，移到 `Directory.Build.targets`；Release 条件给出引号写法，但没讲属性为空时的误判，反而实测显式 `-c Release` 时原条件也生效（EB3 ◐）；`DefineConstants`/`NoWarn` 两处都改成追加；`OutputPath` 指出被覆盖，但修法是删掉而非 `Condition="'$(OutputPath)' == ''"`（EB5 ◐）；分析器包补 `PrivateAssets="all"`；删 `Compile Include`、`RootNamespace`/`AssemblyName`/`LangVersion`，指出 `OutputType=Library` 与 Web SDK 矛盾；改写的 csproj 用了正斜杠，`Exists()` 守卫只在签名可选时才加，还说反斜杠不算问题（EB8 ◐）；未给 `-pp`/binlog 诊断命令（EB9 ✘） |
+| 1 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ EB6 ✘ EB7 ◐ EB8 ✘ EB9 ✘ | 224 s。NU1008 与 `.props` 过早求值同样判对（移到项目或 `Directory.Build.targets`）；同样实测 Release 条件在显式传参时生效、只说加引号更稳；`DefineConstants`/`NoWarn` 改追加；`OutputPath` 同样直接删除；**未提分析器包的 `PrivateAssets`**；删 `Compile Include`、指出 `OutputType=Library`，但保留冗余的 `RootNamespace`/`AssemblyName`；签名导入保留反斜杠，明确反对加 `Exists()`；无 `-pp`/binlog |
 | 5 库存导入 EF | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ◐ EB3 ✔ | 182 s。每 500 行一批、关自动检测并在保存前显式 `DetectChanges()`（实测 6 万行 121 次扫描），未提 `ChangeTracker.Clear()` 收缩跟踪集；先释放预留再加载商品，未提批量语句与后续保存不原子；`Expression.Constant` 改捕获变量，SQL Server provider 生成参数化 SQL |
 | 5 | gpt-6.1-sol medium | 无（复用） | false | EB1 ◐ EB2 ◐ EB3 ✔ | 见「2026-10-15 上游同步」 |
 | 6 容器 tag | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 122 s。CONTAINER2008 与 `;latest` 两个原因、`-p:VersionPrefix="${GITHUB_REF_NAME#v}"`，用 `ComputeContainerConfig` 得到 `2.4.0` 与 `latest` |
@@ -446,6 +446,6 @@ SOURCES：dotnet-docs、aspnetcore-docs 的 `synced_at` 改为 2026-10-15，dotn
 | 9 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ◐ | 114 s。修法相同（联网读到迁移页），但把失败归因于桥接属性，未说明 .NET 10 SDK 默认是 VSTest 模式 |
 | 4 负例（Go 协程泄漏） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 264 s。按 Go 处理：两处 `[chan send]` 泄漏、ctx/WaitGroup/停 ticker，pprof goroutine 诊断，未出现 .NET 内容 |
 
-结论：更正相关的行为在有 skill 时达成且不差于基线——场景 1 正确使用新的求值顺序；场景 9 只有有 skill 一侧说清「.NET 10 SDK 默认 VSTest 模式」这一原因（EB1 ✔ 对 ◐）；场景 5–8 与基线持平（场景 7 EB2 回答措辞不足，属表述而非方案退化）。负例 `skill_read == false`。正文未改。
+结论：更正相关的行为在有 skill 时达成，且不差于基线。场景 1 两侧都按新的求值顺序判对（EB2 ✔）；全部九条里有 skill 5 ✔ 3 ◐ 1 ✘，基线 3 ✔ 3 ◐ 3 ✘，有 skill 在 `PrivateAssets`、冗余 SDK 默认值、签名导入三条上更好，没有哪一条比基线差。场景 9 只有有 skill 一侧说清「.NET 10 SDK 默认 VSTest 模式」这个原因（EB1 ✔，基线 ◐）。场景 5–8 与基线持平；场景 7 的 EB2 是回答措辞不足，不是方案退化。负例 `skill_read == false`。正文未改。
 
-遗留：场景 1 因本轮请求预算只判定了与更正直接相关的 EB2/EB3，其余七条未逐条对照；场景 5 EB1/EB2 两侧仍为 ◐（`ChangeTracker.Clear()`、批量语句原子性），与今天上午记录一致。
+遗留：场景 1 有三条两侧一样或都没达成，均与本轮更正无关：EB3（两侧都实测原条件在显式 Release 下生效，没讲空属性误判）、EB5（两侧都删 `OutputPath`，没用可覆盖默认值）、EB9（两侧都没给 `-pp`/binlog）。场景 5 的 EB1/EB2 两侧仍为 ◐（`ChangeTracker.Clear()`、批量语句原子性），与今天上午的记录一致。
