@@ -58,5 +58,22 @@
       "Answers as Next.js App Router work: the server action mutates the database but never invalidates the Router Cache, so the page re-renders from cached data; the fix is revalidatePath / revalidateTag (or redirect) at the end of createProduct",
       "Gives no Fastify, NestJS, Hono, plugin-encapsulation or graceful-shutdown advice"
     ]
+  },
+  {
+    "skills": ["nodejs-backend"],
+    "query": "Three tickets from three services in our monorepo. (1) orders.route.ts (Fastify 5, default Ajv settings): the contract test posts { sku, qty, discount } and expects a 400 for the misspelled field, but it gets 201. (2) presence.gateway.ts (NestJS 12, socket.io): the mentions sent with a message include mentions from the same client's earlier messages. (3) edge.ts and edge.package.json (Hono on Node): ops asks whether this is ready to roll out to our production hosts, which run Node 18.20. Diagnose each one and show the fixes.",
+    "files": [
+      "evals/files/orders.route.ts",
+      "evals/files/presence.gateway.ts",
+      "evals/files/edge.ts",
+      "evals/files/edge.package.json"
+    ],
+    "expected_behavior": [
+      "Explains that Fastify's baseline Ajv configuration sets `removeAdditional: true`, so `additionalProperties: false` silently strips the unknown `discount` field and the request succeeds; fixes it by setting `removeAdditional: false` (globally through `ajv.customOptions` or in a body-specific compiler) so the field is rejected with 400",
+      "Explains that in a NestJS 12 gateway a request-scoped provider is created per socket connection, not per message, so `MentionBuffer` lives as long as the client stays connected and accumulates mentions across its messages; keeps per-message state local to the handler (or otherwise resets it per message)",
+      "Does not claim that gateways cannot use request-scoped providers at all; request scope in gateways is supported from NestJS 12",
+      "Says `@hono/node-server` 2.x requires Node 20 or later, so it is not ready for Node 18.20 hosts: upgrade the hosts (and the `engines` field) or pin the adapter to 1.x",
+      "Flags `app.mount()` as deprecated (removed in Hono v5) and replaces it with the Mount Middleware, `app.all('/auth/*', mount(authHandler))` from `hono/mount`"
+    ]
   }
 ]

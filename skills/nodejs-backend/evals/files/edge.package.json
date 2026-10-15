@@ -1,0 +1,19 @@
+{
+  "name": "@acme/edge",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/edge.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

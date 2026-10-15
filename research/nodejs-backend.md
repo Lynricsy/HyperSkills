@@ -297,3 +297,25 @@ NestJS、Hono 读的是 GitHub 上的文档源（`gh api`，Fastify 取 `v5.12.7
 SOURCES：五个 docs 条目 `synced_at` 改为 2026-10-15；fastify-docs、nestjs-docs、hono-docs 的 `contributes` 随更正调整。
 当前版本：fastify 5.12.7（v6 仍 alpha）、@nestjs/core 12.1.3、hono 4.13.13、express 5.3.0，与正文的「Fastify 5 / NestJS 12 /
 Hono 4」一致。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`9929fa7`（上游同步，正文未变、只改版本号）与 `715a607`（文档复核四处更正：Fastify 基线 Ajv `removeAdditional: true` 使 `additionalProperties: false` 变成剥离；NestJS 12 起 gateway 支持请求作用域、作用域是连接；Hono `app.mount()` 弃用改 Mount Middleware；`@hono/node-server` 2.x 需 Node 20+）。最后正文提交 12:37:32。
+
+选场景与理由：
+
+- 现有场景 1–3 都不直接考察这四处事实（场景 1 是 Fastify 评审，可能引出 body schema 建议；场景 2 的请求作用域条目只涉及 HTTP 冒泡；场景 3 不涉及适配器版本与挂载）。按简报**新增场景 5**（夹具 `orders.route.ts`、`presence.gateway.ts`、`edge.ts`、`edge.package.json`）：三个服务三张工单，分别要求解释 400 变 201、连接内提及累积、能否上 Node 18.20 主机。
+- 场景 1：`fastify.md` 与 `validation-and-errors.md` 的校验段落被改，评审 Fastify 服务时会读到，选作回归。场景 2、3 读到的改动只是禁用位置清单与一行版本下限，未选。
+- 场景 4：负例。
+
+今天此前没有本 skill 的任何结果，全部新跑。模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/D2G5/nodejs-backend/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 无 | False | EB1–EB7 全 ✔ | 403 s。实跑复现 `FST_ERR_DEC_REFERENCE_TYPE`；readline 流式 + 事务；`app.close()` + `pool.end()` + 期限；params/response schema；`{ err: error }` |
+| 1 | gpt-6.1-sol medium | 有 | True | EB1–EB7 全 ✔ | 200 s。另查出启动路径错误与 `pg` 命名导入问题；未给出 body schema 建议，所以更正后的 `removeAdditional` 段落未被触发，无回退 |
+| 5（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ◐ | 401 s。查 Fastify 默认 Ajv 选项与 npm 元数据、实跑 Nest 12 与 Hono；`mount()` 判为弃用但改写成 `app.on('ALL', …)` 手动转发，未用 Mount Middleware |
+| 5（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 416 s。`ajv.customOptions.removeAdditional: false`（并提示需要保留剥离的路由改用局部编译器）；连接级作用域、收集器改无状态；`@hono/node-server@2.1.5` 要求 `>=20`，升级主机；`app.all('/auth/*', mount(authHandler))`，并说明前缀剥离 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ✔ | 194 s。按 Next.js Server Action 回答 `revalidatePath`，无 Node 框架建议 |
+
+结论：四处更正在有 skill 时全部按更正后的内容作答；场景 5 基线联网也能答对前四条，只在 Mount Middleware 上弱于有 skill，不构成需要新增正文的缺口，留作哨兵。场景 1 两侧持平。负例 `skill_read == false`。正文无需修正。
