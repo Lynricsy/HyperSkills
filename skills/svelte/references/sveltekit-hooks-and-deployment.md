@@ -1,6 +1,6 @@
 # Hooks, errors, and deployment
 
-Verified against: SvelteKit 2.70.
+Verified against: SvelteKit 2.70 and 3.1.
 
 ## Contents
 
@@ -19,7 +19,7 @@ Verified against: SvelteKit 2.70.
 
 | File | Runs | Exports |
 |---|---|---|
-| `src/hooks.server.js` | server | `handle`, `handleFetch`, `handleError`, `handleValidationError`, `init` |
+| `src/hooks.server.js` | server | `handle`, `handleFetch`, `handleError`, `init` (plus `handleValidationError` on SvelteKit 2) |
 | `src/hooks.client.js` | browser | `handleError`, `init` |
 | `src/hooks.js` | both | `reroute`, `transport` |
 
@@ -70,22 +70,24 @@ cannot know which domain a parent-domain cookie belongs to.
 
 ## `handleError` and the error contract
 
-Expected errors — anything raised with `error(status, message)` — render
-`+error.svelte` and their message is shown as-is. Unexpected errors get status
-500 and the message "Internal Error", and `handleError` is called with
-`{ error, event, status, message }`.
+On SvelteKit 2, expected errors — anything raised with `error(status,
+message)` — render `+error.svelte` with their message shown as-is, and only
+unexpected errors reach `handleError`, as status 500 and the message "Internal
+Error". SvelteKit 3 calls `handleError` for every error and passes a `kind`:
+`app` (your `error()`), `framework` (404, 405, 413), `validation` (a remote
+function argument that failed its Standard Schema) or `unknown` (anything
+thrown). The returned object may override `status` and `message`.
 
 `handleError` exists to log the real error somewhere and to return a *safe*
-shape for `page.error`, which defaults to `{ message }`. Extend it by declaring
-`App.Error` in `src/app.d.ts`; it must keep `message: string`. Returning the
-raw `error.message` defeats the purpose — that string is exactly what SvelteKit
+shape for `page.error`. Extend it by declaring `App.Error` in `src/app.d.ts`;
+it must keep `message: string`. Returning the raw `error.message` of an
+unexpected error defeats the purpose — that string is exactly what SvelteKit
 withheld from the client.
 
-`handleValidationError` covers one specific case: a remote function called with
-arguments that fail its Standard Schema. The default response is a 400 with
-"Bad Request". Customise it carefully, because the likeliest cause of a
-validation failure is a hostile request, and a detailed message tells the caller
-what shape to send next.
+Remote-function validation failures default to a 400 with "Bad Request"
+(`handleValidationError` on SvelteKit 2, `kind: 'validation'` on 3). Do not
+echo the issues back by default: the likeliest cause is a hostile request, and
+a detailed message tells the caller what shape to send next.
 
 ## `reroute`
 
@@ -104,9 +106,11 @@ Async work in the client `init` delays hydration.
 
 ## Adapters
 
-The adapter is set in `svelte.config.js` under `kit.adapter`. Official ones:
-`adapter-auto`, `adapter-node`, `adapter-static`, `adapter-vercel`,
-`adapter-netlify`, `adapter-cloudflare`. Everything else is community-provided.
+The adapter is set in `vite.config.js` as the `adapter` option of `sveltekit({...})`
+on SvelteKit 3, and in `svelte.config.js` under `kit.adapter` on 2. Official
+ones: `adapter-auto`, `adapter-node`, `adapter-bun`, `adapter-static`,
+`adapter-vercel`, `adapter-netlify`, `adapter-cloudflare`. Everything else is
+community-provided.
 
 `adapter-auto` is a convenience for the supported hosts and has no
 configuration options. Once the deployment target is known, install that

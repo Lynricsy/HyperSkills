@@ -1,6 +1,6 @@
 # SvelteKit routing and data loading
 
-Verified against: SvelteKit 2.70.
+Verified against: SvelteKit 2.70 and 3.1.
 
 ## Contents
 
@@ -135,8 +135,9 @@ Import them from `$app/state`, which exposes plain reactive objects:
 <p>{page.url.pathname} {page.status}</p>
 ```
 
-`$app/stores` still exists in SvelteKit 2 but is deprecated: `$page.url` becomes
-`page.url`, with no `$` prefix. `npx sv migrate app-state` does the rewrite.
+`$app/stores` is deprecated in SvelteKit 2 and removed in 3: `$page.url`
+becomes `page.url`, with no `$` prefix. `npx sv migrate app-state` does the
+rewrite.
 `$app/state` needs SvelteKit 2.12+ and Svelte 5, because the objects are runes.
 
 `page.data` merges every `load` return value for the current route;
@@ -251,9 +252,10 @@ Exported from `+page.js`/`+page.server.js` (per page) or the layout equivalents
 ## `+server.js` endpoints
 
 Export `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, `OPTIONS`, `HEAD`, or a
-`fallback`. Return a `Response`; `json()` and `text()` from `@sveltejs/kit` are
-the shortcuts. Read the request with `await request.json()` or
-`await request.formData()`.
+`fallback`. Return a `Response`. `json()` and `text()` from `@sveltejs/kit` are
+the SvelteKit 2 shortcuts; SvelteKit 3 deprecates them in favour of
+`Response.json(...)` and `new Response(text)`. Read the request with
+`await request.json()` or `await request.formData()`.
 
 Add an endpoint when a third party or a client-side script must call the route
 over HTTP. Do not add one just so `+page.svelte` can fetch its own data — that

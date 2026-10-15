@@ -1,6 +1,6 @@
-# Migrating: Svelte 4 → 5, SvelteKit 1 → 2, and what SvelteKit 3 changes
+# Migrating: Svelte 4 → 5, SvelteKit 1 → 2, SvelteKit 2 → 3
 
-Verified against: Svelte 5.57, SvelteKit 2.70.
+Verified against: Svelte 5.57, SvelteKit 2.70 and 3.1.
 
 ## Contents
 
@@ -11,12 +11,12 @@ Verified against: Svelte 5.57, SvelteKit 2.70.
 - [Runes-mode behaviour changes that are not syntax](#runes-mode-behaviour-changes-that-are-not-syntax)
 - [Components are functions now](#components-are-functions-now)
 - [SvelteKit 1 → 2](#sveltekit-1--2)
-- [SvelteKit 3 (prerelease)](#sveltekit-3-prerelease)
+- [SvelteKit 2 → 3](#sveltekit-2--3)
 
 ## Order of operations
 
-1. Commit first. `sv migrate` refuses to run on a dirty tree without
-   `--no-git-check`, and that check is the only undo.
+1. Commit first. `sv migrate` prompts before changing a dirty tree (and
+   `--no-git-check` skips the prompt), so the commit is the only undo.
 2. `npx sv migrate svelte-5` — bumps dependencies and rewrites the mechanical
    parts. Review the diff before doing anything by hand.
 3. Grep for `svelte/legacy` and `@migration-task`. Those are the script's
@@ -145,27 +145,33 @@ Also: `resolvePath` is replaced by `resolveRoute` from `$app/paths`;
 and `formData`); dynamic environment variables cannot be read during
 prerendering. `npx sv migrate sveltekit-2` handles the mechanical parts.
 
-## SvelteKit 3 (prerelease)
+## SvelteKit 2 → 3
 
-Published as `3.0.0-next.*`; `2.70.x` is the stable line and svelte.dev
-documents version 2. Do not advise a project onto version 3 unless it is
-already there, and detect it from `package.json` rather than assuming. Once a
-project is on it, these are the changes that break code rather than
+SvelteKit 3 is the stable line (3.0.0 shipped on 2026-10-01) and svelte.dev
+documents it; `2.70.x` remains in use. Detect the line from `package.json`
+rather than assuming, and do not move a project to 3 as a side effect of
+another task. Upgrade to the latest 2.x first so its deprecation warnings point
+at what will break. These are the changes that break code rather than
 configuration:
 
 | Area | SvelteKit 2 | SvelteKit 3 |
 |---|---|---|
-| Svelte config | `svelte.config.js` (`kit.adapter`, `kit.experimental`) | passed through the Vite plugin in `vite.config.js` |
-| Environment | `$env/static/private`, `$env/dynamic/public` | `$app/env/private`, `$app/env/public`, declared in `src/env.js` |
-| Lib alias | `$lib` | `#lib`, with explicit module extensions |
+| Svelte config | `svelte.config.js` (`kit.adapter`, `kit.experimental`) | options of the `sveltekit({...})` plugin in `vite.config.js`; former `kit.*` keys are top-level there |
+| Environment | `$env/static/private`, `$env/dynamic/public` | `$app/env/private`, `$app/env/public`, declared with `defineEnvVars` in `src/env.js`; `$env/*` are deprecated aliases |
+| App environment | `$app/environment` | `$app/env` |
+| Lib alias | `$lib` | `#lib`, declared in `package.json` `imports`, with explicit module extensions |
 | Page state | `$app/stores` (deprecated) + `$app/state` | `$app/stores` removed |
 | Full invalidation | `invalidateAll()` | `refreshAll()`; `invalidateAll` deprecated |
+| Navigation | `pushState` / `replaceState`; `goto` `noScroll` / `keepFocus` / `replaceState` / `invalidateAll` | `goto(url, { shallow: true, state })` (pushState/replaceState deprecated); `reset: false`, `replace`, `refreshAll` options |
 | Cookie `path` | required | defaults to `'/'` |
-| Param matchers | `src/params/<name>.js` | consolidated into `src/params.js` |
+| `error()` | `error(status, { message, ...props })` allowed | second argument must be the message string; extra props go in a third argument |
+| `handleError` | called for unexpected errors only | called for every error with a `kind` (`app`, `framework`, `validation`, `unknown`) and may set `status`; `handleValidationError` removed |
+| Failed form actions | enhanced responses return 200 | the status passed to `fail()` |
+| Param matchers | `src/params/<name>.js` | consolidated into `src/params.js` with `defineParams` |
 | Server-only dirs | recognised under `src/lib` | any `/server/` segment in the project |
-| Types | `RequestEvent`, `Cookies` from `@sveltejs/kit` | from `$app/server`; hooks types from `@sveltejs/kit/hooks` |
-| Redirects | external redirects allowed | forbidden unless opted in |
-| Baseline | — | Node 22.17+, Vite 8, TypeScript 6, Svelte 5.56.4+ |
+| Types | `Handle` and friends from `@sveltejs/kit` | hooks types from `@sveltejs/kit/hooks`, remote function types from `$app/server`; `RequestEvent` and `Cookies` stay in `@sveltejs/kit` |
+| Redirects | external redirects allowed | forbidden unless `redirect(..., { external })` opts in |
+| Baseline | — | Node 22.17+, Vite 8.0.12+, TypeScript 6, Svelte 5.57.1+, `@sveltejs/vite-plugin-svelte` 7 |
 
 `npx sv migrate sveltekit-3` runs as selectable tasks (`package-json` and
 `tsconfig` are prerequisites; `svelte-config`, `environment`, `paths`,

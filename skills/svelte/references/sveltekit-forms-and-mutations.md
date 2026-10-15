@@ -1,6 +1,6 @@
 # Form actions, progressive enhancement, and remote functions
 
-Verified against: SvelteKit 2.70.
+Verified against: SvelteKit 2.70 and 3.1.
 
 ## Contents
 
@@ -83,7 +83,7 @@ user loses everything they typed and gets an error page instead of a message
 next to the field. `fail`'s payload must be devalue-serializable and should echo
 back the submitted values (never the password) so the inputs can be repopulated.
 
-In SvelteKit 2, `error()` and `redirect()` throw by themselves — writing
+Since SvelteKit 2, `error()` and `redirect()` throw by themselves — writing
 `throw redirect(...)` is SvelteKit 1 syntax. It still happens to work, but it
 misleads the next reader about the control flow and `svelte-migrate` removes it.
 Never call either inside a `try` block; if unavoidable, distinguish them from
@@ -94,10 +94,10 @@ Use `303` after a `POST` so the browser follows with `GET`. `302` re-issues the
 
 ## Cookies in an action
 
-`cookies.set`, `cookies.delete` and `cookies.serialize` require an explicit
-`path` in SvelteKit 2 — usually `path: '/'`. Without it SvelteKit throws, and
-the reason the option is mandatory is that the browser default (the parent of
-the current path) is almost never what was intended. `httpOnly` and `sameSite`
+On SvelteKit 2, `cookies.set`, `cookies.delete` and `cookies.serialize` require
+an explicit `path` — usually `path: '/'`. Without it SvelteKit throws, because
+the browser default (the parent of the current path) is almost never what was
+intended. SvelteKit 3 makes `'/'` the default instead. `httpOnly` and `sameSite`
 default to safe values; `secure` defaults to true except on `localhost`, so
 hard-coding `secure: true` breaks local development over plain HTTP.
 
@@ -174,14 +174,22 @@ and the route stops working without JavaScript.
 ## Remote functions (experimental)
 
 Available since SvelteKit 2.27 and still experimental: the API may change
-without a major release. Opt in through `svelte.config.js`:
+without a major release. On SvelteKit 3, opt in through the plugin options in
+`vite.config.js`:
 
 ```js
-export default {
-  compilerOptions: { experimental: { async: true } },
-  kit: { experimental: { remoteFunctions: true } }
-};
+export default defineConfig({
+  plugins: [
+    sveltekit({
+      experimental: { remoteFunctions: true },
+      compilerOptions: { experimental: { async: true } }
+    })
+  ]
+});
 ```
+
+On SvelteKit 2 the same two flags live in `svelte.config.js`, as
+`kit.experimental.remoteFunctions` and `compilerOptions.experimental.async`.
 
 Functions are exported from a module whose name contains a `remote` segment
 (`data.remote.ts`), always run on the server, and are transformed on the client

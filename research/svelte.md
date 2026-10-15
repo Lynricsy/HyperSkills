@@ -259,3 +259,69 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
 | 5 `let:` 与 `children` snippet 冲突 | workbuddy/deepseek-v4.1-flash:max | 无（baseline） | false | **4 / 4** | 自行用 svelte 5.57.1 编译复现：snippet 编译为无参函数、`let:` 被静默丢弃、编译 0 warning、运行时 `ReferenceError`；删掉 `let:`，改为 `{#snippet children(item, index)}` 对 `{@render children?.(row, i)}`；`DataList` 迁移到 `$props()` 保留 `emptyText` 默认值；保留 `class:odd` 未误称移除；还做了对照实验证明隐式 slot 内容下 `let:` 仍可用 |
 
 结论：基线已完整掌握该陷阱，**不合入正文**；场景 5 保留在 `evals.json` 作为本次划界证据与回归哨兵（沿用 R14 先例保留撤回场景的做法）。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因（`/tmp/hs-attr/skills_real.json`），7 条在 tracked paths
+下确有提交。`sveltekit-core`、`sv-cli`、`svelte-evals` 为 too-large，用主代理的 blobless bare 缓存
+（`/tmp/hs-attr/sveltejs__kit`、`__cli`、`__svelte-evals`）按完整区间 `git log/diff <旧pin>..<审阅HEAD> -- <paths>` 读 diff；
+其余用 `gh api .../compare` 取 patch。`spences10-svelte`、`ejirocodes-svelte5` up to date，`awesome-copilot` too-large 但归因为空，
+随 `--pin` 对齐；`svelte-dev-docs` 为 manual check，其内容即 `sveltejs/kit` 等仓库的 `documentation/docs`，本次随 kit 一并核对。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| `svelte-ai-tools` | `a5a92c6 → f47bce8`（3 提交） | `1a3ba88` 从 svelte.dev 同步：best-practices 新增 `#key` 一节（会卸载重建内部全部元素，别拿来让子组件脚本重跑，改用 `$derived`）；`experimental.async` 可写在 `vite.config.js` 插件选项或 `svelte.config.js`。`0da5266`：autofixer `--svelte-version` 建议传 `package.json` 的完整版本以启用按版本建议。`f47bce8`：加反引号 | `#key` 经场景 6 基线划界不合入；async 配置位置并入下述 SvelteKit 3 更正；`--svelte-version` 是工具调参（缺省 5 仍可用），不合入；反引号噪声 |
+| `svelte-core` | `020242d → 4473857`（审阅区间 `020242d..34079be` 5 提交；pin 差额 `34079be..4473857` 1 提交未碰 paths） | `e5169f2`：SSR 时带 `pending` snippet 的 boundary 只渲染该 snippet、跳过内容；`7c2fcda` `#key` 说明（同上）；`4c88472` async 配置位置（同上）；`f382705`、`79e7c3b` 链接 | SSR 跳过内容经场景 6 基线划界不合入；其余噪声 |
+| `sveltekit-core` | `c6f9a78 → 73bf98c`（38 提交） | **`3ec9b91` / `2ec690e` / `73bf98c` 发布 SvelteKit 3.0.0（2026-10-01）、3.0.1、3.1.0**，`d738a87` 把 `version-3` 合入 main，`documentation/docs` 整体换成 3.x：新增 `35-migrating-to-sveltekit-3.md`、`45-adapter-bun.md`，hooks / errors / adapters / remote functions 等页改写；`e3f7d7b` Cloudflare 页 `nodejs_als` 兼容标志改为「仅需 AsyncLocalStorage 时在 wrangler `compatibility_flags` 加」；`58c0ae8` parent 重跑条件细化；`7b4bb3c` `getClientAddress`；`5e11958` 3.x 文档示例去掉 cookie `path`；`a219888` 项目结构（`src/params.js`）；`51a4e0b` `+server` tracing span；`68791be` 静态资源走构建清单；其余为链接、错字、模板链接、版本号与 `messages.json` | **事实更正（合入）**，见下；`nodejs_als`、tracing、静态资源、模板链接等本 skill 未涉及，噪声 |
+| `sv-cli` | `d2b2f4d → 7bbb1c3`（7 提交） | `sv migrate` 文档重写：任务式 `sveltekit-3` 的 9 个任务、legacy 迁移改由 `svelte-migrate@1`、**脏工作树时「提示」而非拒绝，`--no-git-check` 跳过**；`sv create` 加 `--no-download-check`、`--addon-name`；社区 add-on API 转正；新增 `enhanced-img` add-on；playwright add-on 加 `demo` 选项；`Welcome.svelte` 示例加类型 | 「脱离脏树会拒绝」措辞更正（合入）；任务清单已在 `migration.md`；其余为 CLI 选项与示例，噪声 |
+| `svelte-evals` | `4c6fd5e → 11e278a`（2 提交） | `c34ab2d` 删掉默认工程里的测试文件与 playwright 配置、`vite.config.ts` 改为单一 browser 测试并 `sveltekit({ adapter: adapter() })`（印证 SvelteKit 3 配置位置）；`303a75e` 升版本 | 评测 harness 调整，噪声；`testing.md` 的 client/server 双项目配置仍与 `sv` 生成的快照一致（见下） |
+| `fubits1-svelte` | `2fcf54e → 0f7dcdb`（3 提交） | `testing-svelte` 改写：Vitest 5 下定位器与 `toHaveTextContent` 默认整串精确匹配、`vitest-browser-svelte` 3 的 `render` 只能 `await`、`vi.mock` 只能在顶层、`vi.waitFor` 在 browser 模式可用、禁止 `click({ force: true })`、原生提交表单与导航链接会让 iframe 跳走 | **事实更正（合入）**：`testing.md` 示例未 `await render`、`toHaveTextContent('1')` 在 Vitest 5 下不再按子串匹配；其余为测试写法偏好，不合入 |
+| `full-stack-skills-svelte` | `afd483a → d49b744`（1 提交） | `d49b744` 给各 skill 加 `agents/openai.yaml` | 噪声（agent 绑定文件） |
+
+### 事实更正：SvelteKit 3 已 GA
+
+核实：`npm view @sveltejs/kit dist-tags` → `latest: 3.1.0`（`3.0.0` 发布于 2026-10-01T17:22Z）；`packages/kit/package.json`
+@73bf98c：`engines.node >=22.17`、peer `svelte ^5.57.1`、`vite ^8.0.12`、`typescript ^6`；`sv` 的 create-with-all-addons 快照已生成
+`@sveltejs/kit ^3.0.0` 与 `sveltekit({ adapter })` 配置；`documentation/docs/60-appendix/35-migrating-to-sveltekit-3.md`、
+`30-advanced/20-hooks.md`、`20-core-concepts/60-remote-functions.md`、`25-build-and-deploy/20-adapters.md` 逐条对照。
+原正文「`2.70.x` 是稳定线、svelte.dev 文档化 2.x、3 为 prerelease」已不成立（2026-09-29 裁决 1 的事实前提变化）。
+
+改动（references 仍以 2.x 名称书写，由规则 1 指向版本对照表，避免一次性重写全部示例）：
+
+- `SKILL.md`：Scope 改为同时覆盖 3.x（当前）与 2.x；规则 1 改写为 3.x 为稳定线、列出配置位置 / `#lib` / `$app/env*` /
+  `$app/stores` 的差异并要求按表翻译；规则 14、15、17、21、24 各给出 3.x 与 2.x 的对应写法（私有 env 与 server-only
+  模块路径、`$app/env`、`$app/stores` 在 3 中移除、cookie `path` 在 3 中默认 `'/'`、实验开关在 `sveltekit({...})` 插件选项）；
+  栈检测命令加 `vite.config.*` 的 `sveltekit(` 段；`3.0.0-next.*` 分支判断改为 `3.x`；`sv migrate` 脏树为「提示」；
+  Environment 加 Node 22.17+；路由表迁移行改为 SvelteKit 2 → 3。
+- `references/migration.md`：标题与目录改为「SvelteKit 2 → 3」，删去 prerelease 定性；对照表更正 **Types 一行**（原写
+  `RequestEvent`、`Cookies` 移到 `$app/server`，实为 hooks 类型移到 `@sveltejs/kit/hooks`、remote function 类型移到
+  `$app/server`，`RequestEvent` / `Cookies` 仍在 `@sveltejs/kit`）、Baseline 一行（Svelte 5.56.4+ → 5.57.1+，补 Vite 8.0.12、
+  vite-plugin-svelte 7）；补 `$app/environment` → `$app/env`、导航（`goto` 的 `shallow`/`reset`/`replace`/`refreshAll`）、
+  `error()` 第二参数只能是字符串、`handleError` 接收全部错误并带 `kind`、`fail()` 状态码、`defineEnvVars` 与 `package.json`
+  `imports` 声明 `#lib` 等行；`sv migrate` 脏树措辞更正。
+- `references/sveltekit-hooks-and-deployment.md`：`handleValidationError` 标为 2.x 专有；`handleError` 契约分 2.x / 3.x 写；
+  适配器配置位置分版本，官方适配器补 `adapter-bun`。
+- `references/sveltekit-forms-and-mutations.md`：cookie `path` 分版本；remote functions 开关改为 3.x 的 `vite.config.js`
+  写法并保留 2.x 写法。
+- `references/sveltekit-routing-and-load.md`：`$app/stores` 在 3 中移除；`json()` / `text()` 在 3 中弃用。
+- `references/state-sharing-and-ssr.md`：补 3.x 的 `goto(url, { replace: true, reset: false })`。
+- `references/testing.md`：示例改为 `await render(...)` 与整串断言；补 Vitest 5 精确匹配与 `vitest-browser-svelte` 3 异步
+  `render` 两条（核实：vitest-dev/vitest 主干 `docs/api/browser/assertions.md`「matches provided string exactly」、
+  `locators.md` 中 `browser.locators.exact` 默认 `true`，npm `vitest` latest 5.0.4；`vitest-browser-svelte` latest 3.1.0，
+  源码 `async function render`）；Verified 行注明 `sv` 当前仍生成 Vitest 4.1 / vitest-browser-svelte 2.1。
+- `SOURCES.yaml`：`sveltekit-core` notes、`svelte-dev-docs` contributes 改写为 3.x GA 后的现状。
+
+### 评测（划界用，基线）
+
+新增场景 6（`evals/files/ssr-boundary/`：文章页 `<svelte:boundary>` 带 `pending` 包住整篇文章；`ReadingTime` 用普通 `const`
+从 prop 计算、被包在 `{#key}` 里）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 pending 边界跳过 SSR + `#key` 误用 | gpt-6.1-sol medium | 无 | false | 4 / 4 | 288 s。引 Svelte async SSR 文档指出带 `pending` 的 boundary 在 SSR 只出 snippet；把 `Article` 移出边界、只让评论延迟；`ReadingTime` 三个值改 `$derived` 并删 `{#key}`，说明 `{#key}` 是销毁重建；用 Svelte 5.57.0 编译夹具前后对比验证 |
+
+结论：`#key` 与 pending-SSR 两条新增内容基线已会，不合入，场景 6 留作哨兵。正文改动全部是事实更正（官方文档 / 源码 / npm 发布
+核实），按流程不需 D2；未跑有 skill 评测。`pin_check.py`：PIN CHECK CLEAN（`svelte-core` 差额 `34079be..4473857` 未碰 paths）。
+
+遗留：references 的示例仍用 SvelteKit 2 名称（`$lib`、`$env/*`、`$app/environment`、`svelte.config.js`），靠规则 1 与对照表
+翻译；待 3.x 成为多数项目所在线后，宜把示例整体改为 3.x 写法、把 2.x 降为对照表一侧。

@@ -84,5 +84,20 @@
       "Migrates DataList.svelte to `$props()` (with the `emptyText` fallback) and replaces `<slot item={row} index={i} />` with `{@render children?.(…)}`, and makes the snippet parameters in Users.svelte match the new call shape (positional `children(item, index)` pairs with `{#snippet children(item, index)}`; while DataList is still on slots, the slot props arrive as one object, `{#snippet children({ item, index })}`)",
       "Replaces `class:odd={…}` only if it chooses to, without claiming it is removed — `class:` still works in Svelte 5"
     ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "SvelteKit 3.1 with Svelte 5.57 and compilerOptions.experimental.async enabled. Our article route is +page.svelte with Article.svelte (ReadingTime.svelte is a child). Two complaints: the SEO team says the server-rendered HTML for article pages contains no article text at all, and a teammate wrapped ReadingTime in {#key} because it showed the previous article's reading time after client-side navigation. Explain both and give me the fixed files.",
+    "files": [
+      "evals/files/ssr-boundary/+page.svelte",
+      "evals/files/ssr-boundary/Article.svelte",
+      "evals/files/ssr-boundary/ReadingTime.svelte"
+    ],
+    "expected_behavior": [
+      "Explains that during server-side rendering a <svelte:boundary> with a pending snippet renders only the pending snippet and skips its content, so the server HTML holds the skeleton instead of the article",
+      "Fixes it so the article is server-rendered: removes the pending snippet from the boundary that wraps the article (or moves the pending boundary down to the non-critical Comments part) rather than adding client-side workarounds",
+      "Explains that ReadingTime's script computes words/minutes/label once from the initial prop, so the values do not update when the text prop changes",
+      "Fixes ReadingTime with $derived for words, minutes and label, and removes the {#key} block, noting that {#key} destroys and recreates everything inside it on each change and is costly as a workaround"
+    ]
   }
 ]

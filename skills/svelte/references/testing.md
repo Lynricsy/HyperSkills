@@ -1,6 +1,8 @@
 # Testing Svelte and SvelteKit
 
-Verified against: Svelte 5.57, SvelteKit 2.70, `sv` CLI 2026.09.
+Verified against: Svelte 5.57, SvelteKit 2.70 and 3.1, `sv` CLI 2026.10 (which
+installs Vitest 4.1 and `vitest-browser-svelte` 2.1), Vitest 5.0 and
+`vitest-browser-svelte` 3.1.
 
 ## Contents
 
@@ -143,12 +145,12 @@ import { render } from 'vitest-browser-svelte';
 import Counter from './Counter.svelte';
 
 test('increments', async () => {
-  render(Counter, { start: 0 });
+  await render(Counter, { start: 0 });
 
   const button = page.getByRole('button', { name: /increment/i });
   await button.click();
 
-  await expect.element(button).toHaveTextContent('1');
+  await expect.element(button).toHaveTextContent('Increment: 1');
 });
 ```
 
@@ -156,6 +158,11 @@ Rules that keep these tests from rotting:
 
 - Query by role, label or text. A locator is retried automatically;
   `container.querySelector` is not, and it couples the test to markup.
+- `render` from `vitest-browser-svelte` 3 is async: `await` it (and `unmount`).
+- Vitest 5 matches locator names and text exactly by default, and
+  `toHaveTextContent` compares the whole text: `getByText('Save')` misses
+  "Save draft". Use the full string, a `RegExp`, `{ exact: false }`, or
+  `toMatchTextContent` for a partial check.
 - Locators are strict: two matches is an error. Narrow the query before
   reaching for `.first()`.
 - `await expect.element(...)` — the assertion polls. `expect(element)` does not

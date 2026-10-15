@@ -1,6 +1,6 @@
 # Sharing state without leaking it across users
 
-Verified against: Svelte 5.57, SvelteKit 2.70.
+Verified against: Svelte 5.57, SvelteKit 2.70 and 3.1.
 
 ## Contents
 
@@ -143,8 +143,9 @@ just to remove the `$`.
 
 Filters, tabs, pagination and sort order belong in `page.url.searchParams`;
 navigate with `goto(url, { replaceState: true, keepFocus: true, noScroll: true })`
-so the page does not jump. SvelteKit re-runs the `load` functions that depend on
-the URL, which is the invalidation mechanism you would otherwise hand-write.
+on SvelteKit 2, or `goto(url, { replace: true, reset: false })` on 3, so the
+page does not jump. SvelteKit re-runs the `load` functions that depend on the
+URL, which is the invalidation mechanism you would otherwise hand-write.
 
 Ephemeral DOM state that should survive back/forward but not a reload — scroll
 position inside a pane, a partially typed comment — belongs in a `snapshot`

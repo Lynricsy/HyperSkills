@@ -4,7 +4,7 @@ description: "Develops Svelte and SvelteKit applications with runes, routing and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.29"
+  version: "2026.10.15"
   category: framework
 ---
 
@@ -14,9 +14,10 @@ Paths below are relative to this skill's directory.
 
 ## Scope
 
-Svelte 5 application code and SvelteKit 2 routes: the reactivity model, the
-component and template surface, data loading, mutations, hooks, deployment
-shape, testing, and migration from Svelte 4 / SvelteKit 1.
+Svelte 5 application code and SvelteKit routes (the current 3.x line and the
+2.x line many projects still run): the reactivity model, the component and
+template surface, data loading, mutations, hooks, deployment shape, testing,
+and migration from Svelte 4 / SvelteKit 1 / SvelteKit 2.
 
 Not covered — do not answer from this skill:
 
@@ -41,12 +42,17 @@ Each rule is an invariant: violating it is a bug, a leak, or a measurable
 regression. Rule ids in parentheses are the ids cited by `## Output format`.
 
 1. Detect the stack before advising (`stack-detection`): read `package.json`
-   for the `svelte` and `@sveltejs/kit` versions, `svelte.config.js` for
-   `compilerOptions.runes` and any `experimental` flags, and the component
-   itself for whether it is in runes or legacy mode. `2.70.x` is the stable
-   SvelteKit line and svelte.dev documents it; `3.0.0-next.*` moves config into
-   `vite.config.js`, replaces `$lib` with `#lib` and removes `$app/stores`.
-   Advice for the wrong line does not merely underperform, it fails to build.
+   for the `svelte` and `@sveltejs/kit` versions, the Svelte config for
+   `compilerOptions.runes` and any `experimental` flags (the `sveltekit({...})`
+   options in `vite.config.js` on SvelteKit 3, `svelte.config.js` on 2), and
+   the component itself for whether it is in runes or legacy mode. SvelteKit 3
+   has been the stable line since 3.0.0 (2026-10-01) and is what svelte.dev
+   documents; it moves config into `vite.config.js`, replaces `$lib` with
+   `#lib`, renames `$env/*` and `$app/environment` to `$app/env/*` and
+   `$app/env`, and removes `$app/stores`. The examples in `references/` use
+   the SvelteKit 2 names; translate them with the table at the end of
+   `references/migration.md` on a 3.x project. Advice for the wrong line does
+   not merely underperform, it fails to build.
 2. Never mix runes with legacy reactivity in one component
    (`no-mixed-modes`). `$state` beside `$:` or `export let` is a compile error.
    Mode is per file, so migrate a component completely or leave it alone.
@@ -90,20 +96,24 @@ regression. Rule ids in parentheses are the ids cited by `## Output format`.
     that file only; importers receive the signal object. Export a container and
     mutate it, or export accessors.
 14. Keep secrets on the server twice over (`server-only-boundary`): import
-    `$env/static/private` and `$lib/server/*` only from server files, and never
-    return a secret from `load` — the return value is serialized into the HTML.
-    `process.env` is not validated and not available on every adapter.
+    private env (`$app/env/private` on SvelteKit 3, `$env/static/private` on 2)
+    and server-only modules (`#lib/server/*`, `$lib/server/*` on 2) only from
+    server files, and never return a secret from `load` — the return value is
+    serialized into the HTML. `process.env` is not validated and not available
+    on every adapter.
 15. A universal `load` (`+page.js`) runs in the browser too
     (`universal-load-is-client`). Guard `window`, `document` and
-    `localStorage` with `browser` from `$app/environment`, or read them in the
-    component. Importing a server-only module here fails the build.
+    `localStorage` with `browser` from `$app/env` (`$app/environment` on
+    SvelteKit 2), or read them in the component. Importing a server-only module
+    here fails the build.
 16. Server `load` and action return values are serialized with devalue, not
     JSON (`devalue-not-json`). `Date`, `Map`, `Set`, `BigInt`, `RegExp` and
     cyclical references cross intact — do not stringify them. Class instances
     need a `transport` transporter in `src/hooks.js`, or plain data instead.
 17. Read route data with `let { data, form }: PageProps = $props()` and page
     state with `page` from `$app/state` (`runes-route-props`). `export let
-    data` is legacy syntax; `$page` from `$app/stores` is deprecated.
+    data` is legacy syntax; `$page` from `$app/stores` is deprecated in
+    SvelteKit 2 and removed in 3.
 18. A server `load` never tracks a URL it fetched, so declare
     `depends('app:x')` and call `invalidate('app:x')` (`explicit-depends`).
     Only universal `load` fetches register as dependencies; tracking server
@@ -116,9 +126,10 @@ regression. Rule ids in parentheses are the ids cited by `## Output format`.
     validation through `error()` throws away everything the user typed. In
     SvelteKit 2 both `error()` and `redirect()` throw by themselves — drop the
     `throw`.
-21. `cookies.set`, `cookies.delete` and `cookies.serialize` require an explicit
-    `path` (`cookie-path`). SvelteKit 2 throws without it, because the browser
-    default scopes the cookie to the parent of the current path.
+21. On SvelteKit 2, `cookies.set`, `cookies.delete` and `cookies.serialize`
+    require an explicit `path` (`cookie-path`): it throws without one, because
+    the browser default scopes the cookie to the parent of the current path.
+    SvelteKit 3 defaults `path` to `'/'`, so pass one there only to narrow it.
 22. A form posts to an action: `method="POST"`, an action in
     `+page.server.js`, and `use:enhance` imported from `$app/forms`
     (`form-actions-not-fetch`). A hand-rolled `fetch('?/login')` cannot read
@@ -129,9 +140,11 @@ regression. Rule ids in parentheses are the ids cited by `## Output format`.
     await its parent runs anyway, and `+server.js` never involves layouts.
 24. Name the opt-in when recommending an experimental feature
     (`flag-experimental`). Remote functions (SvelteKit 2.27+) and `await`
-    expressions (Svelte 5.36+) need `kit.experimental.remoteFunctions` and
-    `compilerOptions.experimental.async`; enabling async changes effect
-    ordering app-wide, so it is not a per-route choice.
+    expressions (Svelte 5.36+) need `experimental.remoteFunctions` and
+    `compilerOptions.experimental.async` — `sveltekit({...})` options in
+    `vite.config.js` on SvelteKit 3, `kit.experimental` and `compilerOptions`
+    in `svelte.config.js` on 2. Enabling async changes effect ordering
+    app-wide, so it is not a per-route choice.
 25. Verify with the compiler, not by reading (`verify-with-tooling`):
     `npx @sveltejs/mcp svelte-autofixer <file>` on each touched `.svelte` file,
     then `npx sv check`. The autofixer names legacy syntax and non-reactive
@@ -144,14 +157,16 @@ apply and which syntax is legal:
 
 ```bash
 grep -E '"(svelte|@sveltejs/kit|vite|vitest)"' package.json
-cat svelte.config.js 2>/dev/null            # runes flag, adapter, experimental
+grep -A12 'sveltekit(' vite.config.* 2>/dev/null   # SvelteKit 3 config
+cat svelte.config.js 2>/dev/null            # SvelteKit 2: runes, adapter, experimental
 grep -rlE '\$:|export let|on:[a-z]+=|<slot' src --include=*.svelte | head
 ```
 
 - No `@sveltejs/kit` → skip every `sveltekit-*` reference; the route rules do
   not apply.
-- `@sveltejs/kit` on `3.0.0-next.*` → read the version table at the end of
-  `references/migration.md` before writing config, env imports or `$lib` paths.
+- `@sveltejs/kit` on `3.x` → translate the SvelteKit 2 names used in the
+  references (config location, env modules, `$lib`, `$app/stores`) with the
+  version table at the end of `references/migration.md` before writing code.
 - Legacy-mode files present → the task is a migration, not a bug fix. Say so
   rather than half-converting one component.
 - `experimental.async` or `experimental.remoteFunctions` already on → those
@@ -207,8 +222,8 @@ grep -rlE '\$:|export let|on:[a-z]+=|<slot' src --include=*.svelte | head
 
 Full procedure and the translation table: `references/migration.md`.
 
-- [ ] Confirm a clean git tree — `sv migrate` refuses a dirty one, and that
-      refusal is the only undo.
+- [ ] Confirm a clean git tree — `sv migrate` prompts before touching a dirty
+      one (`--no-git-check` skips the prompt), and a clean tree is the only undo.
 - [ ] `npx sv migrate svelte-5`, then review the diff before touching
       anything.
 - [ ] Grep for `svelte/legacy` and `@migration-task`. Every `run(...)` is an
@@ -280,7 +295,7 @@ but not on navigation".
 | Form actions, `fail`/`error`/`redirect`, cookies, `use:enhance`, `applyAction`, `deserialize`, remote functions | Anything that writes data | `references/sveltekit-forms-and-mutations.md` |
 | `handle`, `locals`, `resolve` options, `handleFetch`, `handleError`, `reroute`, `init`, adapters, prerendering, auth placement | Cross-cutting server behaviour, deployment target, or an error contract | `references/sveltekit-hooks-and-deployment.md` |
 | Vitest client/server projects, filename rules, `$effect.root` and `flushSync`, `vitest-browser-svelte` locators, testing `load` and actions, Playwright, `sv check` | Writing or fixing a test, or closing any workflow gate | `references/testing.md` |
-| Svelte 4 → 5 table, `sv migrate` output, `svelte/legacy` escape hatches, runes-mode behaviour changes, SvelteKit 1 → 2, SvelteKit 3 differences | Porting old code, or the project is on `3.0.0-next.*` | `references/migration.md` |
+| Svelte 4 → 5 table, `sv migrate` output, `svelte/legacy` escape hatches, runes-mode behaviour changes, SvelteKit 1 → 2, SvelteKit 2 → 3 | Porting old code, or the project is on SvelteKit 3 | `references/migration.md` |
 
 ## Output format
 
@@ -328,8 +343,9 @@ first — it is a data leak, not a UX problem.
 
 ## Environment
 
-- Node.js 18.13+ for SvelteKit 2; use the project's own package runner
-  (`npm` / `pnpm` / `bun` / `yarn`) as declared by `packageManager`.
+- Node.js 22.17+ for SvelteKit 3 (18.13+ for SvelteKit 2); use the project's
+  own package runner (`npm` / `pnpm` / `bun` / `yarn`) as declared by
+  `packageManager`.
 - `npx sv check` needs `svelte-check` in the project's devDependencies
   (`npm i -D svelte-check`).
 - `npx sv add vitest` and `npx sv add playwright` generate the test setup;
