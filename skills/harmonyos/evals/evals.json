@@ -62,5 +62,17 @@
       "Treats the problem in Compose terms - a mutable data class behind MutableStateFlow does not trigger recomposition, the total is not derived from the lines, and items() needs a stable key to preserve scroll and composition state",
       "Does not introduce ArkTS, ArkUI or HarmonyOS state decorators such as @State, @Local, @Param or @ObservedV2 into the answer"
     ]
+  },
+  {
+    "skills": ["harmonyos"],
+    "query": "Two problems before release. (1) The app must run on HarmonyOS 7.0 phones and keep working on the HarmonyOS 6.0 phones most of our users still have. A teammate set both SDK versions in build-profile.json5 to \"7.0.0(26)\" and the build now rejects the file; CI also builds with Command Line Tools 6.0.2 while developers use DevEco Studio 26.0.0. Give me the correct values and setup. (2) In CheckoutPage.ets the button charges the pre-coupon amount even though the Total text shows the discount. Explain and fix.",
+    "files": ["evals/files/build-profile.json5", "evals/files/CheckoutPage.ets"],
+    "expected_behavior": [
+      "Says there is no `7.0.0(26)` API version: HarmonyOS 7.0 is the device OS release and it runs API `26.0.0`, which from 26.0.0 on is written as a plain `X.Y.Z` string with no `(n)` suffix; sets `targetSdkVersion` to `\"26.0.0\"`",
+      "Sets `compatibleSdkVersion` to the lowest API the HarmonyOS 6.0 devices run (`\"6.0.0(20)\"`), explaining that compatibleSdkVersion is the minimum installable API, so 26.0.0 there would drop every HarmonyOS 6.x device",
+      "Says the CI Command Line Tools must be the same 26.0.0 build as the IDE, because the SDK ships inside them and a 6.0.2 toolchain compiles against a different SDK (it cannot target 26.0.0)",
+      "Explains that `@Computed` recomputes on the next frame rather than at the assignment, so reading `this.totalCents` in the same click handler right after setting `couponPercent` returns the old cached value while the Text, rendered later, shows the new one",
+      "Fixes the charge by computing the discounted amount directly in the handler (an inline calculation or a plain method) instead of reading the `@Computed` value there, not by deferring the charge with a timer"
+    ]
   }
 ]

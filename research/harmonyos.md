@@ -519,3 +519,19 @@ Preferences/RDB、权限、签名与 hvigor、版本说明）筛出 586 个文�
 上表的官方页面经 `liasica/harmonyos-skills` 镜像（`d1ea543`，2026-10-15 同步）逐页读取，`overview-2600` 另直接打开
 官方站点核对，内容一致；官方站点导航里版本说明已改挂 `doc/doccenter-release-notes/…` 路径，SOURCES 的入口 URL
 `/consumer/cn/doc/` 不变。属于事实更正，未新增行为规则，不跑基线评测。上节遗留「版本对照表只到 6.1.1」已解决。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：60bcf64 @Computed 下一帧重算、28b5823 HarmonyOS 7.0 / API 26.0.0 版本对照。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/harmonyos/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 4 Android 迁移计划（第 10 项 SDK 版本） | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ◐3 ✔4 ✔5 ✔6 ✔7 ✔8（6✔2◐） | 184 s。第 10 项：compatibleSdkVersion 是最低可安装 API、拉到最新会排除旧设备，target 按已验证版本单独设，debug profile 不能用于上架；第 2 项判为「非失败、建议 Navigation」并提路由参数不能带函数、API 18 起弃用；Worker 一项给 TaskPool 三分钟限制，未提 64 个上限与不可取消 |
+| 4 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ◐3 ◐4 ✔5 ✔6 ✔7 ✔8（4✔4◐） | 288 s。第 10 项同样达成（最低可安装 API、`compatible ≤ target ≤ compile`、debug 签名不能上架）；UIAbility、router、全局 UI 接口均判为「条件性问题」，未给 Navigation 为标准做法、未给 `@since 10`；Worker 一项未给 TaskPool 限额 |
+| 5 负例（Compose） | gpt-6.1-sol medium | 有 | false | 3/3 | 184 s。按 Compose 修：不可变 LineItem + `StateFlow.update`、总价由列表派生、`key` 保滚动，无 ArkTS |
+
+选择理由：版本对照（HarmonyOS 7.0 ↔ API 26.0.0）与 `@Computed` 下一帧重算没有场景覆盖，新增 6（`build-profile.json5` + `CheckoutPage.ets`）；4 第 10 项涉及 SDK 版本；5 为负例。
+
+已完成部分：场景 4 有 skill 6✔2◐ 对基线 4✔4◐，第 10 项两侧均达成；负例 `skill_read=false`。
+
+**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：6 HarmonyOS 7.0 ↔ API 26.0.0 与 @Computed 下一帧重算（新增，有/无）。待结果出来后补判定。

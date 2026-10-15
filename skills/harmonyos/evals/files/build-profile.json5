@@ -1,0 +1,35 @@
+// build-profile.json5 (project root)
+// Devs build with DevEco Studio 26.0.0; CI builds with Command Line Tools 6.0.2.
+{
+  "app": {
+    "signingConfigs": [],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "7.0.0(26)",
+        "targetSdkVersion": "7.0.0(26)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      { "name": "debug" },
+      { "name": "release" }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        { "name": "default", "applyToProducts": ["default"] }
+      ]
+    }
+  ]
+}
