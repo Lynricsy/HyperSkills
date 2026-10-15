@@ -48,8 +48,8 @@ defined; nothing else is portable.
 
 | Field | Required | Constraint |
 |---|---|---|
-| `name` | yes | 1–64 characters; lowercase `a-z`, digits `0-9` and `-` only; no leading or trailing `-`; no `--`; must equal the parent directory name; no XML tags; no vendor reserved words |
-| `description` | yes | Specification: 1–1024 characters, non-empty; describes what the skill does and when to use it; no XML tags. HyperSkills applies the tighter local policy below |
+| `name` | yes | 1–64 characters; lowercase `a-z`, digits `0-9` and `-` only; no leading or trailing `-`; no `--`; must equal the parent directory name. Anthropic's platform adds: no XML tags, no vendor reserved words |
+| `description` | yes | Specification: 1–1024 characters, non-empty; describes what the skill does and when to use it. Anthropic's platform adds: no XML tags. HyperSkills applies the tighter local policy below |
 | `license` | no | Licence name, or the name of a bundled licence file. Keep it short |
 | `compatibility` | no | 1–500 characters; environment requirements — intended product, system packages, network access. Most skills do not need it |
 | `metadata` | no | A map from string keys to string values. Host-specific extras live here; pick key names unlikely to collide |
@@ -83,9 +83,11 @@ skill that either loads under a name nobody types or is skipped. Lenient hosts
 warn and load it anyway; strict validators fail. Neither outcome is worth the
 risk.
 
-Vendor reserved words are rejected because a skill named after the model
-provider cannot be distinguished from a first-party one. Names such as
-`anthropic-helper` are invalid for that reason.
+Anthropic's platform also rejects vendor reserved words (`anthropic`,
+`claude`), because a skill named after the model provider cannot be
+distinguished from a first-party one; `anthropic-helper` is invalid there. The
+specification itself does not list reserved words, but a portable skill avoids
+them anyway.
 
 ## The `description` field
 

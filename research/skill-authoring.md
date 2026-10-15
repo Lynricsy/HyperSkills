@@ -496,3 +496,17 @@ docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 | — | gpt-6.1-sol medium | — | — | — | 事实更正，未跑 |
+
+## 2026-10-15 文档上游复核
+
+范围：5 条 `kind: docs` 条目的 `contributes` 事实 + `references/spec-reference.md`、`client-extensions-and-paths.md` 与 SKILL.md 中实际引用的数字、字段与路径。claude-code-skills-docs 的整表预算已在今日提交 127a2c5 更正，本次复读确认并核其余事实。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| anthropic-best-practices | name ≤64、小写/数字/连字符、无 XML、保留词 anthropic/claude；description ≤1024、无 XML；正文 <500 行；引用保持一层（嵌套引用时以 `head -100` 局部读取）；>100 行的参考文件加目录；清单与校验循环；evals.json 形状（`skills`/`query`/`files`/`expected_behavior`）；Claude A / Claude B 迭代 | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | 一致（页面 `.md` 版逐条命中）。**更正（归属）**：`spec-reference.md` 字段表把「无 XML 标签、无保留词」写进规范约束，并称保留词「are rejected」；这两条只出现在本页（Anthropic 平台规则），开放规范没有。表格两行改为「Anthropic's platform adds: …」，保留词段落改为注明平台规则、规范未列但可移植技能仍应避开 |
+| agentskills-spec | 六字段与限值（name 1–64、description 1–1024、compatibility 1–500、metadata 字符串映射、allowed-tools 实验性）；name 五条构造规则 + 目录一致；scripts/references/assets；三层披露 ~100 tokens / <5000 tokens / 按需与 <500 行；引用一层；`skills-ref validate` | https://agentskills.io/specification | 一致。校验命令实跑：`npx -y skills-ref@0.1.5 validate skills/skill-authoring` 输出 `Valid skill`（npm 0.1.5 与 PyPI 0.1.1 均由 agentskills 发布） |
+| claude-code-skills-docs | 非标准字段表（`when_to_use`、`argument-hint`、`arguments`、`disable-model-invocation`、`user-invocable`、`disallowed-tools`、`model`、`effort`、`context`、`agent`、`background`、`hooks`、`paths`、`shell`）；1,536 字符单条上限；整表 1% / 8,000 回退、最少调用者先丢描述、`name-only`；enterprise > personal > project；保留目录名；「外部只用规范字段」 | https://code.claude.com/docs/en/skills | 一致（字段表逐项命中；`license`/`compatibility` 接受但不生效亦一致）。**补正**：保留名现为两处——`synced`（claude.ai 同步目录）与 `anthropic-skills` 命名空间（插件外不加载）；原文只写前者，已补入「Collision precedence」并同步 contributes |
+| cursor-skills-docs | `paths`（逗号串或列表，旧名 `globs` 仍兼容）；`disable-model-invocation`；`icon`、`color`（固定色板）；`.agents/skills`、`.cursor/skills` 及用户级目录；递归发现、嵌套项目目录自动按目录限定；兼容读取 `.claude/skills`、`.codex/skills` | https://cursor.com/docs/skills | 一致 |
+| codex-skills-docs | 初始列表预算 2% / 未知窗口 8,000 字符，先缩短描述、必要时省略并告警；`agents/openai.yaml` 的 interface / policy（`allow_implicit_invocation` 默认 true）/ dependencies；REPO/USER/ADMIN（`/etc/codex/skills`）/SYSTEM 范围 | https://learn.chatgpt.com/docs/build-skills | 数字与 schema 一致（官方示例另有 `icon_large`，正文示例为子集）。**更正**：仓库范围原文写「工作目录、其父目录与仓库根」，官方为「从工作目录到仓库根的每一级目录」，已改；同名技能不合并、在选择器中并列（补入冲突一节）；预算可经 `skills.max_context_tokens` 调整（上限 10,000 tokens），补入预算表 |
+
+正文改动：`references/spec-reference.md`（约束归属）、`references/client-extensions-and-paths.md`（Codex 发现路径与预算配置、Claude Code 保留名、Codex 同名不合并）；`SOURCES.yaml` 两条 contributes 同步。均为按官方页面更正既有陈述，不新增规则，未新增评测场景、未跑 D2。

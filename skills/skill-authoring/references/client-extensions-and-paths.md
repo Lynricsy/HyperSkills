@@ -148,7 +148,7 @@ shared `.agents/skills/` convention. The shared one is the portable target.
 | Host | Project | User |
 |---|---|---|
 | Claude Code | `.claude/skills/`, plus every parent up to the repository root, plus nested subdirectory copies loaded lazily | `~/.claude/skills/` |
-| Codex / ChatGPT | `.agents/skills/` in the working directory, its parent, and the repository root | `~/.agents/skills/`; admin `/etc/codex/skills` |
+| Codex / ChatGPT | `.agents/skills/` in every directory from the working directory up to the repository root | `~/.agents/skills/`; admin `/etc/codex/skills` |
 | Cursor | `.agents/skills/`, `.cursor/skills/`, recursively including nested project directories, auto-scoped to their directory; also reads the Claude Code and Codex directories | `~/.cursor/skills/`, `~/.agents/skills/` |
 | Gemini CLI, GitHub Copilot, OpenCode, Amp, Cline, Zed, Warp, Droid, Kilo, Antigravity | `.agents/skills/` | Vendor-specific, e.g. `~/.gemini/skills/`, `~/.copilot/skills/`, `~/.config/opencode/skills/` |
 | Pi | `.agents/skills/` from the working directory up to the repository root, plus its own project directory | `~/.agents/skills/`, plus its own user directory |
@@ -165,9 +165,11 @@ skills in its resources array, or the directory is not read at all.
 
 The near-universal rule is **project overrides user**. Claude Code inverts part
 of it — enterprise, then personal, then project — and it also reserves the
-directory name `synced` for skills downloaded from its web product. A skill that
-depends on shadowing another skill is not portable; give it a distinct name
-instead.
+directory name `synced` for skills downloaded from its web product and the name
+`anthropic-skills` (and everything in that namespace), which does not load
+outside a plugin. Codex does not merge two skills with the same name; both
+appear in its selectors. A skill that depends on shadowing another skill is
+not portable; give it a distinct name instead.
 
 ## Listing truncation budgets
 
@@ -175,7 +177,7 @@ Tier-1 metadata is a shared budget, and hosts enforce it differently:
 
 | Host | Budget | Behaviour when exceeded |
 |---|---|---|
-| Codex | 2% of the context window, or 8,000 characters when the window is unknown | Shortens descriptions first; may omit skills entirely and warn |
+| Codex | 2% of the context window, or 8,000 characters when the window is unknown; changed with `skills.max_context_tokens` (up to 10,000 tokens) | Shortens descriptions first; may omit skills entirely and warn |
 | Claude Code | Whole listing: 1% of the context window (8,000 characters as the fallback), changed with the `skillListingBudgetFraction` setting or a fixed `SLASH_COMMAND_TOOL_CHAR_BUDGET`. Per entry: 1,536 characters of description plus its extra triggering field (`skillListingMaxDescChars`) | Each entry is cut at its cap. Over the whole budget, every name stays but whole descriptions are dropped, starting with the least-invoked skills |
 
 Per-entry caps cut from the end. This is the entire justification for

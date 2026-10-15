@@ -18,7 +18,7 @@ upstreams:
     url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
     license: NONE
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "Core authoring principles, the three degrees of freedom, the three progressive-disclosure patterns and the partial-read reason for one-level references, workflow checklists and validation loops, template / examples / conditional-workflow patterns, evaluation-driven development and the evals.json shape, the two-agent iteration loop and the four navigation signals, script rules (solve rather than defer, no voodoo constants, explicit dependencies), the anti-pattern list, and the pre-release checklist."
     notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. All wording independently rewritten."
   - id: obra-writing-skills
@@ -38,7 +38,7 @@ upstreams:
     url: https://agentskills.io/specification
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "The normative frontmatter field table with exact limits, the five name construction rules and the directory-match requirement, the optional directory conventions, the three progressive-disclosure tiers and their budgets, the file-reference rules, and the reference validator command."
     notes: "Licence taken from the agentskills/agentskills repository that publishes the reference implementation."
   - id: vercel-skills-cli
@@ -58,14 +58,14 @@ upstreams:
     license: NONE
     relation: merged
     synced_at: "2026-10-15"
-    contributes: "The full table of that host's non-standard frontmatter fields, its 1536-character per-entry listing cap (skillListingMaxDescChars), its whole-listing budget of 1% of the context window with an 8,000-character fallback (skillListingBudgetFraction, SLASH_COMMAND_TOOL_CHAR_BUDGET) that drops the descriptions of the least-invoked skills first while keeping every name, the name-only skillOverrides escape, its inverted enterprise-over-personal-over-project precedence, its reserved directory name, and its own warning that only specification fields may be used elsewhere."
+    contributes: "The full table of that host's non-standard frontmatter fields, its 1536-character per-entry listing cap (skillListingMaxDescChars), its whole-listing budget of 1% of the context window with an 8,000-character fallback (skillListingBudgetFraction, SLASH_COMMAND_TOOL_CHAR_BUDGET) that drops the descriptions of the least-invoked skills first while keeping every name, the name-only skillOverrides escape, its inverted enterprise-over-personal-over-project precedence, its reserved names (the synced directory and the anthropic-skills namespace), and its own warning that only specification fields may be used elsewhere."
     notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. Every field is labelled non-standard in the reference file. The 2026-10-15 whole-listing budget correction was read from the skills page's 'Skill descriptions are cut short' section, the settings reference entries for skillListingBudgetFraction (default 0.01) and skillListingMaxDescChars (default 1536), and the environment-variable reference for SLASH_COMMAND_TOOL_CHAR_BUDGET (8,000-character fallback)."
   - id: cursor-skills-docs
     kind: docs
     url: https://cursor.com/docs/skills
     license: NONE
     relation: merged
-    synced_at: "2026-09-10"
+    synced_at: "2026-10-15"
     contributes: "That host's path-scoping field and its legacy name, its invocation-control, icon and colour fields, and its recursive discovery with automatic scoping of skills in nested project directories."
     notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy."
   - id: codex-skills-docs
@@ -73,8 +73,8 @@ upstreams:
     url: https://learn.chatgpt.com/docs/build-skills
     license: NONE
     relation: merged
-    synced_at: "2026-09-10"
-    contributes: "The initial-listing budget of 2% of the context window or 8000 characters with descriptions shortened first, which is the evidence for front-loading the key use case; the sibling agents/openai.yaml interface, policy and dependency schema; and the repository, user, admin and system discovery scopes."
+    synced_at: "2026-10-15"
+    contributes: "The initial-listing budget of 2% of the context window or 8000 characters with descriptions shortened first (configurable through skills.max_context_tokens), which is the evidence for front-loading the key use case; the sibling agents/openai.yaml interface, policy and dependency schema; and the repository (every directory from the working directory up to the repository root), user, admin and system discovery scopes."
     notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy."
   - id: grafana-skill-authoring
     kind: repo
