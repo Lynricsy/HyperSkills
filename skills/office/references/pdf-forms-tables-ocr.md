@@ -1,6 +1,6 @@
 # PDF forms, tables and OCR
 
-Verified against: pypdf 6.18, pdfplumber 0.11, tesseract 5.5, poppler 26.07
+Verified against: pypdf 6.20, pdfplumber 0.11, tesseract 5.5, poppler 26.07
 
 ## Contents
 
@@ -53,21 +53,21 @@ In code:
 from pypdf import PdfReader, PdfWriter
 
 writer = PdfWriter(clone_from="intake.pdf")
-writer.set_need_appearances_writer(True)
 for page in writer.pages:
     names = {a.get_object().get("/T") for a in (page.get("/Annots") or [])}
     subset = {k: v for k, v in updates.items() if k in names}
     if subset:
-        writer.update_page_form_field_values(page, subset)
+        writer.update_page_form_field_values(page, subset, auto_regenerate=False)
 writer.write("filled.pdf")
 ```
 
 Two details matter. `update_page_form_field_values` only touches widgets on the
 page it is given, so passing every page a full update dict logs a warning per
-page that owns none of the fields. And `set_need_appearances_writer(True)` asks
-the viewer to rebuild widget appearances; pypdf also writes its own appearance
-streams, so the value renders either way, but setting it costs nothing and
-covers viewers that trust only their own rendering.
+page that owns none of the fields. And pass `auto_regenerate=False`: pypdf
+writes each widget's appearance stream itself, while the default `True` sets
+`/NeedAppearances`, which makes the viewer re-render the fields and may raise a
+"save changes" dialog when the recipient opens the file — pypdf's own forms
+guide recommends `False`. `[verified: pypdf 6.20]`
 
 ## Checkboxes and radio groups
 
@@ -80,7 +80,7 @@ annot.get("/AP").get("/N").keys()   # dict_keys(['/Off', '/Yes'])
 ```
 
 `True`, `"Yes"`, `"1"` and `"/1"` all leave the box at `/Off` with no error
-raised. `"/Yes"` sets both `/V` and the widget's `/AS`. `[verified: pypdf 6.18]`
+raised. `"/Yes"` sets both `/V` and the widget's `/AS`. `[verified: pypdf 6.20]`
 
 The on-state name is per widget: `/Yes`, `/On`, `/1` and `/Choice1` are all
 common. Radio groups work the same way — one field, one on-state per button,
@@ -89,20 +89,32 @@ and setting the field to a state selects the matching button.
 ## Flattening
 
 A filled form still is a form: the recipient can edit it. To hand over
-something fixed, render the filled document and rebuild it from the page
-images, or stamp the values as page content instead of field values. pypdf has
-no flatten operation, so the two honest options are:
+something fixed, flatten it: pypdf turns field values into page content and
+then drops the widgets.
 
-```bash
-# raster flatten: correct, loses selectable text
-uv run scripts/render_preview.py filled.pdf --dpi 200
-# then reassemble the PNGs into a PDF with reportlab
-
-# or draw the values as content from the start (overlay path below)
+```python
+writer = PdfWriter(clone_from="filled.pdf")
+for page in writer.pages:
+    names = {a.get_object().get("/T") for a in (page.get("/Annots") or [])}
+    subset = {k: v for k, v in values.items() if k in names}
+    if subset:
+        writer.update_page_form_field_values(page, subset, auto_regenerate=False, flatten=True)
+writer.remove_annotations(subtypes="/Widget")
+del writer.root_object["/AcroForm"]   # its /Fields now point at removed widgets
+writer.write("flat.pdf")
 ```
 
-State which one was done: "flattened to images at 200 dpi" and "values drawn as
-page content" have different consequences for search and accessibility.
+The text stays selectable and `get_fields()` on the result returns `None`.
+Without the last deletion the file still opens, but `qpdf --check` and poppler
+warn about field references to objects that no longer exist.
+`[verified: pypdf 6.20]` Render the result: a field whose appearance pypdf
+cannot draw well (an unusual font, a comb field) is better drawn as content
+from the start (overlay path below), or rasterised with
+`scripts/render_preview.py filled.pdf --dpi 200` and rebuilt from the page
+images at the cost of selectable text.
+
+State which one was done: "fields flattened into page content" and "flattened
+to images at 200 dpi" have different consequences for search and accessibility.
 
 ## When there are no form fields
 

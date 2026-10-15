@@ -1,6 +1,6 @@
 # Creating Word documents with docx-js
 
-Verified against: docx 9.7.1, python-docx 1.2, LibreOffice 26.2, pandoc 3.10
+Verified against: docx 9.11.0, python-docx 1.2, LibreOffice 26.8, pandoc 3.12
 
 ## Contents
 
@@ -84,7 +84,8 @@ fs.writeFileSync("report.docx", await Packer.toBuffer(doc));
 
 Units are the ones Word uses, and they differ per property: `size` is
 half-points (22 = 11 pt), margins and indents are twentieths of a point
-(1440 = 1 inch), image transformations are points.
+(1440 = 1 inch), and image transformations are pixels at 96 per inch
+(624 = 6.5 inches) — not points. `[verified: docx 9.11.0]`
 
 ## Headings and styles
 
@@ -148,15 +149,18 @@ new Paragraph({
       type: "png",
       data: fs.readFileSync("chart.png"),
       altText: { name: "chart", description: "Revenue by quarter", title: "chart" },
-      transformation: { width: 468, height: 260 }, // points; 468 pt = 6.5 in
+      transformation: { width: 600, height: 333 }, // pixels at 96 per inch, not points
     }),
   ],
 });
 ```
 
 Compute the height from the real pixel dimensions instead of guessing, or the
-image is stretched. A Letter page with 1-inch margins gives 468 pt of usable
-width.
+image is stretched. With no `size` in the section properties docx writes an A4
+page, and its 1-inch default margins leave 9026 twips (about 6.27 in, 601 px)
+of text width; a Letter page (`size: { width: 12240, height: 15840 }`) leaves
+6.5 in = 624 px. Sizing in points instead (468 for 6.5 in) yields an image a
+quarter narrower than intended. `[verified: docx 9.11.0]`
 
 ## Page breaks, sections, headers and footers
 
@@ -171,13 +175,17 @@ width.
 ## Table of contents
 
 `new TableOfContents("Contents", { hyperlink: true, headingStyleRange: "1-3" })`
-writes a TOC *field*. Word fills it when the user opens the document and agrees
-to update fields; LibreOffice leaves it empty on conversion, so a rendered
-preview shows a blank page there. That is expected, not a defect.
+writes a TOC *field* that (since docx 9.9) already holds one linked entry per included heading,
+but no page numbers: those depend on page layout, so they are left for Word to
+fill when it updates fields (set `features: { updateFields: true }` on the
+`Document` so Word offers to on open). LibreOffice does not update fields on
+conversion, so a rendered preview shows the entries with blank page numbers.
+That is expected, not a defect. `[verified: docx 9.11.0]`
 
-When the document must show a populated contents list without user interaction,
-emit the entries yourself as ordinary paragraphs built from the headings you
-just wrote.
+When the contents list must carry page numbers without user interaction, pass
+`pageNumbers: estimatePageNumbers` (from `docx/layout`) to the `Document`,
+which lays the pages out as Word would and writes the numbers into the field;
+a number it cannot work out stays blank. `[verified: docx 9.11.0]`
 
 ## Reading a document
 

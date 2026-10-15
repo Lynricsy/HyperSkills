@@ -99,14 +99,14 @@ def cmd_fill(args: argparse.Namespace) -> int:
         updates[name] = value
 
     writer = PdfWriter(clone_from=str(args.pdf))
-    # Some viewers only draw the value if the document asks them to rebuild
-    # widget appearances; pypdf also writes its own, so set both.
-    writer.set_need_appearances_writer(True)
+    # pypdf writes each widget's appearance stream itself. auto_regenerate=False
+    # keeps /NeedAppearances off, as pypdf's forms guide recommends: the flag
+    # makes the viewer re-render the fields and may raise a "save changes" dialog.
     for page in writer.pages:
         names_here = {a.get_object().get("/T") for a in (page.get("/Annots") or [])}
         subset = {k: v for k, v in updates.items() if k in names_here}
         if subset:
-            writer.update_page_form_field_values(page, subset)
+            writer.update_page_form_field_values(page, subset, auto_regenerate=False)
     writer.write(str(args.out))
 
     written = describe(PdfReader(str(args.out)))

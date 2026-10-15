@@ -192,9 +192,10 @@ workbook under an `.xlsx` name produces a file Excel refuses to open.
 ## Large data
 
 Beyond roughly 100k rows, `Workbook(write_only=True)` plus `ws.append(row)`
-keeps memory flat, at the cost of no random access and no post-hoc styling.
-For reading, `load_workbook(path, read_only=True)` streams rows. Both modes
-require closing the workbook when done.
+keeps memory flat, at the cost of no random access and no post-hoc styling. A
+write-only workbook starts with no worksheet (call `wb.create_sheet()` first)
+and can be saved only once. For reading, `load_workbook(path, read_only=True)`
+streams rows lazily and must be closed with `wb.close()` when done.
 
 ## Delivery gate
 

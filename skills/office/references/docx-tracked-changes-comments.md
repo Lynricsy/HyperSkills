@@ -1,6 +1,6 @@
 # Tracked changes and comments in Word documents
 
-Verified against: WordprocessingML (ECMA-376), pandoc 3.10, LibreOffice 26.2
+Verified against: WordprocessingML (ECMA-376), pandoc 3.12, LibreOffice 26.2
 
 ## Contents
 

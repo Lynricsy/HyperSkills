@@ -1,6 +1,6 @@
 # Markdown to Word
 
-Verified against: docx 9.7.1, marked 18.0, pandoc 3.10
+Verified against: docx 9.7.1 and marked 18.0 (the scripts lockfile), pandoc 3.12
 
 ## Contents
 
@@ -60,9 +60,9 @@ pipe tables, block quotes, horizontal rules, and images.
 
 Images are resolved relative to the Markdown file. PNG, JPEG, GIF and BMP are
 embedded with their intrinsic size read from the file header and scaled down to
-the 6.5-inch text width; anything else, including SVG, becomes a visible
-`[unsupported image format]` note rather than a silent omission. Convert SVG to
-PNG first.
+the 6.27-inch text width of docx's default A4 page; anything else, including
+SVG, becomes a visible `[unsupported image format]` note rather than a silent
+omission. Convert SVG to PNG first.
 
 To extend the converter, add a `case` to `blockParagraphs` for the token type
 `marked` produces. Print `marked.lexer(text)` for an unfamiliar construct rather
@@ -90,11 +90,13 @@ Signing before the audit closes carries risk.
 ```
 
 The style has to exist in the reference document, spelled exactly as in Word,
-including spaces and capitalisation. When it does not, pandoc still writes
-`<w:pStyle w:val="NoSuchStyle"/>` into the document without a warning; the name
-resolves to nothing, so the block renders with default formatting and the
-callout appears to have done nothing. `[verified]` Grep the packed
-`word/document.xml` for the style name to tell the two cases apart.
+including spaces and capitalisation. When it does not, pandoc creates a style of
+that name inheriting from body text and says nothing, so the block renders as
+an ordinary paragraph and the callout appears to have done nothing.
+`[verified: pandoc 3.12]` To tell the two cases apart, look the name up in the
+packed `word/styles.xml`: a style pandoc invented has only `w:name`, `w:basedOn
+w:val="BodyText"` and `w:qFormat`, with none of the shading or border you
+designed.
 
 ## Building a reference document
 

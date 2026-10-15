@@ -47,9 +47,10 @@ const {
   WidthType,
 } = docx;
 
-// Word measures images in EMU but the docx builder takes points; 1 inch = 72 pt
-// and the default Letter page with 1" margins leaves 6.5" of text width.
-const MAX_IMAGE_WIDTH_PT = 6.5 * 72;
+// docx sizes images in pixels at 96 per inch (15 twips each) and converts to
+// EMU itself. Its default page is A4 (11906 twips wide) with 1440-twip margins,
+// which leaves 9026 twips, about 6.27 inches, of text width.
+const MAX_IMAGE_WIDTH_PX = Math.floor((11906 - 2 * 1440) / 15);
 // docx accepts an explicit image type only from this set; anything else must be
 // converted first, because a wrong or missing type writes a media part with an
 // "undefined" extension and no content-type override.
@@ -118,7 +119,7 @@ function imageSize(buffer, ext) {
     }
   }
   // Unknown geometry: fall back to a square that respects the width budget.
-  return { width: MAX_IMAGE_WIDTH_PT, height: MAX_IMAGE_WIDTH_PT };
+  return { width: MAX_IMAGE_WIDTH_PX, height: MAX_IMAGE_WIDTH_PX };
 }
 
 function inlineRuns(tokens, style = {}) {
@@ -175,7 +176,7 @@ function imageRun(href, alt) {
   }
   const data = fs.readFileSync(resolved);
   const { width, height } = imageSize(data, ext);
-  const scale = Math.min(1, MAX_IMAGE_WIDTH_PT / width);
+  const scale = Math.min(1, MAX_IMAGE_WIDTH_PX / width);
   // `type` is mandatory: without it the media part is written as
   // "<hash>.undefined" and no consumer can map it to a content type.
   return new ImageRun({
