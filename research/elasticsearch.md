@@ -341,3 +341,16 @@ v9.4.6 与 **v8.19.21** 并行维护，8.19 是 8.x 末班车。分支列表到 
 156b7a5、850bfef）。`elastic-docs` 为 `kind: docs`，未改。
 
 结论：唯一 behind 无命中改动，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.09.30。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py` 报告：`elasticsearch-repo`（751 commits）一条 `behind`，为 diff too large to attribute to paths。主代理已在 shallow blobless 裸仓库缓存（`/tmp/hs-attr/elastic__elasticsearch`）上按完整 `<旧pin>..<审阅HEAD>` 区间、限该条目 `paths` 归因为空；本次复跑 `git log --oneline <pinned>..<head> -- <paths>` 仍为空，并用不依赖提交历史完整性的树对比 `git diff --stat <pinned> <head> -- <paths>` 与两端 `git ls-tree` 复核（结果为空、所有追踪路径在两端均存在），未用日期过滤。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| elasticsearch-repo | dd5d366 → 73f8cde（751 commits，全仓 4736 个文件变更） | 无：`x-pack/plugin/rank-rrf/src/main/java/org/elasticsearch/xpack/rank/rrf/RRFRankPlugin.java` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| elasticsearch-repo（pin 差额） | 73f8cde → ed90157（3 commits） | 无：`pin_check.py` 经 `gh api compare` 取完整文件列表（未截断），未触及 `RRFRankPlugin.java` | 未变更，仅 re-pin |
+
+其余仓库上游（`elastic-rally`（cb465ae → 445d915，13 commits）、`wshobson-vector-tuning`（156b7a5 → 46891e7，6 commits）为 `repo moved, tracked paths unchanged`；`elastic-agent-skills`、`clawic-elasticsearch`、`opensearch-launchpad`、`vespa-es-migration`、`face0b1101-es` 为 up to date）随 `--pin` 一并对齐；`--pin` 时 `elasticsearch-repo` 已前移到 ed90157（审阅 HEAD 为 73f8cde），差额 3 个提交经 `pin_check.py` 核对未触及追踪路径；其余 pin 与审阅 HEAD 逐条一致（baa5111、f825206、5076c03、445d915、65b9ae3、46891e7、850bfef），`pin_check.py` 结果 PIN CHECK CLEAN。1 条 `kind: docs` 条目为 manual check，本次未改。
+
+结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
