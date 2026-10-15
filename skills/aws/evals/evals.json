@@ -108,5 +108,17 @@
       "States that a mute rule only suppresses actions while the alarms keep evaluating, and that when the window ends an alarm still in the muted state has its actions re-triggered - which is exactly the 06:00 paging requirement - whereas disabled actions stay off until someone re-enables them",
       "Notes the mute-rule constraints that affect this runbook: at most 100 target alarms per rule, targets named explicitly (no wildcards) in the same account and Region, and `cloudwatch:PutAlarmMuteRule` needed on both the rule and every targeted alarm"
     ]
+  },
+  {
+    "skills": ["aws"],
+    "query": "app.js and notes.md describe chat-gateway. Product wants SSE token streaming, staying on Lambda, at the lowest cost. What should we deploy it as, what has to change in the code and the build, and what will bite us?",
+    "files": ["evals/files/web-functions/app.js", "evals/files/web-functions/notes.md"],
+    "expected_behavior": [
+      "Recommends Lambda Web Functions (GA): the Express app runs as a normal HTTP server with native response streaming and no API Gateway, and is billed on active CPU plus memory over the environment's life rather than wall-clock duration, which suits requests that mostly wait on the LLM",
+      "Removes the serverless-express adapter and handler export and binds the server to the host and port in `AWS_LAMBDA_HTTP_ENDPOINT` (not a hard-coded port or loopback), because the runtime probes that exact address and an adapter never listens",
+      "Requires `nodejs24.x` and arm64: sharp's native binary must be built for arm64 (arm64 runner or `--platform linux/arm64`), not zipped from the x86_64 CI",
+      "Flags module-level `currentUser` as a cross-request data leak, because one execution environment serves many concurrent requests in one process; per-request data stays on req/res",
+      "Chooses endpoint auth deliberately: an `ApplicationManaged` endpoint is public with no Lambda-side authentication (the app's own auth must hold; WAF/custom domain only via CloudFront in front), and internal callers like billing-worker use an `IamAuth` endpoint; moves `LLM_API_KEY` to Secrets Manager/SSM instead of a plain environment variable"
+    ]
   }
 ]

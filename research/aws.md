@@ -445,3 +445,27 @@ awesome-copilot-aws（compare 超限、归因为空）随 `--pin` 前移。aws-d
 
 结论：两条均为噪声，正文与 references 未改，未新增评测场景、未跑 D2。仅 `metadata.version` 与 `SOURCES.yaml` 的 `version` 改为
 `2026.10.15`，commit/synced_at 由 `--pin` 写入。
+
+## 2026-10-15 上游新增内容评估
+
+候选：aws/agent-toolkit-for-aws（Apache-2.0，`a2c98f2037dc`）新增 `skills/specialized-skills/serverless-skills/aws-lambda-web-functions`。
+CloudWatch Omni 初始化（`setting-up-cloudwatch-observability`）按分工本次不做，维持此前「留待后续评估」。
+
+GA 核实：AWS What's New「AWS Lambda announces Lambda Web Functions」（2026-10，launch 文案为 available now，非 preview）与
+AWS News Blog 发布文；Lambda 开发者指南 `web-functions*.html` 已上线。要点逐条对照开发者指南核实：应用自行监听
+`AWS_LAMBDA_HTTP_ENDPOINT` 给出的 host:port 且 10 秒内就绪（`web-functions-env-lifecycle`、`-revisions-env-vars`）、无需适配器
+（`-runtimes`）、仅 `nodejs24.x`、原生依赖须为 Arm64（`-best-practices`）、每环境并发 1–128（`-scaling`）、revision 不可变且失败的
+revision 不会回到 Active、endpoint Active 也可能启动失败（`-troubleshooting`）、请求路径半双工（`-troubleshooting`）、计费为请求 +
+活跃 CPU + 环境生命周期内消耗的内存 + 流量（`web-functions`）、`ApplicationManaged` 不做认证、WAF/自定义域名需前置 CloudFront
+（`web-functions` 与 `-best-practices`）。上游「函数名在账号所有 Region 唯一」「环境变量经 get-web-function-revision 明文返回」两条未在
+官方页面找到原文，即便合入也不会写。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| aws-lambda-web-functions | 不合入 | 已 GA，但场景 9 基线 5/5：基线自行检索开发者指南，选 Web Functions、删 serverless-express 并绑定 `AWS_LAMBDA_HTTP_ENDPOINT`、Node 24 + Arm64 重建 sharp、指出模块级 `currentUser` 串号（并实跑复现）、`ApplicationManaged`/`IamAuth` 分端点、密钥移到 Secrets Manager |
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9 chat-gateway 迁 Web Functions | gpt-6.1-sol medium | 无 | false | EB1–EB5 全部 | 另指出默认请求超时 30 s 需调高、流式超时会以 200 截断 |
+
+结论：无缺口，不合入；场景 9 与夹具 `evals/files/web-functions/` 留作哨兵。产物：`/tmp/hs-evals-MergeM2/aws/omp-openai-gpt-6.1-sol-medium/baseline/9`。
