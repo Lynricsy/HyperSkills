@@ -354,3 +354,27 @@ v9.4.6 与 **v8.19.21** 并行维护，8.19 是 8.x 末班车。分支列表到 
 其余仓库上游（`elastic-rally`（cb465ae → 445d915，13 commits）、`wshobson-vector-tuning`（156b7a5 → 46891e7，6 commits）为 `repo moved, tracked paths unchanged`；`elastic-agent-skills`、`clawic-elasticsearch`、`opensearch-launchpad`、`vespa-es-migration`、`face0b1101-es` 为 up to date）随 `--pin` 一并对齐；`--pin` 时 `elasticsearch-repo` 已前移到 ed90157（审阅 HEAD 为 73f8cde），差额 3 个提交经 `pin_check.py` 核对未触及追踪路径；其余 pin 与审阅 HEAD 逐条一致（baa5111、f825206、5076c03、445d915、65b9ae3、46891e7、850bfef），`pin_check.py` 结果 PIN CHECK CLEAN。1 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+候选：elastic/elasticsearch（`ed901573c617`）新增的 `docs/reference/query-languages/promql/{AGENTS,CLAUDE}.md` 与
+`x-pack/.../plan/logical/promql/{AGENTS,CLAUDE}.md` 是上游自己的文档/代码维护说明，本身不合入；它们指向的 ES|QL `PROMQL` 源命令是线索。
+许可：AGPL/SSPL/ELv2 三重许可，按现有 `elasticsearch-repo` 的做法只能 reference、改写事实。
+
+GA 核实：`docs/reference/query-languages/esql/_snippets/commands/layout/promql.md` 与 `promql/promql-limitations.md` 的 `applies_to`
+为 `stack: preview 9.4, ga 9.5`；Elastic 9.5 发布博文与 Search Labs 文章同样写明 `PROMQL` 命令与 Prometheus 兼容 HTTP API 在 9.5 GA。
+限制逐条见 `promql-limitations.md` 与 `_snippets/promql-unsupported-constructs.md`：两个不同指标不聚合直接做二元运算返回空而非报错、
+`and`/`unless`、`on`/`ignoring`/`group_left`/`group_right`、`@`、子查询返回 4xx、`or` 仅顶层且 9.5 最多 8 个操作数、不处理 staleness
+marker、HTTP API 遇到多余 Prometheus 参数返回 400、`/api/v1/query_exemplars` 未实现、即时查询固定 5 分钟回看。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| ES\|QL `PROMQL` 命令与 PromQL 兼容性限制 | 不合入 | 场景 6 基线 6/6：自行引用 elastic.co 的 limitations 页，指出 panel 1 返回空、`and`/`on` 与子查询不支持并改写、关闭 exemplars 并去掉 `lookback_delta`/`dedup`、staleness 影响一分钟告警，ES\|QL 用 `PROMQL index=... name=(...)` |
+
+我们的 `esql.md`（Verified against 9.5.3）未写 `PROMQL` 属遗漏而非错误陈述，不构成事实更正。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 Grafana 仪表盘迁到 ES 9.5 PromQL | gpt-6.1-sol medium | 无 | false | EB1–EB6 全部 | panel 5（经典 `_bucket` 直方图）判为可直接使用 |
+
+结论：无缺口，不合入；场景 6 与夹具 `evals/files/promql/` 留作哨兵。产物：`/tmp/hs-evals-MergeM2/elasticsearch/omp-openai-gpt-6.1-sol-medium/baseline/6`。

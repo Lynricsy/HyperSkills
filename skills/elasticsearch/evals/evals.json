@@ -70,5 +70,18 @@
       "Does not turn the answer into Elasticsearch index design, mapping, query DSL or shard-sizing advice, and does not propose Elasticsearch as the place to fix this",
       "skill_read is false for the `elasticsearch` skill"
     ]
+  },
+  {
+    "skills": ["elasticsearch"],
+    "query": "dashboard-panels.md is our Grafana node dashboard that we are moving from Prometheus to Elasticsearch 9.5. Answer the ask at the bottom.",
+    "files": ["evals/files/promql/dashboard-panels.md"],
+    "expected_behavior": [
+      "Says panel 1 silently returns no data on Elasticsearch (not an error): a binary operation between two different metrics without aggregation does not match series on their other labels, so both sides must be aggregated by the labels to keep, e.g. `avg by (instance) (node_memory_MemAvailable_bytes) / avg by (instance) (node_memory_MemTotal_bytes)`",
+      "Says panel 2 fails with a client error because the `and` set operator and the `on(...)` group modifier are not supported, and rewrites it without them",
+      "Says panel 3 fails because subqueries (`[1h:]`) are not supported, and rewrites it (for example in ES|QL with `TS` / `PROMQL` plus `STATS`, or a supported PromQL form)",
+      "Flags the Grafana settings: exemplar queries are not implemented, so exemplars must be turned off, and extra Prometheus query parameters such as `lookback_delta`/`dedup` are rejected with 400 rather than ignored",
+      "Warns that Elasticsearch does not apply Prometheus staleness markers, so a vanished target's series keeps appearing until its samples leave the lookback window (5 minutes for instant queries), which matters for panel 4's one-minute requirement",
+      "Writes the ES|QL version with the `PROMQL` source command (GA in 9.5), an explicit `index=metrics-prometheus-default` and a named result column, such as `PROMQL index=metrics-prometheus-default mem_ratio=(avg by (instance) (...) / avg by (instance) (...))`"
+    ]
   }
 ]
