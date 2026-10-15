@@ -26,13 +26,14 @@ every schema written there has to be revisited later.
 
 ## What 3.1 changed
 
-The Schema Object is now plain JSON Schema 2020-12. Three consequences that break documents
-carried over from 3.0: `[official]`
+The Schema Object is now plain JSON Schema 2020-12 plus a small OAS vocabulary
+(`discriminator`, `xml`, `externalDocs` survive). Three differences to carry through when
+migrating a 3.0 document: `[official]`
 
 | 3.0 | 3.1 |
 |---|---|
-| `nullable: true` | `type: [string, "null"]` |
-| `example: 5` inside a schema | `examples: [5]` (an array) |
+| `nullable: true` | `type: [string, "null"]` — `nullable` is gone |
+| `example: 5` inside a schema | `examples: [5]` (an array); the singular form is deprecated, not yet removed |
 | `$ref` had to stand alone | sibling keywords next to `$ref` are allowed |
 
 `nullable` is the trap: it is not an error in 3.1, it is an unknown keyword, so tools ignore

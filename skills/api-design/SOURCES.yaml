@@ -91,18 +91,18 @@ upstreams:
     notes: "Its 'don't forget nullable' rule is a 3.0-ism: OpenAPI 3.1 removed nullable when the Schema Object was aligned with JSON Schema, so the body teaches type: [string, \"null\"] instead (research/api-design.md ruling 5)."
   - id: openapi-spec
     kind: docs
-    url: https://spec.openapis.org/oas/v3.1.1.html
+    url: https://spec.openapis.org/oas/v3.1.2.html
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-11"
-    contributes: "What 3.1 changed by aligning the Schema Object with JSON Schema 2020-12 (nullable, example and the 3.0 discriminator keywords are gone), sibling keywords next to $ref, the webhooks entry point, and the release sequence that establishes 3.1.2 and 3.2.1 as the current patch levels."
-    notes: "Licence verified: OAI/OpenAPI-Specification is Apache-2.0 via `gh api repos/OAI/OpenAPI-Specification`. Version sequence verified against the releases endpoint rather than from memory (research/api-design.md ruling 4)."
+    synced_at: "2026-10-15"
+    contributes: "What 3.1 changed by aligning the Schema Object with JSON Schema 2020-12 (nullable is gone, the singular example is deprecated in favour of examples, while discriminator, xml and externalDocs remain as the OAS vocabulary), sibling keywords next to $ref, the webhooks entry point, and the release sequence that establishes 3.1.2 and 3.2.1 as the current patch levels."
+    notes: "Licence verified: OAI/OpenAPI-Specification is Apache-2.0 via `gh api repos/OAI/OpenAPI-Specification`. Version sequence verified against the releases endpoint rather than from memory (research/api-design.md ruling 4). The 2026-10-15 review moved the url from v3.1.1 to the current 3.1 patch, v3.1.2, and corrected the earlier claim that the 3.0 discriminator and example keywords were removed."
   - id: rfc9457
     kind: docs
     url: https://www.rfc-editor.org/rfc/rfc9457
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The problem-details object: the five members and their meaning, application/problem+json, an absent type meaning about:blank, consumers keying on type rather than on the human-readable strings, the rule that a member whose value has the wrong type must be ignored, returning only the most relevant problem instead of a batch, and the errors extension array shape for field-level failures."
     notes: "IETF Standards Track document under BCP 78 and the IETF Trust Legal Provisions rather than an SPDX licence, hence NONE. Only normative facts were extracted and restated in our own words. Obsoletes RFC 7807, which several upstreams still cite."
   - id: rfc9110-http
@@ -110,7 +110,7 @@ upstreams:
     url: https://www.rfc-editor.org/rfc/rfc9110
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Normative method semantics (safe, idempotent, cacheable), status-code meanings including 201 with Location, 202, 204, 409, 412 and 422, conditional requests with ETag, If-Match and If-None-Match, and Retry-After as the backoff signal clients should rely on."
     notes: "IETF Standards Track document under BCP 78; facts only, no text reused."
   - id: rfc9111-caching
@@ -118,7 +118,7 @@ upstreams:
     url: https://www.rfc-editor.org/rfc/rfc9111
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Cache-Control and Vary as the response-side cache contract, and why declaring cacheability per operation is part of the contract rather than a deployment detail."
     notes: "IETF Standards Track document under BCP 78; facts only, no text reused."
   - id: rfc9745-deprecation
@@ -126,7 +126,7 @@ upstreams:
     url: https://www.rfc-editor.org/rfc/rfc9745
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The Deprecation response header as a Structured Field Date (Deprecation: @1688169599), its registry status, the deprecation link relation for pointing at a migration document, and the constraint that a Sunset timestamp must not precede the Deprecation timestamp."
     notes: "IETF Standards Track, March 2025; several upstreams still describe this as an unpublished draft (research/api-design.md ruling 7). Facts only, no text reused."
   - id: rfc8594-sunset
@@ -134,7 +134,7 @@ upstreams:
     url: https://www.rfc-editor.org/rfc/rfc8594
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The Sunset response header and its HTTP-date format, which differs from the Deprecation header's format for historical reasons."
     notes: "IETF document under BCP 78; facts only, no text reused."
   - id: rfc7396-merge-patch
@@ -142,7 +142,7 @@ upstreams:
     url: https://www.rfc-editor.org/rfc/rfc7396
     license: NONE
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "JSON Merge Patch semantics and its media type, including null meaning delete and the consequence that a merge patch cannot address array elements — the reason a PATCH contract has to name its media type."
     notes: "IETF document under BCP 78; facts only, no text reused."
   - id: redocly-cli

@@ -424,3 +424,21 @@ redocly-cli（95a8e7d → 78f5a32）、prism-cli（2426fc0 → e7553fe）随 `--
 | prism-cli（reference） | e7553fe → 2a1b205（1 提交命中） | 2a1b205：`packages/http/src/forwarder/index.ts` 依赖升级后给代理 agent 加类型断言 | 噪声：纯类型修正，mock 门行为不变 |
 
 结论：正文与 references 未变，仅 re-pin 与版本号改为 2026.10.15；正文未变，未跑 D2。
+
+## 2026-10-15 文档上游复核
+
+范围：7 条 `kind: docs` 条目的 `contributes` 事实 + SKILL.md 与 references 中引用的版本、头格式与规范语义。RFC 是不可变文档，核对点为：当前状态（rfc-editor `rfc<N>.json`）、是否被废止/更新、已核实勘误是否触及我们引用的条款（rfc-editor `errata.json`），以及原文条款逐条比对。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| openapi-spec | 3.1 的 Schema Object 对齐 JSON Schema 2020-12（`nullable`、`example`、`discriminator` 的去留）；`$ref` 同级关键字；`webhooks`；OAD 至少含 `paths`/`components`/`webhooks` 之一；版本序列 3.1.2 / 3.2.1 为当前补丁 | https://spec.openapis.org/oas/v3.1.2.html （原 url v3.1.1 仍有效，已改指向当前 3.1 补丁） | 版本序列一致（`gh api repos/OAI/OpenAPI-Specification/releases`：3.2.1 于 2026-09-10、3.2.0 与 3.1.2 于 2025-09-19，正文「3.2 首个补丁在 3.2.0 一年后」成立）；`webhooks` 与 `paths` 非必需一致。**更正**：3.1.2 的 OAS 基础词汇仍含 `discriminator`、`xml`、`externalDocs`，单数 `example` 只是「Deprecated … later versions may remove it」；原 contributes 写「nullable、example 与 discriminator 均已移除」，`openapi.md` 也把三项都称作「break documents」。正文改为：`nullable` 已去除、单数 `example` 已弃用未移除、`$ref` 同级放宽，并注明保留的 OAS 词汇；contributes / notes 同步 |
+| rfc9457 | 五个成员与含义；`application/problem+json`；缺省 `type` 即 `about:blank`；消费方按 `type` 而非人读字符串判断（不解析 `detail`）；成员值类型不符 MUST 忽略；多个问题时返回最相关的一个；`errors` 扩展数组形状 | https://www.rfc-editor.org/rfc/rfc9457 | 一致（§3.1「MUST be ignored」、§3「most relevant or urgent problem」、§3.1.4「SHOULD NOT parse the "detail"」、§3 示例 `errors`）。状态 PROPOSED STANDARD，未被废止/更新；勘误 2 条（Held / Reported，均在 Appendix A），不涉及引用条款 |
+| rfc9110-http | safe / idempotent / cacheable；201+Location、202、204、409、412、422（Unprocessable Content）；ETag / If-Match / If-None-Match 与 304；Retry-After | https://www.rfc-editor.org/rfc/rfc9110 | 一致。INTERNET STANDARD，未被更新；已核实勘误 6 条（§15.4.9、B.1、§12.5.1、§14.1.1、§8.3.2、B.2）均不涉及上述方法与状态码语义 |
+| rfc9111-caching | Cache-Control 与 Vary 作为响应侧缓存契约 | https://www.rfc-editor.org/rfc/rfc9111 | 一致。INTERNET STANDARD，未被更新；勘误无已核实条目 |
+| rfc9745-deprecation | `Deprecation` 为 Structured Field Date（`@<epoch>`）；`deprecation` link relation；Sunset 时间 MUST NOT 早于 Deprecation；弃用不改变资源行为 | https://www.rfc-editor.org/rfc/rfc9745 | 一致（§2.1「MUST be a Date as per Section 3.3.7 of [RFC9651]」、§4 原文 MUST NOT、§5）。PROPOSED STANDARD，无勘误 |
+| rfc8594-sunset | `Sunset = HTTP-date`，与 Deprecation 格式不同 | https://www.rfc-editor.org/rfc/rfc8594 | 一致。INFORMATIONAL，未被废止/更新 |
+| rfc7396-merge-patch | `application/merge-patch+json`；null 表示删除；无法寻址数组元素（数组整体替换） | https://www.rfc-editor.org/rfc/rfc7396 | 一致。PROPOSED STANDARD，未被废止/更新 |
+
+另记：`evolution.md`「同一响应多处弃用取最早时间戳」不出自 RFC 9745/8594 原文，属 Zalando 指南来源，不在本次 docs 条目范围，未改。
+
+正文改动：`references/openapi.md`「What 3.1 changed」一节；`SOURCES.yaml` 中 `openapi-spec` 的 url / contributes / notes。未新增规则、未新增评测场景、未跑 D2。
