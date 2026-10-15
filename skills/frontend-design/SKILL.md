@@ -4,7 +4,7 @@ description: "Designs and audits web interfaces for visual quality, usability an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: task
 ---
 
@@ -52,6 +52,7 @@ Not covered, and do not improvise here:
 - Animate `transform` and `opacity` only, and list properties explicitly. `transition: all` animates layout properties and drops frames.
 - Give every animation beyond hover and active a `prefers-reduced-motion` variant: fewer and gentler, not zero.
 - Declare `width` and `height` (or `aspect-ratio`) on images, video and embeds. Missing intrinsic size is the most common source of layout shift.
+- Suppress page rubber-banding only for fine pointers: `overscroll-behavior: none` on `html` inside `@media (pointer: fine)`, so touch devices keep pull-to-refresh, while modals, drawers and inner panes keep `contain`. `pointer` reflects only the primary input, so test hybrid devices.
 - Zero em dash (U+2014) and en dash (U+2013) in visible copy. The spaced dash label is the most reliable text tell, and a hyphen, comma, colon or line break always replaces it.
 - Use real content: plausible names, organic numbers, a real product name. Placeholder copy hides the wrapping and overflow problems real content exposes.
 - Format dates, numbers and currency with `Intl.DateTimeFormat` and `Intl.NumberFormat`, never a hardcoded pattern.

@@ -485,3 +485,39 @@ commit 与审阅 HEAD 逐条一致（8a1541c、2686b62 ×2、d02c484、ce26fc2�
 结论：基线已全部做到，参考驱动流程与 success / permission 两态不合入（`docs/skill-standard.md` 第 3 节：
 只写模型不会的），场景 10 保留作哨兵。正文未变，仅新增评测场景 10 与夹具、re-pin、版本号改为 2026.09.30；
 未跑有 skill 的 D2。
+
+## 2026-10-15 上游同步
+
+依据 2026-10-15 `tools/check_upstream.py --json` 报告与主代理归因（`/tmp/hs-attr/skills_real.json`），6 条在 tracked paths 下确有
+提交，全部用 `gh api repos/<o>/<r>/compare/<旧pin>...<审阅HEAD>` 取 patch（`antfu/design`、`taste-skill` 新旧文件另用
+`gh api .../contents?ref=` 取全文对比）。其余条目（`emil-animations`、`uiux-pro-max`、`wshobson-a11y` repo moved / paths
+unchanged，`addy-web-quality`、`anthropic-frontend-design` 等）随 `--pin` 对齐。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| vercel-wig | e3d624b → 434b7f9（1 提交） | `4ecfb9f` 在 Touch 段新增：桌面页面去回弹用 `overscroll-behavior: none` 放在 `<html>` 且包在 `@media (pointer: fine)` 里，粗指针保留默认（下拉刷新）；`pointer` 只描述主输入，要测混合设备；`none` 同时关掉滚动链与原生滑动导航 | **新增，基线有缺口 → 合入**（场景 11） |
+| addy-frontend-ui | 2686b62 → aeac41d（1 提交） | `3e1e0a2` 容器示例补解构 `refetch`；`references/accessibility-checklist.md` 区间内无改动 | 噪声：本 skill 不含该示例 |
+| addy-performance | 2686b62 → aeac41d（3 提交） | `cacf40d` 把 Step 3 的反模式代码移到 skill 内 `references/optimization-patterns.md`，正文改为规则 + 链接；`b67408f` 恢复索引限定词、`ANALYZE` 与陈旧窗口措辞；`35c3acb` 代码块语言标注改为 javascript | 噪声：本 skill 只取测量 → 定位 → 修复 → 验证 → 守护循环与按症状分诊（`contributes`），后端 / 数据库反模式不在范围 |
+| antfu-design | d02c484 → feb0f3a（1 提交） | `e53a142` 删除 `skills/antfu-design`，「改由 antfu/design 提供」 | 元数据更新：`antfu/design`（MIT，82★，2026-10-01 推送）的 `skills/antfu-design` 是绑定 `@antfu/design` Vue 组件库与 UnoCSS 预设的另一个 skill（组件选择、语义类名、三条规则），不再含本 skill 取用的 design read、anti-slop 清单、偏差校正与微交互参考，因此不改指向；`SOURCES.yaml` notes 记明删除提交、合入内容对应 `d02c484`、路径在 HEAD 已不存在 |
+| leonx-taste | ce26fc2 → f624f37（3 提交） | `ca50fb4` 把原单文件 v2 正文原样移到 `skills/taste-skill-v2-experimental`（逐行对比只差 frontmatter 与 StickyStack 示例的 `useId` 修正），`skills/taste-skill` 换成新的默认 skill：247 站点研究、`library/*.json` 语料、CDP 检查与 lint 脚本、十步流程；`d1a1405` / `9da1763` 要求用 `scripts/assets.mjs` 从开放图库取真实照片、视频与动效 | 路径迁移：`paths` 增加 `skills/taste-skill-v2-experimental`（本 skill 取用内容现所在）；新默认 skill 审阅后不合入——社区来源、依赖其语料与脚本（与 `uiux-pro-max` 排除 CSV 语料同理），且「联网取开放图库素材」与本 skill「无真实素材时留带标注的占位并说明」（`references/ai-tells-and-calibration.md` 第 74–79 行）冲突，后者无需网络、无授权追踪风险，保留 |
+| chrome-mwg | 84ae725 → b31dc0a（3 提交） | Release v0.0.192–194：`--skill-version` 参数值更新；新增 Step 4「在回答末尾披露用了哪些 guide」；指南语料增删（新增 slider / switch / sms-otp / atrule-support-conditionals / interaction-paint-timing 等，删除 avoid-redundant-large-asset-downloads、load-shared-resources-declaratively、share-web-fonts-across-origins）与若干指南小改 | 噪声：`--skill-version` 早已有意不带；披露段属 harness / 遥测；`references/modern-css-platform.md` 与 `performance-core-web-vitals.md` 引用的 43 个 guide id 在 HEAD 全部存在（逐个比对 `guides/**/*.md`），被删的三个均未引用 |
+
+许可复核：上述仓库 `gh api repos/<o>/<r> --jq .license.spdx_id` 与 `SOURCES.yaml` 一致（`antfu/design` 为 MIT，未纳入）。
+
+### 评测
+
+新增场景 11（无夹具：桌面优先的项目管理 Web 应用，Mac 触控板滚过顶部 / 底部时整页回弹露出白底，用户也在手机与带触控板的
+iPad 上用）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11 桌面整页回弹 | gpt-6.1-sol medium | 无 | false | 2.5 / 5 | 35 s。`html { overscroll-behavior-y: none }` 全设备生效，明确接受丢掉触屏下拉刷新，并主张不要用 `pointer` 查询区分设备（混合设备一条记半分）；正确说明 `-y` 不影响水平手势；嵌套面板只说「需另设」，未保留 `contain` |
+| 11 桌面整页回弹（规则只在 references） | gpt-6.1-sol medium | 有 | true | 2.5 / 5 | 53 s。只读了 `SKILL.md`，未打开 `layout-density-motion.md` / `review-checklist.md`，答案与基线同型（全局 `-y none`、反对 `pointer: fine`） |
+| 11 桌面整页回弹（`SKILL.md` 加一条核心规则后） | gpt-6.1-sol medium | 有 | true | 5 / 5 | 148 s。`@media (pointer: fine) { html { overscroll-behavior: none } }`；触屏主输入不匹配、保留回弹与下拉刷新；说明 `pointer` 只反映主输入、带配件的 iPad 需验证；说明双轴 `none` 还关掉回弹式前进 / 后退与下拉刷新；嵌套弹层自管，`contain` 防链但保留局部回弹 |
+
+正文改动：`SKILL.md` Core rules 新增一条（桌面去回弹只对细指针、`html` 上用 `none`、弹层保留 `contain`、混合设备要测）；
+`references/review-checklist.md` 第 10 节与 `references/layout-density-motion.md` Layout 段各补一条展开说明。
+首轮有 skill 运行证明规则只放 references 时不会被读到，因此提到 `SKILL.md`。
+
+结论：vercel-wig 的桌面去回弹规则基线 2.5/5 → 有 skill 5/5，合入；其余 5 条为噪声或元数据更新（antfu 删除、taste-skill
+路径迁移）。版本号改为 2026.10.15，re-pin 后 `pin_check.py`：PIN CHECK CLEAN。

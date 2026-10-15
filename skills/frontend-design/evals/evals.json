@@ -126,5 +126,16 @@
       "Covers the states beyond loading, empty and error: a success confirmation for invite, role change and removal, and a permission state for Members and Guests who can view but not manage, including the last-Owner constraint",
       "Where the brief does not settle something, states the assumption explicitly instead of inventing specifics"
     ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Our project-management web app is desktop-first, but people also use it on phones and on iPads, some of them with a keyboard and trackpad. On a Mac trackpad, scrolling past the top or bottom of the page rubber-bands the whole page and shows the white browser background behind our app chrome, which makes it feel like a website rather than an app. Give me the CSS change and tell me exactly what it affects.",
+    "expected_behavior": [
+      "Sets overscroll-behavior: none (or the y-axis variant) on the root scroller, html, rather than only on body or an inner container",
+      "Scopes the suppression to fine pointers with @media (pointer: fine) (or an equivalent hover/pointer query) so touch devices keep their native page overscroll and pull-to-refresh",
+      "Warns that pointer: fine describes only the primary input, so hybrid devices such as an iPad with a trackpad or a touch laptop fall on one side of the query and must be tested",
+      "States that overscroll-behavior: none also turns off scroll chaining and the browser's overscroll swipe navigation (back/forward gesture), not just the visual bounce",
+      "Keeps overscroll-behavior: contain for modals, drawers and inner scroll panes instead of replacing everything with none"
+    ]
   }
 ]

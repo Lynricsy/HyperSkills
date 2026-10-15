@@ -137,6 +137,10 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - `touch-action: manipulation` to remove the double-tap zoom delay.
 - `-webkit-tap-highlight-color` set deliberately rather than left at the default.
 - `overscroll-behavior: contain` in modals, drawers and sheets.
+- App-like page that must not rubber-band on a desktop trackpad: `overscroll-behavior: none` on
+  `html` inside `@media (pointer: fine)`, so coarse-pointer pages keep their defaults, including
+  pull-to-refresh. `pointer` describes only the primary input, so test hybrid devices (an iPad with
+  a trackpad, a touch laptop); `none` also removes scroll chaining and overscroll swipe navigation.
 - During a drag: text selection disabled, dragged elements `inert`.
 - Drag, swipe, pinch and path gestures have tap or click and keyboard alternatives.
 - `autoFocus` sparingly: desktop only, one primary input, never on small screens.

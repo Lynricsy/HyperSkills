@@ -32,6 +32,11 @@
   off by the browser chrome.
 - Avoid nested scroll regions that compete with the page scroll. Where one is unavoidable, set
   `overscroll-behavior: contain` so the gesture does not chain to the page.
+- To stop the whole page rubber-banding on a desktop trackpad in an app-like UI, set
+  `overscroll-behavior: none` on `html` inside `@media (pointer: fine)` rather than everywhere:
+  touch devices keep the page default, including pull-to-refresh. `pointer` reports only the
+  primary input, so check hybrid devices, and `none` also turns off scroll chaining and the
+  browser's overscroll swipe navigation.
 - Keep one consistent desktop container width rather than a per-section maximum.
 - Avoid unwanted horizontal scrollbars by fixing the overflowing content, not by hiding overflow on
   an ancestor.
