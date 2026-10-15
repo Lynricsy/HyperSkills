@@ -1,6 +1,6 @@
 # Build, sign, release and verify on device
 
-Verified against: HUAWEI Developer docs `doccenter-deveco-studio/ide-hvigor-commandline` and `ide-hvigor-build-profile-app`, `harmonyos-releases/app-compatibility-scenarios` (all `[official]`, read but not runnable on Linux CI); OpenHarmony `dfx/hdc`, `application-test/uitest-guidelines`, `application-test/unittest-guidelines`.
+Verified against: HUAWEI Developer docs `doccenter-deveco-studio/ide-hvigor-commandline` and `ide-hvigor-build-profile-app`, `harmonyos-releases/app-compatibility-scenarios`, `overview-*`, `deveco-studio-new-features-*`, `version-number-26` and `sdk-version-percentage` (all `[official]`, read but not runnable on Linux CI); OpenHarmony `dfx/hdc`, `application-test/uitest-guidelines`, `application-test/unittest-guidelines`.
 
 ## Contents
 
@@ -24,13 +24,39 @@ The official ordering of recent API versions `[official]`:
 26.0.0 > 6.1.1(24) > 6.1.0(23) > 6.0.2(22) > 6.0.1(21) > 6.0.0(20) > 5.1.1(19) > 5.1.0(18) > 5.0.5(17)
 ```
 
-Two things follow, and both are easy to get wrong:
+How each API version pairs with the device OS release and the toolchain `[official]`
+(release notes `overview-*` and `deveco-studio-new-features-*`, device table
+`sdk-version-percentage`). DevEco Studio and Hvigor give the first Release build, then the
+newest patch as of 2026-10-15; the SDK ships inside DevEco Studio and the Command Line
+Tools of the same build:
+
+| API version (`build-profile` value) | Device OS release | API Release date | DevEco Studio | Hvigor |
+|---|---|---|---|---|
+| `26.0.0` | HarmonyOS 7.0.0 | 2026-08-29 | 26.0.0.821 → 26.0.0.851 | 6.26.4 → 6.26.8 |
+| `6.1.1(24)` | HarmonyOS 6.1.0 | 2026-05-26 | 6.1.1.280 → 6.1.1.418 | 6.24.2 → 6.24.5 |
+| `6.1.0(23)` | HarmonyOS 6.1.0 | 2026-04-20 | 6.1.0.818 → 6.1.0.860 | 6.23.4 → 6.23.7 |
+| `6.0.2(22)` | HarmonyOS 6.0.0 | 2026-01-21 | 6.0.2.640 → 6.0.2.670 | 6.22.3 → 6.22.9 |
+| `6.0.1(21)` | HarmonyOS 6.0.0 | 2025-11-20 | 6.0.1.249 → 6.0.1.268 | 6.21.1 → 6.21.3 |
+| `6.0.0(20)` | HarmonyOS 6.0.0 | 2025-09-25 | 6.0.0.858 → 6.0.0.878 | 6.0.6 → 6.20.2 |
+| `5.1.1(19)`, `5.1.0(18)`, `5.0.5(17)` | HarmonyOS 5.1.0 | — | — | — |
+
+The `26.0.0` SDK is built on OpenHarmony `Ohos_sdk_public 26.0.0.105`. DevEco Studio
+26.0.0 accepts `compatibleSdkVersion` from `4.0.0(10)` up and `targetSdkVersion` from
+`4.0.0(10)` to `26.0.0`, and writes `modelVersion` `26.0.0`. Keep the Command Line Tools on
+the same build as the IDE, or CI compiles against a different SDK than the developer did.
+
+Three things follow, and all are easy to get wrong:
 
 - **The version-number format changed at `26.0.0`.** From that version, HarmonyOS and
-  OpenHarmony use the same string form and the `(n)` API-level suffix is gone:
-  `"compatibleSdkVersion": "26.0.0"`. Before it, HarmonyOS used a string
-  (`"6.1.1(24)"`) and OpenHarmony used a number (`24`). Do not invent a `"7.0.0(26)"`-style
-  string; there is no such value.
+  OpenHarmony use the same semantic-version string (`X.Y.Z`) and the `(n)` API-level suffix
+  is gone: `"compatibleSdkVersion": "26.0.0"`. Before it, HarmonyOS used a string
+  (`"6.1.1(24)"`) and OpenHarmony used a number (`24`). Later versions use the same
+  `X.Y.Z` form; `deviceInfo.apiAvailable(version)`, itself available only from `26.0.0`,
+  accepts both forms at runtime.
+- **The device OS release is not the API version.** HarmonyOS 7.0 devices run API
+  `26.0.0`, and HarmonyOS 6.1.0 devices run either `6.1.0(23)` or `6.1.1(24)`. Never write
+  `"7.0.0"` or a `"7.0.0(26)"`-style string into `build-profile.json5`; there is no such API
+  version. On a device, the API version is shown under Settings > About.
 - **A release-stage label is not an API level.** "HarmonyOS 6.0.2 Release" is API 22
   Release. Naming and API level are separate axes.
 

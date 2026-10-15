@@ -132,8 +132,8 @@ upstreams:
     url: https://developer.huawei.com/consumer/cn/doc/
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
-    contributes: "Cross-checked the HarmonyOS NEXT facts that exist nowhere open: the API version ordering and the version-number format change at 26.0.0, compatibleSdkVersion / targetSdkVersion / compileSdkVersion semantics and their generated app.json5 counterparts, hvigorw tasks and parameters, signingConfigs material fields, and AppGallery release expectations."
+    synced_at: "2026-10-15"
+    contributes: "Cross-checked the HarmonyOS NEXT facts that exist nowhere open: the API version ordering and the version-number format change at 26.0.0, the pairing of each API version with its device OS release (HarmonyOS 7.0.0 runs API 26.0.0), release date and first-to-latest DevEco Studio and Hvigor builds, compatibleSdkVersion / targetSdkVersion / compileSdkVersion semantics and their generated app.json5 counterparts, hvigorw tasks and parameters, signingConfigs material fields, and AppGallery release expectations."
     notes: "Licence read directly from the documentation pages: the footer states Huawei Developer copyright with terms of use and no open licence, so reference only. Facts were verified against these pages and restated; nothing was copied."
 
   - id: linhay-harmony-next

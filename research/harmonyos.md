@@ -504,3 +504,18 @@ Preferences/RDB、权限、签名与 hvigor、版本说明）筛出 586 个文�
 
 遗留：HarmonyOS 7.0.0（API 26）在本次区间之前已发布，`build-sign-verify.md` 的版本对照表只到 6.1.1；不属于本次区间的上游
 变化，未在本次处理，建议下次全量复核时补。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| huawei-docs | API 版本序 `26.0.0 > 6.1.1(24) > … > 5.0.5(17)` | [app-compatibility-scenarios](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/app-compatibility-scenarios) | 一致 |
+| huawei-docs | 自 `26.0.0` 起 API 版本号改为 SemVer `X.Y.Z`，HarmonyOS 与 OpenHarmony 统一为字符串；此前 HarmonyOS 用 `6.1.1(24)`、OpenHarmony 用数值 | [version-number-26](https://developer.huawei.com/consumer/cn/doc/doccenter-release-notes/version-number-26)、[ide-hvigor-build-profile-app](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-hvigor-build-profile-app) | 一致；补一句后续版本沿用 `X.Y.Z`，`deviceInfo.apiAvailable`（起始版本 26.0.0）运行时可比较两种格式 |
+| huawei-docs | HarmonyOS 7.0 与 API 版本的对应、各 API 版本的发布日期与 DevEco Studio / Hvigor 配套 | [overview-2600](https://developer.huawei.com/consumer/cn/doc/doccenter-release-notes/overview-2600)（26.0.0 Release 2026/08/29，DevEco Studio 26.0.0.821，Patch 26.0.0.851 于 2026/09/23，SDK 基于 `Ohos_sdk_public 26.0.0.105`）、[deveco-studio-new-features-2600](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/deveco-studio-new-features-2600)（Hvigor 6.26.4 / 6.26.8，`compatibleSdkVersion` 最低 4.0.0(10)，`targetSdkVersion` 4.0.0(10)~26.0.0，modelVersion 26.0.0）、[sdk-version-percentage](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/sdk-version-percentage)（HarmonyOS 7.0.0 ↔ API 26.0.0；6.1.0 ↔ 6.1.0(23)/6.1.1(24)；6.0.0 ↔ 20–22；5.1.0 ↔ 17–19）、[upgrade-adaptation](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/upgrade-adaptation)（「HarmonyOS 7.0 … 其配套的API版本为26.0.0」）、overview-600/601/602/610/611 与对应 deveco-studio-new-features 页 | **已变化 → 更正**：`build-sign-verify.md` 原只有版本序一行、止于「`26.0.0` 存在」而无 OS 与工具链对照，读者无从得知 HarmonyOS 7.0 即 API 26.0.0。改为对照表（API 版本 / 设备 OS / API Release 日期 / DevEco Studio 首个 Release→最新 Patch / Hvigor），覆盖 26.0.0 与 20–24，17–19 只列 OS 对应；「不存在 `7.0.0(26)`」一条改写为「设备 OS 版本 ≠ API 版本，`build-profile.json5` 里不能写 `7.0.0`」 |
+| huawei-docs | `compatibleSdkVersion` 为最低可安装版本、`targetSdkVersion` 缺省等于 `compileSdkVersion`、HarmonyOS 下 `compileSdkVersion` 无需配置且只能配 DevEco 配套版本、OpenHarmony 下必填；必须存在 `default` product | [ide-hvigor-build-profile-app](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-hvigor-build-profile-app) | 一致 |
+| huawei-docs | `signingConfigs.material` 七个字段（`.p12` / `.cer` / `.p7b`、`signAlg` 仅 `SHA256withECDSA`） | 同上 | 一致 |
+| huawei-docs | hvigorw：非 `-v`/`-h`/`version` 命令须在工程根目录执行（5.18.4 放宽）、`buildMode` 缺省（HAP/HSP/HAR debug，App release）、`product` 缺省 `default`、`-p module` 须配 `--mode module`、`--no-daemon`、`--analyze=*`（ultrafine 自 6.0.0）、`--type-check` 缺省关闭、`prune`、`buildInfo`（5.18.4 起） | [ide-hvigor-commandline](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-hvigor-commandline) | 一致 |
+
+上表的官方页面经 `liasica/harmonyos-skills` 镜像（`d1ea543`，2026-10-15 同步）逐页读取，`overview-2600` 另直接打开
+官方站点核对，内容一致；官方站点导航里版本说明已改挂 `doc/doccenter-release-notes/…` 路径，SOURCES 的入口 URL
+`/consumer/cn/doc/` 不变。属于事实更正，未新增行为规则，不跑基线评测。上节遗留「版本对照表只到 6.1.1」已解决。
