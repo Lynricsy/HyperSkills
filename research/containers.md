@@ -731,3 +731,29 @@ blobless 归因 paths 下无提交，判噪声。compose-spec 与三条 NVIDIA �
 `repo moved, tracked paths unchanged`）；`pin_check.py` 输出 `PIN CHECK CLEAN`。
 
 结论：正文未变；新增评测场景 7（基线 6/6）作哨兵；version 改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+依据：主代理的上游新增文件评估（NewS5：ECC `pi/core/skills/docker-patterns` diff 的线索——容器内只绑 127.0.0.1 时 `-p` 发布的端口连不进，MAYBE；NewS4 C 的 csharp-dotnet 指向）。ECC 的 diff 本身是其 Codex OAuth 中转流程，只作线索，事实改以 Docker 官方文档与实测为准。
+
+### 候选与裁决
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| 容器内进程只监听 127.0.0.1 时，发布的端口转发到容器网卡，连接被重置；应在容器内监听 0.0.0.0，宿主侧仍用 `127.0.0.1:` 发布限制暴露面 | 不合入 | 场景 8 基线 3/3：给 compose 加 `HOST: 0.0.0.0`、保留 `127.0.0.1:3000:3000`，并说明两个 127.0.0.1 的区别；场景留作哨兵 |
+| `references/dockerfile.md` 指向 csharp-dotnet 的 SDK 出镜像（不写 Dockerfile） | 不做 | csharp-dotnet 本次未合入该内容（基线已具备，见 research/csharp-dotnet.md 同日小节），指向会落空 |
+
+### 核实
+
+- 本机 Docker 29.8.2 实测：`node:22-bookworm-slim` 内 `listen(3000,'127.0.0.1')` 并 `-p 127.0.0.1:38081:3000`，宿主 `curl` 得 `(56) Recv failure: Connection reset by peer`，容器内请求得 `ok`；改为 `listen(3000,'0.0.0.0')` 后宿主得 `ok`。
+- docs.docker.com `engine/network/port-publishing`：发布时带 `127.0.0.1` 仅宿主可访问；未指定宿主地址时发布到所有宿主地址。
+
+### 评测结果
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物在 `/tmp/hs-evals/containers/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ | 88 s。`HOST: 0.0.0.0` 加在 compose 环境；保留宿主侧 `127.0.0.1` 绑定并在注释里说明区别；VM 无 docker daemon，只验证了 compose 配置与 Node 实际监听 |
+
+结论：基线已具备，不合入正文；新增场景 8 与夹具 `bind-compose.yaml`、`bind-server.js`、`bind-symptoms.txt` 留作哨兵。

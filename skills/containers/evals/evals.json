@@ -103,5 +103,19 @@
       "Rejects force-unlock while that apply may still be running: find the surviving `terraform-run-*` container first and stop Terraform gracefully by signalling the terraform process itself (e.g. `docker exec ... kill -INT <pid>`), not `docker kill`/SIGKILL of the container, then force-unlock only if the lock is still held after no process remains",
       "Fixes the job so a timeout actually reaches Terraform - `exec terraform apply ...` in deploy.sh and/or `init: true` on the service, or the bound moved inside the container (`timeout -s INT ...`) - and treats raising the timeout to 900 as not addressing the cause"
     ]
+  },
+  {
+    "skills": ["containers"],
+    "query": "Local dev with bind-compose.yaml: the api container starts and answers inside the container, but curl from my machine gets 'connection reset by peer' (bind-symptoms.txt). The server is bind-server.js. Fix it, and keep the dev API off the office network.",
+    "files": [
+      "evals/files/bind-compose.yaml",
+      "evals/files/bind-server.js",
+      "evals/files/bind-symptoms.txt"
+    ],
+    "expected_behavior": [
+      "Explains that the server listens on 127.0.0.1 inside the container's own network namespace, while a published port forwards to the container's network interface, so a loopback-only listener never sees the forwarded connection",
+      "Makes the server listen on all interfaces inside the container (HOST=0.0.0.0 in the compose environment or the default changed), not network_mode: host",
+      "Keeps the host side restricted by leaving the publish as 127.0.0.1:3000:3000 rather than widening it to 3000:3000, and states that the two 127.0.0.1s are different (the container's loopback versus the host interface the port is published on)"
+    ]
   }
 ]
