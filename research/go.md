@@ -335,3 +335,42 @@ unchanged 的 spf13-go 前移到 9ac6eca、ashwin-go 前移到 d071a92）。五�
 
 结论：五个 docs 条目全部一致，正文未改；SOURCES 五个条目 `synced_at` 改为 2026-10-15，go-release-notes 的 `notes` 补记 go1.27.1
 复核。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：33d4d2d（`concurrency.md` 的 `time.After` 回收语义更正；`testing.md` 合入 `httptest.NewTestServer` 与 `synctest.Sleep`；
+新增场景 5、6）。b96a909 只动版本号与 SOURCES，abe9af5 只动 research / SOURCES。
+
+复用判定：今天已有的有 skill 结果（`/tmp/hs-evals/go/.../skill/5` 11:45、`skill/6` 12:01）早于 33d4d2d（12:03），按规则不可复用，
+重跑。基线复用 `/tmp/hs-evals/go/omp-openai-gpt-6.1-sol-medium/baseline/{5,6}`（11:39、11:41）：query 与 expected_behavior 与当前
+`evals.json` 逐字一致，场景加入后夹具与期望未再改动（工作区副本与仓库不同是 agent 自己的编辑）。
+
+选场景：场景 5、6（今天新增）；**新增场景 7**（夹具 `evals/files/relay/`：`go 1.24` 模块中循环内 `time.After` 与未 Stop 的
+ticker，评审意见称两者都泄漏）直接考察 `time.After` 更正——既有场景没有覆盖；期望 4 是夹具里顺带的真 bug（心跳每次重置空闲
+超时），与更正无关。负例：场景 4。
+
+运行：`uv run tools/run_evals.py go --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/D2G2/go/omp-openai-gpt-6.1-sol-medium/`。场景 5 有 skill 首轮 4 次因模型服务 `503 No available providers` 中止，
+第 5 次完成。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ 4✔ | 280 s。读 `testing.md`；`synctest.Test` 移进每行 `t.Run`；用手写 `RoundTripper` 代替真实服务器（go.mod 为 1.27，正文要求此时用 `httptest.NewTestServer`）；`time.Sleep` 前后 `synctest.Wait()`；`-race -count=100` 通过。产物另存 `/tmp/hs-d2/D2G2-go-skill5-run1` |
+| 5（复跑） | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ 4✔ | 69 s。同样读 `testing.md` 后选手写 `RoundTripper`。产物 `/tmp/hs-d2/D2G2/go/omp-openai-gpt-6.1-sol-medium/skill/5` |
+| 5 | gpt-6.1-sol medium | 无（复用） | False | 1✔ 2◐ 3✔ 4✔ | 复用 `baseline/5`（见上节）：同样手写 `RoundTripper` |
+| 6 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 148 s。v2 + `jsonv1.DefaultOptionsV1()` 加严格 UTF-8 / 重复键选项，保住旧行为，新增回归测试；`go test -race` 通过 |
+| 6 | gpt-6.1-sol medium | 无（复用） | False | 1✔ 2✔ 3✔ 4✔ | 复用 `baseline/6` |
+| 7（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 157 s。读 `concurrency.md`；两条阻塞意见都驳回（`go 1.24`，未引用、未 Stop 的 timer / ticker 可回收，剩下的只是每次迭代一次分配），说明旧语义下两条都成立且取决于主模块；实测复现心跳重置空闲超时并改为只在收到消息时 `Reset` 的单个 timer |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ | 139 s。基线同样驳回两条并复现心跳 bug |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 31 s。按 Python asyncio / 线程池作答，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：`time.After` 更正无回退（场景 7 两侧全部达成，属消除正文错误陈述）；场景 6 无回退；负例 `skill_read == false`。
+**场景 5 期望 2 在有 skill 时两次都未达成**：合入的 `httptest.NewTestServer` 规则模型读到了（两次都读了 `testing.md`），
+但仍选择手写 `RoundTripper`，与基线相同；今天合入时记录的「有 skill 用 `NewTestServer`」是 33d4d2d 提交前的一次运行。
+本轮未改正文（时间与预算所限，未做「改写 → 重跑」验证）。
+
+遗留：场景 5 期望 2——建议下一轮把 `testing.md` 该条改成以 `NewTestServer` 为默认做法并写明理由（同一个 handler 仍走真实的
+client / transport / handler 路径，手写 `RoundTripper` 会跳过），只把 `RoundTripper` 留作 1.27 以下的退路，然后重跑场景 5。
+各场景只有 1–2 次运行。

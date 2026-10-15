@@ -75,5 +75,16 @@
       "Calls out that the Encode output stored for the audit service changes unless handled: a nil Tags slice now encodes as [] instead of null, and omitempty on the int Attempts no longer drops 0, which needs omitzero to keep today's shape",
       "Runs go test and reports the result"
     ]
+  },
+  {
+    "skills": ["go"],
+    "query": "review.md has two blocking review comments on relay.go and the author's question. Are they real leaks in this module? Tell me which comments to accept, which to push back on, and what (if anything) to change in relay.go.",
+    "files": ["evals/files/relay/go.mod", "evals/files/relay/relay.go", "evals/files/relay/review.md"],
+    "expected_behavior": [
+      "Pushes back on the `time.After` comment: since Go 1.23, and this module's `go` line is 1.24, an unreferenced, unstopped timer is garbage-collected immediately, so the per-iteration timer is not leaked until it fires; the only remaining cost is one timer allocation per loop iteration, negligible at a few messages per minute",
+      "Pushes back on the ticker comment for the same reason: with a `go` line of 1.23 or later an unreferenced, unstopped `Ticker` is collected after `Run` returns, so `Stop` is no longer needed to free it (adding `defer heartbeat.Stop()` is harmless tidiness, not a leak fix)",
+      "Says both comments would be correct for a module whose `go` line is below 1.23 (timer alive until it fires, ticker forever), so the answer depends on the `go.mod` version rather than the Go toolchain alone",
+      "Notices that `time.After(idleTimeout)` is re-armed on every heartbeat tick as well as every message, so the 30-second heartbeat keeps the idle timeout from ever firing when `idleTimeout` exceeds 30 s - a real behaviour bug - and fixes it with one timer that is reset only when a message arrives"
+    ]
   }
 ]
