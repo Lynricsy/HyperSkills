@@ -608,3 +608,60 @@ microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f 
 | 10 v2 回归：Origin null 403 与 10 MB stdio 上限 | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✗ | 202 s。两处机制都解释对并实测；首选修法是把客户端 `maxBufferSize` 调到 32 MiB，分页只作「再变大时」的后备——这是本 skill 既有规则 7（给结果设预算）覆盖的内容，不是上游新增 |
 
 结论：上游新增的 v2 迁移事实与 stdio 环境变量白名单均已实测核实，但基线都已做到（场景 8 基线直接读到了上游 skill），按简报不合入；正文未改，场景 8–10 留作哨兵，`mcp-typescript-sdk` 的 `paths` 加入该 skill 目录以便后续追踪。未跑有 skill 的 D2。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后动到本 skill 的两个提交。55bb115（上游同步）改了正文：`references/testing.md` 的 Inspector `--version` 事实更正（改为按版本分述，2.11.0 起可用），以及 `references/sdk-versions.md` 刷新到 `mcp` 2.3.0、`@modelcontextprotocol/sdk` 1.32.1、v2 2.3.1，两陷阱在 2.3.1 上复测；同时新增场景 7。787290b（上游新增内容评估）只新增场景 8–10 与夹具，正文未改。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物在 `/tmp/hs-d2/D2G4/mcp-server/omp-openai-gpt-6.1-sol-medium/`。正文最后一次提交是 787290b（12:05），本节的有 skill 结果都晚于它，全部新跑。
+
+选场景与复用：
+
+- 场景 2：EB4 直接依赖 `sdk-versions.md` 的版本矩阵（v1 上限 `2025-11-25`、v2 分包、用常量加 `server/discover` 实测）。两侧新跑。
+- 场景 6：考察 `sdk-versions.md` 在 2.3.1 上复测的 v2「裸 JSON Schema → 每个请求 `-32603`」陷阱。两侧新跑。
+- 场景 7–10（今天新增，必选）：有 skill 新跑。基线复用今天已有结果：场景 7 用 `/tmp/hs-evals-sync/SyncG1/mcp-server/omp-openai-gpt-6.1-sol-medium/baseline/7/`，场景 8–10 用 `/tmp/hs-evals/mcp-server/omp-openai-gpt-6.1-sol-medium/baseline/{8,9,10}/`。复用前核对过：四份 `result.json` 的 query 与 expected_behavior 和当前 evals.json 逐字相同；场景 8 工作区夹具逐字节相同；场景 7、9、10 的工作区被该次运行改过，但用 events 里每个夹具的首次完整 `read` 还原后，与当前夹具逐行一致（场景 9 的目录列表字节数也一致）。四份基线的判定沿用「上游同步」「上游新增内容评估」两节，本轮抽查了关键句，结论一致。
+- 新增场景 11（夹具 `evals/files/inspector-version/`）：原有场景都没有考察 `testing.md` 的 `--version` 更正。夹具是 devDependency 钉在 2.10.1 的 package.json、在 `npm ci` 后跑 `npx @modelcontextprotocol/inspector --cli --version` 的 release 门禁脚本，以及 CI 日志；题面另给「家目录下打印 2.11.0」和「队友说从不支持」两种说法。本机实测：`npx -y @modelcontextprotocol/inspector@2.10.1 --cli --version` 输出 `{"error":{"code":"error","message":"Method is required. Use --method to specify the method to invoke."}}` 并以 1 退出；2.11.0 输出 `2.11.0`。CI 日志初版只写了裸的报错文本，按实测改成 JSON 包裹的原样输出后，两侧都重跑了一次（初版结果留在 `…/{skill,baseline}/11-oldlog/`）。
+- 场景 5：负例。
+- 未选场景 1、3、4：它们的 expected_behavior 不涉及今天改动的内容。场景 4 用到的 Inspector `--cli … --method tools/list` 用法没有变。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 2026-07-28 迁移 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ EB6 ◐ | 75 s。查到 registry 上 v1 1.32.1、v2 2.3.1，指出 `^1.30.0` 停在 v1，v1 只到 `2025-11-25`；v2 是 server/core 加 Node/Express 适配器，zod `^4.2`；并给出陷阱「v2 导出的 `LATEST_PROTOCOL_VERSION` 仍是旧值，要用 `server/discover` 证实」。`server/discover` 只说必须实现，没讲双时代客户端探测后在任意错误上回退；说了 GET 返回 405、改用 `subscriptions/listen`，没提 HTTP+SSE 自 2025-03-26 弃用；Roots/Sampling/Logging 只说已弃用，没给替代设计 |
+| 2 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ◐ EB6 ◐ | 72 s。v2 分包与 `createMcpHandler` 讲得细，但**没说 v1 停在 `2025-11-25`，没提 zod 4，也没给「读常量加 `server/discover`」的判定方法**（EB4 ◐）；`resources/subscribe` 与 GET 流改用 `subscriptions/listen` 讲到了；`logging/setLevel` 已移除、改用 MRTR，但没点明 Roots/Sampling/Logging 弃用 |
+| 6 v2 裸 JSON Schema | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 97 s。两处 `inputSchema` 都改用 `fromJsonSchema(...)` 包裹，约束原样保留，删掉 AJV 显式配置并说明 Node 自带默认 validator；保留 `onerror`，在 2.2.0 上实测 `server/discover`、`tools/list` 和两条参数校验 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 138 s。同样改用 `fromJsonSchema`，引用 stderr 原文「must be a Standard Schema」；说明 `jsonSchemaValidator` 只管 elicitation，不负责适配工具 schema |
+| 7 HTTP v2 共享实例 + audience | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ | 154 s。工厂内每次新建 server 并加 `onerror`，在 2.3.1 上用 120 个并发调用实测；audience 在 `jwtVerify` 里强制为 `https://notes.example.com/mcp`，异 audience 返回 401。没说 `requireBearerAuth` 默认不比 resource，也没用 `expectedResource` 或给相应提醒。与「上游同步」节那次有 skill 运行的结果相同 |
+| 7 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ | 见「2026-10-15 上游同步」 |
+| 8 v1→v2 迁移 | gpt-6.1-sol medium | 有 | true | 第 1 次：EB1 ✔ EB2 ◐ EB3 ◐ EB4 ◐；第 2 次：EB1 ✔ EB2 ◐ EB3 ◐ EB4 ✔ | 368 s / 250 s。两次都在包根跑 codemod、zod 升到 ^4.2，说明 codemod 跳过没有 SDK import 的 audit.ts，改用方法字符串加 `ctx`，不再注入 schema；header 一律改成 `.get()`；测试重定基线写到 `listChanged: true`、`{prompts: []}`、`ProtocolError` `-32602`。EB2 两次都没说 v1 写法会在注册时抛 TypeError；EB3 第 1 次只讲 Web `Headers`、第 2 次只讲 codemod 不改方括号；EB4 的「去掉 `MCP error <code>:` 前缀」只有第 2 次提到。第 1 次另存 `…/skill/8-run1`，第 2 次在 `…/skill/8-run2` |
+| 8 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ | 见「上游新增内容评估」 |
+| 9 stdio 环境变量白名单 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✘ | 475 s。复现 Inspector 下的 `KeyError`，README 列出 POSIX 白名单 6 个变量，指出代理与 CA 变量同样会丢；配置改用 `uv run --env-file` 指向仓库外的私有文件，占位值写在那里，没有 `env` 块和 `-e`（EB3 ◐）；服务端改为延迟读取并返回工具错误，而不是启动即在 stderr 报出缺失变量（EB4 ✘，与基线做了同一种设计取舍） |
+| 9 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✘ | 见「上游新增内容评估」 |
+| 10 Origin null 403 与 10 MB stdio 上限 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✘ | 271 s。`Origin: null` 无法加入 allowlist，主张给 widget 一个真实同源、不关校验；stdio 默认 10 MiB 上限超限后关闭连接。修法是把客户端 `maxBufferSize` 调到 32 MiB 并加 `onerror`，保留全量导出，没有给结果设预算（与基线相同） |
+| 10 | gpt-6.1-sol medium | 无（复用） | false | EB1 ✔ EB2 ✔ EB3 ✘ | 见「上游新增内容评估」 |
+| 11 Inspector `--version` 按版本 | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ | 234 s（前 4 次以退出码 1 中止，看过的那次 events 是模型服务 503，队列自动重试）。判队友错：2.11.0 起 `--version`/`-V` 在 CLI 模式也可用，2.10.1 的 `--cli --version` 报「Method is required」；并注明依据是本 skill 的 testing 参考。`npm ci` 后不带版本的 npx 用的是本地钉住的 2.10.1；门禁改为读 `node_modules/.../package.json` 的版本，或把钉的版本升到 ≥2.11.0 并保留 flag；保留 `tools/list` 冒烟。没提 2.10.1 上裸 `--version` 会落到 UI（EB1 ◐）。旧 CI 日志那次（`…/skill/11-oldlog`，65 s）判定相同 |
+| 11 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ | 207 s。对照 unpkg 上 2.10.1 与 2.11.0 的 CLI 源码，得出同样结论：2.11.0 注册了 `-V, --version`，2.10.1 落到 method 校验；门禁同样改为读已安装包的版本，保留冒烟。同样没提裸 `--version` 落到 UI，也没给升级这条路。旧 CI 日志那次（`…/baseline/11-oldlog`，93 s）判定相同 |
+| 5 负例（第三方 GitHub MCP server 连不上） | gpt-6.1-sol medium | 有（挂载） | **true**（两次） | EB1 ✘ EB2 ◐ EB3 ✔（两次相同） | 29 s / 30 s。两次的首个工具调用都是 `read skill://mcp-server`（intent「Reading MCP troubleshooting guidance」），之后按用户侧排障作答：索要编辑器版本、脱敏后的配置块和该 server 的日志，给出 GitHub 官方的远程 HTTP 配置。没有协议内幕，也没让用户单独启动 server 自测。产物在 `…/skill/5-run1`、`…/skill/5-run2` |
+
+**负例路由排查**：本负例此前只在 claude-opus-5 上跑过（`skill_read=false`），这是第一次在 gpt-6.1-sol 口径下跑。description 今天没改，55bb115 只把 `metadata.version` 改成 `2026.10.15`。我在 worktree 里临时试了两版 description，各跑一次负例：
+
+| 版本 | description | 负例 skill_read |
+|---|---|---|
+| 现行 | `Builds Model Context Protocol servers with tools, resources, transports and authorization.` | true（两次） |
+| 试 1 | 现行 + `Do not load for connecting or debugging a third-party MCP server.` | true（`…/skill/5-desc2`） |
+| 试 2 | `Builds your own Model Context Protocol server: tools, resources, transports, auth. Do not load for setting up or fixing someone else's published MCP server.` | true（`…/skill/5-desc3`） |
+
+事件流显示，每次第一轮输出约 28 个 token 就发出 `read skill://mcp-server`，没有先判断适用范围，所以否定限定词起不了作用。题面里的「MCP server」与 skill 名直接重合，这是既有的路由歧义，不是今天正文改动带来的回归。按 `docs/workflow.md`「本地 description 维护的阶段映射」，改 description 需要先固定正例、近似负例和保留样本，记录旧描述的路由基线，再做同条件对照。本轮没有走这套流程，description 已恢复原样（试 1 期间顺带跑过一次场景 4，`skill_read=true`，产物在 `…/skill/4-desc2`，不计入判定）。
+
+结论：
+
+- 改动相关的行为在有 skill 时达成，且不差于基线。场景 2 的 EB4（SDK 上限要实测，不能从包版本推断）只有有 skill 一侧完整达成；场景 6 两侧都达成；场景 11 两侧持平，都按版本分述 `--version`，有 skill 一侧明确依据更正后的 testing 参考，还多给了升级到 ≥2.11.0 这条路。两侧 EB1 都只缺「2.10.1 上裸 `--version` 落到 UI」，与 CI 用的 `--cli` 形式无关。
+- 场景 7–10 的正文没有对应内容（「上游同步」「上游新增内容评估」两节以基线划界、未合入），两侧总体持平：
+  - 场景 8 有 skill 跑了两次，EB3/EB4 与基线互有高低。EB2 两次都只缺「注册时抛 TypeError」这一句解释，代码修法与基线相同。
+  - 场景 7 EB3、场景 9 EB3 是有 skill 一侧的措辞或方案变体，单次样本，与今天的改动无关。
+  - 据此不改正文。
+- **负例未通过**：两次 `skill_read == true`，原因见上，按流程另行处理。
+
+遗留：
+
+- 负例 5 在 gpt-6.1-sol 下的路由歧义，需按 description 维护流程单独做 A–E。
+- 场景 10 EB3（给结果设预算，而不是只调大 `maxBufferSize`）两侧都没达成，正文规则 7 在有 skill 时也没被用上，可在下次正文修订时考虑在规则 7 处点名 stdio 单消息上限。
+- 场景 8 EB2 的 TypeError 后果、场景 7 的 `expectedResource` 注意事项都不在正文。这是两次评估有意以基线划界的结果，若换更弱的基线模型需重测。
+- 除场景 8 外，各场景只有 1 次运行。

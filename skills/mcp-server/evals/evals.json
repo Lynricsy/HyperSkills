@@ -127,5 +127,20 @@
       "Explains that v2 stdio transports cap a single message at `maxBufferSize` (10 MB by default) and close the connection via onerror when one is exceeded (v1 buffered without a limit), so the ~14 MB result kills the CLI's connection",
       "Fixes the export by budgeting the result - paginate with a cursor, return a bounded page or summary plus a resource link/file reference, or stream to a file - rather than only raising `maxBufferSize`, and surfaces the transport `onerror` so the failure is logged"
     ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "The release gate for our notes MCP server fails at the very first step (release-check.sh, run by CI after `npm ci` in the repo root; notes-mcp-package.json is our package.json; the CI output is in ci-log.txt). On my laptop I ran `npx @modelcontextprotocol/inspector --cli --version` from my home directory and it printed 2.11.0, so the command looks right. A teammate says the Inspector never supported --version and we should drop the step. Who is right, and what should the gate do so we still record the Inspector version in the release notes?",
+    "files": [
+      "evals/files/inspector-version/release-check.sh",
+      "evals/files/inspector-version/notes-mcp-package.json",
+      "evals/files/inspector-version/ci-log.txt"
+    ],
+    "expected_behavior": [
+      "Says the version flag depends on the Inspector release: from 2.11.0 `--version` (or `-V`) prints the version and exits in every mode, while on earlier releases such as the pinned 2.10.1 `--cli --version` fails with 'Method is required' and a bare `--version` falls through to launching the UI — so neither the teammate's 'never supported' nor the laptop result applies to CI as stated",
+      "Explains the laptop/CI difference: inside the repo after `npm ci`, npx runs the locally installed devDependency 2.10.1, while outside the project it fetched the latest release",
+      "Fixes the gate either by bumping the devDependency to 2.11.0 or later and keeping `--version`, or, while staying on 2.10.1, by reading the installed version from the lockfile or `npm ls @modelcontextprotocol/inspector` instead of invoking the flag",
+      "Keeps the `--cli ... --method tools/list` smoke test as the functional check rather than dropping it along with the version step"
+    ]
   }
 ]

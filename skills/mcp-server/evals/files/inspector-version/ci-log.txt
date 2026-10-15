@@ -1,0 +1,10 @@
+$ npm ci
+added 312 packages, and audited 313 packages in 9s
+$ npm run release:check
+
+> notes-mcp@0.9.3 release:check
+> bash scripts/release-check.sh
+
+== inspector version (recorded in the release notes)
+{"error":{"code":"error","message":"Method is required. Use --method to specify the method to invoke."}}
+Error: Process completed with exit code 1.
