@@ -1,6 +1,6 @@
 # Cargo compatibility and verification
 
-Verified against: Cargo/Rust documentation 1.98.1; resolver and syntax floors
+Verified against: Cargo/Rust documentation 1.99.0; resolver and syntax floors
 are stated below. [official] Cargo Book semantics override community shortcuts.
 [community] The effective-configuration workflow adapts full-stack cargo-build.
 

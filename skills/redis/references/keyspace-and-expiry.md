@@ -8,7 +8,7 @@ Verified against: Redis 8.10.1.
 - [Setting expiry](#setting-expiry)
 - [Which commands preserve a TTL](#which-commands-preserve-a-ttl)
 - [How a key actually expires](#how-a-key-actually-expires)
-- [maxmemory and the eight policies](#maxmemory-and-the-eight-policies)
+- [maxmemory and the eviction policies](#maxmemory-and-the-eviction-policies)
 - [LRU and LFU are approximate](#lru-and-lfu-are-approximate)
 - [Reading the eviction and expiry counters](#reading-the-eviction-and-expiry-counters)
 - [Scanning the keyspace](#scanning-the-keyspace)
@@ -105,7 +105,7 @@ Consequences:
   replica still counts it.
 - Expiry is not an event delivery mechanism unless you turn notifications on — see below.
 
-## maxmemory and the eight policies
+## maxmemory and the eviction policies
 
 `maxmemory` defaults to `0` (unlimited) and `maxmemory-policy` to `noeviction` `[verified]`. An
 instance left that way grows until the kernel OOM killer stops it, which loses everything in
@@ -121,6 +121,13 @@ memory at once.
 | `volatile-lfu` | keys with a TTL | LFU among them |
 | `volatile-random` | keys with a TTL | Random among them |
 | `volatile-ttl` | keys with a TTL | Shortest remaining TTL first |
+| `allkeys-lrm` (8.6+) | every key | Least-recently-*modified*: only writes refresh the clock, reads do not |
+| `volatile-lrm` (8.6+) | keys with a TTL | LRM among them |
+
+The LRM pair is new in 8.6: on 8.10.2 `CONFIG SET maxmemory-policy allkeys-lrm` returns `OK`,
+on 8.4.6 it is rejected with a list of the eight older values `[verified]`. Because reads do
+not count, a key that is read constantly but never rewritten is still an LRM eviction
+candidate.
 
 The trap, measured `[verified]` with `maxmemory 3mb` and 1 KB values:
 

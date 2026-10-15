@@ -1,6 +1,6 @@
 # Unsafe and FFI proof obligations
 
-Verified against: Rust std/Reference 1.98.1, Edition 2024 guidance.
+Verified against: Rust std/Reference 1.99.0, Edition 2024 guidance.
 [official] The Reference is not an exhaustive formal memory model. Use documented
 contracts conservatively rather than treating an unlisted behavior as permitted.
 [community] The proof-led workflow adapts full-stack rust-unsafe-ffi.

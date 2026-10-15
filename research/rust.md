@@ -448,3 +448,26 @@ unchanged 的 full-stack-cargo / full-stack-unsafe 前移到 b8a6af7）。十四
 其余仓库上游（`full-stack-cargo`、`full-stack-unsafe` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（b8a6af7、b8a6af7、3cf7c7e），`pin_check.py` 结果 PIN CHECK CLEAN。14 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：14 条 `kind: docs` 条目的 `contributes` 声明事实 + 四份 references 与 SKILL.md 实际引用的版本号、默认值与限制。当前官方页面：Rust std/Cargo/Reference 均报告 Rust 1.99.0（stable 渠道 2026-09-28）；Tokio 最新为 1.53.3（2026-10-13），条目仍指向评测夹具锁定的 1.53.1 精确版本文档。5 个 Tokio 页面抓取 1.53.1 与 1.53.3 的 rustdoc 正文逐行 diff 为 0。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| tokio-select | 默认随机首轮轮询、`biased;` 覆盖；`if` 前置条件为 false 时 async 表达式仍求值但不轮询；`recv`/`read`/`read_buf` 取消安全，`read_exact`/`write_all` 不安全；`Mutex::lock`/`RwLock`/`Semaphore::acquire` 取消丢队列位置 | https://docs.rs/tokio/1.53.1/tokio/macro.select.html | 一致（1.53.3 同文） |
+| tokio-sender | `send` 在 select 中输掉时消息未发送但被丢弃，建议 `reserve`；取消 `reserve` 丢 FIFO 位置；丢弃未用 `Permit` 归还容量 | https://docs.rs/tokio/1.53.1/tokio/sync/mpsc/struct.Sender.html | 一致（1.53.3 同文） |
+| tokio-tasks | 丢弃 `JoinHandle` 分离任务；await `&mut JoinHandle` 取消安全；panic 以 `JoinError` 返回、与应用 `Result` 分层；abort 后多半得到 cancelled `JoinError` | https://docs.rs/tokio/1.53.1/tokio/task/struct.JoinHandle.html | 一致（1.53.3 同文） |
+| tokio-blocking | 已开始的 `spawn_blocking` 无法 abort（未开始时可阻止启动）；`shutdown_timeout` 只停止等待不取消；线程上限很大，超限入队，CPU 密集需信号量限并发；长期任务宜用专用线程 | https://docs.rs/tokio/1.53.1/tokio/task/fn.spawn_blocking.html | 一致（1.53.3 同文） |
+| tokio-mutex | 守卫设计为跨 `.await` 持有；纯数据优先阻塞锁；不中毒，panic 时解锁、数据可能不一致；FIFO | https://docs.rs/tokio/1.53.1/tokio/sync/struct.Mutex.html | 一致（1.53.3 同文） |
+| rust-sync | `&T: Send ⇔ T: Sync`；`&mut T: Send ⇔ T: Send`，`&mut T: Sync ⇔ T: Sync`；`Arc<T>` Send/Sync 需 `T: Send + Sync`；`Mutex<T>` Send/Sync 仅需 `T: Send`；`Cell<T>: !Sync` | https://doc.rust-lang.org/std/marker/trait.Sync.html（及 Send、std::sync::Mutex 实现列表） | 一致；notes 与 references 的「Verified against」由 1.98.1 改为 1.99.0 |
+| rust-result | `Result` 带 `#[must_use]`（`unused_must_use` 默认警告）；`?` 传播 | https://doc.rust-lang.org/std/result/index.html | 一致 |
+| rust-raw-slice | 非空且对齐（零长度/ZST 亦然）；单一分配；`len` 个已初始化值；生命周期内不可变（UnsafeCell 除外）；总字节 ≤ `isize::MAX` 且不回绕；FFI 空指针须先判空返回空切片 | https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html | 一致 |
+| rust-ub | 列表非穷尽、无形式化模型；产生无效值即 UB；`bool` 仅 0/1；`str` 的语言层有效性与 `[u8]` 相同（只需已初始化），UTF-8 属库不变式；数据竞争；引用须对齐非空不悬垂 | https://doc.rust-lang.org/reference/behavior-considered-undefined.html | 一致（正文「不要发明过宽的 str 即时 UB 规则」仍成立） |
+| rust-ffi-unwind | 非 unwind ABI 边界上 Rust panic 安全 abort、外来异常进入 Rust 为 UB；跨边界须用 `-unwind` ABI；`panic=abort` 不论 ABI 均 abort；`catch_unwind` 与外来异常交互未定义 | https://doc.rust-lang.org/nomicon/ffi.html#ffi-and-unwinding | 一致 |
+| rust-edition-unsafe | `unsafe_op_in_unsafe_fn` 在 2024 版次默认 warn（非 deny）；2024 版次要求 `unsafe extern` 与 `#[unsafe(no_mangle)]` 等 unsafe 属性；Edition 2024 自 1.85.0 | https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html（及 rust-2024/index、unsafe-extern、unsafe-attributes） | 一致 |
+| cargo-features | 特性应可加；多包共享依赖取特性并集；`default-features = false` 不能阻止其他边启用默认；`dep:` 与 `?/` 语法均自 Rust 1.60 | https://doc.rust-lang.org/cargo/reference/features.html | 一致 |
+| cargo-resolver | resolver 2 为 edition 2021 默认、需 1.51+；dev-dependency 特性仅在构建它们时才统一；需隔离时用分开的 cargo 调用；resolver 3 为 edition 2024 默认、需 1.84+，把 `incompatible-rust-versions` 默认改为 `fallback`（仅偏好兼容版本） | https://doc.rust-lang.org/cargo/reference/resolver.html | 一致 |
+| cargo-workspaces | 虚拟工作区无 `package.edition` 须显式设 resolver；`default-members` 决定未选包时的作用范围；成员清单中的 `[profile.*]` 被忽略；`workspace.package`/`dependencies` 继承 1.64+，`workspace.lints` 1.74+，成员须显式继承 | https://doc.rust-lang.org/cargo/reference/workspaces.html | 一致 |
+
+结论：14 条全部一致，无更正、无新增内容需评测；14 个条目 `synced_at` 改为 2026-10-15，references 的「Verified against」版本行更新为 Rust 1.99.0（Tokio 行注明 1.53.3 同文），`rust-sync` notes 同步版本号。

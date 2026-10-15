@@ -44,14 +44,14 @@ upstreams:
     url: https://docs.rs/tokio/1.53.1/tokio/macro.select.html
     license: MIT
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of cancellation, fairness, disabled-expression evaluation and queue-position loss in references/async-and-synchronization.md."
   - id: tokio-sender
     kind: docs
     url: https://docs.rs/tokio/1.53.1/tokio/sync/mpsc/struct.Sender.html
     license: MIT
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of send ownership and reserve admission in references/async-and-synchronization.md."
     notes: "Read exact-version rustdoc summary and retrieved send/reserve cancellation prose through Context7; no example code copied."
   - id: tokio-tasks
@@ -59,64 +59,64 @@ upstreams:
     url: https://docs.rs/tokio/1.53.1/tokio/task/struct.JoinHandle.html
     license: MIT
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of handle detachment, borrowed-handle cancellation and join errors in references/async-and-synchronization.md."
   - id: tokio-blocking
     kind: docs
     url: https://docs.rs/tokio/1.53.1/tokio/task/fn.spawn_blocking.html
     license: MIT
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of blocking-task admission, inability to abort started work and shutdown timeout limits in references/async-and-synchronization.md."
   - id: tokio-mutex
     kind: docs
     url: https://docs.rs/tokio/1.53.1/tokio/sync/struct.Mutex.html
     license: MIT
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of sync versus async critical sections, await-held guards and non-poisoning behavior in references/async-and-synchronization.md."
   - id: rust-sync
     kind: docs
     url: https://doc.rust-lang.org/std/marker/trait.Sync.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of reference and container Send/Sync bounds in references/async-and-synchronization.md and ownership/FFI contracts."
-    notes: "Documentation reports Rust 1.98.1; Apache-2.0 option confirmed by rust-lang/rust license API. No documentation text or examples copied."
+    notes: "Documentation reports Rust 1.99.0 (rechecked 2026-10-15; 1.98.1 at first sync); Apache-2.0 option confirmed by rust-lang/rust license API. No documentation text or examples copied."
   - id: rust-result
     kind: docs
     url: https://doc.rust-lang.org/std/result/index.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of recoverable errors, propagation and must-use behavior in references/ownership-and-errors.md."
   - id: rust-raw-slice
     kind: docs
     url: https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of raw slice lifetime, single allocation, empty-pointer, initialization and byte-size obligations in references/unsafe-and-ffi.md."
   - id: rust-ub
     kind: docs
     url: https://doc.rust-lang.org/reference/behavior-considered-undefined.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of safe-wrapper soundness, restricted value representations, aliasing and incomplete formal-model limits in references/unsafe-and-ffi.md."
   - id: rust-ffi-unwind
     kind: docs
     url: https://doc.rust-lang.org/nomicon/ffi.html#ffi-and-unwinding
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of ABI-dependent Rust panic and foreign exception behavior in references/unsafe-and-ffi.md."
   - id: rust-edition-unsafe
     kind: docs
     url: https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of the Edition 2024 warn-by-default unsafe-operation lint in references/unsafe-and-ffi.md."
     notes: "Also read https://doc.rust-lang.org/edition-guide/rust-2024/index.html for the 1.85.0 edition floor used in references/cargo-and-verification.md."
   - id: cargo-features
@@ -124,19 +124,19 @@ upstreams:
     url: https://doc.rust-lang.org/cargo/reference/features.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of additive features, default-feature unification and 1.60 dep/weak-feature syntax in references/cargo-and-verification.md."
   - id: cargo-resolver
     kind: docs
     url: https://doc.rust-lang.org/cargo/reference/resolver.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of separate Cargo invocations, resolver 2 contexts and resolver 3's 1.84 floor and MSRV fallback limitations in references/cargo-and-verification.md."
   - id: cargo-workspaces
     kind: docs
     url: https://doc.rust-lang.org/cargo/reference/workspaces.html
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official calibration of virtual resolver selection, default members, ignored member profiles and opt-in inheritance version floors in references/cargo-and-verification.md."

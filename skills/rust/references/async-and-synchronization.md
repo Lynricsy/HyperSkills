@@ -1,6 +1,6 @@
 # Async cancellation and synchronization
 
-Verified against: Tokio 1.53.1 and Rust std 1.98.1.
+Verified against: Tokio 1.53.1 (1.53.3 text unchanged) and Rust std 1.99.0.
 [official] Tokio contracts below are version-specific; inspect the locked
 runtime version before relying on an API absent from the project.
 

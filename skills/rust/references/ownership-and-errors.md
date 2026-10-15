@@ -1,6 +1,6 @@
 # Ownership and error boundaries
 
-Verified against: Rust std 1.98.1; the rules below do not require that MSRV.
+Verified against: Rust std 1.99.0; the rules below do not require that MSRV.
 [official] std contracts decide language behavior; [community] the interface
 review structure adapts github/awesome-copilot without its blanket style rules.
 
