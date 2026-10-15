@@ -185,7 +185,7 @@ upstreams:
     url: https://github.com/OWASP/Top10/tree/master/2025/docs/en
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authoritative category names and numbering for the 2025 edition, the 2021 numbering it replaced, and the CWE mappings — including the fact that CWE-918 (SSRF) now sits inside A01:2025 Broken Access Control instead of being its own category."
     notes: "The repository's LICENSE file was read directly and is the full CC BY-SA 4.0 text, despite the GitHub API reporting NOASSERTION. Category names and numbers are cited as facts; no descriptive prose was copied."
 
@@ -194,7 +194,7 @@ upstreams:
     url: https://github.com/OWASP/ASVS/tree/master/5.0/en
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The ASVS 5.0.0 chapter set (V1 Encoding and Sanitization through V17 WebRTC) used as the coverage checklist for a whole-surface audit, and the renumbering against 4.0.x that makes an old chapter citation point at the wrong subject."
     notes: "LICENSE.md was read directly and is the full CC BY-SA 4.0 text. Chapter numbers and titles are cited as facts; no requirement text was copied."
 

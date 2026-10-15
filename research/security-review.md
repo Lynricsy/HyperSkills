@@ -467,3 +467,16 @@ tob-diffreview、copilot-threatmodel / copilot-secrets / copilot-secreview（后
 | 9 agent-tools | gpt-6.1-sol medium | 无 | False | 1、2、3（3/4） | 缺第 4 条：只说拒绝盘符限定与 UNC，未提保留设备名、结尾句点/空格、NTFS 流。 |
 | 9 agent-tools | gpt-6.1-sol medium | 有 | True | 1、2、3、4（4/4） | 读了 `injection-and-deserialization.md`；给出拒绝保留设备名、冒号、结尾句点/空格的可移植组件策略。重定向转发列为 needs-validation 并给出修复，仍算达成。 |
 | 10 web-fp | gpt-6.1-sol medium | 无 | False | 1、2、3、4（4/4） | 四类扫描器结论全部判为不成立并给出依据，另报一个转账收款人不存在时扣分不入账的完整性问题。哨兵。 |
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照，接在今天的上游同步与新增内容评估之后。两份 OWASP 文档都以 GitHub 仓库发布，用 `gh api` 读源文件。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| owasp-top10 | 2025 版 A01–A10 名称与编号（A01 Broken Access Control … A10 Mishandling of Exceptional Conditions） | `OWASP/Top10` `2025/docs/en/` 目录下 A01–A10 文件名 | 一致 |
+| owasp-top10 | SSRF 并入 A01:2025（CWE-918 列在 A01 的 CWE 表）；Injection A03:2021 → A05:2025；A03:2025 Software Supply Chain Failures 由 A06:2021 扩展而来；A07、A09 改名 | `A01_2025-Broken_Access_Control.md`、`0x00_2025-Introduction.md` | 一致；`2025/docs/en` 自 2026-04-06（错字修正）后无提交 |
+| owasp-asvs | 5.0.0 章节 V1 Encoding and Sanitization … V17 WebRTC，V8 Authorization、V6 Authentication、V7 Session Management、V9 Self-contained Tokens、V10 OAuth and OIDC；4.0.x 的 "V4 Access Control" 在 5.0 指向 API and Web Service | `OWASP/ASVS` `5.0/en/0x10-V1…0x26-V17` 文件名 | 一致；最新稳定版仍为 v5.0.0（`latest` tag 是 master 自动生成的 bleeding edge，发布说明自述非生产用） |
+| ms-windows-paths | 保留设备名含上标数字 COM/LPT 变体、结尾句点与空格被去除、`:` 驱动器相对与 NTFS 流、Windows 11 带扩展名的保留名不再映射设备 | learn.microsoft.com naming-a-file 等三页 | 今日新增条目，已于 2026-10-15 读过（见上节），`synced_at` 已是当天，本轮不重复 |
+
+结论：两个 docs 条目无变化，正文未改；SOURCES 中 owasp-top10、owasp-asvs 的 `synced_at` 改为 2026-10-15。
