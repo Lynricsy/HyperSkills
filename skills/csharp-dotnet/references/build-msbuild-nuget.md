@@ -20,8 +20,22 @@ Verified against: .NET 10 SDK.
 ## Evaluation order
 
 ```
-Directory.Build.props → SDK .props → YourProject.csproj → SDK .targets → Directory.Build.targets
+Sdk.props    Microsoft.NET.Sdk.BeforeCommon.props
+             → Microsoft.Common.props  → imports Directory.Build.props
+             → Microsoft.NET.Sdk.props
+YourProject.csproj (its own body)
+Sdk.targets  Microsoft.NET.Sdk.BeforeCommon.targets   (TargetFrameworkIdentifier & co. computed)
+             → Microsoft.CSharp.targets → Microsoft.Common.targets
+                 → NuGet package .targets → imports Directory.Build.targets
+             → Microsoft.NET.Sdk.targets (publish, pack, trimming, analyzers, ...)
 ```
+
+`Directory.Build.props` is not a layer in front of the SDK: `Microsoft.Common.props` imports it
+early, from inside the SDK's props. `Directory.Build.targets` is imported late by
+`Microsoft.Common.targets` — after the project body and the package targets, but **before** the
+rest of the .NET SDK targets, so a value computed in `Microsoft.NET.Sdk.targets` is not yet
+visible there. [verified: `Microsoft.Common.props`/`.targets` in dotnet/msbuild, `Sdk.props`/
+`Sdk.targets` in dotnet/sdk, and the import order in `dotnet msbuild -pp` output on SDK 9.0]
 
 Two consequences drive almost every build surprise:
 

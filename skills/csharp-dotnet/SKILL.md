@@ -4,7 +4,7 @@ description: "Develops C# and .NET applications with ASP.NET Core, Blazor and En
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: framework
 ---
 
@@ -37,9 +37,10 @@ Paths below are relative to this skill's directory.
 2. Adopt what the project already uses — minimal APIs or controllers, xUnit or MSTest,
    constructor injection or `Add*` extension methods. A second convention beside an
    existing one gives the same concept two answers.
-3. `Directory.Build.props` is imported before the project file and `Directory.Build.targets`
-   after the SDK targets. Defaults go in `.props`; anything reading an SDK-computed value
-   goes in `.targets`.
+3. `Directory.Build.props` is imported early by `Microsoft.Common.props`, before the project
+   body; `Directory.Build.targets` late by `Microsoft.Common.targets`, after the project body
+   but before the rest of the .NET SDK targets. Defaults go in `.props`; anything reading a
+   value the project or the SDK's early targets compute goes in `.targets`.
 4. A `PropertyGroup` conditioned on `$(TargetFramework)` inside a `.props` file never
    matches for a single-targeting project — the property is not set yet, so the condition
    fails silently. Move it to `.targets`. `ItemGroup` and `Target` conditions are unaffected.

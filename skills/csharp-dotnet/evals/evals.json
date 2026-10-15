@@ -58,5 +58,15 @@
       "Recommends Go-native diagnosis and fixes such as the goroutine pprof profile, goleak in tests, buffering or draining the channel, `select` on ctx.Done() when sending, defer ticker.Stop(), or errgroup with a bounded worker pool",
       "Does not answer with .NET tooling (dotnet-counters, dotnet-dump, Task/async guidance) or suggest rewriting the service in C#"
     ]
+  },
+  {
+    "skills": ["csharp-dotnet"],
+    "query": "StockImportService.cs runs our nightly supplier stock import. Three problems: a 60,000-row feed does its first 10,000 rows in about 15 seconds but the last 10,000 take around 8 minutes, and the profile is all inside EF Core's change detection; after an import the stock of some SKUs is wrong, always ones that had an expired reservation that night; and the DBA reports thousands of distinct cached plans for the product lookup query after every nightly run. Find the causes and give me the corrected service.",
+    "files": ["evals/files/StockImportService.cs"],
+    "expected_behavior": [
+      "Explains the slowdown: every row calls `ChangeTracker.Entries<Product>()`, which runs change detection and enumerates every tracked entity - the supplier's preloaded products plus every row already saved, because `SaveChangesAsync` leaves saved entities tracked - so per-row work grows with the number of rows processed; the fix counts pending rows with a local counter and bounds the tracked set per batch (e.g. `ChangeTracker.Clear()` or a fresh context after each save), not merely saving in batches",
+      "Explains the wrong stock: `ExecuteUpdateAsync` writes straight to the database and does not update the `Product` instances already loaded and tracked, so `product.Stock += row.Delivered` starts from the stale pre-release value and `SaveChangesAsync` overwrites the released reservations; the fix orders or unifies the writes (bulk release before loading, reload, or one tracked or one set-based path) and notes that the bulk update and the later saves are not one atomic unit unless a transaction wraps them",
+      "Explains the plan-cache growth: `Expression.Constant(supplierCode)` embeds each supplier code in the expression tree as a constant, so EF compiles a new query and sends a different literal SQL text per supplier; the fix uses a captured variable (`p => p.SupplierCode == supplierCode`, or the captured-value member expression when building the tree dynamically) so the value becomes a SQL parameter and the query shape is reused"
+    ]
   }
 ]

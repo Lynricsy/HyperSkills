@@ -227,18 +227,42 @@ ASP.NET Core defects:
   `InvalidOperationException: A second operation was started on this context instance`. In a
   singleton, a Blazor circuit, or a `Parallel.ForEachAsync` body, use
   `AddDbContextFactory<T>` and create one per unit of work.
-- Read-only queries get `AsNoTracking()`. Change tracking on a large read is pure overhead and
-  keeps every entity alive for the scope.
+- Read-only queries that materialise entities get `AsNoTracking()`. Change tracking on a large
+  read is pure overhead and keeps every entity alive for the scope. A projection of scalars has
+  nothing to track, but an entity placed inside a DTO or record is still tracked.
 - Project to the DTO in the query (`Select(o => new OrderResponse(...))`) rather than loading
   entities and mapping afterwards; that is what stops the query pulling every column.
 - The classic N+1 is a loop that touches a navigation property. Use `Include` for a single
-  related set, `AsSplitQuery` when multiple `Include`s cause a cartesian explosion, and a
-  projection when you only need a few columns.
+  related set, `AsSplitQuery` when sibling collection `Include`s multiply each other's rows (a
+  cartesian explosion), and a projection when you only need a few columns. A split query costs
+  extra round trips and its statements are not one consistent snapshot unless a transaction
+  wraps them.
 - Every query in a request path gets the `CancellationToken` overload
   (`ToListAsync(ct)`, `FirstOrDefaultAsync(ct)`).
-- Client evaluation of something the provider cannot translate either throws or silently pulls
-  the table into memory depending on the construct — check the generated SQL with
-  `ToQueryString()` when a query is slow.
+- EF Core 3.0+ evaluates on the client only in the final projection; any other construct the
+  provider cannot translate throws at run time rather than silently running in memory. The
+  silent whole-table pull comes from the code: `AsEnumerable()`/`ToList()` before `Where`, or a
+  repository helper returning a list or `IEnumerable<T>`, after which every operator runs locally
+  (and a deferred `IEnumerable<T>` re-queries on each enumeration). Check `ToQueryString()` and
+  the static types along the call path when a query is slow.
 - Never call `SaveChangesAsync` inside a loop over items; batch the changes and save once.
+- Saving in batches does not bound a long-running context: saved entities stay tracked as
+  `Unchanged`, and every `ChangeTracker.Entries()`, `HasChanges()` or `SaveChanges` runs change
+  detection over all of them, so a per-row tracker query makes an import quadratic. Count
+  progress in a local variable, and when the context belongs to the batch, call
+  `ChangeTracker.Clear()` (or take a fresh context from `IDbContextFactory<T>`) after each save.
+- `ExecuteUpdateAsync`/`ExecuteDeleteAsync` run immediately in SQL and never touch tracked
+  entities. An entity loaded before the bulk statement keeps its old values, so arithmetic on it
+  followed by `SaveChangesAsync` writes the stale result back over the bulk change. Run the bulk
+  statement before loading, or keep one write path. Each bulk call commits on its own: it is not
+  atomic with a later `SaveChangesAsync` unless an explicit transaction wraps both, and it adds no
+  concurrency-token predicate for you.
+- A dynamically built predicate must carry request values as captured variables, not
+  `Expression.Constant(value)`: a constant becomes a SQL literal and a new query shape per value,
+  filling both EF's query cache and the server's plan cache. Return `p => p.Code == code` from the
+  builder, or use the captured-value member expression when assembling the tree by hand.
+  [verified with EF Core 9 on SQLite: tracked entries after batched saves, change detection
+  triggered by `Entries<T>()`, the stale overwrite after `ExecuteUpdate`, and `ToQueryString()`
+  showing a literal for the constant and a parameter for the captured variable]
 
 <!-- sources: dotnet-official, aspnetcore-docs, dotnet-docs, aaronontheweb, awesome-copilot -->

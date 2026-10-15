@@ -301,3 +301,60 @@ e426ed9。三条 docs 为 manual check；其中 dotnet-releases 按其 notes「�
 
 三条 behind 均为噪声、已覆盖或上游删除，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
 本次提交只含 re-pin、版本号、dotnet-official 的 `paths`/`notes` 与本节。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与归因结果 `/tmp/hs-attr/attribution.md`。本 skill 4 条上游在 tracked
+paths 下确有提交。归因方法：dotnet-official 为 too-large 条目，用主代理的 blobless 裸仓库缓存 `/tmp/hs-attr/dotnet__skills`
+按 30 个 tracked 目录跑 `git diff ff66f96..9de888b`（9 个文件、+252/−59），并读 HEAD 上的 `optimizing-ef-core-queries/SKILL.md`
+全文；aaronontheweb、kevintsengtw-testing、rider-skills 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch 后按 paths
+过滤。awesome-copilot 为 too-large 但主代理归因为空（噪声），随 `--pin` 前移。`dotnet-releases` 按 notes 要求重读
+releases-index：11.0 go-live STS（11.0.0-rc.2）、10.0 active LTS、9.0/8.0 maintenance，与正文一致。`--pin` 后
+`pin_check.py` 报 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| dotnet-official | ff66f96 → 9de888b（14 提交命中） | 7ce04b1（#1285）重写 `optimizing-ef-core-queries`：源码审查流程、证据门、物化/`IEnumerable` 边界、`EF.Parameter`/`EF.Constant` 与计划缓存、动态表达式里的 `Expression.Constant`、按结果图决定跟踪（标量投影无跟踪、DTO 里的实体仍被跟踪）、过滤 Include 的 fixup、split query 的代价与一致性、降序复合 keyset 谓词、隐藏在仓储里的 `SaveChanges`、长导入的变更检测超线性、`ExecuteUpdate` 不更新已跟踪实体且不查并发令牌/不与后续 `SaveChanges` 原子、同一 `DbContext` 不得重叠操作；并把「不可翻译谓词会退化为客户端求值拉全表」更正为「当前 EF Core 直接抛错」。msbuild 组（c75e165、2a896b2、e961b65、f3cad1e、d2cd7c6、2b5f5a4、83662c4、ac46442、970e0dc）：`directory-build-organization` 把求值顺序从「D.B.props → SDK .props → 项目 → SDK .targets → D.B.targets」改为「`Microsoft.Common.props` 早导入 D.B.props … `Microsoft.Common.targets` 晚导入 D.B.targets」，`incremental-build` 删去不存在的 Target `Incremental` 属性、加「生成器内容不变时保留时间戳（`WriteOnlyWhenDifferent`）」与诊断输出契约，`binlog-failure-analysis` 给 `-flp` 参数加引号，其余为 description 路由措辞；e191d40、a51399b：test 组改为读 reference-only helper；c6ec97b：description 去 XML 标签 | 求值顺序与 EF 客户端求值：**事实更正** ×2；EF 的新增内容：**评测后部分合入**；其余：噪声（路由/agent 行为契约，或本 skill 未写的细节） |
+| aaronontheweb | e426ed9 → ac0deb2（2 提交命中） | a43e250：各 SKILL.md frontmatter `invocable` → `user-invocable`；acee683：coding-standards 把「用 `Result<T, TError>`」改为「用领域专用结果类型，而非泛型 `Result<T>`」 | 噪声：frontmatter 本就剥离；本 skill 未写结果类型 |
+| kevintsengtw-testing | 4e34a97 → 3961475（3 提交命中） | description 去掉「Make sure to use…」句、加「範例檔案」节；WebAPI 集成测试模板把 Respawner/数据库初始化移到 Collection fixture 只建一次、`FakeTimeProvider` 在 Collection 内共用不再回设；TimeProvider 篇补「`SetUtcNow` 只能向前，回设抛 `ArgumentOutOfRangeException`」与包名/命名空间不同 | 无影响：本 skill 只在 `testing.md` 表格里给出 `TimeProvider`/`FakeTimeProvider` 这一替换，不涉及共用实例或回设；属上游细节，未合入 |
+| rider-skills（reference） | 26b2404 → eddf751（5 提交命中） | `debugging-code` 新增 Rider 调试器 MCP 工具（异步任务栈、断点命中时抓线程 dump、plain resume） | 噪声：绑定 Rider MCP，按 notes 仅作覆盖自查，归 `debugging` skill |
+
+### 事实更正（读源码 + 本地实跑）
+
+1. **MSBuild 求值顺序。** 读 dotnet/msbuild `src/Tasks/Microsoft.Common.props`（导入 `$(DirectoryBuildPropsPath)`）、
+   `Microsoft.Common.targets`（`CommonTargetsPath` 与 NuGet 包 `.targets` 之后导入 `$(DirectoryBuildTargetsPath)`），dotnet/sdk
+   `Sdk.props`（BeforeCommon.props → Microsoft.Common.props → Microsoft.NET.Sdk.props）与 `Sdk.targets`（BeforeCommon.targets →
+   `$(LanguageTargets)` → Microsoft.NET.Sdk.targets）；再在本机 SDK 9.0.121 建空 console 项目放两个标记属性跑
+   `dotnet msbuild -pp`，顺序为 Common.props（57 行）→ D.B.props 标记（98）→ Microsoft.NET.Sdk.props（342）→ 项目体（1217）→
+   BeforeCommon.targets（1252）→ Microsoft.Common.targets（3505）→ D.B.targets 标记（9667）→ Microsoft.NET.Sdk.targets（9822）。
+   据此改 `references/build-msbuild-nuget.md` 的顺序图并说明「D.B.targets 早于其余 .NET SDK targets」，`SKILL.md` 规则 3 同步改写。
+2. **EF Core 客户端求值。** 原文「不能翻译的构造要么抛错要么静默拉全表」不准确：EF Core 3.0 起只允许最终投影在客户端求值，
+   其余不可翻译谓词抛 `InvalidOperationException`；静默拉全表来自代码自身的 `AsEnumerable()`/`ToList()` 或仓储返回列表/`IEnumerable<T>`。
+   本地 EF Core 9 + SQLite 实测：`Where(p => Helper(p.Name))` 抛 `InvalidOperationException`，同一函数放在 `Select` 里正常返回。
+   同一节顺带收紧两处：`AsNoTracking()` 只对物化实体有意义（实测标量投影 0 条跟踪、`new { p.Id, Entity = p }` 5 条），
+   `AsSplitQuery` 针对兄弟集合 Include 的行相乘，并注明多语句非一致快照（EF 官方 single-vs-split 文档同述）。
+
+### 新增内容（评测先行）
+
+新增场景 5（夹具 `evals/files/StockImportService.cs`）：夜间按供应商导入库存，逐行 `ChangeTracker.Entries<Product>()` 计数、
+先加载并跟踪商品再 `ExecuteUpdateAsync` 释放过期预留、`Expression.Constant(supplierCode)` 拼过滤器。三条期望先在本地
+EF Core 9 + SQLite 实测成立（批量保存后 1000 条全为 `Unchanged` 仍被跟踪、`Entries<T>()` 触发 `DetectedAllChanges`、
+`ExecuteUpdate` 后已跟踪实体仍是旧值且 `SaveChanges` 写回 15 而非 12、`ToQueryString()` 常量为字面量而捕获变量为参数）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ◐ EB3 ✔ | 原因三条都讲对；但 EB1 的修复是关掉 `AutoDetectChangesEnabled`，跟踪集仍无界增长；EB2 的修复是先释放后加载，未提批量语句与后续保存不原子。输出 `/tmp/hs-evals-sync/SyncG6/csharp-b5` |
+| 5 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ | 去掉逐行跟踪查询，查找字典 `AsNoTracking()`，每 500 行只附加本批实体、保存后 `ChangeTracker.Clear()`（注明上下文归本批所有）；EB2 同基线。输出 `csharp-s5` |
+
+EB1 缺口在有 skill 时补上，按 D2 通过，合入 `references/aspnetcore.md`「EF Core on the request path」三条：长生命周期上下文的跟踪集增长与
+`ChangeTracker.Clear()`/工厂新上下文、`ExecuteUpdate`/`ExecuteDelete` 不触碰已跟踪实体及其原子性与并发令牌、动态表达式用捕获变量而非
+`Expression.Constant`。EB2 的原子性提示两侧都未达成，正文已写，不再加码。上游其余新增（`EF.Parameter`/`EF.Constant` 取舍、过滤 Include
+fixup、降序复合 keyset 谓词、隐藏 `SaveChanges`、证据门）未写评测：属 EF 专项调优，超出本 skill「请求路径上的 EF Core 缺陷」范围，
+本轮不合入，记录待后续 EF 专题时评估。
+
+结论：两处事实更正（MSBuild 求值顺序、EF 客户端求值，另收紧跟踪与 split query 两句）；EF 长导入/批量更新/动态表达式三条基线 ◐ → 有 skill ✔
+（EB1）后合入；其余上游为噪声或未合入细节。
+
+`ExecuteUpdate` 三点另以官方文档核对：dotnet/EntityFramework.Docs `core/saving/execute-insert-update-delete.md` 的「Change tracking」
+（已跟踪实例不更新、`SaveChanges` 覆盖批量修改）、「Transactions」（每次调用各自提交、需显式事务）、「Concurrency control and rows affected」
+（不自动做并发控制，需自己在 `Where` 中带令牌并检查受影响行数）；split query 一致性以 `core/querying/single-split-queries.md` 核对。
