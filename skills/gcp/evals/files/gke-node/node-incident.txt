@@ -1,0 +1,23 @@
+Cluster: ml-train-prod (Standard, us-central1), node pool gpu-a100 (a2-highgpu-8g, 4 nodes)
+
+$ kubectl get node gke-ml-train-prod-gpu-a100-7f3c9d21-k2vx
+NAME                                       STATUS     ROLES    AGE   VERSION
+gke-ml-train-prod-gpu-a100-7f3c9d21-k2vx   NotReady   <none>   9d    v1.34.4-gke.1203000
+
+$ kubectl describe node gke-ml-train-prod-gpu-a100-7f3c9d21-k2vx | sed -n '/Conditions/,/Addresses/p'
+Conditions:
+  Type     Status    LastHeartbeatTime                 Reason              Message
+  ----     ------    -----------------                 ------              -------
+  Ready    Unknown   Wed, 15 Oct 2026 03:12:44 +0000   NodeStatusUnknown   Kubelet stopped posting node status.
+
+$ kubectl -n training get pods -o wide | grep k2vx
+trainer-worker-2   1/1   Terminating   0   2d   10.8.3.17   gke-ml-train-prod-gpu-a100-7f3c9d21-k2vx
+
+$ gcloud container node-pools describe gpu-a100 --cluster ml-train-prod --region us-central1 --format='value(management)'
+autoRepair=False;autoUpgrade=True
+
+On-call notes (05:40 UTC): The JobSet is stuck because trainer-worker-2 never finishes terminating, so the
+other 3 workers are idle on 24 expensive GPUs. Plan: `kubectl delete pod trainer-worker-2 --grace-period=0 --force`,
+then `gcloud compute instances delete gke-ml-train-prod-gpu-a100-7f3c9d21-k2vx` so the MIG makes a fresh one.
+Someone asked whether it was a kernel panic or a host problem; nobody has checked. The VM still shows RUNNING
+in Compute Engine.

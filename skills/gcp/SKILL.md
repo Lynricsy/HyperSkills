@@ -16,9 +16,9 @@ Covers the Google Cloud control plane and the architecture decisions that sit on
 the `gcloud` CLI and its defaults, the resource hierarchy and organization policy, IAM
 (predefined and custom roles, conditions, deny policies, service accounts, Workload Identity
 Federation), Cloud Run, the GKE cluster and node-pool control plane, Cloud SQL and the choice
-between managed data services, Cloud Storage, Cloud Logging and Cloud Monitoring as products,
-cost and quota management, and Well-Architected reviews against Google's Architecture
-Framework.
+between managed data services, Cloud Storage, Cloud Logging, Cloud Monitoring and Cloud Trace
+as products, cost and quota management, and Well-Architected reviews against Google's
+Architecture Framework.
 
 Verified against **Google Cloud SDK 584.0.0**. Every rule below that depends on a CLI default
 carries a `[verified]` marker and was read from that release's `--help` output; rules marked
@@ -197,7 +197,7 @@ propagation and alert design are the `observability` skill's subject.
 | GKE clusters, node pools, channels, upgrades and stalled upgrades, VPC-native, Workload Identity for GKE | creating or operating a cluster; an upgrade that will not finish, or an IP-exhaustion question | `references/gke-control-plane.md` |
 | Cloud SQL settings, editions, HA, backups, connectivity; choosing between managed data services | standing up or reviewing a database; picking Spanner vs Cloud SQL vs Firestore | `references/data-services.md` |
 | Buckets, storage classes, lifecycle, soft delete, access, 403/404 triage | a storage bill, a lifecycle policy, or an access failure | `references/cloud-storage.md` |
-| Logging query language, buckets, sinks, retention, pricing; Monitoring metric kinds and quotas | pulling logs, routing them, or explaining an observability bill | `references/logging-monitoring.md` |
+| Logging query language, buckets, sinks, retention, pricing; Monitoring metric kinds and quotas; Cloud Trace API filters and trace retention | pulling logs or traces, routing them, or explaining an observability bill | `references/logging-monitoring.md` |
 | Quota types and increases, budgets, billing export, commitments, discounts | a cost investigation; a `RESOURCE_EXHAUSTED`; capacity planning | `references/cost-and-quotas.md` |
 | Compute and region selection, the six Well-Architected pillars as checks | a design review or a production-readiness review | `references/architecture-framework.md` |
 

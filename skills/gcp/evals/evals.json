@@ -81,5 +81,27 @@
       "Treats the forgotten maintenance exclusion as the likely reason `batch` has not moved: inspect its scope and end time (`no_upgrades`, `no_minor_upgrades`, `no_minor_or_node_upgrades`) before removing it, and notes that an exclusion cannot stop an upgrade forced by end of support",
       "Pushes back on the blind force-upgrade: a manual upgrade bypasses the window and exclusion the team set on purpose, and if the paused reason is `SYSTEM_CONFIG` GKE recommends not upgrading manually unless required; a partially completed node-pool upgrade is resumed by re-issuing the same `gcloud container clusters upgrade --node-pool ... --cluster-version` command"
     ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "find_slow_checkouts.py is supposed to answer ticket SHOP-2291 (see the docstring) but the count it prints looks wrong to me. Fix the script so the number is actually right, and explain what was wrong.",
+    "files": ["evals/files/trace-search/find_slow_checkouts.py"],
+    "expected_behavior": [
+      "Explains that Cloud Trace v1 filter terms are each matched at trace level against any span, so `db.status:error` can match a different span (payment, pricing) than `db.inventory.reserve`; the returned traces must be fetched in full (view COMPLETE or get_trace) and post-filtered so the error is on the inventory span itself",
+      "Fixes the filter syntax: no space inside `latency:2s` (the stray space breaks the term), and the root span name containing a space must be quoted (`+root:\"POST /checkout\"` for exact, or the prefix form deliberately), and `span:` is a prefix match while `+span:` is exact",
+      "Notes that `latency:` applies to the whole trace's latency (>=), not to the database span",
+      "Says Cloud Trace keeps trace data for 30 days, so a 45-day window cannot be answered from Trace and the result silently covers at most 30 days"
+    ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "node-incident.txt is from our training cluster right now. Is the on-call plan OK? If not, what should we do instead, step by step?",
+    "files": ["evals/files/gke-node/node-incident.txt"],
+    "expected_behavior": [
+      "Rejects force-deleting trainer-worker-2 while the old VM may still be running: on an unresponsive node the kubelet cannot confirm the container stopped, so a replacement can run alongside the old one; force deletion is acceptable only after the old VM is confirmed gone",
+      "Captures evidence before replacing the VM (deleting the instance destroys its serial/kernel evidence); replacing a Standard node by deleting its VM is acceptable after that, since GKE re-creates it from the managed instance group (official NotReady troubleshooting guide)",
+      "Collects the cause before repairing: Compute Engine audit-log system events for the VM (`compute.instances.hostError`, `automaticRestart`, `guestTerminate`, `preempted`) and serial port 1 output (`gcloud compute instances get-serial-port-output --port=1`, last 1 MB only; older output needs `serial-port-logging-enable`) for a kernel panic",
+      "Enables auto-repair on the Standard node pool (it is off), explaining that GKE repairs a node that is NotReady or silent for about 10 minutes by draining it, waiting up to one hour for the drain, then re-creating it"
+    ]
   }
 ]

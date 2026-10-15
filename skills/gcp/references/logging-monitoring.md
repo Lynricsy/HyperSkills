@@ -1,4 +1,4 @@
-# Cloud Logging and Cloud Monitoring: the product surface
+# Cloud Logging, Cloud Monitoring and Cloud Trace: the product surface
 
 Scope: the Google Cloud products — query language, buckets, sinks, retention, quotas and what
 each line of the bill is. Instrumentation with OpenTelemetry, Collector configuration,
@@ -6,7 +6,7 @@ semantic conventions, RED/USE metric design, SLOs and alert-routing policy are t
 `observability` skill's subject and are not repeated here.
 
 Verified against: Google Cloud SDK 584.0.0 (`gcloud logging` help text quoted below is from
-that release); retention, quota and pricing figures from cloud.google.com.
+that release); retention, quota, pricing and Trace filter semantics from cloud.google.com.
 
 ## Contents
 
@@ -21,6 +21,7 @@ that release); retention, quota and pricing figures from cloud.google.com.
 - [Monitoring: metric kinds and alignment](#monitoring-metric-kinds-and-alignment)
 - [Monitoring quotas that bite](#monitoring-quotas-that-bite)
 - [Metrics scopes](#metrics-scopes)
+- [Cloud Trace: searching traces through the API](#cloud-trace-searching-traces-through-the-api)
 
 ## Reading logs without getting an empty answer
 
@@ -236,5 +237,33 @@ dashboards and alert policies live.
 
 Set this up before building dashboards. Rebuilding a dashboard because it was created in the
 wrong scoping project is pure rework.
+
+## Cloud Trace: searching traces through the API
+
+The Trace API v1 `projects.traces.list` method takes a `filter` of space-separated terms, and a
+trace is returned when **every term matches somewhere in it** — each term is tested on its own
+against any span, not on one shared span `[official]`. So
+`+span:db.inventory.reserve db.status:error` returns traces where the inventory span exists
+*and some* span (payment, pricing, anything) has `db.status:error`. Treat the list result as
+candidates: request `view=COMPLETE` (the default `MINIMAL` view returns only IDs) and check the
+condition on the span itself before counting anything.
+
+| Term | Meaning |
+|---|---|
+| `root:NAME`, `span:NAME` | root span / any span name **starts with** NAME |
+| `+root:NAME`, `+span:NAME` | exact name; a bare `NAME` is shorthand for `root:NAME` |
+| `KEY:VALUE`, `+KEY:VALUE`, `label:KEY` | any span's label value starts with / equals VALUE; key present |
+| `^KEY:VALUE`, `+^KEY:VALUE` | the same test on the root span only |
+| `latency:2s` | **whole-trace** latency ≥ 2 s; units `s`, `ms`, `ns`, milliseconds when omitted |
+
+Values outside `[a-zA-Z0-9./_-]` — a route like `POST /checkout` — must be double-quoted
+(`+root:"POST /checkout"`). The only spaces allowed are the ones between terms, so
+`latency: 2s` is not a latency test, and a misspelled keyword such as `methd:GET` is read as a
+label test that silently matches no trace. This syntax is for the API only; the console's
+Trace Explorer has its own filter bar.
+
+Spans in the `_Trace` bucket are kept for **30 days** `[official]`. Anything older is gone, so a
+"last 45 days" question can only ever be answered for the last 30 from Trace; say so instead of
+reporting the number as if it covered the whole window.
 
 <!-- sources: gcp-docs, google-skills -->

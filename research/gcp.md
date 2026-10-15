@@ -438,3 +438,40 @@ GKE 新内容（`references/gke-control-plane.md`「When an upgrade stalls」，
 
 结论：基线缺口（GKE 自身的升级状态/暂停原因）成立并由 skill 填补，合入。其余条目噪声或仅元数据。负例与旧场景未重跑。
 产物：`/tmp/hs-evals/gcp/omp-openai-gpt-6.1-sol-medium/{baseline,skill}/7`。
+
+## 2026-10-15 上游新增内容评估
+
+候选：google/skills（Apache-2.0，`b85f257d127c`）新增 `skills/cloud/cloud-trace-querying` 与
+`skills/cloud/gke-ai-troubleshooting-node-unresponsive-timeout`。
+
+核实：
+- Cloud Trace 过滤语法以 `docs.cloud.google.com/trace/docs/trace-filters`（2026-10-13 更新）为准：所有 term 必须同时满足、
+  每个 term 各自对任一 span 判定（`span:`/`label` 形式均写作 "the trace must have at least one span…"）、`root:`/`span:` 前缀、`+` 精确、
+  `^` 仅根 span、含空格等字符的值需双引号、`latency:` 为整条 trace ≥ 且单位 `s`/`ms`/`ns`（缺省 ms）、除 term 之间外不得有空格、
+  拼错关键字会被当作 label 测试而匹配不到；该语法只适用于 API，不适用于控制台 Trace Explorer。
+  保留期：`trace/docs/quotas`「Spans stored in the `_Trace` bucket: 30 days」。v1 list 默认 `MINIMAL` 视图只返回 ID（REST 参考）。
+  上游 `error:true` 匹配器、v1 单页 1000 条上限未在官方页面找到，不写。
+- GKE 节点无响应：auto-repair 约 10 分钟阈值、排空最多等 1 小时后重建、Autopilot 总是修复、TPU 多主机切片修复会重建整个节点池
+  （`node-auto-repair`）；Compute Engine 审计日志的 `hostError`/`automaticRestart`/`guestTerminate`/`preempted`（`troubleshooting-reboots`）；
+  串口输出只返回最近 1 MB，更早需 `serial-port-logging-enable`（`viewing-serial-port-output`）。
+  **上游「绝不要直接删除 GKE 管理的 VM」与官方不一致**：`troubleshooting/node-notready` 对 Standard 集群把「drain 后删除底层 VM，GKE
+  通常会重建」列为处置步骤（Autopilot 才不能手动删）。按官方裁决，场景 9 的 EB1/EB2 已改写为「先取证、确认旧 VM 已不存在后才可
+  强删 Pod；删 VM 前先保存串口/内核证据」。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| cloud-trace-querying：跨 span 独立匹配需后过滤、语法细节、30 天保留 | **合入**（`references/logging-monitoring.md` 新增 Cloud Trace 一节；Scope 与 Topic router 补 Cloud Trace） | 场景 8 基线缺口：未发现 45 天超出 30 天保留期（EB4 ✘），未点出 `latency: 2s` 的空格问题（EB2 部分）；有 skill 后 4/4 |
+| cloud-trace-querying 其余（脚本、MCP、A2UI 展示模板、语义约定参考） | 不合入 | 工具/展示层，非 Cloud Trace 产品事实 |
+| gke-ai-troubleshooting-node-unresponsive-timeout | 不合入 | 场景 9 基线（按修正后的 EB）基本达成：先取证、fence 后再强删、审计事件与串口、开启 auto-repair 及 10 分钟/1 小时；仅漏「串口只给最近 1 MB」这一细节，不足以单独合入 |
+
+评测（omp + `openai/gpt-6.1-sol` medium，VM）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 修 Cloud Trace 计数脚本 | gpt-6.1-sol medium | 无 | false | EB1、EB3；EB2 部分（加了引号与精确匹配，未指出 `latency: 2s` 空格）；EB4 ✘ | 仍按 45 天查询并给出计数 |
+| 8 修 Cloud Trace 计数脚本 | gpt-6.1-sol medium | 有 | true | EB1–EB4 全部 | 明确 `latency: 2s` → `latency:2s`；脚本对 45 天窗口打印 30 天保留警告并标注计数不完整 |
+| 9 GKE GPU 节点 NodeStatusUnknown | gpt-6.1-sol medium | 无 | false | EB1、EB2、EB4；EB3 部分（审计事件与 `--port=1` 有，缺 1 MB/`serial-port-logging-enable`） | EB1/EB2 按官方改写后判定 |
+
+结论：Cloud Trace 缺口成立并由 skill 填补（基线 2.5/4 → 有 skill 4/4），合入；节点无响应不合入，场景留作哨兵。负例与旧场景未重跑。
+SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补 contributes；`--pin gcp` 全部 up to date（google-skills 仍为 b85f257）。
+产物：`/tmp/hs-evals-MergeM2/gcp/omp-openai-gpt-6.1-sol-medium/{baseline/{8,9},skill/8}`。
