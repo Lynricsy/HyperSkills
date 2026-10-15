@@ -183,8 +183,26 @@ is what makes teams turn Dependabot off.
 - An artifact uploaded by a fork's `pull_request` run is untrusted data. A `workflow_run` job may
   read it; it must not execute it, and must validate any value it turns into a command argument.
 - Caches are shared per scope, so a job that can write the default branch's cache scope can
-  influence unrelated privileged runs. `pull_request_target` runs therefore get read-only access
-  to that scope: a save fails with a log warning while the step and job continue.
+  influence unrelated privileged runs. Only `push`, `workflow_dispatch`, `repository_dispatch`,
+  `delete`, `registry_package`, `page_build` and `schedule` may write that scope by default;
+  any other trigger resolving to the default branch — `pull_request_target`, `issue_comment`,
+  `workflow_run` — gets read-only access. A refused save is logged and the job continues.
+- `cache-mode` (workflow or job level, github.com only, not GHES) sets cache access explicitly:
+  `read` restores only, `write` restores and saves, `write-only` saves only, `none` neither. A
+  job-level value overrides the workflow-level one; an operation the mode forbids is skipped,
+  not failed (a skipped restore is a cache miss).
+- An explicit `cache-mode: write` or `write-only` on a low-trust trigger switches the read-only
+  default off and reopens cache poisoning. Treat it as a finding, and never as the fix for a
+  "cache is read-only" warning: declare `cache-mode: read` on that job and let a `push`
+  workflow keep the cache warm. A write-capable mode there is defensible only for a job that
+  processes no untrusted input at all — no PR code, title, body, comment or artifact.
+- A release or publish workflow should not restore caches at all, because restoring is where a
+  poisoned entry executes with the release credentials. Set `cache-mode: none` on it;
+  `cache-mode: read` does not help there. Turn off the setup action's own caching too
+  (`cache:` input, `package-manager-cache: false` on `setup-node`) so no step expects a cache.
+- A caller's explicit `cache-mode` (on the calling job or inherited from its workflow) caps what
+  a reusable workflow may request; with none set, the called workflow can request `write` even
+  from a low-trust trigger. Set `cache-mode: read` on a low-trust job that calls one.
 - `actions/download-artifact` across runs needs `run-id` and a `github-token`; without them it
   looks in the current run and silently finds nothing.
 

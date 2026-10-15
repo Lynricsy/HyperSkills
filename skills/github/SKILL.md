@@ -4,7 +4,7 @@ description: "Manages GitHub pull requests, issues, Actions workflows, releases 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: platform
 ---
 
@@ -132,6 +132,10 @@ Detail in `references/actions-triggers-and-injection.md` and
 - [ ] Audit tokens and supply chain: missing or over-broad `permissions:`, unpinned third-party
       `uses:`, stored cloud credentials where OIDC would do, secrets reachable from an
       externally triggerable job, secrets written to logs or to `$GITHUB_ENV`.
+- [ ] Check cache access per trigger: a low-trust trigger gets read-only access to the default
+      branch's cache, and an explicit `cache-mode: write` or `write-only` there switches that
+      protection off — a cache-poisoning finding, never the fix for a refused save. A workflow
+      that publishes or releases should restore no cache at all: `cache-mode: none`.
 - [ ] Run `zizmor .github/workflows` and treat its output as leads, not findings: keep the ids
       and locations, then re-derive each exploit path from the YAML yourself.
 - [ ] **Gate — every finding traced or downgraded:** each reported item names the trigger, the
@@ -156,6 +160,8 @@ Detail in `references/actions-efficiency.md`.
 - [ ] Rank surviving fixes by minutes saved per day (per-run saving × runs per day) and propose
       at most three. Dependency cache with a lockfile-hashed key, `concurrency` cancellation,
       trigger and path scoping, matrix reduction and job parallelisation are the usual winners.
+      On a low-trust trigger the cache stays restore-only (`cache-mode: read`), warmed by a
+      `push` workflow.
 - [ ] Factor repetition into a reusable workflow (`workflow_call`) when whole jobs repeat, or a
       composite action when a step sequence repeats. Pin the reusable workflow by SHA like any
       other third-party reference.

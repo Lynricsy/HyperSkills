@@ -49,5 +49,15 @@
       "Answers with local git only (interactive rebase or git reset --soft, plus a safety branch or reflog escape hatch) and does not route the task through gh, pull requests or GitHub settings",
       "Does not treat the request as a GitHub Actions, pull-request or repository-governance task"
     ]
+  },
+  {
+    "skills": ["github"],
+    "query": "pr-summary.yml and release.yml in this directory are two of our GitHub Actions workflows on github.com. Every PR summary run logs a warning that the npm cache could not be saved because cache access is read-only, and a teammate wants those runs to save the cache too so they warm it up. Make that change, and tell me whether anything about how either workflow uses the Actions cache should change before we tag v3.",
+    "files": ["evals/files/pr-summary.yml", "evals/files/release.yml"],
+    "expected_behavior": [
+      "Explains that the read-only cache access is deliberate for a pull_request_target run against the default branch's scope (cache-poisoning protection), declines to grant that job write access — no cache-mode: write or write-only and no other workaround — and has a trusted push-triggered workflow keep the cache warm instead",
+      "Makes the read-only intent explicit on the pull_request_target job with cache-mode: read (job or workflow level), optionally alongside a restore-only cache step, rather than only removing the setup-node cache input or leaving a save that can only fail",
+      "Flags that release.yml restores a dependency cache (setup-node cache: npm) in a workflow that publishes to npm and creates a release with a write token, as a cache-poisoning sink, and disables cache access there with cache-mode: none at the workflow or job level"
+    ]
   }
 ]

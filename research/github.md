@@ -292,3 +292,51 @@ trunk 解决 download 冲突）、8b97df3（测试里关闭下载目标根目录
 的内部加固，尚未发布（最新 release v2.101.0，2026-09-15），没有命令、旗标或输出变化；正文只说下载的 artifact
 仍是不可信代码，不依赖 gh 怎么落盘。判定为噪声，re-pin 到 fc4b137；awesome-copilot 随 `--pin` 对齐到 e7c25a4
 （tracked paths 未变）。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`。
+awesome-copilot 报 `diff too large`，用缓存裸仓库 `/tmp/hs-attr/github__awesome-copilot` 按完整区间
+`git log/diff e7c25a4..3cf7c7e -- <9 个 paths>` 归因；其余用 `gh api …/compare` 的 patch。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| awesome-copilot | e7c25a4 → 3cf7c7e（1 提交命中） | d277f39：`github-issues/references/labels.md` 为「删除 issue 全部标签（`DELETE …/labels`）」加注：仅在明确要求时做，先读现有标签，否则用 `--remove-label` | 已覆盖：`issues-and-triage.md` 已要求只发送要改的字段、用 `--add-label/--remove-label`、整组替换前先读现有标签，且 triage 中每个外部动作先给用户看；不新增规则 |
+| zizmor | 9a0b330 → f8dda18（3 提交命中） | `docs/audits.md`：8478e51/39a097c 把 `cache-poisoning` 审计扩展为「发布工作流读缓存」+「危险触发器上显式 `cache-mode: write`/`write-only` 写缓存」，并以 `cache-mode: none` 为首选修复（注明 1.31.0 起）；1779f43 让 `typosquat-uses` 也检查 pre-commit 的 `repo:` | **新增内容，经评测合入**（见下）。typosquat 一条无影响：正文未列 zizmor 审计清单，已写明 zizmor 覆盖 pre-commit 配置。zizmor 1.31.0 尚未发布（最新 v1.30.1），正文不声称任何 zizmor 版本能检出 |
+| coderabbit-skills | 965810a → c22fe67（1 提交） | `skills/autofix/SKILL.md`：f85a48f 改为保留 CodeRabbit 原始严重级别、Action 与严重级别解耦 | 无影响：本 skill 只取 reviewThreads GraphQL 查询与字段，未取其严重级别映射与报告格式 |
+| octocat | 856efd2 → 72b7275（1 提交） | 新增 `rules/security-advisory-comments.md`，SKILL.md 描述与能力列表加入仓库安全公告（GHSA）评论 REST API（2026-10-02 公开预览，仅公共仓库） | 不合入：本 skill 从 octocat 只取三条操作规则；安全公告评论是本 skill 现有范围外的新主题，且为 preview API、上游自述多项权限未实测。留待该 API GA 后按 Phase B 重新评估 |
+| scorecard | bd19d48 → a1fe90a（1 提交） | `docs/checks.md`：f5a926f 把 Pinned-Dependencies 补救步骤中的 Dockerfile 示例链接从 `cron/internal/worker/Dockerfile` 改为根目录 `Dockerfile` | 噪声：仅链接迁移；本条为 reference |
+
+其余：scrutineer、citadel、gh-pr-reviews、gh-cli 为 repo moved / tracked paths unchanged，`--pin` 顺带前移。
+`--pin` 时 zizmor 已前进到 f8dda18（比审阅 HEAD 1779f43 多 2 提交）；`pin_check.py` 报 `ok … moved, tracked paths
+untouched`，结论 `PIN CHECK CLEAN`。
+
+### cache-mode：核实与评测
+
+对照官方文档（`github/docs` 仓库 `content/actions/reference/workflows-and-actions/workflow-syntax.md` 的 `cache-mode` 与
+`jobs.<job_id>.cache-mode`、`dependency-caching.md` 的 Defaults / Bypassing / Cache access in reusable workflows 小节，
+`data/features/actions-cache-mode.yml` 显示仅 fpt/ghec）：取值 `read`/`write`/`write-only`/`none`，工作流或 job 级，job 覆盖
+工作流；省略时可信触发器（push、workflow_dispatch、repository_dispatch、delete、registry_package、page_build、schedule）
+为 `write`，其余解析到默认分支的触发器为 `read`；低信任触发器上显式 write-capable 会关闭只读默认、重新引入缓存投毒；
+被模式禁止的操作只记日志、不失败；调用方显式 `cache-mode` 封顶被调用的可复用工作流，未设时被调方可请求 `write`。
+`setup-node` 的 `package-manager-cache` 输入在 `actions/setup-node` v7.1.0 的 `action.yml` 中核实存在。
+
+本 skill 原有内容（`pull_request_target` 默认只读、保存失败只告警、用 push 工作流预热）仍正确，但没有 `cache-mode`
+这个开关，也没有「发布工作流不应恢复缓存」。按 R14 新增评测场景 5（`evals/files/pr-summary.yml` 为
+`pull_request_target` 上处理 PR 标题/正文并 `setup-node cache: npm` 的摘要 job；`evals/files/release.yml` 为打 tag 发布 npm
+与 GitHub Release 的 job；提问要求让摘要 job 也保存缓存，并问 v3 前缓存用法该不该改）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 cache-mode | gpt-6.1-sol medium | 无（baseline） | false | 1 / 3：release `cache-mode: none`✓ | 直接给摘要 job 加了 `cache-mode: write`（虽提示这会绕过只读默认），因此「不授予写」「显式 `cache-mode: read`」两条未达成 |
+| 5 cache-mode | gpt-6.1-sol medium | 有（改前正文） | true | 1 / 3：release `cache-mode: none`✓ | 读了 skill 仍加 `cache-mode: write`，只在注释里说「消费方须视为不可信」；证明缺口在正文，不在模型 |
+| 5 cache-mode | gpt-6.1-sol medium | 有（改后正文） | true | **3 / 3** | 拒绝开写、摘要 job 设 `cache-mode: read` 并说明 PR 标题/正文是不可信输入、release 设 `cache-mode: none` 并关掉 `cache: npm` 与 `package-manager-cache`，建议由可信 push 工作流预热 |
+
+基线答案存于 `/tmp/hs-evals-SyncG9/github-baseline-5/`，改后有 skill 答案在 `/tmp/hs-evals/github/omp-openai-gpt-6.1-sol-medium/skill/5/`
+（改前有 skill 的运行目录已被改后运行覆盖，结论以上表为准）。
+
+正文改动：`references/actions-tokens-and-supply-chain.md`「Artifact and cache trust boundaries」补可写默认分支缓存的触发器
+清单、`cache-mode` 取值与覆盖规则、低信任触发器显式 write 即发现项、发布工作流 `cache-mode: none`、可复用工作流的封顶；
+`references/actions-triggers-and-injection.md` 的 `pull_request_target` 加固条目点明 `cache-mode: write` 就是绕过保护；
+SKILL.md 的 audit-workflows 清单加一条缓存访问检查，write-or-speed-up 的缓存建议注明低信任触发器只读。`SOURCES.yaml` 的
+github-docs 条目补 cache-mode 来源页并把 `synced_at` 改为 2026-10-15，zizmor 条目加 notes 说明其文档只是线索。

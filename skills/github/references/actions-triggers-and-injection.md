@@ -146,7 +146,9 @@ Two consequences worth stating in a review:
 - Scope `permissions:` to the minimum, per job, and reference only the secrets that job needs.
 - Cache is read-only in the default branch's scope for `pull_request_target` runs: a save fails
   with a warning while the step and job continue, which is deliberate anti-cache-poisoning
-  behaviour, not a bug to work around. Populate the cache from a `push` workflow instead.
+  behaviour, not a bug to work around. `cache-mode: write` on the job is the opt-out from that
+  protection, so do not add it to silence the warning; declare `cache-mode: read` and populate
+  the cache from a `push` workflow instead (`references/actions-tokens-and-supply-chain.md`).
 - Self-hosted runners must be ephemeral and isolated from internal resources, since fork code
   reaching one is a foothold in your network rather than in a throwaway VM.
 - Everything in the injection sections below still applies; privileged triggers are exactly where
