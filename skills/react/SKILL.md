@@ -110,6 +110,12 @@ Rule ids in parentheses are the citable ids used by `## Output format`.
 20. `suppressHydrationWarning` marks a difference you intend (a locale-formatted
     timestamp), never one you have not explained (`hydration-suppress-narrow`).
     Applied broadly it hides real mismatches.
+21. An app that runs React Server Components keeps its RSC runtime on the latest
+    patch of the release line it uses (`rsc-patch-line`): `react-server-dom-*`
+    in a custom setup, `next` in Next.js, which bundles its own copy so bumping
+    `react` patches nothing. Security fixes land on every supported line, so
+    state that rule rather than a one-off target number, and verify the
+    installed copy. Details in `references/nextjs-ops-and-debug.md`.
 
 ## Workflows
 
@@ -247,7 +253,7 @@ approximating the workflow. Full recipes: `references/nextjs-cache-components.md
 | Route files, segments, RSC boundary, directives, async `params`, runtime, `proxy.ts` | Writing or fixing anything under `app/` | `references/nextjs-app-router.md` |
 | Read/write mechanism choice, Route Handlers, server caching, `after()` | Deciding how data moves, or reviewing server performance | `references/nextjs-data-and-caching.md` |
 | Metadata and OG images, `next/image`, `next/font`, `next/script`, error and not-found files, Suspense bailout, parallel routes | Metadata, assets, error UI, modals, or a CSR-bailout warning | `references/nextjs-rendering.md` |
-| Package bundling failures, Turbopack migration, bundle analysis, self-hosting, dev-server debugging | A build or runtime import error, or a deploy question | `references/nextjs-ops-and-debug.md` |
+| Package bundling failures, Turbopack migration, bundle analysis, self-hosting, RSC security releases, dev-server debugging | A build or runtime import error, a deploy question, or an RSC/Next.js security advisory | `references/nextjs-ops-and-debug.md` |
 | Cache Components adoption, static shell, `use cache`, `instant()` guard | Running `make-route-instant`, or enabling `cacheComponents` | `references/nextjs-cache-components.md` |
 | shadcn CLI, styling, forms, composition, icons, `base` vs `radix`, registries, theming | Any task in a project with `components.json` | `references/shadcn-ui.md` |
 

@@ -165,7 +165,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`planning`](skills/planning/) | 任务 | Turns requirements into executable plans with dependencies and verifiable acceptance criteria | 2026.10.15 | 8 |
 | [`postgres`](skills/postgres/) | 框架 | Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations | 2026.10.15 | 12 |
 | [`python`](skills/python/) | 框架 | Develops Python code with uv, pytest, typing, asyncio and packaging | 2026.10.15 | 18 |
-| [`react`](skills/react/) | 框架 | Develops React and Next.js web applications, components and server rendering | 2026.10.15 | 8 |
+| [`react`](skills/react/) | 框架 | Develops React and Next.js web applications, components and server rendering | 2026.10.15 | 10 |
 | [`react-native`](skills/react-native/) | 平台 | Develops React Native and Expo mobile apps, navigation and native integrations | 2026.10.15 | 7 |
 | [`redis`](skills/redis/) | 框架 | Designs and operates Redis data structures, caching, streams and clusters | 2026.10.15 | 7 |
 | [`rust`](skills/rust/) | 框架 | Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI | 2026.10.15 | 17 |

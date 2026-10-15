@@ -120,7 +120,7 @@
 | R3 | shadcn 的 Tailwind 约定 vs 其他候选的样式主张 | 第 18 行候选仍在教 `space-y-*`；`frontend-design` skill 讲语义 token 但不讲 shadcn 具体类名 | **shadcn `rules/styling.md` 是本仓库唯一的 Tailwind 约定来源**（`gap-*`、`size-*`、`truncate`、`cn()`、`data-icon`、`data-invalid`、覆盖层不手写 z-index、无 `dark:` 手写覆盖） | 任务书要求；官方厂商 > 社区快照；且这些规则可机械检查 |
 | R4 | shadcn 上游的动态注入 `` !`npx shadcn@latest info --json` `` | 上游依赖 harness 在加载时执行命令注入项目上下文 | **改写为工作流第一步的显式命令**：`add-shadcn-component` 的第 1 项就是「跑 `npx shadcn@latest info --json`，从输出读 `aliases` / `isRSC` / `tailwindVersion` / `base` / `iconLibrary` / `resolvedPaths` / `packageManager`」 | 本仓库标准第 1.3 节禁用动态注入，校验器会报错；且只有部分 harness 会执行该语法，注入失败时 agent 会静默地凭猜测工作 |
 | R5 | React 19 表单 hooks（`useActionState` / `useFormStatus` / `useOptimistic`）没有任何 INCLUDE 上游覆盖 | 唯一覆盖它们的是第 15 行 24★ 无许可仓库 | **不引入该上游**，改从 react.dev 官方参考页撰写，写入 `architecture-and-state.md` 的「Server Action 表单状态」小节，并在 `SOURCES.yaml` 记 `react-docs` 贡献此节 | 官方文档 > 未审核社区仓库；缺口用官方一手材料补，不用二手转述 |
-| R6 | 版本敏感 API 的可用性底线 | 上游或不标（Vercel `rendering-activity` 直接用 `<Activity>`）或标得含糊 | 正文一律标底线：`<Activity>` / `useEffectEvent` 标 `(React 19.2+)`；`ref` 作为普通 prop、`use(Context)` 标 `(React 19+)`；Cache Components / `export const instant` / `@next/playwright` `instant()` 标 `(Next.js 16.3+)`；`proxy.ts` 标 `(Next.js 16+)`；`next experimental-analyze` 标 `(Next.js 16.1+)`；`optimizePackageImports` 标 `(Next.js 13.5+)` | react.dev 19.2 发布博客与 nextjs.org 当日复核（见「调研日期」节）。不写「2026 年以前用旧写法」这类时间敏感表述 |
+| R6 | 版本敏感 API 的可用性底线 | 上游或不标（Vercel `rendering-activity` 直接用 `<Activity>`）或标得含糊 | 正文一律标底线：`<Activity>` / `useEffectEvent` 标 `(React 19.2+)`；`ref` 作为普通 prop、`use(Context)` 标 `(React 19+)`；Cache Components / `export const instant` / `@next/playwright` `instant()` 标 `(Next.js 16.3+)`；`proxy.ts` 标 `(Next.js 16+)`；`next analyze` 标 `(Next.js 16.4+)`，16.1–16.3 为 `next experimental-analyze`（2026-10-15 更正，见文末）；`optimizePackageImports` 标 `(Next.js 13.5+)` | react.dev 19.2 发布博客与 nextjs.org 当日复核（见「调研日期」节）。不写「2026 年以前用旧写法」这类时间敏感表述 |
 | R7 | React Compiler 是否让 `memo` / `useMemo` 规则失效 | Vercel 在 `rerender-memo`、`rendering-hoist-jsx`、`rerender-split-combined-hooks` 各挂一句「启用 React Compiler 后不必手动 memo」 | **在 `rules-rendering-rerender.md` 顶部统一写一次前置判断**（`babel-plugin-react-compiler` / `reactCompiler` 配置存在 → 跳过纯 memo 化条目，仍保留正确性条目），条目里不再逐条重复 | 本仓库标准第 3 节「术语一致、不罗列」；且逐条重复会让模型误以为每条都有例外 |
 | R8 | 组件内定义组件 / 依赖数组 / 派生状态等条目在 Vercel 归「性能」 | 上游把 `rerender-no-inline-components`、`js-tosorted-immutable` 放在性能分类 | 正文按**后果**而非上游分类归位：这两条会导致状态丢失与 prop 变异（正确性 bug），写进 `Core rules` 而不只是性能参考 | 上游自己的 impact 描述就是「prevents remount」「prevents mutation bugs」；Core rules 的定义是「违反即 bug」 |
 | R9 | `instant()` 通过是否等于路由已经「instant」 | 空壳（`fallback={null}` 包住整页）也能让 `instant()` 通过；`export const instant = false` 让校验跳过但导航依旧阻塞 | 正文把「非空外壳」写成 `make-route-instant` 工作流的独立判定项，并明确 `instant = false` 是「接受阻塞」的记录手段，不是达标手段 | 上游 optimizer SKILL.md 与 adoption SKILL.md 都反复强调，属真实陷阱 |
@@ -322,3 +322,29 @@ Design loading states / Cache reusable work」各节一致，未发现需更正�
 结论：三处上游新增内容（Trace/CodeBlock、DESIGN.md 主题映射、静态外壳指南带来的状态码与「不改构建期 import」要求）基线均已做到，
 按 `docs/skill-standard.md` 第 3 节不合入；场景 6–8 保留为哨兵。**正文未变**，未跑有 skill 的 D2；仅新增评测场景与夹具、
 re-pin、版本号改为 2026.10.15。`pin_check.py`：PIN CHECK CLEAN。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS3（vercel/next.js 新增 `skills/next-bundle-optimizer`，MIT）与 NewS4 第 L 条（TerminalSkills/skills 新增 `skills/react`，Apache-2.0）。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| next-bundle-optimizer：`next experimental-analyze` → `next analyze`（16.4.0） | **合入（事实更正）** | `references/nextjs-ops-and-debug.md` 原只写 `next experimental-analyze`（16.1+）。改为 `next analyze`（16.4+），注明 16.1–16.3 用旧名、16.4 保留旧名为别名、`--output` 行为相同；R6 版本底线随之改为 `next analyze` 标 `(Next.js 16.4+)`、`next experimental-analyze` 标 `(Next.js 16.1–16.3)` |
+| next-bundle-optimizer：`--snapshot`、`next analyze export` JSON Lines、schema 路径、`--route` 仅过滤输出等 | 不做 | 不在本次分配清单内（只做命令改名更正）；属新增内容，需另立评测 |
+| TerminalSkills react：RSC 包（`react-server-dom-*`）安全补丁 | **合入（新增，评测证明缺口）** | 新增核心规则 21（`rsc-patch-line`）与 `nextjs-ops-and-debug.md`「RSC security releases」一节：目标写「所在版本线的最新补丁」而不写死数字；自建 RSC 要升 `react-server-dom-*` 本身并与 `react` 同版本；Next.js 内置 RSC 运行时，升 `next` 才有效；凭锁文件解析版本、`npm audit` 与重新部署关单 |
+| TerminalSkills react 其余内容 | 不合入 | 教程体，已覆盖 |
+
+核实证据：
+- `vercel/next.js` `packages/next/src/bin/next.ts`：v16.4.0 为 `.command('analyze').alias('experimental-analyze')`，带 `--output`、`--snapshot`、`export` 子命令；v16.3.8（`gh api …/contents?ref=v16.3.8`）只有 `.command('experimental-analyze')`，带 `-o, --output`。npm：`next` latest 16.4.1，16.4.0 发布于 2026-10-06。
+- `gh api repos/facebook/react/security-advisories`：2025-12-03 GHSA-fv66-9v8q-g76r（CVE-2025-55182，critical）起至 2026-10-14 GHSA-xqc2-xf4c-x3h3（critical RCE）与 GHSA-h3gv-c5rc-p453（DoS）共 10 条，每条都同时在 19.0.x/19.1.x/19.2.x（10-14 起含 19.3.x）各发补丁，最新为 19.0.9/19.1.10/19.2.9/19.3.1；`19.3.0` 不在修复版本内。React CHANGELOG 19.2.4（2026-01-26）至 19.2.7 的 RSC 加固条目与之对应。
+- `vercel/next.js` v16.4.0 树内有 `packages/next/src/compiled/react-server-dom-{webpack,turbopack}`（App Router 用内置 React）；`gh api repos/vercel/next.js/security-advisories` 2026-10-14 GHSA-673q-mjm6-r5xr 列 `next` 16.4.1 为修复版本。
+- 规则正文不写具体版本号，只写「所在版本线最新补丁 + 关单前对照公告复核」，避免随下一次公告过时。
+
+评测（新增场景 9：两份 RSC 应用的 package.json——Next.js 16.3.7 与自建 Express + `react-server-dom-webpack@19.2.3`，用户只升了 `react`/`react-dom` 想关单；夹具 `evals/files/rsc-patch/`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9 RSC 安全公告关单 | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✓ / **#4 ✗**（3/4） | 47 s。基线联网查到 10-14 公告：storefront 升 `next` 16.4.1 并说明 Next 自带 RSC 实现；catalog 升 `react-server-dom-webpack` 到 19.3.1；要求核对解析版本与重新部署。未达成：只给本次的数字，没有「RSC 包每条版本线都会持续出安全补丁，规则是停在所在线最新补丁」的长期规则 |
+| 9 RSC 安全公告关单 | gpt-6.1-sol medium | 有 | true | #1 ✓ / #2 ✓ / #3 ✓ / **#4 ✓**（4/4） | 67 s。同样的修复与 `npm ls`/`npm audit` 证据清单，并明确「这是当前核实的目标、不是永久安全版本；应用时复核公告，用受支持版本线的最新补丁」；指出 Next 内置副本不会作为独立依赖出现在 `npm ls` 里，`next` 版本才是证据 |
+
+结论：缺口 #4 被填补（基线 3/4 → 有 skill 4/4）。另外 MergeM1 只跑了场景 9，其余场景正文未受影响（规则 21 与新节只在 RSC 安全语境触发）。

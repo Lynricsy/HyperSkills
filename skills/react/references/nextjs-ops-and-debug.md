@@ -1,9 +1,10 @@
 # Next.js bundling, deployment and debugging
 
-Read this for a build or runtime import error, a bundle-size investigation, or
-a self-hosting question.
+Read this for a build or runtime import error, a bundle-size investigation, a
+self-hosting question, or a React Server Components security advisory.
 
-Verified against: Next.js 16.3.
+Verified against: Next.js 16.3; bundle analysis and RSC security releases
+against Next.js 16.4 and React 19.3.
 
 ## Contents
 
@@ -14,6 +15,7 @@ Verified against: Next.js 16.3.
 - Bundle analysis
 - Turbopack migration
 - Self-hosting essentials
+- RSC security releases
 - Dev-server debugging
 - Rebuilding one route
 
@@ -89,9 +91,13 @@ A polyfill service script in the document is pure dead weight.
 ## Bundle analysis
 
 ```bash
-next experimental-analyze            # Next.js 16.1+, interactive UI
-next experimental-analyze --output   # writes .next/diagnostics/analyze for comparison
+next analyze            # Next.js 16.4+, interactive UI
+next analyze --output   # writes .next/diagnostics/analyze, no server, for comparison
 ```
+
+On Next.js 16.1–16.3 the command is `next experimental-analyze` (`--output` works the same);
+16.4 renamed it and keeps the old name as an alias, so check the installed
+version before writing it into a script.
 
 Filter by route, environment and type; inspect module sizes and import chains.
 Take a baseline before optimizing so the improvement is measurable, and check
@@ -125,6 +131,32 @@ Three facts decide whether a self-hosted deployment works:
 
 Everything else (base image choice, process manager, reverse proxy, health
 checks) is ordinary deployment work and outside this skill.
+
+---
+
+## RSC security releases
+
+The server half of React Server Components — `react-server-dom-webpack`,
+`-turbopack` and `-parcel` — deserializes Server Function arguments and Flight
+replies from the network, and it has taken a steady run of advisories (remote
+code execution, denial of service, source exposure). Each fix ships as a patch
+on **every** supported line at once (19.0.x, 19.1.x, 19.2.x, 19.3.x), so:
+
+- The target is "the latest patch of the line in use", re-checked against the
+  advisory at the time, never a number remembered from an earlier incident.
+  The `.0` of a newer line is not automatically fixed.
+- In a custom RSC setup, the `react-server-dom-*` package is the one to bump;
+  keep `react` and `react-dom` on the same version. An exact pin on the RSC
+  package survives a `react` upgrade and keeps the hole open.
+- In Next.js the App Router runs the React build vendored inside `next`
+  (`next/dist/compiled/react-server-dom-*`), whatever `react` version the app
+  declares. The fix is upgrading `next` to the release its own advisory lists
+  as patched for the line; adding a top-level `react-server-dom-*` dependency
+  does nothing.
+- Close the ticket on evidence: the resolved versions in the lockfile
+  (`npm ls next react-server-dom-webpack`, or the pnpm/yarn equivalent), a
+  clean `npm audit` for those packages, and a redeploy that replaced the old
+  instances. Green builds and tests prove compatibility, not remediation.
 
 ---
 
@@ -176,4 +208,4 @@ you are iterating on one route's build or prerender error.
 `--debug-prerender` matters because the default build stops at the first
 blocking route and often prints no usable frame.
 
-<!-- sources: openai-plugins-nextjs, nextjs-docs, nextjs-cache-components -->
+<!-- sources: openai-plugins-nextjs, nextjs-docs, nextjs-cache-components, react-security-advisories -->

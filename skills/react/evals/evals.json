@@ -120,5 +120,19 @@
       "Pushes the usage read behind its own Suspense boundary with a real loading skeleton, keeping the page's stable UI out of the fallback",
       "Says how to verify: an instant() test on a production build, plus checking the non-admin response status and that an edited limits file is reflected"
     ]
+  },
+  {
+    "skills": ["react"],
+    "query": "Security opened a ticket for the latest React Server Components security advisory against our two RSC apps: storefront.package.json is apps/storefront (Next.js App Router) and catalog.package.json is apps/catalog-rsc (our own Express + webpack RSC server). I bumped react and react-dom to 19.3.1 in both, reinstalled, and both apps still build and pass tests. Can I close the ticket? If not, give me the exact changes.",
+    "files": [
+      "evals/files/rsc-patch/storefront.package.json",
+      "evals/files/rsc-patch/catalog.package.json"
+    ],
+    "expected_behavior": [
+      "Says the ticket cannot be closed for storefront because Next.js ships its own compiled copy of the RSC runtime (`react-server-dom-*`) inside the `next` package, so bumping `react`/`react-dom` does not patch it - the fix is upgrading `next` to the release its advisory lists as patched for that line",
+      "Says catalog-rsc is still vulnerable because `react-server-dom-webpack` is exact-pinned at 19.2.3 and is the package the advisory is about; bumps it in lockstep with `react`/`react-dom` to the newest patch of a release line (not just any 19.3.x or the `.0` of a line) and flags the react/react-server-dom version mismatch",
+      "Grounds the patched versions in the published advisory, `npm audit` or `npm view`, and verifies the installed versions afterwards (`npm ls react-server-dom-webpack next` or equivalent) instead of quoting version numbers from memory",
+      "Tells the user that RSC packages get repeated security releases on every supported line, so the rule is to stay on the latest patch of the line in use rather than a one-off bump to a number"
+    ]
   }
 ]
