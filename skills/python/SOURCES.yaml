@@ -187,7 +187,7 @@ upstreams:
     url: https://docs.astral.sh/ruff/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Default settings (line-length 88, indent 4, double quotes), inference of `target-version` from `requires-python` and the cases where inference does not apply, `select` replacing the rule set versus `extend-select` adding to it, the official recommendation to start from a small explicit selection and to use `ALL` with discretion because it adopts future rules, per-file ignores, and the lint rules that conflict with the formatter."
 
   - id: pytest-docs
@@ -195,7 +195,7 @@ upstreams:
     url: https://docs.pytest.org/en/stable/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The version gate that decides where pytest configuration goes — `[tool.pytest]` native TOML from pytest 9.0, `[tool.pytest.ini_options]` from 6.0 — the configuration-file precedence order and the fact that candidates are never merged so the first match wins, fixture scope and finalisation semantics, and the effects of `--strict-markers`, `--strict-config` and `filterwarnings`."
 
   - id: typing-docs
@@ -203,7 +203,7 @@ upstreams:
     url: https://typing.python.org/en/latest/spec/
     license: PSF-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Type-system facts taken verbatim as facts and rewritten as guidance: under PEP 695 syntax a type parameter's variance is inferred from its usage rather than declared, `@runtime_checkable` verifies only that attributes exist and ignores their signatures, and `Required`/`NotRequired` govern key presence in a TypedDict independently of whether the value may be None."
     notes: "The GitHub API reports NOASSERTION for python/typing; the repository's LICENSE file is the Python Software Foundation licence, so it is recorded as PSF-2.0. Used strictly as a source of facts; no text reproduced."
 
@@ -212,7 +212,7 @@ upstreams:
     url: https://docs.python.org/3/library/asyncio-task.html
     license: PSF-2.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The asyncio invariants this skill is built on: the event loop holds only weak references to tasks, so a fire-and-forget task can be collected mid-execution; `gather` with default settings propagates the first exception without cancelling its siblings while a TaskGroup cancels them; a caught `CancelledError` must be re-raised or the structured-concurrency primitives misbehave; `asyncio.timeout` converts the cancellation it causes into `TimeoutError`; and `to_thread` is for blocking IO, not for CPU-bound work."
 
   - id: pypa-docs
@@ -220,6 +220,6 @@ upstreams:
     url: https://packaging.python.org/en/latest/
     license: CC-BY-SA-3.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Packaging metadata specifications: the `[project]` table fields, PEP 639 declaring `license` as an SPDX expression with `license-files` globs and deprecating the older table form, PEP 440 version normalisation and immutability on the index, PEP 561 `py.typed`, the inline script metadata format, and the reasoning behind the src layout."
     notes: "The GitHub API reports no licence for pypa/packaging.python.org; its README.rst states the Python Packaging User Guide is CC BY-SA 3.0, so it is recorded as such. Per this repository's CC-BY-SA policy only specification facts and checklist semantics were taken; every sentence here is original."

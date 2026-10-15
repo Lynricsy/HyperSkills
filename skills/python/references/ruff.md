@@ -1,6 +1,6 @@
 # ruff: lint and format
 
-Verified against: ruff 0.16.x.
+Verified against: ruff 0.17.x.
 
 ## Contents
 
@@ -37,9 +37,14 @@ When no setting is given:
 
 - `line-length = 88`, `indent-width = 4`
 - `quote-style = "double"`, magic trailing commas respected
-- default rule set is a subset of `E` and `F` — not "everything"
+- the default rule set is large since 0.16.0 — about 400 rules across many
+  linters (`B`, `I`, `UP`, `S`, `ASYNC`, `PT` and more; the Default Rules page
+  lists them), while 18 opinionated `E`/`F` rules such as `E402`, `E731` and
+  `E741` left it. Upgrading across 0.16 changes what an unconfigured project
+  reports, and an explicit `select` replaces this whole set
 - `target-version` is inferred from `project.requires-python` in a nearby
-  `pyproject.toml`; only when neither is present does it fall back to `py310`
+  `pyproject.toml`; only when neither is present does it fall back to `py311`
+  (`py310` before 0.17.0)
 
 That inference matters: `requires-python = ">=3.9"` makes ruff refuse to rewrite
 `Optional[int]` to `int | None`, and raising the floor to `>=3.10` makes the same
@@ -179,6 +184,6 @@ it. `extend = "../ruff.toml"` inherits and overrides.
 
 Passing `--config` explicitly disables `target-version` inference from
 `requires-python`, so an explicitly-passed config must state `target-version`
-itself or silently target py310.
+itself or silently target the default (`py311` from 0.17.0).
 
 <!-- sources: awesome-copilot-python, trailofbits-modern-python, laurigates-python, probabl-python-style, ruff-docs -->

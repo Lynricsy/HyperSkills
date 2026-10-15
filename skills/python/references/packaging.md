@@ -82,8 +82,9 @@ Notes that save a rejected upload:
 
 - `license` is an SPDX **expression** string now; the old
   `license = { text = "MIT" }` table and the `License :: OSI Approved :: ...`
-  classifiers are deprecated, and PyPI rejects a classifier that contradicts the
-  expression.
+  classifiers are deprecated. The spec lets a build backend refuse `License ::`
+  classifiers next to an expression, and setuptools does (`InvalidConfigError`)
+  while hatchling and uv_build still build — drop the classifiers either way.
 - Do not add a `Programming Language :: Python :: 3.x` classifier for a version
   `requires-python` excludes. Classifiers are metadata, not enforcement, so the
   mismatch only misleads.

@@ -20,7 +20,7 @@ Verified against: Python 3.11–3.14.
 |---|---|
 | Many concurrent network or database calls | asyncio |
 | CPU-bound work | `ProcessPoolExecutor` / `multiprocessing`; asyncio buys nothing |
-| Mixed IO and CPU | asyncio, with CPU work in `asyncio.to_thread` or a process pool |
+| Mixed IO and CPU | asyncio, with CPU work in a process pool (`loop.run_in_executor`); `asyncio.to_thread` helps CPU work only when it releases the GIL or the build is free-threaded |
 | A script with a handful of requests | stay synchronous; it is easier to read and to debug |
 
 Keep a call path entirely sync or entirely async. A half-converted path is where
