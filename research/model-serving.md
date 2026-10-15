@@ -658,3 +658,17 @@ paths 在区间内无改动。
 
 **正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
 （`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json` 报告与主代理归因清单 `/tmp/hs-attr/attribution.md`。
+归因方法：sglang 为大仓库，用 blobless 裸仓库缓存只读 tracked paths 的 `git diff fc9bdc8..9fa9308 -- <paths>`（命中的只有 `http_server.py`，三个 `.agents/skills/*` 目录区间内无改动）；amd-skills 用 `gh api .../compare` 取 tracked paths 下文件 patch。
+dynamo、trtllm、nvidia-skills 报告为 behind（too large）但完整区间归因为空（主代理已判噪声），google-skills、hf-skills 为 tracked paths unchanged，均随 `--pin` 前移。
+`--pin` 后 `pin_check.py`：dynamo（abc1952..96d921f）、sglang（9fa9308..a12814c）各前进 1 个提交、未碰 tracked paths，PIN CHECK CLEAN。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| sglang | fc9bdc8 → 9fa9308（tracked paths 10 提交） | `http_server.py`：3fb72191 `/load_lora_adapter_from_tensors` 与 `/set_trace_level` 改为需管理员鉴权；a9c97c9f `dp_size` → `num_dp_ranks`（`--attn-dp-size` 取代 `--enable-dp-attention`）；5a5ea810 Rust 监听器各自预热、预热成功前 `/health` 保持 503；1638c5d6/c52dcc5a `/generate` 先做契约校验；3e13f1b2 OpenAI 响应一次序列化；7dc29305 水印密钥从 `/server_info` 脱敏；bd2d73da Clef 决策模型走 `/v1/systemone`；e775fa72 要求 Python 3.11+；fd62ee84 gRPC follower 元数据 | 噪声：本 skill 从该文件取的 `/health_generate`（真跑一次生成）、`/v1/loads` 与 `cache_hit_rate` 在 HEAD 上仍在（已核对 9fa9308 的 `http_server.py`）；「`/health` 绿但请求超时是盲区」的判断不受 Rust 路径 503 门控影响（Python 路径的 `/health` 语义未变）；其余为新端点、鉴权与内部重构，本 skill 未写 |
+| amd-skills | ed7b7e6 → 880babb | 880babb：`serving-llms-on-epyc` 改为从 `amd/ZenDNN-pytorch-plugin` 联邦同步（新增 `.federated.json`），`skill-card.md` 许可 MIT → Apache-2.0；脚本改 `shlex.quote` 与 flake8 排版，`reference.md` 去掉一个链接；`SKILL.md` 未变 | 正文噪声；**许可元数据更新**：仓库根 LICENSE 仍为 MIT（gh api 与 README 徽章），但 epyc 目录现为 ZenDNN 插件仓库的联邦副本；读了该仓库 LICENSE 全文为 Apache-2.0（API 报 NOASSERTION 是因首行前言）。`SOURCES.yaml` 的 `license` 改为 `MIT AND Apache-2.0`，`notes` 记录两条 path 各自的许可与来源 commit；两者均为宽松许可，内容裁决不变 |
+
+结论：正文与 references 未改，未新增评测场景、未跑 D2；re-pin、版本号改为 2026.10.15，amd-skills 许可元数据同步。
