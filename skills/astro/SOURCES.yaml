@@ -8,7 +8,7 @@ upstreams:
     url: https://docs.astro.build/en/getting-started/
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The authoritative basis for every technical statement here: the client and server island model and the exact option set of each directive, prop serialisation limits, content collections and the content layer (glob/file loader options, Zod 4 schema forms, references, live collections), routing and getStaticPaths constraints, output modes and adapters, astro:actions and the HTML form contract, middleware and next(path) semantics, sessions and sessionDrivers, astro:env, view transitions and the script re-execution rules, images and the Fonts API, route caching, advanced routing, the CLI, and the complete Astro 5-to-6-to-7 removal and changed-default inventory."
     notes: "Documentation source lives in withastro/docs, whose LICENSE file was read and is MIT, so the docs are merged rather than reference-only. Read as .mdx source from that repository rather than as rendered pages. All wording here is original; only the technical facts are taken. Every version-sensitive claim was cross-checked against packages/astro/CHANGELOG.md in withastro/astro and against the releases API (current GA astro@7.3.2, 2026-09-08)."
   - id: withastro-astro-skills

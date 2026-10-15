@@ -47,3 +47,17 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 其余仓库上游（`gigio-astro-dev`、`delineas-astro-framework`、`incluud-astro-skills` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（71e2b24、3cf7c7e、be297c3、3e32c91、4b4355e），`pin_check.py` 结果 PIN CHECK CLEAN。1 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| withastro-docs | 当前版本基线 Astro 7.3 | npm `astro` latest = 7.3.8；[Upgrade to v7](https://docs.astro.build/en/guides/upgrade-to/v7/) | 一致（仍为 7.3.x；SOURCES notes 里「7.3.2」是当时快照，不影响正文） |
+| withastro-docs | Rust 编译器：未闭合非 void 标签报错、不再修正非法嵌套 | 同上 §Rust compiler | 一致 |
+| withastro-docs | `compressHTML` 默认 `'jsx'`、用 `{" "}` 保留空格、可设 `true`/`false` | 同上 §New default whitespace handling | 一致 |
+| withastro-docs | `src/fetch.ts` 保留文件名、`fetchFile` 改名或 `null` 关闭 | 同上 §Reserved file name | 一致 |
+| withastro-docs | Markdown 默认 Sätteri，remark/rehype 需装 `@astrojs/markdown-remark` 并设 `markdown.processor: unified()` | 同上 §New default Markdown processor | 一致 |
+| withastro-docs | `rustCompiler`/`queuedRendering`/`advancedRouting`/`cache`/`routeRules`/`logger` 实验标志已移除，残留是构建错误 | 同上 §Experimental Flags；astro@7.3.8 `dist/core/config/schemas/base.js` 的 `experimental: z.strictObject(...)` | 一致（strictObject 拒绝未知键，实读包源码确认「构建错误而非 no-op」） |
+| withastro-docs | 移除 `@astrojs/db`、`astro:transitions` 内部常量与 `createAnimationScope()`；`getContainerRenderer()` 改从 `/container-renderer` 导入 | 同上 §Removed / §Deprecated | 一致 |
+
+7 条事实全部一致，正文未改，仅 `withastro-docs` 的 `synced_at` 更新为 2026-10-15。
