@@ -350,3 +350,27 @@ tracked paths unchanged，随 `--pin` 前移。`--pin` 后 `pin_check.py` 结果
 
 本次改动了与 `test-driven-development`、`debugging` 共享的 grilling 提问格式：三处同时加入「措辞让 yes 即接受推荐」，其余三段
 （完成门、seam 定义、重构归属）未动。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：`4245578`（上游同步：respond-to-review 提问步骤与 `references/receiving-review.md` 加「措辞让 yes 即接受推荐」，示例两题改问法；新增场景 6 与夹具，场景 3 增加第 9 条期望）。这是今天唯一改动本 skill 正文的提交（最后正文提交 10:51:35）。
+
+选场景：
+
+- 场景 3（收到评审意见）：直接考察被改的提问格式，且今天新增了第 9 条期望，必选。上一轮有 skill 结果（10:47）早于正文提交，不可复用，重跑；基线（`/tmp/hs-evals-SyncG8/…/baseline/3`，10:41）的 query 与 expected_behavior 与当前逐字一致、夹具首读逐行一致，复用（副本 `/tmp/hs-d2/D2G5/reused/code-review-b3`）。上一轮只判了 3 条，本轮九条全判。
+- 场景 6（变异实验）：今天新增，必选。基线（`/tmp/hs-evals-SyncG8/…/baseline/6`，10:31）同样逐字一致，复用（副本 `reused/code-review-b6`），判定沿用上节；有 skill 此前从未跑过，新跑。
+- 场景 4：负例。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），新跑产物在 `/tmp/hs-d2/D2G5/code-review/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md`、`workspace/` 与 `events.jsonl` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 | gpt-6.1-sol medium | 无（复用 `reused/code-review-b3`） | False | EB1 ✘ EB2 ✘ EB3 ✔ EB4 ✔ EB5 ✘ EB6 ✔ EB7 ✘ EB8 ✘ EB9 ✘ | 直接改了 `rates.ts`；4、5 两条记为 blocked，无任何提问；未查 `getRateHistory` 调用方；未提 PR 线程回复 |
+| 3 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✔ EB7 ✘ EB8 ✘ EB9 ✔ | 104 s。未改文件；Q1「Should I leave history unchanged and push back…? Recommended: Yes」、Q2「Should I retain that behavior pending the reviewer naming the service…? Recommended: Yes」；NaN 守卫附 Node 实跑。EB4：认可评论 1 但称影响被高估、未定为阻塞项先修；EB7：「apply and verify the agreed changes together」，无分项顺序；EB8 未提 |
+| 6 | gpt-6.1-sol medium | 无（复用 `reused/code-review-b6`） | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✘ | 判定见上节 |
+| 6 | gpt-6.1-sol medium | 有 | True | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ | 66 s。实跑 `python3 -m unittest` 但只转述「All 3 existing tests pass」未引输出；内存里替换去掉会员门槛的函数再跑套件仍绿，列为 Important 并点名非会员 ≥5000 付 799 的缺失用例；未改文件；「Ready to merge: With fixes」 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ✔ | 47 s。直接写 `express-session` 中间件，无评审报告格式 |
+
+结论：改动相关的 EB2（编号且带推荐答案）与 EB9（yes 即接受推荐）在有 skill 时达成，基线均未达成；场景 6 有 skill 不差于基线（EB6 合并结论基线未达成、有 skill 达成；EB1 只是未逐字引用输出）。负例 `skill_read == false`。正文无需修正。
+
+遗留：场景 3 的 EB7（分项实施顺序）与 EB8（在 PR 线程回复）有 skill 与基线均未达成，均为既有内容、与本次改动无关，留作后续观察。
