@@ -851,3 +851,21 @@ D2 判定：基线未达成的场景 8 E3 在有 skill 时达成。场景 9 基�
 - `SKILL.md` 规则 6：可操作性不包含「已绑定处理器」，SSR 页面水合前点击落空，`goto` 后断言应用设置的水合信号。
 - `references/waiting-and-assertions.md` Actionability 一节：水合陷阱、1.64.1 实测、`data-hydrated` 示例；不用 `waitForTimeout` / `networkidle` 补救。
 - `SOURCES.yaml`：`awesome-copilot` 的 `paths` 加 `skills/cypress-flake-fixer/SKILL.md` 并更新 `contributes` / `notes`；`testdino-playwright` 的 `notes` 记录 qa/frontend 已审未合入。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：d901700 上游同步（新增场景 7）、514e866 规则 6 水合句与 waiting-and-assertions 段落（新增场景 8、9）。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，输出 `/tmp/hs-d2/D2G1/web-testing/omp-openai-gpt-6.1-sol-medium/`（14:17–14:55 provider 503 期间的失败运行已自动重跑，不计）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 1.64 升级：隐藏 iframe / `--shuffle` / describe 级 lock（今日新增） | gpt-6.1-sol medium | 有 | true | 5/5 | 103 s。1.64 隐藏 iframe 内元素视为隐藏、旧版假通过，拒绝 `force` 先点开 "Pay by card"；`--shuffle`（文件级与 fully-parallel 两种）并说明 `--fully-parallel` 不随机化，按打印 seed 重放，修复靠隔离/复原标志而非固定顺序；文件级 `test.describe.configure({ lock: 'org-flags' })` |
+| 7 | gpt-6.1-sol medium | 无 | false | 5/5 | 复用 `/tmp/hs-evals/web-testing/omp-openai-gpt-6.1-sol-medium/baseline/7`（10:21；查询与期望与当前一致，夹具原文在 events 中逐行一致） |
+| 8 Next.js 结账 spec（今日新增；规则 6 水合句） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ◐4 ✔5 ✔6（5✔1◐） | 155 s。`test.fail(true, '#482…')` 放在动作之后；spinner 改为对总价 `toHaveText`；指出可操作性不保证已水合、要求应用提供就绪契约且不加 sleep；GraphQL 一刀切 mock 直接删除，未按 `operationName` 匹配；不附原始 trace.zip；eslint-plugin-playwright 具体规则 + `forbidOnly` |
+| 8 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✘3 ✔4 ✔5 ◐6 | 复用 `/tmp/hs-evals-M3/wt-b8/.../baseline/8`（11:42；场景 12:02 随提交入库后未改，夹具原文在 events 中逐行一致）。对 SSR 水合只字未提 |
+| 9 SMIL 动画 / 行 testid（今日新增，哨兵） | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ✔3 | 386 s。`pauseAnimations()` + `setCurrentTime(0)` 冻结 SMIL；行 testid 改为 `order-row-${order.id}`，但测试改成按 `order-status-refunded` 状态单元格断言，而非定位某一具体订单；统一 `data-testid`。testid 内容未合入正文，与今日改动（水合）无关 |
+| 9 | gpt-6.1-sol medium | 无 | false | 3/3 | 复用 `/tmp/hs-evals-M3/wt-b9/.../baseline/9`（11:46；场景 12:02 随提交入库后未改，夹具原文在 events 中逐行一致） |
+| 5 负例（Vitest reducer） | gpt-6.1-sol medium | 有 | false | 4/4 | 83 s。改 `round()` 为远离零取整，不涉及浏览器 |
+
+选择理由：7、8、9 为今日新增场景（必选），8 直接考察规则 6 的水合句；5 为负例。
+
+结论：通过。场景 8 E3（水合）基线 ✘、有 skill ✔，其余与基线持平；场景 9 E2 有 skill ◐ 低于基线，涉及的 testid 内容未合入正文、与今日改动无关，记为波动。负例 `skill_read=false`。正文未改。
