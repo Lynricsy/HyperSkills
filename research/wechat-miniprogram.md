@@ -342,3 +342,16 @@ packageA 的 JS 与组件，同事建议改用 `await import()`。
 | sonofmagic-skills | c4cfd3c → c44f95b（12 个同步提交） | weapp-vite 系列：DevTools E2E 的机器租约与「只清理本任务资源」、默认用本机最新 Stable、`wv doctor`、独立 `upload --json/--timeout`、实验性标准 Vite 插件、Wot UI/uview-plus 兼容基线版本号、React 19.3 组合；新增 `weapp-acceptance` | 噪声：作者自有工具链的用法，未涉及本 skill 交叉核对的 WXSS 类名转义与 rpx 处理 |
 
 正文未变，未跑 D2。只改 SOURCES.yaml（re-pin、cloudbase notes）与版本号 `2026.10.15`。
+
+## 2026-10-15 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| wx-official-docs | 数据更新算法：虚拟树更新（深度优先遍历整棵 Shadow 树，成本随节点量）与绑定映射表更新（glass-easel，仅单字段且未被 `wx:if`/`wx:for`/`let:` 及其子孙使用时） | [数据更新策略](https://developers.weixin.qq.com/miniprogram/dev/framework/component-framework/data-update-strategy.html) | 一致 |
+| wx-official-docs | 同层渲染已覆盖除 focus 态 `input` 外的全部原生组件；失败原因（Android 缺内核、iOS 节点树不稳定）；工具用 web 组件模拟原生组件 | [原生组件](https://developers.weixin.qq.com/miniprogram/dev/component/native-component.html) | 一致 |
+| wx-official-docs | 页面创建/销毁生命周期顺序；`navigateTo`/`redirectTo` 不能指向 tabBar 页，tabBar 页在栈中必为栈底且最多一个实例；单页栈 `navigateBack` 无论 `delta` 都失败；`reLaunch` 不重启 AppService、不重置全局；页面栈最多十层 | [页面路由](https://developers.weixin.qq.com/miniprogram/dev/framework/app-service/route.html)、[wx.navigateTo](https://developers.weixin.qq.com/miniprogram/dev/api/route/wx.navigateTo.html) | 一致。路由页现以「页面栈 + 悬垂页面」描述非活跃 tabBar 页与小窗页面，与规则 8 的栈底/单实例结论一致 |
+| wx-official-docs | 分包上限：单个分包/主包 2M，总计 30M（服务商代开发 20M）；独立分包不能定义 `App`、不能依赖主包与其他分包、`app.wxss` 无效、`getApp({ allowDefault: true })`（2.2.4+）；`lazyCodeLoading: "requiredComponents"` 在 app.json，全局 `usingComponents` 计为每页依赖 | [分包加载](https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages.html)、[独立分包](https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages/independent.html)、[按需注入](https://developers.weixin.qq.com/miniprogram/dev/framework/ability/lazyload.html) | 一致 |
+| wx-official-docs | 授权：拒绝后不再弹窗直接 fail，`getSetting`/`openSetting`；`requiredPrivateInfos` 声明地理位置接口；隐私：未在指引中声明的接口直接禁用，`getPrivacySetting`/`onNeedPrivacyAuthorization` 自 2.32.3，未同意时 `<input type="nickname">` 降级为 `text`；`wx.login` code 有效期五分钟且只能用一次、`session_key` 不得下发；storage 单 key 1MB、总计 10MB | [授权](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/authorize.html)、[app.json 配置](https://developers.weixin.qq.com/miniprogram/dev/reference/configuration/app.html)、[隐私协议开发指南](https://developers.weixin.qq.com/miniprogram/dev/framework/user-privacy/PrivacyAuthorize.html)、[wx.login](https://developers.weixin.qq.com/miniprogram/dev/api/open-api/login/wx.login.html)、[登录](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/login.html)、[wx.setStorage](https://developers.weixin.qq.com/miniprogram/dev/api/storage/wx.setStorage.html) | 一致；页脚仍为「Copyright © 2012-2026 Tencent. All Rights Reserved.」 |
+| miniprogram-ci | npm `latest` 仍为 2.1.31；`robot` 可选 1~30；`type` 枚举含 `miniProgram`/`miniProgramPlugin`/`miniGame`/`miniGamePlugin`；`privateKey`（内容）与 `privateKeyPath`（路径）并列；无提交审核接口；tarball 不含 LICENCE 文件 | `npm view miniprogram-ci`；`npm pack miniprogram-ci@2.1.31` 后读 `README.md` 第 221/272/318 行、`dist/@types/config/config.d.ts`、`dist/@types/project/ciProject.d.ts` | 一致 |
+
+6 组事实全部一致，正文未改；`wx-official-docs`、`miniprogram-ci` 的 `synced_at` 更新为 2026-10-15。

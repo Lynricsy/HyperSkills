@@ -82,7 +82,7 @@ upstreams:
     url: https://developers.weixin.qq.com/miniprogram/dev/framework/
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Normative source for the data-update algorithm, native-component same-layer rendering status, routing and lifecycle ordering, subpackage size caps, startup flow, authorization scopes and the privacy-agreement APIs."
     notes: "Page footer reads 'Copyright (c) 2012-2026 Tencent. All Rights Reserved.' - proprietary, so facts are cross-checked and restated, never copied."
 
@@ -91,7 +91,7 @@ upstreams:
     url: https://www.npmjs.com/package/miniprogram-ci
     license: NONE
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Upload/preview/packNpm option shapes and robot range, read from the published dist/@types declarations of miniprogram-ci@2.1.31."
     notes: "package.json declares MIT but the published tarball ships no LICENCE file, so the licence is recorded as NONE and nothing is copied; only the declared API surface is restated."
 
