@@ -90,5 +90,15 @@
       "Gives a migration that cannot silently drop data: pin the names with explicit `tag_name` or move the conditions to the new keys (optionally matching both keys during the rollout), and/or run dual emission with `--feature-gates=-processor.k8sattributes.DontEmitV0K8sConventions`; warns that turning off only `EmitV1K8sConventions` while `DontEmitV0K8sConventions` stays on is an invalid combination that stops the processor from starting",
       "Concludes no-go for the PR as written, and names downstream queries, dashboards and alerts on the old attribute keys as the other thing to migrate"
     ]
+  },
+  {
+    "skills": ["observability"],
+    "query": "We bumped our OpenTelemetry JS packages to 2.x (see package.json) and trace-shape.test.ts broke: it now throws `provider.addSpanProcessor is not a function`. Fix the tests so they pass on the 2.x SDK and still catch what they were written to catch. Show the corrected file and explain each change.",
+    "files": ["evals/files/trace-shape/trace-shape.test.ts", "evals/files/trace-shape/package.json"],
+    "expected_behavior": [
+      "Moves the span processor into the provider constructor (`new NodeTracerProvider({ spanProcessors: [new SimpleSpanProcessor(exporter)] })`), because the 2.x SDK removed `addSpanProcessor`, instead of downgrading the packages or patching the method back in",
+      "Replaces the `!s.parentSpanId` orphan filter with a check on `parentSpanContext` (for example `!s.parentSpanContext?.spanId`), explaining that 2.x no longer populates `parentSpanId`, so the old filter would report every CLIENT span as an orphan even after the constructor fix",
+      "Explains that the unsampled-traceparent test fails because the SDK default sampler is `ParentBased(root=AlwaysOn)`, not `AlwaysOn`, so a remote parent with the sampled flag `00` makes the service record nothing; fixes it by configuring `AlwaysOnSampler` (or `OTEL_TRACES_SAMPLER=always_on`) on the provider rather than by changing the test's traceparent flags or deleting the test"
+    ]
   }
 ]

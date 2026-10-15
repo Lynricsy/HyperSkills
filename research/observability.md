@@ -487,3 +487,38 @@ SRE Workbook 读站点页面。
 
 （表中编号按 `expected_behavior` 从 1 起数。）SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，google-sre-workbook 的
 `contributes` 补上「不建议在 SLO 告警中用 duration」。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：55281bd（上游同步：SDK 默认采样器更正——规则 7、`instrumentation.md`、`sampling.md`；JS SDK 2.x 测试片段；场景 2 期望 1 措辞）
+与 641609a（burn-rate 规则不加 `for:`——规则 23、design-alerts-and-slos 清单、`alerting-and-slos.md`；场景 3 期望 11）。
+当天已有的有 skill 结果都早于 641609a（场景 2 为 10:04、场景 3 为 12:45），不可复用；今天没有这两个场景的基线。故全部重跑。
+
+选场景：
+- 场景 2（`checkout-telemetry.ts`）：期望 1 今天改过，直接考察默认采样器更正。
+- 场景 3（告警与 SLO）：期望 11 今天改过，直接考察 `for:` 更正。
+- **新增场景 7**（夹具 `evals/files/trace-shape/trace-shape.test.ts`、`package.json`）：没有任何既有场景覆盖 JS SDK 2.x 测试片段的更正，
+  新增一个 1.x 写法的 trace 形状测试，在升级到 2.x 后要求修好：`addSpanProcessor`、`parentSpanId` 两处 API 变更，外加一个
+  「入站 `traceparent` flags 为 00 时仍须记录」的用例，顺带直接考察默认采样器。
+- 负例：场景 5。
+
+运行：`uv run tools/run_evals.py observability --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），
+产物在 `/tmp/hs-d2/D2G2/observability/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md` 与 `workspace/` 判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4◐ 5✔ 6✔ 7✔ 8✘ 9◐ 10✔ | 584 s。`sampler: new AlwaysOnSampler()`，答案写「explicit `AlwaysOn`, including requests with unsampled incoming parents」并实跑未采样父的冒烟（与更正一致）；4：设了 `OTEL_SEMCONV_STABILITY_OPT_IN` 但未讲 `http/dup` 分阶段；8：未提直方图按桶数放大；9：加了根 span，逐行 span 未合并 |
+| 2 | gpt-6.1-sol medium | 无 | False | 1◐ 2✔ 3✔ 4✘ 5✘ 6✔ 7✔ 8✘ 9◐ 10✔ | 396 s。去掉 5% 比例采样，却换成 `ParentBasedSampler({ root: AlwaysOn })`，答案写「upstream sampling decisions remain respected」「upstream-unsampled traces are still unavailable」；保留 `recordException`；未迁移 HTTP 语义约定 |
+| 3 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4◐ 5✘ 6✔ 7✔ 8✔ 9✔ 10✘ 11✔ 12✔ | 426 s。burn-rate 规则注释「No additional `for:` delay」，每条带 `runbook_url`，只剩 page / ticket（更正项 11 ✔）；4：只写了恢复测试，没解释短窗用于及时解除；5：保留 99.99%；10：未提 `OTEL_SEMCONV_STABILITY_OPT_IN` |
+| 3 | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4◐ 5✘ 6◐ 7✘ 8✔ 9✔ 10✘ 11✘ 12✔ | 630 s。burn-rate 页面告警 `for: 2m`、工单 `for: 15m`，另加第三级 `severity: info`，无 runbook 链接；6：延迟告警标为阻塞，未建 good-event 比率；7：保留「4xx 计为 good」 |
+| 7（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 183 s。读了 `references/instrumentation.md`；构造器 `spanProcessors`、`parentSpanContext?.spanId`、`AlwaysOnSampler`，并说明默认 `ParentBased(root=AlwaysOn)` 对 flags 00 什么都不导出；`npm test` 2 项通过，另实跑 ParentBased 对照导出 0 个 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 176 s。装依赖后读 `node_modules` 的 `.d.ts`，三处改法与有 skill 相同，也说明默认 parent-based 采样器会丢掉 flags 00 的请求 |
+| 5（负例） | gpt-6.1-sol medium | 有 | False | — | 36 s。只读夹具、修 `slugify.py`，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：两处更正相关的行为在有 skill 时都达成，且好于基线——场景 2 期望 1（基线保留 ParentBased、未采样父仍丢）、场景 3
+期望 11（基线给 burn-rate 加 `for:`、三级严重度、无 runbook）。场景 7 基线也全部达成：JS SDK 2.x 的 API 变更模型能从
+已安装包的类型声明自行得出，该更正只是消除正文里的错误示例，无回退。负例 `skill_read == false`。正文无需修改。
+
+遗留：场景 2 的 4、8、9 与场景 3 的 4、5、10 两侧都未完全达成，与今天的改动无关，未调整。各场景只有 1 次运行。
