@@ -556,3 +556,7 @@ docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 给出的描述本身也把任务放在最前，但没有把截断作为理由说出来；该规则今天未改，与今天的改动无关，未调整。各场景只有 1 次运行。
 另记：`references/description-optimization.md`「No XML tags … They are rejected」仍是不分主机的说法，与 6cb4de1 在
 `spec-reference.md` 改成「Anthropic's platform adds」的归属不一致；本轮各场景未因此出现错误行为，未改，留待下次复核统一措辞。
+
+### 同日修正与复测（主代理）
+
+统一措辞：`references/description-optimization.md` 改为「Anthropic's platform rejects them (the open specification does not forbid them)」，与 `spec-reference.md` 的归属一致。场景 6（含保留词 / 预算修法）有 skill 复测一次（`/tmp/hs-d2/main-sa/…/skill/6/`，69 s，`skill_read == true`）：EB1 ◐（讲清整体预算与单条上限，未提 8,000 字符回退值）、EB2 ✔（含「在源头精简 `description`/`when_to_use`」，即上午按官方文档更正的修法）、EB3 ✔、EB4 ✔（区分开放规范与 Anthropic 平台的保留词）。无回退。

@@ -45,7 +45,9 @@ belong in `## Scope`, whatever shape the body takes.
   not all whitespace, usually 8–16 words. This is a repository policy, not the
   Agent Skills specification's 1,024-character ceiling. Neither is a target;
   do not pad a clear shorter sentence.
-- **No XML tags**, in either the name or the description. They are rejected.
+- **No XML tags**, in either the name or the description. Anthropic's platform rejects them
+  (the open specification does not forbid them); leaving them out keeps the skill loadable
+  on every host.
 
 ## Adjacent scopes
 
