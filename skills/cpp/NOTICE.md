@@ -10,8 +10,8 @@ Reference-only sources (no content copied):
 
 - isocpp/CppCoreGuidelines (Proprietary) — https://github.com/isocpp/CppCoreGuidelines
 - https://eel.is/c++draft/ (NONE) — https://eel.is/c++draft/
-- https://cmake.org/cmake/help/v4.1/manual/cmake-buildsystem.7.html (BSD-3-Clause) — https://cmake.org/cmake/help/v4.1/manual/cmake-buildsystem.7.html
-- https://cmake.org/cmake/help/v4.1/manual/cmake-compile-features.7.html (BSD-3-Clause) — https://cmake.org/cmake/help/v4.1/manual/cmake-compile-features.7.html
+- https://cmake.org/cmake/help/v4.4/manual/cmake-buildsystem.7.html (BSD-3-Clause) — https://cmake.org/cmake/help/v4.4/manual/cmake-buildsystem.7.html
+- https://cmake.org/cmake/help/v4.4/manual/cmake-compile-features.7.html (BSD-3-Clause) — https://cmake.org/cmake/help/v4.4/manual/cmake-compile-features.7.html
 - https://clang.llvm.org/docs/AddressSanitizer.html (Apache-2.0 WITH LLVM-exception) — https://clang.llvm.org/docs/AddressSanitizer.html
 - https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html (Apache-2.0 WITH LLVM-exception) — https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
 - https://clang.llvm.org/docs/ThreadSanitizer.html (Apache-2.0 WITH LLVM-exception) — https://clang.llvm.org/docs/ThreadSanitizer.html

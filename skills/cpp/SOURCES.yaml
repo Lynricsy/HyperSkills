@@ -54,41 +54,41 @@ upstreams:
     url: https://eel.is/c++draft/
     license: NONE
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Semantic calibration of construction unwinding, moved-from library objects, vector invalidation, atomic publication and coroutine parameter/frame lifetime."
     notes: "Read except.ctor, vector.modifiers, lib.types.movedfrom, atomics.order and dcl.fct.def.coroutine. Working draft is not a released-standard availability table; no draft prose or examples copied."
   - id: cmake-buildsystem
     kind: docs
-    url: https://cmake.org/cmake/help/v4.1/manual/cmake-buildsystem.7.html
+    url: https://cmake.org/cmake/help/v4.4/manual/cmake-buildsystem.7.html
     license: BSD-3-Clause
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official target scope and usage-requirement calibration for references/build-and-diagnostics.md."
   - id: cmake-features
     kind: docs
-    url: https://cmake.org/cmake/help/v4.1/manual/cmake-compile-features.7.html
+    url: https://cmake.org/cmake/help/v4.4/manual/cmake-compile-features.7.html
     license: BSD-3-Clause
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official distinction between minimum language mode and individual feature support in SKILL.md and references/build-and-diagnostics.md."
   - id: clang-asan
     kind: docs
     url: https://clang.llvm.org/docs/AddressSanitizer.html
     license: Apache-2.0 WITH LLVM-exception
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official memory-check coverage and compiler-driver linkage guidance for references/build-and-diagnostics.md."
   - id: clang-ubsan
     kind: docs
     url: https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
     license: Apache-2.0 WITH LLVM-exception
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official undefined check-group exclusions and recovery behavior for references/build-and-diagnostics.md."
   - id: clang-tsan
     kind: docs
     url: https://clang.llvm.org/docs/ThreadSanitizer.html
     license: Apache-2.0 WITH LLVM-exception
     relation: reference
-    synced_at: "2026-09-12"
+    synced_at: "2026-10-15"
     contributes: "Official race-detection, instrumentation, static-linking and runtime-environment limits for the concurrency and build references."

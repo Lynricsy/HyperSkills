@@ -345,3 +345,18 @@ E191还实际读取Epic RPC页面。
 其余仓库上游（`cppcheatsheet`（a10cee6 → 7597054，6 commits）为 `repo moved, tracked paths unchanged`；`margelo-cpp`、`cpp-core-guidelines` 为 up to date）随 `--pin` 一并对齐；pin 写入的 commit 与审阅 HEAD 逐条一致（7597054、1e9e17b、b92f181、33bcd01），`pin_check.py` 结果 PIN CHECK CLEAN。6 条 `kind: docs` 条目为 manual check，本次未改。
 
 结论：behind 条目在追踪 paths 下均无上游提交，正文未变，未新增评测场景、未跑评测；仅 re-pin 并把版本号改为 2026.10.15。
+
+## 2026-10-15 文档上游复核
+
+范围：6 条 `kind: docs` 条目的 `contributes` 声明事实 + SKILL.md 与四份 references 实际引用的条款、选项与限制。当前 CMake 最新为 4.4.4（条目原指向 v4.1，页面现标注「This documents an old version of CMake」）；Clang 文档为当前开发版页面；本机实跑 clang 23.1.1、cmake 4.4.4。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| cpp-draft | [except.ctor] 构造失败只析构已初始化的子对象（外层析构函数不运行）；[vector.modifiers] 超容量插入重分配使全部引用/指针/迭代器（含 end）失效，未重分配时插入点及之后失效，`erase` 使擦除点及之后失效；[lib.types.movedfrom] 标准库对象移动后为有效但未指定状态；[atomics.order] release 存储被 acquire 读取到该值才 synchronizes-with；[dcl.fct.def.coroutine] 参数副本在调用 promise 构造函数之前初始化，引用参数的副本仍是引用；[coro.generator] `generator` 位于 Ranges 库（C++23） | https://eel.is/c++draft/ （except.ctor、vector.modifiers、lib.types.movedfrom、atomics.order、dcl.fct.def.coroutine、coroutine.generator.overview） | 一致 |
+| cmake-buildsystem | `target_link_libraries` 的 PRIVATE/INTERFACE/PUBLIC 控制使用需求传播；静态库的链接依赖为消费者链接时传递记录，PRIVATE 不消除下游链接依赖 | https://cmake.org/cmake/help/v4.4/manual/cmake-buildsystem.7.html | 一致；v4.1→v4.4 正文 diff 仅为 DEFINE_SYMBOL 说明扩写与新增「Properties Allowed on Interface Libraries」小节（3.19 起接口库可设任意属性），与正文规则无关。**url 迁移**到 v4.4 |
+| cmake-features | `cxx_std_NN` 元特性只要求「至少知晓该标准」的编译模式，不保证任何具体特性存在，缺失特性延迟到编译期诊断 | https://cmake.org/cmake/help/v4.4/manual/cmake-compile-features.7.html | 一致；v4.1→v4.4 正文无差异（仅版本/版权页脚）。**url 迁移**到 v4.4，references「Verified against」改为 CMake 4.4.4 |
+| clang-asan | 覆盖堆/栈/全局越界与 use-after-free 等；最终链接须用 clang 驱动（不是 ld） | https://clang.llvm.org/docs/AddressSanitizer.html | 一致；本机 `-fsanitize=address,thread` 被驱动拒绝（"not allowed with"），佐证不可组合 |
+| clang-ubsan | `-fsanitize=undefined` 不含 float-divide-by-zero、unsigned-integer-overflow、implicit-conversion、local-bounds、vptr 与 nullability-*；默认报告后继续执行，`-fno-sanitize-recover=` 改为退出 | https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html | 一致；本机按正文命令形状实跑带符号溢出复现：加 `-fno-sanitize-recover=undefined` 退出码 1，不加为 0 |
+| clang-tsan | 不支持 libc/libstdc++ 静态链接；`no_sanitize("thread")`/未插桩代码可能漏同步而误报；影子内存映射失败（如禁用 ASLR）是环境错误 | https://clang.llvm.org/docs/ThreadSanitizer.html | 一致 |
+
+结论：6 条事实全部一致，无更正、无新增内容需评测；两条 CMake 条目 url 由 v4.1 迁移到 v4.4（内容核对一致），6 个条目 `synced_at` 改为 2026-10-15。

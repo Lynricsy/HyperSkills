@@ -1,6 +1,6 @@
 # Build interfaces and diagnostic evidence
 
-Verified against: CMake 4.1.6 documentation (examples require CMake 3.20+),
+Verified against: CMake 4.4.4 documentation (examples require CMake 3.20+),
 Clang sanitizer documentation, and C++17/20/23 language floors.
 Build and instrumentation claims are [official]; test staging is [community].
 
