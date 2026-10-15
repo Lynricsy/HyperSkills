@@ -113,5 +113,28 @@
       "Reproduces a failing shuffled run by passing the seed printed at the start of that run back as `--shuffle <seed>`, then fixes the dependency (reset or isolate the flag the billing test leaves on) rather than pinning the order",
       "Replaces the repeated per-test option with one `test.describe.configure({ lock: 'org-flags' })` (Playwright 1.64+) at file or describe level, so new tests in the file inherit the lock"
     ]
+  },
+  {
+    "skills": ["web-testing"],
+    "query": "checkout.spec.ts runs against our Next.js storefront. On CI `applies coupon` fails now and then (the trace shows the total still at the pre-coupon amount), and `discount rounds half-cents` fails every run because of a known app bug, #482, whose fix is scheduled for next sprint. Make CI green without hiding real problems, and show the changed spec. Then draft the bug report for #482; our issue tracker is public and I plan to attach the trace.zip from the CI run. Finally, what should we add so this kind of test code does not come back?",
+    "files": ["evals/files/checkout.spec.ts"],
+    "expected_behavior": [
+      "Marks `discount rounds half-cents` with `test.fail()` plus an issue annotation for #482 (so the suite reports when the bug is fixed), instead of `test.skip`, deleting the test or loosening the assertion; reserves `test.fixme` for tests that crash or hang",
+      "Explains that `toBeHidden()` on the spinner can pass before the spinner has ever appeared, and replaces the spinner wait plus `textContent()` read with a web-first assertion on the positive end state (`toHaveText('$90.00')` on the total)",
+      "Says the server-rendered button is visible and enabled before React hydrates, so the click can land before the handler is attached; waits for an app-set hydration signal (or the positive result of the action), not `waitForTimeout` or `networkidle`",
+      "Notes that the `**/graphql` route answers every operation (GetCart, ApplyCoupon, GetShippingRates) with the cart fixture; matches on `request.postDataJSON().operationName` and lets other operations through with `route.fallback()` or `route.continue()`",
+      "Warns not to attach the raw trace.zip to a public issue because it records cookies, authorization headers, response bodies and DOM snapshots; shares it privately or scrubbed instead",
+      "Recommends eslint-plugin-playwright as a mechanical gate with specific rules (for example `no-wait-for-timeout`, `prefer-web-first-assertions`, `missing-playwright-await`, `no-force-option`, `no-networkidle`, `no-conditional-in-test`), alongside `forbidOnly` / `--forbid-only` in CI"
+    ]
+  },
+  {
+    "skills": ["web-testing"],
+    "query": "Two problems with orders.spec.ts against OrderList.tsx. The visual baseline diffs on almost every CI run, always around the sync icon, even though we pass `animations: 'disabled'`. And `refunded order shows its status` breaks whenever someone changes the default sort or the seed data. Fix the spec and the component as needed and show both.",
+    "files": ["evals/files/orders.spec.ts", "evals/files/OrderList.tsx"],
+    "expected_behavior": [
+      "Explains that `animations: 'disabled'` only stops CSS animations, CSS transitions and Web Animations, so the SMIL `<animateTransform>` keeps running; freezes it before the screenshot with `pauseAnimations()` and `setCurrentTime(...)` on the SVG (or masks the icon), not by raising the diff threshold",
+      "Changes the row test id to a stable domain key (`order-row-${order.id}` or the order number) instead of the array index, and updates the test to target that order",
+      "Standardises on one test-id attribute: replaces `data-qa` with `data-testid` (the configured `testIdAttribute`) and uses `getByTestId` or a role locator for the table instead of a raw `[data-qa]` selector"
+    ]
   }
 ]

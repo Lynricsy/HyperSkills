@@ -809,3 +809,45 @@ addyosmani-devtools、lambdatest-playwright、anthropics-webapp-testing、wshobs
 结论：基线靠查官方文档已全部做到，1.64 新增内容不合入，场景 7 与夹具留作哨兵。正文与 references 未变（「Facts here are
 written against Playwright 1.63.0」的版本声明仍然成立，1.63+ 的门槛写法不受影响），只做 re-pin，`metadata.version` 与
 `SOURCES.yaml` 的 `version` 改为 2026.10.15；正文未变，未跑有 skill 的 D2。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS4 G（testdino-hq/playwright-skill `qa/SKILL.md` MERGE、`frontend/SKILL.md` MAYBE，MIT，178d1cb）与
+NewS5（github/awesome-copilot `skills/cypress-flake-fixer` MAYBE，MIT）；另顺带核对 NewS3 event4u `svg-authoring` 里与本 skill
+相关的一条（`animations: 'disabled'` 冻不住 SMIL）。`--shuffle` 已由今天的哨兵场景 7 覆盖（基线 5/5），不重复评。
+
+核实：本机 `@playwright/test` 1.64.1 + Chromium 156 实跑（`/tmp/m3-pw/probe.spec.ts`、`smil.mjs`、`trace.mjs`）；
+eslint-plugin-playwright 规则名用 `gh api repos/playwright-community/eslint-plugin-playwright/contents/docs/rules` 核对（v2.12.1，MIT）。
+
+| 候选 | 来源 | 核实证据 | 基线 | 结论 |
+|---|---|---|---|---|
+| 已知应用 bug 用 `test.fail()` + issue 标注，不用 skip/删测试/放宽断言；`fixme` 留给崩溃或挂起 | testdino qa | 实跑：`test.fail()` 的测试断言失败时计为通过（列表显示 ✘、汇总「4 passed」）；`{ annotation: { type: 'issue', … } }` 被接受 | 场景 8 E1 ✔ | 不合入（基线已会） |
+| CI 加 `--forbid-only` | testdino qa | 1.64.1 `--help` 列出该参数 | 已有（`ci-pipelines.md` `forbidOnly`） | 不合入（已覆盖） |
+| eslint-plugin-playwright 机械门（`no-wait-for-timeout`、`prefer-web-first-assertions`、`missing-playwright-await`、`no-force-option`、`no-networkidle`、`no-conditional-in-test`） | testdino qa | 上游 `docs/rules/` 目录中均存在 | 场景 8 E6 ◐（给出三条规则，未提 forbidOnly——后者本 skill 已有） | 不合入（核心已会） |
+| 公开 issue 不附 `trace.zip`：含 cookie、token、响应体 | testdino qa | 实跑：本地服务下发 `Set-Cookie: session=SECRET…`、请求带 `Authorization: Bearer TOKEN…`、页面含邮箱，三者分别出现在 trace 的 `trace.network`、`resources/*.html`、`trace.trace` 中 | 场景 8 E5 ✔ | 不合入（基线已会） |
+| 频率写成 N/20、提报前分类 | testdino qa | — | 已有（`flakiness.md` 四形态分类与 `--repeat-each=20`） | 不合入（已覆盖） |
+| 列表行 testid 用业务主键不用下标；全应用统一一个属性名 | testdino frontend | `testIdAttribute` 文档 | 场景 9 E2 ✔ E3 ✔ | 不合入（基线已会） |
+| SSR 页面在水合前按钮已可见可用，点击落空 | cypress-flake-fixer | 实跑：监听器 800 ms 后才挂上的按钮，`click()` 通过可操作性检查但结果始终为空；断言 `data-hydrated` 后再点击则生效。官方可操作性检查项（attached/visible/stable/enabled/receives events）不含「已绑定处理器」 | 场景 8 E3 ✘（完全未提水合） | **合入**：`SKILL.md` 规则 6 补一句、`waiting-and-assertions.md` 可操作性一节补说明与示例 |
+| 「spinner 消失」断言在 spinner 出现前就通过 | cypress-flake-fixer | 实跑：300 ms 后才出现的 spinner，`toBeHidden()` 立即通过、总价仍是旧值 | 场景 8 E2 ✔ | 不合入（基线已会） |
+| GraphQL 共用 URL，按 `operationName` 匹配 | cypress-flake-fixer | `request.postDataJSON()` 为现有 API（`network-and-time.md` 已用） | 场景 8 E4 ✔ | 不合入（基线已会） |
+| `toHaveScreenshot({ animations: 'disabled' })` 冻不住 SMIL | event4u svg-authoring | 实跑（Chromium、Firefox）：截图前后 `<animateTransform>` 角度持续前进 | 场景 9 E1 ✔（用 mask） | 不合入（基线已会） |
+
+### 评测（omp + `openai/gpt-6.1-sol`，thinking `medium`）
+
+新增场景 8（夹具 `checkout.spec.ts`：Next.js SSR 结账页、已知 bug #482、spinner 等待、`**/graphql` 一刀切 mock、公开 issue 附 trace）
+与场景 9（夹具 `orders.spec.ts`、`OrderList.tsx`：SMIL 图标让视觉基线抖动、下标 testid、混用 `data-qa`）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 结账 spec | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✔ E3 ✘ E4 ✔ E5 ✔ E6 ◐ | `test.fail(true, '#482 …')`；去掉 GraphQL 一刀切 mock 并提 `operationName`；明确「不要把原始 trace.zip 附到公开 issue」；对 SSR 水合只字未提 |
+| 8 结账 spec | gpt-6.1-sol medium | 有 | true | E1 ✔ E2 ✔ **E3 ✔** E4 ✔ E5 ✔ E6 ✔ | 「SSR visibility alone does not mean event handlers are attached」，预防措施里要求应用暴露水合就绪契约、「Do not substitute sleeps or `networkidle`」；规则来自 SKILL.md 规则 6（读了 SKILL.md、`artifacts-and-debugging.md`、`flakiness.md`） |
+| 9 视觉/testid | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✔ E3 ✔ | 「`animations: 'disabled'` does not stop SVG SMIL animations」并 mask 图标；`order-row-${order.id}`；统一 `data-testid` |
+
+D2 判定：基线未达成的场景 8 E3 在有 skill 时达成。场景 9 基线全部达成，对应内容未合入，未跑有 skill，场景留作哨兵。
+负例未改 description / Scope，未重跑。输出目录：`/tmp/hs-evals-M3/wt-b8`、`wt-b9`（基线）、`wt-s8`（有 skill）。
+
+### 正文改动
+
+- `SKILL.md` 规则 6：可操作性不包含「已绑定处理器」，SSR 页面水合前点击落空，`goto` 后断言应用设置的水合信号。
+- `references/waiting-and-assertions.md` Actionability 一节：水合陷阱、1.64.1 实测、`data-hydrated` 示例；不用 `waitForTimeout` / `networkidle` 补救。
+- `SOURCES.yaml`：`awesome-copilot` 的 `paths` 加 `skills/cypress-flake-fixer/SKILL.md` 并更新 `contributes` / `notes`；`testdino-playwright` 的 `notes` 记录 qa/frontend 已审未合入。

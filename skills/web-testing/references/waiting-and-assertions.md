@@ -97,6 +97,21 @@ than working around with `{ force: true }`.
 `{ force: true }` skips actionability entirely. It is correct only when the intent is genuinely
 "click this even though a user could not", which is almost never in an end-to-end test.
 
+None of these checks asks whether a handler is attached. A server-rendered page (Next.js, Nuxt,
+SvelteKit, Remix, Astro islands) ships a button that is visible, stable and enabled before the
+client bundle hydrates it, so a click straight after `goto` passes actionability, lands, and does
+nothing. Verified locally on 1.64.1: a button whose listener attaches 800 ms after load accepted
+the click and the result never appeared. Do not paper over it with `waitForTimeout` or
+`networkidle`. Have the app expose a hydration signal (for example a `data-hydrated` attribute
+set from a mount effect on the root) and assert it after navigation, or make the follow-up
+assertion the positive result of the action so a lost click fails with a readable message:
+
+```ts
+await page.goto('/checkout');
+await expect(page.locator('body')).toHaveAttribute('data-hydrated', 'true');
+await page.getByRole('button', { name: 'Apply coupon' }).click();
+```
+
 ## Web-first assertions retry; awaited values do not
 
 `expect(locator)` takes the locator and re-evaluates it until the matcher passes or

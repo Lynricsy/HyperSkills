@@ -7,7 +7,7 @@ upstreams:
     url: https://github.com/microsoft/playwright
     paths: [packages/playwright-core/types/types.d.ts, packages/playwright/types/test.d.ts]
     ref: main
-    commit: 5c42a39d3bcdfb622838d8f53d9680db5a247ebf
+    commit: a038fe7e0eb955ef41db53d40a859ce487889b6d
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"
@@ -60,19 +60,19 @@ upstreams:
     relation: merged
     synced_at: "2026-10-15"
     contributes: "The per-action actionability matrix, not.toBeAttached versus not.toBeVisible, the rule that event waiters must exist before their trigger, the fullyParallel truth table, blob reports with merge-reports, retain-on-failure-and-retries for flake triage, and the AbortSignal-is-not-a-timeout distinction."
-    notes: "Its claim of a --retry-strategy CLI flag was rejected: absent from 1.63.0 --help, though retryStrategy exists as a config option. Nested core/SKILL.md and ci/SKILL.md sub-skills were flattened."
+    notes: "Its claim of a --retry-strategy CLI flag was rejected: absent from 1.63.0 --help, though retryStrategy exists as a config option. Nested core/SKILL.md and ci/SKILL.md sub-skills were flattened. The qa/ and frontend/ guides added in 2026-10 (test.fail with an issue annotation for known bugs, --forbid-only, eslint-plugin-playwright rules, trace.zip secrecy, domain-key test ids, one test-id attribute) were reviewed and not carried: the baseline model already did all of them (research/web-testing.md, 2026-10-15 new-content review)."
   - id: awesome-copilot
     kind: repo
     repo: github/awesome-copilot
     url: https://github.com/github/awesome-copilot
-    paths: [instructions/playwright-typescript.instructions.md, skills/playwright-generate-test, skills/playwright-explore-website, skills/chrome-devtools]
+    paths: [instructions/playwright-typescript.instructions.md, skills/playwright-generate-test, skills/playwright-explore-website, skills/chrome-devtools, skills/cypress-flake-fixer/SKILL.md]
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 36e95dfda72140a68f577d5c894a551607606bd3
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
-    contributes: "toMatchAriaSnapshot as the structural assertion, test.step as a default structuring device, the explore-then-generate ordering that forbids writing a spec before driving the browser, and the accessibility-snapshot-before-screenshot rule for element discovery."
-    notes: "Copilot-specific applyTo frontmatter stripped. Two positions rejected: its skills/webapp-testing directory is pre-locator-era throughout, and its instructions file's advice to avoid expect(locator).toBeVisible() is an outlier against three other upstreams."
+    contributes: "toMatchAriaSnapshot as the structural assertion, test.step as a default structuring device, the explore-then-generate ordering that forbids writing a spec before driving the browser, and the accessibility-snapshot-before-screenshot rule for element discovery. From cypress-flake-fixer, the framework-neutral hydration trap: a server-rendered control is actionable before its handler is attached."
+    notes: "Copilot-specific applyTo frontmatter stripped. Two positions rejected: its skills/webapp-testing directory is pre-locator-era throughout, and its instructions file's advice to avoid expect(locator).toBeVisible() is an outlier against three other upstreams. cypress-flake-fixer is otherwise Cypress-specific and Cypress stays out of scope; its spinner-disappearance and GraphQL operationName points were already known to the baseline model."
   - id: addyosmani-devtools
     kind: repo
     repo: addyosmani/agent-skills

@@ -67,6 +67,9 @@ Paths below are relative to this skill's directory.
 6. Actions already wait for actionability, so an `expect(...).toBeVisible()` in front of a `click`
    on the same locator adds nothing. Each action waits for its own set: `click` needs attached,
    visible, stable, enabled and unobscured; `fill` needs attached, visible, enabled and editable.
+   None of them waits for an event handler: on a server-rendered page a click before hydration
+   lands and does nothing, so assert an app-set hydration signal after `goto`
+   (`references/waiting-and-assertions.md`).
 7. `waitForLoadState('networkidle')` is discouraged by Playwright itself and is not the cure for a
    fixed wait. Any app with polling, analytics beacons or an open websocket never reaches network
    idle. Express readiness as an assertion about the thing you care about.
