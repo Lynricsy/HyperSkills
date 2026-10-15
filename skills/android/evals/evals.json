@@ -90,5 +90,15 @@
       "Gives `items(...)` a stable `key = { it.id }` and explains that index identity discards item state on insert or removal",
       "Says to confirm the result on a release (R8, non-debuggable) build with compiler reports, Layout Inspector skip counts or a benchmark, rather than judging from a debug build"
     ]
+  },
+  {
+    "skills": ["android"],
+    "query": "Review LabelScanViewModel.kt and PantrySyncRepository.kt before we merge this PR. Users report the label scanner crashes on some photos, memory keeps climbing after leaving the scan screen, and this PR also adds the web client to the shared module. List what is wrong and show the fixes.",
+    "files": ["evals/files/LabelScanViewModel.kt", "evals/files/PantrySyncRepository.kt"],
+    "expected_behavior": [
+      "Says the `viewModelScope.launch { classifier.close() }` in `onCleared()` never runs, because `viewModelScope` is closed (cancelled) before `onCleared()` is called, so the native handle leaks; fixes it by closing synchronously in `onCleared()`, registering the classifier with `addCloseable(...)`, or using a scope the ViewModel owns",
+      "Says `ImageDecoder.decodeBitmap` returns a `Config.HARDWARE` bitmap by default (minSdk 29), that scaling keeps it HARDWARE, and that `getPixels` then throws `IllegalStateException`; fixes it with `setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)` in the header listener or `copy(Bitmap.Config.ARGB_8888, false)` before reading pixels",
+      "Says `Dispatchers.IO` does not exist for the `wasmJs` target, so `commonMain` stops compiling once the web target is added; fixes it by injecting a `CoroutineDispatcher` (provided per platform) or using `Dispatchers.Default`, not by keeping `Dispatchers.IO` in common code"
+    ]
   }
 ]

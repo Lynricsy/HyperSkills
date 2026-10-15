@@ -16,13 +16,14 @@ upstreams:
       - profilers/android-profiler
       - system/edge-to-edge
       - security/android-intent-security
+      - device-ai/litert/litert-runtime
     ref: main
     commit: 5bda39f154fb859a08d45e2392f3568e049f83fb
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"
-    contributes: "AGP 9 migration sequence (built-in Kotlin, kapt to KSP or legacy-kapt, BuildConfig, new DSL and variant API, default-flag flips), testing strategy and source-set placement, R8 keep-rule discipline, edge-to-edge and window insets, Intent and exported-component security, Navigation 3 and type-safe destinations (including the 1.2 result event bus and its process-death caveat, deep-link matchers, and the ViewModelStore entry decorator that entry-scoped ViewModels need), incremental XML-to-Compose migration, adaptive layout, Perfetto triage order. Its 2026-10 jetpack-compose-performance skill is the source of the stability-cost ruling: a stable parameter is compared with equals, so ImmutableList or @Immutable on a model holding a large collection is not a default fix."
-    notes: "Every SKILL.md here declares `license: Complete terms in LICENSE.txt`. The repository tree contains exactly one licence file, the root LICENSE.txt, which is the full Apache License 2.0; each referenced directory was checked and none carries its own licence, so all of them are merged under Apache-2.0. Upstream frontmatter fields metadata.last-updated and metadata.keywords were stripped."
+    contributes: "AGP 9 migration sequence (built-in Kotlin, kapt to KSP or legacy-kapt, BuildConfig, new DSL and variant API, default-flag flips), testing strategy and source-set placement, R8 keep-rule discipline, edge-to-edge and window insets, Intent and exported-component security, Navigation 3 and type-safe destinations (including the 1.2 result event bus and its process-death caveat, deep-link matchers, and the ViewModelStore entry decorator that entry-scoped ViewModels need), incremental XML-to-Compose migration, adaptive layout, Perfetto triage order. Its 2026-10 jetpack-compose-performance skill is the source of the stability-cost ruling: a stable parameter is compared with equals, so ImmutableList or @Immutable on a model holding a large collection is not a default fix. Its litert-runtime skill pointed out that viewModelScope is closed before onCleared() runs, which corrected kotlin-coroutines.md after a check against androidx ViewModelImpl.clear()."
+    notes: "Every SKILL.md here declares `license: Complete terms in LICENSE.txt`. The repository tree contains exactly one licence file, the root LICENSE.txt, which is the full Apache License 2.0; each referenced directory was checked and none carries its own licence, so all of them are merged under Apache-2.0. Upstream frontmatter fields metadata.last-updated and metadata.keywords were stripped. From litert-runtime only the viewModelScope teardown order was used; the LiteRT SDK material is out of scope and its HARDWARE-bitmap getPixels warning was already known to the baseline model (research/android.md, 2026-10-15 new-content review)."
   - id: skydoves-compose-perf
     kind: repo
     repo: skydoves/compose-performance-skills

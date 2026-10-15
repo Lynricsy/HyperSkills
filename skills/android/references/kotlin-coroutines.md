@@ -34,7 +34,10 @@
 Every coroutine has a parent scope, and cancelling the parent cancels the children. That
 is the whole leak-prevention mechanism, so never opt out of it:
 
-- `viewModelScope` in a ViewModel — cancelled in `onCleared()`.
+- `viewModelScope` in a ViewModel — closed (cancelled) during clearing, *before*
+  `onCleared()` runs. A `viewModelScope.launch { release() }` inside `onCleared()` never
+  executes, so release native or other resources with `addCloseable(...)` or synchronously
+  in `onCleared()`.
 - `lifecycleScope` in an Activity/Fragment, only for UI work.
 - An injected application-wide scope
   (`CoroutineScope(SupervisorJob() + Dispatchers.Default)`) for work that must outlive the
@@ -167,4 +170,4 @@ Migrate at a boundary (one repository at a time) and use `kotlinx-coroutines-rx3
 adapters to keep both worlds working during the transition rather than converting the
 whole graph in one commit.
 
-<!-- sources: silvermoon-android, jetbrains-kotlin, kotlin-docs, android-docs -->
+<!-- sources: silvermoon-android, jetbrains-kotlin, kotlin-docs, android-docs, android-official -->

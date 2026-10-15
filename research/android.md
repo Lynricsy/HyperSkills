@@ -378,3 +378,32 @@ D2 判定：场景 7 基线未达成的 E1、E2、E4 在有 skill 时达成（E1
 
 - 场景 7 只有 1 次有 skill 运行；场景 1 回归的 EB2/EB7 未达成，原因不在本次改动，未继续调。
 - `computedStateOf` 等待 Compose 1.13 稳定后再评估。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS3 的 android 条目。车机（`cars/android-for-cars-parked-apps`）、手表与 Glance（`wear/wear-widgets`、
+`system/glance-canonical-layouts`）需先定 Scope 或依赖 alpha，不在本次范围。
+
+| 候选 | 来源 | 核实证据 | 基线 | 结论 |
+|---|---|---|---|---|
+| `viewModelScope` 在 `onCleared()` **之前**关闭，`onCleared` 里 `viewModelScope.launch { release() }` 不会执行 | android/skills `device-ai/litert/litert-runtime`（Apache-2.0） | androidx-main `ffadc46` `lifecycle-viewmodel/src/commonMain/.../ViewModel.kt`：`clear()` 文档的清理顺序为「1. 带 key 的 closeable → 2. 构造函数传入的 → 3. 不带 key 的 → 4. 调 `onCleared`」；`viewModelScope` getter 用 `addCloseable(VIEW_MODEL_SCOPE_KEY, scope)` 注册，`CloseableCoroutineScope.close()` 即 `coroutineContext.cancel()`；`ViewModelImpl.clear()` 先逐个关闭 closeable，且只清空无 key 的列表（取到的仍是已取消的 scope） | 场景 8 E1 ✔ | **事实更正，合入**：`kotlin-coroutines.md:37` 原写「cancelled in `onCleared()`」，改为「清理时在 `onCleared()` 之前关闭；释放资源用 `addCloseable(...)` 或在 `onCleared()` 里同步完成」 |
+| `ImageDecoder` 默认返回 `Config.HARDWARE` 位图，缩放后仍是 HARDWARE，`getPixels` 抛异常；读像素前转 ARGB_8888 或用软件分配器 | 同上 | Android 参考文档：`ALLOCATOR_DEFAULT`「typically result in a Bitmap.Config.HARDWARE allocation」；`getPixels` / `getPixel` / `copyPixelsToBuffer`「Throws IllegalStateException if the bitmap's config is Config.HARDWARE」；`ALLOCATOR_SOFTWARE` 用于读取像素 | 场景 8 E2 ✔（还指出 224×224 原图时 `createScaledBitmap` 直接返回原对象） | **不合入**（新增内容，基线已会；场景留作哨兵） |
+| KMP：`commonMain` 同时面向 JS/Wasm 时没有 `Dispatchers.IO` | Meet-Miyani/compose-skill v6（MIT） | kotlinx.coroutines `kotlinx-coroutines-core/concurrent/src/Dispatchers.kt:46` `public expect val Dispatchers.IO`；`build.gradle.kts` 中 `groupSourceSets("concurrent", listOf("jvm", "native"), listOf("common"))`——只有 JVM 与 Native 能见到，js/wasmJs/wasmWasi 不在其中 | 场景 8 E3 ✔（引用 1.10.2 源码，并指出改 `Dispatchers.Default` 不让阻塞调用变得浏览器安全） | **不合入**（基线已会；场景留作哨兵） |
+
+### 评测（omp + `openai/gpt-6.1-sol`，thinking `medium`）
+
+新增场景 8（夹具 `LabelScanViewModel.kt`、`PantrySyncRepository.kt`）：评审一个在 `onCleared` 里 `viewModelScope.launch { classifier.close() }`、
+`ImageDecoder` 解码后 `getPixels`、`commonMain` 写 `withContext(Dispatchers.IO)` 且本 PR 新增 `wasmJs` 目标的改动。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 评审 | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✔ E3 ✔ | 三条全部答出：「`viewModelScope` is cancelled before `onCleared()` runs」、`ALLOCATOR_SOFTWARE`、「`Dispatchers.IO` is available on JVM and Native, not JS/Wasm」 |
+
+结论：两条新增内容基线已会，不合入；`viewModelScope` 一条按事实更正处理（本 skill 原文与 androidx 源码相悖，与基线是否会无关），
+不需要基线缺口，未跑有 skill。场景 8 留作三条行为的哨兵。负例未改 description / Scope，未重跑。
+输出目录：`/tmp/hs-evals-M3/android-b8`。
+
+### 正文改动
+
+- `references/kotlin-coroutines.md` Structured concurrency：`viewModelScope` 条目更正清理顺序与释放资源的做法；来源注释补 `android-official`。
+- `SOURCES.yaml`：`android-official` 的 `paths` 加 `device-ai/litert/litert-runtime`，`contributes` / `notes` 记录只取这一条。
