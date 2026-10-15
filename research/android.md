@@ -424,3 +424,50 @@ D2 判定：场景 7 基线未达成的 E1、E2、E4 在有 skill 时达成（E1
 | kotlin-docs | 页面地址 | 旧地址 `kotlinlang.org/docs/multiplatform-hierarchy.html` 返回 200 但只含 meta refresh 到 `/docs/multiplatform/multiplatform-hierarchy.html` | **url 迁移**：`url` 更新，notes 记录 |
 
 处理：一处 reference 更正 + kotlin-docs url 迁移；`synced_at` 2 条更新为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：eb1b653（稳定性修法按官方改写——规则 9 与示例、`compose-performance.md`、`architecture.md`；`navigation.md` entry 级
+ViewModel 需显式装饰器；新增场景 7、放宽场景 1 期望 1）、770eb41（`kotlin-coroutines.md` `viewModelScope` 在 `onCleared()` 之前关闭；
+新增场景 8）、00d7dd1（`kmp-compose-multiplatform.md` 默认层级模板：`nativeMain`/`webMain`、手写 `dependsOn` 关掉模板）。
+
+复用判定：今天已有的有 skill 结果（场景 1、7，10:18–10:19）早于 770eb41 / 00d7dd1，不可复用，重跑。基线可复用：场景 7 基线
+`/tmp/hs-evals-sync/SyncG3/android-b7/android/omp-openai-gpt-6.1-sol-medium/baseline/7`（10:14）、场景 8 基线
+`/tmp/hs-evals-M3/android-b8/android/omp-openai-gpt-6.1-sol-medium/baseline/8`（11:39）——两份 `result.json` 的 query 与
+expected_behavior 与当前 `evals.json` 逐字一致，场景加入后夹具与期望未再改动（工作区副本与仓库不同是 agent 自己的编辑）。
+场景 1 期望今天改过，基线重跑。
+
+选场景：
+- 场景 1（期望 1 今天放宽）、场景 7（今天新增，稳定性更正）、场景 8（今天新增，`viewModelScope` 更正）。
+- 场景 5（Nav2 → Nav3 迁移）：夹具在目的地里调用 `viewModel()`，迁移后要自己传 `entryDecorators`，直接用到 `navigation.md` 的
+  装饰器更正；该更正不在期望列表里，另在备注记录装饰器是否正确。
+- **新增场景 9**（夹具 `evals/files/shared-build.gradle.kts`）：没有既有场景覆盖 KMP 默认层级模板更正。夹具在 Kotlin 2.2.20
+  的 shared 模块里手写 `browserMain` 并 `dependsOn` 连到 `jsMain`/`wasmJsMain`，同时要为 iOS 与 macOS 共享 Keychain 封装。
+- 负例：场景 4。
+
+运行：`uv run tools/run_evals.py android --only N [--baseline] --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/D2G2/android/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 有 | True | 1✔ 2✘ 3✔ 4✔ 5✔ 6✔ 7✘ | 132 s。1：去掉 `@Immutable`，`val readCount`、`tags: List<String>`，`_articles.update { … copy(…) }`，未引入 `ImmutableList`（与更正一致）；2：未提强跳过下的 `===`；7：修饰符链原样保留。两条缺失与今日上游同步一节记录的相同 |
+| 1 | gpt-6.1-sol medium | 无 | False | 1✔ 2✘ 3✔ 4✘ 5✔ 6✔ 7✘ | 95 s。去掉 var，但改用 `ImmutableList` 并称只读 `List` 不足以保证不可变（期望允许，不算错）；未换 `collectAsStateWithLifecycle`、`BannerBar` 仍收 `Flow`；未提 `===` |
+| 7 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4◐ | 152 s。读 `compose-performance.md`；按 id 复用未变的 `PostUi` 与集合引用，明说「Don't add `@Immutable` … deep equality checks during skip decisions」；`items(key = { it.id })`；4：提到看编译报告 `restartable skippable` 与跳过次数，未要求 release（R8）构建 |
+| 7 | gpt-6.1-sol medium | 无（复用） | false | 1✘ 2✘ 3✔ 4✘ | 复用 SyncG3 `android-b7`（见上节）：`ImmutableList` + `@Immutable`，未保持实例 |
+| 8 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 147 s。读 `kotlin-coroutines.md`、`kmp-compose-multiplatform.md`；「`viewModelScope` is cancelled before `onCleared()`」，改为 ViewModel 自有 worker 在 `finally` 中 close；`ALLOCATOR_SOFTWARE` + `setTargetSize`；`Dispatchers.IO` 不在 wasm 可见源集，调度下放到平台实现 |
+| 8 | gpt-6.1-sol medium | 无（复用） | false | 1✔ 2✔ 3✔ | 复用 M3 `android-b8`（见上节新增内容评估） |
+| 5 | gpt-6.1-sol medium | 有 | True | 1✘ 2◐ 3✘ 4✔ 5✔ | 278 s。读 `navigation.md`；`entryDecorators` 同时放 `rememberSaveableStateHolderNavEntryDecorator()` 与 `rememberViewModelStoreNavEntryDecorator()`（今日更正点正确）；回传改用两个 entry 共享的 `rememberSaveable` 状态而非结果事件总线（可跨进程死亡，2 记 ◐）；深链手写 `Uri` 解析而非 `UriDeepLinkMatcher`；`addOnNewIntentListener` |
+| 5 | gpt-6.1-sol medium | 无 | False | 1✘ 2◐ 3✘ 4✔ 5✔ | 226 s。与有 skill 几乎同一设计：两个装饰器、`rememberSaveable` 暂存结果、手写深链解析、`onNewIntent` 监听、`removeAt(lastIndex)` |
+| 9（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 60 s。读 `kmp-compose-multiplatform.md` 与官方层级页；手写 `dependsOn` 关掉默认模板（警告来源），需要自定义时先 `applyDefaultHierarchyTemplate()`；Kotlin 2.2.20 的 `webMain` 取代 `browserMain`；Keychain 放 `appleMain`，并说明 `nativeMain` 还覆盖非 Apple 目标 |
+| 9（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 128 s。联网读 Kotlin 官方层级页与 2.2.20 发布说明后同样答对三条 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 53 s。按 React Native / FlashList 作答，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：三处更正在有 skill 时都按新正文落地，无回退——场景 1、7 不再用 `ImmutableList`/`@Immutable` 包集合，场景 7 期望 1、2
+明显好于基线；场景 8 的 `viewModelScope` 一条达成（基线也会）；场景 5 两侧都正确保留保存状态装饰器并加上 ViewModel 装饰器；
+场景 9 两侧全部达成，层级模板更正属消除错误陈述。负例 `skill_read == false`。正文无需修改。
+
+遗留：场景 5 有 skill 没有采用正文写的结果事件总线与 `UriDeepLinkMatcher`（1、3 ✘），与基线同一设计、不比基线差，且与今天的
+装饰器更正无关；这两条在 2026-09-29（旧口径）曾达成，VM 口径下是否需要加强正文留待单独评估。场景 1 的 2、7 仍未达成。
+各场景只有 1 次运行。

@@ -100,5 +100,15 @@
       "Says `ImageDecoder.decodeBitmap` returns a `Config.HARDWARE` bitmap by default (minSdk 29), that scaling keeps it HARDWARE, and that `getPixels` then throws `IllegalStateException`; fixes it with `setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)` in the header listener or `copy(Bitmap.Config.ARGB_8888, false)` before reading pixels",
       "Says `Dispatchers.IO` does not exist for the `wasmJs` target, so `commonMain` stops compiling once the web target is added; fixes it by injecting a `CoroutineDispatcher` (provided per platform) or using `Dispatchers.Default`, not by keeping `Dispatchers.IO` in common code"
     ]
+  },
+  {
+    "skills": ["android"],
+    "query": "Review shared-build.gradle.kts from this PR (it is our KMP shared module's build.gradle.kts). Since the PR, Gradle prints a warning about the default Kotlin hierarchy template, and the author wants a single place for the Keychain wrapper that iosMain and macosMain both copy today. Tell me what is wrong and show the corrected source-set setup, including where each kind of shared code should live.",
+    "files": ["evals/files/shared-build.gradle.kts"],
+    "expected_behavior": [
+      "Says the manual `dependsOn` edges for `browserMain` switch the default hierarchy template off for the module, which is what the warning is about, so intermediate source sets such as `iosMain`, `appleMain` and `nativeMain` are no longer created; fixes it by deleting the hand-made source set or, if a custom set is truly needed, calling `applyDefaultHierarchyTemplate()` explicitly first",
+      "Says the default template already provides `webMain` as the shared parent of `jsMain` and `wasmJsMain` on Kotlin 2.2.20 and later (the module's version), so browser-shared code goes in `webMain` and `browserMain` is unnecessary",
+      "Puts the Keychain wrapper in `appleMain`, which the template creates as the parent of `iosMain` and `macosMain` under `nativeMain`, without any manual `dependsOn` wiring"
+    ]
   }
 ]
