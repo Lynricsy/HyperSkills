@@ -133,7 +133,7 @@ upstreams:
     url: https://svelte.dev/docs
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The published documentation is what decides which version this skill treats as current. Until 2026-10-01 it served the 2.x line (adapter and experimental options in svelte.config.js, $env/static/private, $lib, invalidateAll); since SvelteKit 3.0.0 it serves 3.x (sveltekit() plugin options in vite.config.js, $app/env/*, #lib, refreshAll), which is why rule 1 now names 3.x as current and keeps the 2.x equivalents."
     notes: "Licence checked at source rather than assumed: the site is rendered from documentation/docs in sveltejs/svelte, sveltejs/kit and sveltejs/cli, all three MIT, so the documentation content is merged. The site repository sveltejs/svelte.dev itself reports license: null through the API and carries no LICENSE file; none of its own content (layout, blog, tutorial prose) was used. Only technical facts were taken; all wording here is original."
   - id: full-stack-skills-svelte

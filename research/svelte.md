@@ -325,3 +325,19 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
 
 遗留：references 的示例仍用 SvelteKit 2 名称（`$lib`、`$env/*`、`$app/environment`、`svelte.config.js`），靠规则 1 与对照表
 翻译；待 3.x 成为多数项目所在线后，宜把示例整体改为 3.x 写法、把 2.x 降为对照表一侧。
+
+## 2026-10-15 文档上游复核
+
+以 svelte.dev 当前渲染内容为准（[`/docs/kit/llms.txt`](https://svelte.dev/docs/kit/llms.txt)、[`/docs/svelte/llms.txt`](https://svelte.dev/docs/svelte/llms.txt) 全文抓取），与当日按 SvelteKit 3.x 重写后的正文逐条对照。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| svelte-dev-docs | svelte.dev 文档当前服务 3.x；3.0.0 发布于 2026-10-01，npm `latest` 3.1.0；Svelte `latest` 5.57.2 | [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3)；npm registry `@sveltejs/kit` time `3.0.0` = 2026-10-01T17:22Z | 一致 |
+| svelte-dev-docs | 3.x 基线：Node 22.17、TypeScript 6、Svelte 5.57.1、Vite 8.0.12、`@sveltejs/vite-plugin-svelte` 7；`npx sv migrate sveltekit-3` | 同上「Updated dependencies」 | 一致（`references/migration.md` 表末行、SKILL.md 环境节） |
+| svelte-dev-docs | 配置移入 `vite.config.js` 的 `sveltekit({...})`，`kit.*` 变顶层；`$lib`→`#lib`（`package.json` `imports`，需写扩展名）；`$app/environment`→`$app/env`；`$env/*` 弃用改 `$app/env/private`/`public` + `src/env.js` 的 `defineEnvVars`；`$app/stores` 移除 | 同上 + [Environment variables](https://svelte.dev/docs/kit/environment-variables) | 一致 |
+| svelte-dev-docs | `invalidateAll` 弃用改 `refreshAll`（不重置 `page.state`）；`goto` 的 `shallow`/`reset: false`/`replace`/`refreshAll`；`pushState`/`replaceState` 弃用；cookie `path` 默认 `'/'`；`error()` 第二参必须是字符串；外部 `redirect` 需 `{ external }`；`json()`/`text()` 弃用 | 同上 | 一致 |
+| svelte-dev-docs | `handleError` 对所有错误调用，`kind` 为 `app`/`framework`/`validation`/`unknown`，可返回 `status`；`handleValidationError` 移除；`transport` 放 `src/hooks.js` | [Hooks](https://svelte.dev/docs/kit/hooks) | 一致 |
+| svelte-dev-docs | server `load` 经 devalue 序列化（`Date`/`Map`/`Set`/`BigInt`/`RegExp`/循环引用）；server `load` 永不自动依赖所 fetch 的 URL，`depends` + `invalidate` | [Loading data](https://svelte.dev/docs/kit/load) | 一致 |
+| svelte-dev-docs | Svelte 5：`$state.raw` 只能重新赋值；`{@attach}` 在 effect 中运行、读到的 state 变化时重跑；`createEventDispatcher` 弃用 | [$state](https://svelte.dev/docs/svelte/$state)、[{@attach}](https://svelte.dev/docs/svelte/@attach)、[legacy on:](https://svelte.dev/docs/svelte/legacy-on) | 一致 |
+
+7 组事实全部一致，正文未改，`svelte-dev-docs` 的 `synced_at` 更新为 2026-10-15。
