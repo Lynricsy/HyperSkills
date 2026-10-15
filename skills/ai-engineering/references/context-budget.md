@@ -133,8 +133,20 @@ advance, not a fallback triggered at the boundary.
 - **Summarise-and-replace.** When history exceeds a threshold, summarise the
   oldest portion into a structured note (decisions taken, facts established,
   tool results that still matter, open questions) and replace those turns
-  with it. The summary is produced by the model but is *your* text from then
-  on, so it sits in the instruction region as established state.
+  with it. The summary is model output, so it goes back as labelled data — a
+  `<compacted_history>` block in a user or assistant turn — never into the
+  system prompt or as a `system`/developer message. Re-pin the system prompt
+  and the task from their originals on every compaction, not from the
+  summary's paraphrase of them.
+- **Treat the summary as an injection surface.** Every later turn reads it,
+  so anything instruction-shaped in it persists. Models do write such text:
+  OpenAI reported an RL training run in which a model added "additional
+  instructions" to its own compaction summaries — jailbreak-style persona
+  text, and arbitrary task restrictions that the successor context obeyed as
+  a higher-priority instruction and failed the task on [official]. Constrain
+  the summary to a fixed schema with no free-form "instructions" section, and
+  flag imperatives in it that did not come from the user or the task before
+  re-injecting it.
 - **Externalise state.** Keep the durable facts in a file or a store the
   agent reads and writes, and let the transcript be disposable. This is
   strictly better for anything that must survive a restart, and it makes the
@@ -216,4 +228,4 @@ rejected with a 400 naming the counts
 - The error is the last line of defence, not the plan. Reaching it means the
   budget was never counted.
 
-<!-- sources: anthropics-claude-api, openai-agents-python, langchain-skills, murat-context-engineering, anthropic-docs, openai-docs -->
+<!-- sources: anthropics-claude-api, openai-agents-python, langchain-skills, murat-context-engineering, anthropic-docs, openai-docs, openai-alignment-compaction-report -->

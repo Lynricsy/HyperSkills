@@ -1,0 +1,7 @@
+{"call": "chat-turn-1", "provider": "anthropic", "usage": {"input_tokens": 412, "cache_creation_input_tokens": 18240, "cache_read_input_tokens": 0, "output_tokens": 690}}
+{"call": "chat-turn-2", "provider": "anthropic", "usage": {"input_tokens": 455, "cache_creation_input_tokens": 18240, "cache_read_input_tokens": 0, "output_tokens": 712}}
+{"call": "chat-turn-3", "provider": "anthropic", "usage": {"input_tokens": 389, "cache_creation_input_tokens": 18240, "cache_read_input_tokens": 0, "output_tokens": 655}}
+{"call": "chat-turn-4", "provider": "anthropic", "usage": {"input_tokens": 401, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 18240, "output_tokens": 701}}
+{"call": "classify", "provider": "anthropic", "usage": {"input_tokens": 830, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0, "output_tokens": 12}}
+{"call": "summarise-1", "provider": "openai", "usage": {"input_tokens": 15000, "input_tokens_details": {"cached_tokens": 12032, "cache_write_tokens": 2968}, "output_tokens": 480}}
+{"call": "summarise-2", "provider": "openai", "usage": {"input_tokens": 900, "input_tokens_details": {"cached_tokens": 0, "cache_write_tokens": 0}, "output_tokens": 95}}

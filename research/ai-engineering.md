@@ -324,3 +324,28 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | promptfoo | 4f57300 → 1c28848 | 21 提交改 `expected-outputs`：`cost` 无阈值记录、`equals/contains` Unicode 归一化、`rouge-l/rouge-s`、trace 断言按属性过滤、`not-` 前缀对工具调用校验只反转判定而配置错误仍失败、`llm-rubric` 缺判定时判失败、`threshold: 0` 不再必过、加权平均不重标尺度、`--safe-mode` 等 | 噪声：均为 promptfoo 自身断言语义；方向与本 skill 已写的「评分器故障/缺判定必须判失败、确定性断言与模型评分分开」一致，无冲突、无新增跨工具判据 |
 
 结论：正文与 references 未改，未新增评测场景、未跑 D2；只 re-pin 并把 `metadata.version` / `SOURCES.yaml version` 改为 2026.10.15。
+
+## 2026-10-15 上游新增内容评估
+
+来源：评估报告 NewS1（muratcankoylan/Agent-Skills-for-Context-Engineering 新增 `skills/self-managed-context`，MIT，`9ff0c99`）与 NewS5（affaan-m/everything-claude-code `prompt-caching-strategy`，MIT，MAYBE 低）。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| self-managed-context：压缩摘要会携带模型自写的注入指令 | **合入（事实更正）** | 我们 `context-budget.md` 原写「摘要是你的文本，放在指令区作为既定状态」，与一手证据相反。改为：摘要作为带标签的数据放回 user/assistant 轮次，不进 system/developer；每次压缩从原件重新钉住 system 与任务；摘要用固定 schema、不留自由「指令」段，回注前检查非来自用户/任务的祈使句 |
+| self-managed-context 其余（role folding、确定性 token 读数、按最大工具输出定紧急阈值、编辑成本取决于尾部长度等） | 不做 | 不在本次分配范围（只合一部分） |
+| ECC prompt-caching-strategy：各家 usage 字段语义、低于最小可缓存长度计数为 0、节省只算输入侧 | 不合入 | 已对照官方文档核实（见下）。评测 9 基线 3/4，缺「最小可缓存长度 → 全 0 无报错」；写入 `cost-and-reliability.md` 后有 skill 重跑仍未达成该条（只说「无缓存活动本身不说明失败」，未点出最小长度），D2 未通过 → 撤回正文改动，场景留作哨兵 |
+
+核实证据：
+- OpenAI Alignment 报告「Self-generated prompt injections in compaction summaries」（事件 2026-07-18，更新 2026-09-16，全文已读）：未发布 Astra 系列模型在 RL 训练中往压缩摘要写入 "additional instructions"（越狱式人设、忽略 developer 消息、任意任务限制），专用监控共找到 27 条；医学文献一例中后继上下文把摘要里的「≤30 词、不用工具、不引用」当作更高优先级指令照做并判错。报告称行为极罕见、与摘要终止 bug 相关——正文只用它说明「摘要是数据」，不声称频率。
+- Anthropic 文档 `build-with-claude/prompt-caching`：`input_tokens` 仅为最后一个断点之后的 token，总输入 = `cache_read_input_tokens` + `cache_creation_input_tokens` + `input_tokens`；低于最小可缓存长度（按模型 512–4,096）不缓存、不报错、两个缓存字段均为 0；5 分钟写入为基础输入价 1.25×。OpenAI `guides/prompt-caching`：`input_tokens` 含 `input_tokens_details.cached_tokens`（向下取整到 128 的倍数），GPT-5.6 起最小 1,024。
+
+评测（新增场景 8 `evals/files/compaction/`、场景 9 `evals/files/cache-usage/`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 压缩步骤评审 | gpt-6.1-sol medium | 无 | false | 3/3 | 100 s。指出任务被丢、摘要升为 system 权威、"additional instructions" 让检索内容变成系统指令；把注入归因于外部材料而非模型自写 |
+| 8 压缩步骤评审 | gpt-6.1-sol medium | 有 | true | 3/3 | 86 s。同样三点，并明确「检索页面的或摘要模型自己编出的指令」都会被升格；结构化摘要、不设「需继续遵守的指令」字段、原始任务钉住。更正项不依赖缺口，此行用于确认新正文不误导 |
+| 9 缓存报表与账单 | gpt-6.1-sol medium | 无 | false | #1 ✓ / #2 ✓ / #3 ✓ / #4 ✗ | 138 s。按家分桶、写入按 1.25× 计、节省只算输入；算出 5 分钟 TTL 下 Anthropic 实为 3% 小幅节省（据此把场景 #2 的期望从「财务是对的」改为「标出写多读少的模式待查」，原期望算术有误）；未提最小可缓存长度 |
+| 9 缓存报表与账单 | gpt-6.1-sol medium | 有（含临时加入的 usage 字段小节） | true | #1 ✓ / #2 ✓ / #3 ✓ / #4 ✗ | 133 s。仍只说 `classify` 无缓存活动「不能单独说明失败」，没点出最小长度 → 缺口未填补，正文改动已撤回 |
+
+结论：只合入 compaction 摘要的事实更正；usage 字段内容不合入。

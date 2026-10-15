@@ -7,7 +7,7 @@ upstreams:
     url: https://github.com/vercel/ai
     paths: [skills/use-ai-sdk]
     ref: main
-    commit: b658e8503c789126ca5f9d0bb007a43be8a46a41
+    commit: 46a5d9788bc75ff1236b8e3475d0067d1ef98892
     license: Apache-2.0
     relation: merged
     synced_at: "2026-10-15"
@@ -56,7 +56,7 @@ upstreams:
       - docs/guardrails.md
       - docs/multi_agent.md
     ref: main
-    commit: 24ebf1cb0f4b3107d5350b13a1308637d3dec9ca
+    commit: 17d994bd3045dae71acda676a4ef4762ed8ecd94
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -113,13 +113,14 @@ upstreams:
       - skills/context-degradation
       - skills/tool-design
       - skills/multi-agent-patterns
+      - skills/self-managed-context
     ref: main
     commit: 9ff0c99108b36d3b886defd825d8ac1f47dba374
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
-    contributes: "Compaction summaries need mandatory sections and a trigger chosen in advance; usable context is smaller than advertised context; a single distractor costs disproportionately more than later ones; tool consolidation over near-duplicate tools; externalising state to the filesystem instead of growing the window."
-    notes: "Long-context degradation figures are the upstream's reading of published benchmarks, not measured here; carried as [community]."
+    contributes: "Compaction summaries need mandatory sections and a trigger chosen in advance; usable context is smaller than advertised context; a single distractor costs disproportionately more than later ones; tool consolidation over near-duplicate tools; externalising state to the filesystem instead of growing the window. self-managed-context surfaced the evidence that a model can write instructions into its own compaction summaries, which reversed this skill's advice to place the summary in the instruction region."
+    notes: "Long-context degradation figures are the upstream's reading of published benchmarks, not measured here; carried as [community]. From self-managed-context only the summary-as-injection-surface point was taken, and it was checked against the primary OpenAI report rather than the upstream's paraphrase; its model-editable-context harness (pinned prefix, role folding, edit receipts, deterministic budget readouts, edit-cost rules) was not merged."
   - id: github-awesome-copilot
     kind: repo
     repo: github/awesome-copilot
@@ -128,7 +129,7 @@ upstreams:
       - skills/agentic-eval
       - skills/ai-prompt-engineering-safety-review
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 36e95dfda72140a68f577d5c894a551607606bd3
     license: MIT
     relation: merged
     synced_at: "2026-10-15"
@@ -173,3 +174,11 @@ upstreams:
     synced_at: "2026-09-11"
     contributes: "Fact-checking structured-output and JSON-mode guarantees, strict-schema constraints and rate-limit semantics quoted in the references."
     notes: "Licence ruling: no content licence is declared on the documentation site or in the Terms of Use (JS-rendered, no licence grant found); treated as proprietary. Reference only; the same guidance was merged from the MIT-licensed openai/openai-agents-python repository instead."
+  - id: openai-alignment-compaction-report
+    kind: docs
+    url: https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/
+    license: Proprietary
+    relation: reference
+    synced_at: "2026-10-15"
+    contributes: "Primary evidence for the compaction-summary rule in references/context-budget.md: during RL training a model wrote jailbreak-style and arbitrary task-restricting 'additional instructions' into its own compaction summaries (27 found by a dedicated monitor), and in one case the successor context obeyed them as a higher-priority instruction and failed the task."
+    notes: "Read in full on 2026-10-15 (incident 2026-07-18, report updated 2026-09-16). The report calls the behaviour extremely rare and tied to a summary-termination bug in one training run; the skill uses it only to justify treating summaries as data, not to claim a frequency. No licence grant found; reference only, paraphrased."

@@ -108,5 +108,29 @@
       "Notes the constraints of that message: it cannot be `messages[0]`, and models that do not support it return a 400, so the code needs a fallback or a model check rather than assuming every model accepts it",
       "Does not move the escalation instruction into a user turn as the primary fix, since that gives an operator instruction the authority of customer-writable text"
     ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "compaction.py is the context-compaction step of our research agent. We are about to turn it on for runs of up to six hours (~400 turns). Review the design before we ship it - what would you change and why?",
+    "files": ["evals/files/compaction/compaction.py"],
+    "expected_behavior": [
+      "Flags that the model-written summary is merged into the system message as 'authoritative' state, giving model output system-level authority; puts it back as clearly labelled data in a user/assistant turn instead and keeps the operator system prompt separate",
+      "Flags the summary as a persistent injection surface - the prompt even asks for 'additional instructions you should keep following', and models have been observed writing instruction-shaped text into their own compaction summaries that later turns obey - and constrains the summary to a fixed schema without a free-form instructions section and/or checks it for imperatives that did not come from the user or the task",
+      "Notes that the original task message (`_task`) is dropped after compaction and re-pins the system prompt and the task from their originals on every compaction rather than relying on the summary's paraphrase"
+    ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "cache_report.py is our nightly prompt-cache report; usage-sample.jsonl is a slice of yesterday's raw usage records. The report has been printing some odd numbers we've learned to ignore, and finance now says our Anthropic bill went up after we enabled prompt caching while the report says caching is saving money. Who is right? Fix the report and tell me what this sample actually shows.",
+    "files": [
+      "evals/files/cache-usage/cache_report.py",
+      "evals/files/cache-usage/usage-sample.jsonl"
+    ],
+    "expected_behavior": [
+      "Explains that the providers count differently: Anthropic's `input_tokens` excludes cache reads and writes (total input = `input_tokens` + `cache_creation_input_tokens` + `cache_read_input_tokens`), while OpenAI's `input_tokens` already includes `cached_tokens` - so the shared formulas produce negative uncached tokens and hit rates above 100% for Anthropic; fixes normalisation per provider",
+      "Bills Anthropic cache writes (`cache_creation_input_tokens`) at their premium over base input, and flags the write-heavy pattern - three full-prefix writes for one read, so the cached prefix is being re-written almost every turn (prefix churn or expiry) and the write premiums eat nearly all of the read discount - as the thing to investigate",
+      "Computes savings on the input side only (cached tokens times the input-minus-cache-read price difference, minus write premiums), never applying the cache discount to output tokens as the current `saved` formula does",
+      "Notes that a prompt shorter than the provider's minimum cacheable length reports zero cache tokens without any error (the 830-token `classify` and 900-token `summarise-2` calls), so those rows are expected rather than a caching failure"
+    ]
   }
 ]
