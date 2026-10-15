@@ -296,7 +296,18 @@ neolab、standard-readme、github-readme-stats、best-readme-template up to date
 
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
+| 9 AI 腔 README | gpt-6.1-sol medium | 有 | true | ✘1 ◐2 ✔3 ✔4 ✔5 ✔6 ✔7（5✔1◐1✘） | 63 s。读了 human-voice / plain-english / document-types。README 改写去掉全部宣传词、意义拔高、分词尾句、否定平行、三连同义、聊天残留与结尾升华；补 PostgreSQL 14+、不支持 MySQL、两名维护者、2026-02-14 的 1.9 s 对 26 s（alembic）；Performance 改为该测量；补 `CREATE INDEX CONCURRENTLY` 不回滚与 #87；安装压成命令；标题集不变、无新增夸饰。答复只有三行摘要，没有逐类点名这些 AI 写作模式（human-voice「Name the tells」一步的清单未呈现给用户）；未写首次提交日期。输出另存 `/tmp/hs-d2/D2G1-keep/technical-writing-skill9-run1` |
+| 9（试改正文后，2 次） | gpt-6.1-sol medium | 有 | true | ✘1 ◐2 ✔3–7；◐1 ◐2 ✔3–7 | 55 s / 54 s。先在 human-voice 第 1 步加「把清单随改写交给作者」，重跑仍不点名（`/tmp/hs-d2/D2G1-keep/technical-writing-skill9-run2`）；再在 SKILL.md readme 清单加同一要求，重跑只给出「hype、filler introductions、chatbot sign-offs、roadmap optimism」这类类别，仍没有点名具体模式。两处试改都已撤回，见结论 |
+| 9 | gpt-6.1-sol medium | 无 | false | ✘1 ◐2 ✔3 ✔4 ✔5 ✔6 ✔7（5✔1◐1✘） | 32 s。改写质量与有 skill 相当；E2 缺两名维护者与首次提交日期；同样不点名模式 |
+| 5 负例（mkdocs-material 文档站） | gpt-6.1-sol medium | 有 | **true** | ✘1 ✔2 ✔3 ✔4（3/4） | 134 s。首个工具调用即 `read skill://technical-writing`（intent「Reading documentation skill」），之后只做工具链：`mkdocs.yml`（material、15 页 nav）、`uv tool run … mkdocs build --strict`、带 Pages 权限的 Actions、提示在 Settings 启用 Pages、相对 `.md` 链接由 mkdocs 转换；未审内容。输出另存 `/tmp/hs-d2/D2G1-keep/technical-writing-skill5-run1` |
+| 5 负例，第 2 次 | gpt-6.1-sol medium | 有 | **true** | ✘1 ✔2 ✔3 ✔4（3/4） | 95 s。同样首个工具调用即读 skill；只做工具链（`uv run --with mkdocs-material … mkdocs build --strict`、Pages 权限、Settings 启用 Pages），未审内容。输出另存 `/tmp/hs-d2/D2G1-keep/technical-writing-skill5-run2` |
+| 11 图片内信息不可翻译（新增） | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ✔3 ✔4（3✔1◐） | 119 s。指出关键事实（密钥格式、Server 安装类型、服务账号、8443、两个复选框、配置值、排障逻辑）只在图里：翻译后仍是英文截图，除非单独本地化图片；空 alt 让读屏用户必然丢失。改写页把全部事实写成正文，配置改 `ini` 代码块，流程图改有条件的有序步骤，未编造（明确列出源文件缺的下载地址等）。图片全部删除而非保留为带 alt 的配图（E2 后半未按期望做） |
+| 11 | gpt-6.1-sol medium | 无 | false | ✔1 ◐2 ✔3 ✔4（3✔1◐） | 107 s。结论与改写与有 skill 同级（「每张图需单独本地化」、空 alt、代码块、排障列表），同样删除全部截图 |
 
 选择理由：9（AI 腔 README）对应「AI 词汇信号」措辞更正；图片内文字仅在单独本地化后才被翻译的更正没有场景覆盖，新增 11（`ledgerly/`）；5 为负例。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：9 AI 腔 README（有/无）；5 负例；11 图片内信息不可翻译（新增，有/无）。待结果出来后补判定。
+结论：未改正文。9 两侧 5✔1◐1✘（有 skill 在 E2 多给了两名维护者），11 两侧 3✔1◐，不比基线差。E1（在答复里逐类点名 AI 写作模式）两侧都未达成：模型按 human-voice 的模式把它们全部删掉了，只是答复里没有列出来。先后在 `references/human-voice.md` 第 1 步和 SKILL.md readme 清单加了「随改写报告去掉的模式」，各重跑一次都没有改善（第二次只给出类别），所以没有证据支持这条改动，两处都已撤回。正文保持原样。
+
+**负例 5 两次均 `skill_read=true`**（两次都是首个工具调用即读 skill），属既有路由问题，与今日改动无关：今日两个提交 b1cd321、caab44f 都没有改 SKILL.md 的 description；`git log -G'^description:'` 显示最后一次修改是 27dd3f4（2026-09-12，压缩为单句路由）。早先为这个负例加的排除项分两次丢失：「It governs what pages say, never the tooling that builds them」在 6df04a3（2026-09-11）改写时去掉，`Do not use for … docs-site generators` 在 27dd3f4 压缩时去掉。本轮不改 description，留待描述路由复核。
+
+遗留：负例路由；9 的 E1；11 两侧都删掉截图，没有保留为带 alt 的配图（E2 后半）。
