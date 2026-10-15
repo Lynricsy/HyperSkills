@@ -60,7 +60,7 @@ upstreams:
     url: https://www.typescriptlang.org/tsconfig/
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Read as the authoritative definition of every compiler option, narrowing construct, conditional-type behaviour and module-resolution mode named in this skill, and used as the tie-breaker whenever two upstreams disagreed. No content copied."
     notes: "typescriptlang.org content lives in microsoft/TypeScript-Website, licensed CC BY 4.0 (verified against that repository's LICENSE); attribution to Microsoft and the TypeScript documentation authors. Behaviour was read here, then reproduced locally against tsc 7.0.2 and written up independently; no prose, table or example was taken."
 
@@ -69,7 +69,7 @@ upstreams:
     url: https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/
     license: Proprietary
     relation: reference
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Read for the TypeScript 6.0 deprecation list and 7.0 hard-error set, the changed defaults (strict, module, target, types, rootDir, noUncheckedSideEffectImports, libReplacement, stableTypeOrdering), dom.iterable folding into dom, subpath imports starting with #/, the moduleResolution bundler plus module commonjs combination, the --checkers / --builders / --singleThreaded parallelism flags, and the @typescript/typescript6 npm-alias arrangement for tools that still need the 6.0 API. No content copied."
     notes: "Covers both the 6.0 and 7.0 announcements; Microsoft-owned prose, so reference-only. Version claims were cross-checked with `gh api repos/microsoft/TypeScript/releases` (v7.0.2 published 2026-08-20, v6.0.2 on 2026-03-23), and every behavioural claim used in this skill was reproduced locally against tsc 7.0.2 before being written in this repository's own words."
 
@@ -78,7 +78,7 @@ upstreams:
     url: https://vitest.dev/guide/testing-types
     license: MIT
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The type-testing setup: the --typecheck flag and the fact that expectTypeOf is inert without it, the separate *.test-d.* collection that never overlaps the runtime include pattern, that Vitest delegates to tsc --noEmit or vue-tsc, and the typecheck config surface (enabled, only, checker, include, exclude, tsconfig, ignoreSourceErrors)."
 
   - id: awesome-copilot-ts-tests

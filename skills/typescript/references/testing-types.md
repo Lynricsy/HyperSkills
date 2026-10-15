@@ -1,6 +1,6 @@
 # Testing TypeScript
 
-Verified against: TypeScript 7.0.2, Vitest 3.x/4.x.
+Verified against: TypeScript 7.0.2, Vitest 3.x–5.x.
 
 The TypeScript-specific half of testing: making the runner see types, and asserting on types
 themselves. Test design — what to test, red/green, seams — is not here.
@@ -35,8 +35,8 @@ both — the second keeps test-only `types` entries out of the build config.
 runner's types are listed:
 
 ```
-error TS2591: Cannot find name 'describe'. Do you need to install type definitions for a test
-runner? Try `npm i --save-dev @types/jest` … and then add 'jest' to the types field in your tsconfig.
+error TS2593: Cannot find name 'describe'. Do you need to install type definitions for a test
+runner? Try `npm i --save-dev @types/jest` … and then add 'jest' or 'mocha' to the types field in your tsconfig.
 ```
 
 - Vitest with `globals: true` → `"types": ["vitest/globals"]`.

@@ -114,10 +114,11 @@ builds.
   compile.
 - Anything that appears in an exported signature must itself be exported, or the declaration
   references a name the consumer cannot import.
-- `isolatedDeclarations: true` requires an explicit type on every exported binding and in exchange
-  allows declaration emit to be parallel and tool-agnostic. Errors `TS9013` (return type must be
-  inferred from the body) and `TS9009` (accessor needs an annotation) [verified] are it telling you
-  the public surface is not written down.
+- `isolatedDeclarations: true` requires an explicit type on every exported binding that is not
+  trivially inferable and in exchange allows declaration emit to be parallel and tool-agnostic.
+  Errors `TS9007` (function return type must be inferred from the body), `TS9010` (variable needs an
+  annotation) and `TS9009` (accessor needs an annotation) [verified] are it telling you the public
+  surface is not written down.
 - `skipLibCheck` does not affect what you emit, only whether you check other people's `.d.ts`.
 
 ## `tsc` as the type-checker, a bundler as the emitter

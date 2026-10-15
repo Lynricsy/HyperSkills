@@ -25,7 +25,7 @@ Four default changes account for nearly every "it worked yesterday" report after
 | Option | Default now | Symptom when the project assumed the old default |
 |---|---|---|
 | `strict` | `true` | A wall of `TS7006` / `TS2322` in a codebase that never opted in |
-| `types` | `[]` | `TS2591 Cannot find name 'process' / 'describe' / 'Bun'` — the `@types` packages are no longer auto-loaded |
+| `types` | `[]` | `TS2591 Cannot find name 'process'`, `TS2593 … 'describe'`, `TS2868 … 'Bun'`: the `@types` packages are no longer auto-loaded |
 | `rootDir` | the directory holding `tsconfig.json`, never inferred | Output lands in `dist/src/index.js` instead of `dist/index.js` |
 | `module` | `esnext`; `target` floats to the latest stable ES version | CommonJS output silently becomes ESM |
 
@@ -150,13 +150,18 @@ Choosing `bundler` for a package that Node loads directly is the classic failure
 locally and breaks for consumers, because `tsc` accepted imports Node cannot resolve. The
 consumption model decides, every time.
 
-Subpath imports may start with a bare `#/` (Node 20+, supported under `nodenext` and `bundler`),
-which is the standards-track replacement for a `@/` path alias:
+Subpath imports may start with a bare `#/` (Node 24.14+ and 25.4+; Node 20 and 22 reject the
+specifier with `ERR_INVALID_MODULE_SPECIFIER`), supported under `nodenext` and `bundler`. It is the
+standards-track replacement for a `@/` path alias. Map it to the files the runtime loads; for
+compiled output that is `outDir`, and `tsc` maps it back to the sources through `rootDir`/`outDir`:
 
 ```jsonc
-// package.json
-{ "imports": { "#/*": "./src/*" } }
+// package.json, compiled with rootDir ./src and outDir ./dist
+{ "imports": { "#/*": "./dist/*" } }
 ```
+
+Point it at `./src/*` only when a bundler or type-stripping runtime loads the `.ts` sources
+directly. For compiled output that mapping type-checks and then fails with `ERR_MODULE_NOT_FOUND`.
 
 ## `verbatimModuleSyntax` and the `type` field
 
@@ -219,9 +224,11 @@ per unit of noise:
 | `erasableSyntaxOnly` | `enum`, `namespace` with runtime members, parameter properties and other syntax that cannot be stripped — required if Node or a transpile-only bundler runs the `.ts` directly |
 | `isolatedDeclarations` | Exported API whose type cannot be written into a `.d.ts` without inferring from the body; enables parallel, tool-agnostic declaration emit |
 
-`isolatedDeclarations` is a library flag. It demands an explicit type on every exported binding
-(errors `TS9013` on an inferred return, `TS9009` on an untyped accessor) [verified], which is right
-for a package's public surface and pure noise inside an application.
+`isolatedDeclarations` is a library flag. It demands an explicit type on every exported binding whose
+type is not trivially inferable from a literal (errors `TS9007` on an inferred function return,
+`TS9010` on a variable initialised from a call, `TS9013` on a non-inferable expression inside an
+initialiser, `TS9009` on an untyped accessor) [verified], which is right for a package's public
+surface and pure noise inside an application.
 
 `noUnusedLocals` and `noUnusedParameters` belong in the linter, not the compiler: as compiler
 options they break the edit-run loop by failing the build on a variable you are about to use.
