@@ -52,8 +52,10 @@ Paths below are relative to this skill's directory.
 6. Never hold a `std::sync::Mutex` guard across an `.await`. Lock inside a scope that ends
    before the await, or use an async mutex when the guard genuinely must outlive it.
 7. `State<'_, T>` must name exactly the type passed to `.manage()`. A mismatch (`State<AppState>`
-   against `manage(Mutex::new(AppState))`) is a **runtime panic**, not a compile error; a
-   `type AppState = Mutex<AppStateInner>` alias removes the whole class of mistake.
+   against `manage(Mutex::new(AppState))`) still compiles: every call to that command is then
+   rejected at runtime with `state not managed for field ...`, and `handle.state::<T>()` on an
+   unmanaged type panics. A `type AppState = Mutex<AppStateInner>` alias removes the whole class
+   of mistake.
 8. Do not wrap managed state in `Arc`. `State` already shares ownership. When state must move
    into a thread, clone the `AppHandle` (cheap by design) and call `handle.state::<T>()` there.
 9. Return `Result<T, E>` from anything fallible and give `E` a real type: a `thiserror` enum with
@@ -257,8 +259,9 @@ src-tauri/src/lib.rs
        list_recent are unregistered and fail at runtime with "Command not found".
        before: .invoke_handler(generate_handler![load_project]).invoke_handler(generate_handler![export])
        after:  .invoke_handler(generate_handler![load_project, export])
-  L22 blocking - State<AppState> does not match manage(Arc<Mutex<AppState>>); this panics on the
-       first call. Manage Mutex::new(AppState) and take State<'_, Mutex<AppState>>; drop the Arc.
+  L22 blocking - State<AppState> does not match manage(Arc<Mutex<AppState>>); every call is
+       rejected with "state not managed for field". Manage Mutex::new(AppState) and take
+       State<'_, Mutex<AppState>>; drop the Arc.
   L26 important - export_report is synchronous, so its 40 MB write runs on the main thread and
        freezes the window. Make it `async fn`.
 

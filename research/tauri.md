@@ -289,3 +289,20 @@ up to date）随 `--pin` 对齐；`tauri-docs` 为 manual check，未处理。
 
 结论：**正文未变**，仅 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml` 的 version / pin 更新为 2026.10.15；
 未新增评测场景，未跑 D2。`pin_check.py`：PIN CHECK CLEAN。
+
+## 2026-10-15 文档上游复核
+
+v2.tauri.app 由 tauri-apps/tauri-docs `v2` 分支渲染，用 `gh api` 读源文件（分支头 32f68c5bfe，2026-10-14）。当前 2.x 为 `tauri-v2.12.4`（2026-10-14），另有 `tauri-v3.0.0-alpha.5` 预发布，正文不涉 v3，不变。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| tauri-docs | 非 `async` 命令在主线程执行（除非 `#[tauri::command(async)]`）；async 命令带借用参数只有两种写法（改 owned 类型 / 返回 `Result`）；`lib.rs` 中命令不能 `pub`；参数 camelCase、`rename_all`；二进制用 `tauri::ipc::Response` | [Calling Rust](https://v2.tauri.app/develop/calling-rust/) | 一致 |
+| tauri-docs | `State` 类型与 `.manage()` 不匹配的后果；不必再包 `Arc`；async + `State<'_, T>` 须返回 `Result` | [State Management](https://v2.tauri.app/develop/state-management/)；文档提交 [#4160](https://github.com/tauri-apps/tauri-docs/pull/4160)、[#4159](https://github.com/tauri-apps/tauri-docs/pull/4159)（2026-10-06） | **已变化 → 更正**：#4160 把「runtime panic」改为「编译通过，调用时前端 `invoke` 被拒绝，报 `state not managed for field ...`；直接 `Manager::state()` 取未托管类型才 panic」。源码佐证：`crates/tauri/src/state.rs`（`tauri-v2.0.0` 与 `tauri-v2.12.4` 均同）`CommandArg::from_command` 用 `try_state()` 返回 `InvokeError`，`Manager::state` 为 `.expect(...)`。改 SKILL.md 规则 7 与输出示例 L22、`references/ipc-commands.md` 对应条目、`evals/evals.json` 两条断言（「panic」→「运行时被拒绝」），SOURCES `contributes` 同步。#4159 只把「必须返回 Result」限定到带借用参数的 async 命令，与规则 5 一致 |
+| tauri-docs | `capabilities/` 下文件自动启用，设置 `app.security.capabilities` 后仅列出者生效；应用自注册命令默认对所有窗口可用，`AppManifest::commands` 收紧 | [Capabilities](https://v2.tauri.app/security/capabilities/) | 一致 |
+| tauri-docs | CSP 需 `connect-src` 含 `ipc: http://ipc.localhost`；构建时自动注入哈希/nonce；未设 `devCsp` 时 dev 也用 `csp`；`headers` 不作用于 IPC 与错误响应 | [CSP](https://v2.tauri.app/security/csp/)、配置参考（`crates/tauri-utils/src/config.rs` 文档注释，`tauri-v2.12.4`） | 一致 |
+| tauri-docs | 平台配置按 JSON Merge Patch 合并，数组（含 `app.windows`）整体替换 | [Configuration Files](https://v2.tauri.app/develop/configuration-files/) | 一致 |
+| tauri-docs | `externalBin` 需 `-$TARGET_TRIPLE` 后缀、`rustc --print host-tuple`；Rust `shell().sidecar(name)` | [Sidecar](https://v2.tauri.app/develop/sidecar/) | 一致 |
+| tauri-docs | 签名不可关闭；`.env` 不生效；`pubkey` 不能是路径；`signature` 为 `.sig` 内容；`v1Compatible` 将于 v3 移除；endpoints 生产强制 TLS、非 2XX 才试下一个；无更新回 204；`quiet` 不能提权 | [Updater](https://v2.tauri.app/plugin/updater/) | 一致 |
+| tauri-docs | `emit_to` 定向 webview；收任意目标需 `listen_any` | [Calling the Frontend](https://v2.tauri.app/develop/calling-frontend/) | 一致 |
+
+一处更正（State 不匹配为运行时拒绝而非 panic），其余 7 组一致。属于既有规则的事实更正，未新增规则，evals 断言随之更正。`tauri-docs` 的 `synced_at` 更新为 2026-10-15。

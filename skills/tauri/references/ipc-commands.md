@@ -194,8 +194,10 @@ fn push_recent(path: String, state: tauri::State<'_, AppState>) -> usize {
 ```
 
 - The `State` type parameter must name **exactly** what was passed to `.manage()`. Asking for
-  `State<AppStateInner>` when `Mutex<AppStateInner>` was managed is a **runtime panic**, not a
-  compile error. The type alias above is the cheapest way to make the two sides agree.
+  `State<AppStateInner>` when `Mutex<AppStateInner>` was managed compiles, and then every
+  `invoke` of that command is rejected with `state not managed for field ...`; outside a
+  command, `handle.state::<T>()` on an unmanaged type panics. The type alias above is the
+  cheapest way to make the two sides agree.
 - Do not add `Arc`: `State` already shares ownership. When state must move into a thread,
   clone the `AppHandle` (deliberately cheap) and call `handle.state::<AppState>()` there.
 - Outside commands — window event handlers, spawned tasks — reach state through any `Manager`

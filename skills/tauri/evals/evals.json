@@ -11,7 +11,7 @@
       "Identifies that the second .invoke_handler(...) call overwrites the first, so only export_report is registered — and says all commands must be listed in a single tauri::generate_handler![...] call",
       "Explains that the dialog and fs plugin calls fail because the capability only grants core:default: plugin permissions such as dialog:allow-open and a scoped fs read permission must be added to the capability, and that this is not the cause for the app's own #[tauri::command] functions, which are allowed for every window by default unless AppManifest::commands in build.rs restricts them",
       "Flags that invoke('load_project', { project_path: picked }) uses the wrong argument casing: command arguments are passed as camelCase keys (projectPath) unless the command declares rename_all",
-      "Flags that state is managed as Arc<Mutex<AppState>> while the commands ask for State<AppState>, that the mismatch is a runtime panic rather than a compile error, and that Arc is redundant because State already shares ownership",
+      "Flags that state is managed as Arc<Mutex<AppState>> while the commands ask for State<AppState>, that the mismatch is a runtime failure rather than a compile error (every invoke of those commands is rejected with `state not managed for field ...`), and that Arc is redundant because State already shares ownership",
       "Points out that load_project mutates a clone (state.recent.clone()) so nothing is ever stored, and that mutating managed state requires locking the Mutex and taking State<'_, Mutex<AppState>>",
       "Warns that export_report is a synchronous command, so its multi-second blocking file write runs on the main thread and freezes the UI, and fixes it with an async command or #[tauri::command(async)]",
       "Replaces windows: [\"*\"] with the specific window labels that need the permissions, or explains why least-privilege capabilities should be split per window"
@@ -26,7 +26,7 @@
       "Identifies that search_notes cannot compile: an async command may not take borrowed arguments, so query: &str must become String, and an async command injecting State<'_, Mutex<Db>> must return a Result",
       "Warns that holding a std::sync::Mutex guard across an await point in an async command is wrong, and points to either scoping the lock before awaiting or using an async mutex",
       "Says export_archive should return tauri::ipc::Response (or stream via tauri::ipc::Channel) instead of Vec<u8>, because a Serialize return value is JSON-encoded across the IPC boundary and that is what makes large payloads slow",
-      "Says current_cache asks for State<Cache> while the cache is managed as Mutex<Cache>, and that a State type mismatch panics at runtime instead of failing to compile",
+      "Says current_cache asks for State<Cache> while the cache is managed as Mutex<Cache>, and that a State type mismatch compiles but fails at runtime (the invoke is rejected with `state not managed for field ...`) instead of failing to compile",
       "Recommends replacing the String error type with a custom error enum (thiserror plus a manual serde::Serialize impl, optionally a tagged ErrorKind) so the frontend receives a structured, matchable error",
       "Flags that read_note takes a caller-supplied path and must be validated in Rust — canonicalised and constrained to an app-owned directory — because the webview is not the trust boundary"
     ]
