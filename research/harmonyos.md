@@ -475,3 +475,32 @@ SOURCES.yaml：interface_sdk-js `56ef801`、harmony-next.skills `0243a77`、lias
 ### 正文
 
 未改。只改 SOURCES.yaml（re-pin）与版本号 `2026.09.30`。没有「需合入」条目，因此未新增评测。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`，
+两条 `behind`：openharmony-sdk-js、liasica-harmonyos（too large，主代理已用 blobless 裸仓库完整区间归因）。
+归因方法：在 `/tmp/hs-attr/openharmony__interface_sdk-js` 与 `/tmp/hs-attr/liasica__harmonyos-skills` 跑
+`git diff <pinned>..<head> -- <paths>`。liasica 区间 15 个每日同步提交共改 5445 个文件（562 新增、4883 修改）；先剔除
+`scraped_at`/`doc_updated_at`/`content_hash` 元数据行与图片 CDN 链接行，剩 1825 个文件、约 5.3 万行实质改动，其中修改文件
+1263 个约 1.07 万行；再按本 skill 主题（状态管理 V1/V2、Navigation/router、UIContext、TaskPool/Worker/Sendable、
+Preferences/RDB、权限、签名与 hvigor、版本说明）筛出 586 个文件逐个读实质 diff。`--pin` 后 `pin_check.py` 输出
+`PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| openharmony-sdk-js | 56ef801 → 8a86234（3 提交：4700c54、f17e2f0、296f049） | 只有 `api/@ohos.arkui.UIContext.d.ts` 的 JSDoc：亮度采样参数说明扩写、`openBindSheet`/`updateBindSheet` 的 NOTE 排版、`keyframeAnimateTo` 等注释措辞；无签名、`@since`、`@deprecated` 变化 | 噪声：本 skill 只引用 UIContext 访问器的可用版本（`getRouter()`/`getPromptAction()` `@since 10`、`isAvailable()` `@since 20`），未变 |
+| liasica-harmonyos | eb849db → d1ea543（15 提交，2026-10-01 至 10-15） | `arkts-new-computed.md` 新增：`@Computed` 缓存结果，依赖变化后**下一帧**才重算，同一事件里同步读取得到的是修改前的缓存值 | **事实更正**：本 skill `arkui-state-v2.md` 写「依赖变化时重算」，读起来是即时的。用 ArkUI 源码核实（`openharmony/arkui_ace_engine` `state_mgmt/src/lib/v2/v2_change_observation.ts`：依赖变化只把 id 记入 `computedPropIdsChanged_`，在 `flushDirtyViewsOnVSync` → `updateComputedAndMonitors()` 中处理；`v2_computed.ts` 的 getter 只返回缓存字段）。GitHub 上 `openharmony/docs` 镜像停在 2026-08-22，尚无此句 |
+| 同上 | 同上 | `arkts-new-monitor.md` 新增：API 24 起编辑器对 `@Monitor` 路径做校验告警（经过非 `@ObservedV2` 类、未 `@Trace` 的属性、interface、联合类型） | 已覆盖：正文已写 `@Monitor` 只能观察 `@ObservedV2`/`@Trace` 一路到底的路径；新增的只是编辑器告警，不改变运行时语义 |
+| 同上 | 同上 | `arkts-sendable-module.md`：例子改为说明共享模块不能作为 Worker 入口；`async-concurrency-overview.md` 补 `finally`；`arkts-router-to-navigation.md` 页面名大小写；`arkts-navigation-jump.md` 日志级别；其余 `arkts-new-*`、`arkts-v1-v2-*` 只换图片链接 | 噪声 |
+| 同上 | 同上 | 版本说明：鸿蒙电脑版 DevEco Studio 26.0.0 Beta1（2026-10-08）首发，原 DevEco Studio 改名「Windows/macOS 版」；API 版本占比与支持设备表刷新；`changelogs-for-all-apps-7001/7003` 只改链接与「Tab→Tabs」措辞 | 噪声：本 skill 不写 IDE 发行渠道与设备清单 |
+| 同上 | 同上 | 新增约 560 篇（鸿蒙电脑版 DevEco 的 `ide-hmos-*` hvigor/ohpm/Code Linter 文档、新 FAQ 页）；FAQ 索引页重排 | 噪声：工具文档镜像与索引，未改变本 skill 引用的任何规则 |
+
+### 正文
+
+`references/arkui-state-v2.md` 的 `@Computed` 小节：说明重算排到下一帧，同一处理函数里改完依赖立即读 `@Computed`
+拿到旧缓存值，需要即时结果时内联计算或读普通 getter。属于事实更正（官方文档 + 源码双重核实），未新增行为规则，按
+流程不跑 D2。另改 SOURCES.yaml（re-pin、liasica `contributes`）与版本号 `2026.10.15`。
+
+遗留：HarmonyOS 7.0.0（API 26）在本次区间之前已发布，`build-sign-verify.md` 的版本对照表只到 6.1.1；不属于本次区间的上游
+变化，未在本次处理，建议下次全量复核时补。

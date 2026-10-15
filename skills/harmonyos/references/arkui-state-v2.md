@@ -172,8 +172,11 @@ get sum(): number { return this.count1 + this.count2 + this.count3; }
 ```
 
 - Decorates a getter only. On a field or a plain method it is a compile error.
-- Recomputes on initialization and when a state variable it reads changes; otherwise the
-  cached value is returned.
+- Recomputes on initialization and when a state variable it reads changes — but the
+  recompute is queued and runs on the next frame, not at the assignment. Reading the
+  `@Computed` property synchronously right after changing a dependency (in the same click
+  handler, say) returns the **old cached value**; compute inline or read a plain getter
+  when the handler needs the new result immediately. Otherwise the cached value is returned.
 - Read-only. Assigning to a `@Computed` property is rejected.
 - In `@ComponentV2` it is computed eagerly at component creation; inside an `@ObservedV2`
   class it initializes **asynchronously** after the instance is created, so do not depend
