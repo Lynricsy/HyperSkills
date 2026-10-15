@@ -529,9 +529,11 @@ Preferences/RDB、权限、签名与 hvigor、版本说明）筛出 586 个文�
 | 4 Android 迁移计划（第 10 项 SDK 版本） | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ◐3 ✔4 ✔5 ✔6 ✔7 ✔8（6✔2◐） | 184 s。第 10 项：compatibleSdkVersion 是最低可安装 API、拉到最新会排除旧设备，target 按已验证版本单独设，debug profile 不能用于上架；第 2 项判为「非失败、建议 Navigation」并提路由参数不能带函数、API 18 起弃用；Worker 一项给 TaskPool 三分钟限制，未提 64 个上限与不可取消 |
 | 4 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ◐3 ◐4 ✔5 ✔6 ✔7 ✔8（4✔4◐） | 288 s。第 10 项同样达成（最低可安装 API、`compatible ≤ target ≤ compile`、debug 签名不能上架）；UIAbility、router、全局 UI 接口均判为「条件性问题」，未给 Navigation 为标准做法、未给 `@since 10`；Worker 一项未给 TaskPool 限额 |
 | 5 负例（Compose） | gpt-6.1-sol medium | 有 | false | 3/3 | 184 s。按 Compose 修：不可变 LineItem + `StateFlow.update`、总价由列表派生、`key` 保滚动，无 ArkTS |
+| 6 HarmonyOS 7.0 ↔ API 26.0.0 与 `@Computed` 下一帧重算（新增） | gpt-6.1-sol medium | 有 | true | 5/5 | 98 s。`"7.0.0(26)"` 不存在：HarmonyOS 7.0 对应 SDK `26.0.0`，自 26.0.0 起去掉括号后缀 → target `"26.0.0"`；compatible `"6.0.0(20)"` 为最低安装版本；CI 换成与 IDE 同一构建的 26.0.0 Command Line Tools（SDK 随工具链）；`@Computed` 缓存、依赖变化后下一帧才重算，同一 handler 内读到旧值而 Text 稍后刷新；去掉 `@Computed` 改普通 getter，无定时器 |
+| 6 | gpt-6.1-sol medium | 无 | false | ◐1 ✔2 ✔3 ◐4 ✔5（3✔2◐） | 201 s。target `"26.0.0"`、说明 26 起改用语义化版本，但没点明 HarmonyOS 7.0 即 API 26.0.0；compatible、CI 工具链结论同有 skill；`@Computed` 只说「赋值后可能仍读到旧缓存、随后刷新」，未说下一帧；同样改普通 getter |
 
 选择理由：版本对照（HarmonyOS 7.0 ↔ API 26.0.0）与 `@Computed` 下一帧重算没有场景覆盖，新增 6（`build-profile.json5` + `CheckoutPage.ets`）；4 第 10 项涉及 SDK 版本；5 为负例。
 
-已完成部分：场景 4 有 skill 6✔2◐ 对基线 4✔4◐，第 10 项两侧均达成；负例 `skill_read=false`。
+结论：场景 4 有 skill 6✔2◐ 对基线 4✔4◐，第 10 项两侧均达成；新增 6 有 skill 5/5 对基线 3✔2◐（版本对照与 `@Computed` 下一帧两处为基线部分达成、有 skill 达成）；负例 `skill_read=false`。未改正文。
 
-**未完成（本代理请求预算耗尽前未跑完；队列仍在后台按顺序运行，结果写入上述目录）**：6 HarmonyOS 7.0 ↔ API 26.0.0 与 @Computed 下一帧重算（新增，有/无）。待结果出来后补判定。
+遗留：场景 4 第 2、3 项（Navigation 为标准做法、TaskPool 64 上限与不可取消）有 skill 仍为部分达成，与今日改动无关。
