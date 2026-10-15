@@ -225,7 +225,37 @@ gcloud container clusters update CLUSTER_NAME --project=PROJECT_ID --region=us-c
 
 Maintenance **exclusions** additionally block upgrades during a freeze, with scopes for
 no-upgrades, no-minor-upgrades or no-minor-or-node-upgrades. An exclusion has a maximum length
-and does not stop an upgrade forced by end of support.
+and does not stop an upgrade forced by end of support. A window must be at least 4 hours.
+
+### When an upgrade stalls
+
+Ask GKE before forcing anything — a stalled upgrade is usually one GKE paused on purpose
+`[official]`:
+
+```bash
+gcloud container clusters get-upgrade-info CLUSTER_NAME --location=LOCATION
+gcloud container node-pools get-upgrade-info POOL_NAME --cluster=CLUSTER_NAME --location=LOCATION
+```
+
+The auto-upgrade status is `ACTIVE`, `MINOR_UPGRADE_PAUSED` or `UPGRADE_PAUSED`, and a paused
+status carries a reason: `MAINTENANCE_WINDOW`, `MAINTENANCE_EXCLUSION_<SCOPE>`,
+`CLUSTER_DISRUPTION_BUDGET` (a cooldown after cluster creation or an upgrade) or
+`SYSTEM_CONFIG`. For `SYSTEM_CONFIG`, Google's advice is not to upgrade manually unless you
+must. A manual upgrade also bypasses the window and exclusions the team set deliberately.
+
+- **Surge versus the window.** A surge upgrade still running when the window closes pauses
+  and resumes in the next window, so a large pool with `--max-surge=1` can sit at mixed
+  versions for weeks. Widen the window, raise `--max-surge`, or use blue-green, which runs to
+  completion past the window.
+- **Blue-green pacing.** `--standard-rollout-policy=batch-node-count=N,batch-soak-duration=Ns`
+  sets the drain batches (batch soak defaults to 0 s), and `--node-pool-soak-duration`
+  defaults to 3600 s before the old nodes are deleted.
+- **Drain blockers.** A PodDisruptionBudget with `ALLOWED DISRUPTIONS` 0 (`minAvailable`
+  equal to the replica count) slows every drain that touches it; add replicas or relax the
+  budget rather than deleting it.
+- **Resuming.** A cancelled or partially completed node-pool upgrade resumes when you re-issue
+  `gcloud container clusters upgrade CLUSTER_NAME --node-pool=POOL --cluster-version=VERSION`;
+  until then the pool runs mixed versions.
 
 ## Connecting kubectl
 

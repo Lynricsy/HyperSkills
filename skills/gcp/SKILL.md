@@ -4,7 +4,7 @@ description: "Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud s
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.09.30"
+  version: "2026.10.15"
   category: platform
 ---
 
@@ -194,7 +194,7 @@ propagation and alert design are the `observability` skill's subject.
 | Organization, folders, projects, org policy, labels vs tags, Shared VPC | designing a landing zone; enforcing a guardrail; a project-level accident | `references/resource-hierarchy.md` |
 | Roles, conditions, deny policies, service accounts, Workload Identity Federation | auditing or changing access; diagnosing a 403 | `references/iam.md` |
 | Cloud Run revisions, concurrency, scaling, timeouts, traffic, jobs, VPC egress | deploying, tuning or rolling back a service; cold starts | `references/cloud-run.md` |
-| GKE clusters, node pools, channels, upgrades, VPC-native, Workload Identity for GKE | creating or operating a cluster; an upgrade or IP-exhaustion question | `references/gke-control-plane.md` |
+| GKE clusters, node pools, channels, upgrades and stalled upgrades, VPC-native, Workload Identity for GKE | creating or operating a cluster; an upgrade that will not finish, or an IP-exhaustion question | `references/gke-control-plane.md` |
 | Cloud SQL settings, editions, HA, backups, connectivity; choosing between managed data services | standing up or reviewing a database; picking Spanner vs Cloud SQL vs Firestore | `references/data-services.md` |
 | Buckets, storage classes, lifecycle, soft delete, access, 403/404 triage | a storage bill, a lifecycle policy, or an access failure | `references/cloud-storage.md` |
 | Logging query language, buckets, sinks, retention, pricing; Monitoring metric kinds and quotas | pulling logs, routing them, or explaining an observability bill | `references/logging-monitoring.md` |

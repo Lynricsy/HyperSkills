@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin gcp
 skill: gcp
-version: "2026.09.30"           # must equal SKILL.md metadata.version
+version: "2026.10.15"           # must equal SKILL.md metadata.version
 upstreams:
   - id: gcp-docs
     kind: docs
@@ -37,39 +37,39 @@ upstreams:
       - skills/cloud/cloud-build-basics
       - skills/cloud/google-cloud-recipe-auth
     ref: main
-    commit: 2964a69c4d4a27632a43d60dab5f4f645f2a82df
+    commit: b85f257d127c190b9c362ac491eb4f0e58f2e5fb
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The CLI discipline this skill's Core rules are built on: leaf-level `gcloud help` validation being non-transitive, the ban on unscoped `list` commands, `--quiet` as a hard requirement in headless environments, explicit `--project` and location scoping, and the human-approval denylist (IAM mutation, delete, billing, organizations, kms, and proactive `services enable`). From the IAM helpers: the v1-allow / v2-deny two-paradigm model, deny-policy attachment points, the plan-then-confirm protocol for mutating policy changes, the refusal to grant basic roles to allUsers/allAuthenticatedUsers, and the ordering that puts Policy Troubleshooter after checking deny and organization policy. From gke-cluster-creation: Autopilot as the golden path and the concrete hardened `create-auto` flag set (private nodes, master authorized networks, DNS access, Secret Manager rotation, release channel). From cloud-logging-query-generation: the LQL hard rules - double quotes only, uppercase booleans, gce_instance name-versus-id confusion, internal_http_lb_rule rather than http_load_balancer, and SEARCH() rather than `=` or `:` for protoPayload.methodName. From cloud-run-basics: the service / job / worker-pool split, the required deploy roles, and the job flag defaults. From the WAF skills: the six-pillar review structure and the product mapping under each."
     notes: "Repository LICENSE read directly and confirmed to be the Apache-2.0 full text, not merely the API's spdx_id. The non-standard `metadata.category` values (CloudInfrastructureAndServices, Serverless, Databases, WellArchitectedFramework, Security, Containers) were stripped per docs/skill-standard.md section 1.2, as were the MCP tool-name blocks (list_clusters, create_cluster, run_gcloud_command, search_documents). Two upstream positions were not adopted: the gcloud skill's rule 4, which forbids web search for gcloud syntax, is a Gemini CLI product constraint rather than an engineering fact and was re-expressed as 'the installed release's help output is the authority'; and its ALL-CAPS MANDATORY/FORBIDDEN register was dropped per docs/skill-standard.md section 3. The GKE skills' manifest-layer material (gke-manifest-generation, gke-app-onboarding, gke-workload-*) was deliberately excluded - gke-app-onboarding was already used by the `containers` skill, and Kubernetes manifests are that skill's scope. cloud-run-basics does not cover concurrency defaults, traffic splitting or the --min/--min-instances distinction; those came from the documentation and the local CLI instead."
   - id: gcs-extension
     kind: repo
-    repo: gemini-cli-extensions/google-cloud-storage
-    url: https://github.com/gemini-cli-extensions/google-cloud-storage
+    repo: GoogleCloudPlatform/google-cloud-storage-plugin
+    url: https://github.com/GoogleCloudPlatform/google-cloud-storage-plugin
     paths:
       - skills/google-cloud-storage-diagnostic
       - skills/gcs-security-assessment
     ref: main
-    commit: 7dbed139cdebc44b35d8b61ed27fd40bda07f277
+    commit: 701fcaee68a6005e3fcbfa2bdb684f02592a2bcb
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The ordered 403/404 triage in references/cloud-storage.md, including the point that Cloud Storage returns 404 for objects the caller may not see so a 404 is usually a permission problem, and the ordering that puts identity and bucket IAM before object ACLs, deny policies and VPC Service Controls. From gcs-security-assessment: the public-exposure audit checklist (uniform bucket-level access, public access prevention, allUsers/allAuthenticatedUsers, CMEK) used as the security section's spine."
-    notes: "Its google-cloud-storage-basics and google-cloud-storage-bucket-architect skills duplicate the same-named skills in google/skills; google/skills is recorded as the source for those and this repository only for the two skills that exist nowhere else. Low star count (25) did not affect scoring - authority is assessed by the publishing organization, and gemini-cli-extensions is Google's."
+    notes: "Its google-cloud-storage-basics and google-cloud-storage-bucket-architect skills duplicate the same-named skills in google/skills; google/skills is recorded as the source for those and this repository only for the two skills that exist nowhere else. Low star count (25) did not affect scoring - authority is assessed by the publishing organization, and gemini-cli-extensions is Google's. Repository moved 2026-10: gemini-cli-extensions/google-cloud-storage now redirects to GoogleCloudPlatform/google-cloud-storage-plugin (same history, HEAD 701fcae on both names; google/skills e14f00e switched its install commands to the new name). `repo`/`url` follow the new name; both tracked paths exist unchanged under it, and its LICENSE file is still the Apache-2.0 text."
   - id: optimnow-finops
     kind: repo
     repo: OptimNow/cloud-finops-skills
     url: https://github.com/OptimNow/cloud-finops-skills
     paths:
-      - skills/cloud-finops
+      - plugins/cloud-finops/skills/cloud-finops
     ref: main
-    commit: 92627f5c55c3eacd7bce6d60d5cdf0b852db303e
+    commit: a2c5277e41cc4c86c7518f49221ab7ac1ba56c05
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "The structure of the cost-investigation workflow: inform before optimise before operate, rank by period-over-period delta rather than absolute size, and attribute down through project then label then resource before proposing a change. Also the position that right-sizing must precede commitments, because a multi-year commitment on an over-provisioned fleet locks in the waste."
-    notes: "The GitHub API reports NOASSERTION; the repository's LICENSE.md was read directly and is Creative Commons Attribution-ShareAlike 4.0 International (Copyright 2025-2026 OptimNow, Jean Latiere). Per docs/roadmap.md's licence table, CC-BY-SA material is merged as structure and checklist semantics only, entirely rewritten in this skill's own words; no wording, table or example is carried over. Its cross-cloud AWS and Azure material was ignored, and every Google Cloud figure in references/cost-and-quotas.md was taken from cloud.google.com rather than from this repository. Its 2026-09-20 finops-gcp.md update (b04b6d6) mentioned project-level spend limits, which led to the spend cap budget correction in references/cost-and-quotas.md; that section was written from the Cloud Billing spend-cap documentation, not from this repository."
+    notes: "The GitHub API reports NOASSERTION; the repository's LICENSE.md was read directly and is Creative Commons Attribution-ShareAlike 4.0 International (Copyright 2025-2026 OptimNow, Jean Latiere). Per docs/roadmap.md's licence table, CC-BY-SA material is merged as structure and checklist semantics only, entirely rewritten in this skill's own words; no wording, table or example is carried over. Its cross-cloud AWS and Azure material was ignored, and every Google Cloud figure in references/cost-and-quotas.md was taken from cloud.google.com rather than from this repository. Its 2026-09-20 finops-gcp.md update (b04b6d6) mentioned project-level spend limits, which led to the spend cap budget correction in references/cost-and-quotas.md; that section was written from the Cloud Billing spend-cap documentation, not from this repository. Path moved 2026-09-30 (d317b49, release 1.39.0): the skill now lives at plugins/cloud-finops/skills/cloud-finops and skills/cloud-finops holds only a pointer README, so `paths` follows the new location; LICENSE.md re-read at a2c5277 and is unchanged."
   - id: bagelhole-devops
     kind: repo
     repo: BagelHole/DevOps-Security-Agent-Skills
@@ -81,7 +81,7 @@ upstreams:
     commit: 0365f57a079b1332f95cf26e31dd2d5332a8399f
     license: MIT
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Read only as a coverage check that no major Google Cloud control-plane topic was missed (Compute Engine, VPC and networking, Cloud Functions, Cloud SQL, GKE, audit logging)."
     notes: "No content merged. Its material is tutorial prose and command tables of the kind docs/skill-standard.md section 3 rules out, and its Prerequisites sections instruct the agent to run `gcloud services enable` directly, which contradicts the official gcloud skill's denylist; that conflict was resolved in favour of the stricter position and is recorded in research/gcp.md. Its terraform-gcp skill is out of scope for this skill."
   - id: cloud-run-mcp
@@ -91,10 +91,10 @@ upstreams:
     paths:
       - skills/cloud-run
     ref: main
-    commit: b3628fd8fda139ffafa961c3e2889c82af01891c
+    commit: 18588d9468cf15e89000da84d08f6870dbf64dd5
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Completeness check on the `gcloud run` command surface - it is the source that flagged the multi-region-services and `compose up` subgroups, both confirmed present in the local Google Cloud SDK 584.0.0."
     notes: "No content merged. The skill is a transcription of `gcloud run --help` into a table, which a capable model can obtain in one command."
   - id: google-agents-cli
@@ -104,9 +104,9 @@ upstreams:
     paths:
       - skills/google-agents-cli-deploy
     ref: main
-    commit: e556c95e94d8440e2edf605a13c513bd01d8e602
+    commit: d445570c61fd446487ea6623c5635b23aded237f
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-09-30"
+    synced_at: "2026-10-15"
     contributes: "Coverage check on the Cloud Run deployment path for containerised applications."
     notes: "No content merged. Its deployment material is scaffolding for the agents CLI product itself (`agents deploy`, Agent Engine) rather than general Cloud Run practice, and the Cloud Run portion adds nothing beyond google/skills' cloud-run-basics."

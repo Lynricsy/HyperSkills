@@ -407,3 +407,34 @@ agent-platform-deploy、GKE 路由消歧 `9ad3d2b`）都不在本 skill 的 path
 
 **正文与评测**：`SKILL.md` 与 `references/` 正文未变，只改 `metadata.version` 与 `SOURCES.yaml`
 （`version`、re-pin）。正文未变，未跑评测，未做安装冒烟。
+
+## 2026-10-15 上游同步
+
+依据：主代理 2026-10-15 `check_upstream.py --json` 报告与 `/tmp/hs-attr/skills_real.json`，3 条 paths 下确有提交（google-skills 区间内按 paths
+过滤为 8 个提交；报告 ahead_by 57 为全仓提交数）。归因方法：三个仓库均 `gh repo clone --bare --filter=blob:none` 到 `/tmp/hs-up/SyncG2/`，对
+`<pinned>..<head> -- <paths>` 跑 `git log`、`git diff --stat`、`git diff`；optimnow 的路径迁移另用 `git diff <旧>:<旧路径> <新>:<新路径>` 对比。
+`--pin` 后 `pin_check.py` CLEAN；gcs-extension、cloud-run-mcp 随 `--pin` 前移。gcp-docs 为 manual check，仅为 GKE 新内容读了官方页。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| google-skills | 2964a69 → b85f257（8 提交） | d970a4d：`gke-upgrades/references/troubleshooting.md` 新增「升级被暂停/部分完成」（`get-upgrade-info`、暂停原因）、蓝绿 soak 参数与维护窗口交互、新节点不 Ready；e14f00e：Cloud Storage 改 MCP 优先并迁到 GoogleCloudPlatform/google-cloud-storage-plugin；56b016c IAM 链接修复；caf1a04/4b940dd/98683ba/a43f415 产品命名与描述；d5d9052 架构参考链接 | GKE 段 **新增内容（已评测合入）**；其余噪声（MCP 优先属其插件的工具绑定，与既往裁决「剥离 MCP 工具块」一致） |
+| optimnow-finops | 92627f5 → a2c5277（2 个命中提交） | d317b49：skill 移到 `plugins/cloud-finops/skills/cloud-finops`，旧路径只剩指引 README；e855839 及迁移后各次措辞/FOCUS/CUD 更新 | **paths 迁移**；内容噪声（本 skill 只取结构，GCP 数字来自 cloud.google.com，与 FOCUS 预览、CUD 措辞无冲突） |
+| google-agents-cli | e556c95 → d445570（3 提交） | v1.8–1.10 发布：CMEK 参考、Agent Runtime 改名 | 噪声（relation reference，仅覆盖面核对） |
+
+元数据：optimnow-finops `paths` 改为新路径（LICENSE.md 在 a2c5277 复读仍为 CC-BY-SA-4.0）；gcs-extension 仓库已改名为
+GoogleCloudPlatform/google-cloud-storage-plugin（旧名重定向、HEAD 同为 701fcae、两条 paths 仍在、LICENSE 为 Apache-2.0），`repo`/`url` 跟进。
+
+GKE 新内容（`references/gke-control-plane.md`「When an upgrade stalls」，router 行同步）：`clusters/node-pools get-upgrade-info` 与状态/暂停原因、
+`SYSTEM_CONFIG` 不宜手动升级、surge 超窗暂停而蓝绿跑完、蓝绿 soak 默认、PDB 0 可中断、重发同一 upgrade 命令续跑；另补「窗口至少 4 小时」。
+全部对照官方 `upgrade-assist`、`node-pool-upgrade-strategies`、`maintenance-windows-and-exclusions`、`troubleshooting/upgrades` 页核实；
+上游未经官方确认的「BATCH_NODE_COUNT 默认 1」未写入。
+
+评测（omp + `openai/gpt-6.1-sol` medium，新增场景 7 `gke-upgrade-stall.md`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 GKE 升级停滞 | gpt-6.1-sol medium | 无 | false | EB2（缺蓝绿越窗）、EB3、EB4；**EB1 ✘**；EB5 部分（有重发续跑，无 `SYSTEM_CONFIG`） | 只用 `clusters describe`/`operations list` 推断 |
+| 7 GKE 升级停滞 | gpt-6.1-sol medium | 有 | true | EB1–EB5 | 先跑 `get-upgrade-info`（集群与节点池），区分 `CLUSTER_DISRUPTION_BUDGET` 与 PDB、`SYSTEM_CONFIG` 不绕过，提到蓝绿 |
+
+结论：基线缺口（GKE 自身的升级状态/暂停原因）成立并由 skill 填补，合入。其余条目噪声或仅元数据。负例与旧场景未重跑。
+产物：`/tmp/hs-evals/gcp/omp-openai-gpt-6.1-sol-medium/{baseline,skill}/7`。

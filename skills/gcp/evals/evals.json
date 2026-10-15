@@ -69,5 +69,17 @@
       "Adds the quota and service-level limits that bound the blast radius independently of billing - `max-instances` on `summarizer`, a lower Vertex AI / Gemini quota for the project, and closing or authenticating the public endpoint",
       "Warns against the budget → Pub/Sub → function that disables billing on the project as the answer here, because detaching billing stops every service including `demo-db` and risks the resources the CTO wants kept"
     ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "gke-upgrade-stall.md has the on-call notes for prod-gke. Before the platform lead force-upgrades both node pools tonight and deletes the maintenance settings, tell me what is really holding the upgrades back, the exact commands to confirm it, and the safe way to finish.",
+    "files": ["evals/files/gke-upgrade-stall.md"],
+    "expected_behavior": [
+      "Starts from GKE's own auto-upgrade status rather than guessing: `gcloud container clusters get-upgrade-info prod-gke --location europe-west1` and `gcloud container node-pools get-upgrade-info <pool> --cluster prod-gke --location europe-west1`, reading the status (`ACTIVE`, `UPGRADE_PAUSED`, `MINOR_UPGRADE_PAUSED`) and the paused reason (`MAINTENANCE_WINDOW`, `MAINTENANCE_EXCLUSION_*` with its scope, `CLUSTER_DISRUPTION_BUDGET`, `SYSTEM_CONFIG`)",
+      "Explains the `general` pool's weekly crawl with the window: the 4-hour Saturday window (the minimum GKE allows) cannot cover a 60-node surge upgrade at `maxSurge=1`, and a surge upgrade that runs past the window pauses and resumes in the next one, so the pool stays mixed for weeks; the fixes are a longer window, a higher `maxSurge`, or a blue-green upgrade, which continues to completion past the window",
+      "Identifies `checkout-pdb` (`minAvailable: 3` on 3 replicas, `ALLOWED DISRUPTIONS` 0) as a drain blocker that slows every node holding a checkout Pod, and fixes it by adding replicas or relaxing the budget rather than deleting it for good",
+      "Treats the forgotten maintenance exclusion as the likely reason `batch` has not moved: inspect its scope and end time (`no_upgrades`, `no_minor_upgrades`, `no_minor_or_node_upgrades`) before removing it, and notes that an exclusion cannot stop an upgrade forced by end of support",
+      "Pushes back on the blind force-upgrade: a manual upgrade bypasses the window and exclusion the team set on purpose, and if the paused reason is `SYSTEM_CONFIG` GKE recommends not upgrading manually unless required; a partially completed node-pool upgrade is resumed by re-issuing the same `gcloud container clusters upgrade --node-pool ... --cluster-version` command"
+    ]
   }
 ]
