@@ -238,3 +238,16 @@ maiko-awesome-rn 为 up to date）随 `--pin` 一并对齐；pin 写入的 commi
 结论：上游带来的 `cubicBezier` 更正，基线已自行查源码实测做到，不合入（`docs/skill-standard.md` 第 3 节：
 只写模型不会的）；场景 6 保留作哨兵，第 3 条同时守既有的「只动 transform/opacity」规则。正文未变，仅新增
 评测场景 6 与夹具、re-pin、版本号改为 2026.09.30；未跑有 skill 的 D2。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`，
+两条 `behind`：expo-official、callstack-rn。归因方法：`gh api repos/<o>/<r>/compare/<pinned>...<head>` 读 tracked
+paths 的完整 patch。`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| expo-official | c0dadf3 → d4f4840（3 提交：13ad8e0、76f924d、d4f4840） | 13ad8e0：全部 skill 的 description 去掉「EAS service (paid)」类前缀；76f924d/d4f4840：`eas-simulator` 的会话时长上限（Free 40 / 付费 115 分钟）、Appium 命令也重置空闲计时、`press`/`click`（`tap` 为隐藏别名）、录屏 `record start <path>` / `record stop`、Android 也有浏览器预览、会话费用改为陈述事实不再询问 | 噪声：EAS Simulator 是付费托管工具面，本 skill 未收；description 措辞不影响正文 |
+| callstack-rn | 61e6e7d → 59e9d17（1 提交：59e9d17） | 仅 `react-native-brownfield-migration`：新增 `cli-and-config.md`（`brownfield.config.*`、CLI 全量参数、产物目录 `ios/.brownfield/package/build`）与 `runtime-api.md`；`package:ios` 默认加 `--destination simulator`；Expo iOS 的 `--add-spm-package`、`--use-prebuilt-expo` 与 `usePrecompiledModules`、`preferEmbeddedBundleInDebug`、`ensureExpoModulesProvider()` 必须在 `startReactNative` 之前；`expo-router/entry` 只注册 `main`，宿主要挂命名模块须改入口并 `AppRegistry.registerComponent`；Android `createView`/`ReactNativeFragment` 新签名 | 不合入：都是 `@callstack/react-native-brownfield` CLI 与 API 的操作细节。本 skill 的 brownfield 小节刻意停在「选一条轨道、facade、打包产物、宿主检查点」这一层，CLI 参数交给官方文档；现有「注册名不对时运行时空白而不是编译失败」已覆盖 expo-router 入口问题的症状面，与上游无冲突 |
+
+正文未变，未跑 D2。只改 SOURCES.yaml（re-pin）与版本号 `2026.10.15`。
