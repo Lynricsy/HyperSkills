@@ -67,5 +67,15 @@
       "Does not propose caching the result in Redis, adding a Redis layer, or any Redis data structure as the answer",
       "skill_read is false for the `redis` skill"
     ]
+  },
+  {
+    "skills": ["redis"],
+    "query": "semantic_search.py is our product search. similar_products() fails on every call in production with the SEARCH_SYNTAX error in the docstring, while keyword_search() on the same index works. The PR author insists the query is fine because DIALECT 2 is the default since Redis 8. Who is right, and what is the fix?",
+    "files": ["evals/files/semantic_search.py"],
+    "expected_behavior": [
+      "Says the PR's premise is wrong: Redis 8 deprecates query dialects 1, 3 and 4 but DIALECT 1 is still the default on 8.x (8.10 reports `search-default-dialect` 1), and the `*=>[KNN ...]` vector syntax needs dialect 2, which is why only the vector query fails to parse",
+      "Fixes similar_products by passing `DIALECT 2` on the query itself, keeping the vector in `PARAMS`; if it suggests changing the instance default (`CONFIG SET search-default-dialect 2`) instead, it warns that this changes how every other query on the instance is parsed",
+      "Gives a way to confirm the server's default rather than trusting the blog post, such as `CONFIG GET search-default-dialect` or `FT.CONFIG GET DEFAULT_DIALECT`"
+    ]
   }
 ]

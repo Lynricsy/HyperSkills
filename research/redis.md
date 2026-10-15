@@ -466,3 +466,25 @@ D1：`validate_skills` / `build_catalog --check` 通过；`npx skills@latest add
 新增的 LRM 策略属于对既有「策略清单」的事实更正（清单在 8.6+ 上不完整），未扩写选型规则，未新增 eval。`redis-io-docs` 的 `synced_at` 更新为 2026-10-15。
 
 注：`references/keyspace-and-expiry.md` 的 LRM 改动因本代理误写主工作区，最早已随 9e88465（rust 文档上游复核集成）落入 main；本提交内容与之相同，集成时该文件为空变更。
+
+## 2026-10-15 D2 回归
+
+覆盖：起点 `ab38c43` 之后改动正文的两处——`keyspace-and-expiry.md` 的淘汰策略表补 8.6+ 的 `allkeys-lrm` / `volatile-lrm`（随 9e88465 进入 main，c1bbf60 重复写入同一内容），`search-and-vectors.md` 把「Redis 8 起默认 DIALECT 2」更正为「8.x 默认仍是 1」（c1bbf60）。6cc296f 只 re-pin。在 `/tmp/hs-wt/D2G4`（分支 `d2/D2G4`）上跑，omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/D2G4/redis/omp-openai-gpt-6.1-sol-medium/`。今天此前没有本 skill 的 VM 评测结果，全部新跑。
+
+选场景：
+
+- 场景 1：唯一用到淘汰策略清单的场景（EB1 `volatile-lru` 无 TTL 键时等同 `noeviction`，处方 `allkeys-lru`/`lfu`），检查补上 LRM 两行后模型不会把 LRM 当成纯缓存的处方。
+- 新增场景 6（夹具 `evals/files/semantic_search.py`）：没有任何场景用到查询方言。夹具是一段 `FT.SEARCH` KNN 查询未带 `DIALECT`、在 8.10.2 上报 `SEARCH_SYNTAX Syntax error at offset 1 near >[`（文档复核时的实测报错），PR 作者引用「Redis 8 起默认 DIALECT 2」。
+- 场景 5：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 cache_service 四起事故 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✔ EB7 ✔ | 212 s。本地 8.0.2 实测 `volatile-lru` 在只剩无 TTL 键时 OOM、换 `allkeys-lfu` 后可写；会话迁到独立 `noeviction` 实例，产品实例 `allkeys-lfu`（未误用 LRM）；TTL 抖动 + 锁内复查的 single-flight；JSON null 负缓存 + 商品 ID 成员集合；Lua 原子 `SET … EX` 续期；以反向索引替换 `KEYS` 并说明 SCAN 不算修复；明确产品缓存不开持久化 |
+| 1 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ EB6 ✘ EB7 ◐ | 123 s。主体方案相同（引用官方 eviction 页）；`invalidate_category` 以 `scan_iter` 作为修复；持久化只从 fork 开销与「可丢弃缓存」角度处理，未明确判断丢一小时写入是否要紧 |
+| 6 KNN 查询缺 DIALECT | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ | 47 s。指出 Redis 8 只弃用方言 1/3/4、默认仍是 1；`similar_products` 追加 `"DIALECT", "2"`，并说明改实例默认会影响其他查询的解析；给出 `CONFIG GET search-default-dialect` 核实生产配置 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✘ | 214 s。联网查到官方方言页，结论与修复相同；未给核实服务端默认值的命令 |
+| 5 负例（Postgres 索引） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 28 s。部分复合索引 `(merchant_id, created_at DESC) WHERE status = 'unfulfilled'`，未涉及 Redis |
+
+结论：两处更正相关的行为在有 skill 时均达成且不差于基线——场景 1 未把新增的 LRM 策略误作缓存处方，场景 6 方言结论正确并多给出核实命令（基线需联网查文档，耗时约 4.5 倍）。负例 `skill_read == false`。正文未改。
+
+遗留：场景 6 基线也能靠官方文档答对方言默认值，正文这条更正主要防止 skill 自身误导，增益仅在 EB3；本 VM 无 Redis Search 与 Docker，两侧都未端到端执行 KNN 查询。
