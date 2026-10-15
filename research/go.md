@@ -319,3 +319,19 @@ unchanged 的 spf13-go 前移到 9ac6eca、ashwin-go 前移到 d071a92）。五�
 | 6 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 130 s。与基线同一做法；无回归 |
 
 结论：`time.After` 一段按官方文档更正；NewTestServer / synctest.Sleep 填补场景 5 EB2 缺口，合入；json/v2 与其余 synctest 规则基线已具备，不合入，场景 6 留作哨兵。
+
+## 2026-10-15 文档上游复核
+
+按 manual check 要求逐条对照，接在今天的上游同步与新增内容评估之后。读 go.dev 页面，并用本机 go1.27.1 实跑能实跑的项。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| go-effective-go | 有用的零值、接口隐式满足与组合、"share memory by communicating" | https://go.dev/doc/effective_go | 一致 |
+| go-wiki-codereview | 空切片 `var t []string`；`Context` 作首参、不放进 struct；错误串不大写不加标点；不用 `_` 丢弃错误；in-band 错误；接收者类型一致；import 分组；安全相关用 `crypto/rand`；goroutine 生命周期 | https://go.dev/wiki/CodeReviewComments | 一致 |
+| go-wiki-testcomments | `YourFunc(%v) = %v, want %v` 的 got/want 失败信息；断言可观察行为 | https://go.dev/wiki/TestComments | 一致 |
+| go-doc-diagnostics | profiling / tracing / race detector / debugging 四分法；采集方式为 `go test` 标志或 `net/http/pprof` 端点 | https://go.dev/doc/diagnostics；本机 `go help testflag`（`-cpuprofile`/`-memprofile`/`-blockprofile`/`-mutexprofile`/`-trace`）与 `go doc net/http/pprof`（`/debug/pprof/profile?seconds=30`、`heap`、`allocs`、`trace`） | 一致（`references/performance-profiling.md` 的命令全部在上述输出中出现） |
+| go-release-notes | 1.22 每迭代循环变量与 ServeMux 路由；1.23 iterator；1.24 `b.Loop`、`t.Context`、`omitzero`、tool 指令；1.25 `testing/synctest`、`WaitGroup.Go`、容器感知 GOMAXPROCS；1.26 `errors.AsType` | https://go.dev/doc/go1.22 … go1.26 | 一致 |
+| go-release-notes | 1.27：`goroutineleak` profile GA（含 `/debug/pprof/goroutineleak`）；`go test` 默认跑 `stdversion`；`synctest.Sleep`；`httptest.NewTestServer`；`encoding/json/v2` 与 `jsontext` | https://go.dev/doc/go1.27（go1.27.0 2026-08-19 发布） | 一致。本机 go1.27.1：`go doc` 能查到 `synctest.Sleep`、`httptest.NewTestServer(t testing.TB, handler http.Handler)`、`errors.AsType`、`sync.WaitGroup.Go`；`go 1.21` 模块里调用 `slices.Concat` 时 `go test` 报 `slices.Concat requires go1.22 or later (module is go1.21)` |
+
+结论：五个 docs 条目全部一致，正文未改；SOURCES 五个条目 `synced_at` 改为 2026-10-15，go-release-notes 的 `notes` 补记 go1.27.1
+复核。

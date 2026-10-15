@@ -110,7 +110,7 @@ upstreams:
     url: https://go.dev/doc/effective_go
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Official phrasing for useful zero values, implicit interface satisfaction and composition, and 'share memory by communicating' as an ownership statement rather than a rule about pointers."
 
   - id: go-wiki-codereview
@@ -118,7 +118,7 @@ upstreams:
     url: https://go.dev/wiki/CodeReviewComments
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Declaring empty slices as var t []T, context as the first parameter and never a struct field, lowercase unpunctuated error strings, never discarding errors with _, in-band error values, receiver consistency, import grouping, crypto/rand for anything security-relevant, and the goroutine-lifetime statement this skill's rule 2 restates."
 
   - id: go-wiki-testcomments
@@ -126,7 +126,7 @@ upstreams:
     url: https://go.dev/wiki/TestComments
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The f(input) = got, want want failure-message convention and the rule that assertions target observable behaviour rather than implementation detail."
 
   - id: go-doc-diagnostics
@@ -134,7 +134,7 @@ upstreams:
     url: https://go.dev/doc/diagnostics
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "The official taxonomy of profiling, tracing, the race detector and debugging, and the endpoints and flags used to collect each profile type."
 
   - id: go-release-notes
@@ -142,9 +142,9 @@ upstreams:
     url: https://go.dev/doc/devel/release
     license: BSD-3-Clause
     relation: merged
-    synced_at: "2026-09-11"
+    synced_at: "2026-10-15"
     contributes: "Every (Go 1.x+) availability marker in this skill: per-iteration loop variables and ServeMux routing (1.22), iterators (1.23), b.Loop, t.Context, omitzero and the tool directive (1.24), synctest, WaitGroup.Go and container-aware GOMAXPROCS (1.25), errors.AsType (1.26), and the generally available goroutineleak profile plus the stdversion vet check (1.27)."
-    notes: "Verified against a local go1.26.6 toolchain for everything up to 1.26; the 1.27 items were taken from the Go 1.27 release notes."
+    notes: "Verified against a local go1.26.6 toolchain for everything up to 1.26; the 1.27 items were taken from the Go 1.27 release notes and rechecked on 2026-10-15 against a local go1.27.1 toolchain (go doc for synctest.Sleep, httptest.NewTestServer, errors.AsType, sync.WaitGroup.Go; go test reporting a stdversion violation in a go 1.21 module)."
 
   - id: douglas-pprof
     kind: repo
