@@ -444,3 +444,25 @@ Node 驱动默认把 JS number 发成 double，所以「shell 里能过、应用
 | mongodb-docs | 阻塞阶段 100 MB 内存预算（超出需落盘）、每集合最多 64 个索引 | [Limits](https://www.mongodb.com/docs/manual/reference/limits/) | 一致 |
 
 4 组事实全部一致，正文未改，`synced_at` 维持 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖的提交：`c4cfcf2`（Scope 改为「9.0 已 GA、正文以 8.0 为基准、需要 9.0 的规则单独打门槛」；`references/security-and-migrations.md`
+Queryable Encryption 的 prefix/suffix/substring 改为 9.0 GA、8.2/8.3 preview 类型须删集合重建；新增场景 6 与夹具 `qe-sizing/`）；
+`3bf8add` 只有版本号与 re-pin。
+
+选场景：6（今天新增，且直接考察两处更正）；负例 5（Postgres 迁移审查）。旧场景 1–4 不涉及 QE 与版本门槛，未选。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；产物 `/tmp/hs-d2/D2G3/mongodb/omp-openai-gpt-6.1-sol-medium/skill/{5,6}`。
+
+基线复用：场景 6 的 query、expected_behavior 与夹具 `encrypted-fields.json` 自 `c4cfcf2` 起未改，与
+`/tmp/hs-evals-MergeM2/mongodb/omp-openai-gpt-6.1-sol-medium/baseline/6`（2026-10-15 11:43，result.json 中 query/EB 与当前逐字相同、夹具逐字节相同）一致，按简报复用。
+有 skill 一侧此前没有结果（正文最后提交 11:51），本轮新跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 QE schema 能否上线与容量 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 176.7 s。`substringPreview` 是 8.2/8.3 preview、9.0 GA 格式不兼容、须 9.0 + 新建集合；double 不支持 equality（建议 long 或 range）；T=236/字段、合计 710（balance 改 long 后计一个等值 tag，预期约 709）；内存 1,376 GiB、磁盘 11.06 TB；lastName→prefix、邮箱域名→等值或 suffix、street 收窄或放弃 substring，并引用「最多一个 substring 字段、<5000 万文档」 |
+| 6 | gpt-6.1-sol medium | 无（复用） | false | EB1–EB5 ✔ | 来源 `/tmp/hs-evals-MergeM2/mongodb/omp-openai-gpt-6.1-sol-medium/baseline/6`；判定沿用本文件「2026-10-15 上游新增内容评估」 |
+| 5 负例 | gpt-6.1-sol medium | 有 | **false** | — | 64.8 s，未读 mongodb |
+
+结论：两处更正相关的行为（9.0 GA、preview 与 GA 不兼容须重建集合、版本门槛）在有 skill 时全部达成，不比基线差（5/5 对 5/5）；
+负例 skill_read 为 false。正文无需修改。遗留：场景 6 基线已满分，仍只作哨兵。
