@@ -176,6 +176,19 @@ upstreams:
     synced_at: "2026-10-15"
     contributes: "Freshness-CI approach for detecting stale API guidance; confirmed the decision to keep App Store and ASO topics out of this skill's scope."
 
+  - id: tenequm-swift-dev
+    kind: repo
+    repo: tenequm/skills
+    url: https://github.com/tenequm/skills
+    paths: [skills/swift-dev/SKILL.md]
+    ref: main
+    commit: db4b27ce40acebb3371c0b995f7135636d0bdb3a
+    license: MIT
+    relation: merged
+    synced_at: "2026-10-15"
+    contributes: "Three SwiftData and concurrency traps: enum cases named inside #Predicate fail in the macro, migration plans cannot pass through the SwiftUI modelContainer modifiers, and region-isolation errors appear only in a SIL-producing build, never in -typecheck."
+    notes: "Each fact was re-verified before use (Swift 6.3.3 swift-foundation macro and SIL diagnostics, Apple documentation JSON for the modelContainer overloads). Its cloudKitDatabase default, isolated Codable conformance, memberwise-init test error and stored static versionIdentifier items were already handled by the baseline model and are not carried. The claim that an awaited @ModelActor runs on the main thread is unverified and excluded. The Xcode 27 build-breaker list stays out under research/apple.md ruling A12."
+
   - id: apple-docs
     kind: docs
     url: https://developer.apple.com/documentation/

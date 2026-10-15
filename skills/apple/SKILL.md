@@ -176,7 +176,7 @@ macOS only; `xcrun xctrace` ships with Xcode. Full interpretation guide in
 | Layout resilience, HIG, platform idioms | Design decisions | `references/design-hig.md` |
 | Isolation, `Sendable`, task structure | Concurrency code or Swift 6 migration | `references/swift-concurrency.md` |
 | Concurrency diagnostics and failure modes | A build error or a race | `references/swift-concurrency-bugs.md` |
-| `@Model`, `@Query`, predicates, CloudKit | SwiftData | `references/swiftdata.md` |
+| `@Model`, `@Query`, predicates, migrations, CloudKit | SwiftData | `references/swiftdata.md` |
 | VoiceOver, Dynamic Type, Voice Control | Accessibility work or review | `references/accessibility.md` |
 | Swift Testing, XCTest migration, UI tests | Writing or reviewing tests | `references/testing.md` |
 | Hosting, representables, scenes, macOS windows | UIKit or AppKit is involved | `references/uikit-appkit-interop.md` |
@@ -231,6 +231,9 @@ files directly instead of returning a report.
 
 - Building, running, and previewing require **Xcode on macOS**. Nothing in this skill
   substitutes for a compile; state clearly when a claim was not verified by a build.
+  A `swiftc -typecheck` pass is not that compile: region-isolation errors (`sending 'x'
+  risks causing data races`) come from the SIL pass, so check concurrency code with a full
+  build or `swiftc -emit-sil -o /dev/null`.
 - `scripts/record_trace.py` and `scripts/analyze_trace.py` need `xctrace`, which ships with
   Xcode. They are **macOS only** and exit with an actionable message elsewhere. Both use
   only the Python 3.11+ standard library; run them with `python3` or `uv run`.

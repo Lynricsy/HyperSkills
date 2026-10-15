@@ -309,3 +309,46 @@ D2 判定：基线未达成的 E3 在有 skill 时达成；E1、E4 基线已会�
 
 遗留风险：`ArrangementView` 等 iOS 27.1 API 在 `design-hig.md` 仍标 beta；Xcode 27.1 发行说明详情页仍写 RC，下次同步复核。
 iOS 27 SDK 正式版本身未在本机（无 Xcode）编译验证，「Verified against: iOS 27 RC SDK」措辞保留。
+
+## 2026-10-15 上游新增内容评估
+
+来源：`tenequm/skills` 新增的 `skills/swift-dev/SKILL.md`（MIT，HEAD db4b27c；评估报告 NewS3 定为 MERGE 限定条目）。
+Xcode 27 构建破坏项（ld64 移除、Swift Build 产物路径、导出方法改名等）属于裁决 A12 排除的 xcode-tooling，不评。
+核实方式：本机 Swift 6.3.3（Linux，swift-foundation 的 `#Predicate` 宏与 SIL 诊断与 Apple 平台同源）实编译；
+SwiftData / SwiftUI 签名查 developer.apple.com 文档 JSON（`/tutorials/data/documentation/…json` 与 `/tutorials/data/index/swiftui`）。
+
+| 候选 | 核实证据 | 基线 | 结论 |
+|---|---|---|---|
+| `ModelConfiguration.cloudKitDatabase` 默认 `.automatic`，有 CloudKit entitlement 即开同步，不要同步传 `.none` | 文档：`init(_:schema:isStoredInMemoryOnly:allowsSave:groupContainer:cloudKitDatabase:)` 默认 `.automatic`；`.automatic` 摘要「使用 entitlements 中的主 ubiquity 容器启用托管 CloudKit 同步」 | 场景 8 E1 ✔ | **不合入**（基线已会，场景留作哨兵） |
+| `#Predicate` 中写 `.high` / `Priority.high` 编译失败，先赋给局部常量 | 实编译：`$0.priority == .high` → "Member access without an explicit base is not supported in this predicate"；`Priority.high` → "key path cannot refer to enum case 'high'"；局部 `let` 版本编译并 `evaluate` 为 true | 场景 8 E3 ◐（绕开谓词、全量取回后内存过滤） | **合入** `swiftdata.md` Predicates |
+| SwiftUI `.modelContainer(...)` 不接受 `migrationPlan`，需自建 `ModelContainer(for:migrationPlan:configurations:)` | SwiftUI 文档索引里 `modelContainer` 只有 `(_:)` 与 `(for:inMemory:isAutosaveEnabled:isUndoEnabled:onSetup:)` 两族（View / Scene），均无 migrationPlan；`ModelContainer` 有 `init(for:migrationPlan:configurations:)` | 场景 10 E2 ✘（写出不存在的 `.modelContainer(for:migrationPlan:)`） | **合入** `swiftdata.md` Model rules |
+| Swift 6 下 `versionIdentifier` 必须 `static let` | 实编译：存储型 `static var` 报 "nonisolated global shared mutable state"；**计算型 `static var` 合法**，上游说法过宽 | 场景 10 E1 ✔（用计算属性） | **不合入**（基线已会；上游表述不准确） |
+| 主 actor 默认隔离下 `Codable` 一致性被隔离，`@concurrent` 中解码报错，纯数据类型声明 `nonisolated struct` | 实编译（`-default-isolation MainActor`）：报 "main actor-isolated conformance of 'Report' to 'Decodable' cannot be used in nonisolated context"；`nonisolated struct` 消除。另测：raw-value 枚举的 `Codable` 不受影响 | 场景 8 E2 ✔ | **不合入**（基线已会；`swift-concurrency-bugs.md` 已有该诊断条目） |
+| region-isolation 错误只在 SIL 阶段报，`-typecheck` 看不到 | 实编译：同一文件 `-typecheck` 无错，`-emit-sil -o /dev/null` 报 "sending 'b' risks causing data races" | 场景 8 E4 ✘（只说 typecheck 不复现构建设置、缺 iOS SDK） | **合入** `SKILL.md` Environment 与 `swift-concurrency-bugs.md` |
+| Swift Testing：跨模块 `x == .init(...)` 误导性重载错误，根因是逐成员初始化器为 internal | 实编译（SwiftPM 6.3.3）：可选值报 "cannot convert value of type 'Grant?' to expected argument type '(any (~Copyable & ~Escapable).Type)?'"，非可选报 "'Grant' and '()'"；写全类型名报 "missing argument for parameter 'from'" | 场景 9 E1 ✔ E2 ✔ E3 ◐（修法给全，未提写全类型名） | **不合入**（核心诊断基线已会，场景留作哨兵） |
+| 从主 actor await `@ModelActor` 实测跑在主线程 | 上游自述的社区观察；Apple 文档 `ModelActor` / `DefaultSerialModelExecutor` 未说明执行线程，无法核实 | — | **不合入**（未核实） |
+
+### 评测（omp + `openai/gpt-6.1-sol`，thinking `medium`）
+
+新增场景 8（夹具 `TallyStore.swift`、`Tally.entitlements`：后台导入 + 待处理条目查询 + CI 只跑 `swiftc -typecheck`）、
+场景 9（`GrantTests.swift`、`Grant.swift`：跨模块 `.init(...)` 编译错误）、场景 10（`TallyApp.swift`：版本化 schema 与迁移计划）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 后台导入 | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✔ E3 ◐ E4 ✘ E5 ✔ | 自行加 `cloudKitDatabase: .none` 与 `nonisolated`；`pendingEntries` 全量取回后 `.filter { $0.status == .pending }`；称 typecheck 不够的理由是「不复现默认隔离设置、命令行工具无 iOS SDK」，未提 SIL |
+| 8 后台导入 | gpt-6.1-sol medium | 有 | true | E1 ✔ E2 ✔ **E3 ✔ E4 ✔** E5 ✔ | `let pending = EntryStatus.pending` 后 `#Predicate { $0.status == pending }`；「Region-isolation diagnostics also run during SIL generation. CI needs a full build, or at minimum `swiftc -emit-sil -o /dev/null`」；读了 SKILL.md、`swiftdata.md`、`swift-concurrency-bugs.md` 等 |
+| 9 测试编译错误 | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✔ E3 ◐ | 指出 internal 逐成员初始化器与误导性重载诊断，给出 `public init` / `@testable import` / 比较字段；未提写全类型名 |
+| 10 迁移计划 | gpt-6.1-sol medium | 无 | false | E1 ✔ E2 ✘ E3 ✔ | 计算型 `versionIdentifier`；`.modelContainer(for: Entry.self, migrationPlan: TallyMigrationPlan.self)`——该重载不存在 |
+| 10 迁移计划 | gpt-6.1-sol medium | 有 | true | E1 ✔ **E2 ✔** E3 ✔ | 自建 `ModelContainer(for:migrationPlan:configurations:)` 后 `.modelContainer(container)`；读了 `swiftdata.md` |
+
+D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达成。场景 9 基线已达成核心行为，对应内容未合入，未跑有 skill。
+负例（场景 4）未改 description / Scope，未重跑。输出目录：`/tmp/hs-evals-M3/apple-b8`、`apple-b9`、`apple-b10`（基线）、`apple-s8`、`apple-s10`（有 skill）。
+
+### 正文改动
+
+- `SKILL.md` Environment：`swiftc -typecheck` 不算编译，region-isolation 错误来自 SIL，用完整构建或 `swiftc -emit-sil -o /dev/null`；路由表 SwiftData 行补「migrations」。
+- `references/swiftdata.md`：Model rules 增「迁移计划不能经 SwiftUI `.modelContainer(for:)` 传入，自建容器」；Predicates 增「枚举 case 不能直接写在谓词里，先赋局部常量」。
+- `references/swift-concurrency-bugs.md`：「Sending 'x' risks causing data races」条目补 SIL 阶段与验证命令。
+- `SOURCES.yaml`：新增 `tenequm-swift-dev`（merged，paths `skills/swift-dev/SKILL.md`）。
+
+遗留：本机无 Xcode，枚举谓词在 SwiftData 存储层的运行时翻译（局部常量版本）未在设备上验证，只验证到宏展开与 `Predicate.evaluate`。

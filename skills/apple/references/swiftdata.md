@@ -31,6 +31,17 @@ time, which is why they survive in generated code.
   macro as separate key-path arrays: `#Unique<Foo>([\.email], [\.username])`.
 - Put an explicit migration schema in place even for lightweight migrations. Retrofitting
   one after shipping is much harder than adding it up front.
+- A migration plan cannot go through the SwiftUI `.modelContainer(for:)` modifiers: none of
+  their overloads takes a `migrationPlan`. Build the container yourself and pass it in:
+
+  ```swift
+  let container = try ModelContainer(
+      for: Schema(versionedSchema: SchemaV2.self),
+      migrationPlan: AppMigrationPlan.self,
+      configurations: ModelConfiguration()
+  )
+  // WindowGroup { … }.modelContainer(container)
+  ```
 
 ## Relationships
 
@@ -85,6 +96,20 @@ model.
 Does not compile: `hasSuffix`, `lowercased`, `map`, `reduce`, `count(where:)`,
 `Collection.first`, and custom operators. `hasPrefix` is unsupported — use
 `starts(with:)`.
+
+Enum cases cannot be named inside the closure — a compile error from the `#Predicate` macro
+itself. `$0.status == .pending` fails with "member access without an explicit base is not
+supported in this predicate", and `$0.status == Status.pending` with "key path cannot refer
+to enum case". Capture the case in a local constant first, so the filter still runs in the
+store rather than over every fetched row:
+
+```swift
+let pending = Status.pending
+let descriptor = FetchDescriptor<Entry>(
+    predicate: #Predicate { $0.status == pending },
+    sortBy: [SortDescriptor(\.bookedAt, order: .reverse)]
+)
+```
 
 String matching against user input uses `localizedStandardContains`, not `contains` or
 `lowercasedContains`:
@@ -149,4 +174,4 @@ Deep subclass chains complicate migrations; two levels is already a smell.
 `PersistentIdentifier` *are* `Sendable`: send the identifier and re-fetch in the destination
 context. `@ModelActor` generates the boilerplate for an actor that owns its own context.
 
-<!-- sources: twostraws-swiftdata, twostraws-swiftui, apple-docs -->
+<!-- sources: twostraws-swiftdata, twostraws-swiftui, tenequm-swift-dev, apple-docs -->

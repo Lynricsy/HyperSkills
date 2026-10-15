@@ -92,5 +92,37 @@
       "Explains that a `.sidebarAdaptable` TabView cannot morph on iPhone, so the sidebar on wide iPhones needs `defaultTabBarPlacement(.sidebar)` behind `#available(iOS 27, *)`, with the tab bar remaining on older systems",
       "Replaces `sizeClass != .compact` with `sizeClass == .regular`, because the size class is optional and `nil` must not be treated as wide"
     ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "Add a background import to the Tally app. Fetch https://api.example.com/entries (a JSON array of EntryDTO, ISO-8601 dates), decode it in a `@concurrent` function so it stays off the main actor, and upsert into SwiftData by `remoteID` on a background context. Also add `pendingEntries(in:)` that returns entries whose status is pending, newest first. Edit TallyStore.swift directly. I can't open Xcode today: our macOS CI runner only has the command line tools and runs `swiftc -typecheck` over the sources. Is that enough to trust this compiles cleanly under Swift 6?",
+    "files": ["evals/files/TallyStore.swift", "evals/files/Tally.entitlements"],
+    "expected_behavior": [
+      "Passes `cloudKitDatabase: .none` to the `ModelConfiguration`, explaining that the default `.automatic` turns on CloudKit sync because the target carries a CloudKit entitlement (and that sync would also reject the `.unique` attribute and non-optional properties)",
+      "Makes the DTO decodable off the main actor: declares `EntryDTO` `nonisolated` (or equivalent), because under main-actor default isolation its synthesized `Codable` conformance is main-actor isolated and cannot be used in `@concurrent` code",
+      "Does not compare against `.pending` or `EntryStatus.pending` inside `#Predicate`; captures the case in a local constant first (or filters on a stored raw value), because enum-case member access does not compile in a predicate",
+      "Says `swiftc -typecheck` is not enough: region-isolation errors such as `sending 'x' risks causing data races` come from the SIL pass, so CI needs a full build or `swiftc -emit-sil -o /dev/null`",
+      "Keeps `ModelContext` and `Entry` instances inside the background model actor; only DTO values or `PersistentIdentifier`s cross actors"
+    ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "Our Swift package CI broke on GrantTests.swift with the errors pasted at the bottom of the file. The test looks fine to me. What is actually wrong, and what is the right fix?",
+    "files": ["evals/files/GrantTests.swift", "evals/files/Grant.swift"],
+    "expected_behavior": [
+      "Identifies the real cause: the synthesized memberwise initializer of a `public` struct is `internal`, so `BillingTests` cannot see `init(seats:tier:)` through a plain `import Billing`",
+      "Explains the error text as misleading: with only the `Decodable` `init(from:)` visible, `.init(...)` fails to resolve and the `==` overload search ends at an unrelated metatype overload, so the message says nothing about access control",
+      "Suggests spelling out the type (`Grant(seats:tier:)`) to surface the real diagnostic, and gives a fix: `@testable import Billing`, an explicit `public init`, or comparing fields"
+    ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "Version 1.1 of Tally adds a `category: String` to Entry (existing rows should get \"General\") and renames `amountCents` to `amountMinor`. Set up versioned schemas and a migration plan in TallyApp.swift and wire it into the app. Edit the file directly.",
+    "files": ["evals/files/TallyApp.swift"],
+    "expected_behavior": [
+      "Declares each `VersionedSchema.versionIdentifier` as `static let` (or a computed property), never a stored `static var`, because mutable global state is a Swift 6 concurrency error",
+      "Builds the container itself with `ModelContainer(for:migrationPlan:configurations:)` and passes it to `.modelContainer(container)`, because the SwiftUI `.modelContainer(for:)` modifiers take no migration plan",
+      "Preserves the existing column with `@Attribute(originalName: \"amountCents\")` on the renamed property and gives `category` a default so the lightweight migration fills existing rows"
+    ]
   }
 ]

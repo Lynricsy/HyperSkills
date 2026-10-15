@@ -102,7 +102,9 @@ model: reason about isolation, not threads.
 sender could still touch it. In order: check whether region isolation already accepts it
 (often the sender simply stops using the value); mark the parameter `sending`; make the type
 `Sendable` if it genuinely is; check whether `nonisolated(nonsending)` removes the hop
-entirely. `@unchecked Sendable` last, and only with internal locking.
+entirely. `@unchecked Sendable` last, and only with internal locking. This diagnostic comes
+from a SIL pass, so `swiftc -typecheck` never reports it: verify concurrency fixes with a real
+build, or `swiftc -emit-sil -o /dev/null` when only the toolchain is available.
 
 **"Static property 'x' is not concurrency-safe"** — a global reachable from several
 isolation domains. Annotate the declaration `@MainActor`, or make it a `let` of a `Sendable`
@@ -153,4 +155,4 @@ SwiftData's `ModelContext` and model instances.
 - Test cancellation explicitly. Start the operation, cancel the task, and assert that the
   effect did not land — cancellation bugs do not surface any other way.
 
-<!-- sources: twostraws-concurrency, avdlee-concurrency, twostraws-testing, apple-docs -->
+<!-- sources: twostraws-concurrency, avdlee-concurrency, twostraws-testing, tenequm-swift-dev, apple-docs -->
