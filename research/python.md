@@ -330,3 +330,22 @@ path 在 1098b17 被删，最后一个含该路径的修订是 ea30bd7（1098b17
 
 六条 behind 均为噪声或已覆盖，正文与 references 未改，未新增评测场景、未跑评测，也不需要安装冒烟。
 本次提交只含 re-pin、版本号、probabl 条目的 url/notes 与本节。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与主代理归因清单 `/tmp/hs-attr/attribution.md`。
+本 skill tracked paths 下确有提交的条目 3 条；另有 awesome-copilot-python 报 `diff too large`，按完整区间
+`git log 15ed97c..3cf7c7e -- <paths>` 归因为 0 提交（噪声）。trailofbits-modern-python、probabl-python-style 为
+repo moved / tracked paths unchanged，`--pin` 顺带前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| laurigates-python | 45d1d7d → 8fc6916（2 提交） | `ruff-linting/SKILL.md` 与新增 `ruff-linting/references/{command-recipes,plugin-configuration}.md`；`uv-project-management/REFERENCE.md` 目录锚点 | 噪声：79fd4ae 把 ruff-linting 的命令配方与插件配置原样搬到同目录 `references/`（逐行对照增删内容一致），25418d8 只修目录锚点。四个 tracked 目录在 HEAD 上都还在，paths 为目录级，无需跟迁 |
+| wshobson-python | 156b7a5 → 46891e7（1 提交） | `uv-package-manager/SKILL.md` 安装段 | 无影响：46891e7 把 `curl … \| sh` 换成 Homebrew/Cargo/WinGet 并指向官方安装页。本 skill SKILL.md 写的是 `curl -LsSf https://astral.sh/uv/install.sh \| sh`；核对 `astral-sh/uv` 的 `docs/getting-started/installation.md`，官方首推的仍是该独立安装脚本，社区上游的偏好不构成事实更正 |
+| awesome-copilot-mcp-python | 15ed97c → 3cf7c7e（1 提交） | `instructions/python-mcp-server.instructions.md` | 无影响：3fb8ae0 改写为 MCP Python SDK v2（`MCPServer` 取代 `FastMCP`、日志/sampling/roots 弃用、`ToolError` 等）。本条是 reference，只用来核对 asyncio 生命周期；v2 仍以 lifespan 上下文管理器管理共享资源、stdio/HTTP 下每个 server 只运行一次，与 `references/asyncio.md`「长寿命客户端在应用作用域进入一次」一致。MCP 协议内容不属本 skill |
+
+归因方法：laurigates 与 awesome-copilot 用缓存裸仓库 `/tmp/hs-attr/<owner>__<repo>` 跑 `git log`/`git diff -- <paths>`，
+并 `git ls-tree` 确认 tracked 目录仍存在；wshobson 用 `gh api …/compare` 的 patch。`--pin` 后 `pin_check.py` 为
+`PIN CHECK CLEAN`。
+
+结论：三条均为搬移/无关偏好/他域内容，正文与 references 未改，未跑 D2。提交含 re-pin、版本号与本节。
