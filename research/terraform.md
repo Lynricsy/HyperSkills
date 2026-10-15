@@ -573,3 +573,17 @@ wshobson-terraform-specialist、tflint 为 `repo moved, tracked paths unchanged`
 `1.14.0 (Unreleased)` 不符，属小错，不足以改变结论。`provider_meta` 被静默忽略与本 skill 无关（正文未涉及）。
 
 结论：正文未变，仅 re-pin 与版本号改为 2026.09.29；正文未变，未跑 D2（上面的基线运行是 R14 划界用，不是 D2）。
+
+## 2026-10-15 上游同步
+
+依据：2026-10-15 `check_upstream.py --json`（`/tmp/hs-upstream.json`）与归因清单 `/tmp/hs-attr/attribution.md`。
+tracked paths 下确有提交的只有 opentofu 1 条，用 `gh api repos/opentofu/opentofu/compare/1d2a117...f0f818d` 读
+`CHANGELOG.md` 的 patch。awesome-copilot-terraform 报 `diff too large`，缓存裸仓库
+`git log 997e95a..3cf7c7e -- instructions/terraform.instructions.md` 为 0 提交（噪声）；hashicorp-terraform、
+nitinjain-platform-skills、wshobson-terraform-specialist、tflint 为 repo moved / tracked paths unchanged，`--pin` 顺带前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| opentofu | 1d2a117 → f0f818d（3 提交） | `CHANGELOG.md` 的 `## 1.14.0 (Unreleased)`：8d1b7c0/e7a069d 新增「registry 与 network mirror 在服务端明确 opt-in 时可把认证凭据转发到包下载 URL」（#4584）；0f0b323 新增「OpenTelemetry 追踪支持 `OTEL_RESOURCE_ATTRIBUTES`」（#4621）；顺带删去 `mock_provider` `source` 条目前的空行 | 无影响：两条都在未发布的 1.14 线，本 skill 的 OpenTofu 版本门只取已发布 v1.N 分支的 CHANGELOG；正文不涉及 provider 镜像凭据转发与 OTel 追踪配置。`mock_provider` `source` 一条仅排版，2026-09-29 已按 R14 划界不合入 |
+
+结论：正文与 references 未改，未跑 D2；`pin_check.py` 为 `PIN CHECK CLEAN`。提交含 re-pin、版本号与本节。
