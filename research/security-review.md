@@ -480,3 +480,38 @@ tob-diffreview、copilot-threatmodel / copilot-secrets / copilot-secreview（后
 | ms-windows-paths | 保留设备名含上标数字 COM/LPT 变体、结尾句点与空格被去除、`:` 驱动器相对与 NTFS 流、Windows 11 带扩展名的保留名不再映射设备 | learn.microsoft.com naming-a-file 等三页 | 今日新增条目，已于 2026-10-15 读过（见上节），`synced_at` 已是当天，本轮不重复 |
 
 结论：两个 docs 条目无变化，正文未改；SOURCES 中 owasp-top10、owasp-asvs 的 `synced_at` 改为 2026-10-15。
+
+## 2026-10-15 D2 回归
+
+覆盖提交：b462721（`injection-and-deserialization.md` 合入 Windows 路径组件规则；新增场景 7–10）。2d17539 只动版本号与 SOURCES，
+c5b0249 只动 research / SOURCES。
+
+复用判定：今天已有的有 skill 结果只有场景 9（11:46），早于 b462721（11:49），重跑；场景 7、8、10 从未跑过有 skill。基线复用
+`/tmp/hs-evals-MergeM5/security-review/omp-openai-gpt-6.1-sol-medium/baseline/{7,8,9,10}`（11:36–11:42）：四份 `result.json` 的 query
+与 expected_behavior 与当前逐字一致，场景加入后夹具与期望未再改动。
+
+选场景：今天新增的 7–10（9 直接考察合入的 Windows 路径规则）；负例 5。今天没有事实更正，无需新增场景。
+
+运行：`uv run tools/run_evals.py security-review --only N --out /tmp/hs-d2/D2G2`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/D2G2/security-review/omp-openai-gpt-6.1-sol-medium/skill/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 235 s。WebSocket 劫持（不查 Origin）、头像存储型 XSS、GET 改邮箱 CSRF 判对并实测；未把通配 CORS 报为泄露；礼品卡条件更新列入「rejected claims」 |
+| 7 | gpt-6.1-sol medium | 无（复用） | False | 5/5 | 复用 MergeM5 `baseline/7` |
+| 8 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 124 s。npx / uvx 条目在锁文件之外按无版本、`^`、`@latest` 解析；`eslint-mcp` 为已锁定 devDependency，单独区分；镜像须钉 digest；修复钉已审版本 |
+| 8 | gpt-6.1-sol medium | 无（复用） | False | 4/4 | 复用 MergeM5 `baseline/8` |
+| 9 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4◐ | 190 s。前缀包含越权、重定向绕过白名单、`X-Api-Key` 随跨主机重定向转发均判对并本地实测，另报 `urlsplit` 与 requests 解析差异绕过白名单；4：Windows 设备名、备用数据流、盘符相对路径只列在「需验证」表里，未给出拒绝规则 |
+| 9 | gpt-6.1-sol medium | 无（复用） | False | 1✔ 2✔ 3✔ 4✘ | 复用 MergeM5 `baseline/9`：只提拒绝盘符限定与 UNC 路径 |
+| 10 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 116 s。四类扫描器结论全部驳回并给出依据（父路由挂载鉴权、SameSite=Lax + 仅 JSON、附件 + 独立域、唯一键与条件扣减） |
+| 10 | gpt-6.1-sol medium | 无（复用） | False | 4/4 | 复用 MergeM5 `baseline/10` |
+| 5（负例） | gpt-6.1-sol medium | 有 | False | — | 64 s。按普通代码评审作答，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：场景 7、8、10 有 skill 全部达成，无回退；负例 `skill_read == false`。场景 9 期望 4（合入内容）本次只部分达成：模型点出了
+设备名、数据流与盘符相对路径三类风险，但放在「需验证」而非给出拒绝规则；仍好于基线（✘），合入前那次有 skill 运行为 ✔。
+正文未改。
+
+遗留：场景 9 期望 4 在当前正文下只有 1 次 ◐，建议下一轮复跑确认是否需要把该规则从 reference 提到 SKILL.md 的审计清单。
+各场景只有 1 次运行。
