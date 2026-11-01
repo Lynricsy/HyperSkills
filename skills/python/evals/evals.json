@@ -107,7 +107,7 @@
     "skills": [
       "python"
     ],
-    "query": "ingest.py has run nightly for a year on Python 3.12. After our base image moved to python:3.14-slim it crashes at startup, and when I hack around that every score comes back 0.0. Explain exactly which 3.14 changes broke it and give me a corrected ingest.py written for 3.14.",
+    "query": "ingest.py has run nightly for a year on Python 3.12. After our base image moved to python:3.14-slim it crashes at startup, and when I hack around that every score comes back 0.0. Explain exactly which 3.14 changes broke it and give me a corrected ingest.py written for 3.14. Since it is being rewritten anyway, also fix anything in the pipeline that could hang, lose rows, or let one failed page end the job quietly.",
     "files": [
       "evals/files/ingest-314/ingest.py"
     ],

@@ -530,3 +530,17 @@ N2 总分达 INCLUDE 线但具体性仅 1、无增量内容，按「增量价值
 
 - 队列一条：场景 8 有 skill 一侧把请求理解为「只修 3.14 引起的两处」，没读 `asyncio.md`，连既有核心规则 19/20（持有 `create_task`、TaskGroup 优先）也未应用，EB3/EB4 与基线同为 ✘。这是场景措辞让模型收窄范围，不是规则内容错误；队列规则仍只在 debug-async 清单与 reference 中，要让模型在「修复型」请求里主动应用，需要提升为核心规则（现 23 条，上限 25）或改写场景提问，本轮未做，列为遗留交主人决定。
 - `uv_build` 上界：场景 1 两侧都沿用 setuptools，`uv_build` 分支未触发；更正本身已用 uv 文档与 `uv init` 实测核实。
+
+### 主代理续做：改写场景 8 提问后两侧重跑
+
+场景 8 原提问只要求「解释哪些 3.14 变化导致故障」，模型合理地收窄到两处 3.14 问题，EB3–5 两侧都不在请求范围内，测不出队列规则。
+主代理在提问末尾加一句「既然要重写，顺带修掉会卡死、丢行或让单页失败静默结束任务的问题」（`expected_behavior` 与夹具不变），
+两侧新跑，产物 `/tmp/hs-d2/main/python/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8（改写提问） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ | 189 s。`asyncio.run` + `initializer/initargs`；有界队列，但仍用每 worker 一个 `None` 哨兵（仅正常 EOF，失败交给 TaskGroup 取消）；TaskGroup、`raise_for_status`、`httpx.Timeout(30)` |
+| 8（改写提问） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 395 s。`queue.shutdown()` 收尾（注释「queued rows must still be scored」）、worker 捕获 `asyncio.QueueShutDown`、`Queue(maxsize=...)`；TaskGroup、`raise_for_status`、显式超时，并附 `test_ingest.py` |
+
+结论：队列一条在有 skill 时由 ◐ 变为 ✔，基线缺口得到填补，规则保留在 `asyncio.md` 与 debug-async 清单，不提升为核心规则。
+`uv_build` 上界仍只有文档与实跑证据（遗留不变）。
