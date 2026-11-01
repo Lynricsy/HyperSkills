@@ -869,3 +869,55 @@ D2 判定：基线未达成的场景 8 E3 在有 skill 时达成。场景 9 基�
 选择理由：7、8、9 为今日新增场景（必选），8 直接考察规则 6 的水合句；5 为负例。
 
 结论：通过。场景 8 E3（水合）基线 ✘、有 skill ✔，其余与基线持平；场景 9 E2 有 skill ◐ 低于基线，涉及的 testid 内容未合入正文、与今日改动无关，记为波动。负例 `skill_read=false`。正文未改。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 的 `check_upstream.py --json`（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/web-testing.md`。
+playwright-runtime 用主代理的 blobless 裸仓库缓存（`/tmp/hs-attr/microsoft__playwright`）对 `<pin>..<head> -- <paths>` 读树 diff；
+其余用 `gh api .../compare/<pin>...<head>` 读 paths 内文件的 patch（agent-browser `SKILL.md` patch 缺失，改读提交 diff）。
+版本背景（`gh api releases`）：最新发版仍是 v1.64.1（2026-10-14），main 的 `packages/playwright/package.json` 为 `1.65.0-next`，
+`release-1.64` 分支的 `docs/src/actionability.md`、`test-reporters-js.md`、`test-parallel-js.md` 中均无下文的 1.65 新功能。
+`--pin` 后写入的 9 个 `commit` 与审阅 HEAD 逐条一致，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| playwright-runtime | a038fe7 → deb7e86 | `types.d.ts`：7d0dcc2 `clock.fastForward` / `runFor` 的 `ticks` 改为「有限毫秒数」；a6fb02f `connectOverCDP` 的 `noDefaults` 也保留字体。`test.d.ts`：2b6470c 内置 `exclusive` 锁（其他测试都不运行时才运行该测试）；98891e9 `trace: { secrets: [{ name?, value }] }` 在 trace 中脱敏 | 无影响，只 re-pin。`exclusive` 与 trace `secrets` 均为 1.65.0-next 未发版功能，本 skill 按 1.63 写、规则带版本门槛，未发版功能不合入，待 1.65 发版后再评（基线是否会用、是否值得写进 `flakiness.md` 的锁一节与 `artifacts-and-debugging.md` 的 trace 保密一节）。时钟与 CDP 两处是文档措辞，正文未涉及 `noDefaults`，`fastForward('02:00')` / `runFor(20_000)` 示例仍合法 |
+| playwright-docs | c6b1fb8 → 6079827（2 次 roll） | `nodejs/docs` 29 个文件。ToT 新功能（均 1.65 未发版）：`actionability.mdx` 新增第 6 项检查 Not Inert（`inert` 子树或模态 `<dialog>` 外的元素，作用于 check/click/dblclick/setChecked/tap/uncheck/fill/clear）；`failures` reporter 与 `onlyFailures`；reporter `secrets` 脱敏；`exclusive` 锁；`testRun.mode()`；`CDPSession.send` 的 `signal` / `timeout`；`test.skip/fail/fixme/slow(description)`。文档修正：`routeWebSocket` 用 `connectToServer()`、`screencast.start({ onFrame })`、`selectOption([...])`、`test.use({ baseURL })`；`docker.mdx` / `ci.mdx` 镜像标签 v1.63.0 → v1.64.1；`ci-intro.mdx` / `test-sharding.mdx` 的 `upload-artifact@v4` → `@v5`；`emulation.mdx` 补 `reducedMotion` / `forcedColors` / `contrast` 三个 `use` 顶层选项；`test-ui-mode.mdx` / `test-cli.mdx` 补 `--ui-port` / `show-trace --port` 对同机其他用户可见的告警；超时报错文本改为 `Test timeout of 30000ms exceeded.`；Firefox `NS_BINDING_ABORTED` 已知限制 | 无影响，只 re-pin。正文的可操作性矩阵与「5 项检查」按 1.63 实测，1.64.1 也无 Not Inert（`release-1.64` 分支文档核对），待 1.65 发版后补。`reducedMotion` 是 `use` 顶层选项与正文（及 lambdatest 条目的否决理由）一致。`ci-pipelines.md` 骨架的 `upload-artifact@v4` 仍可用（v4 未废弃，最新为 v7.0.2），正文另有「第三方 action 钉 SHA」规则，不为跟随示例改版本号。正文未引用旧版超时报错文本 |
+| ms-playwright-cli | b85c7a7 → 0a80807 | faf6bc5 roll 到 1.65.0-alpha：`SKILL.md` 补 `mousewheel` 负值与 `tab-new --isolated-context`、`--raw` 保留快照；`storage-state.md` 加 `cookie-delete --domain`；`test-generation.md` 把不存在的 `toBeUnchecked()` 改为 `not.toBeChecked()`；`tracing.md` 先 `open` 再 `tracing-start` | 无影响，只 re-pin。本 skill 未收录 playwright-cli 命令清单，也未写 `toBeUnchecked` |
+| addyosmani-devtools | aeac41d → 8bfcc1f | 57bfe5d：`SKILL.md` 加一句「视口或字体变化后，等字体与 ResizeObserver 稳定再量布局」 | 无影响，只 re-pin。属布局度量，不在本 skill 采纳的信任边界内容里；web-first 断言本身会重试 |
+| vercel-agent-browser（reference） | 518f6e5 → 5868f7c | 495a987 frontmatter `allowed-tools` 去掉 `Bash(npx agent-browser:*)`；3f224ac `AGENTS.md` 改文风规约、加 technical-writer 指引 | 噪声：仍是发现存根与贡献者说明 |
+| wshobson-e2e（reference） | 46891e7 → 7e2fb55 | 8cc4f42：Cypress 改用 `@testing-library/cypress` 的 `findBy*`、`res.setDelay`；Playwright 侧把 `networkidle` 改标为 Bad、删掉不存在的 project 级 `shard` 配置改为 `--shard` | 无影响：都是它自己旧错的更正，本 skill 本来就这样写（规则 5、`ci-pipelines.md` 分片） |
+| awesome-copilot | 36e95df → 5269f7e | too-large，主代理按完整区间对 paths 归因为空 | 噪声，只 re-pin |
+| lambdatest-playwright | 992638b → 3dabb6b | paths 未变 | 噪声，只 re-pin |
+| anthropics-webapp-testing（reference） | dbd4588 → ca45fc4 | paths 未变 | 噪声，只 re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 来源（许可） | 归属 / 增量 | 结论 |
+|---|---|---|---|
+| `skills/stryker-js/SKILL.md` | TerminalSkills/skills（Apache-2.0） | 变异测试，不涉及浏览器；落在 `test-driven-development` 的范围 | REJECT（本 skill 范围外），跨组命中交主代理 |
+| `.claude-plugin/domains/frontend/skills/oma-qa/SKILL.md`、`.agents/skills/oma-qa`（分诊补充） | first-fluke/oh-my-agent | 通用质量评审编排（OWASP / WCAG / ISO 25010 的调度骨架），无浏览器测试具体规则 | REJECT（无增量；属代码评审流程） |
+| `skills/grafana-k6/k6-browser-test/SKILL.md` | grafana/skills（Apache-2.0） | k6/browser 从散文生成浏览器功能/负载测试，先用临时会话探查真实选择器。本 skill 只给 Playwright 一个默认方案；「先驱动浏览器再落代码」已由 awesome-copilot 条目覆盖 | REJECT（单一产品框架，范围外；负载测试不在任何现有 skill 范围） |
+| `.claude/skills/playwright-triage/SKILL.md` | microsoft/playwright-cli（Apache-2.0） | 仅供其 Issue triage 工作流使用（原文 `Only for that workflow`） | REJECT（上游自用流程） |
+| `.claude/skills/api-review/SKILL.md` | microsoft/playwright（Apache-2.0） | 维护者的 API 评审产物流程 | REJECT（上游自用流程） |
+| `.claude/skills/playwright-release-notes/SKILL.md` | microsoft/playwright（Apache-2.0） | 维护者写发布说明的流程 | REJECT（上游自用流程） |
+| `skills/qa`、`skills/browse`（分诊补充） | shipshitdev/skills（无许可，38★） | localhost QA 循环与驱动本机 Brave 的个人工作流，`disable-model-invocation: true`，仅 macOS | REJECT（无许可；个人工作流） |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "playwright SKILL.md" --updated '>2026-10-15'`（0 条）、`gh search repos "e2e testing agent skill" --updated '>2026-10-15'`、
+`gh search code playwright --filename SKILL.md`、`github/awesome-copilot` 树（无新增 playwright/e2e skill）、`VoltAgent/awesome-agent-skills` 近 60 提交的 README 新增行。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 18 | grafana/skills `skills/grafana-k6/k6-browser-test` | https://github.com/grafana/skills | 302 | 2026-10-31 | Apache-2.0 | k6/browser 功能与负载测试 | 3 | 3 | 3 | 2 | 2 | 13 | REJECT（范围） | 分数够，但框架是 k6/browser，本 skill 只给 Playwright 一个默认方案；负载测试不在任何现有 skill 范围，记入汇报交主人决定 |
+| 19 | xuxh21/ui-regression-recorder-skill | https://github.com/xuxh21/ui-regression-recorder-skill | 108 | 2026-06-06 | 无 | codegen 录制转回归用例 | 0 | 0 | 2 | — | 0 | ≤4 | REJECT | 无许可；10-15 后无推送 |
+| 20 | ksgisang/awt-skill | https://github.com/ksgisang/awt-skill | 1 | 2026-10-16 | AGPL-3.0 | — | 0 | 2 | — | — | 0 | ≤4 | REJECT | 1 星，AGPL 不能合入 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 的 `SOURCES.yaml` 无 `kind: docs` 条目（playwright.dev 以其源仓库 microsoft/playwright.dev 作 `kind: repo` 追踪，已在上文按 diff 审阅），无需复核。
+
+## 2026-11-01 D2 回归
+
+正文（`SKILL.md` 正文、`references/`）未改，只改 `metadata.version`，按规程不跑 D2。
