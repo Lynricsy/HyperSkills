@@ -543,3 +543,18 @@ fail-closed，在 Deny 中 fail-open；否定运算符的 Deny 须另加 `"Null"
 | aws-docs | `DescribeEvents` 需 `ChangeSetName`/`OperationId`/`StackName` 之一，返回早期校验/预配/Hook 错误，`Filters` 为 `EventFilter`，含 `FailedEvents` | [DescribeEvents](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeEvents.html)、[EventFilter](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_EventFilter.html) | 一致 |
 
 原有 5 组事实一致，新写入 1 组据官方页改正正文。`aws-docs` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：b7a7e5c（`references/iam.md` ForAnyValue 在 Deny 中的缺键行为；场景 10 夹具改用 `s3:TagResource`、EB4 改写）。有 skill 结果晚于该提交
+（提交 11:59:50，运行 12:05 后）。夹具与 EB4 改过，场景 10 两侧重跑；负例 5。运行：`uv run tools/run_evals.py aws --only N [--baseline] --out /tmp/hs-d2/G03-cloud`，
+产物 `/tmp/hs-d2/G03-cloud/aws/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✘ | 105 s。大小写绕过与 `StringEqualsIgnoreCase` 修法正确、不给 guardrail 1 加 Null；但对 guardrail 2 明确写「No `Null` check is needed … the bucket whitelist likewise does not enforce tag presence」，未体现本轮更正（否定运算符的 Deny 需另加 Null） |
+| 10 | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✘ | 97 s。与有 skill 相同，保持 guardrail 2 不变 |
+| 5（负例） | gpt-6.1-sol medium | 有 | **True** | 1✔ 2✔ 3✔ | 174 s。Terraform `count` → `for_each` + `moved` 作答正确，但读了 aws skill。description 今天未改，属既有路由问题，本轮不改 description |
+
+结论：本轮更正在有 skill 时**未体现**（EB4 两侧都 ✘）——模型把「TagResource 请求总带标签」当作不需要缺键保护的理由；规则只在 `references/iam.md`，
+未进 `SKILL.md` Core rules，是否提炼到 Core rule 5 留给主人决定。负例误读为既有路由问题（建议按 `docs/workflow.md`「本地 description 维护」单独处理）。各场景只跑 1 次。
