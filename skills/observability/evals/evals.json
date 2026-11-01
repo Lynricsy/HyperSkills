@@ -100,5 +100,17 @@
       "Replaces the `!s.parentSpanId` orphan filter with a check on `parentSpanContext` (for example `!s.parentSpanContext?.spanId`), explaining that 2.x no longer populates `parentSpanId`, so the old filter would report every CLIENT span as an orphan even after the constructor fix",
       "Explains that the unsampled-traceparent test fails because the SDK default sampler is `ParentBased(root=AlwaysOn)`, not `AlwaysOn`, so a remote parent with the sampled flag `00` makes the service record nothing; fixes it by configuring `AlwaysOnSampler` (or `OTEL_TRACES_SAMPLER=always_on`) on the provider rather than by changing the test's traceparent flags or deleting the test"
     ]
+  },
+  {
+    "skills": ["observability"],
+    "query": "memory-limiter-incident.md is Priya's postmortem draft for the billing logs we lost during Tuesday's load-test spike. Is her root cause right, and should we approve her three action items? Tell me what actually happened and what we should change instead.",
+    "files": ["evals/files/memory-limiter-incident.md"],
+    "expected_behavior": [
+      "Corrects the mechanism: `memory_limiter` never drops data itself. Above the soft limit (`limit_mib - spike_limit_mib`, here 1200 MiB) it refuses incoming data with a retryable, non-permanent error that the receiver returns to the sender (the 503s), and above the hard limit (`limit_mib`) it additionally forces a garbage collection rather than discarding data; it also notes the heap peaked around 1.5 GiB, between the soft and the hard limit",
+      "Locates the loss at the sender: the billing logs vanished because `post_logs()` sends once and never retries a refused request, while the Node SDK exporters retried with backoff, which is why their traces arrived complete but late. The fix is retry with backoff and a buffer on the billing sender (a real OTLP exporter or SDK, or a local agent Collector with a sending queue), not a change to the gateway limiter",
+      "Rejects action item 1: `limit_mib` is compared against the Go heap, not process RSS, and RSS already reached 1.87 GiB of the 2 GiB limit at a 1.5 GiB heap, so a 1950 MiB limit leaves no headroom and the kernel OOM-kills the pod before the limiter refuses anything - turning refused-and-retried data into lost in-flight data for every sender",
+      "Rejects action items 2 and 3: removing the soft limit or taking `memory_limiter` out of the logs pipeline removes the backpressure that protected the process, so the next spike becomes an OOM kill that loses data from all senders, not just the one that does not retry (and omitting `spike_limit_mib` does not disable the soft limit - it defaults to 20% of `limit_mib`)",
+      "Treats the sustained refusal as an under-provisioning signal: scale out the gateway or give it more memory with `limit_mib` resized proportionally below the container limit, keep the limiter as the backstop, and alert on `otelcol_receiver_refused_*` rather than tuning the limiter to avoid refusing"
+    ]
   }
 ]

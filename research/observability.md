@@ -562,6 +562,7 @@ will additionally force garbage collection to be performed」。改为「软限�
 | `first-fluke/oh-my-agent` `.claude-plugin/directory/skills/oma-observability` | REJECT | 插件目录生成副本，agent 人设式调度说明 |
 | `grafana/skills` `grafana-lgtm/performance-rca` | REJECT（暂） | Grafana LGTM 栈内的 RCA 流程，依赖 Grafana 查询工具；与 `production-triage.md` 的厂商中立流程重叠，无可单独核实的新增事实 |
 | `nitinjain999/platform-skills` `plugins/platform-skills/skills/datadog`、`dynatrace`、`observability`，以及 C2 的 `dora`、`chaos`、`triage` | REJECT | 90b97a9 生成的插件副本（原件早于旧 pin）；Datadog/Dynatrace 为商业产品，`observability` 为通用向导，DORA 指标与混沌工程不在 Scope，`triage` 为泛化事故分诊 |
+| `tushaarmehtaa/tushar-skills` `plugins-labs/skills/analytics`（C3，G06 转来；Sentry 与健康检查部分）。12★，2026-10-15 推送，MIT；唯一提交 35cce77「Package the tested skills as a standalone plugin」 | REJECT | 读了 `SKILL.md`、`references/sentry.md`、`references/health-endpoint.md`。Sentry 部分是 `@sentry/nextjs` 向导、source map 上传、replay 遮罩与 `captureException` 封装——单一错误监控产品的接入步骤，与本 skill 的厂商中立层（OTel SDK、异常日志记录、追踪关联）不重合，也无可核实的协议/语义约定事实；健康检查部分（liveness 不依赖下游、readiness 只探关键依赖并短超时返回 503、不公开内部细节、不缓存）是通用做法，探针端点设计不在本 skill 的 Scope（遥测数据与告警），属应用/部署层；无增量价值，不合入 |
 
 ## 2026-11-01 新候选仓库
 
@@ -581,3 +582,28 @@ will additionally force garbage collection to be performed」。改为「软限�
 | google-sre-workbook | 14.4×/1 h、6×/6 h 等多窗口多燃烧率参数与反对 `for:` 的建议 | https://sre.google/workbook/alerting-on-slos/ | 一致（页面仍含 14.4 倍规则） |
 
 两条 docs 条目 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 4c83ac2（`references/collector-pipelines.md` 的 `memory_limiter` 更正：软限起以可重试错误拒收、硬限额外强制 GC、自身不丢数据）。
+既有场景没有一个考察越过限值后的行为（场景 1 期望 8 只考 Go heap 与 RSS），故**新增场景 8**：夹具 `evals/files/memory-limiter-incident.md` 是一份事故复盘草稿——
+网关 `limit_mib: 1600`、`spike_limit_mib: 400`、容器 2 Gi；压测流量使 heap 峰值约 1.5 GiB（介于软限 1200 MiB 与硬限之间）、RSS 1.87 GiB；
+Node SDK 的 trace 完整但延迟，`billing-cron` 用 `requests.post` 发一次、收到 503 后不重发，日志缺失；作者把根因写成「越过硬限后 memory_limiter 丢数据」，
+行动项为把 `limit_mib` 提到 1950、删 `spike_limit_mib`、从 logs pipeline 移除 `memory_limiter`。期望 5 条：更正机制（EB1）、损失在不重试的发送方（EB2）、
+拒绝行动项 1（heap 与 RSS）（EB3）、拒绝行动项 2/3（`spike_limit_mib` 默认 20%，`gh api` 读 `memorylimiterprocessor/README.md` 核实）（EB4）、持续拒收是容量不足信号（EB5）。
+负例：场景 5。
+
+运行：`/tmp/hs-d2/G04b-queue.sh` 串行执行 `uv run tools/run_evals.py observability --only N [--baseline] --out /tmp/hs-d2/G04b-infra-left`（omp + gpt-6.1-sol medium，VM），
+产物在 `/tmp/hs-d2/G04b-infra-left/observability/omp-openai-gpt-6.1-sol-medium/`；逐条读 `answer.md` 判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5◐ | 115 s。软限 1200 MiB 起以非永久错误拒收、硬限 1600 MiB 额外强制 GC，指出 1.5 GiB 峰值未越过硬限；「billing-cron turned a retryable refusal into permanent loss」，Node 一侧标为 [INFERENCE] 的重试与缓冲；1950 只剩 98 MiB 且 RSS 已明显高于 heap；省略 `spike_limit_mib` 默认 20%（软限 1280 MiB）；移除 logs 限流后 OOM 会丢两条 pipeline 的在途数据。5：提了扩容与保留限流器，监控只写「不只看 heap 与拒收计数」，未把持续拒收定性为容量不足、未给 `otelcol_receiver_refused_*` 告警 |
+| 8（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ 5✔ | 95 s。联网读到同一官方 README 与 OTLP 重试规范：软限拒收、硬限强制 GC、「不重试的上游才会永久丢失」；RSS≈1915 MiB 对 heap 1536 MiB，1950 会把可重试的拒收换成 OOM；`spike_limit_mib` 默认 20%；保留限流器、按测量扩容、对拒收告警 |
+| 5（负例） | gpt-6.1-sol medium | 有 | False | 1✔ 2◐ 3✔ 4✔ | 29 s。只修 `slugify.py`（分隔符换 `-`、空 slug 用 `untitled`），未加载 skill；2：夹具无 `tests/test_slugify.py`，改跑 doctest 而非 pytest |
+
+（编号按 `expected_behavior` 从 1 起数。有 skill 一侧 `events.jsonl` 中出现 5 次更正后的原句「It never drops data itself」，即读到了 `collector-pipelines.md` 的新正文。）
+
+结论：有 skill 一侧更正相关的 EB1–EB4 全部达成，答案没有复述旧正文「越过硬限即丢弃」，无回退。基线同样全部达成——模型联网读到官方 README，
+该更正是消除正文中的错误陈述，不是补缺口；场景 8 留作哨兵。EB5 有 skill 一侧 ◐：正文「Sustained refusal is an under-provisioning signal」已写，
+属模型取舍，不改正文。负例 `skill_read == false`。各场景只有 1 次运行。
