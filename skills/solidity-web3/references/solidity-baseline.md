@@ -29,7 +29,7 @@ Pin it:
 
 ```toml
 [profile.default]
-solc = "0.8.37"
+solc = "0.8.38"
 evm_version = "cancun"   # or "prague"; whatever the target chain actually runs
 optimizer = true
 optimizer_runs = 200
@@ -44,11 +44,11 @@ yet will reject the bytecode. `MCOPY` and `SELFDESTRUCT` semantics also changed 
 The Solidity repository publishes machine-readable bug data: `docs/bugs.json` (one entry per
 bug, with `introduced`, `fixed`, `severity`; generated from `docs/bugs.yaml` since 2026-09) and
 `docs/bugs_by_version.json` (the bug names open in each release). Read it instead of guessing
-whether a version is safe. As of 2026-10-15, with 0.8.37 the newest release:
+whether a version is safe. As of 2026-11-01, with 0.8.38 (released 2026-10-22) the newest release:
 
 | Bug | Severity | Introduced | Fixed | Why it matters |
 |---|---|---|---|---|
-| `YulOptimizerKnowledgeBaseStaleBookkeeping` | low | 0.8.19 | 0.8.38 (unreleased) | With the Yul optimizer on, a reassigned base variable could make two coinciding memory or storage addresses look distinct, so a load returns a stale value or a needed store is removed. |
+| `YulOptimizerKnowledgeBaseStaleBookkeeping` | low | 0.8.19 | 0.8.38 | With the Yul optimizer on, a reassigned base variable could make two coinciding memory or storage addresses look distinct, so a load returns a stale value or a needed store is removed. |
 | `TransientStorageClearingHelperCollision` | high | 0.8.28 | 0.8.34 | Clearing storage and transient storage in the same contract may clear only one. A transient reentrancy guard can be left set or unset unexpectedly. |
 | `InheritanceOrderReversalOnStorageEndWarning` | medium | 0.8.29 | 0.8.36 | Emitting one warning reversed `linearizedBaseContracts`, so inheritance resolved in the wrong order. Miscompilation, not a warning. |
 | `UnsoundSpillInMutualRecursion` | medium | 0.7.2 | 0.8.36 | Locals of mutually recursive functions could be spilled to fixed memory offsets and overwritten. |
@@ -58,15 +58,18 @@ whether a version is safe. As of 2026-10-15, with 0.8.37 the newest release:
 
 0.8.37 was released with an empty `bugs_by_version` entry `[verified]`, but the list is not
 frozen: on 2026-10-13 `YulOptimizerKnowledgeBaseStaleBookkeeping` was added against 0.8.19
-through 0.8.37, so no release is free of known bugs until 0.8.38 ships.
+through 0.8.37. 0.8.38 fixes it and its entry is empty today — which is exactly what 0.8.37's
+entry looked like a month before.
 
 Practical floor: **0.8.34** if anything in the tree uses transient storage, **0.8.36** if any
-contract has mutual recursion or deep inheritance, **0.8.37** otherwise — and whatever you pick,
-pin it, state it in the README, and re-read `bugs_by_version.json` before each release.
+contract has mutual recursion or deep inheritance, **0.8.37** otherwise, and **0.8.38** for a
+new pin or whenever the Yul optimizer runs (`via_ir = true`, or optimized inline assembly) —
+and whatever you pick, pin it, state it in the README, and re-read `bugs_by_version.json`
+before each release.
 
 ## Pragma discipline
 
-- Contracts that get deployed: exact pragma (`pragma solidity 0.8.37;`). The deployed bytecode
+- Contracts that get deployed: exact pragma (`pragma solidity 0.8.38;`). The deployed bytecode
   should be reproducible from the repository alone.
 - Interfaces and libraries meant to be imported by others: a range (`^0.8.24`), because a
   narrower pragma forces your consumers to your compiler.

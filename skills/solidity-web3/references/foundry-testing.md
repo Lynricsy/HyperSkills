@@ -26,7 +26,7 @@ OpenZeppelin Contracts 5.7.0.
 src = "src"
 test = "test"
 libs = ["lib"]
-solc = "0.8.37"                 # pin; see below
+solc = "0.8.38"                 # pin; see below
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200

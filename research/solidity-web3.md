@@ -511,3 +511,39 @@ tob-secure-contracts / tob-property-testing（82fe822 → e1f86a3）、erc-7201�
 结论：更正相关行为在有 skill 时达成且不比基线差；基线联网即可答对，场景 7 留作哨兵。负例 `skill_read == false`。正文无需修正。
 
 遗留：场景 1 在当前模型口径下反复触发服务端 `cyber_policy`，无法用作回归场景，需另行处理（改写提问或换口径）。
+
+## 2026-11-01 上游同步
+
+依据：主代理工作单 `/tmp/hs-sync/solidity-web3.md` 与旧 pin 快照 `/tmp/hs-upstream-2026-11-01.json`。用已登录 `gh api repos/<o>/<r>/compare/<旧>...<审阅>` 取 tracked paths 的真实 patch。`--pin` 写入的 commit 与审阅 HEAD 逐条比对全部一致（pashov ×3 eacfc09、tob ×2 2be6433、oz-contracts b7f748e、oz-skills 584262a、foundry-book 4f1a037、slither 97c1d10、erc-7201 3dcfe69、tenequm b648a09、wshobson 7e2fb55、layerghost 4f7b4c6），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| pashov-xray | 92b0ea6 → eacfc09（1 提交） | eacfc09 `x-ray`：入口扫描由两条按行 `grep` 改为新增 `scripts/entry_points.py`，整段读取函数头（`function`/`receive`/`fallback` 到 `{`），以覆盖 `forge fmt` 默认 `multiline_func_header = "attributes_first"` 把 `external` 换行等情形；标注 `[abstract]`/`[library]` | 无影响：本 skill 只要求「列出入口点」（review 工作流、`static-analysis-and-audit-checklist.md`），从未规定按行 grep；本 skill 引用该上游的是协议类型不变量目录与「guard 不等于 invariant」纪律，均未变。脚本属 x-ray 自身流程，不搬运。只 re-pin |
+| oz-contracts | 97430aa → b7f748e（`contracts/access`/`proxy`/`utils`/`token/ERC20` 下 18 提交） | 读了 BeaconProxy（`data` 为空时构造回滚 `BeaconProxyUninitialized`，可经 `_unsafeAllowUninitialized` 放开）、Context/ERC2771 弃用（v6.0 将移除 `_msgSender`）、ERC4626（`deposit`/`mint` 变 `payable` 并对非零 `msg.value` 回滚 `ERC4626UnexpectedNativeValue`、`_decimalsOffset` ≤77、pragma 升到 `^0.8.31`）、新增 ERC7535、TransientSlot 可用状态变量预留槽位、CLZ 改写 Math、`require(cond, CustomError())` 全面替换 `if/revert`、RateLimiter/Base64/Base58/MessageHashUtils/RSA/BlockHeader 等 patch | 无影响：全部在 master 上、未发布（最新 release 仍是 v5.7.0，2026-07-29），本 skill 的 OZ 事实以已发布 5.7.0 为准，规则 22 本就要求「对照已安装源码」。v6 发布后需复核 BeaconProxy 空 data、ERC4626 payable、Context 移除三处。只 re-pin |
+| foundry-book | a5c3aaa → 4f1a037（`src/pages/config/reference` 下 6 提交） | `dynamic_test_linking` 默认值改为 `true`（Foundry 1.8.0 起），外部工具不支持 `vm.deployCode`/`vm.getCode` 时应关闭；新增 `allow_linked_libraries`/`--disallow-linked-libraries`；`[rpc_endpoints]` 的 `profile` 字段；`fork_prefetch`；`forge coverage --report gaps` | 无影响：本 skill 的 Foundry 配置事实（`fail_on_revert` 默认值、`[rpc_endpoints]` 别名、`--report lcov`/`summary`、`--ir-minimum`）均未被改动；新增字段是可选能力，正文不引用。`6f27631` 标题提到 Halmos，但 patch 只写「外部工具不支持时关闭」，未点名 Halmos，不据此写规则。只 re-pin |
+| pashov-auditor、pashov-fizz、tob-secure-contracts、tob-property-testing、oz-skills、slither、erc-7201、tenequm-foundry、wshobson-solsec、layerghost-kit | 见上 pin | 无（tracked paths 未变） | 噪声，只 re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| OpenZeppelin/openzeppelin-skills `skills/migrate-defender-to-cre/SKILL.md`（AGPL-3.0-only，仓库 220 stars，2026-10-26 推送） | REJECT | 把 OpenZeppelin Defender 的 Actions/Monitors/Relayer 工作流迁移到 Chainlink CRE：单一商业产品之间的运维迁移手册，内容是 TypeScript 链下工作流与触发器映射，不在本 skill（合约编写/审计/升级/Foundry 取证）的 Scope，也不属于本库任何现有 skill |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "solidity skill" --sort updated`、`"smart contract audit skills claude"`（无结果）、`"foundry agent skill" --sort stars`；`VoltAgent/awesome-agent-skills` README 中 smart contract 条目（只有 trailofbits 三项）；`github/awesome-copilot` 树（无 Solidity 条目）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | dericklau3/solidity-skills | <https://github.com/dericklau3/solidity-skills> | 0 | 2026-10-31 | AGPL-3.0-only（SKILL.md 与 LICENSE 实读；API 报 NOASSERTION） | 中文的 Foundry 开发/测试/只读安全审查/NatSpec 五个 skill | 0 | 3 | 1 | 2 | 0 | 6 | REJECT | 个人仓库、零 star；审查 skill 明确「只做静态审查、不写 PoC、不跑构建测试」，与本 skill 规则 25（发现须带修复前失败、修复后通过的 Foundry 测试）冲突；AGPL 不可合入 |
+| N2 | trailofbits/skills `plugins/entry-point-analyzer`（同一已追踪仓库，2026-10-15 有更新 41604b5） | <https://github.com/trailofbits/skills/tree/main/plugins/entry-point-analyzer> | — | 2026-10-15 | CC-BY-SA-4.0 | 多链（Solidity/Vyper/Solana/Move/TON/CosmWasm）状态修改入口点清单 | 3 | 3 | 2 | 2 | 1 | 11 | REJECT（不加 paths） | 分高但增量小：Solidity 部分归结为 `slither . --print entry-points` 与按访问级别分类，本 skill review 工作流已要求列入口点并标注 guard；其「排除 view/pure，因为只读函数不能造成损失」与本 skill 规则 6（只读重入让集成方按被污染的 view 定价）相冲突，不宜引入；多链部分超出 Scope |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| solidity-docs | 当前稳定版 | `gh api repos/argotorg/solidity/releases`：v0.8.38 于 2026-10-22 发布（release notes：修复 Yul 优化器 `DataFlowAnalyzer` 地址关系知识过期，另含为 Glamsterdam 做的准备与 via-IR 分发减一条指令） | **过时**：正文写「0.8.37 is still the newest release」「fixed in the unreleased 0.8.38」。已改 |
+| solidity-docs | 七个 bug 的 severity/introduced/fixed | [docs/bugs.json](https://github.com/argotorg/solidity/blob/develop/docs/bugs.json)（最近一次修改仍是 2026-10-13 的 09dea748f） | 一致；`YulOptimizerKnowledgeBaseStaleBookkeeping` 的 fixed 0.8.38 由「未发布」变为已发布 |
+| solidity-docs | 各版本未修复 bug | [docs/bugs_by_version.json](https://github.com/argotorg/solidity/blob/develop/docs/bugs_by_version.json)：0.8.37 = [`YulOptimizerKnowledgeBaseStaleBookkeeping`]，0.8.38 = []（released 2026-10-22） | 已据此更新 |
+
+修复：`SKILL.md` 规则 2 改为「新工作 pin 0.8.38（2026-10-22 发布，修复 0.8.19–0.8.37 的该 bug）；0.8.38 当前为空，但 0.8.37 发布时也是空的，pin 时与每次发布前重读」；`references/solidity-baseline.md` 的「As of」日期、表中「0.8.38 (unreleased)」、0.8.37 段落、practical floor（新增「新 pin 或 Yul 优化器在跑时用 0.8.38」）与 exact pragma 示例改为 0.8.38；`solidity-baseline.md`、`foundry-testing.md` 的 `solc` pin 示例改为 0.8.38。各 reference 的「Verified against … solc 0.8.37」与规则 1 的实测叙述保持原样：那是当时的实测记录，本轮未在 0.8.38 上重测。场景 7 的 EB3（原为「保留 0.8.37、0.8.38 未发布」）改为「pin 与每个 exact pragma 前移到 0.8.38 并重建/全量测试，同时改成每次 pin 与发布前重读」。`solidity-docs` 的 `synced_at` 更新为 2026-11-01，contributes/notes 补 0.8.38 发布事实。
