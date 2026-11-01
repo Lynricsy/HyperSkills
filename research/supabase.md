@@ -538,3 +538,21 @@ SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，supabase-docs 的 `
 | 5 负例（PG 慢查询索引） | gpt-6.1-sol medium | 有（挂载） | false | — | 27.1 s |
 
 结论：更正相关行为在有 skill 时全部达成或部分达成，无回退；场景 6 EB1 有 skill ◐ 对基线 ✘。负例未误读。
+
+### 主代理补齐门禁（改过 expected_behavior 的场景两侧重跑 + 未覆盖更正补场景）
+
+上表场景 3、6 沿用了改写 EB 之前的运行重新评分，不符合「本轮改过 `expected_behavior` 的场景两侧都必须重跑」；默认授权与函数 EXECUTE 的更正也没有场景覆盖。
+主代理两侧重跑 3、6，并新增场景 8（`evals/files/default-privileges.sql`：只撤 CRUD、`in schema public revoke execute ... from public` 的锁定迁移），两侧都跑。
+产物 `/tmp/hs-d2/fix/supabase/omp-openai-gpt-6.1-sol-medium/`；全部晚于最后一次正文提交 6427963，负例 5 沿用上表（晚于该提交，场景未变）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 | gpt-6.1-sol medium | 无 | False | EB1–EB7 ✔ | 178 s。联网读到撤销文档：轮换 Storage URL 签名密钥后撤销旧 key、CDN 缓存需 purge、单个 URL 只能删/移/改名对象；300 s 起步 |
+| 3 | gpt-6.1-sol medium | 有 | True | EB1–EB7 ✔ | 52 s。同上要点，补「撤 Auth 密钥或换签名算法不影响签名 URL」 |
+| 6 | gpt-6.1-sol medium | 无 | False | EB1 ✘ EB2–EB7 ✔ | 119 s。只称「Owner access / Dana's old PAT」，未说明旧 token 覆盖现在与将来所有组织/项目 |
+| 6 | gpt-6.1-sol medium | 有 | True | EB1 ◐ EB2–EB7 ✔ | 87 s。点名「Legacy PAT」并要求吊销，但仍未展开全账户范围；EB7 写成「token 与用户权限取交集」 |
+| 8（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ | 145 s。PG 17.11 实测：原迁移后 `MAINTAIN` 与函数 `EXECUTE` 仍为 true；修正改用无 `in schema` 的全局撤销并提醒 RLS 辅助函数需显式 grant；`service_role` 已指出，但明说「序列不动」、未提 `pg_default_acl` |
+| 8（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ | 140 s。同样实测；修正连序列一起撤，`service_role` 已指出；核对手段写成 `has_table_privilege`/`has_function_privilege`，未提 `pg_default_acl` |
+
+结论：场景 3 两侧满分、场景 6 有 skill 在 EB1 上仍多半条，与首轮判定一致，无回退。场景 8 基线已会默认授权与全局 `PUBLIC EXECUTE` 两处事实，留作哨兵；
+有 skill 一侧多覆盖了序列默认授权。
