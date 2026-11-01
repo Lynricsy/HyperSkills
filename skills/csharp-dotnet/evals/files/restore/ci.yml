@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Contoso.sln
+
+      - name: Build
+        run: dotnet build Contoso.sln -c Release
+
+      - name: Test
+        run: dotnet test Contoso.sln -c Release --logger trx
+
+      - name: Publish API
+        run: dotnet publish src/Contoso.Api/Contoso.Api.csproj -c Release -r linux-x64 -o out/api
+
+      - name: Pack release tool
+        run: dotnet pack tools/Packager/Packager.csproj -c Release -o out/packages
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drop
+          path: out/

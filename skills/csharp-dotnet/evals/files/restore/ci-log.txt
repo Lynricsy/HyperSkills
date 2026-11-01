@@ -1,0 +1,31 @@
+Run dotnet restore Contoso.sln
+  Determining projects to restore...
+  Restored /home/runner/work/contoso/contoso/src/Contoso.Domain/Contoso.Domain.csproj (in 1.92 sec).
+  Restored /home/runner/work/contoso/contoso/src/Contoso.Api/Contoso.Api.csproj (in 6.41 sec).
+  Restored /home/runner/work/contoso/contoso/tests/Contoso.Api.Tests/Contoso.Api.Tests.csproj (in 7.03 sec).
+Run dotnet build Contoso.sln -c Release
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Contoso.Domain -> /home/runner/work/contoso/contoso/src/Contoso.Domain/bin/Release/net8.0/Contoso.Domain.dll
+  Contoso.Api -> /home/runner/work/contoso/contoso/src/Contoso.Api/bin/Release/net8.0/Contoso.Api.dll
+  Contoso.Api.Tests -> /home/runner/work/contoso/contoso/tests/Contoso.Api.Tests/bin/Release/net8.0/Contoso.Api.Tests.dll
+Build succeeded. Time Elapsed 00:00:41.37
+Run dotnet test Contoso.sln -c Release --logger trx
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Contoso.Domain -> /home/runner/work/contoso/contoso/src/Contoso.Domain/bin/Release/net8.0/Contoso.Domain.dll
+  Contoso.Api -> /home/runner/work/contoso/contoso/src/Contoso.Api/bin/Release/net8.0/Contoso.Api.dll
+  Contoso.Api.Tests -> /home/runner/work/contoso/contoso/tests/Contoso.Api.Tests/bin/Release/net8.0/Contoso.Api.Tests.dll
+Passed!  - Failed:     0, Passed:   212, Skipped:     0, Total:   212, Duration: 18 s - Contoso.Api.Tests.dll (net8.0)
+Run dotnet publish src/Contoso.Api/Contoso.Api.csproj -c Release -r linux-x64 -o out/api
+  Determining projects to restore...
+  Restored /home/runner/work/contoso/contoso/src/Contoso.Domain/Contoso.Domain.csproj (in 2.11 sec).
+  Restored /home/runner/work/contoso/contoso/src/Contoso.Api/Contoso.Api.csproj (in 5.87 sec).
+  Contoso.Domain -> /home/runner/work/contoso/contoso/src/Contoso.Domain/bin/Release/net8.0/linux-x64/Contoso.Domain.dll
+  Contoso.Api -> /home/runner/work/contoso/contoso/src/Contoso.Api/bin/Release/net8.0/linux-x64/Contoso.Api.dll
+  Contoso.Api -> /home/runner/work/contoso/contoso/out/api/
+Run dotnet pack tools/Packager/Packager.csproj -c Release -o out/packages
+  Determining projects to restore...
+  Restored /home/runner/work/contoso/contoso/tools/Packager/Packager.csproj (in 3.40 sec).
+  Packager -> /home/runner/work/contoso/contoso/tools/Packager/bin/Release/net8.0/Packager.dll
+  Successfully created package '/home/runner/work/contoso/contoso/out/packages/Contoso.Packager.1.4.0.nupkg'.

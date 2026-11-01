@@ -1,0 +1,31 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contoso.Api", "src\Contoso.Api\Contoso.Api.csproj", "{6F1C2A0E-3B7D-4C51-9E2A-1D4B8F0A7C11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contoso.Domain", "src\Contoso.Domain\Contoso.Domain.csproj", "{2B8E5D34-91C6-4F07-A3D2-6C0E7B9F1A22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contoso.Api.Tests", "tests\Contoso.Api.Tests\Contoso.Api.Tests.csproj", "{C4D7A916-5E2B-4B88-8F31-0A9D2E6B3C33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F1C2A0E-3B7D-4C51-9E2A-1D4B8F0A7C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F1C2A0E-3B7D-4C51-9E2A-1D4B8F0A7C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F1C2A0E-3B7D-4C51-9E2A-1D4B8F0A7C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F1C2A0E-3B7D-4C51-9E2A-1D4B8F0A7C11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B8E5D34-91C6-4F07-A3D2-6C0E7B9F1A22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B8E5D34-91C6-4F07-A3D2-6C0E7B9F1A22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B8E5D34-91C6-4F07-A3D2-6C0E7B9F1A22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B8E5D34-91C6-4F07-A3D2-6C0E7B9F1A22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4D7A916-5E2B-4B88-8F31-0A9D2E6B3C33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4D7A916-5E2B-4B88-8F31-0A9D2E6B3C33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4D7A916-5E2B-4B88-8F31-0A9D2E6B3C33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4D7A916-5E2B-4B88-8F31-0A9D2E6B3C33}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

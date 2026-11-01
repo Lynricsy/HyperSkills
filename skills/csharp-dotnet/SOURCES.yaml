@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin csharp-dotnet
 skill: csharp-dotnet
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: dotnet-official
     kind: repo
@@ -39,10 +39,10 @@ upstreams:
       - plugins/dotnet-data/skills/optimizing-ef-core-queries
       - plugins/dotnet-advanced/skills/vectorization
     ref: main
-    commit: 9de888b8ce55da34e76a113bd7b2d463d6b3e1e6
+    commit: 95e7d0cb7994d47b5789baa68e13f7a2f348b956
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "MSBuild evaluation order (Directory.Build.props imported early by Microsoft.Common.props, Directory.Build.targets late by Microsoft.Common.targets, before the rest of the .NET SDK targets) and the property/item/target anti-pattern catalogue, the silent failure of $(TargetFramework) conditions in .props, Central Package Management conversion and NU1008, incremental-build causes and binlog attribution, Web API and minimal API structure, Blazor component contract, prerendering with [PersistentState] and JS interop lifetime, MAUI lifecycle/compiled bindings/Shell/CollectionView/DI lifetimes, test anti-patterns and dotnet test command shapes, the .NET 9 to 10 to 11 migration sequence with its breaking changes, nullable and AOT/trim migration, diagnostic tool selection with dump and trace collection, EF Core query pitfalls (client evaluation limited to the final projection, tracking only of materialised entities, tracker growth in long imports, ExecuteUpdate against already-tracked entities, constants in dynamic expression trees), and SIMD guardrails."
     notes: "The repository has over 100 skills; only the 30 directories above are used. Whole-repo tracking would report this skill behind on every unrelated template-engine or skill-authoring commit. plugins/dotnet-aspnetcore/skills/configuring-opentelemetry-dotnet was tracked until upstream deleted it in 8599a06 (2026-09-28, 'Remove weak dotnet-aspnetcore skills'); nothing from it had been merged, so the path was dropped. Upstream frontmatter fields metadata.portability, metadata.binding and metadata.binding-revision were stripped, as were the repository-overlay and bundled-path loading conventions, which are that repository's own distribution mechanism."
   - id: awesome-copilot
@@ -68,10 +68,10 @@ upstreams:
       - instructions/aspnet-rest-apis.instructions.md
       - instructions/dotnet-upgrade.instructions.md
     ref: main
-    commit: 3cf7c7e8fe9cc1e7c3fd1319e8d01babf388cd6b
+    commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The minimal API shape combining MapGroup, TypedResults and Results<T1,T2> unions with OpenAPI document and schema transformers; the test-framework comparison matrix across xUnit v3, NUnit, MSTest and TUnit; layering and DDD review checkpoints; and the current language-version baseline."
     notes: "Its editor-formatting preferences and single-team conventions (Semantic Kernel, ResourceManager localisation, a fixed MSTest+Moq+FluentAssertions stack) were deliberately not adopted. Where it overlaps dotnet/skills on CPM, upgrades or Blazor it is the shallower source and lost every conflict."
   - id: aaronontheweb
@@ -91,10 +91,10 @@ upstreams:
       - skills/serialization
       - skills/aot-trimming
     ref: master
-    commit: ac0deb2f531ff5090718cb0069c73ba3f9f95f69
+    commit: 5ca5db8cf25566f19d2a5dc53204d4af22b23a0d
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The nullability attribute catalogue and the ordering that puts control-flow narrowing before the null-forgiving operator; the concurrency escalation ladder from async/await through Parallel.ForEachAsync and Channel<T> to locks; organising registrations as Add{Feature} extension methods that tests reuse; shared version properties for a package family under CPM; and the public-API and AOT/trim constraints."
     notes: "Its Akka.NET, Aspire and MJML directories are its own stack and were not used, including the four Akka.NET branches of its concurrency decision tree. Its rule that package versions must only ever be changed through the dotnet CLI was overruled: see research/csharp-dotnet.md ruling 1."
   - id: kevintsengtw-testing
@@ -114,7 +114,7 @@ upstreams:
     commit: 39614757f8e060069918704ad0639b0dbbe1d920
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Replacing ambient state with injectable abstractions (TimeProvider for time, System.IO.Abstractions for the file system), the boundary of what an integration test may replace under WebApplicationFactory, and test naming plus arrange-act-assert structure."
     notes: "Upstream prose is Traditional Chinese; only the semantics were taken and everything here is original English. Its broad library menu (AutoFixture, Bogus, NSubstitute, AwesomeAssertions) was narrowed to one default plus one escape hatch per this repository's writing rules, and its `/skill <name>` loading directives were stripped."
   - id: soltes-perf
@@ -132,7 +132,7 @@ upstreams:
     commit: cef013dc2cadc48f29457172c6f5a5daf6cd0791
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The evidence discipline for performance work: optimised build in the real deployment form, recorded environment and commands, a deterministic reproduction before any change, separating cold start from steady state, never inferring managed retention from RSS, and requiring equivalent before/after runs with spread before claiming a fix. Also the structure of a diagnosis report."
     notes: "Its GPU, WebGPU and shader references are outside this skill's scope and were not used."
   - id: csharpguidelines
@@ -145,7 +145,7 @@ upstreams:
     commit: 697a0244cf890f935e93264a8242189b084d609c
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Structure and checklist semantics only: its rule categories (class design, member design, exceptions and events, maintainability, testability, naming, performance, framework usage, layout) were used as a coverage self-check, which surfaced two gaps that were then written from official documentation — exception design and the IDisposable/finalizer contract."
     notes: "The GitHub API reports NOASSERTION; the LICENSE.md file is the full CC BY-SA 4.0 text. Under this repository's licence policy only the structure and checklist semantics were taken; no sentence, example or rule text was copied."
   - id: rider-skills
@@ -160,7 +160,7 @@ upstreams:
     commit: eddf751236d0755c3edbe332c9ae48c44d3a8105
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Coverage self-check only: confirmed that its debugger-first triage criteria belong to the debugging skill rather than here, so this skill's diagnostics section stays on runtime evidence from counters, traces and dumps."
     notes: "Apache-2.0 would permit merging, but every skill there is bound to the Rider MCP tooling through an allowed-tools frontmatter field and an execute_tool indirection, an agent binding this repository forbids. Nothing was copied."
   - id: dotnet-docs
@@ -168,7 +168,7 @@ upstreams:
     url: https://learn.microsoft.com/dotnet
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The authoritative rulings this skill is built on: dependency-injection guidelines and their anti-patterns (container-captured transient disposables, deadlocking async factories, scope validation), IDisposable ownership rules, the Microsoft.Testing.Platform model and its support matrix including the two dotnet test modes (the .NET 10 SDK's MTP mode opted into through global.json, required for MTP v2 projects), C# language version being bound to the target framework, ConfigureAwait semantics and the ConfigureAwaitOptions overload, and the diagnostic tool set."
     notes: "Source repository dotnet/docs; its LICENSE was read directly and is the full Creative Commons Attribution 4.0 text, so this is merged rather than reference. Attribution: (c) Microsoft, CC BY 4.0. All wording here is original; only technical facts were taken."
   - id: aspnetcore-docs
@@ -176,7 +176,7 @@ upstreams:
     url: https://learn.microsoft.com/aspnet/core
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Service lifetimes and why constructor injection of a scoped service into conventional middleware throws, the Add{GROUP} registration convention, keyed services, and the Blazor render-mode table with prerendering enabled by default for interactive modes plus RendererInfo and AssignedRenderMode."
     notes: "Source repository dotnet/AspNetCore.Docs; its LICENSE was read directly and is the full Creative Commons Attribution 4.0 text. Attribution: (c) Microsoft, CC BY 4.0. All wording here is original."
   - id: dotnet-releases
@@ -184,6 +184,6 @@ upstreams:
     url: https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The support-state table: which channel is the current LTS, which is the next STS, and which are in maintenance. Read before writing any version-specific guidance so the default target is the one actually supported."
     notes: "Machine-readable release index in dotnet/core (MIT). Re-read it on every sync; support phases move and this skill's default target depends on it."

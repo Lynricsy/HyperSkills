@@ -449,3 +449,53 @@ SOURCES：dotnet-docs、aspnetcore-docs 的 `synced_at` 改为 2026-10-15，dotn
 结论：更正相关的行为在有 skill 时达成，且不差于基线。场景 1 两侧都按新的求值顺序判对（EB2 ✔）；全部九条里有 skill 5 ✔ 3 ◐ 1 ✘，基线 3 ✔ 3 ◐ 3 ✘，有 skill 在 `PrivateAssets`、冗余 SDK 默认值、签名导入三条上更好，没有哪一条比基线差。场景 9 只有有 skill 一侧说清「.NET 10 SDK 默认 VSTest 模式」这个原因（EB1 ✔，基线 ◐）。场景 5–8 与基线持平；场景 7 的 EB2 是回答措辞不足，不是方案退化。负例 `skill_read == false`。正文未改。
 
 遗留：场景 1 有三条两侧一样或都没达成，均与本轮更正无关：EB3（两侧都实测原条件在显式 Release 下生效，没讲空属性误判）、EB5（两侧都删 `OutputPath`，没用可覆盖默认值）、EB9（两侧都没给 `-pp`/binlog）。场景 5 的 EB1/EB2 两侧仍为 ◐（`ChangeTracker.Clear()`、批量语句原子性），与今天上午的记录一致。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/csharp-dotnet.md`。dotnet-official 用
+`gh api repos/dotnet/skills/compare/9de888b...95e7d0c`（91 提交、240 文件）取 patch 按 30 个 tracked 目录过滤后读。`--pin` 写入的
+commit 与审阅 HEAD 逐条相等（95e7d0c；B 类 5269f7e / 5ca5db8 与快照 head 一致），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| dotnet-official | 9de888b → 95e7d0c（1 提交命中） | cbb2bb7（#1329）`binlog-failure-analysis/SKILL.md`：description 加「binlog MCP 启动/连接失败改用 troubleshoot-binlog-mcp」，正文把「MCP 不可用就退回 binlog replay」改为「需要修复时先走 troubleshoot-binlog-mcp，否则继续 replay」 | 无影响：是该插件自带 MCP 服务器的路由说明；本 skill 只取 `-bl` 与读 binlog 的诊断纪律，不绑定 MCP |
+| awesome-copilot | 3cf7c7e → 5269f7e | 无（主代理裸仓库树 diff） | 噪声，re-pin |
+| aaronontheweb | ac0deb2 → 5ca5db8 | 无 | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| dotnet/skills `plugins/dotnet-msbuild/skills/troubleshoot-binlog-mcp/SKILL.md` | REJECT | 诊断该插件自带的 `Microsoft.AITools.BinlogMcp`（`dotnet dnx` 启动、feed/source mapping、`MCP status:` 行）——上游自用工具链的排障流程，不是 C#/.NET 开发规则 |
+| dotnet/skills `plugins/dotnet-msbuild/skills/eliminate-redundant-restores/SKILL.md`：多步 CI 去重 restore 的四项检查（同项目集、同 restore 输入含 RID、同 assets 位置、中间无改包步骤），`Directory.Build.rsp` 的 `-restore` 在 .NET 8 SDK 上不被 `--no-restore` 覆盖，`--no-build` 时 rsp 仍会触发 restore | 不合入（场景 10 留作哨兵） | 先核实再跑基线。核实：`gh api` 读 dotnet/sdk `src/Cli/dotnet/CommonOptions.cs`——`release/9.0.1xx` 的 `NoRestoreOption` 是 `ForwardedOption(...).ForwardAs("-restore:false")`，`release/8.0.1xx` 与 `8.0.4xx` 只是普通 `CliOption<bool>`；本机 SDK 9.0.122 建 classlib + xunit 项目、rsp 写 `-restore` 实测：`build --no-restore` 不跑 Restore，`test --no-build` 仍跑 Restore，`test --no-build --no-restore` 不跑。新增场景 10（夹具 `evals/files/restore/`：CI 依次 restore/build/test/publish `-r linux-x64`/pack 方案外工具，rsp 带 `-restore`，`global.json` 钉 8.0.415）。基线 3✔1◐：保留 publish 的 restore（RID）、保留方案外 Packager 的 restore、build/test 加 `--no-restore -restore:false` 且在临时目录装 SDK 8.0.415 实测「仅 `--no-restore` 仍会 restore」；只有 test 仍重新 build（未用 `--no-build`）。基线已会，按规则不合入 |
+
+场景 10 夹具修正：首轮基线指出 SDK 8.0.415 不认识 `.slnx`（MSB4068，SLNX 自 SDK 9.0.200 起支持），夹具改为经典 `Contoso.sln` 后重跑基线，结果记在「D2 回归」一节。首轮输出 `/tmp/hs-d2/G05c-backend3/csharp-dotnet/omp-openai-gpt-6.1-sol-medium/baseline/10/`（已另存为 `baseline-10-slnx`）。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "dotnet skills" --sort updated`（筛 pushed > 2026-10-15）、`gh search repos "csharp agent skills" --sort stars`、
+awesome-copilot 3cf7c7e..5269f7e 新增文件（只有 github-security 扩展的语法高亮资源，无 .NET skill）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 22 | managedcode/dotnet-skills（`catalog/**/SKILL.md`，317 个） | https://github.com/managedcode/dotnet-skills | 500 | 2026-10-29 | MIT | 全 .NET 生态目录（框架、库、工具、甚至 Astro） | 1 | 3 | 1 | 2 | 2 | 9 | REJECT（无增量） | 实读 `aspnet-core/SKILL.md`：主体是 Learn 链接、通用中间件顺序与「用 IOptions/ILogger/IHttpClientFactory」清单，外加按服务发布版本自动生成的「Current Upstream Notes」；凡具体处都已由 dotnet/skills 与 Learn 覆盖，按阶段 2「增量价值」不引入（同第 26 行先例：分数够但无增量即排除） |
+| 23 | glennawatson/CSharpAgentSkills（55 个 skill：csharp-async、csharp-15-syntax、dotnet-11-libraries、csharp-disposable-patterns…） | https://github.com/glennawatson/CSharpAgentSkills | 2 | 2026-10-09 | MIT | C# 语言/性能/并发/测试（TUnit、NUnit） | 1 | 3 | 3 | 3 | 2 | 12 | MAYBE（待定） | ReactiveUI 维护者 2026-09-24 新建。实读 `csharp-async/SKILL.md`：内容具体且正确（`Task.Factory.StartNew` 走 `TaskScheduler.Current`、async lambda 返回 `Task<Task>`、单任务 `WhenAll` 无意义），但与 `references/async-concurrency.md` 大面积重叠；独有条目需逐 skill 写场景测基线，本轮未做；`csharp-15-syntax`/`dotnet-11-libraries` 按既有裁决等 .NET 11 GA。列为遗留 |
+| 24 | jeffhandley/dotnet-skills | https://github.com/jeffhandley/dotnet-skills | 0 | 2026-10-26 | MIT | 与 dotnet/skills 同构（`plugins/dotnet-ai/...`） | — | — | — | — | 2 | — | REJECT（重复） | .NET 团队成员的个人镜像（非 GitHub fork 但目录与 dotnet/skills 相同），追上游原仓即可 |
+| 25 | AtanasSarafov/dotnet-skills-windsurf、ya123-4/dotnet-windows-skills-dsh、heyashishsaini/dotnet-skills | `gh search repos` 结果 | 0–1 | 2026-10-18~29 | MIT / 无 | 官方 skill 的安装器 / 其他 harness 的打包 / 学习笔记 | 0 | 3 | 0 | – | 0–2 | ≤4 | REJECT | 安装器与再打包没有自身内容；笔记仓无许可 |
+| 26 | Aaronontheweb/dotnet-skills-evals | https://github.com/Aaronontheweb/dotnet-skills-evals | 15 | 2026-10-27 | Apache-2.0 | 已追踪仓库的 DSPy 评测 | — | — | — | — | 2 | — | REJECT（形态不符） | 是评测脚本而非 skill 内容 |
+
+## 2026-11-01 文档上游复核
+
+Learn 文档读源仓库（`gh api 'repos/dotnet/docs/commits?path=<file>&since=2026-10-14'` 等），发布索引读 `dotnet/core` 的
+`release-notes/releases-index.json`。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| dotnet-docs | DI 反模式（容器捕获 transient disposable、async factory 死锁、scope validation） | `docs/core/extensions/dependency-injection/guidelines.md`（最后提交 2026-03-29） | 一致：上次复核后无改动 |
+| dotnet-docs | C# 版本绑定 TFM（C# 14 ↔ .NET 10，C# 15 ↔ .NET 11） | `docs/csharp/language-reference/language-versioning.md`（最后提交 2026-02-10） | 一致 |
+| dotnet-docs | `dotnet test` 两种模式、.NET 10 SDK 跑 MTP v2 需 `global.json` 开 MTP 模式；MTP 支持矩阵 | `unit-testing-with-dotnet-test.md`（2026-09-14）、`microsoft-testing-platform-intro.md`（2026-10-01）、`microsoft-testing-platform-migration-from-v1-to-v2.md` | 一致：2026-10-14 后均无提交 |
+| dotnet-docs | IDisposable 所有权、诊断工具集 | `docs/standard/garbage-collection/implementing-dispose.md`、`docs/core/diagnostics/index.md` | 一致：2026-10-14 后无提交 |
+| aspnetcore-docs | 常规中间件构造函数注入 scoped 服务抛异常、`Add{GROUP NAME}`、keyed services；Blazor 交互模式默认预渲染、`RendererInfo`/`AssignedRenderMode` | `aspnetcore/fundamentals/dependency-injection.md`、`fundamentals/middleware/write.md`、`blazor/components/render-modes.md` | 一致：10-14 后的 6 个提交（#38067、#38063、#38058、#38032、#38030、#38018）只把 `xref:` 换成相对链接、修断链 |
+| dotnet-releases | 11.0 go-live STS（现为 11.0.0-rc.3，2026-10-25）、10.0 active LTS（EOL 2028-11-14）、9.0/8.0 maintenance（均 2026-11-10 EOL） | `release-notes/releases-index.json` | 一致：`references/upgrade.md` 支持状态表（10 默认目标、11 为下一 STS、9/8「即将结束」）仍成立；下次同步时 .NET 11 应已 GA、8/9 已 EOL，届时须改表 |
+
+三条 `kind: docs` 的 `synced_at` 改为 2026-11-01。正文无改动。

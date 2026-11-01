@@ -131,5 +131,23 @@
       "Rewrites the nightly filter in xUnit v3's own syntax — `--filter-trait \"Category=Integration\"` (or an equivalent `--filter-query`) — and says that the VSTest `--filter \"Category=Integration\"` expression is not what xUnit v3 accepts under MTP",
       "Says to confirm the change by checking the reported test count on the .NET 10 SDK, because a filter that matches nothing can finish successfully with zero tests"
     ]
+  },
+  {
+    "skills": ["csharp-dotnet"],
+    "query": "Our GitHub Actions pipeline (ci.yml) restores NuGet packages in every step; ci-log.txt is the output of the last run. The repo-root files global.json, Directory.Build.rsp and Contoso.sln are included, plus src/Contoso.Api/Contoso.Api.csproj. Change ci.yml so packages are restored only where a restore is actually needed, without breaking any step, and tell me how you know the new pipeline works.",
+    "files": [
+      "evals/files/restore/ci.yml",
+      "evals/files/restore/ci-log.txt",
+      "evals/files/restore/global.json",
+      "evals/files/restore/Directory.Build.rsp",
+      "evals/files/restore/Contoso.sln",
+      "evals/files/restore/Contoso.Api.csproj"
+    ],
+    "expected_behavior": [
+      "Notices that the publish step uses `-r linux-x64` while the explicit restore has no runtime identifier, so adding `--no-restore` to the publish alone would fail with NETSDK1047 (assets file has no target for `net8.0/linux-x64`); it either restores with `-r linux-x64` up front or leaves the publish step's own restore in place",
+      "Notices that Directory.Build.rsp adds `-restore` to every invocation and that on the pinned .NET 8 SDK `--no-restore` does not override it (only the .NET 9 SDK and later forward `--no-restore` as `-restore:false`), so the later steps pass `-restore:false` explicitly (for example `--no-restore -restore:false`) instead of deleting `-restore` from the rsp file that developers rely on",
+      "Notices that tools/Packager/Packager.csproj is not in Contoso.sln, so the solution restore never covers it, and keeps a restore for the pack step (or adds the project to an explicit restore) rather than adding `--no-restore` there, which would fail with NETSDK1004",
+      "Runs the tests with `dotnet test --no-build` after the build instead of only `--no-restore` (which still rebuilds), and says the change is proven only by running the pipeline from a clean checkout and seeing every step pass with restore output in just the expected steps — not by reading the YAML"
+    ]
   }
 ]
