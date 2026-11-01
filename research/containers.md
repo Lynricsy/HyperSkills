@@ -896,3 +896,32 @@ release 全部切到 SSA」安排两周冻结）。负例 5（Terraform `count`/
 
 结论：正文（SKILL.md / references）未改，只新增哨兵场景 10、11 与夹具、re-pin、版本号 2026.11.01、SOURCES 新增 `docker-skills`（reference）；
 无正文改动，按规程不跑 D2。
+
+## 2026-11-01 跨组命中评估
+
+其他组转来的上游新增文件，`gh api` 读原文后裁决。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| nitinjain999/platform-skills `plugins/platform-skills/skills/gateway-api`（Apache-2.0，71★，2026-10-26 推送） | REJECT（不合入 Gateway API 内容；Scope 问题上交）；触发一处事实更正 | 内容是 ingress-nginx → Gateway API 迁移向导（注解盘点分级、ingress2gateway、实现选型、共享 Gateway 归属、cert-manager listener TLS、Flux 分层、分主机 DNS 切换与回滚）。本 skill 2026-09 立项时明确「不覆盖 Gateway API 细节」，展开需控制器实现层知识，且与可能的网络类 skill 边界未定——属扩 Scope，交主人决定。但它暴露了正文的过时点：`kubernetes-workloads.md` Ingress 一节示例用 `ingressClassName: nginx`、只说 Gateway API 是「方向而非自动选择」，没有反映社区 ingress-nginx 已退役。按 Kubernetes 官方博客（SIG Network 与安全响应委员会，2025-11-11）核实：2026 年 3 月停止维护，此后无发布、无 bug 修复、无安全补丁，现有部署继续可用、chart 与镜像仍可下载。作为事实更正直接改正文（见下） |
+| NVIDIA/skills `skills/runai-diagnose-failed-workload`（Apache-2.0 AND CC-BY-4.0，3808★） | REJECT | 与本日已拒的 4 个 runai-* 同理：单一商业产品（Run:ai）经 MCP 的只读诊断手册；通用部分（137 只说明 SIGKILL、`OOMKilled` 原因优先于退出码推断、OOM 比较峰值与 limit 而非 request）已在 `troubleshooting.md` 覆盖 |
+
+### 事实更正
+
+- `references/kubernetes-workloads.md` Ingress 一节：示例 IngressClass 改为中性的 `public`（注释说明取控制器注册的类名）；新增一段：社区 ingress-nginx（`kubernetes/ingress-nginx`，类名通常 `nginx`）已于 2026 年 3 月停止维护，新集群不要以它起步，既有部署列为迁移项（Gateway API 或其他仍在维护的 Ingress 控制器），`nginx.ingress.kubernetes.io/*` 注解都不能直接带走、需为替代者重新表达；Gateway API 资源本身仍不在本 skill 范围。
+- `SKILL.md` review-a-kubernetes-manifest 清单的「集合完整一致」一项补一句：退役的 ingress-nginx 上的 Ingress 是迁移发现而非默认值，并指向 `kubernetes-workloads.md`（首轮有 skill 未读该 reference，见下）。
+- `SOURCES.yaml` `kubernetes-docs` 的 `contributes` 记入该退役公告。
+- 新增回归场景 12（新集群按 ingress-nginx 规划公网 HTTPS：`rewrite-target` 去前缀、证书 Secret 在另一命名空间）。
+
+## 2026-11-01 D2 回归（跨组命中更正）
+
+产物 `/tmp/hs-d2/G13-cross/containers/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2◐ 3✔ | 53.7 s。开头即说 ingress-nginx 2026-03 退役、新集群改用 Gateway API 或其他维护中的控制器，引用官方博客；Secret 须在 Ingress 同命名空间、给出复制做法；但仍完整写出 ingress-nginx 的「legacy」配置，未说明注解需为替代者重新表达 |
+| 12 | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ | r1（仅改 reference 时），42.5 s。只读了 `SKILL.md` 与 `kubernetes-api-versions.md`，**未读 `kubernetes-workloads.md`**，更正未被触达；结论与基线同档。产物移至 `skill/12-r1` |
+| 12 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | r2（`SKILL.md` 清单加指向后），73.2 s。读了 `kubernetes-workloads.md`；退役结论同上，并在「新集群决策」中把去前缀改写落到 Gateway API 的按规则前缀重写、证书留在 `cert-store` 用 `ReferenceGrant` 跨命名空间引用 |
+| 5（负例） | gpt-6.1-sol medium | 有 | **False** | — | 103.5 s，按 Terraform 作答（`for_each` + `moved`） |
+
+结论：基线已知退役事实；更正的作用是把示例里的 `nginx` 类名换成中性值，并在「Gateway API 是方向而非自动选择」之后补上 ingress-nginx 已退役的状态，使正文不再把退役控制器当默认。有 skill 一侧无回退，r2 在 EB2 上由 ◐ 变 ✔（单样本）。负例未误读。

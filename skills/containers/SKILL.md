@@ -201,7 +201,9 @@ ago, and a removed version is a hard rejection, not a warning.
       RBAC and secret handling (`references/kubernetes-security.md`).
 - [ ] Check the set is complete and internally consistent: a Service exists for every
       Ingress backend, selectors match template labels, ports line up, and the
-      `app.kubernetes.io/*` labels are present.
+      `app.kubernetes.io/*` labels are present. An Ingress for the retired community
+      ingress-nginx controller is a migration finding, not a default
+      (`references/kubernetes-workloads.md`).
 - [ ] Check image references are immutable and `imagePullPolicy` agrees with them.
 - [ ] **Gate — it validates offline:**
       `kubeconform -kubernetes-version <cluster version> -strict -summary` over the

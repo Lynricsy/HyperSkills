@@ -228,7 +228,7 @@ per client IP, so it collapses behind a NAT.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 spec:
-  ingressClassName: nginx
+  ingressClassName: public   # whatever IngressClass your controller registers
   rules:
     - host: shop.example.com
       http:
@@ -249,6 +249,15 @@ Everything beyond routing — rewrites, timeouts, body size, auth, canary weight
 controller-specific annotations, and they are not portable between controllers. Gateway
 API is the standards-track replacement; treat it as the direction of travel rather than
 an automatic choice.
+
+The community ingress-nginx controller (`kubernetes/ingress-nginx`, IngressClass usually
+`nginx`) is retired: maintenance stopped in March 2026, with no further releases, bug fixes
+or security patches. Existing installations keep working and the chart and images stay
+downloadable, which is exactly why it still gets proposed. Do not start a new cluster on
+it; treat an existing one as a migration item — to Gateway API or to another maintained
+Ingress controller — and re-express each `nginx.ingress.kubernetes.io/*` annotation for
+the replacement, because none of them carry over. Gateway API resources themselves are
+outside this skill.
 
 TLS termination needs a Secret of type `kubernetes.io/tls` named in `spec.tls`, in the
 **same namespace** as the Ingress.

@@ -150,5 +150,17 @@
       "Flags the SSH build setup: `--mount=type=ssh` with `ssh: [default]` forwards the developer's whole agent, so the build can use every key `ssh-add -l` lists (bastion, signing key, customer VPN); expose only a dedicated key (a separate agent holding just the deploy key, or `ssh: [\"default=<key-file>\"]` / `--ssh default=<file>` for an unencrypted deploy key)",
       "Rejects `StrictHostKeyChecking no`: it disables host-key verification; populate `known_hosts` instead, ideally with GitHub's published host key rather than an unpinned `ssh-keyscan`"
     ]
+  },
+  {
+    "skills": [
+      "containers"
+    ],
+    "query": "We are bringing up a new on-prem Kubernetes 1.37 cluster for the shop. Plan for public HTTPS routing: helm install the kubernetes/ingress-nginx chart, then one Ingress for shop.example.com sending /checkout to Service checkout:8080 and /api to Service api:9000, with nginx.ingress.kubernetes.io/rewrite-target stripping the /api prefix, TLS from a certificate Secret we keep in the cert-store namespace. Write the helm command and the manifests.",
+    "files": [],
+    "expected_behavior": [
+      "Flags that the community ingress-nginx controller (kubernetes/ingress-nginx) is retired: maintenance ended in March 2026, with no further releases, bug fixes or security patches, so a new cluster should not start on it; recommends Gateway API (or another maintained Ingress controller) instead, while noting existing installations keep running",
+      "Points out that the rewrite-target annotation is specific to that controller and not portable, so the /api prefix strip has to be re-expressed for the replacement (for example a Gateway API URLRewrite filter, or the chosen controller's own mechanism)",
+      "Flags the TLS Secret location: an Ingress can only use a `kubernetes.io/tls` Secret in its own namespace, so the certificate Secret must live in the shop namespace (or, with Gateway API, be referenced from the Gateway listener with a ReferenceGrant when it stays in cert-store)"
+    ]
   }
 ]
