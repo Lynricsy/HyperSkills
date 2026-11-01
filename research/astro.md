@@ -119,12 +119,16 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 | 2 content collections 迁移到 Astro 7 | gpt-6.1-sol medium | 有 | true | ◐1 ◐2 ◐3 ◐4 ✔5 ✔6 ◐7 ✘8 ◐9（2✔6◐1✘） | 109 s。读了 `content-collections.md`、`removed-and-changed-apis.md`；在隔离 astro@7.4.4 工程跑通 `astro sync/check/build/preview`。位置迁移、`loader: glob()`、`astro/zod`、`z.url()/z.email()`、`entry.id`、`getEntry(reference)`、`render()`、`import.meta.glob` 全做；但未用 `z.coerce.date()`、未说 `import.meta.glob` 非 promise、只在验证里跑 `astro sync` 而未建议用户跑；把 Zod 项称为「deprecations」（EB4 半条），未提无 loader 集合会静默为空 |
 | 2 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ✔3 ✘4 ✔5 ✔6 ✔7 ✘8 ✘9（4✔2◐3✘） | 130 s。用 astro@7.0.0 实测；`z.coerce.date()`、`import.meta.glob` 同步取值到位；所有项一律称「cumulative migrations」，不区分移除与弃用；未提 `astro sync` |
 | 4 负例（React effect 循环） | gpt-6.1-sol medium | 有 | false | ✔1 ✔2 ◐3 ✘4（2✔1◐1✘） | 59 s。按 React 回答，零 Astro 内容；依赖仍保留 `filters` 对象，未提 AbortController / 过期响应 |
+| 2（主代理复测） | gpt-6.1-sol medium | 有（当前 `ad9e8f8`） | true | ◐1 ◐2 ◐3 ◐4 ✔5 ✔6 ◐7 ◐8 ◐9（2✔7◐） | 139 s，产物 `/tmp/hs-d2/main/`。与上一行同档：迁移全做，Zod 项称弃用，未提 `z.coerce.date()`、`import.meta.glob` 非 promise、无 loader 集合静默为空；只在验证里跑 `astro sync` |
+| 2（主代理 A/B） | gpt-6.1-sol medium | 有（同步前 `9534e10` 版本） | true | ◐1 ◐2 ◐3 ◐4 ✔5 ✔6 ◐7 ◐8 ✔9（3✔6◐） | 141 s，产物 `/tmp/hs-d2/main-old/`，用同步前的 skill 跑同一场景、按新期望判定。输出结构与当前版本几乎相同，仅多一句「放好文件后跑 `astro sync`」 |
 
 结论：负例 `skill_read=false`。场景 2 两侧都完成了全部机械迁移；有 skill 一侧在「区分移除与弃用」（EB4）、`astro sync`（EB9）上仍比基线多半条，
 但在 `z.coerce.date()`（EB3）、`import.meta.glob` 非 promise（EB7）两条与本次改动无关的细节上少于基线——这两处 reference 本次未改，属单次运行波动，
 记为观察项。本次新增的事实「无 loader 集合静默为空」两侧都未触发：夹具的配置仍在旧路径，`LegacyContentConfigError` 先于该行为出现，
 所以该更正由源码阅读与本机 astro@7.4.4 实跑（见文档复核表）而非本场景证明。EB8（`Astro.site`）沿用 2026-09-29 的判断：夹具里的 `Astro.site`
 在模板而不在 `getStaticPaths()` 内，该条预期偏题，两侧均未达成。
+主代理复测与 A/B：当前版本复测仍为 2✔7◐，同步前版本为 3✔6◐，两者同档；场景 2 有 skill 一侧低于 2026-09-29 的 8/9 是模型现在的作答风格（短表格、少解释）所致，
+不是本次正文改动造成的回退，本轮不回滚。
 
 遗留：若要让评测直接覆盖「无 loader 集合静默为空」，需要一个配置已在 `src/content.config.ts`、但仍带 `type: 'content'` 且无 loader 的新夹具（本轮未加，
 理由：该事实已由实跑证明，且基线是否已会不影响事实更正的合入）。
