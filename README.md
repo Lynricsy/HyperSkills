@@ -152,7 +152,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`harmonyos`](skills/harmonyos/) | 平台 | Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling | 2026.10.15 | 12 |
 | [`html-deck`](skills/html-deck/) | 任务 | Creates browser HTML slide decks | 2026.11.01 | 20 |
 | [`java-spring`](skills/java-spring/) | 框架 | Develops Java services with Spring Boot, Spring Security and Spring Data JPA | 2026.11.01 | 8 |
-| [`laravel`](skills/laravel/) | 框架 | Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire | 2026.10.15 | 9 |
+| [`laravel`](skills/laravel/) | 框架 | Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire | 2026.11.01 | 9 |
 | [`linux-ops`](skills/linux-ops/) | 平台 | Operates Linux hosts with systemd, permissions, networking, storage and backup recovery | 2026.11.01 | 13 |
 | [`mcp-server`](skills/mcp-server/) | 任务 | Designs and builds your own MCP servers: tools, transports, auth | 2026.10.15 | 9 |
 | [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg and deterministic image tools | 2026.11.01 | 24 |

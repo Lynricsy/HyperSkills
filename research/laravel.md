@@ -334,3 +334,54 @@ paths 下确有提交。归因方法：laravel-framework、php-src 为 too-large
 场景 3：有 skill 5✔3◐1✘ 对基线 2✔2◐5✘；今日新增的 E8（`assertSee` 只查响应体，需在旁保留 `assertOk()`）两侧均达成，有 skill 不比基线差。负例 `skill_read=false`。
 
 结论：改了 laravel 正文（规则 24 末句与 `references/eloquent-and-data-access.md` 租期段）。遗留：场景 6 EB1（租期按最坏耗时设定）三次有 skill 都只是部分达成，因为模型选行锁后租期不再承担正确性；EB3 受限于夹具没有作废授权的 API，只能部分达成。场景 3 E9（`LazilyRefreshDatabase`、低 `BCRYPT_ROUNDS`）与跨租户 404 两侧都未提。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 `check_upstream.py --json` 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/laravel.md`。
+laravel-boost 用 `gh api repos/laravel/boost/compare/3813996...822a22c` 取 patch 按 13 个 tracked paths 过滤（36 个文件，845 行增删）
+后逐行读；laravel-framework、php-src 用主代理的 blobless 裸仓库缓存跑 `git diff <pinned> <head> -- <paths>`。`--pin` 写入的
+commit 与审阅 HEAD 逐条相等（822a22c / 4bfe20a / e991020；B 类 cc631a0 / 85e89af / 5269f7e 与快照 head 一致），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| laravel-boost | 3813996 → 822a22c（3 提交命中） | cbd7f56（#1076）把五个 bundled skill（laravel-best-practices 20 个 rules、testing-best-practices 9 个 rules、pennant、livewire 4、volt）的标题改为句首大写、长句拆短、被动改主动；逐行比对后没有任何 API、默认值、版本或规则含义变化（如锁租期、`retry_after`、`failed()` 新实例、`cursor()`/`lazy()` 取舍、cache tags 不支持的驱动都原样保留）。6f0eb84（#1083）`foundation.blade.php`：只在 composer.json 定义了 `dev` 脚本时才建议 `composer run dev`。1c66c87（#1084）`.ai/pest/core.blade.php` 删掉「feature 测试通过后请用户跑全量套件」一句 | 无影响：措辞改写；`composer run dev` 本 skill 从未写；全量套件一句是 Boost 的会话流程提示，本 skill 规则 25 与测试 workflow 的「窄选择 → 更宽套件」是我们自己的完成门，不受影响 |
+| laravel-framework | c3e5868 → 4bfe20a（1 提交命中） | 794b29c（#62125）`Queue.php` 两处 docblock：`$dispatchAfterCommit` 为 `bool\|null`、`raiseJobQueueingEvent()` 的 `$queue` 为 `string\|null` | 无影响：只是类型注释，属性/attribute 优先级逻辑未动 |
+| php-src（reference） | eec8328 → e991020（10 提交命中） | `UPGRADING`（PHP 8.7 dev）：Reflection 的 `$name`/`$class` 变 readonly、SoapClient 不再跟随跨源重定向、`IntlRelativeDateTimeFormatter`/`IntlNumberFormatter`/`Transliterator::toRules()`、列表解构赋值与 PDO FETCH_BOTH/pgsql 性能条目 | 噪声：全是 8.7 开发分支。`gh api .../git/matching-refs/tags/php-8.6` 最新为 `php-8.6.0RC4`，仍无 `php-8.6.0`，8.5 仍是当前稳定系列；`modern-php.md` 版本门不变，`notes` 更新为 RC4 |
+| laravel-agent-skills | 65b8be3 → cc631a0 | 无 | 噪声，re-pin |
+| leeovery-agentic-skills | 88b5924 → 85e89af | 无 | 噪声，re-pin |
+| awesome-copilot-laravel | 3cf7c7e → 5269f7e | 无（主代理裸仓库树 diff） | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| Redocly/redocly-cli `packages/client-generator/examples/ejected-generator/.claude/skills/php-generator/SKILL.md`（MIT，1544★） | REJECT | 上游自用的「弹出式 PHP 客户端生成器」设计说明（生成单文件 SDK、PHPStan level 5、OPcache 预加载不保留文件级常量），是代码生成器内部契约，不是 Laravel 应用开发规则；仓库由 `api-design` 追踪，记入跨组命中 |
+| laravel/docs 13.x 自 2026-10-14 起的 14 个提交里与本 skill 相关的 4 条（`urls.md` 签名只覆盖 path 与 query，body 会盖过 query，须用 `$request->query()` 取签名值；`filesystem.md`/`validation.md` 禁止用用户输入作 `storeAs` 文件名与 polyglot 图片；`octane.md` FrankenPHP 自带 PHP 需重装二进制升级；`deployment.md` nginx 对 `.php` 返回 404） | 签名 URL：不合入（场景 7 留作哨兵）；上传：已覆盖；FrankenPHP/nginx：不合入 | 签名 URL 先写场景 7 跑基线：基线已把两个动作都改为只信 `$request->query('email')`、`frequency`/`topics` 仍从 body 校验（EB2 ✔ EB3 ✔），只是把 GET 退订归因于邮件扫描器预取、未点出 GET 也能带 JSON body（EB1 ◐），并用冒烟脚本复现篡改而非 Laravel 测试（EB4 ◐）——核心修法基线已会，按规则不合入。上传一条 `references/http-and-validation.md`「Uploads」已写「让 Laravel 生成文件名、不放进可执行目录」，与新警告等价。FrankenPHP 与 nginx 属部署/托管运维，本 skill 只管 Octane 的状态隐患 |
+
+场景 7 基线：`openai/gpt-6.1-sol` medium，99 s，`skill_read=False`，输出 `/tmp/hs-d2/G05c-backend3/laravel/omp-openai-gpt-6.1-sol-medium/baseline/7/`。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "laravel skills" --sort updated`（筛 pushed > 2026-10-15）、`gh search repos "laravel agent skill" --sort stars`、
+awesome-copilot 3cf7c7e..5269f7e 新增文件（无 Laravel/PHP 条目）。新出现的仓库全部 0–1★；已在候选表的（CarianLabs、jasim-k、
+shshohagh、abdallhMoukdad 等）不重复讨论。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 28 | mgamalhz/laravel-skills（`skills/{laravel-architecture,laravel-done-checklist,laravel-performance,laravel-security}`） | https://github.com/mgamalhz/laravel-skills | 0 | 2026-10-21 | MIT | 架构 / 完成清单 / 性能 / 安全十步 | 0 | 3 | 2 | – | 2 | 7 | REJECT | 2026-10-14 新建、零采纳；实读 `laravel-security/SKILL.md`：IDOR、scoped bindings、不从 body 取归属 id 等全部已在官方 skill 与本 skill 规则 9–11 中，没有可验证的增量 |
+| 29 | BrivaHamisi/laravel-shipkit（12 个 skill：M-Pesa、PayPal、image-uploads、secrets-scanner、seo…） | https://github.com/BrivaHamisi/laravel-shipkit | 0 | 2026-10-17 | MIT | 支付渠道 / 图片处理 / SEO 的 stub 安装说明 | 0 | 3 | 2 | – | 2 | 7 | REJECT | 实读 `image-uploads/SKILL.md`：是「复制 stubs + intervention/image」的单一实现蓝图；支付与 SEO 属具体商业集成，越界 |
+| 30 | ajeprisco/Laravel-Skills-Test、kuanntw/laravel-skills、Bayraev/Laravel-skills | `gh search repos` 结果 | 0 | 2026-10-23~29 | 无 | 个人试验 | 0 | 3 | – | – | 0 | ≤4 | REJECT | 无许可、无描述、零采纳 |
+
+## 2026-11-01 文档上游复核
+
+`laravel-docs`：读 https://laravel.com/docs/13.x/releases（现跳转到 `laravel.com/framework/docs/13.x/releases`，旧 URL 仍可用），并用
+`gh api 'repos/laravel/docs/commits?sha=13.x&since=2026-10-14'` 列出上次复核后的全部 14 个提交逐个看文件（上表 4 条相关）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| laravel-docs | Laravel 13（2026-03-17）PHP 8.3–8.5；Laravel 12 PHP 8.2–8.5，bug 修复至 2026-08-13、安全修复至 2027-02-24 | [Release notes](https://laravel.com/docs/13.x/releases) 支持矩阵（12 现标为 Security fixes only） | **过时已修**：`references/runtime-config-and-upgrades.md` 原写「Laravel 12 receives bug fixes until August 2026」，今天已过该日期，改为「bug 修复已于 2026-08-13 结束，现仅安全修复至 2027-02-24」 |
+| laravel-docs | 升级依赖下限 `laravel/tinker ^3.0`、`phpunit/phpunit ^12.0`；`PreventRequestForgery`、`Sec-Fetch-Site`；缓存 `serializable_classes`、会话 `serialization` | `upgrade.md`、`csrf.md` | 一致：2026-10-14 后无提交触及这两个文件 |
+| laravel-docs | 队列属性与 `Queue::route`、`ShouldBeUniqueUntilProcessing`、Pennant 存值/purge/nullable scope、`Cache::touch` 与 failover、`Concurrency::run`、Octane 注入隐患 | `queues.md`、`pennant.md`、`cache.md`、`concurrency.md`、`octane.md` | 一致：只有 `octane.md` 有改动（FrankenPHP 自带 PHP 的升级警告，见上节，不影响正文所引事实） |
+| laravel-docs | 上传：`mimes` 看内容、`extensions` 看客户端扩展名、存储文件名由系统生成 | `validation.md`、`filesystem.md`（10-24 新增 polyglot 与 `storeAs` 警告） | 一致：新警告与正文结论相同 |
+
+`laravel-docs` 的 `synced_at` 改为 2026-11-01。

@@ -113,9 +113,10 @@ it multiplies existing state bugs rather than creating new performance headroom 
 
 ## Upgrading 12 to 13
 
-Laravel 13 (March 2026) requires PHP 8.3–8.5. Laravel 12 accepts PHP 8.2–8.5 and receives bug
-fixes until August 2026 and security fixes until February 2027. The upgrade is deliberately small;
-`laravel/boost` ^2 exposes an `/upgrade-laravel-v13` prompt that automates most of it.
+Laravel 13 (March 2026) requires PHP 8.3–8.5. Laravel 12 accepts PHP 8.2–8.5; its bug fixes ended
+on 13 August 2026 and it now gets security fixes only, until 24 February 2027. The upgrade is
+deliberately small; `laravel/boost` ^2 exposes an `/upgrade-laravel-v13` prompt that automates
+most of it.
 
 Dependency floors: `laravel/framework ^13.0`, `laravel/tinker ^3.0`, `phpunit/phpunit ^12.0`,
 `pestphp/pest ^4.0`, `laravel/boost ^2.0`.

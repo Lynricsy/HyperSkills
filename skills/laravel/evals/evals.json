@@ -88,5 +88,32 @@
       "Makes the decrement safe in the database instead of trusting the cache lock alone - a `lockForUpdate()` re-read inside the transaction, or an atomic conditional decrement (`where('seats_remaining', '>=', $seats)` plus `decrement()` and a check of the affected rows) - because `seats_remaining - $seats` computed from an earlier read loses updates whenever two writers overlap",
       "Shrinks what the lock covers by taking the slow external authorisation out of the critical section (or otherwise bounding it), and handles the seats running out after the card was authorised by voiding or releasing that authorisation"
     ]
+  },
+  {
+    "skills": ["laravel"],
+    "query": "A subscriber wrote in that she was unsubscribed from our newsletter and her topics were changed, but she never clicked anything. Every newsletter link is a signed URL (newsletter-routes.php shows the routes and how the mail builds the links) and the signed middleware is on all of them, so we assumed nobody could act on someone else's subscription. Review NewsletterController.php, explain how this could happen, and fix it.",
+    "files": [
+      "evals/files/NewsletterController.php",
+      "evals/files/newsletter-routes.php"
+    ],
+    "expected_behavior": [
+      "Explains that the signature covers only the URL path and query string, while `$request->input()`, `$request->all()`, `validate()` and dynamic request properties merge the request body over the query string, so anyone holding their own valid signed link can send a form or JSON body (even on the GET unsubscribe route) with another subscriber's `email` and act on that subscriber",
+      "Reads the identity that was signed from the query string only - `$request->query('email')` (or a route parameter that is part of the signed URL) - in both actions, instead of trusting the merged input or adding more validation to the `email` field",
+      "Keeps the preferences fields (`frequency`, `topics`) as ordinary validated body input but removes `email` from the validated body, so the update is keyed only on the signed value",
+      "Adds or describes a test that sends a validly signed link for one subscriber with a different `email` in the request body and asserts the other subscriber is unchanged"
+    ]
+  },
+  {
+    "skills": ["laravel"],
+    "query": "Today is 1 November 2026. Our field-service app is on Laravel 12 (composer.json). The product owner wants to push the Laravel 13 upgrade back to Q2 2027 and asks whether Laravel 12 keeps getting fixes until then. Answer that with dates, and give me the upgrade plan, including what has to happen before the framework bump itself.",
+    "files": [
+      "evals/files/composer.json"
+    ],
+    "expected_behavior": [
+      "States that Laravel 12's bug-fix window has already closed (13 August 2026) and it now gets security fixes only, ending 24 February 2027, so postponing to Q2 2027 leaves the application on an unsupported framework and the upgrade has to land before late February 2027",
+      "Notes that Laravel 13 requires PHP 8.3 or newer while composer.json allows `^8.2` and pins `config.platform.php` to 8.2.29, so the PHP runtime and the platform pin move to 8.3+ first, before the framework bump",
+      "Raises the dependency floors together - `laravel/framework ^13.0`, `laravel/tinker ^3.0`, Pest 4 with its Laravel plugin - and checks the third-party packages (spatie/laravel-permission, sanctum) for Laravel 13 support before switching",
+      "Plans the work on a dedicated branch from a clean tree with the current checks green first, one revertable change per commit, and works through the 12-to-13 breaking changes (for example the CSRF middleware's rename to PreventRequestForgery and the cache `serializable_classes` default)"
+    ]
   }
 ]
