@@ -1,8 +1,8 @@
 # SDK versions versus the specification revision
 
-Verified against: `mcp` (PyPI) 2.3.0 (and 2.2.0), `@modelcontextprotocol/sdk` 1.32.1 (and 1.31.0,
-1.30.0), `@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.3.1 (and 2.2.0, 2.0.0),
-`@modelcontextprotocol/inspector` 2.8.0, Node v26.7.0, v26.9.0 and v26.10.0.
+Verified against: `mcp` (PyPI) 2.3.0 (and 2.2.0), `@modelcontextprotocol/sdk` 1.32.2 (and 1.32.1,
+1.31.0, 1.30.0), `@modelcontextprotocol/server` and `@modelcontextprotocol/core` 2.4.0 (and 2.3.1,
+2.2.0, 2.0.0), `@modelcontextprotocol/inspector` 2.13.0 (and 2.8.0), Node v26.7.0 through v26.11.1.
 
 ## Contents
 
@@ -22,8 +22,8 @@ The current specification revision is `2026-07-28`. The SDKs do not all implemen
 | Runtime | Package | Version | `LATEST_PROTOCOL_VERSION` | `server/discover` |
 |---|---|---|---|---|
 | Python | `mcp` | 2.3.0 | `2026-07-28` | answers `supportedVersions: ["2026-07-28"]` |
-| Node | `@modelcontextprotocol/sdk` (v1) | 1.32.1 | `2025-11-25` | `-32601 Method not found` |
-| Node | `@modelcontextprotocol/server` (v2) | 2.3.1 | `2025-11-25` | answers `supportedVersions: ["2026-07-28"]` |
+| Node | `@modelcontextprotocol/sdk` (v1) | 1.32.2 | `2025-11-25` | `-32601 Method not found` |
+| Node | `@modelcontextprotocol/server` (v2) | 2.4.0 | `2025-11-25` | answers `supportedVersions: ["2026-07-28"]` through `serveStdio` or `createMcpHandler`; a hand-wired `server.connect(transport)` answers `-32601` |
 
 Two things follow, and both are easy to get wrong:
 
@@ -31,7 +31,11 @@ Two things follow, and both are easy to get wrong:
    format that a TypeScript v1 server cannot make. Ask for the constant, not the marketing.
 2. **In the v2 TypeScript SDK, `LATEST_PROTOCOL_VERSION` describes the legacy era only.** It reads
    `2025-11-25` while the same build answers `server/discover` with `2026-07-28`. Reading that
-   export as the implementation ceiling is wrong. `[verified]`
+   export as the implementation ceiling is wrong. The modern era is served only by the
+   `serveStdio` and `createMcpHandler` entries: an instance wired by hand with
+   `server.connect(new StdioServerTransport())` answers `server/discover` with `-32601` and
+   silently downgrades an `initialize` asking for `2026-07-28` to `2025-11-25`, exactly like v1.
+   Measured on 2.4.0. `[verified]`
 
 The v1 server also silently downgrades: a client asking for `2026-07-28` in `initialize` gets
 `{"protocolVersion":"2025-11-25"}` back with no error. A server that must fail loudly on an
@@ -103,9 +107,9 @@ in the project's dependency file; the default for a new server is `mcp`. `[verif
 
 ## TypeScript: v1 is a single package, v2 is scoped packages
 
-`@modelcontextprotocol/sdk` is the v1 line; it still receives releases (1.32.1 at the time of
+`@modelcontextprotocol/sdk` is the v1 line; it still receives releases (1.32.2 at the time of
 measurement) but keeps the `2025-11-25` ceiling above. The v2 line ships as separate packages that
-are versioned independently — `server`, `core`, `client` and `codemod` at 2.3.1, `node` at 2.1.1,
+are versioned independently — `server`, `core`, `client` and `codemod` at 2.4.0, `node` at 2.1.2,
 the framework adapters at 2.0.x when measured: `[verified]`
 
 | Package | Contents |

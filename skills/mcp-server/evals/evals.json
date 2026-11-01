@@ -142,5 +142,15 @@
       "Fixes the gate either by bumping the devDependency to 2.11.0 or later and keeping `--version`, or, while staying on 2.10.1, by reading the installed version from the lockfile or `npm ls @modelcontextprotocol/inspector` instead of invoking the flag",
       "Keeps the `--cli ... --method tools/list` smoke test as the functional check rather than dropping it along with the version step"
     ]
+  },
+  {
+    "skills": ["mcp-server"],
+    "query": "entry.mjs in this directory holds both entry points of our notes MCP server (store.mjs is plain data access, not included). We upgraded to @modelcontextprotocol/server 2.4.0 last month. Two problems: (1) the platform team's agent host pins MCP protocol revision 2026-07-28 and says our stdio server 'never answers discovery', yet the SDK changelog says v2 supports 2026-07-28; (2) security review asks whether the loopback HTTP entry is protected against DNS rebinding — the comment in the file says the SDK validates Origin for us. Is that right? Fix whatever needs fixing and tell me how to prove both fixes.",
+    "files": ["evals/files/v2-serving/entry.mjs"],
+    "expected_behavior": [
+      "Explains that `server.connect(new StdioServerTransport())` serves only the 2025-era handshake: `server/discover` on that path answers -32601 and an `initialize` asking for 2026-07-28 is silently answered with 2025-11-25, and that only the `serveStdio(factory)` entry (and `createMcpHandler` on HTTP) serves the 2026-07-28 revision; fixes the stdio entry to `serveStdio(() => buildServer())`",
+      "Says the comment is wrong: `createMcpHandler` checks neither `Origin` nor `Host` (a foreign Origin or Host is served normally), so binding loopback alone leaves the endpoint open to DNS rebinding; fixes it by validating Host and Origin in front of the handler (reject with 403) or by mounting through `createMcpExpressApp`, which validates both on a localhost bind",
+      "Gives concrete verification: a `server/discover` request carrying the 2026-07-28 `_meta` envelope over stdio that now returns `supportedVersions` including 2026-07-28, and HTTP requests with a foreign `Origin` and a foreign `Host` that now return 403 while a same-origin request still succeeds"
+    ]
   }
 ]

@@ -682,3 +682,63 @@ microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f 
 | HP | 保留正例 | 新写：I'm writing an MCP server in Python with FastMCP that wraps our intern… | 2/2 | 2/2 |
 
 结论：调优负例（用户接入第三方 MCP server）0/3 → 3/3 未读，保留负例（选装哪个 server）1/2 → 2/2；正例全部读取。P9 新描述首轮为空事件流（VM 启动卡住，旧描述首轮也出现过一次），单独重跑为读取。采用新描述。
+
+## 2026-11-01 上游同步
+
+依据：主代理工作单 `/tmp/hs-sync/mcp-server.md` 与阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json`。A 类五个条目用已登录 `gh api repos/<o>/<r>/compare/<旧pin>...<审阅HEAD>` 取 `files[].patch`，只读命中 tracked paths 的文件（inspector 区间 147 提交、264 文件，分页取全）；B 类四个条目 paths 未变，随 `--pin` 前移。`--pin` 后逐条核对：九个条目写入的 commit 与审阅 HEAD 全部一致（d0e246e、d7845c0、1e608ca、a7ba5b9、ca45fc4、5269f7e、3f5b461、e321738、1a33048），无越界差额。
+
+本机实测环境：Node v26.11.1，`@modelcontextprotocol/{server,core}` 2.4.0、`zod` 4，v1 对照 `@modelcontextprotocol/sdk` 1.32.2，`@modelcontextprotocol/inspector` 2.13.0。registry 现状：v2 `server/core/client/codemod/server-legacy` 2.4.0、`node` 2.1.2、`express`/`hono` 2.0.2、`fastify` 2.0.1；v1 1.32.2；PyPI `mcp` 仍为 2.3.0（python-sdk 区间内改动均未发版）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mcp-spec | 86f6e0c → d0e246e | `docs/specification/2026-07-28/server/tools.mdx`：9850cae 把嵌入资源示例里的 `annotations` 从 `resource` 内移到 content block 层 | 噪声：正文 `tool-results.md` 的 `resource` 块只写 `{ uri, text \| blob, mimeType }`，从未示范 annotations 位置 |
+| mcp-python-sdk | 754254c → d7845c0（6 提交） | `src/mcp/server`：72ff38c 工具输入/输出 schema 去掉自动生成的 `title`；a525a3d 裸 `dict` 返回值视为 `dict[str, Any]` 结构化输出、裸 `set`/`frozenset` 包装、裸 `list`/`tuple` 不再推导 schema；5a3a23a `typing.Dict[str, X]` 同 `dict[str, X]`；2af9e30 SSE 头列表每个响应独立；9f66f37 `resources/directory/read` 加缓存字段；d7845c0 legacy `initialize` 携带 `capabilities.extensions` | 噪声：均未发版（PyPI 最新 2.3.0）；`tool-design.md` 的「`-> str` 包成 `{"result": ...}`」在新代码中仍成立；skills 扩展相关属 skill-authoring 范围。下次 `mcp` 发版后复测输出 schema 一段 |
+| mcp-typescript-sdk | 9bc40e9 → 1e608ca | `packages/core`、`packages/server`（前缀匹配同时覆盖 `core-internal`、`server-legacy`）：951fe56 发版 2.4.0；46d9c99 Skills 扩展（SEP-2640，`ext/skills` 子路径）；c05225a `ServerEvent.params` 转发、per-request transport 绑定现代版本；895007f `createMcpHandler` 的 405 带 `Allow: POST`；b022522/43c45f4 `number` 参数上的 `x-mcp-header` 被拒；ef38c67 fast-uri 3.1.8 拒绝非法 scheme 的 `$id`/`$ref`；5820f79 `$ref` 根的输出 schema 视为 object；1e608ca 内置 OpenTelemetry（未发版，2.4.0 dist 无此代码）。`skills/mcp-typescript-sdk-upgrade-to-v2`：a513cfe 新增第 7 步「升级本身不服务 2026-07-28：`server.connect(new StdioServerTransport())` 只服务 2025 时代；`createMcpHandler` 不检查 Host/Origin」 | **事实更正（精确化）+ 版本刷新**：实测 2.4.0——`serveStdio` 下 `server/discover` 回 `supportedVersions: ["2026-07-28"]`；同一 server 用 `connect(new StdioServerTransport())` 时 `server/discover` → `-32601`，`initialize` 要 `2026-07-28` 被静默降为 `2025-11-25`。`sdk-versions.md` 矩阵 v2 行原写「answers supportedVersions」未限定入口，改为注明只经 `serveStdio`/`createMcpHandler`，并补一段说明。`createMcpHandler` 直接 `fetch`：外来 Origin、`Origin: null`、外来 Host 均 200；GET/DELETE 405 带 `Allow: POST`。Host/Origin 一条以基线划界未写入（见下）。工具抛错在 2.4.0 与 v1 1.32.2 仍原样转发 `Error.message`，规则 10 的版本区间据此延长。Skills 扩展：Scope 明确归 skill-authoring，不合入，列为 Scope 待定 |
+| anthropic-mcp-builder | dbd4588 → ca45fc4 | `skills/mcp-builder`：SKILL.md 改为 v2 优先、v1 只做修复；新增 `reference/node_mcp_server_v2.md`（747 行 v2 指南：工厂、`serveStdio`、`createMcpHandler` + `createMcpExpressApp`（localhost 绑定校验 Host/Origin）、Web 标准运行时须自行前置校验）；v1 指南加头注 | 无新增可合入：v2 默认、codemod、工厂按请求构造、stdout 纪律、`.describe()` 才是参数描述均已在正文；其「`StdioServerTransport` also still works」与本次实测不符（只服务 2025 时代），以实测为准 |
+| mcp-inspector | 074b810 → e321738（`clients/cli` 147 提交中的相关部分） | `--load` 压测模式及阈值/连接数、429 重试信封、OAuth 请求防护、tsup→tsdown 打包、测试隔离 `~/.mcp-inspector` | 噪声：均为新功能/内部改动；2.13.0 上实跑 `--cli node srv.mjs --method tools/list`（`serveStdio` 与 `connect` 两种入口）正常，`--version` 与 `--cli --version` 均输出 `2.13.0`。`testing.md`/`sdk-versions.md` 头部补记复核版本 |
+| anthropic-mcp-server-dev | c2bdb42 → a7ba5b9 | paths 未变 | 噪声，仅 re-pin |
+| awesome-copilot-mcp | 36e95df → 5269f7e | 主代理裸仓库树 diff 确认 paths 无变化 | 噪声，仅 re-pin |
+| microsoft-mcp-builder | d2f769f → 3f5b461 | paths 未变 | 噪声，仅 re-pin |
+| cloudflare-agents-mcp | be68fd8 → 1a33048 | paths 未变 | 噪声，仅 re-pin |
+
+### 上游新事实：以基线划界
+
+候选两点（2.4.0 实测属实）：① v2 只有 `serveStdio`/`createMcpHandler` 服务 2026-07-28，手接 `server.connect(transport)` 停在 2025 时代；② `createMcpHandler` 不校验 Host/Origin，loopback 绑定不足以防 DNS rebinding，需前置校验或改用 `createMcpExpressApp`。新增场景 12（夹具 `evals/files/v2-serving/entry.mjs`：stdio 入口手接 `StdioServerTransport`、HTTP 入口裸 `createMcpHandler` 加错误注释「SDK 已校验 Origin」）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ | 158 s。装 2.4.0 实测：改前 stdio `server/discover` `-32601`、外来 Origin 照常 200；改为 `serveStdio(() => buildServer())`，HTTP 前置 SDK 的 `hostHeaderValidationResponse`/`originValidationResponse`；改后外来/`null`/畸形 Origin 与外来 Host 均 403，给出 stdio 与 curl 复核脚本。EB1 未提 `initialize` 静默降级，不影响结论 |
+
+判定：基线两点都已做到并实测，**不写入新规则**；场景 12 与夹具留作哨兵。只保留对既有陈述的精确化：`sdk-versions.md` 矩阵 v2 行原本未限定入口，按实测补上 `serveStdio`/`createMcpHandler` 的前提。
+
+### 正文改动
+
+- `references/sdk-versions.md`：头部「Verified against」、差异矩阵、包版本行刷新为本次实测的 v1 1.32.2、v2 `server/core/client/codemod` 2.4.0、`node` 2.1.2、Inspector 2.13.0、Node v26.11.1；矩阵 v2 行与第 2 条补「只经 `serveStdio`/`createMcpHandler` 服务现代时代，手接 `connect` 回 `-32601` 并静默降级」。
+- `SKILL.md` 规则 10：版本区间延长为 `@modelcontextprotocol/sdk` 1.30.0–1.32.2、`@modelcontextprotocol/server` 2.0.0–2.4.0（两者在本次实测中仍原样转发 `Error.message`）。
+- `references/testing.md`：头部注明 `--version` 与 `--cli … tools/list` 在 2.13.0 上复核。
+- `SOURCES.yaml`：mcp-typescript-sdk 的 `contributes`/`notes` 记录复测版本与本次划界结论。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| TencentCloudBase/CloudBase-AI-Toolkit `plugin/cloudbase-codex/skills/cloudbase-mcp/SKILL.md`（MIT，1153★） | REJECT | 单一商业产品（CloudBase MCP）的接入/排障手册：端点、mcporter、区域开关，属「使用别人的 MCP server」，Scope 明确不覆盖 |
+| modelcontextprotocol/typescript-sdk `skills/mcp-typescript-sdk-skills/SKILL.md`（官方，过渡许可） | 待定（Scope） | 用 v2 `SkillsExtension`/`loadSkills` 从 MCP server 发布 skills（SEP-2640，2.4.0 起随 SDK 发布，`attach` 仍 `@experimental`）。本 skill Scope 把「经 MCP 分发 skills 的扩展」明确划给 `skill-authoring`，且 Scope 措辞仍称其为 draft；是否改归 mcp-server 交主人决定，本轮不动、不追踪该路径 |
+| typescript-sdk `examples/guides/servers/skills/**`、`examples/skills/**`（C2） | REJECT | 上一条的 acme / git-workflow 示例 skill 与示例代码，无独立增量；归属同上 |
+| nitinjain999/platform-skills `plugins/platform-skills/skills/mcp/SKILL.md`（Apache-2.0，71★） | REJECT | 让用户选「stdio / HTTP+SSE」（HTTP+SSE 自 2025-03-26 弃用）、用裸 `npx @modelcontextprotocol/inspector` 做无头冒烟（会启动 UI），其余为泛泛清单与 AWS MCP 配置生成；正确性不达标 |
+
+## 2026-11-01 新候选检索
+
+途径（有界）：`gh search repos "mcp server" skill SKILL.md`、`gh search repos "build mcp server" agent skill`（stars>50、2026-10-15 后推送）；`gh search code '"server/discover" filename:SKILL.md'` 与 `'"createMcpHandler" filename:SKILL.md'`（用 2026-07-28 / v2 专有名词筛出新近更新的内容）。已在候选表中的仓库跳过；只读原始 SKILL.md。
+
+| 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| pnp/copilot-prompts `samples/skills/mcp-server-review` | 902 | 2026-10-26 | MIT | 1 | 3 | 2 | 3 | 2 | 11 | MAYBE（不合入、不追踪） | 按 2026-07-28 审查 server：版本判定证据顺序、阻断/安全/弃用/未判定四栏。抽查「不从 SDK 版本推断修订版」「initialize 与 Mcp-Session-Id 已移除」「弃用窗口 12 个月」均正确，但与本 skill 的 Review/Migrate 工作流和 `protocol-model.md` 重合；唯一新意是强制「Not determined」栏，属报告格式偏好 |
+| managedcode/dotnet-skills `catalog/Libraries/MCP/skills/mcp` | 500 | 2026-10-29 | MIT | 1 | 3 | 2 | 1 | 2 | 9 | REJECT（本 skill） | .NET C# SDK API 细节属宿主语言，归 `csharp-dotnet`；且把 roots、sampling、session resumption 列为当前能力流，与 2026-07-28 的弃用/无会话模型冲突 |
+| tenequm/skills `skills/mcp-best-practices` | 40 | 2026-10-24 | MIT | 1 | 3 | 3 | 3 | 2 | 12 | MAYBE（仅校验） | v1/v2 双时代、`createMcpHandler` 双时代默认、SSE/WebSocket 移除等与本 skill 实测一致，版本停在 2.3.1；增量在 MCP Apps / Registry（不在 Scope）与客户端侧，单人仓库，不追踪 |
+| modelcontextprotocol/servers `.claude/skills/client-smoke` | 91722 | 2026-10-29 | NOASSERTION | — | — | — | — | — | — | REJECT（未评分） | 上游仓库自用的客户端冒烟流程 |
+| DobroslavRadosavljevic/skills、seb1n/awesome-ai-agent-skills、lucaperret/agent-skills 的 MCP 条目 | 3 / 237 / 7 | 2026-10-27 / 2026-08-09 / 2026-03-19 | MIT | — | — | — | — | — | — | REJECT（未评分） | 星数过低或推送超过 2 个月的聚合/个人仓库，未见权威度或新内容 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 没有 `kind: docs` 条目，无需复核。

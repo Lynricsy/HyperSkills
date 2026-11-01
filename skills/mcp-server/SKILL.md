@@ -4,7 +4,7 @@ description: "Designs and builds your own MCP servers: tools, transports, auth; 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: task
 ---
 
@@ -79,9 +79,9 @@ scope entirely.
    `isError: true` and text the model can act on; only request-structure and server faults are
    JSON-RPC errors. Clients are only obliged to show the model the first kind.
 10. **Do not rely on throwing.** Measured: `mcp` 2.2.0 discards the exception message and gives the
-    model `Error executing tool <name>`; `@modelcontextprotocol/sdk` 1.30.0–1.31.0 and
-    `@modelcontextprotocol/server` 2.0.0–2.2.0 forward `Error.message` verbatim, secrets included. Catch,
-    decide what the model may know, and construct the result.
+    model `Error executing tool <name>`; `@modelcontextprotocol/sdk` 1.30.0–1.32.2 and
+    `@modelcontextprotocol/server` 2.0.0–2.4.0 forward `Error.message` verbatim, secrets included.
+    Catch, decide what the model may know, and construct the result.
 11. **Every error ends with the next action.** Naming the tool or parameter that recovers turns a
     dead end into a retry that differs. Without it the model retries identically.
 12. **On stdio, stdout is the wire (all revisions).** The server must write nothing to stdout that

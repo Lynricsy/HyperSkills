@@ -1,8 +1,8 @@
 # Testing and releasing an MCP server
 
-Verified against: `@modelcontextprotocol/inspector` 2.6.0 (the version flag re-checked on 2.10.1
-and 2.11.0); `mcp` 2.2.0; `@modelcontextprotocol/sdk` 1.30.0; `@modelcontextprotocol/server` 2.0.0;
-Node v26.7.0.
+Verified against: `@modelcontextprotocol/inspector` 2.6.0 (the version flag re-checked on 2.10.1,
+2.11.0 and 2.13.0; `--cli … --method tools/list` re-checked on 2.13.0); `mcp` 2.2.0;
+`@modelcontextprotocol/sdk` 1.30.0; `@modelcontextprotocol/server` 2.0.0; Node v26.7.0.
 
 ## Contents
 
