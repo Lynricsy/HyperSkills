@@ -91,8 +91,10 @@ for domain exceptions so the framework's handling is preserved rather than repla
   client has to parse.
 - The HTTP status and the body `status` must agree.
 - Never surface a persistence or infrastructure exception message. Log it, return a generic 500.
-- Authentication and authorization failures never reach the advice; they are handled in the
-  security filter chain by an `AuthenticationEntryPoint` and an `AccessDeniedHandler`.
+- URL-level authentication and authorization failures never reach the advice; they are handled in
+  the security filter chain by an `AuthenticationEntryPoint` and an `AccessDeniedHandler`. A
+  `@PreAuthorize` denial does reach it, as an `AccessDeniedException`: map that to 403 before any
+  `Exception` catch-all, which otherwise reports it as a 500.
 
 An existing API with a different error envelope keeps it. Migrating the contract is its own change,
 not a side effect of touching one endpoint.

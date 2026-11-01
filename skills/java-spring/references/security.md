@@ -98,16 +98,24 @@ different API of the same issuer is rejected.
 
 Scopes arrive as authorities prefixed `SCOPE_`, so a scope check is
 `hasAuthority("SCOPE_orders:read")` — `hasRole("orders:read")` looks for `ROLE_orders:read` and
-always fails. Roles that live in a provider-specific claim need a converter:
+always fails. The default `JwtGrantedAuthoritiesConverter` reads the `scope` claim, falling back to
+`scp` (Okta, Entra ID). `setAuthoritiesClaimName(...)` replaces that lookup instead of adding to it,
+so a converter pointed at a roles claim silently drops every `SCOPE_` authority. Roles that live in
+a provider-specific claim are added on top of the default scopes:
 
 ```java
 @Bean
 JwtAuthenticationConverter jwtAuthConverter() {
-    var authorities = new JwtGrantedAuthoritiesConverter();
-    authorities.setAuthoritiesClaimName("roles");
-    authorities.setAuthorityPrefix("ROLE_");
+    var scopes = new JwtGrantedAuthoritiesConverter();          // scope / scp -> SCOPE_*
     var converter = new JwtAuthenticationConverter();
-    converter.setJwtGrantedAuthoritiesConverter(authorities);
+    converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+        Collection<GrantedAuthority> authorities = new ArrayList<>(scopes.convert(jwt));
+        List<String> roles = jwt.getClaimAsStringList("roles");  // provider-specific claim
+        if (roles != null) {
+            roles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role)));
+        }
+        return authorities;
+    });
     return converter;
 }
 ```
@@ -151,9 +159,14 @@ never use it where loading itself is the sensitive operation.
 ## Errors from the filter chain
 
 `@RestControllerAdvice` cannot see exceptions thrown before the dispatcher servlet, which is where
-all authentication and authorization failures happen. Without an `AuthenticationEntryPoint` and an
-`AccessDeniedHandler`, API clients get an empty 401/403 body or a redirect to a login page. Emit
-the same Problem Details shape as the rest of the API from both.
+URL-level authentication and authorization failures happen. Without an `AuthenticationEntryPoint`
+and an `AccessDeniedHandler`, API clients get an empty 401/403 body or a redirect to a login page.
+Emit the same Problem Details shape as the rest of the API from both.
+
+Method security is the exception: a `@PreAuthorize` denial throws `AuthorizationDeniedException`
+(an `AccessDeniedException`) inside the dispatcher, so it does reach the advice. An advice with an
+`@ExceptionHandler(Exception.class)` catch-all turns it into a 500. Map `AccessDeniedException` to
+403 in the advice, or let it propagate instead of catching it.
 
 Missing or invalid credentials on a protected route is 401; an authenticated caller lacking the
 authority is 403. An invalid token presented to a public route is still a 401 — the credential was

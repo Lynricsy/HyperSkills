@@ -315,3 +315,54 @@ attempts」，不能解释该提示的事务管理器会静默忽略它；`Hiber
 结论：场景 2 两侧 10✔2◐ 持平，有 skill 未把弃用项说成编译错误；新增 6 两侧 4/4（基线已会，作哨兵保留）；负例 `skill_read=false`。未改正文。
 
 遗留：场景 2 两侧都没有点名核心 `@Retryable` 的迁移目标，与基线持平。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单。`--pin` 写入的 commit 与审阅 HEAD 逐条一致（rrezart `c2c23fe`、awesome-copilot `5269f7e`、pavithraa `208a943`），无越界差额。awesome-copilot 用裸仓库缓存 `/tmp/hs-attr/github__awesome-copilot` 做树对比；另两个仓库用 `gh api compare` 的 patch，逐文件读真实 diff。本机核实环境：Maven + Spring Boot 4.1.1 父 POM（Framework 7.0.9、Security 7.1.x、Testcontainers 2.0.5），一次性工程 `/tmp/g05b-verify`，用后不入库。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| rrezart-spring-boot | f0c06a0 → c2c23fe（a317397、b22f8c0 命中） | `oauth2-resource-server`：示例删掉 `setAuthoritiesClaimName("scope")`，改为保留默认 `scope`/`scp` 转换再追加 Keycloak `realm_access.roles`；gotcha「`setAuthoritiesClaimName(...)` 替换默认查找，`SCOPE_*` 消失」；`sub` 不是 UUID；补 `audiences`。`problem-details-rfc9457`：`@PreAuthorize` 拒绝在 dispatcher 内抛 `AccessDeniedException`，advice 不映射就被 `Exception` 兜底成 500。`testing-pyramid`：`@WebMvcTest` 写请求需 `.with(csrf())`，否则 `@WithMockUser` 下也是 403；Testcontainers 2 构件 `testcontainers-postgresql`、类 `org.testcontainers.postgresql.PostgreSQLContainer`（非泛型）。`flyway-migrations`：`CREATE INDEX CONCURRENTLY` 必须独占一个迁移且要 `spring.flyway.postgresql.transactional-lock=false`、`baseline-on-migrate: false`、`NOT VALID` + `VALIDATE` 加约束。`spring-security-jwt`：`/error` 放行。`multi-module-maven`：`lombok-mapstruct-binding`。`spring-data-jpa`：示例 `@EntityGraph` 路径修正 | **事实更正 4 处**（见下），均本机实跑或读源码核实；`CONCURRENTLY`/`transactional-lock`、`baseline-on-migrate`、`/error` 放行、`lombok-mapstruct-binding`、`sub` 非 UUID 属新增规则，本 skill 正文无对应错误断言，未跑基线证明缺口，本轮不合入 |
+| awesome-copilot | 3cf7c7e → 5269f7e | `instructions/java-17-to-java-21-upgrade.instructions.md`、`instructions/java-21-to-java-25-upgrade.instructions.md` **在 HEAD 已不存在**：9de77d27 把两份指南并入新的 `skills/java-upgrade`（`references/java-17-to-21.md`、`java-21-to-25.md`），并修正示例（Class-File API 与 Stream Gatherers 定稿于 24 而非 25、JEP 468 派生记录未交付、ML-KEM 到 24 才有、`STR` 外无内置模板处理器、`Gatherers.fold` 签名、ZGC 非分代模式 24 移除）。`skills/java-add-graalvm-native-image-support` 重构为 SKILL.md + 6 个 references（构建工具、reachability metadata、排错表、Spring Boot 4.1.1 + GraalVM 25 实测） | Phase B：`paths` 改指 `skills/java-upgrade/references/java-17-to-21.md` 与 `java-21-to-25.md`，notes 记录迁移。上游的更正与本 skill `references/java-language.md` 现有写法一致（24 定稿的两项、ZGC、JEP 513 早已按 2026-10-15 复核写对），无影响。GraalVM 重构与 `build-and-packaging.md` 的 native 工作流一致，新增的「先在 JVM 上 `spring.aot.enabled=true`」「native 测试改 subclass mock maker」属新增规则，不合入 |
+| pavithraa-springboot | 6277c14 → 208a943（67 提交） | `spring-data-jpa` **整目录被删除**（23a35a4 retire，2.0.0），JPA 内容并入 `code-reviewer/references/jpa-performance.md`；`code-reviewer` 大幅压缩并新增 `test-review.md`、`testing/traps.md`、`testing/boot4-test-toolkit.md`；`springboot-migration` 压缩并核对 Boot 4.1.1（Jackson 属性族在 4.1 的回归、`maxAttempts`→`maxRetries` 差一、`TestRestTemplate` 未弃用）、新增 Testcontainers 2 迁移细节（Kafka `ConfluentKafkaContainer`、LocalStack 新类、JUnit 4 规则失效）、JEP 491 / Java 26–27 预览 API 更正 | Phase B：删去已不存在的 `spring-data-jpa` path（内容已在 `code-reviewer` path 下）。Testcontainers 2 构件与包名与 rrezart 一致，经 Boot 4.1.1 BOM 核实后作为更正 4 合入；上次 notes 里「TC2 迁移建议超出官方文档、未采用」随之改写。其余均为新增规则，本轮不合入；它们与本 skill 现有断言不冲突（JEP 491、ZGC、Jackson `json.read` 已一致） |
+
+### 事实更正（均为既有正文断言错误，非新增内容）
+
+1. **`setAuthoritiesClaimName` 会丢掉 scope 权限**（`references/security.md`）。原文先说 scope 检查用 `hasAuthority("SCOPE_…")`，紧接着的示例却 `setAuthoritiesClaimName("roles")`——spring-security 7.1.2 `JwtGrantedAuthoritiesConverter` 源码里默认 `WELL_KNOWN_AUTHORITIES_CLAIM_NAMES = ["scope","scp"]`，`setAuthoritiesClaimName` 用 `singletonList` 整体替换。本机实跑：默认转换 `scope`/`scp` 都得 `[SCOPE_orders:read]`；设成 `roles` 后只剩 `[ROLE_admin]`。改为保留默认转换再叠加角色的写法（已编译实跑，得 `ROLE_admin`、`SCOPE_orders:read`）。
+2. **`@PreAuthorize` 拒绝会进 advice**（`references/security.md`「Errors from the filter chain」、`references/web-and-clients.md`）。原文「所有认证与授权失败都发生在 dispatcher 之前 / 永远到不了 advice」。本机 `@WebMvcTest` + `@EnableMethodSecurity` + `@ExceptionHandler(Exception.class)`：USER 调 `@PreAuthorize("hasRole('ADMIN')")` 返回 `500 {"detail":"AuthorizationDeniedException"}`。改为 URL 级失败走过滤器链，方法级拒绝会进 advice，须映射为 403 或放行传播。
+3. **`@WebMvcTest` 写请求需要 CSRF token**（`references/testing.md`）。原示例 `mvc.post()` 未带 `.with(csrf())` 却断言 400。本机：`@WithMockUser` 下不带 csrf 为 403，带上才进入控制器。示例补 `.with(csrf())`，说明段补「默认链开 CSRF；要测真实规则就 `@Import` 安全配置」。
+4. **Testcontainers 2**（`references/testing.md`）。原示例 `PostgreSQLContainer<?>`（1.x 的 `org.testcontainers.containers` 类）。Boot 4.1.1 BOM 管理 `testcontainers.version` 2.0.5，`testcontainers-bom` 2.0.5 只有 `testcontainers-postgresql`；本机加载到 `org.testcontainers.postgresql.PostgreSQLContainer`（类型参数 0 个），旧类仍在且带 `@Deprecated`。Boot 自己的文档示例（v4.1.2 `MyIntegrationTests` 用 `org.testcontainers.neo4j.Neo4jContainer`）同样已是 2.x 写法。示例改为新类，并补构件改名与旧 id 无托管版本的说明。
+
+另核实但**不采纳**的一条：pavithraa `testing/traps.md` 称「实现了接口的类上 `@Retryable` 永不重试（Framework 7.0.9），须 `@EnableResilientMethods(proxyTargetClass = true)`」。本机纯 `AnnotationConfigApplicationContext` 下确实如此（JDK 代理，调用 1 次即抛出；`proxyTargetClass = true` 时 CGLIB，重试到第 3 次成功）；但在 `@SpringBootTest` 的 Boot 默认配置下得到 CGLIB 代理、重试生效（3 次调用返回 ok）。对 Boot 应用不成立，不写入正文。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 许可 | 结论 | 理由 |
+|---|---|---|---|
+| a-pavithraa/springboot-skills-marketplace `writing-springboot-tests/SKILL.md`（+ `assets/*`） | MIT | MERGE（加入 `paths` 追踪；正文本轮只取已核实的 TC2 事实） | 在 Scope 内（各层测试），作者用 Boot 4.1.1 + Postgres 18 + Kafka 4.1 + WireMock 3.13 实跑模板，增量明确：测试登录（`jwt()`/`oidcLogin()`/`user()`）绕过应用自己的角色映射、`@RestClientTest` 不导入 `spring.http.clients.*`、WireMock 引入 Apache HttpClient 5 后 503 POST 自动重试一次掩盖 `@Retryable`、Kafka 4 DLT 名改 `-dlt`。这些是新增规则，按流程需先证明基线缺口，留待下轮；其 `@Retryable` 接口代理一条在 Boot 下不成立（见上） |
+| 同仓库 `spring-boot-team-harness/SKILL.md`、`assets/project-skills/{add-module,db-migration}/SKILL.md`、`assets/project/{AGENTS.md,CLAUDE.md}` | MIT | REJECT | 给团队仓库装 Claude Code hooks、NullAway/ArchUnit/Spotless 门禁与 CI 的安装脚本，属上游自用 agent 编排；其中「Boot 4 只有 `flyway-core` 不跑迁移」已在本 skill Core rule 18 |
+| github/awesome-copilot `skills/java-upgrade/SKILL.md` | MIT | REJECT（references 已改入 `paths`） | SKILL.md 是通用升级流程 + 外部 `modernize-java` 插件推广；`java-11-to-17.md` 低于本 skill 的 Java 17 下限 |
+| github/awesome-copilot `instructions/java-upgrade.instructions.md` | MIT | REJECT | 13 行指针，只叫模型去用 java-upgrade skill |
+| github/awesome-copilot `skills/java-hibernate-jpa/SKILL.md` | MIT | 待定 | 框架中立的 Hibernate/JPA 问题库，与 `references/data-jpa.md` 大面积重叠；增量如 `hibernate.query.fail_on_pagination_over_collection_fetch`、Hibernate 7 版本差异属新增规则，需基线证明缺口后再议 |
+| github/awesome-copilot `skills/java-development/SKILL.md` | MIT | REJECT（范围） | 无框架的纯 Java 日常开发（构建、格式化、jlink/jpackage），不在本 skill「Spring Boot 应用」范围；作为「纯 Java」skill 候选写进汇报 |
+| github/awesome-copilot `skills/create-quarkus-project`、`quarkus-application-development`、`quarkus-dev-services-and-testing` | MIT | REJECT（范围） | Quarkus 是另一套框架，本 skill 只写 Spring；作为 Quarkus skill 候选写进汇报（awesome-copilot 另有 `quarkus-native-and-container`） |
+| Redocly/redocly-cli `packages/client-generator/eject-assets/skills/java-generator/SKILL.md` | MIT | REJECT | Redocly CLI 客户端代码生成器 eject 出来的产品附带 skill，单一产品手册 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（`spring boot skills` 限 2026-09-15 后创建、`spring boot 4 agent skill`）、`spring-projects`/`spring-ai-community`/`spring-io` 组织最近新建仓库（无新 skill 仓库）、awesome-copilot 本区间新增 Java 类 skill（见上表）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 26 | Dancan254/spring-boot-skills | https://github.com/Dancan254/spring-boot-skills | 4 | 2026-09-30 | MIT | 17 个 skill：api-design、devops-scaffold、kafka-setup、otel-setup、pentest-audit 等 | 0 | 3 | 1 | — | 2 | 6 | REJECT | 一人维护的脚手架/流程合集，主题多在本 skill 范围外（DevOps、渗透、MCP），Spring 部分无版本敏感事实 |
+| 27 | gianmdp03/modern-spring-boot-skills | https://github.com/gianmdp03/modern-spring-boot-skills | 1 | 2026-09-17 | NONE | 单个 SKILL.md | 0 | 3 | 1 | — | 0 | 4 | REJECT | 无许可、1 star、单文件 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| spring-docs | 本轮更正涉及的四处：`JwtGrantedAuthoritiesConverter` 默认 `scope`/`scp`、方法安全拒绝在 dispatcher 内抛出、`@WebMvcTest` 默认链开 CSRF、Boot 4.1 托管 Testcontainers 2 | spring-security 7.1.2 源码；spring-boot v4.1.2 `documentation/spring-boot-docs` 的 Testcontainers 示例；本机 Boot 4.1.1 实跑 | 四处原正文过时或错误，**已修**（见上「事实更正」）。当前版本：Boot 4.1.2 GA（2026-10-22）、4.2.0-RC1；Framework 7.0.10；Security 7.1.2；Data JPA 4.1.2；Modulith 2.1.2；正文「Spring Boot 4.1」基线不变 |
+| spring-boot-wiki | 4.0 迁移指南与 4.1 发布说明 | `gh repo clone spring-projects/spring-boot.wiki`，`git log --since=2026-10-14` | 一致。此后只有 `releasenotes/preview/4.2/*`（RC1/RC2）与 4.2 发布说明草稿变化，4.0 迁移指南、4.1 发布说明未改；notes 更新 GA 为 4.1.2 |
+| openjdk-jeps | 25 的 JEP 列表（506/510/511/512/513/514/515 正式，470/502/505/507 预览，508 孵化） | https://openjdk.org/projects/jdk/25/（Last update 2025/9/23） | 一致，无需改动 |
+
+三个 docs 条目 `synced_at` 改为 2026-11-01。下次同步要盯：Spring Boot 4.2 GA（RC1 已出，转正后复核 `references/boot-4-migration.md` 的版本标注）；pavithraa `writing-springboot-tests` 的测试陷阱若在评测里暴露缺口再按新增规则合入。

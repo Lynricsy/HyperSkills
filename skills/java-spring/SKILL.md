@@ -4,7 +4,7 @@ description: "Develops Java services with Spring Boot, Spring Security and Sprin
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 

@@ -97,5 +97,22 @@
       "Rejects plan item 3: core Spring Framework provides `@Retryable` and `@ConcurrencyLimit` (enabled with `@EnableResilientMethods`) but no circuit breaker, so `@CircuitBreaker(name = \"ledger\")` needs Resilience4j or another circuit-breaker library to stay, while the retry can move to core",
       "Rejects plan item 5: statements before `super(...)` (Flexible Constructor Bodies, JEP 513) are a standard feature in Java 25, so no `--enable-preview` is needed in the compiler, Surefire or the container"
     ]
+  },
+  {
+    "skills": [
+      "java-spring"
+    ],
+    "query": "accounts-service, Spring Boot 4.1.1 resource server behind Keycloak. Four tickets: (1) every GET /api/accounts/** with a valid access token whose `scope` claim contains accounts:read is answered 403; (2) a plain user calling DELETE /api/accounts/{id} (which calls AccountService.close) gets a 500 Problem Details instead of a 403; (3) AccountControllerTest.rejectsAccountWithoutOwner expects 400 and gets 403; (4) after moving the build to the Boot 4.1 parent, Maven stops with `'dependencies.dependency.version' for org.testcontainers:postgresql:jar is missing`. Diagnose each one and give the fixes.",
+    "files": [
+      "evals/files/AccountsSecurityConfig.java",
+      "evals/files/AccountService.java",
+      "evals/files/AccountControllerTest.java"
+    ],
+    "expected_behavior": [
+      "Explains that `setAuthoritiesClaimName(\"roles\")` replaces the converter's default `scope`/`scp` lookup instead of adding to it, so no `SCOPE_accounts:read` authority is ever created; fixes it by keeping the default scope conversion and adding the `ROLE_` authorities from the roles claim on top",
+      "Explains that a `@PreAuthorize` denial is an `AccessDeniedException` (`AuthorizationDeniedException`) thrown inside the dispatcher, so the advice's `@ExceptionHandler(Exception.class)` catch-all turns it into a 500; maps `AccessDeniedException` to 403 in the advice (or lets it propagate) rather than claiming the advice can never see security exceptions",
+      "Explains that `@WebMvcTest` does not load `AccountsSecurityConfig`, so Boot's default chain with CSRF enabled applies and the POST without a CSRF token is rejected with 403 despite `@WithMockUser`; adds `.with(csrf())` (and/or `@Import`s the real security configuration)",
+      "Explains that Boot 4.1 manages Testcontainers 2, whose module artifact is `org.testcontainers:testcontainers-postgresql`, and moves the container to the non-generic `org.testcontainers.postgresql.PostgreSQLContainer` (the `org.testcontainers.containers` class is deprecated)"
+    ]
   }
 ]

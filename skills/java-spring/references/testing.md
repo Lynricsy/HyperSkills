@@ -77,7 +77,7 @@ class OrderControllerTest {
     @Test
     @WithMockUser(roles = "USER")
     void rejectsEmptyBody() {
-        assertThat(mvc.post().uri("/api/v1/orders")
+        assertThat(mvc.post().uri("/api/v1/orders").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
             .hasStatus(HttpStatus.BAD_REQUEST)
             .bodyJson().extractingPath("$.type").isEqualTo("about:blank");
@@ -90,7 +90,10 @@ class OrderControllerTest {
 codebase.
 
 The security filter chain is active in this slice: without `@WithMockUser` (or an explicit
-`.with(jwt())`) every request is a 401 and the assertion failure points at the wrong thing.
+`.with(jwt())`) every request is a 401 and the assertion failure points at the wrong thing. CSRF
+protection is on under Boot's default chain, so a POST, PUT, PATCH or DELETE without
+`.with(csrf())` is a 403 even with `@WithMockUser`. `@Import` the application's security
+configuration when the test is meant to exercise its real rules.
 `@WithMockUser` and `@WithUserDetails` need `spring-boot-starter-security-test` on the classpath in
 Boot 4 — the plain test starter no longer brings `spring-security-test`.
 
@@ -142,14 +145,21 @@ constraint behaviour; a green `@DataJpaTest` on H2 proves nothing about PostgreS
 engine and let `@ServiceConnection` wire the properties:
 
 ```java
+import org.testcontainers.postgresql.PostgreSQLContainer;   // Testcontainers 2
+
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfig {
     @Bean @ServiceConnection
-    PostgreSQLContainer<?> postgres() {
-        return new PostgreSQLContainer<>("postgres:17-alpine");
+    PostgreSQLContainer postgres() {
+        return new PostgreSQLContainer("postgres:17-alpine");
     }
 }
 ```
+
+Boot 4.1 manages Testcontainers 2, whose module artifacts carry a `testcontainers-` prefix
+(`org.testcontainers:testcontainers-postgresql`); the 1.x id `org.testcontainers:postgresql` has no
+managed version. The module containers moved to `org.testcontainers.<module>` and are not generic.
+The 1.x classes in `org.testcontainers.containers` still compile but are deprecated.
 
 `@ServiceConnection` replaces manual `@DynamicPropertySource` plumbing and works for most supported
 technologies. Declare the container `static`, or reuse it through a shared configuration class, so
