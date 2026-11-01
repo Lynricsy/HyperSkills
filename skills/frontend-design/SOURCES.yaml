@@ -168,7 +168,7 @@ upstreams:
     license: MIT
     relation: merged
     synced_at: "2026-11-01"
-    contributes: "Two dashboard honesty rules in references/ux-guidelines-catalog.md: an absolute change instead of a percentage on a tiny base, and KPI tiles that carry a value and one comparison while explanations move to tooltips or drill-down."
+    contributes: "Two dashboard honesty rules in references/ux-guidelines-catalog.md (Charts and data) and references/review-checklist.md (17. Dashboards and data): an absolute change instead of a percentage on a tiny base, and KPI tiles that carry a value and one comparison while explanations move to tooltips or drill-down."
     notes: "Scenario 17 baseline (2026-11-01) already compared the same elapsed period, flipped colour for lower-is-better metrics, replaced a fake $0 with a no-data mark and reconciled disagreeing totals, so those rules were not carried. Not used: the 127-dashboard study framing, the encoding ladder, tokens, React + Tailwind snippets, the SwiftUI chapter, the case study and the screenshot QA script."
   - id: w3c-clreq
     kind: docs

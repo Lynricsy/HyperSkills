@@ -24,6 +24,7 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - [14. Hydration and client state](#14-hydration-and-client-state)
 - [15. Hover and interactive states](#15-hover-and-interactive-states)
 - [16. Copy](#16-copy)
+- [17. Dashboards and data](#17-dashboards-and-data)
 - [Anti-patterns to flag on sight](#anti-patterns-to-flag-on-sight)
 
 ## 1. Accessibility
@@ -205,6 +206,15 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - No `→` appended to link or button text.
 - No placeholder residue: `John Doe`, `Acme`, lorem text, `99.99%`.
 
+## 17. Dashboards and data
+
+- A percentage change on a base under about five units is not shown as a percentage. Show the
+  absolute change ("was 1", "1 → 0") in neutral ink, never a red −100% or a green +300%.
+- A KPI tile holds the name, the value with its unit and one comparison. A sentence under the number
+  (explanation, cause, caveat) moves to a tooltip or the drill-down; sentences turn the dashboard
+  into a report and bury the value that needs attention.
+- Further chart and comparison judgements are in `ux-guidelines-catalog.md` (Charts and data).
+
 ## Anti-patterns to flag on sight
 
 - `user-scalable=no` or `maximum-scale=1` in the viewport meta tag.
@@ -228,4 +238,4 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - Emoji used as icons, or two icon styles on one screen.
 - Uppercase, tracked Latin labels on a CJK page.
 
-<!-- sources: vercel-wig, addy-frontend-ui, uiux-pro-max, w3c-wcag22, antfu-design, emil-animations, oil-ui -->
+<!-- sources: vercel-wig, addy-frontend-ui, uiux-pro-max, w3c-wcag22, antfu-design, emil-animations, oil-ui, dashboard-design -->

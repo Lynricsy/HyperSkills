@@ -34,8 +34,7 @@ Not covered, and do not improvise here:
 
 - State a one-line design read (kind, audience, visual language) before writing markup. The audience picks the aesthetic, not your taste.
 - Set the three dials (variance, motion, density) from that read, then judge every layout and motion choice against them. Unstated dials drift toward the same page every time.
-- Run the plan past the five generated-design clusters before building. Those traits are legitimate for some briefs but they are defaults rather than choices, and they show up whatever the subject.
-- Where the brief pins a direction, the brief wins, including when it asks for one of those clusters. Only free axes get calibrated.
+- Run the plan past the five generated-design clusters before building; where the brief pins a direction, even one of those clusters, the brief wins and only free axes get calibrated. Those traits are defaults rather than choices, and they show up whatever the subject.
 - One accent color and one neutral temperature per project. A second accent reads as a decision nobody made.
 - One radius scale, concentric when nested (outer radius = inner radius + padding). A single radius on every element erases hierarchy.
 - One layout family per section, reused at most once per page, and never three consecutive image-and-text splits. Eight sections need at least four distinct families.

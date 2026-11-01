@@ -766,7 +766,7 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 |---|---|---|---|---|---|
 | 17 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ **3✘** 4✔ 5✔ **6◐** | 58 s，渲染了 390px。1–18 日同期比较并标出第 18 日、对比线弱化/虚线；CPL 涨标绿判为误导；APAC 改「Not imported / —」并标注合计不完整；两处收入不一致。未达成：退款只说「颜色方向反了」，保留 −100%，没指出 1→0 的小基数百分比误导；KPI 下的句子只批评为「无证据的因果与预测」，未提出移到 tooltip/下钻 |
 
-只把 3、6 两条写入 `ux-guidelines-catalog.md`「Charts and data」。
+只把 3、6 两条写入 `ux-guidelines-catalog.md`「Charts and data」；D2 首轮未生效后，同两条提炼进 `review-checklist.md` 新增的「17. Dashboards and data」（见 D2 回归）。
 
 ## 2026-11-01 文档上游复核
 
@@ -780,19 +780,20 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 
 ## 2026-11-01 D2 回归
 
-覆盖提交 `1e1bc61`。产物 `/tmp/hs-d2/G01-web-ui/frontend-design/omp-openai-gpt-6.1-sol-medium/`；场景 1 基线复用今日上午 `/tmp/hs-oil/b1`（场景与夹具未变）。
+覆盖提交 `1e1bc61` 与本节续做（`review-checklist.md` §17、`SKILL.md` Core rules 合并）。产物 `/tmp/hs-d2/G01-web-ui/frontend-design/omp-openai-gpt-6.1-sol-medium/`；场景 1 基线复用今日上午 `/tmp/hs-oil/b1`（场景与夹具未变）。
 
 | 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
 |---|---|---|---|---|---|
 | 16 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ 3✔ | 50 s，基线已知 `@axe-core/cli`、多 h1 非失败、Lighthouse 12 移除 tap-targets |
 | 16 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3✔ | 164 s，读 `accessibility.md`；无回退 |
 | 17 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ 3✘ 4✔ 5✔ 6◐ | 见「场景 17 基线」 |
-| 17 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ **3✘** 4✔ 5✔ **6◐** | 55 s。只读了 `SKILL.md`、`ai-tells-and-calibration.md`、`review-checklist.md`，**未读 `ux-guidelines-catalog.md`**，新合入的两条未生效 |
+| 17 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ **3✘** 4✔ 5✔ **6◐** | 首轮（产物移至 `skill/17-r1`），55 s。只读了 `SKILL.md`、`ai-tells-and-calibration.md`、`review-checklist.md`，**未读 `ux-guidelines-catalog.md`**，新合入的两条未生效 |
+| 17 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ **3✔** 4✔ 5✔ **6✔** | 重跑（`review-checklist.md` 加 §17 后），80 s。读 `review-checklist.md`，并经 §17 的指引读了 `ux-guidelines-catalog.md`。3：「100% fewer refunds 掩盖了量级」，改为显示前后计数、小基数用绝对变化而非戏剧化百分比（未单独说中性色，但第 4 条另行要求颜色按业务结果、需上下文时用中性）；6：诚实问题排第 1–6、版式排第 7，KPI 句子「移到可下钻的分解，tile 只留数值与比较」。另报 320px 溢出到 584px 与图表对比度 |
 | 3 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ 3✔ 4✔ | 35 s |
-| 3 | gpt-6.1-sol medium | 有 | false | 未逐条判定 | 34 s，未读 skill（与基线同为直接作答） |
-| 1 | gpt-6.1-sol medium | 有 | true | 未逐条判定 | 83 s，读 `accessibility.md` 等；按 `landing.html:<line>` 分组给出焦点、命名、缩放、对比度实测与 320px 溢出，未见 h1 误报 |
+| 3 | gpt-6.1-sol medium | 有 | false | 1✔ 2✔ 3✔ 4✔ | 34 s，未读 skill（概念题直接作答，与基线同）。SC 2.5.8 AA 24×24、五项例外（含 24 px 直径圆的间距测试，并说明不是 24 px 间隙）、SC 2.5.5 AAA 44×44 且无间距例外；建议设计系统写 44 但标注为自有政策 |
+| 1 | gpt-6.1-sol medium | 有 | true | 1✔ 2◐ 3✔ 4◐ 5✔ 6✔ 7✔ 8◐ 9✔ | 83 s，读 `accessibility.md`、`ai-tells-and-calibration.md`、`review-checklist.md`。2：命名渐变、重阴影卡片、单一半径、tracked 大写 eyebrow、彩色斜体单词；漏 `→` 后缀、em dash，中点串只报成「假导航」。4：入场动画要求 reduced-motion 变体，hover 缩放只要求门控 `(hover: hover)`，未要求其 reduced 变体。8：`1234567`/日期 Intl、`John Doe`、`50%` 无基准已报；漏 `Loading…` 字符（只报成永不结束的假加载态）与 `Acme`。另有对比度实测（3.96:1、4.47:1）、320px 溢出、未加载的斜体/字重合成。与今日上午同场景（第 695 行：2◐ 8◐）同档，h1 无误报 |
 | 4（负例） | gpt-6.1-sol medium | 有 | **false** | — | 43 s |
 
-结论：axe CLI、Lighthouse、h1 三处更正无回退（基线本已会）；负例未误读。**仪表盘两条新规则未通过 D2**：规则只在 `ux-guidelines-catalog.md`，
-`review-ui` 路由未把模型带到该文件。遗留：把「小基数不报百分比 / KPI 卡不写解释句」提炼到 `review-checklist.md`（场景 17 实际读取的文件）后重跑场景 17 有 skill；
-若仍不达成则撤回这两条与 `dashboard-design` 条目。场景 1、3 有 skill 未逐条判定（预算用尽）。
+结论：axe CLI、Lighthouse、h1 三处更正无回退（基线本已会）；负例未误读；场景 1、3 无回退。**仪表盘两条规则**：首轮只在 `ux-guidelines-catalog.md`，`review-ui` 路由读不到；
+提炼进 `review-checklist.md` 新增的「17. Dashboards and data」（两条 + 指向 catalog「Charts and data」）后重跑，场景 17 由 3✘ 6◐ 变为 3✔ 6✔，保留规则与 `dashboard-design` 条目。
+同时把 `SKILL.md` Core rules 中「过五个生成式特征簇」与「brief 指定方向时 brief 优先」两条合为一条（语义不变），Core rules 由 26 条回到 25 条（标准上限）；该改动不改变任何判据，未单独补跑设计方向场景。
