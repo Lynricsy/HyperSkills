@@ -101,5 +101,21 @@
       "Replaces `uv sync --frozen` with `uv sync --locked` (or adds `uv lock --check`), because `--frozen` skips the staleness check entirely and would install from a stale lock rather than fail",
       "Explains that `asyncio.to_thread` does not spread pure-Python CPU work across cores because of the GIL, so the dithering competes with the event loop thread; moves it to a process pool (`loop.run_in_executor` with a `ProcessPoolExecutor`) or vectorised/native code"
     ]
+  },
+  {
+    "skills": [
+      "python"
+    ],
+    "query": "ingest.py has run nightly for a year on Python 3.12. After our base image moved to python:3.14-slim it crashes at startup, and when I hack around that every score comes back 0.0. Explain exactly which 3.14 changes broke it and give me a corrected ingest.py written for 3.14.",
+    "files": [
+      "evals/files/ingest-314/ingest.py"
+    ],
+    "expected_behavior": [
+      "Explains the startup crash: on Python 3.14 `asyncio.get_event_loop()` raises `RuntimeError` when no event loop is running (the deprecated implicit-creation path was removed), so `main()` must use `asyncio.run(...)`, and code inside a coroutine uses `asyncio.get_running_loop()`",
+      "Explains the zero scores: Python 3.14 changed the default multiprocessing start method on Linux/POSIX (other than macOS) from `fork` to `forkserver`, so the `WEIGHTS` global filled in `main()` is never seen by the pool's worker processes; fixes it by passing the weights to the workers explicitly (as an argument, or a `ProcessPoolExecutor(initializer=..., initargs=...)`), not by forcing `fork` back without explaining the trade-off",
+      "Replaces the per-worker `None` sentinels with `asyncio.Queue.shutdown()` (available since 3.13) and ends each worker on `asyncio.QueueShutDown`, or gives an equivalent reasoned stop protocol, and bounds the queue (`maxsize`) so the producer cannot buffer the whole export",
+      "Fixes the unreferenced `asyncio.create_task(fetch_batches(...))` (the loop keeps only a weak reference, and a producer failure is never observed) by running producer and workers in one `asyncio.TaskGroup` instead of `create_task` plus `gather`",
+      "Checks the HTTP response status (e.g. `resp.raise_for_status()`) and sets an explicit client timeout, so a failed export page fails the job instead of ending it early with partial results"
+    ]
   }
 ]

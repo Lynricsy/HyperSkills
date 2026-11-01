@@ -1,6 +1,7 @@
 # Packaging and publishing
 
-Verified against: PyPA specifications as of uv 0.12.x / setuptools 8x / hatchling 1.27+.
+Verified against: PyPA specifications as of uv 0.12.x / setuptools 8x / hatchling 1.27+;
+the `uv_build` bound re-checked against the uv 0.13.6 build-backend docs.
 
 ## Contents
 
@@ -105,9 +106,15 @@ Notes that save a rejected upload:
 
 ```toml
 [build-system]
-requires = ["uv_build>=0.12"]
+requires = ["uv_build>=0.13.6,<0.14"]
 build-backend = "uv_build"
 ```
+
+`uv_build` follows uv's versioning policy, where a minor release may break, so
+the uv docs pin it with an upper bound on the next minor, and `uv init` writes
+one too (e.g. `uv_build>=0.11.21,<0.12.0` from uv 0.11.21) [verified]. Keep the
+bound and raise it on purpose; an open-ended `uv_build>=…` lets a future backend
+release change how the package builds.
 
 There must be a `[build-system]` table. Without one, installers fall back to
 legacy setuptools behaviour and look for the `setup.py` a migration just deleted.

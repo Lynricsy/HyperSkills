@@ -442,3 +442,68 @@ repo moved / tracked paths unchanged，`--pin` 顺带前移。
 结论：四处更正在有 skill 时均按更正后的内容作答（场景 1 与 7 的 `--locked`、场景 7 的 ruff 默认值 / `py311` / classifier / 进程池），且不比基线差；场景 7 基线联网即全部答对，留作哨兵。负例 `skill_read == false`。正文无需修正。
 
 遗留：场景 1 EB4（空 `dependencies` 也须存在）与 EB7（清理 `noqa` 与旧工具配置段）两侧都未完整达成，均为既有内容，与本次更正无关。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 快照与工作单 `/tmp/hs-sync/python.md`。laurigates 与 TerminalSkills 用主代理的 blobless 裸仓库缓存 `git diff <pinned> <head> -- <paths>` 读真实 diff；wshobson 用 `gh api repos/wshobson/agents/compare/...` 的 patch。两次 `--pin`（第二次为新增 leeovery-python 条目）写入的 `commit` 与审阅 HEAD 逐条相等，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| laurigates-python | 8fc6916 → 487c10e | ee737293（Renovate #3325）：`ruff-linting/{SKILL,REFERENCE}.md`、`uv-project-management/REFERENCE.md`、`basedpyright-type-checking/REFERENCE.md` 中 GitHub Actions 由 `@v4` 改为 `@v4.4.0` 之类、`setup-uv@v1/v2` 补丁号、basedpyright pre-commit `rev` v1.18.3 → v1.40.2、CircleCI 镜像 3.11 → 3.15 | 噪声：本 skill 未引用这些示例版本（正文只要求按 SHA 固定 action），只 re-pin |
+| wshobson-python | 46891e7 → 7e2fb55 | 1f8ac52（#772）：`async-python-patterns` 的 gather 结果过滤把 `None` 计入失败、队列示例去掉 `None` 哨兵；0f73766（#797）：`python-resource-management` 的异步事务上下文管理器改 `except BaseException` 以便取消时也回滚，`python-testing-patterns` 的邮箱校验示例修正 | 示例修正。回滚一条已被正文覆盖（`CancelledError` 派生自 `BaseException`、`except Exception` 接不住、清理放 `finally`，见 SKILL.md debug-async 与 `runtime-traps.md`）；其余为示例本身的 bug，正文未引用，只 re-pin |
+| terminalskills-uv | 6edcf94 → 8a9852d | 33b765f0（#576）：`skills/uv/SKILL.md` frontmatter `tags` 由列表改为逗号分隔字符串 | 噪声，只 re-pin |
+| trailofbits-modern-python、awesome-copilot-python、getsentry-typing、probabl-python-style、awesome-copilot-mcp-python、getsentry-findbugs | 各自区间 | 无（主代理归因 / `paths_unchanged`） | 噪声，只 re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 节 11 个新增文件。leeovery/agentic-skills（MIT，15★，2026-10-15 推送）已被 go、laravel 追踪，但 python 此前未追踪；TerminalSkills/skills 已由本 skill 以 `terminalskills-uv` 追踪。
+
+| 候选 | Scope 归属 | 结论 | 理由 |
+|---|---|---|---|
+| TerminalSkills `skills/apscheduler/SKILL.md` | 不属任何 skill（单一第三方库手册） | REJECT | APScheduler 3.x 用法手册；本 skill Scope 是语言与标准工具链，不收第三方调度库 |
+| TerminalSkills `skills/vcrpy/SKILL.md` | 不属任何 skill | REJECT | VCR.py / pytest-recording 用法手册；单一库，教程式。其中「录制后 grep cassette 查密钥」属测试数据卫生，量小不足以立项 |
+| leeovery `python/skills/python-concurrency/SKILL.md` | python | **部分 MERGE** | 三个候选点先实跑（CPython 3.14.8）再评测（新增场景 8）：① 3.14 无运行中循环时 `asyncio.get_event_loop()` 抛 `RuntimeError` —— 基线已会，不合入；② 3.14 Linux 默认启动方式 `forkserver`，`main()` 里填的全局量子进程看不到（3.12 下 `[3]`、3.14 下 `[None]`）—— 基线已会（用 `initializer/initargs`），不合入；③ 有界队列 + `Queue.shutdown()`（3.13+）替代每个消费者一个 `None` 哨兵 —— 基线保留哨兵与无界队列，**缺口**，合入 `references/asyncio.md` 新节「Producer/consumer queues」与 SKILL.md debug-async 一条清单。新增上游条目 `leeovery-python`（只追踪该目录） |
+| leeovery `python-project` | python | REJECT | `uv run`、`--locked`、依赖组、PEP 723 已覆盖；`exclude-newer = "1 week"` 冷却期与 `pip-audit` 属供应链策略，单一来源、未见官方推荐，记待定不合入 |
+| leeovery `python-quality` | python | REJECT | 五道门、`ALL` 禁用、suppression 带理由已覆盖；强制 pyrefly strict、import-linter 是房规，与 rule 1「以项目配置为准」冲突 |
+| leeovery `python-testing` | python / test-driven-development | REJECT | 禁用 `unittest.mock` 与 `monkeypatch` 与本 skill rule 18 的 patch 指引冲突；其余（参数化 id、`filterwarnings = ["error"]`）已覆盖 |
+| leeovery `python-types` | python | REJECT | 房规（强制 frozen/slots/kw_only dataclass、`NewType` id、`StrEnum`）；`runtime_checkable` 只查属性名已覆盖 |
+| leeovery `python-errors` | python | REJECT | `raise ... from`、`add_note`、`ExceptionGroup`、logging 不用 f-string 等为通用知识，`runtime-traps.md` 已覆盖要点；其余为房规 |
+| leeovery `python-protocols` | python | REJECT | 消费方声明 Protocol、`runtime_checkable` 只查名字已覆盖；禁 ABC、禁 mock 为房规 |
+| leeovery `python-architecture` / `python-actions` | 不属任何 skill（应用架构与 CLI 房规） | REJECT | 目录命名、组合根、typer 组装、退出码等项目约定，超出 Scope，亦非官方实践 |
+
+### 缺口评测（新增场景 8，夹具 `evals/files/ingest-314/ingest.py`）
+
+本地事实核验（`python3.14` 3.14.8 与 `uv run --python 3.12`）：`get_event_loop()` 抛 `RuntimeError: There is no current event loop in thread 'MainThread'.`；`mp.get_start_method()` = `forkserver`，全局量子进程中为 `None`（3.12 为 `3`）；`Queue.shutdown()` 后 `put` 抛 `QueueShutDown`、`get` 先取完已入队项再抛、`immediate=True` 清空队列并放行 `join()`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 ingest 升级 3.14 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✘ EB5 ✘ | 124 s。正确解释 `get_event_loop` 与 `forkserver`，用 `asyncio.run` + `initializer/initargs` 修好；保留每 worker 一个 `None` 哨兵与无界队列；保留未持有引用的 `create_task` + `gather`；未查 HTTP 状态、未设超时 |
+
+EB3 为 leeovery 来源的缺口 → 合入；EB1/EB2 基线已会 → 不合入；EB4 为本 skill 既有规则 19/20，留作回归观察点。
+
+## 2026-11-01 新候选
+
+检索：`gh search repos 'python agent skills' --updated '>=2026-10-15'`、`gh search repos 'skills uv ruff pytest'`、`VoltAgent/awesome-agent-skills` README（2026-10-30）中 Python 条目、`github/awesome-copilot` 3cf7c7e..5269f7e 区间新增文件（无 python 类 skill/instructions 命中）。trailofbits、microsoft 条目已追踪。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | leeovery/agentic-skills `python/skills/*`（9 个） | https://github.com/leeovery/agentic-skills | 15 | 2026-10-15 | MIT | Python 全套房规 | 1 | 3 | 3 | 3 | 2 | 12 | INCLUDE（仅 python-concurrency 的队列一条） | 抽查 3 条（`get_event_loop` 3.14、`forkserver` 3.14、`Queue.shutdown` 3.13）全对。其余见上节逐条 REJECT |
+| N2 | LambdaTest/agent-skills `pytest-skill` | https://github.com/LambdaTest/agent-skills | 387 | 2026-10-30 | MIT | pytest 用法生成器 | 1 | 3 | 1 | 2 | 2 | 9→REJECT | REJECT | 教程式示例集（基础断言、fixture、parametrize、marker），无本 skill 未覆盖的可验证规则；test-driven-development 已因厂商绑定 REJECT 过同仓库 |
+| N3 | gal-a/qikly | https://github.com/gal-a/qikly | 19 | 2026-10-25 | Apache-2.0 | 按编码代理看不到的验收标准写 pytest | 1 | 3 | — | — | 2 | — | 不属本 skill | 测试方法论，归 test-driven-development，交主代理 |
+
+N2 总分达 INCLUDE 线但具体性仅 1、无增量内容，按「增量价值」判 REJECT。
+
+## 2026-11-01 文档上游复核
+
+范围：6 条 `kind: docs` 的 `contributes` + 正文引用的版本与命令。当前版本：uv 0.13.6（2026-10-27）、ruff 0.17.3、pytest 9.2.0（2026-10-27）、CPython 3.14.8 / 3.15 文档。uv 0.13.2–0.13.6、ruff 0.17.1–0.17.3、pytest 9.2.0 发布说明用 `gh api` 读；文档页面取回去标签后按关键句比对。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| uv-docs | `--locked` / `--frozen`；PEP 723 `dependencies` 即使为空也必须存在、有内联元数据时忽略项目依赖、`uv run --script`；`uv_build` 的版本约束 | https://docs.astral.sh/uv/concepts/projects/sync/ 、/guides/scripts/ 、/concepts/build-backend/ | **更正**：build-backend 页示例为 `requires = ["uv_build>=0.13.6,<0.14"]` 并说明 uv_build 随 uv 的版本策略、应带上界；本机 `uv init --package --build-backend uv`（uv 0.11.21）写出 `uv_build>=0.11.21,<0.12.0`。`packaging.md` 原示例 `uv_build>=0.12` 无上界，改为带上界并说明原因，版本行补注。其余一致；0.13.2–0.13.6 无涉及正文的变化 |
+| ruff-docs | `line-length = 88`；`requires-python` 推断 `target-version`；0.16 默认规则集扩大、0.17 无配置回退 `py311`；FAST 等规则组默认状态 | https://docs.astral.sh/ruff/configuration/ | 一致；0.17.1–0.17.3 只有 `flake8-import-conventions` 默认别名更新，正文未涉及 |
+| pytest-docs | `[tool.pytest]` 自 9.0、`ini_options` 自 6.0；配置候选首个命中即用 | https://docs.pytest.org/en/stable/reference/customize.html 、9.2.0 发布说明 | 一致。9.2.0：`strict_markers` 也校验 `-m` 表达式、非字符串值写进字符串型 ini 选项发 `PytestRemovedIn10Warning`、实例方法形式的高作用域 fixture 弃用——均不与正文冲突，未改 |
+| typing-docs | PEP 695 方差推断；`runtime_checkable` 只查属性存在；`NotRequired` 与可否为 None 独立 | https://typing.python.org/en/latest/spec/generics.html 、/spec/typeddict.html ；https://docs.python.org/3/library/typing.html（「check only the presence of given attributes, ignoring their type signatures」） | 一致 |
+| python-docs | 任务弱引用；`gather` 默认首个异常传播、其余不取消；`CancelledError` 清理后应继续传播；`timeout` 转 `TimeoutError`；`to_thread` 不适合 CPU；（新增节）`Queue.shutdown` 语义 | https://docs.python.org/3/library/asyncio-task.html 、/asyncio-queue.html | 一致；新增节的 `shutdown` / `immediate` 语义与 asyncio-queue 页一致并已在 3.14.8 实跑 |
+| pypa-docs | `license-files`；license table 子键被 PEP 639 弃用 | https://packaging.python.org/en/latest/specifications/pyproject-toml/ | 一致 |
+
+正文改动：`references/asyncio.md`（新节 Producer/consumer queues + 目录 + sources）、`references/packaging.md`（`uv_build` 上界 + 版本行）、`SKILL.md`（debug-async 一条清单、Topic router 一格）。

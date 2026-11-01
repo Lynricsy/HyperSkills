@@ -7,6 +7,7 @@ Verified against: Python 3.11–3.14.
 - [Decide whether async is the answer](#decide-whether-async-is-the-answer)
 - [Task lifetime](#task-lifetime)
 - [TaskGroup versus gather](#taskgroup-versus-gather)
+- [Producer/consumer queues](#producerconsumer-queues)
 - [Cancellation](#cancellation)
 - [Timeouts](#timeouts)
 - [Blocking calls](#blocking-calls)
@@ -94,6 +95,49 @@ not inspect the list swallows every failure silently.
 
 `asyncio.as_completed` does not cancel the remaining tasks when the iteration
 stops early either — the same leak, one level down.
+
+## Producer/consumer queues
+
+```python
+async def produce(queue: asyncio.Queue[Record]) -> None:
+    async for record in source():
+        await queue.put(record)   # waits while the queue is full
+    queue.shutdown()              # 3.13+: consumers drain what is queued, then stop
+
+
+async def consume(queue: asyncio.Queue[Record]) -> None:
+    while True:
+        try:
+            record = await queue.get()
+        except asyncio.QueueShutDown:
+            return
+        await handle(record)
+        queue.task_done()
+
+
+queue: asyncio.Queue[Record] = asyncio.Queue(maxsize=100)
+async with asyncio.TaskGroup() as tg:
+    tg.create_task(produce(queue))
+    for _ in range(8):
+        tg.create_task(consume(queue))
+```
+
+- Give the queue a `maxsize`. Unbounded, a producer faster than its consumers
+  buffers the whole source in memory; bounded, `put` waits.
+- On 3.13+, stop the pipeline with `Queue.shutdown()`, not one `None` sentinel per
+  consumer. After `shutdown()`, `put` raises `QueueShutDown`, while `get` keeps
+  returning what is already queued and raises `QueueShutDown` once the queue is
+  empty — so every consumer stops, however many there are, without a sentinel
+  count to keep in step with the worker count and without widening the item type
+  to admit `None`. `shutdown(immediate=True)` instead discards the queued items,
+  wakes every blocked `get` with `QueueShutDown` and releases `join()`: that is for
+  aborting, not draining. [verified on 3.14]
+- Below 3.13 sentinels remain the tool: exactly one per consumer, put after the
+  last real item.
+- Run the producer and the consumers in one `TaskGroup`. If the producer fails,
+  the group cancels the consumers instead of leaving them parked on `get()`
+  forever, and the failure surfaces instead of disappearing into an unreferenced
+  task.
 
 ## Cancellation
 
@@ -221,4 +265,4 @@ Other tools, in order of usefulness:
   other half of the lost-background-task bug, and no amount of strong references
   fixes it — the work has to be awaited before the loop closes.
 
-<!-- sources: wshobson-python, developer-kit-python, awesome-copilot-mcp-python, python-docs, ruff-docs -->
+<!-- sources: wshobson-python, developer-kit-python, awesome-copilot-mcp-python, python-docs, ruff-docs, leeovery-python -->

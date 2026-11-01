@@ -4,7 +4,7 @@ description: "Develops Python code with uv, pytest, typing, asyncio and packagin
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -196,6 +196,10 @@ Paths below are relative to this skill's directory.
       and cleanup lives in `finally`.
 - [ ] Replace ad-hoc timeout logic with `asyncio.timeout`, and expect
       `TimeoutError` rather than `CancelledError` at the boundary.
+- [ ] Producer/consumer pipelines: the `asyncio.Queue` has a `maxsize`, producer and
+      consumers share one `TaskGroup`, and on 3.13+ the producer ends the run with
+      `queue.shutdown()` (consumers stop on `QueueShutDown`) instead of one `None`
+      sentinel per consumer.
 - [ ] Turn on `asyncio` debug mode (`PYTHONASYNCIODEBUG=1` or
       `asyncio.run(main(), debug=True)`) to get slow-callback warnings that point at
       the blocking frame. Details in `references/asyncio.md`.
@@ -230,7 +234,7 @@ Paths below are relative to this skill's directory.
 | ruff rule selection, per-file ignores, formatter settings, the fix loop, noqa discipline | Configuring lint/format or working through a backlog of diagnostics | `references/ruff.md` |
 | Protocol, TypedDict, PEP 695 generics, narrowing, `Self`, `override`, mypy and pyright config, strictness ratchet | Adding or tightening annotations | `references/typing.md` |
 | pytest config table versions, fixtures and scope, parametrization, isolation, mocking, async tests, plugins | Writing tests or chasing an order-dependent failure | `references/pytest.md` |
-| Task lifetime, TaskGroup, cancellation, timeouts, blocking-call detection, debug mode | Anything with `async def` in it | `references/asyncio.md` |
+| Task lifetime, TaskGroup, producer/consumer queues and `Queue.shutdown`, cancellation, timeouts, blocking-call detection, debug mode | Anything with `async def` in it | `references/asyncio.md` |
 | `pyproject.toml` metadata, src layout, build backends, versioning, `py.typed`, publishing | Making a package installable or releasing it | `references/packaging.md` |
 | Mutable defaults, late-binding closures, class-attribute sharing, exception chaining, resource leaks, equality and caching traps | Reviewing or debugging code that passes lint and the type checker but misbehaves | `references/runtime-traps.md` |
 
