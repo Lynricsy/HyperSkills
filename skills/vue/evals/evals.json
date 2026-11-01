@@ -55,5 +55,17 @@
       "Answers as React Server Component work: the three sequential awaits are a request waterfall, and the independent ones should be started together with Promise.all (or by creating the promises first and awaiting later)",
       "Gives no Vue, Nuxt, Pinia or useFetch advice"
     ]
+  },
+  {
+    "skills": ["vue"],
+    "query": "Nuxt 4.6 app. ProjectRows.vue is app/components/ProjectRows.vue and projects-id.patch.ts is server/api/projects/[id].patch.ts. After renaming a project, its row keeps showing the old name until the user clicks another row, even though the API returns the new name. A teammate also asked whether the handler's error code is current for Nuxt 4.6. Diagnose and fix both files.",
+    "files": ["evals/files/ProjectRows.vue", "evals/files/projects-id.patch.ts"],
+    "expected_behavior": [
+      "Identifies `v-memo=\"[project.id, project.id === props.selectedId]\"` as the stale-row cause: v-memo reuses the row's previous VNodes while every listed dependency is unchanged, and neither the id nor the selection changes on rename",
+      "Fixes it by listing the project object itself (dependencies are compared by identity and refresh() replaces the objects) or every rendered field such as `project.name`, `project.owner` and `project.updatedAt`, or by removing v-memo",
+      "Notes that v-memo belongs only on a measured hot path because it only saves VNode creation and diffing for the skipped rows, so for an ordinary list removing it is a valid fix",
+      "Replaces `createError({ statusCode, statusMessage })` with `createError({ status, statusText })`, saying `statusCode`/`statusMessage` are deprecated in Nuxt 4 (since 4.3) and slated for removal in Nuxt 5",
+      "Does not claim the stale row stays stale forever: it updates once a listed dependency (the selection) changes, which matches the reported symptom"
+    ]
   }
 ]

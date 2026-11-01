@@ -244,4 +244,17 @@ v4.6.3 文档 `create-error.md`/`server.md` 只用 `status`/`statusText`，`Nuxt
 
 ## 2026-11-01 D2 回归
 
-正文改动（components.md、performance.md、nuxt.md、SKILL.md Environment）本轮**未跑 D2**：组代理请求预算用尽，列为遗留，需补跑涉及 v-memo / Nuxt server 的场景与负例。
+覆盖提交 `d512876`（components.md、performance.md、nuxt.md、SKILL.md Environment）。原有场景无一覆盖 v-memo 与 server handler 的 `createError`，新增回归场景 5
+（夹具 `ProjectRows.vue`：`v-memo="[project.id, project.id === props.selectedId]"`，`refresh()` 整体替换对象，改名后行不更新直到切换选中；`projects-id.patch.ts`：三处 `createError({ statusCode, statusMessage })`）。
+场景 3（Nuxt，读 `nuxt.md`）作回归，场景 4 为负例。产物 `/tmp/hs-d2/G01-web-ui/vue/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ **3✘** **4◐** 5◐ | 249 s，在 Nuxt 4.6.0 实跑验证。v-memo 改 `[project, …]` 并说明 `refresh()` 换对象；未提「只在测得的热点用 v-memo、可直接删除」。`createError` 改 `status`/`statusText`，但称旧写法「仍受支持」「迁到新的可移植 API」，未说已弃用；另改从 `nuxt/server` 显式导入（4.6 新导入面）。未声称「永久陈旧」，也未解释切换选中即恢复 |
+| 5 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ **3✘** **4✔** 5◐ | 193 s，读 `SKILL.md`、`nuxt.md`、`reactivity.md`，**未读 `performance.md`**。v-memo 修法同基线；`createError` 明确判为弃用并改 `status`/`statusText`（未写 4.3 / Nuxt 5 时间点）；3、5 同基线 |
+| 3 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3✔ 4✔ 5✔ 6✔ 7✔ | 204 s，读 `nuxt.md`、`reactivity.md`，在 Nuxt 4.6.3 / Vue 3.5.44 实跑。显式 `projects` key + `useNuxtData`、整体替换数组、裸 `$fetch` → `useFetch`、`localStorage` 挪到 `onMounted`、`useState` 序列化时间、`config.public.maxProjects` 并去掉密钥判断、补加载/错误态；无回退（第 7 条首次达成） |
+| 4（负例） | gpt-6.1-sol medium | 有 | **false** | 1✔ 2✔ 3✔ | 20 s，`Promise.all` 拆瀑布，无 Vue/Nuxt 建议 |
+
+结论：无回退，负例未误读。`createError` 更正在有 skill 时生效（基线只当作可选迁移，不知已弃用）。v-memo 更正与基线同水平：基线已会「按引用比较、列入对象本身」；
+`performance.md` 的新增说明（收益范围、只用于测得的热点）未被读取，场景 5 第 3 条两侧都未达成——本次是上游自我更正而非新增规则，不据此加 Core rule，场景 5 留作哨兵。
+components.md 拆分阈值改为 review 信号、Environment 的 Node 版本无行为差异可测，未单独设场景。
