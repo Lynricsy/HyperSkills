@@ -515,3 +515,70 @@ c5b0249 只动 research / SOURCES。
 
 遗留：场景 9 期望 4 在当前正文下只有 1 次 ◐，建议下一轮复跑确认是否需要把该规则从 reference 提到 SKILL.md 的审计清单。
 各场景只有 1 次运行。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 快照与工作单。唯一「已追踪路径确有变更」条目是 `sentry-secreview`；用 `gh api repos/getsentry/skills/compare/d18b7aa…d12f250` 读 `skills/security-review` 下的真实 patch。其余 `behind` 条目（awesome-copilot 三条、`ecc-agent-hardening`）在裸仓库缓存（`/tmp/hs-attr/github__awesome-copilot`、`/tmp/hs-attr/affaan-m__everything-claude-code`）复跑 `git log --oneline <pinned>..<head> -- <paths>` 与树对比 `git diff --stat` 均为空，两端 `git ls-tree` 追踪路径均存在。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| sentry-secreview | d18b7aa → d12f250 | `skills/security-review`：6d20de4、4e8a32b、2fe7155（均 2026-10-19）。`SKILL.md` +7/−15：前端/模板路由加载 `modern-threats.md`（DOM clobbering、原型污染），新增「对象合并/`__proto__`/DOM id 查找/WebSocket/LLM 提示构造 → `modern-threats.md`」一行；Django/DRF 访问控制改路由到 `django-access-review` skill；删掉指向不存在文件的 go/rust/java 语言指南与 k8s/terraform/ci-cd/cloud 基础设施指南行，GitHub Actions 改路由到 `gha-security-review`。新增 `SPEC.md`（上游自身维护规格：范围、运行契约、验证方法） | 无影响，仅 re-pin。全是上游自己的路由表卫生（删死链、把子领域交给其兄弟 skill），没有新的事实或规则；本 skill 从该上游只取误报治理语义（攻击者可控 vs 服务端可控、框架已缓解模式、置信度门槛），这部分未动。`SPEC.md` 的 Out of scope（GHA 归 `gha-security-review`、不报低置信度、不跑扫描器）与本 skill 边界一致，无需改动 |
+| tob-semgrep-rules / tob-brocards / tob-insecure-defaults / tob-supplychain / tob-diffreview | e1f86a3 → 2be6433（13 commits） | 无：`check_upstream.py` 判 repo moved, tracked paths unchanged | 未变更，仅 re-pin |
+| copilot-threatmodel / copilot-secrets / copilot-secreview | 36e95df → 5269f7e（417 commits） | 无：三个追踪目录区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| ecc-agent-hardening | b92f181 → b38be6a（390 commits） | 无：`skills/agent-security-hardening` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| cloudflare-audit、openai-threatmodel、openai-secbase、openai-ownership、trilwu-audit、semgrep-skills | — | up to date | 不动 |
+
+`--pin` 写入的 commit 与审阅 HEAD 逐条一致（d12f250、2be6433 ×5、5269f7e ×3、b38be6a 及其余未动条目），无越界差额；新增条目 `codex-security` 二次 `--pin` 后为 up to date（6f0a4ca）。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C（区间新增 skill 文件）+ C2（分诊补充）+ C3（跨组转来）。全部用 `gh api …/contents` 读原文后裁决。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| scrutineer `skills/audit-build-tooling`（MIT） | REJECT | 审计「自身实现了构建系统/任务执行器/开发工具」的项目（工作区信任、缓存完整性、插件解析）。审计对象很窄；可迁移的判断（用户自己选择信任的 checkout 上运行工具是预期行为、缺加固项本身不是发现）已由本 skill 的驳回判据覆盖（攻击者能力已超过影响、规范行为不是漏洞）。其余是 Scrutineer 流水线（`report.json`、Scrutineer API、兄弟扫描复用）。 |
+| scrutineer `skills/audit-file-parser`（MIT） | REJECT | 解析器的资源耗尽、长度/偏移、归档解压、格式混淆。本 skill 已有：`scoping-and-coverage.md` 把 parsers and decoders 列为攻击面，`injection-and-deserialization.md` 已写 zip slip、符号链接条目、解压比耗尽磁盘；其余属模型常识与 Scrutineer 输出契约。 |
+| scrutineer `skills/investigate`（MIT） | REJECT | 核对外部提交的漏洞报告：confirmed/disproved/already_fixed/not_security/inconclusive。本 skill 的 `triage-findings` 工作流已覆盖「reported vulnerability」输入、三态处置与驳回理由留档；「报告里的版本只是对那个版本的声明」「CVE 编号既不证明存在也不证明不存在」已在 `false-positive-governance.md`。五态标签是 Scrutineer schema。 |
+| getsentry/skills `skills/security-model`（Apache-2.0，改编自 openai/codex-security `define-security-policy`） | REJECT（形态） | 为扫描工具编写 `SECURITY_MODEL.md` 策略文件并附解析脚本，是 Sentry 内部（Warden）约定。可迁移的两点——「只记录/告警的控制是监控不是强制」「疑似缺口不要写成已接受风险」——属于威胁建模常识，未见基线缺口证据，不合入。 |
+| elastic/agent-skills `security/ml-integrations`（两处同文件，Apache-2.0） | REJECT（跨组） | 安装与管理 Elastic Security 的 ML 集成包（Fleet、转换、异常检测任务），单一商业产品操作手册，不是代码审计。仓库由 `elasticsearch` 追踪，列为跨组命中。 |
+| first-fluke/oh-my-agent `oma-security`（两处，MIT） | REJECT | 编排扫描器并对已部署的测试环境做渗透测试；向部署系统发请求在本 skill Scope 之外。Scheduling/Scenes 调度模板，无独立规则。 |
+| first-fluke/oh-my-agent `oma-architecture` / `oma-qa` / `oma-scm`（MIT） | REJECT（跨组） | 只是被打包进 security 域插件：架构决策（`planning` 方向）、通用质量评审（`code-review`）、Git 操作（`git-workflow`），与安全审计无关，列为跨组命中。 |
+| magnus919/agent-skills `camera-hacking`（MIT） | REJECT（Scope 外） | 相机固件逆向与改装。固件审计不在 Scope（10-15 已记「audit-embedded 需先定 Scope」），属逆向工程方向。 |
+| melodic-software `harness-ops/audit-mod-posture`（MIT） | REJECT | Claude Code 自身 mod/hook 的姿态盘点，单一宿主产品；审计对象不是被审代码库。 |
+| melodic-software `user-interface/audit`（MIT） | REJECT（跨组） | UI 代码评审（无障碍、动效、性能），非安全，属 `frontend-design`。 |
+| nitinjain999/platform-skills `checkov`（Apache-2.0） | REJECT（跨组） | Terraform 扫描器的安装与使用，归 `terraform`（该仓库正由 `terraform` 追踪）。 |
+| nitinjain999/platform-skills `trivy` / `runtime-security`（Falco）/ `secrets`（ESO、Sealed Secrets）/ `supply-chain`（Cosign、Syft、SLSA、Kyverno） | REJECT（跨组） | 容器镜像扫描、运行时检测、K8s 密钥管理与镜像签名准入，按 Scope 归 `containers`。均为工具手册与向导，非审计方法。 |
+| nitinjain999/platform-skills `zizmor`（Apache-2.0） | REJECT（跨组） | GitHub Actions 工作流审计；Scope 明确 GHA 加固归 `github`。 |
+| nitinjain999/platform-skills `kingfisher`（Apache-2.0） | REJECT | MongoDB 的 Kingfisher 密钥扫描器手册：发现 → 在线验证存活 → 爆炸半径 → 吊销。本 skill `leaked-credential` 工作流的顺序是「先吊销、再轮换、最后处理历史」，不以验证存活为前提；在线验证需向提供方 API 发请求，超出本 skill 证据边界。单一工具手册，无可迁移规则。 |
+| nitinjain999/platform-skills `ai-governance`（Apache-2.0，G08 转来） | REJECT（跨组） | 给 AI 编码 agent 生成会话 hook 与合并门禁（禁止改受保护路径、危险命令），属 agent 运行时治理（`ai-engineering` / `github`），不是代码审计。 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "security review skill"`、`"security audit agent skills"`（按 stars，筛 2026-10-01 后推送）；官方组织核查 `openai/codex-security`、`anthropics/claude-code-security-review`。评分口径同「候选表」。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 25 | openai/codex-security `plugins/codex-security/skills/{finding-discovery,validation,attack-path-analysis,triage-finding}` | https://github.com/openai/codex-security | 11270 | 2026-11-01 | Apache-2.0（根 LICENSE 实读） | Codex Security 扫描各阶段：发现 → 验证 → 攻击路径与严重性校准；导入发现的分诊 | 3 | 3 | 3 | 3 | 2 | 14 | INCLUDE → reference | 2026-07 新建的官方厂商仓库，此前未进候选表。方法与本 skill 主干（cloudflare-audit + sentry 误报治理）同构：源 → 最近的控制 → sink、安全的兄弟实现不决定另一个实例、缺部署证据是 proof gap 不是安全证明、事实/严重性/策略决定分开。流程本身绑定其 CLI 与 MCP 工作台（`record_*` 工具、receipts），不可移植；未见基线缺口，故以 `relation: reference` 追踪并已 `--pin`。值得下轮评测的是 `severity-policy.md` 按漏洞类给出的 critical/high 证据锚点 |
+| 26 | anthropics/claude-code-security-review | https://github.com/anthropics/claude-code-security-review | 6665 | 2026-02-11 | MIT | 用 Claude 审 PR diff 的 GitHub Action | 3 | 0 | 2 | — | 2 | 7 | REJECT | 近 9 个月未推送；是 diff 形态的 Action（按边界归 `code-review`/`github`），其误报过滤思路已由 sentry-secreview 覆盖 |
+| 27 | TarkinLarson/asvs-auditor `skills/agent-asvs{,-ci}` | https://github.com/TarkinLarson/asvs-auditor | 7 | 2026-10-19 | MIT（但随附 ASVS 5.0.0 需求原文） | 把每个发现映射到 ASVS 5.0 需求编号 | 0 | 3 | 2 | 3 | 0 | 8→REJECT | 7 星；以 MIT 发布 CC-BY-SA 的 ASVS 需求全文（生成的 `reference/V<n>.md`），许可冲突；本 skill 已把 ASVS 5.0 章节作覆盖清单 |
+| 28 | 低采纳检索结果：ReazGan/ward、Master0fFate/VibeSecurity、Mukeshj008/Ai-Security-Reviewer-Pro-Max-Skills、averma416/qa-strike-team、vadbosh/security-sieve、Riaku/security-review-skill、dandrok/security-review-skill、maxgfr/ultrasec 等 | — | 0–3 | 2026-10 | 多为 MIT / 无 | 个人安全评审 skill | 0 | 3 | — | — | — | ≤4 | REJECT | 采纳量 0–3 星，均未读原文（未过采纳门槛）；留行防止下批次重审 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| owasp-top10 | 2025 版 A01–A10 名称与编号；SSRF（CWE-918）并入 A01 | `OWASP/Top10` `2025/docs/en/` | 一致：A01–A10 文件名未变，该目录最后提交仍为 2026-04-06（错字修正） |
+| owasp-asvs | 5.0.0 章节 V1 Encoding and Sanitization … V17 WebRTC | `OWASP/ASVS` `5.0/en/0x10-V1…0x26-V17` | 一致：17 章文件名未变；最新稳定版仍为 v5.0.0（`latest` 为 master 自动构建）。`5.0/en` 新提交 2b47a9d（2026-10-15）把 V10 的「draft OAuth 2.0 for Browser-Based Applications」改为已发布的 RFC 10017，c62b04a 修四个参考链接——正文未引用这两处，无需改动 |
+| ms-windows-paths | 保留设备名含上标数字 COM/LPT 变体；名字不以空格或句点结尾；`:` 驱动器相对与 NTFS 流；Windows 11 带扩展名的保留名 | `MicrosoftDocs/win32` `desktop-src/FileIO/naming-a-file.md`、`file-streams.md`；`dotnet/docs` `file-path-formats.md` | 一致：三份源文件最后提交分别为 2025-04-09、2025-07-09、2026-08-03（均早于 10-15 复核）；`naming-a-file.md` 仍列 COM¹²³/LPT¹²³ 并说明上标数字被视为数字 |
+
+结论：三条 docs 条目无变化，正文未改；`synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+本轮 `SKILL.md` 只改 `metadata.version`，`references/` 未改，正文无改动；新增的 `codex-security` 为 `relation: reference`。按规程不需要 D2，未跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| — | gpt-6.1-sol medium | — | — | — | 正文未改，未跑 |
+
+遗留：10-15 记录的场景 9 期望 4（Windows 路径规则只 ◐）本轮未复跑。

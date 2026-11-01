@@ -1,5 +1,5 @@
 skill: security-review
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: cloudflare-audit
     kind: repo
@@ -10,7 +10,7 @@ upstreams:
     commit: c1c8a8c1471069fb0e188eeaff69b8e8db6564a8
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The audit method and its evidence contract: a coverage ledger whose unreached units must be named rather than silently dropped, the invariant-first trace (lower-trust principal, accepted value, the control that should have rejected it, the path after that decision, the smallest observable effect), the rule that whoever validates a candidate must not be whoever found it, the confirmed / needs-validation / rejected three-state disposition with rejected records retained, likelihood and impact reported separately with overall severity capped at demonstrated impact, and the position that a clean pass may legitimately have zero findings."
     notes: "Its multi-agent dispatch protocol and the artifact-promotion procedure were deliberately left out: they target an orchestrator with an OS-enforced sandbox, whereas this skill is written for one agent doing one audit."
 
@@ -20,10 +20,10 @@ upstreams:
     url: https://github.com/getsentry/skills/tree/main/skills/security-review
     paths: [skills/security-review]
     ref: main
-    commit: d18b7aa8ba878354e5c348310230e652f7690f9c
+    commit: d12f250460ffd961f549dbebf7eeb0cf4afd4c2e
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The other half of false-positive governance: the attacker-controlled versus server-controlled input taxonomy (settings, environment variables, deployment config and constants are not attacker input), the framework-mitigated pattern list with the narrow conditions that do make each one a finding, the four check-the-context-first classes, and the confidence gate that keeps theoretical defence-in-depth observations out of the report."
     notes: "The repository root is Apache-2.0 but skills/security-review/LICENSE declares that directory's reference material derived from the OWASP Cheat Sheet Series under CC-BY-SA-4.0, so the stricter directory licence governs. Share-alike is incompatible with this repository's MIT licensing: no prose, table or code block was copied, only the checklist semantics, and every sentence here was written from scratch."
 
@@ -36,7 +36,7 @@ upstreams:
     commit: 49f948faa9258a0c61caceaf225e179651397431
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Repository-grounded threat modelling: trust boundaries written as concrete edges annotated with protocol, authentication, encryption, validation and rate limiting; asset and entry-point inventory; attacker capabilities stated together with explicit non-capabilities so severity is not inflated by an unstated worst case; qualitative likelihood times impact with the assumption that most drives the ranking named out loud."
     notes: "The repository has no root licence file (GitHub reports license: null), but skills/.curated/security-threat-model/LICENSE.txt is the full Apache-2.0 text, which governs this directory. Its step that pauses to have the user confirm assumptions before producing the report was reworked into stating the assumptions and marking conclusions conditional on them, because a single-turn audit that pauses produces nothing."
 
@@ -49,7 +49,7 @@ upstreams:
     commit: 49f948faa9258a0c61caceaf225e179651397431
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Cross-language invariants for the injection, authentication, authorization and secrets sections, and the fact-checking pass over them."
     notes: "Directory LICENSE.txt is the full Apache-2.0 text. Its per-language guides were not carried over: this repository already has python, typescript, go, java-spring, csharp-dotnet, laravel, nodejs-backend and fastapi skills that own language-specific correctness."
 
@@ -62,7 +62,7 @@ upstreams:
     commit: 49f948faa9258a0c61caceaf225e179651397431
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "One idea for the scoping phase: rank what to audit first by the ownership and bus factor of the sensitive paths, so an unowned security-critical module is reviewed before a well-staffed one."
     notes: "Directory LICENSE.txt is the full Apache-2.0 text. Its scripts, graph exports and Neo4j workflow were not carried over — they are a separate tool, not part of an audit pass."
 
@@ -72,10 +72,10 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/semgrep-rule-creator
     paths: [plugins/semgrep-rule-creator]
     ref: main
-    commit: e1f86a390d4caf28bf1c377a7d86707b2898669c
+    commit: 2be6433b39e009cd2b6fd3be1895f6b1faa5af9a
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The shape of the rule-writing workflow: write the annotated test file before the rule, prefer taint mode over syntactic patterns when the bug is a data flow, one rule per YAML file, and no todoruleid / todook escape hatches that defer a known gap."
     notes: "CC-BY-SA-4.0 is share-alike and incompatible with this repository's MIT licensing, so no prose, rule or test file was copied — only the checklist semantics, rewritten. Every command, exit code and severity claim in references/semgrep-rules.md was re-measured locally against semgrep 1.177.0 rather than taken from the upstream text."
 
@@ -85,10 +85,10 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/vulnerability-triage-brocards
     paths: [plugins/vulnerability-triage-brocards]
     ref: main
-    commit: e1f86a390d4caf28bf1c377a7d86707b2898669c
+    commit: 2be6433b39e009cd2b6fd3be1895f6b1faa5af9a
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The idea that false-positive control is a set of falsifiable dismissal tests rather than an exhortation to be careful, and the semantics of those tests: no finding without a threat model, no attacker capability that already exceeds the impact, nothing outside real usage, nothing that is correct implementation of a specification, nothing already documented with its security implications, nothing whose remediation costs more than the bug, and a CVE identifier proving neither presence nor absence."
     notes: "Share-alike; semantics only, all wording original. The upstream's audit-engagement and bug-bounty framing was dropped as irrelevant to a repository audit."
 
@@ -98,10 +98,10 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/insecure-defaults
     paths: [plugins/insecure-defaults]
     ref: main
-    commit: e1f86a390d4caf28bf1c377a7d86707b2898669c
+    commit: 2be6433b39e009cd2b6fd3be1895f6b1faa5af9a
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The six-way classification used when auditing configuration: debug features left on, default credentials, fail-open error handling, fallback secrets, permissive access, and weak cryptography selected by default."
     notes: "Share-alike; only the classification was taken. Its references/*.json fact datasets were not copied in any form."
 
@@ -111,10 +111,10 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/supply-chain-risk-auditor
     paths: [plugins/supply-chain-risk-auditor]
     ref: main
-    commit: e1f86a390d4caf28bf1c377a7d86707b2898669c
+    commit: 2be6433b39e009cd2b6fd3be1895f6b1faa5af9a
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Widening dependency review from 'does it have a CVE' to 'is this dependency itself a risk': maintenance state, release cadence, ownership changes and install-time code as first-class signals."
     notes: "Share-alike; semantics only. Its collect / model / render scripts were not copied."
 
@@ -124,10 +124,10 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/differential-review
     paths: [plugins/differential-review]
     ref: main
-    commit: e1f86a390d4caf28bf1c377a7d86707b2898669c
+    commit: 2be6433b39e009cd2b6fd3be1895f6b1faa5af9a
     license: CC-BY-SA-4.0
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Read to fix the boundary with the code-review skill, which already carries this material as its security-review-delta workflow. Confirmed that delta-shaped security review stays there and whole-surface auditing stays here; no content copied."
 
   - id: copilot-threatmodel
@@ -136,10 +136,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/threat-model-analyst
     paths: [skills/threat-model-analyst]
     ref: main
-    commit: 36e95dfda72140a68f577d5c894a551607606bd3
+    commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The ordering that keeps a threat model from degenerating into a checklist — inventory assets and entry points, then draw the boundaries, then apply STRIDE to each boundary — and the practice of rebuilding a threat model incrementally when the architecture moves rather than from scratch."
 
   - id: copilot-secrets
@@ -148,10 +148,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/secret-scanning
     paths: [skills/secret-scanning]
     ref: main
-    commit: 36e95dfda72140a68f577d5c894a551607606bd3
+    commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The leaked-credential ordering: revoke first, rotate second, deal with history last, because rewriting history invalidates nothing and every fork, mirror and clone keeps a working credential until it is revoked."
     notes: "Its GitHub product surface — configuring push protection, custom patterns, the alerts API — was left to the github skill by the boundary agreed for this batch."
 
@@ -161,10 +161,10 @@ upstreams:
     url: https://github.com/github/awesome-copilot/tree/main/skills/security-review
     paths: [skills/security-review]
     ref: main
-    commit: 36e95dfda72140a68f577d5c894a551607606bd3
+    commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Phase ordering for a whole-repository pass: resolve scope and stack, take the dependency manifests and the secret sweep first because they are cheap and high-yield, then spend the remaining effort on data-flow reading."
     notes: "Its box-drawing and emoji report template was not adopted — it misaligns in terminals and diffs and spends tokens on decoration. Its OWASP citations use the 2021 numbering, which this skill corrects to 2025."
 
@@ -177,7 +177,7 @@ upstreams:
     commit: ca53957bcd8e3b83b5d4d190bb3ad008a4f15c84
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The four-pass loop that separates auditing from scanning — build context, map the attack surface, hunt specific bug classes along the reachable paths, then prove exploitability before writing anything down — and the argument for why skipping straight to the hunt produces noise."
 
   - id: owasp-top10
@@ -185,7 +185,7 @@ upstreams:
     url: https://github.com/OWASP/Top10/tree/master/2025/docs/en
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The authoritative category names and numbering for the 2025 edition, the 2021 numbering it replaced, and the CWE mappings — including the fact that CWE-918 (SSRF) now sits inside A01:2025 Broken Access Control instead of being its own category."
     notes: "The repository's LICENSE file was read directly and is the full CC BY-SA 4.0 text, despite the GitHub API reporting NOASSERTION. Category names and numbers are cited as facts; no descriptive prose was copied."
 
@@ -194,7 +194,7 @@ upstreams:
     url: https://github.com/OWASP/ASVS/tree/master/5.0/en
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The ASVS 5.0.0 chapter set (V1 Encoding and Sanitization through V17 WebRTC) used as the coverage checklist for a whole-surface audit, and the renumbering against 4.0.x that makes an old chapter citation point at the wrong subject."
     notes: "LICENSE.md was read directly and is the full CC BY-SA 4.0 text. Chapter numbers and titles are cited as facts; no requirement text was copied."
 
@@ -204,10 +204,10 @@ upstreams:
     url: https://github.com/affaan-m/everything-claude-code
     paths: [skills/agent-security-hardening]
     ref: main
-    commit: b92f181b3b748d1abbc2afd94af6aa7d8c8fca29
+    commit: b38be6a7f6350964d59328b52f0624e1d1d552d1
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The pointer that path containment for code shipping to Windows must reject reserved device names, names ending in a period or space, and ':' in every component. Every fact in references/injection-and-deserialization.md was rewritten from Microsoft's own documentation (ms-windows-paths), not from this skill's prose."
     notes: "Community source. Its other points were not merged: component-wise containment, redirect re-validation and custom-header forwarding were already produced by the no-skill baseline (eval 9), and byte-bounded tool output and sentinel-secret log tests belong to agent-runtime engineering rather than auditing."
 
@@ -216,7 +216,7 @@ upstreams:
     url: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The Windows path-component facts: the reserved device names including the superscript-digit COM/LPT variants, trailing periods and spaces removed during normalization, ':' as drive-relative syntax and as the NTFS stream separator with 'file::$DATA' naming the default stream, and that a reserved name with an extension stopped mapping to a device in Windows 11."
     notes: "Read on 2026-10-15 together with https://learn.microsoft.com/en-us/windows/win32/fileio/file-streams and https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats (legacy devices and trailing-character trimming). Licence from the public MicrosoftDocs/win32 and dotnet/docs repositories (CC-BY-4.0). Facts cited, no prose copied."
 
@@ -229,5 +229,18 @@ upstreams:
     commit: 68177b8830f96cd9d10dacbb14dde2566360503d
     license: Proprietary
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Read to cross-check semgrep rule semantics against the vendor's own material. No content copied: the repository's LICENSE is a single line naming the Semgrep Rules License v1.0, a custom non-OSI licence, so this upstream is reference-only and permanently so. Every semgrep fact in this skill was measured locally instead."
+
+  - id: codex-security
+    kind: repo
+    repo: openai/codex-security
+    url: https://github.com/openai/codex-security/tree/main/plugins/codex-security/skills
+    paths: [plugins/codex-security/skills/finding-discovery, plugins/codex-security/skills/validation, plugins/codex-security/skills/attack-path-analysis, plugins/codex-security/skills/triage-finding]
+    ref: main
+    commit: 6f0a4caeada7ec9d543083634030c5c3bf9d47bc
+    license: Apache-2.0
+    relation: reference
+    synced_at: "2026-11-01"
+    contributes: "Read to cross-check the audit method against the vendor's own scanner workflow: candidates traced from attacker source through the closest control to the sink, a safe sibling implementation not deciding another instance, missing deployment evidence recorded as a proof gap rather than as safety, and impact, likelihood and policy decision kept separate. Equivalent to what cloudflare-audit and sentry-secreview already contribute; no content copied."
+    notes: "Root LICENSE is the full Apache-2.0 text. The skills are phases of the Codex Security CLI and MCP workbench (scan artifacts, receipts, record_* tool calls), so the procedure itself is not portable. Its per-class severity anchors in attack-path-analysis/references/severity-policy.md are the part to re-evaluate against a no-skill baseline if severity calibration ever shows a gap."
