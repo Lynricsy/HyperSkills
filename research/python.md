@@ -544,3 +544,13 @@ N2 总分达 INCLUDE 线但具体性仅 1、无增量内容，按「增量价值
 
 结论：队列一条在有 skill 时由 ◐ 变为 ✔，基线缺口得到填补，规则保留在 `asyncio.md` 与 debug-async 清单，不提升为核心规则。
 `uv_build` 上界仍只有文档与实跑证据（遗留不变）。
+
+## 2026-11-01 跨组命中评估
+
+其他组转来的上游新增文件，`gh api` 读原文后裁决。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| TerminalSkills/skills `skills/ty/SKILL.md`（Apache-2.0，188★，2026-10-30 推送；同仓已以 `terminalskills-uv` 追踪） | REJECT（不扩 paths） | `gh api repos/astral-sh/ty/releases` 最新 0.0.95（2026-10-29），README 仍写「currently in beta」「`0.0.x` versioning」，裁决 1（新项目默认 mypy/pyright，ty 作明确标注 beta 的逃生口）前提不变，`typing.md`「Which checker」现有表述仍准确。候选的增量是 ty 自身用法（`[tool.ty.rules]`、`# ty: ignore[rule]`、`--add-ignore` 基线、`--output-format github`、各编辑器接入），属单一工具手册；其「旧检查器与 ty 并行跑到诊断一致」与本 skill「CI 不跑两个检查器」冲突。ty 发布 1.0 时按「后续追踪」重审裁决 1 |
+
+正文无改动，无需 D2。
