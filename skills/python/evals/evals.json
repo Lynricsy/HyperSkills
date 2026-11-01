@@ -15,7 +15,8 @@
       "Converts weekly_report.py to PEP 723 inline metadata (`# /// script` block created with `uv init --script` / `uv add --script`) so `uv run weekly_report.py` needs no prior install, and notes that a `dependencies` key must be present even when empty",
       "Deletes setup.py, requirements.txt and requirements-dev.txt as part of the cutover instead of leaving both dependency sources in the tree",
       "Replaces black + isort + flake8 with ruff (`ruff format` and `ruff check` as two separate commands) rather than keeping the old three-tool chain alongside it",
-      "Audits the tree for leftovers the cutover invalidates - old commands in CI, Makefile, README or pre-commit config, and `# noqa` pragmas or `[tool.black]` / `[tool.isort]` sections for tools that are no longer installed - rather than only writing the new configuration"
+      "Audits the tree for leftovers the cutover invalidates - old commands in CI, Makefile, README or pre-commit config, and `# noqa` pragmas or `[tool.black]` / `[tool.isort]` sections for tools that are no longer installed - rather than only writing the new configuration",
+      "Gives the package a `[build-system]` table; if it picks `uv_build`, the requirement carries an upper bound on the next minor (e.g. `uv_build>=0.13.6,<0.14`, as `uv init` writes), not an open-ended `uv_build>=…` (any other backend is acceptable)"
     ]
   },
   {

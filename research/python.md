@@ -507,3 +507,26 @@ N2 总分达 INCLUDE 线但具体性仅 1、无增量内容，按「增量价值
 | pypa-docs | `license-files`；license table 子键被 PEP 639 弃用 | https://packaging.python.org/en/latest/specifications/pyproject-toml/ | 一致 |
 
 正文改动：`references/asyncio.md`（新节 Producer/consumer queues + 目录 + sources）、`references/packaging.md`（`uv_build` 上界 + 版本行）、`SKILL.md`（debug-async 一条清单、Topic router 一格）。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 c8f4c65（`asyncio.md` 新节 Producer/consumer queues + debug-async 清单；`packaging.md` 的 `uv_build` 上界）。有 skill 的运行均晚于该提交；场景 8 的基线为同日早些时候的缺口评测（场景与夹具未变，按规则复用）。模型 omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/G05-backend/python/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md`、`workspace/` 与 `events.jsonl` 人工判定。
+
+选场景：
+
+- 场景 8（新增）：直接考察队列一条（EB3）。
+- 场景 1：唯一会写 `[build-system]` 的场景；为覆盖 `uv_build` 上界更正新增 EB8（选 `uv_build` 时须带下一 minor 上界，选其他后端也算达成），两侧新跑。
+- 场景 4：负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 ingest 升级 3.14 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✘ EB5 ✘ | 135 s。只读了 SKILL.md（未读 `references/asyncio.md`）；`asyncio.run` + `get_running_loop`、`initializer/initargs` 修好两处 3.14 变化，其余原样保留：`None` 哨兵、无界队列、未持有的 `create_task` + `gather`、无状态检查与超时 |
+| 8 | gpt-6.1-sol medium | 无（复用同日缺口评测） | False | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✘ EB5 ✘ | 见「上游新增内容评估」节 |
+| 1 迁移到 uv | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✔ EB7 ◐ EB8 ✔ | 192 s。`uv add` 迁依赖与工具组、CI 全用 `--locked`、PEP 723 + `uv lock --script`；保留 setuptools 后端（`setuptools>=77,<81`），`uv_build` 分支未触发；未说明空 `dependencies` 也须存在，未审计 `noqa` |
+| 1 | gpt-6.1-sol medium | 无 | False | EB1 ✘ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✘ EB7 ✘ EB8 ✔ | 147 s。手写 `pyproject.toml`（事件流无 `uv add`）；black/isort/flake8 原样搬进 `dev` 组；后端 `setuptools>=61` |
+| 4 负例（TypeScript 判别联合） | gpt-6.1-sol medium | 有（挂载） | False | 全部 ✔ | 34 s。纯 TypeScript 答案 |
+
+结论：无回退——场景 1 有 skill 仍明显优于基线，负例 `skill_read == false`。但两处正文改动在本轮都**没有被行为证据覆盖**：
+
+- 队列一条：场景 8 有 skill 一侧把请求理解为「只修 3.14 引起的两处」，没读 `asyncio.md`，连既有核心规则 19/20（持有 `create_task`、TaskGroup 优先）也未应用，EB3/EB4 与基线同为 ✘。这是场景措辞让模型收窄范围，不是规则内容错误；队列规则仍只在 debug-async 清单与 reference 中，要让模型在「修复型」请求里主动应用，需要提升为核心规则（现 23 条，上限 25）或改写场景提问，本轮未做，列为遗留交主人决定。
+- `uv_build` 上界：场景 1 两侧都沿用 setuptools，`uv_build` 分支未触发；更正本身已用 uv 文档与 `uv init` 实测核实。
