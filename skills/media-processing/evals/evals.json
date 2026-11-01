@@ -83,5 +83,15 @@
       "Says `strip` is deprecated and uses `keep=none` in the save options to drop all metadata, including GPS",
       "Keeps vipsthumbnail and the existing save options (`Q=80`, `%s` basename, smartcrop) rather than switching tools or looping per file to work around the path"
     ]
+  },
+  {
+    "skills": ["media-processing"],
+    "query": "upload_worker.py is the ffmpeg step behind our public 'upload a clip, get a web-ready MP4' endpoint. Security wants a review before launch. What needs to change in how it calls ffmpeg?",
+    "files": ["evals/files/upload_worker.py"],
+    "expected_behavior": [
+      "Explains that ffmpeg picks the demuxer from the file's content, not its extension, so an upload named .mp4 that is really an HLS playlist (or a concat list) makes the worker open whatever URLs or local paths it references - the metadata service, the internal admin API, /etc files - and fixes it by forcing an allow-list of demuxers (`-f` / `-format_whitelist`) and restricting protocols (`-protocol_whitelist file`, or rejecting playlist-type inputs after an `ffprobe` format check)",
+      "Treats the user-supplied name as data: the output name is generated server-side (or sanitised) so `original_name` cannot traverse directories, overwrite another job's output via `-y`, or start with `-` / a protocol prefix that ffmpeg would read as an option or URL",
+      "Bounds the work an upload can cause: a timeout on each subprocess and a duration/resolution/size check from `ffprobe` before transcoding (or `-t` caps), and runs the worker without access to the internal network where possible"
+    ]
   }
 ]

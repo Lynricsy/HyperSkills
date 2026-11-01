@@ -666,3 +666,34 @@ kajisho 逐项：
 结论：场景 1 有 skill 4✔3◐ 对基线 1✔3◐3✘，VP9 一条按更正后口径表述（未误称 4.3+ 下 `-crf` 单独即 CQ）；6 修正后 4/4 对 3✔1◐；7 两侧 3/3（基线已会，作哨兵保留）；负例 `skill_read=false`。
 
 遗留：场景 1 E3 有 skill 删掉 `setsar=1` 但只说「保留 SAR 防止变形」，没点出 scale 本身保持 DAR（基线 ✘），为部分达成。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照与工作单 `/tmp/hs-sync/media-processing.md`。kajisho-ffmpeg 用 `gh api .../contents?ref=` 取 `SKILL.md` 两版 diff；其余用裸仓库 `git diff`。`--pin` 后逐条比对写入 commit 与审阅 HEAD：全部一致。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| kajisho-ffmpeg | f62e7d0 → 1ce2c18 | `SKILL.md` 压缩重组（v3.0.0 要求 FFmpeg 6.1+ / Python 3.10+，细节移入 `references/*`，「Things that look right but are wrong」一行规则保留但去掉细节）；`docs/contract.md` 与 `scripts` 约 50 个提交：拒绝 playlist 输入、协议前缀与形如选项的输出路径，只从 PATH 找 ffmpeg，fcpxml 禁实体展开，BT.601 源转换到其被标注的 BT.709、RGB/JPEG 静帧转 BT.709，`--retag` 重写流自身色彩标签，拼接/精确裁切让画面从 0 开始，旋转帧按显示尺寸测量，导出保留字幕与数据流，静音裁切默认 0.2 s 余量等 | 我们取的探测-计划-执行-回读-看画面闸门与陷阱集（VFR、HDR 与 log、关键帧裁切、CJK 字形、偶数尺寸、旋转）在新版中不变，正文不改。两条候选新规则另行评测先行（见下「待定」）：不可信上传的 ffmpeg 输入（按内容选 demuxer → playlist/concat 引用任意 URL 与本地文件）与 BT.601 → BT.709「标注不等于转换」 |
+| vertex-genmedia-av | 7a70f3b → 0ed98d5 | `genmedia-audio-engineer`：Gemini 3.8 TTS 只出 WAV/PCM/μ-law/A-law，要 MP3 需本地转码 | 噪声：本条只取 ffmpeg 半边（装配顺序、PCM 包 WAV），不变 |
+| terminalskills-ffmpeg / -imagemagick / -sharp | 6edcf94 → 8a9852d | 33b765f metadata 列表改逗号字符串；29c6fba/024bbc2/6d4d4ba「freshness wave」刷新与 `_scores.json` | 噪声：我们取的选型表、几何后缀、sharp 元数据语义未变 |
+| maxazure-video | 8750290 → 2a5fc0a | 新增教程配套草稿导出 | 噪声：fail-closed HDR→SDR 规则与审片代理不变 |
+| einverne-imagemagick | 4fd1346 → 5324d9f | 9ac8792 skill 迁到 einverne/agent-skills，tracked path 被删除 | **路径失效，待处理**：本条为 reference（GPL-3.0），本轮保留旧路径并记录，下次同步改指向新仓库或移除 |
+
+## 2026-11-01 上游新增内容评估（本轮只完成初判）
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| NVIDIA/skills `cdf-image-attribute-augmentation` / `cdf-video-data-augmentation` | REJECT | Cosmos Data Factory 数据增强 DAG，单产品 |
+| first-fluke/oh-my-agent `oma-image` / `oma-video` | REJECT | 上游自用编排流程 |
+| laurigates/claude-plugins `video-plugin/skills/*`（7 个） | 待定 | 未逐个读原文，留下次 |
+| tushaarmehtaa/tushar-skills `image-editing` | 待定 | 未读原文，留下次 |
+| github/awesome-copilot `caption-qa`（generative-media 移交） | 待定 | 字幕阅读速度/行长按 Netflix/BBC/DCMP 校验；是否扩 Scope 需主人决定 |
+
+### 评测先行（进行中）
+
+- 新增场景 8（`evals/files/upload_worker.py`：公开上传转码的 ffmpeg 调用安全审查），基线已入队 `/tmp/hs-d2/G08-ai-media`，结果出来前不合入任何正文。
+- BT.601 → BT.709 候选未建场景。
+
+## 2026-11-01 文档上游复核
+
+本轮未完成（11 条 `kind: docs` 条目），`synced_at` 保持 2026-10-15，留待下次。
