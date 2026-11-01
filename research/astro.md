@@ -94,3 +94,37 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 | withastro-docs | v7 升级指南：Rust 编译器、`src/fetch.ts` 保留名、Sätteri、`compressHTML: 'jsx'`、实验标志移除、`getContainerRenderer()` 弃用、`@astrojs/db` 移除 | `upgrade-to/v7.mdx`（2026-08-24 后无改动） | 一致 |
 
 5 组事实中 4 组过时或错误并当场修正；`withastro-docs` 的 `synced_at` 更新为 2026-11-01，notes 补「文档与源码冲突以源码为准」的记录。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "astro skills"`（`--updated >=2026-10-15`；命中多为占星 `astro` 同名噪声）、`gh search code astro:content --filename SKILL.md`、
+`github/awesome-copilot` 区间新增文件（仅站点 `.astro` 页面，无 Astro 指令文件）、`withastro` 组织近期新建仓库（`factory`、`recall` 等均非 skill）。
+
+| 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| olorehq/olore `vault/packages/astro/latest` | 114 | 2026-10-31 | MIT | 1 | 3 | 1 | 3 | 2 | 10 | REJECT（重复来源） | 把 docs.astro.build 打包成本地 `.mdx` 副本 + 目录索引，不含规则；分数够但内容等于已追踪的 `withastro-docs` 一手来源，合入会把同一来源算两次 |
+| 0xDarkMatter/claude-mods `skills/astro-ops` | 80 | 2026-10-31 | MIT | 1 | 3 | 2 | 0 | 2 | 8 | REJECT（事实错误） | 自称「verified as of 2026-07」，渲染决策树却以 `output: 'hybrid'` 为核心选项——该值 Astro 5 已移除，正是本 skill「Read first」点名的头号错误 |
+| sickn33/agentic-awesome-skills、davila7/claude-code-templates、diegosouzapw/awesome-omni-skills、TerminalSkills/skills 等的 `astro/SKILL.md` | — | — | — | 0 | — | — | — | — | ≤4 | REJECT | 聚合/转载仓库，非原创来源 |
+| baiosfera/zerops-astro-skills | 0 | 2026-10-31 | — | 0 | 3 | — | — | 0 | ≤4 | REJECT | 0 star、无许可、单一托管商（Zerops）目录 |
+
+## 2026-11-01 D2 回归
+
+覆盖提交：`e59f32e`（Node 下限、7.4 基线、无 loader 集合静默为空、`collectionsBackwardsCompat`，场景 2 的 EB2/EB4 改写）。口径 omp + `openai/gpt-6.1-sol` medium，
+隔离 VM，串行，输出 `/tmp/hs-d2/G01b-svelte-astro/astro/omp-openai-gpt-6.1-sol-medium/`；「有 skill」晚于 `e59f32e`，基线当天新跑。
+选择理由：场景 2 是唯一覆盖内容集合迁移的场景，且本次改了它的 expected_behavior（两侧必须重跑）；Node 下限与 7.4 版本号无场景覆盖，属纯版本事实，
+未单独加场景（由官方 Install 页与 npm engines 直接核实）；4 为负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 content collections 迁移到 Astro 7 | gpt-6.1-sol medium | 有 | true | ◐1 ◐2 ◐3 ◐4 ✔5 ✔6 ◐7 ✘8 ◐9（2✔6◐1✘） | 109 s。读了 `content-collections.md`、`removed-and-changed-apis.md`；在隔离 astro@7.4.4 工程跑通 `astro sync/check/build/preview`。位置迁移、`loader: glob()`、`astro/zod`、`z.url()/z.email()`、`entry.id`、`getEntry(reference)`、`render()`、`import.meta.glob` 全做；但未用 `z.coerce.date()`、未说 `import.meta.glob` 非 promise、只在验证里跑 `astro sync` 而未建议用户跑；把 Zod 项称为「deprecations」（EB4 半条），未提无 loader 集合会静默为空 |
+| 2 | gpt-6.1-sol medium | 无 | false | ◐1 ◐2 ✔3 ✘4 ✔5 ✔6 ✔7 ✘8 ✘9（4✔2◐3✘） | 130 s。用 astro@7.0.0 实测；`z.coerce.date()`、`import.meta.glob` 同步取值到位；所有项一律称「cumulative migrations」，不区分移除与弃用；未提 `astro sync` |
+| 4 负例（React effect 循环） | gpt-6.1-sol medium | 有 | false | ✔1 ✔2 ◐3 ✘4（2✔1◐1✘） | 59 s。按 React 回答，零 Astro 内容；依赖仍保留 `filters` 对象，未提 AbortController / 过期响应 |
+
+结论：负例 `skill_read=false`。场景 2 两侧都完成了全部机械迁移；有 skill 一侧在「区分移除与弃用」（EB4）、`astro sync`（EB9）上仍比基线多半条，
+但在 `z.coerce.date()`（EB3）、`import.meta.glob` 非 promise（EB7）两条与本次改动无关的细节上少于基线——这两处 reference 本次未改，属单次运行波动，
+记为观察项。本次新增的事实「无 loader 集合静默为空」两侧都未触发：夹具的配置仍在旧路径，`LegacyContentConfigError` 先于该行为出现，
+所以该更正由源码阅读与本机 astro@7.4.4 实跑（见文档复核表）而非本场景证明。EB8（`Astro.site`）沿用 2026-09-29 的判断：夹具里的 `Astro.site`
+在模板而不在 `getStaticPaths()` 内，该条预期偏题，两侧均未达成。
+
+遗留：若要让评测直接覆盖「无 loader 集合静默为空」，需要一个配置已在 `src/content.config.ts`、但仍带 `type: 'content'` 且无 loader 的新夹具（本轮未加，
+理由：该事实已由实跑证明，且基线是否已会不影响事实更正的合入）。
