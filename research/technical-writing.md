@@ -394,3 +394,19 @@ README 新增条目、`/tmp/hs-attr/github__awesome-copilot` 3cf7c7e..5269f7e �
 五条 `synced_at` 改为 2026-11-01。正文改动仅 `references/human-voice.md` 一处；为它新增回归场景 12（段落内链接带 `utm_source=copilot.com`、
 `utm_source=chatgpt.com` 与普通 newsletter 活动参数）。基线（27 s）删掉了两个助手参数、保留 newsletter 参数、正文不动，但只给出清理后段落、
 没有说明它们是 AI 工具留下的标记（EB1 ◐、EB2 ✔、EB3 ✔）。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 640a77a（`references/human-voice.md` 助手标记补 `utm_source=copilot.com`）。受影响场景为新增的 12；负例 5。口径 omp + `openai/gpt-6.1-sol`
+medium，隔离 VM，`--out /tmp/hs-d2/G12-meta`，单场景串行；有 skill 结果晚于正文提交。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12（新增） | gpt-6.1-sol medium | 有 | true | 1◐ 2✔ 3✔ | 11 s。删去 `utm_source=copilot.com` 与 `utm_source=chatgpt.com`，保留 newsletter 活动参数，正文与命令不动；只交清理后段落，没有说明删掉的是 AI 工具标记 |
+| 12（新增） | gpt-6.1-sol medium | 无 | false | 1◐ 2✔ 3✔ | 27 s。输出与有 skill 逐字相同 |
+| 5（负例，mkdocs-material 文档站） | gpt-6.1-sol medium | 有 | **true** | — | 123 s。读了 skill 后只做工具链（`mkdocs.yml`、依赖锁定、Pages 工作流）。今天未改 description（最近一次是 db1dcc0，早于本轮），属既有路由问题，与 2026-10-15 记录一致，未改 description |
+
+（队列脚本的成功判定写错，每个场景实际串行跑了 3 次，表中为最后一次的产物。）
+
+结论：场景 12 两侧持平、无回退；EB1 的「点名原因」两侧都只做到一半，与本次一行补充无关，未为此加规则。负例 5 继续误读，按流程如实记录，
+留给 description 维护流程处理。
