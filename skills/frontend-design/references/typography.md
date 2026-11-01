@@ -42,7 +42,9 @@ signal that the scale is being improvised.
 Control hierarchy with weight and color before scale:
 
 - Headings: 600-700. Body: 400. Small labels: 500.
-- One `h1` per page. Never skip heading levels, and never use a heading style for non-heading content.
+- Give the page one unmistakable primary heading. Several `h1` elements are valid HTML and no WCAG
+  criterion limits the count, so their number is not a defect. Never skip heading levels, and never
+  use a heading style for non-heading content.
 - An enormous `h1` that only shouts is weaker than a moderate `h1` with real contrast against its
   surroundings.
 
@@ -136,7 +138,7 @@ These are the ones worth flagging in a review with a `path:line`:
 - More than two families, or a third family used once.
 - Body measure over ~80 characters with no `max-width`.
 - Body text below 16px on small screens.
-- A heading level skipped, or more than one `h1`.
+- A heading level skipped, or a page with no single primary heading.
 - A single word in a headline switched to another family or color.
 - Updating numbers without `tabular-nums`.
 - Button or input without `font: inherit`.

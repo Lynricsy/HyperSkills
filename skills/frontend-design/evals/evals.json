@@ -190,5 +190,27 @@
       "Specifies the icon approach: a named set with a stroke weight matched to the text weight, or a deliberate choice of no icons, rather than an unexamined Lucide or Heroicons default or leaving icons unspecified",
       "Applies a distinctiveness check to the first viewport, such as swapping in an unrelated product name to see whether it still holds, or comparing its structure against named competitors, and says what that check changed"
     ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Our CI accessibility step runs `npx axe-core http://localhost:4173` and fails with \"could not determine executable to run\". Also, the audit report we were handed (generated with Lighthouse 11.7) fails our pricing page for two things: \"multiple h1 elements\", because the hero heading is an h1 and each plan card uses an h1 for the plan name, and \"tap targets are not sized appropriately\" for a row of 32x32 CSS px icon buttons with 12px gaps between them. Give me the working CI command, and tell me which of these findings are real WCAG 2.2 AA failures and what, if anything, to change.",
+    "expected_behavior": [
+      "Explains that `axe-core` is a library with no executable and replaces the step with the separate CLI package, for example `npx --package=@axe-core/cli axe http://localhost:4173` or `npx @axe-core/cli http://localhost:4173`, noting it needs a browser and driver",
+      "States that several h1 elements are not a WCAG 2.2 failure (valid HTML, no success criterion limits the count) and does not demand exactly one h1; may still recommend one primary heading with plan names as h2/h3 as a structure improvement",
+      "States that 32x32 CSS px targets meet SC 2.5.8 (AA, at least 24 by 24 CSS px), and that Lighthouse 11's tap-targets audit is an older 48px heuristic rather than an SC 2.5.8 verdict; mentions that Lighthouse 12+ replaced it with axe's target-size rule or recommends checking with axe target-size instead"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "Critique revenue-dashboard.html, our SaaS revenue overview. Today is the 18th of the month. Rank the problems from most to least harmful and give the fix for each.",
+    "files": ["evals/files/revenue-dashboard.html"],
+    "expected_behavior": [
+      "Flags the month-to-date revenue compared against the whole of last month (the -41% delta and the solid 31-day orange line) as misleading, and fixes it by comparing the same elapsed period (days 1-18) and marking the unfinished current period, for example dashed or labelled partial",
+      "Flags that cost per lead rising is shown in green as a good change; for lower-is-better metrics the delta colour must flip (rise = bad) or stay neutral",
+      "Flags the red -100% on refunds as a percentage on a tiny base, and fixes it with the absolute change (for example 'was 1' or '1 to 0') shown neutrally",
+      "Flags APAC churn shown as $0 when the data has not been imported, and fixes it with an explicit no-data mark such as an em dash rather than a zero",
+      "Flags that revenue disagrees between the KPI ($1.24M) and the table total ($1,198,400) and requires one consistent figure",
+      "Ranks the honesty problems (wrong comparisons, misleading colours, disagreeing or fake numbers) above layout and styling issues, and treats the explanatory sentences under each KPI as clutter to remove or move to tooltips"
+    ]
   }
 ]

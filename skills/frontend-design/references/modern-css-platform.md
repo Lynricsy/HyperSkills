@@ -1,7 +1,7 @@
 # Modern CSS and HTML platform features
 
-Verified against: `modern-web-guidance` (Google Chrome), 143 guides across 14 categories, queried
-through the published npm package.
+Verified against: `modern-web-guidance` (Google Chrome) 0.0.196, 192 guides across 16 categories,
+queried through the published npm package.
 
 The point of this file is not to list which features are supported. Support moves, and any list
 written down here would be wrong within months. The point is to make the tool the source of truth
@@ -106,7 +106,7 @@ support does, but this list is a shortcut, not a substitute.
 | Styleable select, autofill-friendly forms | `branded-select-styling`, `brand-consistent-forms`, `autofill-sign-in-form` |
 | Validate only after the person has interacted | `validate-input-after-interaction` |
 | Announce a form error to assistive technology | `accessible-error-announcement` |
-| Locale-aware durations, calendars, relative time | `format-human-readable-durations`, `support-global-calendar-systems` |
+| Locale-aware durations, calendars, relative time | `calculate-event-differentials`, `support-global-calendar-systems` |
 | Broad overviews | `css`, `css-layout`, `html`, `performance`, `accessibility`, `forms` |
 
 ## Fallback shapes

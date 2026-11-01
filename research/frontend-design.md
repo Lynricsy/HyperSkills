@@ -713,3 +713,67 @@ expected_behavior 与当前逐字一致；场景 13 基线（11:56）的期望 5
 | `review-checklist.md` §5 | 「正文行高至少约 1.6」丢了 `[community]`、非硬标准的限定 | 改为按 `typography.md` 的社区起点判断，只在约 1.4 以下报；数字与单位一条限定到标题与展示行 | 与 `typography.md` 原文一致（R18） |
 
 回归：只重跑场景 14 有 skill（`/tmp/hs-oil/s14r`，91 s）：1✔ 2◐ 3✔ 4✔ 5✔ 6◐ 7✘ 8✔ 9✔，与修正前相同，且没有把正文的正常断行报成问题。
+
+## 2026-11-01 上游同步
+
+依据主代理快照与工作单 `/tmp/hs-sync/frontend-design.md`；四个移动过 tracked paths 的仓库都用 `gh api …/compare` 读 patch。上午合入 oil-ui 时其余上游未重新 pin，
+本节一并 re-pin。`--pin` 写入的 commit 与快照 HEAD 逐条一致（`8bfcc1f` ×2、`12af471`、`4f2b13e`，以及噪声条目 `ca45fc4`、`7de210b`、`a81dbca`、`bf41cbc`、`7e2fb55`），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| addy-frontend-ui | aeac41d → 8bfcc1f | `references/accessibility-checklist.md`：`07e0a68`/`9ec85eb`「run the axe CLI, which has a binary」——`npx axe-core` 改为 `npx --package=@axe-core/cli axe <url>`；`57bfe5d`/`6cd2939` 大字号阈值写全（18pt/24 CSS px，或粗体 14pt/约 18.67 CSS px）并加「不要把不达标的对比度四舍五入到阈值」；`6f9906e` HTML 示例 `htmlFor`→`for`；`d14cf2d` 加载区加 `role="status"`。`frontend-ui-engineering/SKILL.md` 同 react 节 | **事实更正（合入）**：`references/accessibility.md` 测试段原写 `npx axe-core`。本机实跑：`npx -y axe-core --version` 报「npm error could not determine executable to run」，`npx -y --package=@axe-core/cli axe --version` 输出 4.14.0；`npm view axe-core bin` 为空、`@axe-core/cli` bin 为 `axe`。改为 CLI 包并注明需要 Chrome 与匹配的 ChromeDriver（`axe-core-npm/packages/cli/README.md`）。大字号阈值：`color-and-tokens.md` 已写「18.66px bold, or 24px」，不改；「不四舍五入」为新增规则，未合入。`htmlFor`、`role="status"`：本 skill 无对应示例 |
+| addy-performance | aeac41d → 8bfcc1f | `ee3e850` `npx lhci autorun`→`npx --package=@lhci/cli lhci autorun`（无前缀 `lhci` 是占位包：`npm view lhci description` = `placeholder anupamas0x1`）；`0c65ba7` Lighthouse 示例 `https://localhost`→`http://localhost`；`8622a3d` attribution 构建的 `onINP` 起别名 | 无影响：本 skill 不含 `lhci`、Lighthouse CLI 与 attribution 导入示例（`performance-core-web-vitals.md` 只有标准构建的 `onLCP/onINP/onCLS`） |
+| leonx-taste | f624f37 → 12af471（27 提交命中） | `825e306` 删除 `skills/taste-skill-v2-experimental`（本 skill 合入的拨盘版正文所在路径）；`skills/taste-skill` v2.1：新增 app-screens 分支（`references/app-screens.md` 1,199 行、`draw.mjs --app`、`assets/app.css`/`charts.js`）、滚动场景（`scenes.md`、`scenes.mjs`）、「frame」规则（左右外边距相等、不得半屏留空、空白段不超过半屏、每节有标题、首屏 `h1` 标题）、控件自解释与字段限制用 `aria-describedby`、在生产构建上跑检查器；inspector/lint/cdp 脚本修复 | **路径删除 → 按 Phase B 重新裁决**：已合入内容对应 `f624f37` 时的 v2-experimental 正文，上游不再维护；`paths` 改为只追踪 `skills/taste-skill`，notes 记录删除提交。新增内容**不合入**：app-screen 流程、滚动场景与 frame 规则依附其 draw/inspect 工具与 house style（「首屏唯一 `h1`」还与 R11 冲突）；`aria-describedby` 关联字段说明已在 `forms-and-inputs.md` |
+| chrome-mwg | b31dc0a → 4f2b13e（`65e7edd` v0.0.195、`4f2b13e` v0.0.196） | SKILL.md 触发描述与「2–5 词、单一能力」查询建议；删除 `format-human-readable-durations`、`manage-recurring-intervals`、`model-partial-time-concepts`、`stabilize-reactive-state`、`sequence-distributed-events`；新增 card/dialog/menu/progress、icons、2d-panning、quick-sign-ins、secure-external-subresources 等；多处 Baseline 文案补日期，grid lanes 改为「尚无主流浏览器原生支持」 | **事实更正（合入）**：`modern-css-platform.md` 目标→指南表引用的 `format-human-readable-durations` 已删除——`npx -y modern-web-guidance@latest retrieve` 报「No guide found」；替换为 `calculate-event-differentials`（Temporal + `Intl.DurationFormat`），并逐个 `retrieve` 表内全部 id，均可解析。`list` 实测 192 个指南、16 类，「Verified against」行与 notes 更新。Baseline 支持度本 skill 不写死（交给工具），无需改 |
+| anthropic-frontend-design / antfu-design / emil-animations / uiux-pro-max / wshobson-a11y | 噪声 | paths 未变 | 只 re-pin |
+
+阶段 4 / 遗留项另修三处：
+- **R11 遗留**：`typography.md`「One `h1` per page」与可检查规则「more than one `h1`」改为「一个明确的主标题；多个 `h1` 合法、无 WCAG 条款限制数量，不算缺陷；不跳级」，与 `accessibility.md`、`review-checklist.md` 一致。
+- **Lighthouse tap-targets**：`SKILL.md` Environment 与 `accessibility.md` 原写「Lighthouse 的 tap-target 审计仍用旧启发式」。`GoogleChrome/lighthouse` `core: remove tap-targets and show target-size in a11y (#15906)`（2024-04-01）：v11.7.1 仍有 `core/audits/seo/tap-targets.js`，v12.0.0 起删除；当前 13.6.0 的 `default-config.js` 在 a11y 组以权重 7 运行 axe `target-size`。改为「Lighthouse 12+ 运行同一 axe 规则；11 及更早的 48px tap-targets 不是 SC 2.5.8 结论」。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| emilkowalski/skills `skills/remove-animations`（MIT，已追踪仓库） | REJECT | 「只做减法」的工作流；判据（键盘触发、日均 100+ 次、功能性数据上的动画删除）已在 `layout-density-motion.md` 的频率表与「Never animate a keyboard-initiated action」覆盖 |
+| ericrisco/rsc-harness `skills/ux`（MIT，415★） | REJECT | 方法文件 + 原样拷贝的两份第三方 MIT skill（`upstream/`），可用性通则与本 skill `ux-guidelines-catalog.md`、状态设计重叠；聚合仓库，非原始权威 |
+| event4u-app/agent-config `src/skills/type-design`（MIT） | REJECT | 从字标构建字体（字形轮廓、字体构建）——属字体/品牌识别设计，在 `## Scope` 否定列表「brand identity systems」内 |
+| first-fluke/oh-my-agent `oma-design` / `oma-frontend` / `oma-architecture` / `oma-brainstorm`（6 份，MIT） | REJECT | 多代理编排的路由壳（Scheduling / Intent signature / 选择外部 design skill），自身无设计规则 |
+| nexu-io/open-design `motion-kinetic-motion-designer`、`motion-semantic-color-stripes` | REJECT | 单个视频模板的改编说明（场景表、时长、资源文件），非可复用规则 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/interface-design`（MIT，12★） | REJECT | 通用界面设计方法（模式选择、按表面建模），与本 skill `design-direction` 流程重叠，无新增可验证事实 |
+| tushaarmehtaa/tushar-skills `plugin/skills/remove-ai-slop`（C2，MIT） | REJECT | HARD BAN / STRONG PRESUMPTION 三级判定框架；具体模式与 `ai-tells-and-calibration.md` 重叠，框架本身是本 skill「Where the brief pins a direction, the brief wins」的另一种表述 |
+| TencentCloudBase/CloudBase-AI-Toolkit `ui-design` / `web-development`（4 份，MIT） | REJECT | CloudBase 产品插件内的设计/开发 skill（依赖同插件兄弟 skill、小程序目标），单一商业产品手册 |
+| TerminalSkills/skills `skills/chartjs`（Apache-2.0） | REJECT | Chart.js 单一库手册；图表可访问性通则已在 `ux-guidelines-catalog.md`「Charts and data」 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（`frontend-design`、`design skill`、`react skills` 等，`--created >2026-08-01`，查询间隔 4 s）；`VoltAgent/awesome-agent-skills` README 10-15 以来新增行；
+`github/awesome-copilot` 3cf7c7e..5269f7e 新增文件（无前端设计相关）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| abdiraimov-otabek/dashboard-design-skill `skills/dashboard-design` | 196 | 2026-10-28 | MIT | 1+3+3+3+2=12 | **INCLUDE（窄合入）**：仪表盘的「诚实」规则（同期比较、指标极性决定涨跌色、小基数不报百分比、缺数用 —、同一数字处处一致、KPI 卡不写句子）。新增场景 17 基线已会其中 4 条（见下），只合入基线未达成的两条到 `ux-guidelines-catalog.md`「Charts and data」；新增 upstream `dashboard-design`（pin `b813324`） |
+| feimacode/open-design-agent-kit | 664 | 2026-10-31 | MIT | 1+3+0+1+2=7 | REJECT：仓库含 1,191 个 `SKILL.md`；抽读的 `card-xiaohongshu`、`deck-swiss-international` 都是 `<!-- generated:open-design-agent-kit -->` 存根，正文只是「调用 open-design MCP 的 `prepare_open_design_brief`，再 `register_open_design_artifact`」，规则在其 MCP 服务端，skill 本身无可审内容；模板类型（小红书卡片、幻灯片）多在 Scope 否定列表的版式/海报设计内 |
+| Moddingflow/better-design `skills/better-design` | 47 | 2026-10-27 | MIT | 1+3+2+3+2=11 | MAYBE（不合入）：实读 SKILL.md §1–2——无视觉线索时「发牌」定方向（排除模型前两名习惯）、DESIGN.md 作为唯一取值来源、AI-slop 目录、设计契约与视口矩阵（含 75%/150% 缩放）。与本 skill 的 calibrate/cliché gate（leonx-taste、oil-ui 合入）及 review 流程高度重合；未见本 skill 缺失的可验证事实。创建 5 周，留观察 |
+| elhuzain/claude-nextjs-skills `frontend-architectural-design` | 2 | 2026-10-30 | 无 | 0+3+1+3+0=7 | REJECT：单一审美预设（「建筑事务所作品集」风格的 token 与 Next.js 模板），无许可 |
+
+### 场景 17 基线（合入门槛）
+
+新增场景 17（夹具 `evals/files/revenue-dashboard.html`：18 日的 MTD 收入对比整月、CPL 上涨标绿、退款 1→0 标红 −100%、APAC 流失未导入却显示 $0、
+KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）。产物 `/tmp/hs-d2/G01-web-ui/frontend-design/omp-openai-gpt-6.1-sol-medium/baseline/17/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 17 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ **3✘** 4✔ 5✔ **6◐** | 58 s，渲染了 390px。1–18 日同期比较并标出第 18 日、对比线弱化/虚线；CPL 涨标绿判为误导；APAC 改「Not imported / —」并标注合计不完整；两处收入不一致。未达成：退款只说「颜色方向反了」，保留 −100%，没指出 1→0 的小基数百分比误导；KPI 下的句子只批评为「无证据的因果与预测」，未提出移到 tooltip/下钻 |
+
+只把 3、6 两条写入 `ux-guidelines-catalog.md`「Charts and data」。
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| w3c-wcag22 | SC 2.5.8 Target Size (Minimum) Level AA 24×24 CSS px 及间距例外；SC 2.5.5 Level AAA 44×44；SC 1.4.3 正文 4.5:1、大字号 3:1 | https://www.w3.org/TR/WCAG22/（W3C Recommendation 12 December 2024，仍为最新版） | 一致 |
+| web-dev-vitals | LCP 2.5 s、INP 200 ms、CLS 0.1；第 75 百分位、按移动/桌面分段 | https://web.dev/articles/vitals（Last updated: October 31, 2024） | 一致 |
+| w3c-clreq | 相邻汉字原则上密排（set solid） | https://www.w3.org/TR/clreq/（「The space between adjacent characters is, in principle, set solid」） | 一致（今日上午新增条目，复读无变化） |
+
+`w3c-wcag22`、`web-dev-vitals` 的 `synced_at` 改为 2026-11-01。

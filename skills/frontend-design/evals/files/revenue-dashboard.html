@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revenue overview</title>
+<style>
+  body { font-family: Inter, system-ui, sans-serif; margin: 0; background: #f7f7f8; color: #18181b; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; }
+  .range { font-size: 14px; color: #52525b; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0 24px; }
+  .kpi { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px; padding: 16px; }
+  .kpi .label { font-size: 13px; color: #71717a; }
+  .kpi .value { font-size: 28px; font-weight: 600; }
+  .kpi .delta.up { color: #16a34a; }
+  .kpi .delta.down { color: #dc2626; }
+  .kpi .note { font-size: 13px; color: #52525b; margin-top: 8px; }
+  .panels { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 16px 24px; }
+  .panel { background: #fff; border: 1px solid #e4e4e7; border-radius: 8px; padding: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { text-align: left; padding: 8px; border-bottom: 1px solid #f4f4f5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Revenue overview</h1>
+  <span class="range">This month vs last month</span>
+</header>
+
+<section class="kpis">
+  <div class="kpi">
+    <div class="label">Revenue (MTD)</div>
+    <div class="value">$1.24M</div>
+    <div class="delta down">▼ 41% vs last month</div>
+    <div class="note">Revenue is down this month because fewer deals have closed so far, but the pipeline remains healthy and we expect a strong finish.</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Cost per lead</div>
+    <div class="value">$24.10</div>
+    <div class="delta up">▲ 12% vs last month</div>
+    <div class="note">Cost per lead went up, which reflects increased investment in paid channels.</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Refunds</div>
+    <div class="value">0</div>
+    <div class="delta down">▼ 100% vs last month</div>
+    <div class="note">Refunds dropped sharply compared with last month.</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Net revenue retention</div>
+    <div class="value">112%</div>
+    <div class="delta up">▲ 3 pts</div>
+    <div class="note">Retention improved thanks to expansion revenue from existing accounts.</div>
+  </div>
+</section>
+
+<section class="panels">
+  <div class="panel">
+    <h2>Revenue by day</h2>
+    <!-- Current month (days 1-18) and last month (days 1-31), both solid, same weight -->
+    <svg viewBox="0 0 620 220" width="100%" role="img" aria-label="Revenue by day">
+      <polyline fill="none" stroke="#2563eb" stroke-width="2"
+        points="0,180 20,170 40,160 60,150 80,150 100,140 120,130 140,125 160,120 180,118 200,110 220,105 240,100 260,96 280,92 300,90 320,86 340,84" />
+      <polyline fill="none" stroke="#f97316" stroke-width="2"
+        points="0,182 20,172 40,165 60,158 80,150 100,146 120,140 140,134 160,128 180,121 200,115 220,110 240,104 260,99 280,94 300,90 320,84 340,80 360,75 380,70 400,66 420,60 440,56 460,50 480,46 500,40 520,36 540,32 560,28 580,24 600,20" />
+    </svg>
+    <p>Blue: this month. Orange: last month.</p>
+  </div>
+  <div class="panel">
+    <h2>Revenue by region</h2>
+    <table>
+      <thead><tr><th>Region</th><th>Revenue</th><th>Churn</th></tr></thead>
+      <tbody>
+        <tr><td>North America</td><td>$642,300</td><td>$18,200</td></tr>
+        <tr><td>Europe</td><td>$401,900</td><td>$9,750</td></tr>
+        <tr><td>APAC</td><td>$154,200</td><td>$0</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>$1,198,400</strong></td><td><strong>$27,950</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="note">APAC churn data has not been imported yet.</p>
+  </div>
+</section>
+</body>
+</html>

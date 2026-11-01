@@ -166,11 +166,16 @@ re-read. Toasts announce politely and never steal focus.
 Automated tooling catches a subset. Treat a clean automated run as necessary, not sufficient.
 
 ```bash
-npx axe-core            # programmatic; 4.8+ implements the WCAG 2.2 target-size rule
-npx pa11y <url>         # CLI checker
+npx --package=@axe-core/cli axe <url>   # axe-core 4.8+ implements the WCAG 2.2 target-size rule
+npx pa11y <url>                         # CLI checker
 ```
 
-- Lighthouse's tap-target audit uses an older 48px heuristic and is not a SC 2.5.8 verdict.
+- `axe-core` itself is a library with no executable, so `npx axe-core` fails; the CLI is the
+  separate `@axe-core/cli` package (command `axe`), which drives headless Chrome through a matching
+  ChromeDriver.
+- Lighthouse 12 removed its old 48px tap-targets audit and now reports axe's `target-size` rule in
+  the accessibility category. A tap-targets result from Lighthouse 11 or older is not a SC 2.5.8
+  verdict.
 - Manual passes that find what tooling cannot: tab through the whole page; use it at 200% zoom and at
   320 CSS px width; toggle reduced motion; read it with a screen reader (VoiceOver, NVDA, Orca);
   check both color themes.

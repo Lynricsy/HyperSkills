@@ -221,5 +221,5 @@ Cliché gate  The first pass had a #F4F1EA ground with a high-contrast serif dis
 ## Environment
 
 - `modern-web-guidance` runs through `npx` and needs outbound network access; nothing is installed into the project. Where `~/.npm` is read-only, set `NPM_CONFIG_CACHE=/tmp/npm-cache`. Prefer `pnpx modern-web-guidance@latest ...` when `pnpm` is present (no `-y` flag there). Request network approval before the first call in gated environments.
-- Automated accessibility checks catch a subset only: `axe-core` 4.8+ implements the WCAG 2.2 `target-size` rule; Lighthouse's tap-target audit still uses an older heuristic and is not a SC 2.5.8 verdict.
+- Automated accessibility checks catch a subset only: `axe-core` 4.8+ implements the WCAG 2.2 `target-size` rule, and Lighthouse 12+ runs that same rule. The 48px tap-targets audit in Lighthouse 11 and older is a different heuristic and not a SC 2.5.8 verdict.
 - Contrast, focus order and reduced-motion behavior need a real render. Where a browser is available, check both themes and at 320 CSS px width.

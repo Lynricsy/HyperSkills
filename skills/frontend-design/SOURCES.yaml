@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/anthropics/skills
     paths: [skills/frontend-design]
     ref: main
-    commit: dbd4588f9e1033efb41dad4bef2f7947c8993d44
+    commit: ca45fc496a3436251f191354091d557da31c15b5
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Five generated-design clusters, the two-pass design process (plan, review against the brief, build, self-critique), typographic direction principles, and the interface-copy doctrine."
     notes: "License verified on 2026-09-10 by reading skills/frontend-design/LICENSE.txt: Apache License 2.0, not the proprietary text shipped with the docx/pptx/xlsx/pdf skills."
   - id: vercel-wig
@@ -22,7 +22,7 @@ upstreams:
     commit: 434b7f91364665f2f733b310ec54809bf8f37937
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The mechanically checkable UI review rule set across accessibility, focus, forms, animation, typography, content handling, images, performance, navigation, touch, theming, locale and copy, plus the group-by-file `path:line` output contract."
     notes: "Upstream frontmatter is command-shaped (description, argument-hint) and its body opens with a $ARGUMENTS placeholder; both were dropped when repackaging as a skill."
   - id: addy-frontend-ui
@@ -31,10 +31,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/frontend-ui-engineering, references/accessibility-checklist.md]
     ref: main
-    commit: aeac41d4d005999432bb7312f7ff06383a91d59d
+    commit: 8bfcc1f9916f2eea55494d8c1fa7f4bde867dd9e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The AI-default to production-quality mapping for palette, radius, shadow, padding and card grids; spacing-scale discipline; semantic color tokens; ARIA live-region table; empty and error state patterns."
     notes: "Repo-level references/ is not copied by a per-skill install (upstream issue 361), so the checklist was pulled explicitly. Its 'Touch targets >= 44x44px' line sits under a WCAG 2.1 AA heading and was not adopted; W3C text is used instead."
   - id: addy-performance
@@ -43,10 +43,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/performance-optimization, references/performance-checklist.md]
     ref: main
-    commit: aeac41d4d005999432bb7312f7ff06383a91d59d
+    commit: 8bfcc1f9916f2eea55494d8c1fa7f4bde867dd9e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The measure, identify, fix, verify, guard loop; the by-symptom bottleneck triage tree; synthetic versus field measurement split; regression guarding."
   - id: antfu-design
     kind: repo
@@ -54,34 +54,34 @@ upstreams:
     url: https://github.com/antfu/skills
     paths: [skills/antfu-design]
     ref: main
-    commit: feb0f3aba6566426f12230e7fc7a10d97c1293bb
+    commit: 7de210b51c8d48cc405a4eac3e17cbb1396c653b
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Design read plus tooling and marketing dial baselines, the anti-slop hard list (dash ban, generic names, fake-perfect numbers, filler verbs, decoration tells), bias correction for type, color, layout and materiality, micro-interaction polish (concentric radius, optical alignment, borders versus shadows), and the pattern vocabulary."
     notes: "Only the framework-agnostic references were used. The UnoCSS-coupled files (starter kit, token combinations, class-over-attributify, Floating Vue overrides) and all shortcut config blocks were left out. Upstream deleted skills/antfu-design in e53a142 (2026-09-30) 'in favor of antfu/design'; that repository's skills/antfu-design is a different skill for the @antfu/design Vue component library and UnoCSS preset (prefixed primitives, semantic token classes) and no longer carries the design-read, anti-slop, bias-correction and micro-interaction references used here, so it was not adopted as a source. The merged content corresponds to the last revision that contained it (d02c484); the entry is kept for provenance and the path no longer exists at HEAD."
   - id: leonx-taste
     kind: repo
     repo: leonxlnx/taste-skill
     url: https://github.com/leonxlnx/taste-skill
-    paths: [skills/taste-skill, skills/taste-skill-v2-experimental]
+    paths: [skills/taste-skill]
     ref: main
-    commit: f624f37a8c650b9cc550253104925efe4c8de246
+    commit: 12af471f627f866411b4bd785b19646d3672784c
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Origin of the VARIANCE / MOTION / DENSITY dial system and the one-line design read. From the v2 body: the countable section budgets (eyebrow labels within ceil(sections/3), one layout family reused at most once, at most two consecutive image-and-text splits, one marquee, grid cells equal to items, four text elements in a hero), hero measure and top-padding ceilings, single-line desktop navigation, bento background diversity, the split-header rejection, page theme lock, the component-not-a-longer-list rule for more than five items, and the production-test tells (logo-wall category labels, generic step labels, micro-meta sentences, performative-craftsman and coy social-proof labels, hero status stamps, live-scarcity counters, image-overlay pills, decorative photo credits, filled-track comparison bars, rotated text, decorative hairline grids)."
-    notes: "Everything taken was rewritten as decidable statements and stripped of its landing-page framing. Not used: the 87 KB body's prose, the GSAP sticky-stack and horizontal-pan skeletons, the Tailwind and Motion stack chapter, the self-referential block-library contract, Appendix A install commands and Appendix C's Liquid Glass CSS. Its section 2 design-system map (brief to Polaris, Fluent, Carbon, GOV.UK) was dropped after the 2026-09-15 baseline: scenario 9 showed the model already picks Polaris for a Shopify admin surface and states the one-system rule unprompted. Its prefers-reduced-transparency fallback advice was not carried over as written: that query is Baseline limited (Chromium only), so the opaque variant is the default and the glass effect is the enhancement. At the 2026-10-15 sync (ca50fb4, d1a1405, 9da1763) upstream moved that single-file dial-driven body, unchanged apart from a StickyStack id fix, to skills/taste-skill-v2-experimental, so the path is tracked there too, and replaced skills/taste-skill with a new library-driven default (a 247-site study, JSON corpora of directions, palettes, type and photos, CDP inspection and lint scripts, and a rule to source real photographs and footage from open collections through scripts/assets.mjs). That default was reviewed and not merged (see research/frontend-design.md); it stays tracked so later changes are seen."
+    notes: "Everything taken was rewritten as decidable statements and stripped of its landing-page framing. Not used: the 87 KB body's prose, the GSAP sticky-stack and horizontal-pan skeletons, the Tailwind and Motion stack chapter, the self-referential block-library contract, Appendix A install commands and Appendix C's Liquid Glass CSS. Its section 2 design-system map (brief to Polaris, Fluent, Carbon, GOV.UK) was dropped after the 2026-09-15 baseline: scenario 9 showed the model already picks Polaris for a Shopify admin surface and states the one-system rule unprompted. Its prefers-reduced-transparency fallback advice was not carried over as written: that query is Baseline limited (Chromium only), so the opaque variant is the default and the glass effect is the enhancement. At the 2026-10-15 sync (ca50fb4, d1a1405, 9da1763) upstream moved that single-file dial-driven body, unchanged apart from a StickyStack id fix, to skills/taste-skill-v2-experimental, and replaced skills/taste-skill with a new library-driven default (a 247-site study, JSON corpora of directions, palettes, type and photos, CDP inspection and lint scripts, and a rule to source real photographs and footage from open collections through scripts/assets.mjs). Upstream deleted skills/taste-skill-v2-experimental in 825e306 (2026-10-19, 'one skill'), so the merged dial-driven content corresponds to its last revision at f624f37 and only skills/taste-skill is tracked now. That default, including its 2026-10 app-screen run, scroll scenes and page-frame rules, was reviewed and not merged (see research/frontend-design.md); it stays tracked so later changes are seen."
   - id: emil-animations
     kind: repo
     repo: emilkowalski/skills
     url: https://github.com/emilkowalski/skills
     paths: [skills/review-animations, skills/emil-design-eng, skills/break-ui/SKILL.md]
     ref: main
-    commit: 2d228630ba1446365f614a108cb8252f1feda202
+    commit: a81dbca07f2217b7103e510c0f13f8d5b017afc9
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The should-it-animate frequency table, easing decision order with strong custom curves, per-element duration bands and the sub-300ms ceiling, physicality rules (never scale(0), origin-aware popovers, press feedback), interruptibility and @starting-style, stagger range, and reduced-motion nuance. From break-ui, the stress-test-content workflow: limits from the schema, worst cases injected at the data boundary, the empty/one/maximum states, and the real-width, 320px, 200% zoom and RTL render matrix."
     notes: "React and Framer Motion specific items (useSpring, initial={false}, non-accelerated shorthands) were left to the react skill. Its 2026-10 animation-performance skill was reviewed and not carried: the baseline model already fixed margin and box-shadow animation, discounted desktop CPU throttling and handled the SMIL traps (research/frontend-design.md, 2026-10-15 new-content review); its claim that filter: drop-shadow() is the cheap substitute for box-shadow is contradicted by Chromium, which declines to composite filter animations that move pixels."
   - id: uiux-pro-max
@@ -90,10 +90,10 @@ upstreams:
     url: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
     paths: [.claude/skills/ui-ux-pro-max/references/quick-reference.md, .claude/skills/ui-ux-pro-max/references/pro-rules.md]
     ref: main
-    commit: 56ea9cf174ed86786187daa9de0e6247cb0747e4
+    commit: bf41cbc3ce63e30c922e58ef48741ba6133f9aa9
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Deduplicated UX judgement calls that the Vercel rule set does not cover: compact-label and overflow semantics, disabled versus read-only, focusable error summaries, waiting-feedback matching, and the chart accessibility set."
     notes: "Only the two static markdown references were used. The search runtime, CSV corpora and design-system persistence machinery depend on a harness-specific plugin root and were excluded, as were all native mobile platform items."
   - id: chrome-mwg
@@ -102,18 +102,18 @@ upstreams:
     url: https://github.com/GoogleChrome/modern-web-guidance
     paths: [skills/modern-web-guidance]
     ref: main
-    commit: b31dc0a43ff5d19bcf386a3476a216f3b39a6f55
+    commit: 4f2b13e25c5815b3f080ca0d983e828d96561a0f
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Baseline verdict interpretation and fallback policy negotiation, the search / retrieve / list workflow, and the goal-to-guide mapping over the published guide corpus."
-    notes: "CLI verified on 2026-09-10: search returned scored results in under two seconds and list returned 143 guides across 14 categories. The upstream --skill-version pin was deliberately not carried over, since it only produces a stale warning against a self-updating package."
+    notes: "CLI verified on 2026-09-10: search returned scored results in under two seconds. Re-checked 2026-11-01 against package 0.0.196: list returns 192 guides across 16 categories, and every guide id in references/modern-css-platform.md resolves through retrieve (format-human-readable-durations was removed upstream and replaced by calculate-event-differentials). The upstream --skill-version pin was deliberately not carried over, since it only produces a stale warning against a self-updating package."
   - id: w3c-wcag22
     kind: docs
     url: https://www.w3.org/TR/WCAG22/
     license: W3C-20150513
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Authoritative source for every accessibility number and conformance level used, including SC 2.5.8 (AA, 24 by 24 CSS px) and SC 2.5.5 (AAA, 44 by 44 CSS px), contrast, reflow, text spacing, focus and authentication criteria."
     notes: "W3C Document License. Only criterion identifiers, levels and numeric requirements were used; no specification prose was copied."
   - id: web-dev-vitals
@@ -121,7 +121,7 @@ upstreams:
     url: https://web.dev/articles/vitals
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Core Web Vitals thresholds (LCP 2.5s, INP 200ms, CLS 0.1) and the 75th-percentile, mobile-and-desktop-segmented evaluation method."
   - id: wshobson-a11y
     kind: repo
@@ -129,10 +129,10 @@ upstreams:
     url: https://github.com/wshobson/agents
     paths: [plugins/ui-design/skills/accessibility-compliance]
     ref: main
-    commit: 46891e7e60da0e52baf1050b7b6391b64e84c6d9
+    commit: 7e2fb559cf4b824b27f1fec49fe88f7511066d26
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Read for comparison only. Its conflation of the 44 by 44 platform figure with the WCAG AA minimum prompted the W3C verification behind references/accessibility.md; no content was taken."
   - id: addy-web-quality
     kind: repo
@@ -143,7 +143,7 @@ upstreams:
     commit: afa8da942115f2961fdbfa80807ea0b232ff6c00
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Font metric overrides (size-adjust, ascent-override, descent-override, line-gap-override) as the fix when the font swap itself is the layout shift, with the warning that the percentages must be derived from the actual pair rather than copied. The passive-listener check for touchstart, touchmove and wheel."
     notes: "Deliberately narrow. Its measurement and RUM references, the INP phase split, CrUX scope semantics, the lab-versus-field matrix and the Lighthouse-score caveat were all dropped after the 2026-09-15 baseline: scenarios 6 and 7 showed Claude Opus 5 already produces them unprompted, in more detail than the upstream text. What the same references did earn is a correction inside this skill: the field-data definition in references/performance-core-web-vitals.md had a bare onLCP(report) snippet standing in for field data, and now states that aggregation is what makes it field data. Its seo and web-quality-audit bodies also prompted the one-h1 correction recorded as R11. Not used: skills/seo entirely (out of scope, and its FAQPage example has been dead in Google Search since 2026-05-07), the CSP, Trusted Types, SRI and prototype-pollution material (security-review owns those), scripts/analyze.sh (bash plus jq, only globs .html, and reports success with zero files scanned on a component codebase), and two upstream errors: View Transitions labelled Baseline 2026 (webstatus.dev: newly, 2025-10-14) and decoding=\"sync\" recommended for the LCP image."
   - id: oil-ui
@@ -158,6 +158,18 @@ upstreams:
     synced_at: "2026-11-01"
     contributes: "Hue sourcing order and the metaphor-material palette trap, the category-default naming step, quality-word translation table, one primary subject and action per viewport with a cut list, the product-name swap test, render-before-judging for visual claims, CJK typography (stack, mixed-script weight, body and heading leading, line breaks, measure), icon-set convergence and stroke-to-text matching, and the review heuristics for side-stripe cards, emoji icons, Latin caps labels on CJK pages and heading proximity (from the lint rules in scripts/shoot.mjs)."
     notes: "Upstream body is Chinese; rewritten in English from semantics only. Not used: the update checker (check_update.sh/.py, loaded through a !`cmd` injection with ${CLAUDE_SKILL_DIR}), recommend_once.py and the Oil UI Pro / oil-tone recommendations, the scripts themselves (shoot.mjs, curate-media.mjs, build_explorer.py), the mandatory fresh-subagent concept and review protocol, the style explorer, scroll narrative, play and media references. Motion durations (press 150-300ms, page change 350-500ms), the exit-at-60-70%-with-accelerating-curve rule and the three-mandatory-animations rule conflict with emil-animations (R3) and were not adopted. Its icon table recommends IconPark, archived upstream since 2023; not carried over."
+  - id: dashboard-design
+    kind: repo
+    repo: abdiraimov-otabek/dashboard-design-skill
+    url: https://github.com/abdiraimov-otabek/dashboard-design-skill
+    paths: [skills/dashboard-design]
+    ref: main
+    commit: b813324aea08dc19a82d2bd9ea73824dfdd0e844
+    license: MIT
+    relation: merged
+    synced_at: "2026-11-01"
+    contributes: "Two dashboard honesty rules in references/ux-guidelines-catalog.md: an absolute change instead of a percentage on a tiny base, and KPI tiles that carry a value and one comparison while explanations move to tooltips or drill-down."
+    notes: "Scenario 17 baseline (2026-11-01) already compared the same elapsed period, flipped colour for lower-is-better metrics, replaced a fake $0 with a no-data mark and reconciled disagreeing totals, so those rules were not carried. Not used: the 127-dashboard study framing, the encoding ladder, tokens, React + Tailwind snippets, the SwiftUI chapter, the case study and the screenshot QA script."
   - id: w3c-clreq
     kind: docs
     url: https://www.w3.org/TR/clreq/

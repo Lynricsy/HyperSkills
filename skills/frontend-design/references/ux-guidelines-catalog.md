@@ -98,6 +98,11 @@ wrong. Everything here is web-only; native platform idioms are out of scope for 
   everything.
 - Charts reflow on small screens: fewer ticks, horizontal bars, or a table.
 - Entrance animation respects reduced motion, and the data is readable before it finishes.
+- A percentage change on a tiny base misleads. Below about five units, show the absolute change
+  ("was 1", "1 → 0") in neutral ink, never a red −100% or a green +300%.
+- A KPI tile holds the name, the value with its unit and one comparison. Explanations, causes and
+  caveats go in a tooltip or the drill-down, not in a sentence under the number; a dashboard full of
+  sentences reads as a report and buries the one value that needs attention.
 
 ## Tables and lists
 
@@ -119,4 +124,4 @@ wrong. Everything here is web-only; native platform idioms are out of scope for 
 - When a value is estimated, rounded or delayed, the interface says so. Fake precision erodes trust
   faster than an honest approximation.
 
-<!-- sources: uiux-pro-max, vercel-wig, addy-frontend-ui, antfu-design, anthropic-frontend-design -->
+<!-- sources: uiux-pro-max, vercel-wig, addy-frontend-ui, antfu-design, anthropic-frontend-design, dashboard-design -->
