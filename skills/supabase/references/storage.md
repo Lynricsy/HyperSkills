@@ -100,10 +100,14 @@ that is the bug.
 
 Two facts about signed URLs worth internalising:
 
-- They are signed with a **dedicated internal key per project**, separate from the Auth JWT
-  signing key. Rotating or revoking Auth keys, disabling legacy keys, or switching from HS256 to
-  asymmetric signing does **not** invalidate outstanding signed URLs. They stay valid until they
-  expire, and revoking them early requires Supabase support. Choose expiries accordingly.
+- They are signed with a **dedicated Storage URL signing key per project**, separate from the
+  Auth JWT signing key. Rotating or revoking Auth keys, disabling legacy keys, or switching from
+  HS256 to asymmetric signing does **not** invalidate outstanding signed URLs; they stay valid
+  until they expire. To revoke them all early, rotate the Storage key on the dashboard's URL
+  Signing Keys page *and then revoke the previous key* — after a rotation alone, URLs signed by
+  the old (now standby) key are still accepted. Responses already cached on the CDN keep being
+  served until you purge the cache. A single signed URL cannot be revoked: delete, move or rename
+  the object instead. Choose expiries accordingly.
 - Force a download rather than inline rendering with `?download` or `?download=name.pdf`, or the
   `download` option on the SDK call.
 

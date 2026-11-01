@@ -481,3 +481,44 @@ SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，supabase-docs 的 `
 结论：三处更正在有 skill 时都按更正后的内容作答（场景 4 的引擎区分、场景 2 的锁版本导入、场景 7 的命名 secret key 与 `getClaims()` 验证路径），且不比基线差；场景 7 基线联网即可答对，不构成新缺口，留作哨兵。负例 `skill_read == false`。正文无需修正。
 
 遗留：场景 1 EB6 有 skill 只给出替换、未明说 `getSession()` 不验证（基线答到），场景 2 EB7 两侧都未提运行时限制，均为既有内容的波动，与本次更正无关。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/supabase.md`）：A 节为空。`magnus-agent-skills` 报 behind（diff too large），主代理裸仓库树对比确认 paths 无变化；`tushar-skills` 为 repo moved, tracked paths unchanged。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| magnus-agent-skills | 122cb54 → 20fddec | 无（主代理树对比） | 噪声，仅 re-pin |
+| tushar-skills | f7d8197 → e55f218 | 无 | 噪声，仅 re-pin |
+
+`--pin` 后逐条核对：10 个 repo 条目写入的 commit 全部等于审阅 HEAD，无差额。正文改动全部来自下文文档复核。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/supabase/SKILL.md`（MIT） | REJECT（重复） | 与已追踪的根目录 `supabase/SKILL.md` 逐字节相同（`diff` 为空），是插件打包镜像，无增量，不加入 `paths` |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "supabase agent skill"` / `"supabase skills"`（`--updated >2026-10-15`，无结果）；VoltAgent/awesome-agent-skills 自 2026-10-15 的新增行（无 Supabase 条目）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| （无新候选） | — | — | — | — | — |
+
+## 2026-11-01 文档上游复核
+
+方法：读 `supabase/supabase` 的 `apps/docs/content/guides/`，用 `gh api commits?path=<页面>&since=2026-10-14` 列出上次复核后改过的页面，逐个读提交 diff 与当前页面；未改动页面（`custom-access-token-hook`、`generating-types`）结论沿用上次。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| supabase-docs | 私有桶签名 URL 用独立密钥，Auth 密钥轮换不使其失效；提前撤销「需联系 Supabase 支持」 | `storage/serving/downloads.mdx`（0781f58c、9e3471dc，10-28/29） | **已过时 → 更正**：现在可在 dashboard「URL Signing Keys」页自助轮换；轮换后旧 key 变为 standby 仍被接受，须再 revoke 才使旧签名 URL 返回 `InvalidJWT`；CDN 已缓存的响应需 purge；单个签名 URL 不可撤销（删除/移动/改名对象）。改 `references/storage.md` |
+| supabase-docs | 新建对象的默认授权「full CRUD grants」，`alter default privileges … revoke …` 关闭 | `api/securing-your-api.mdx`、`database/postgres/row-level-security.mdx`、`database/functions.mdx`（ae991bb1「correct default privilege and function revoke guidance」） | **不完整 → 更正**：表实际获得全部权限（另含 TRUNCATE/REFERENCES/TRIGGER、PG 17 的 MAINTAIN），序列 USAGE/SELECT/UPDATE，函数 EXECUTE；「Automatically expose new tables」只撤 Data API 用到的权限；函数对 `PUBLIC` 的 EXECUTE 是全局默认，带 `in schema` 的撤销无效、须不带 `in schema` 撤销且会波及其他 schema 的 RLS 辅助函数。本机 `postgres:18`（18.6）实测：schema 级撤销后新函数仍可被普通角色执行，全局撤销后 `public` 与 `private` 中的新函数都不可执行。改 `references/rls-and-data-api.md` 两处 |
+| supabase-docs | PAT：classic（全权限）vs scoped（`sbp_fc`） | `platform/personal-access-tokens.mdx`（61058a57，10-23） | **术语过时 → 更正**：文档不再称「classic」，改称带 **Legacy** 徽标的全权限 token，且 dashboard 创建的 token 默认即为 scoped；`supabase login` 浏览器流程仍产出全权限 token、`SUPABASE_ACCESS_TOKEN` 优先、`sbp_fc` 前缀不变。改 SKILL.md 规则 26、路由表一行与 `references/cli-and-migrations.md` |
+| supabase-docs | `auth: 'secret'` 只认名为 `default` 的 secret key，配 `verify_jwt = false` | `functions/auth.mdx`（8a78b7e5：示例拆成 config.toml + 代码两步；新增 Database Webhook 用 secret key 调 Edge Function） | 一致 |
+| supabase-docs | `realtime.send` 的 private 标志须与频道一致 | `realtime/broadcast.mdx`（b46b645c：明确 private 默认 true、改用具名参数；7e866ef8：服务器端勿为发布而订阅） | 一致 |
+| supabase-docs | 四项 Edge Function 限制、realtime 授权、api-keys | `functions/limits.mdx`、`realtime/authorization.mdx`、`getting-started/api-keys.mdx`（仅链接/标题/交叉引用调整） | 一致 |
+| postgres-docs | ALL/UPDATE 策略无 WITH CHECK 时 USING 兼作 WITH CHECK | https://www.postgresql.org/docs/current/sql-createpolicy.html | 一致 |
+
+两条 docs 条目 `synced_at` 更新为 2026-11-01。受影响场景：3（存储签名 URL）、6（CI 凭据/PAT），见 D2 节。

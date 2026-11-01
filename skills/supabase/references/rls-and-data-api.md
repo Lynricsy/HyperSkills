@@ -49,9 +49,15 @@ RLS ships an open table.
 
 Two related platform facts worth knowing:
 
-- On existing projects, tables created in `public` receive full CRUD grants for
-  `anon`/`authenticated`/`service_role` automatically, which makes new objects reachable before
-  anyone intended. `alter default privileges … revoke …` turns that off so exposure becomes opt-in.
+- On existing projects, new objects in `public` are granted to `anon`/`authenticated`/
+  `service_role` automatically — tables get every privilege (CRUD plus `TRUNCATE`,
+  `REFERENCES`, `TRIGGER`, and `MAINTAIN` on Postgres 17), sequences `USAGE, SELECT, UPDATE`,
+  functions `EXECUTE` — which makes them reachable before anyone intended. Default privileges
+  differ by project age and Data API settings, so read `pg_default_acl` before assuming. The
+  dashboard's "Automatically expose new tables" switch revokes only what the Data API uses;
+  `alter default privileges for role postgres in schema public revoke all on tables / sequences /
+  functions from anon, authenticated, service_role` makes exposure opt-in — except that new
+  functions stay callable through `PUBLIC` until that global default is revoked too (below).
 - A dedicated schema (`api`) makes the exposed surface auditable: internal tables and helper
   functions stay in schemas that are not exposed at all.
 
@@ -164,8 +170,12 @@ Each of these hands out data while every table still shows "RLS enabled".
   check instead of fixing it. Prefer `SECURITY INVOKER`.
 - **A `SECURITY DEFINER` function in `public` is a public endpoint.** Postgres grants `EXECUTE` to
   `PUBLIC` on every new function, and `anon`/`authenticated` inherit from `PUBLIC`. When one is
-  genuinely needed (reading an internal lookup table, say), keep it in an unexposed schema, revoke
-  the default `EXECUTE`, and put the ownership check inside the body.
+  genuinely needed (reading an internal lookup table, say), keep it in an unexposed schema,
+  `revoke execute on function … from public, anon, authenticated`, and put the ownership check
+  inside the body. The `PUBLIC` grant is a *global* default: `alter default privileges in schema
+  public revoke execute on functions from public` has no effect `[verified]`; only the form
+  without `in schema` stops it, and that applies to every schema the role creates functions in —
+  so the helper functions your policies call then need explicit `grant execute`.
 - **The secret / `service_role` key bypasses everything.** It is not an escalation path for a
   policy you cannot get right, and it must never be reachable from a client.
 - **Materialized views** are not covered by RLS on their source tables.

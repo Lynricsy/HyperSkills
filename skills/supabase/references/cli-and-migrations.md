@@ -182,9 +182,11 @@ person's diff.
 ## Credentials for CI, scripts and agents
 
 The CLI, the Management API and the hosted MCP server authenticate with a personal access token.
-The browser flow of `supabase login` mints a **classic** one: everything the account can do, on
-every organization and project it belongs to now *or joins later*. A token saved by that login
-and copied into a CI secret is therefore the owner's whole account, whatever the job does.
+The browser flow of `supabase login` mints a **full-access** one (the dashboard shows these with a
+**Legacy** badge): everything the account can do, on every organization and project it belongs to
+now *or joins later*. A token saved by that login and copied into a CI secret is therefore the
+owner's whole account, whatever the job does. Tokens created in the dashboard are scoped by
+default, but a full-access one can still be created there, so check the badge.
 
 For CI, scripts and agents, create a **scoped** token (prefix `sbp_fc`) per job from the
 account's access-token settings, limited to the project and the permissions that job's commands
@@ -196,7 +198,7 @@ The token does not bound everything. Commands that connect with the database pas
 `supabase db push` with `SUPABASE_DB_PASSWORD` or `--password` — are not limited by the token's
 permissions at all. In a migrate job the production database password is the real write
 credential: keep it in an environment-protected secret, and rotate it as well as revoking the
-classic token when either has been exposed to jobs that run untrusted code.
+full-access token when either has been exposed to jobs that run untrusted code.
 
 ## Seed data and generated types
 
