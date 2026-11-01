@@ -473,3 +473,23 @@ octocat 的 GHSA 两份规则与锁文件更正合成新增场景 7（`evals/fil
 | github-docs | 临时私有 fork：CI 与集成无法访问、状态检查不运行、合并在公告页一次合并全部 PR 且不执行分支保护；草稿即可申请 CVE、发布删除 fork | code-security/tutorials/fix-reported-vulnerabilities/collaborate-in-a-fork、…/publish-repository-advisory | 新事实，用于评估 octocat 与判定场景 7，未写入正文 |
 
 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 94bac9d（锁文件更正：规则 6、审计与治理清单、`actions-tokens-and-supply-chain.md`「Locking and pinning」、`repo-governance.md`；新增场景 7）。
+场景 7 的 EB4、EB5 直接考察锁文件更正，EB1–EB3 是 octocat GHSA 规则的哨兵。场景 7 的两次运行产物在 `/tmp/hs-d2/G04-infra/github/omp-openai-gpt-6.1-sol-medium/`
+（11:55–11:56，早于提交时间 12:15）；`events.jsonl` 中读到的 skill 正文已含 `Locking and pinning`、`Lock or pin`、`gh actions-lock --verify`/`--migrate-local-actions`，
+即运行的是更正后的正文，可复用。负例场景 4 补跑于 `/tmp/hs-d2/G04b-infra-left/github/omp-openai-gpt-6.1-sol-medium/skill/4/`。
+命令：`uv run tools/run_evals.py github --only N [--baseline] --out <目录>`（omp + gpt-6.1-sol medium，VM）；逐条读 `answer.md` 判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3◐ 4✔ 5✔ | 107 s。1：接受为草稿→临时私有 fork、只推 fork、经公告建 PR（未给 REST 端点或 `gh pr create --repo` 命令，但流程完整）；2：fork 内状态检查不运行，`ci / test` 改为本地隔离环境运行，公告页 **Merge pull request(s)** 一次合并全部私有 PR 且不执行分支保护；3：草稿即可申请 CVE、发布会删除 fork、修复版本发布后再发布公告并填补丁版本、PoC 在修复前不公开——未明确说「发布不可撤回」，记 ◐；4：10-28 GA、传递依赖与源仓库身份、`gh extension install github/gh-actions-lock` 与 `actions.lock`、满足 SHA 固定策略、Require lockfile、Dependabot 更新锁条目；5：可复用工作流调用钉 40 位 SHA 且其依赖归 ci-shared 自己的锁文件、`./` 本地 action 用 `--migrate-local-actions` 迁到 `$/`、允许列表按锁定 SHA 匹配，tag 条目改通配或全 SHA |
+| 7 | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ 5✔ | 102 s（见「上游新增内容评估」节）。联网读到 GHSA 与锁文件官方页面 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | 1✔ 2✔ 3✔ | 38 s。`git reset --soft HEAD~3` + 备份分支，已推送时 `--force-with-lease`，未涉及 gh / PR / Actions |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：锁文件更正相关的 EB4、EB5 在有 skill 时全部达成，与基线持平（基线联网读到了 10-28 GA 的官方页面）；正文更正消除的是过时的
+「SHA 是唯一不可变引用」，有 skill 一侧无回退。EB3 有 skill 一侧少说「发布不可撤回」，正文按决定未收录 GHSA 生命周期（基线已会），属模型取舍，
+不改正文。负例 `skill_read == false`。各场景只有 1 次运行。
