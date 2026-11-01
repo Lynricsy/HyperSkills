@@ -385,3 +385,19 @@ shshohagh、abdallhMoukdad 等）不重复讨论。
 | laravel-docs | 上传：`mimes` 看内容、`extensions` 看客户端扩展名、存储文件名由系统生成 | `validation.md`、`filesystem.md`（10-24 新增 polyglot 与 `storeAs` 警告） | 一致：新警告与正文结论相同 |
 
 `laravel-docs` 的 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 da816a9（`references/runtime-config-and-upgrades.md` 的 Laravel 12 支持阶段更正）。没有场景覆盖这处更正，新增场景 8
+（夹具 `evals/files/composer.json`：Laravel 12、`php ^8.2` 且 `config.platform.php` 钉 8.2.29、spatie/laravel-permission ^6.21、Pest 3，
+产品负责人想把升级推到 2027 Q2）。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行，输出
+`/tmp/hs-d2/G05c-backend3/laravel/omp-openai-gpt-6.1-sol-medium/`；「有 skill」结果均晚于 da816a9。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 升级推迟到 2027 Q2 | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ◐4 | 96 s。12 的 bug 修复 2026-08-13 已结束、安全修复止于 2027-02-24，建议 1 月完成、2 月留余量；先在 12 上把 PHP 与 platform 钉提到 8.3+、spatie 升 v7，再一起抬 framework/tinker/Pest 4 + 插件，核对 sanctum 4.x；专用分支 + 干净工作区 + 先跑现有检查、按 CSRF 改名/缓存与会话序列化等核对破坏性变更，但没写「每个可回滚改动单独提交」 |
+| 8 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4 | 99 s。联网读到同样的支持日期与 PHP/spatie 前置条件，三项依赖下限齐全；破坏性变更清单齐全，但没提专用分支、干净工作区与逐项提交 |
+| 4 负例（Spring 自调用） | gpt-6.1-sol medium | 有（挂载） | false | — | 41.5 s。按 Spring 代理自调用与 `REQUIRED` 传播回答，无 Laravel 内容 |
+
+结论：更正相关的 EB1 有 skill 达成，且不差于基线（基线靠联网查到同一官方表）；EB4 有 skill 比基线多了分支/干净工作区/先跑基线三点，
+两侧都缺「逐项提交」。负例 `skill_read=false`。场景 7（签名 URL）只跑了基线，见「上游新增内容评估」，正文未因它改动，作哨兵保留。

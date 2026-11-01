@@ -499,3 +499,15 @@ Learn 文档读源仓库（`gh api 'repos/dotnet/docs/commits?path=<file>&since=
 | dotnet-releases | 11.0 go-live STS（现为 11.0.0-rc.3，2026-10-25）、10.0 active LTS（EOL 2028-11-14）、9.0/8.0 maintenance（均 2026-11-10 EOL） | `release-notes/releases-index.json` | 一致：`references/upgrade.md` 支持状态表（10 默认目标、11 为下一 STS、9/8「即将结束」）仍成立；下次同步时 .NET 11 应已 GA、8/9 已 EOL，届时须改表 |
 
 三条 `kind: docs` 的 `synced_at` 改为 2026-11-01。正文无改动。
+
+## 2026-11-01 D2 回归
+
+本轮 `SKILL.md`/`references/` 正文没有改动（只改 `metadata.version`），按规程不需要 D2。夹具修正后重跑场景 10 基线以留下干净的哨兵记录
+（omp + `openai/gpt-6.1-sol` medium，输出 `/tmp/hs-d2/G05c-backend3/csharp-dotnet/omp-openai-gpt-6.1-sol-medium/baseline/10/`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10 CI 去重 restore（`.slnx` 夹具，首轮） | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4 | 125.5 s。在临时目录装 SDK 8.0.415 实测「仅 `--no-restore` 仍会 restore、加 `-restore:false` 才停」，RID publish 不带 restore 报 NETSDK1047；test 仍重新 build；并发现夹具 `.slnx` 在 8.0 SDK 上报 MSB4068 |
+| 10（`.sln` 夹具，重跑） | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4 | 181.9 s。结论同上：build/test 加 `--no-restore -restore:false`，publish（RID）与方案外 Packager 保留 restore；test 未用 `--no-build`；明确说只验证了 restore 行为、没跑完整 CI |
+
+结论：基线已具备上游 eliminate-redundant-restores 的关键判断，不合入正文；场景 10 留作哨兵。
