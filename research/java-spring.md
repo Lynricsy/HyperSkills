@@ -366,3 +366,15 @@ attempts」，不能解释该提示的事务管理器会静默忽略它；`Hiber
 | openjdk-jeps | 25 的 JEP 列表（506/510/511/512/513/514/515 正式，470/502/505/507 预览，508 孵化） | https://openjdk.org/projects/jdk/25/（Last update 2025/9/23） | 一致，无需改动 |
 
 三个 docs 条目 `synced_at` 改为 2026-11-01。下次同步要盯：Spring Boot 4.2 GA（RC1 已出，转正后复核 `references/boot-4-migration.md` 的版本标注）；pavithraa `writing-springboot-tests` 的测试陷阱若在评测里暴露缺口再按新增规则合入。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `144f0ef`（四处事实更正：JWT 权限转换、方法安全拒绝进 advice、`@WebMvcTest` CSRF、Testcontainers 2）。现有场景都不考察这四处，新增场景 7（夹具 `AccountsSecurityConfig.java`、`AccountService.java`、`AccountControllerTest.java`：四张工单一一对应四处更正）。负例用场景 4（Android 协程）。模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/G05b-backend2/java-spring/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 87 s。默认 scope 转换 + roles 转换合并；`AccessDeniedException` → 403 handler，并指出过滤器链的 `AccessDeniedHandler` 救不回已被 advice 吞掉的异常；`.with(csrf())` 或 `@Import` 真实配置；`testcontainers-postgresql` + `org.testcontainers.postgresql.PostgreSQLContainer`。另指出兜底 handler 会把 `MethodArgumentNotValidException` 也变 500 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 103 s。联网查文档，结论与有 skill 一致（用 `DelegatingJwtGrantedAuthoritiesConverter`；建议删掉兜底或对安全异常 rethrow）|
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | 3/3 | 26 s。改用 `viewModelScope`，无 Spring 建议 |
+
+结论：四处更正在有 skill 时全部按更正后的内容作答，无回退；基线同样 4/4，不构成新增正文的缺口，场景 7 留作哨兵（主要防止正文旧断言「授权失败到不了 advice」「`PostgreSQLContainer<?>`」再次误导）。负例 `skill_read == false`。正文无需再改。
