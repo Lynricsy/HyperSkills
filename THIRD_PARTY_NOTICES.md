@@ -722,7 +722,7 @@ This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
 
 Reference-only sources (no content copied):
 
-- einverne/dotfiles (GPL-3.0-only) — https://github.com/einverne/dotfiles
+- einverne/agent-skills (NONE) — https://github.com/einverne/agent-skills
 - dcloud/agent-skills (NONE) — https://github.com/dcloud/agent-skills
 
 ---

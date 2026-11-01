@@ -677,23 +677,54 @@ kajisho 逐项：
 | vertex-genmedia-av | 7a70f3b → 0ed98d5 | `genmedia-audio-engineer`：Gemini 3.8 TTS 只出 WAV/PCM/μ-law/A-law，要 MP3 需本地转码 | 噪声：本条只取 ffmpeg 半边（装配顺序、PCM 包 WAV），不变 |
 | terminalskills-ffmpeg / -imagemagick / -sharp | 6edcf94 → 8a9852d | 33b765f metadata 列表改逗号字符串；29c6fba/024bbc2/6d4d4ba「freshness wave」刷新与 `_scores.json` | 噪声：我们取的选型表、几何后缀、sharp 元数据语义未变 |
 | maxazure-video | 8750290 → 2a5fc0a | 新增教程配套草稿导出 | 噪声：fail-closed HDR→SDR 规则与审片代理不变 |
-| einverne-imagemagick | 4fd1346 → 5324d9f | 9ac8792 skill 迁到 einverne/agent-skills，tracked path 被删除 | **路径失效，待处理**：本条为 reference（GPL-3.0），本轮保留旧路径并记录，下次同步改指向新仓库或移除 |
+| einverne-imagemagick | 4fd1346 → 5324d9f | 9ac8792 删除 `claude/skills/imagemagick`，原样迁到 einverne/agent-skills `vendor/imagemagick`（`gh api` 取两版 `SKILL.md` 比对一致） | **改指向**：`repo` 改为 einverne/agent-skills、`paths: [vendor/imagemagick]`、`ref: main`、commit 2c95ea8；新仓库无 LICENSE（API 为 null），`vendor/README.md` 称该目录是 mrgoonie/claudekit-skills 的快照（原仓库同样无许可）。许可改记 NONE，relation 仍为 reference，不复制任何内容 |
 
-## 2026-11-01 上游新增内容评估（本轮只完成初判）
+## 2026-11-01 上游新增内容评估
 
-| 候选 | 结论 | 理由 |
-|---|---|---|
-| NVIDIA/skills `cdf-image-attribute-augmentation` / `cdf-video-data-augmentation` | REJECT | Cosmos Data Factory 数据增强 DAG，单产品 |
-| first-fluke/oh-my-agent `oma-image` / `oma-video` | REJECT | 上游自用编排流程 |
-| laurigates/claude-plugins `video-plugin/skills/*`（7 个） | 待定 | 未逐个读原文，留下次 |
-| tushaarmehtaa/tushar-skills `image-editing` | 待定 | 未读原文，留下次 |
-| github/awesome-copilot `caption-qa`（generative-media 移交） | 待定 | 字幕阅读速度/行长按 Netflix/BBC/DCMP 校验；是否扩 Scope 需主人决定 |
+| 候选 | Stars / pushed / 许可 | 结论 | 理由 |
+|---|---|---|---|
+| NVIDIA/skills `cdf-image-attribute-augmentation` / `cdf-video-data-augmentation` | - | REJECT | Cosmos Data Factory 数据增强 DAG，单产品 |
+| first-fluke/oh-my-agent `oma-image` / `oma-video` | - | REJECT | 上游自用编排流程 |
+| laurigates/claude-plugins `video-plugin/skills/*`（7 个：add-music、beat-glow、chapters-youtube、frame-review、karaoke、thumbnail、timeline-bar） | 59 / 2026-10-31 / MIT | REJECT（内容裁决），记一条已复现的陷阱 | 都是包装自家脚本的创作流程（节拍光效、卡拉 OK 字幕、YouTube 章节、标题卡），属 Scope 外的「视频创作」。唯一可迁移的硬规则在 `video-add-music`：给带章节的视频换音轨时用 `-map 0` 会把章节文本轨与 mp4 muxer 按 `-map_chapters` 新写的章节轨一起输出，得到两条 `bin_data`。本机 ffmpeg N-126134 复现成立（`-map 0 -map -0:a -map 1:a -c copy` → 两条 `bin_data`；`-map 0:v -map 1:a` → 一条，章节数 2 不变）。影响仅为多一条数据轨、章节本身正确，本轮不建场景、不合入，留作候选 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/image-editing` | 12 / 2026-10-15 / MIT | REJECT | 用生成模型做参考图编辑（保身份、保文字、逐轮以最近批准稿为基底），属 generative-media 的模型编辑，且 generative-media 已有「编辑时重申不变量」规则 |
+| github/awesome-copilot `caption-qa`（generative-media 移交） | - | 待定（Scope） | 字幕阅读速度/行长/行数/最短时长按 Netflix/BBC/DCMP 校验；本 skill Scope 只覆盖字幕烧录与封装，不覆盖字幕文本质量。是否扩 Scope 需主人决定 |
 
-### 评测先行（进行中）
+### 已追踪上游新增规则的评测
 
-- 新增场景 8（`evals/files/upload_worker.py`：公开上传转码的 ffmpeg 调用安全审查），基线已入队 `/tmp/hs-d2/G08-ai-media`，结果出来前不合入任何正文。
-- BT.601 → BT.709 候选未建场景。
+- **上传输入安全**（kajisho 新增：拒绝 playlist 输入、协议前缀与形如选项的路径）：新增场景 8（`evals/files/upload_worker.py`），基线（omp + `openai/gpt-6.1-sol` medium，隔离 VM，90 s）三条全部达成：`-protocol_whitelist file` + `-format_whitelist`/`-f` 拒绝 HLS/concat 清单，并在 VM 内实测 file 白名单下 HLS 仍能读上传目录外的文件；服务端生成输出名、拒绝绝对路径与 `../`、`-n` 防覆盖；每个子进程超时、时长/分辨率/流数上限、断网沙箱，并指出缩略图那条命令同样要加固。**基线已会，不合入**，场景 8 留作哨兵。
+- **BT.601 → BT.709**（kajisho 新增：SD 源转到其输出标注的 BT.709）：本机 ffmpeg N-126134 实测（720x480 smptebars，标 smpte170m）——只用 `scale=1920:1080` 再以编码器选项 `-colorspace bt709` 标注，与显式 `scale=...:in_color_matrix=bt601:out_color_matrix=bt709` 的像素一致（黄条 193,190,0 两者相同），因为滤镜图按输出标签协商并自动换矩阵；只有在码流层改标签（`h264_metadata` bsf）而不转换像素才偏色（黄条绿分量 192 → 180）。后者属正文已有的「任何改动色彩的转换后读回输出的四个色彩标签」「标签缺失或矛盾即停下报告」。不建场景、不合入。
 
 ## 2026-11-01 文档上游复核
 
-本轮未完成（11 条 `kind: docs` 条目），`synced_at` 保持 2026-10-15，留待下次。
+11 条 `kind: docs` 条目。ffmpeg 文档、sharp、ImageMagick、libvips、Pillow 用 `curl` 取 HTML 提正文；trac wiki 对 `curl` 返回反爬挑战页，改用 reader 读取。
+
+| 上游 id | 核对的事实 | 结论 |
+|---|---|---|
+| ffmpeg-filters-docs | loudnorm 动态模式为测真峰值上采样到 192 kHz、需显式 `-ar`；scale 的 `force_original_aspect_ratio` 与 `in/out_color_matrix` | 一致 |
+| ffmpeg-formats-docs | `hls_time`、`hls_playlist_type`、`hls_flags delete_segments`、`hls_segment_type fmp4`（HLS v7+）、dash `use_template`/`use_timeline`、segment `reset_timestamps`、`-movflags +faststart` | 一致 |
+| ffmpeg-h264-docs | CRF 与预设耗时（medium→slow +40%、veryslow 280%）、两遍 ABR | 一致 |
+| ffmpeg-av1-docs | libsvtav1 默认 CRF、CRF 35、默认关键帧 2-3 秒；libaom 在 4.3 之前才需 `-b:v 0` | 一致 |
+| ffmpeg-vp9-docs | 恒定质量需 `-crf` + `-b:v 0`，非零 `-b:v` 即受限质量；`-row-mt` | 一致（「省略 `-b:v` 即受限质量」仍只对 4.3 之前成立，正文已注明） |
+| ffmpeg-seeking-docs | 2.1 起输入侧 `-ss` 转码时帧精确；流复制只能在关键帧切；拼接前 `-avoid_negative_ts`；`-t` 与 `-to` 同给时 `-t` 优先 | 一致（页面 2025-05-01 后未改） |
+| sharp-docs | 默认去除全部元数据并转 sRGB；`keepMetadata`/`withMetadata`；`autoOrient` | 一致 |
+| imagemagick-docs | `^` 几何后缀、`-extent`、`-auto-orient`、`-strip`、`-density` | 一致 |
+| libvips-docs | `vips thumbnail` 缩小加载、smartcrop、顺序访问 | 一致 |
+| pillow-docs | `ImageOps.exif_transpose`、`Image.draft`、`thumbnail` 原地修改且不超过给定尺寸 | 一致 |
+| ebu-r128 | LUFS / LRA / dBTP 定义 | **不可达**：`curl` 与 reader 均返回 HTTP 403；标准文本静态，`synced_at` 保持 2026-10-15 |
+
+处理：前 10 条 `synced_at` 更新为 2026-11-01；正文不改。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search code "loudnorm" --filename SKILL.md`（40 条），去掉已收录与上表已评的仓库后，用 `gh api repos/<o>/<r>` 核对。
+
+| 仓库 / 路径 | Stars | pushed | 许可 | 结论 | 理由 |
+|---|---|---|---|---|---|
+| MadAppGang/claude-code `plugins/video-editing/skills/ffmpeg-core` | 286 | 2026-03-15 | MIT | REJECT | 教程式（安装命令、常用操作清单），无本 skill 未覆盖的陷阱；>6 个月未更新 |
+| godot-fun/gai `.agents/skills/audio-loudness-normalization` | 198 | 2026-11-01 | MIT | REJECT | 包装自家 `normalize.py` 的单文件响度归一，游戏音效分类 LUFS 表是项目约定，不是交付规范 |
+| AgriciDaniel/claude-music `skills/claude-music-*` | 90 | 2026-08-12 | MIT | REJECT | 音乐制作流程（分析、母带、导出），属创作工作流，非确定性媒体处理 |
+| jperrello/C0BALT_CUT `.claude/skills/loudnorm` | 3 | 2026-07-21 | 无 | REJECT | 自标 Stub；两遍 loudnorm 已在正文 |
+
+## 2026-11-01 D2 回归
+
+本轮正文未改（只有 `SOURCES.yaml` re-pin、einverne 改指向、docs `synced_at`），无需 D2。新增场景 8 只跑了基线（见上），结果为基线已会。
