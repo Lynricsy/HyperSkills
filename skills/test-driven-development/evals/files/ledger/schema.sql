@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS entries (
+    id TEXT PRIMARY KEY,
+    amount_cents INTEGER NOT NULL
+);

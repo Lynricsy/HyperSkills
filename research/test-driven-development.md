@@ -383,3 +383,55 @@ obra-tdd、obra-verification 区间内跟踪路径无净变化（bb92a77 的 rel
 | HP | 保留正例 | 新写：parseDuration('1h30m') returns 90 but it should return 5400 (seconds).… | 2/2 | 2/2 |
 
 结论：调优负例（CI 缓存）2/3 → 3/3 未读；正例场景 3（测试评审）旧描述未读、新描述读取——新描述把「reviews tests」写进路由句；保留样本两侧一致。采用新描述。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/test-driven-development.md`。
+compare API 读 mattpocock/skills、addyosmani/agent-skills 的命中 patch；laurigates 在 `/tmp/hs-attr/laurigates__claude-plugins` 裸仓库缓存读树 diff。
+`--pin` 后 7 条 `commit` 全部等于审阅 HEAD（无越界差额）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mattpocock-grilling | 49dd158 → 4ae2317 | 7739eae（#1341）`skills/productivity/grilling/SKILL.md`：查事实时派「带全新上下文窗口」的子代理，而不是 fork | 无影响，只 re-pin：本 skill 只合入一轮提问格式与「事实自己查」，不涉及子代理派发 |
+| addy-tdd | aeac41d → 8bfcc1f | 2b14012 `skills/test-driven-development/SKILL.md`：崩溃/回滚行为要打到真实边界——注入异常不是进程终止，mock 的事务调用不是数据库回滚 | 新增规则 → 评测先行：新增场景 11（`evals/files/ledger/`，`db.connect` 用 `isolation_level=None` 自动提交，回滚无效）。基线已全部做到（真 SQLite、走 `db.connect`、报告保证不成立并解释原因），**不合入**，场景 11 留作哨兵 |
+| laurigates-tripwire | 8fc6916 → 487c10e | f8246a96（#3123）`testing-plugin/skills/test-tripwire/SKILL.md` + 新增 `scripts/tests/test-can-fail-section.sh`：「Verify It Can Fail」改走其兄弟插件 `agent-patterns-plugin:parallel-agent-dispatch` 的 `mutation-check.sh`（快照、单条 sed、运行、全路径恢复），无该插件时用 Edit 改再立即 Edit 改回；先确认未变异时为绿 | 无影响，只 re-pin：改动绑定其插件脚本与 `sed-inplace` hook（本仓库条目 notes 已写明丢弃插件交叉引用）；本 skill 已有「先改坏、只跑该测试、看到断言失败、从副本恢复（不用 `git checkout --`）再跑绿」，与新版语义一致 |
+| obra-tdd / obra-verification | bb92a77 → 2ce8aa1 | 跟踪路径无变化 | 噪声，re-pin |
+| mattpocock-tdd | 49dd158 → 4ae2317 | 跟踪路径无变化 | 噪声，re-pin |
+| dotnet-test-value-evidence | 9de888b → 95e7d0c | 跟踪路径无变化 | 噪声，re-pin |
+
+### 评测（场景 11 基线缺口检验）
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物 `/tmp/hs-d2/G11b-process2/test-driven-development/omp-openai-gpt-6.1-sol-medium/baseline/11/`。
+夹具本机核实：`python3 -m unittest -v test_importer` 1 个测试 OK；用 `db.connect(":memory:")` 导入一行好、一行 `amount_cents=None` 后表里仍剩 1 行（保证不成立）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ | 81 s。临时文件库 + `db.connect` + schema，先插已有行、再导入好行与主键冲突行，断言 `IntegrityError` 传出且重开库后内容不变；`python3 -m unittest -v` 1 fail（多出 `('first', 100)`）；指出 `db.py:8` 的 `isolation_level=None` 导致回滚无效。用真库测试替换了 mock 测试，但没明说「mock 的事务调用不是回滚证据」 |
+
+结论：基线已会，addy 新句不合入；正文无改动，故本 skill 不需要 D2。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 为空；C2/C3 的补充候选逐个用 `gh api .../contents` 读原文后裁决。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| laurigates/claude-plugins `testing-plugin/skills/benchmark-controls`（MIT） | REJECT | 基准测试的对照组被夹具改写、两个计时工具读数不一致——性能基准方法，不是测试先行/测试质量，超出本 skill `## Scope`；若要收，属于 `debugging`（性能问题）范畴 |
+| shipshitdev/skills `skills/test`（无 SPDX） | REJECT | Bun 专用的测试运行入口（`disable-model-invocation`），按范围跑测试并汇报；runner 命令属生态 skill，且无许可 |
+| vllm-project/vllm `tests/AGENTS.md`（Apache-2.0） | REJECT | 项目自用规则。通用部分（真对象、只 mock 外部服务、修复前展示失败、`assert_called*`/「不抛异常」守不住任何东西、不许用 skip/xfail/重跑/放宽容差换绿、测试要被 CI 选中）本 skill 已覆盖（Gate 2、规则 13、test-smells 跳过测试与 crash-only 断言、2026-10-15 场景 7 的选中/执行计数基线已会）；其余是 vLLM 的 buildkite/批不变性细节 |
+| TerminalSkills/skills `skills/stryker-js`（Apache-2.0） | REJECT | StrykerJS 工具手册（安装、配置、阈值）；变异测试工具链属生态/runner 配置，本 skill 只保留语言无关的「心算变异检查」 |
+| gal-a/qikly `src/qikly/skills/qikly/SKILL.md`（Apache-2.0，19★） | REJECT | 单一产品（qikly CLI，仅 Python）的使用手册；核心观点「从实现跑出来的值不是契约」= 本 skill 已有的 independent expected values 规则 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "tdd skill" --created >=2026-10-10`、`"test-driven development agent skill" --updated >=2026-10-15`；VoltAgent/awesome-agent-skills 2026-10-15 以来 README 新增条目（无测试/TDD 相关）；github/awesome-copilot 区间新增 skill（`java-testcontainers`、`quarkus-dev-services-and-testing`，均为框架专用）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| chadcoulter/100-Monkeys-TDD-Skill | 0 | 2026-10-12 | 无 | 权威 0 新鲜 3 具体 - 正确 - 许可 0 → ≤4 | REJECT：匿名新仓库、无许可 |
+| plazorax/laravel-agent-workflow | 0 | 2026-10-16 | MIT | 权威 0 新鲜 3 具体 1 正确 - 许可 2 → ≤6 | REJECT：Laravel 专用工作流，测试部分为通用口号 |
+| github/awesome-copilot `skills/java-testcontainers`、`skills/quarkus-dev-services-and-testing` | 38k+ | 2026-10 | MIT | 范围外 | REJECT：框架/容器测试配置，属生态 skill（跨组线索，交主代理） |
+
+## 2026-11-01 文档上游复核
+
+本 skill 无 `kind: docs` 上游（工作单 D 为空）。

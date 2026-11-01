@@ -175,5 +175,24 @@
       "Proves the test can fail: temporarily breaks the assumption (for example lowers LIST_LIMIT below 8), runs it with the repository's command and quotes a failure on the assertion, then restores the value from a saved copy rather than with `git checkout --` and re-runs it green",
       "Says to close or narrow #123 in the same change and point it at the test"
     ]
+  },
+  {
+    "skills": [
+      "test-driven-development"
+    ],
+    "query": "importer.py promises that import_rows writes every row or none of them. The only test we have is test_importer.py. Add a test that proves the all-or-nothing guarantee when a row fails partway through, run it, and tell me whether the guarantee actually holds in production.",
+    "files": [
+      "evals/files/ledger/CONTRIBUTING.md",
+      "evals/files/ledger/db.py",
+      "evals/files/ledger/importer.py",
+      "evals/files/ledger/schema.sql",
+      "evals/files/ledger/test_importer.py"
+    ],
+    "expected_behavior": [
+      "Proves the guarantee against a real SQLite database (an in-memory or temporary file built from schema.sql) and asserts the table contents after the failed import, rather than asserting that a mocked `conn.rollback` was called",
+      "Opens the connection through the production `db.connect` (or explicitly reproduces its `isolation_level=None`) so the test exercises the same transaction boundary the import job uses",
+      "Runs the test with the repository's command (`python3 -m unittest -v test_importer`) and reports that the guarantee does not hold: with `isolation_level=None` each INSERT autocommits, so the row written before the failure survives the rollback",
+      "Says that a mocked transaction call is not evidence of a database rollback, so the existing mock-only test could not have caught this"
+    ]
   }
 ]
