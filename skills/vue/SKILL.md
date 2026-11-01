@@ -4,7 +4,7 @@ description: "Develops Vue and Nuxt applications with Composition API, Pinia and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -312,7 +312,8 @@ race is invisible until the subtotal renders at all.
 
 ## Environment
 
-Node.js 20+; use the project's own package runner (`npm` / `pnpm` / `yarn` /
+Node.js 22.12+ (Vitest 5 and Nuxt 4.5+ require Node 22; Nuxt 4.6 needs 22.22.3+,
+24.15+ or 26+); use the project's own package runner (`npm` / `pnpm` / `yarn` /
 `bun`) as declared in `packageManager`.
 
 ```bash

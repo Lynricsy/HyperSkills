@@ -208,3 +208,40 @@ repo moved / paths unchanged，`awesome-copilot` too-large 但归因为空）随
 | vue-test-utils-docs | `global.plugins`、`emitted()`、`findComponent`、`nextTick` 与 `flushPromises` 的区别、`shallow: true` | vuejs/test-utils main `docs/guide/advanced/async-suspense.md`、`essentials/event-handling.md`、`advanced/stubs-shallow-mount.md`、`docs/api/index.md` | 一致（2.5.1 仅类型与构建修复） |
 
 正文未改；五个条目 `synced_at` 更新为 2026-10-15，notes 中的「当前版本」同步为本次实查值。
+
+## 2026-11-01 上游同步
+
+`--pin` 写入 `198f0cd`、`525c01d`、`7de210b`、`5269f7e`，与快照 HEAD 一致。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| vuejs-ai-skills | c9d355f → 198f0cd（11 提交） | `310c195` 组件边界改为按职责划分：「3+ UI 区块、CRUD 必拆」等硬阈值改为 review 信号，单一使用者的抽取也合法，拆分只增加转发时不拆；`1715919`…`813324` v-memo 重写：依赖按引用比较，行可被替换时列入 `item`、原地修改时列入字段；子组件 props 不变本就不重渲染，v-memo 只省 VNode 创建与 diff；`1f441dd` 3.5+ 响应式 props 解构示例；`16479ee` SFC 段顺序统一为 script→template→style | **采纳上游自我更正**：`components.md` 的「Concrete triggers」改为 review 信号；`performance.md` 示例改 `[item, item.id === selectedId]` 并写明按引用比较、收益范围，「stale forever」改为「直到某个依赖变化」。解构示例与 SFC 顺序本 skill 已有 |
+| onmax-nuxt-skills | 46aaca0 → 525c01d（`1155ef9`） | `core-cli.md`：Nuxt CLI v4（4.6+），`nuxt init` 移除改用 `npm create nuxt@latest`，4.5.1 安全修复后 `nuxt upgrade --dedupe`；`core-config.md`：Node 22.21+/24.11+/26+、`NUXT_E*` 错误码 | **触发事实更正**：`SKILL.md` Environment 原写「Node.js 20+」。npm engines 实查：nuxt 4.5.2 `^22.19.0`、4.6.3 `^22.22.3 \|\| ^24.15.0 \|\| >=26`，vitest 5.0.5 `^22.12.0`（vite 8.3.5 仍 `^20.19`）；改为 Node 22.12+ 并列 Nuxt 4.6 要求 |
+| antfu-skills / awesome-copilot | 噪声 | paths 未变 | 只 re-pin |
+
+遗留项核实：**Nuxt 5 仍未发布**——`npm view nuxt versions` 无任何 5.x，`gh api repos/nuxt/nuxt/releases` 最新 v4.6.3（2026-10-27），server 段不按 Nuxt 5 重写。但其中 `createError` 一项已在 4.x 生效：
+v4.6.3 文档 `create-error.md`/`server.md` 只用 `status`/`statusText`，`NuxtError` 中 `statusCode`/`statusMessage` 自 v4.3.0 标 `@deprecated`（源码注释「remove in Nuxt 5」）。
+`references/nuxt.md` 改为 `createError({ status, statusText })` 并注明弃用，「Verified against」改为 Nuxt 4.6。另记（未写入）：Nuxt 4.6 新增 `nuxt/server` 导入面，Nuxt 3 已于 2026-07-31 EOL。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 为空；未发现分配给本 skill 的新增文件。
+
+## 2026-11-01 新候选检索
+
+`gh search repos`（`vue skills`、`nuxt skills`，`--created >2026-08-01`）只返回 caiqianha/vue-skills（2★，MIT）、KIMJINWOO4/vue-skills-ci（1★）、xushicheng/…（0★，无许可），
+均为个人练习仓库，未达复核门槛（stars/权威 0–1），不入候选表；awesome-agent-skills 与 awesome-copilot 区间内无 Vue/Nuxt 新条目。
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| vue-docs | v-memo / v-once 语义；当前 GA | https://vuejs.org/api/built-in-directives.html#v-memo；`gh api repos/vuejs/core/releases` 最新非预发布 v3.5.44（3.6.0-rc.14 仍预发布） | 一致；`performance.md` 按依赖按引用比较补充 |
+| nuxt-docs | useFetch key 含调用位置、`deep` 默认 false、`createUseFetch` 须为导出声明、`useFetch` 保留名、`componentIslands` 默认 `'auto'`（`packages/schema/src/config/experimental.ts` `val ?? 'auto'`）；createError 字段 | nuxt/nuxt v4.6.3 `docs/4.api/2.composables/use-fetch.md`、`create-use-fetch.md`、`docs/4.api/3.utils/create-error.md` | createError **已变化 → 更正**；其余一致 |
+| pinia-docs | Pinia 4 ESM-only、`@vue/devtools-api` 必需 peer | npm pinia 4.1.0 peerDependencies `@vue/devtools-api ^8.2.1`；v4.1.0 发布说明（新增 `getStores()`，无破坏性变更） | 一致 |
+| router-docs | v5 合入 unplugin-vue-router、守卫语义 | npm vue-router 5.4.0（与上次复核同版本） | 一致 |
+| vue-test-utils-docs | 2.5 挂载选项与 `flushPromises` | npm @vue/test-utils 2.5.1（同上次） | 一致 |
+
+## 2026-11-01 D2 回归
+
+正文改动（components.md、performance.md、nuxt.md、SKILL.md Environment）本轮**未跑 D2**：组代理请求预算用尽，列为遗留，需补跑涉及 v-memo / Nuxt server 的场景与负例。

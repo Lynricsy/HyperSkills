@@ -1,6 +1,6 @@
 # Nuxt
 
-Verified against: Nuxt 4.5
+Verified against: Nuxt 4.6
 
 ## Contents
 
@@ -233,8 +233,9 @@ editing the config per environment.
 The method suffix (`.get`, `.post`) is the routing mechanism; a single handler
 that branches on the method is the older, less type-friendly shape.
 
-Validate input in the handler and throw `createError({ statusCode, statusMessage })`
-so `useFetch`'s `error` ref carries a usable status. Caching for a route is
+Validate input in the handler and throw `createError({ status, statusText })`
+(`statusCode`/`statusMessage` are deprecated since Nuxt 4.3 and slated for
+removal in Nuxt 5) so `useFetch`'s `error` ref carries a usable status. Caching for a route is
 declared in `nuxt.config`'s `routeRules` (`{ '/api/stats': { swr: 600 } }`),
 not by hand-rolling a cache in the component.
 

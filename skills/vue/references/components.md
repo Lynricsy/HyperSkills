@@ -21,10 +21,12 @@ Verified against: Vue 3.5
 names are PascalCase and multi-word (`UserCard`, never `Card`) so they cannot
 collide with a current or future HTML element.
 
-Split a component when it owns more than one responsibility — typically
-orchestration plus several independent presentational sections. Concrete
-triggers: three or more distinct UI sections (form, filters, list, footer), or a
-repeated template block that wants to be a row/card component. Route-level views
+Split along responsibilities: a substantial UI section or stateful workflow that
+can be understood and changed through a small props/emits contract earns its own
+component, even with a single consumer. Three or more UI sections (form,
+filters, list, footer), a repeated row/card block or a long file are signals to
+review, not automatic split thresholds — keep a small cohesive feature in one
+SFC when a split would only add prop and event forwarding. Route-level views
 and the app root stay composition surfaces: layout, provider wiring, and feature
 composition, not feature implementations.
 

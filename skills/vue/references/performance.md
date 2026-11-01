@@ -51,18 +51,23 @@ is a component instance, a props object, and a scope; for a plain
 ## v-memo and v-once
 
 ```vue
-<div v-memo="[item.id, item.selected]"> … expensive subtree … </div>
+<div v-memo="[item, item.id === selectedId]"> … expensive subtree … </div>
 <footer v-once> … render-once content … </footer>
 ```
 
-`v-memo` skips re-rendering a subtree while every listed dependency is
-unchanged; it is the tool for "this row's markup is expensive and only two
-fields matter". `v-once` renders exactly once and never updates — for genuinely
-static content that still needs an initial interpolation.
+`v-memo` reuses the previous VNodes of a subtree while every listed dependency is
+unchanged; it is the tool for "this row's markup is expensive and only its
+selection state changes". `v-once` renders exactly once and never updates — for
+genuinely static content that still needs an initial interpolation.
+
+Dependencies are compared by identity. List `item` itself when rows can be
+replaced, and each rendered field (`item.name`) when items are edited in place.
+The saving is VNode creation and diffing for the skipped rows: a child component
+whose props are unchanged already skips its own re-render without `v-memo`.
 
 Both are opt-outs from correctness checking: a dependency missing from the
-`v-memo` array means the subtree shows stale data forever. Add them to a
-measured hot path, not on principle.
+`v-memo` array means the subtree shows stale data until a listed dependency
+changes. Add them to a measured hot path, not on principle.
 
 ## Prop and computed stability
 
