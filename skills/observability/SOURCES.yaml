@@ -18,7 +18,7 @@ upstreams:
       - skills/otel-declarative-config
       - skills/otel-collector-builder
     ref: main
-    commit: 506c0131c130d708b4d05b088cc15890ee6445c0
+    commit: 72c309e59eef7f94d1dc61be0c9a15cf7b97bf8d
     license: Apache-2.0
     relation: merged
     synced_at: "2026-11-01"
@@ -134,7 +134,7 @@ upstreams:
     url: https://github.com/open-telemetry/opentelemetry-collector-contrib
     paths: [processor, receiver, exporter, connector, extension]
     ref: main
-    commit: 504480882aa709e0a665bfff10a1263505c89fc1
+    commit: a1cd60723506d875a7a4a94b525b9615c11f08fb
     license: Apache-2.0
     relation: merged
     synced_at: "2026-11-01"

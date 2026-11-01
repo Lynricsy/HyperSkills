@@ -550,6 +550,15 @@ SRE Workbook 读站点页面。
 will additionally force garbage collection to be performed」。改为「软限起返回可重试错误拒收，硬限再额外强制 GC，自身不丢数据；只有发送方不重试时被拒数据才丢失」，
 与同节已有的「Refusal is a non-permanent error」一致。纯事实更正，不新增规则。
 
+### 收尾复检的当日增量（主代理）
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| ollygarden-otel-skills | 506c013 → 72c309e | `skills/otel-sdk-versions`：72c309e 版本索引刷新（Python SDK 1.45.2、Collector 0.164.x、Java agent 2.33.1、Helm 0.178.1） | 无影响：正文唯一点名的 `Python SDK 1.45.1` 是实测记录，仍成立；只 re-pin |
+| otel-collector-contrib | 5044808 → a1cd607 | `receiver`（stanza otelcol 自身日志解析器）、`exporter`（eBPF profile 转换、stef 测试修复）、`extension`（http_forwarder 保留多值响应头） | 无影响：正文未引用这些组件；只 re-pin |
+
+`--pin` 写入的 commit 与审阅 HEAD 相同。
+
 ## 2026-11-01 上游新增内容评估
 
 | 候选 | 结论 | 理由 |
