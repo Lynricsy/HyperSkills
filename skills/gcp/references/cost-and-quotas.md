@@ -87,15 +87,18 @@ immediately, including the database. It is a legitimate control for a sandbox an
 self-inflicted outage anywhere else; the safer automated response is to lower quotas or scale
 a specific service to zero.
 
-The one kind of budget that does stop usage is a **spend cap budget** (Preview — check its
-launch stage before relying on it). It is scoped to one project and one eligible service —
-Gemini API, Gemini Enterprise Agent Platform (formerly Vertex AI), Cloud Run, Cloud Run
-functions — and once the service's gross estimated monthly cost passes the amount it blocks
-new usage of that service until a human lifts the cap. In-flight requests and persistent
-resources (Cloud SQL, disks, stored objects) keep billing and enforcement lags, so it is a
-brake, not a ceiling. Two details catch people: an existing alerts-only budget cannot be
-converted — create a new spend cap budget — and configuring or lifting a cap needs
-`billing.budgets.configureSpendCap`, which ordinary budget editors may not hold.
+The one kind of budget that does stop usage is a **spend cap budget** (generally available
+since 2026-10-13). It is scoped to one project and one eligible service — Gemini API, Gemini
+Enterprise Agent Platform (formerly Vertex AI), Cloud Run, Cloud Run functions — on a monthly
+period, and once the service's gross estimated cost for the month passes the amount it blocks
+new usage of that service for the rest of the month: until a human lifts the cap or it resets
+automatically on the first day of the next month. A cap lifted by hand does not trigger again
+that month unless the amount is raised. In-flight requests and persistent resources (Cloud SQL,
+disks, stored objects) keep billing and enforcement lags, so it is a brake, not a ceiling. Two
+details catch people: an existing alerts-only budget cannot be converted — create a new spend
+cap budget — and configuring or lifting a cap needs `billing.budgets.configureSpendCap` on the
+billing account (or `billing.resourcebudgets.configureSpendCap` on the project with
+project-scoped billing access), which ordinary budget editors may not hold.
 
 ## Where the numbers actually come from
 

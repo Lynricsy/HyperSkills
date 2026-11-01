@@ -541,6 +541,9 @@ SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补
 - `references/cost-and-quotas.md`：credits 为每条 usage 行的重复字段、`amount` 为负，净成本公式见上；只加 `cost` 偏高、减去 credits 会反号。
 - `references/cost-and-quotas.md` 与 `references/architecture-framework.md`（文档复核中发现）：「billing export 不回溯、无法 backfill」不准确——官方
   *Export Cloud Billing data to BigQuery*：multi-region（US/EU）数据集首次启用时回填到上月月初（最长 5 天完成），单 region 数据集、pricing 导出、重新启用或改位置时不回填。
+- `references/cost-and-quotas.md`（续做，optimnow-finops 区间内称 spend cap 已 GA，按官方核实）：spend cap budget 由「Preview」改为 2026-10-13 GA；
+  补「enforced 后人工解除或下月首日自动 reset、手动解除后当月不再触发」与项目级权限 `billing.resourcebudgets.configureSpendCap`。`SOURCES.yaml` `gcp-docs.contributes`
+  同步改写并补记 billing export 两项更正；场景 6 的 `expected_behavior` 去掉「(Preview)」并补上述两点；新增回归场景 11（billing export credits 与回填）。
 
 ## 2026-11-01 上游新增内容评估
 
@@ -575,8 +578,9 @@ SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补
 | gcp-docs | GKE 每节点默认 110 Pod；管理费 $0.10/集群/小时、免费额度 $74.40、扩展支持 $0.50/小时 | [Flexible Pod CIDR](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr)、[GKE pricing](https://cloud.google.com/kubernetes-engine/pricing) | 一致 |
 | gcp-docs | billing export「不回溯」 | [Export Cloud Billing data to BigQuery](https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery) | **不准确 → 更正**（见上，multi-region 首次启用回填到上月月初） |
 | gcp-docs | billing export credits 结构 | [Standard usage cost data](https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery-tables/standard-usage)、[Example queries](https://docs.cloud.google.com/billing/docs/how-to/bq-examples) | **不准确 → 更正**（见上） |
+| gcp-docs | spend cap budget 发布阶段与行为（续做补核） | [Cloud Billing release notes](https://docs.cloud.google.com/billing/docs/release-notes)（2026-10-13 条目「Spend cap budgets are now generally available for a limited set of services」）、[Manage spend cap budgets](https://docs.cloud.google.com/billing/docs/how-to/budgets-spend-caps)（Last updated 2026-10-26） | **过时 → 更正**：正文、SOURCES 与场景 6 写「Preview」，改为 2026-10-13 GA。同页另有两处正文缺漏一并改：enforced 后不只靠人工解除，下个月首日自动 reset（手动解除后当月不再触发，除非调高金额）；项目级 billing 访问用 `billing.resourcebudgets.configureSpendCap`（账户级仍为 `billing.budgets.configureSpendCap`）。范围（单项目单服务、4 个合格服务、月度、毛估算成本不含 credits、在途请求与持久资源照常计费、执行有滞后）均与现页一致。「alerts-only 预算不能转换」现页未明说也未否定（编辑 spend cap 预算只能改名称/金额/项目/服务；Budget API 页无转换示例），保留 |
 
-`gcp-docs` 的 `synced_at` 更新为 2026-11-01。未复核（遗留）：spend cap budget 是否仍为 Preview（optimnow-finops 称 2026-10-13 GA，本 skill 与 SOURCES 仍写 Preview）、Autopilot 各类最小请求。
+`gcp-docs` 的 `synced_at` 更新为 2026-11-01。spend cap 一项已由续做代理补核并更正（见上表最后一行）。未复核（遗留）：Autopilot 各类最小请求（2026-10-15 场景 10 刚核过，本轮未重核）。
 
 ## 2026-11-01 D2 回归
 

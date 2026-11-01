@@ -63,9 +63,9 @@
     "files": ["evals/files/spend-incident.md"],
     "expected_behavior": [
       "Explains that the existing budget is alerts-only: threshold rules send notifications and never stop usage, which is why spend ran past 100% all weekend",
-      "Proposes a Cloud Billing spend cap budget (Preview) as the native hard stop, and states its shape: one project and one eligible service per cap budget (Gemini API, Gemini Enterprise Agent Platform / Vertex AI, Cloud Run, Cloud Run functions), a monthly period, so this project needs separate cap budgets for the Gemini usage and for Cloud Run, and none for Cloud SQL or Cloud Storage",
-      "States what enforcement does and does not do: new usage of the capped service is blocked until someone manually lifts the cap, in-flight requests finish and still bill, persistent resources such as `demo-db` and the bucket keep accruing charges, enforcement is not instant and overages are still billed, and the cap is computed on gross estimated cost without credits - so it is not a guaranteed $500 ceiling",
-      "Notes that the existing alerts-only budget cannot be converted in place (it is replaced by a new spend cap budget) and that configuring or lifting a cap needs `billing.budgets.configureSpendCap`",
+      "Proposes a Cloud Billing spend cap budget (generally available since 2026-10-13) as the native hard stop, and states its shape: one project and one eligible service per cap budget (Gemini API, Gemini Enterprise Agent Platform / Vertex AI, Cloud Run, Cloud Run functions), a monthly period, so this project needs separate cap budgets for the Gemini usage and for Cloud Run, and none for Cloud SQL or Cloud Storage",
+      "States what enforcement does and does not do: new usage of the capped service is blocked for the rest of the month until someone manually lifts the cap or it resets automatically at the start of the next month, in-flight requests finish and still bill, persistent resources such as `demo-db` and the bucket keep accruing charges, enforcement is not instant and overages are still billed, and the cap is computed on gross estimated cost without credits - so it is not a guaranteed $500 ceiling",
+      "Notes that the existing alerts-only budget cannot be converted in place (it is replaced by a new spend cap budget) and that configuring or lifting a cap needs `billing.budgets.configureSpendCap` on the billing account (or `billing.resourcebudgets.configureSpendCap` on the project with project-scoped billing access)",
       "Adds the quota and service-level limits that bound the blast radius independently of billing - `max-instances` on `summarizer`, a lower Vertex AI / Gemini quota for the project, and closing or authenticating the public endpoint",
       "Warns against the budget → Pub/Sub → function that disables billing on the project as the answer here, because detaching billing stops every service including `demo-db` and risks the resources the CTO wants kept"
     ]
@@ -114,6 +114,18 @@
       "Corrects feature-flags: the Balanced class has its own minimum of 0.25 vCPU / 0.5 GiB, so its 100m / 128Mi requests are raised to that and billed as 2.5 vCPU and 5 GiB for 10 replicas, not 1 vCPU and 1.25 GiB",
       "Corrects report-builder: 1 vCPU : 8 GiB is outside the general-purpose 1:1-1:6.5 range, so Autopilot raises the smaller resource, CPU, to about 1.23 vCPU (8 / 6.5) per Pod and bills that (Balanced would accept 1:8)",
       "Rejects the proposal to move log-shipper to Balanced: there it would be raised to the 0.25 vCPU / 0.5 GiB minimum, five times its current CPU bill, so it is more expensive, not cheaper"
+    ]
+  },
+  {
+    "skills": ["gcp"],
+    "query": "FIN-418.md is Tomasz's status on finance's cost-reporting ticket and net_cost.sql is his query against our BigQuery billing export. Why doesn't it match the invoice, what is the corrected query, and is the rest of his plan sound?",
+    "files": ["evals/files/billing-recon/FIN-418.md", "evals/files/billing-recon/net_cost.sql"],
+    "expected_behavior": [
+      "Explains that credits are not separate rows but a repeated `credits` field on each usage row whose `amount` values are already negative, so net cost is cost plus the credit amounts; `SUM(cost) - SUM(c.amount)` flips their sign and adds the discounts back, which is why the CUD projects come out above the invoice",
+      "Rewrites the query to sum the credits per row, e.g. `SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0))`, and explains that the `CROSS JOIN UNNEST(credits)` both repeats a row's cost once per credit and drops rows with no credits - so the free-tier-only projects disappear",
+      "States that the export will not backfill May-September: the dataset is in a single region (`europe-west1`), so it got no backfill at all, and even a multi-region (`EU`/`US`) dataset only gets a one-time backfill to the start of the previous month when the export is first enabled",
+      "Rejects disabling and re-enabling the export to trigger a backfill: a re-enabled or moved export starts from the day it is enabled, so it gains nothing and risks a gap; the older months must come from somewhere other than this export",
+      "Rejects the same-day runaway-cost pager built on the export: it lands with a delay of hours, so it is a reporting tool, and same-day protection comes from budgets with forecast thresholds, spend caps or quotas instead"
     ]
   }
 ]
