@@ -4,7 +4,7 @@ description: "Designs and tunes PostgreSQL schemas, queries, indexes, transactio
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -19,7 +19,8 @@ full-text search, pgvector, and the catalogue queries that answer "why is it slo
 
 The body is written against **PostgreSQL 18** (current stable; 18.6 at time of writing).
 Rules that need a newer server than 14 carry a gate such as `(PG 15+)`. Nothing here
-assumes 19, which is still in beta.
+assumes 19, which had not reached general availability at time of writing (release
+candidate only).
 
 Not covered:
 

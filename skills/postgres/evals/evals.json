@@ -63,5 +63,14 @@
       "Catches the operator/operator-class mismatch in the docs example: an index built with `vector_l2_ops` is not used by `ORDER BY embedding <=> $1` (cosine), so the query silently falls back to a sequential scan plus sort; the example must pair `vector_cosine_ops` with `<=>` (or `vector_l2_ops` with `<->`)",
       "Recommends HNSW rather than IVFFlat for the customer example (no training step, works on an empty table, no `lists` to size against the final row count), which also keeps customers off the IVFFlat build path"
     ]
+  },
+  {
+    "skills": ["postgres"],
+    "query": "Production is PostgreSQL 18.6 (primary plus one streaming replica, pgvector and pg_stat_statements installed). Our ops lead wants to move production to PostgreSQL 19 this weekend because the 19 packages already show up in the PGDG apt repository. Should we do it, and what would the plan look like?",
+    "expected_behavior": [
+      "Establishes PostgreSQL 19's actual release status (from postgresql.org or by saying it must be checked there) instead of assuming that packages in the repository mean a final release, and states that as of now 19 is a pre-release (release candidate/beta), not generally available",
+      "Recommends against putting a pre-release major version into production; keeps production on the current 18.x minor and proposes testing 19 in a non-production rehearsal instead",
+      "Describes a real major-version path for when 19 is GA: pg_upgrade (with `--check` first) or dump/restore or logical replication, a rebuilt or re-cloned replica, reading the 19 release notes, and confirming that every installed extension (pgvector, pg_stat_statements) has a build for 19"
+    ]
   }
 ]

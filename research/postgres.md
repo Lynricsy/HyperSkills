@@ -447,3 +447,47 @@ SOURCES.yaml 中 prisma 的 paths 更正，本次复核属实后保留并补全�
 | postgresql-docs | 生成列语法 `GENERATED ALWAYS AS (...) [STORED \| VIRTUAL]` | [CREATE TABLE](https://www.postgresql.org/docs/18/sql-createtable.html) | 一致 |
 
 4 组事实全部一致，正文未改，`postgresql-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/postgres.md`）。`neon-agent-skills`、`prisma-skills` 用 `gh api repos/<o>/<r>/compare/<旧pin>...<审阅HEAD>` 读 patch；`google-cloud-sql`（diff too large）在 `/tmp/hs-attr/google__skills` 上做树 diff；`awesome-copilot-pg` 主代理已按完整区间树对比确认 paths 无变化。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| neon-agent-skills | 6f86dab → d3da7cb（15 commits） | `skills/neon-postgres`：`@neondatabase/*` 包名改 `@neon/*`；新增「热读放 Upstash Redis 以让计算缩到零」；`references/hybrid-search.md` 新增 Jev 重排（Neon AI Gateway 决策模型，`experimental_decide`，付费计划）并把 RRF 降为可选/回退，向量检索 CTE 加 `WHERE embedding IS NOT NULL`；`vector-search.md` 加「AI Gateway 仅付费计划」 | 范围外。全部是 Neon/Lakebase 平台面（AI Gateway、Upstash 集成、BM25 扩展）；本 skill 只取其「事务池错误特征与必须直连的工作」一节。本 skill 的混合检索（`references/jsonb-and-search.md`）是 `ts_rank` + pgvector 的 RRF，NULL 向量在 `ORDER BY <=> ... LIMIT` 中排在末尾且不入 HNSW，不构成更正 |
+| prisma-skills | be16a87 → 8ea289b（8 commits） | `prisma-postgres-setup`：description 扩到「I need a database」/`create-db`；无库时提供 `npx create-db`（24 小时未认领即删）；Platform CLI 并入 Prisma 8 CLI；把认领 URL 本身交给用户；`references/vercel-marketplace.md` 重写为 Vercel CLI 集成流程（`vercel integration add prisma/prisma-postgres`、环境变量表、直连 `db.prisma.io` 与池化 `pooled.db.prisma.io`、常见错误）。`prisma-orm-setup/references/v7-postgresql.md` 未变 | 范围外，仅 re-pin。relation 为 reference，内容是 Prisma 托管产品开通与 Vercel 集成；其中「直连端点给迁移、池化端点给应用流量」「不要把 shadow DB 或 reset 指向已连接库」与本 skill 已有的直连/池化分工与 schema-push 风险一致 |
+| google-cloud-sql | b85f257 → bb9b3f4（65 commits） | `skills/cloud/cloud-sql-basics`：dcedfd4d 新增 `references/attribution.md` 并要求 `gcloud` 前缀 `CLOUDSDK_METRICS_REQUEST_ATTRIBUTION`、REST/MCP 请求追加 User-Agent 标记；frontmatter 版本 1.0.1 | 噪声（上游自用的用量归因遥测），仅 re-pin |
+| awesome-copilot-pg | 3cf7c7e → 5269f7e | 无（主代理树对比） | 噪声，仅 re-pin |
+| microsoft-postgres-skills / timescale-pg-aiguide / pgvector / wshobson-table-design | 9ba96ab → 8066083 / 187be00 → 5d3b76b / f37c13f → 1d5ef0a / 46891e7 → 7e2fb55 | 无（repo moved, tracked paths unchanged） | 噪声，仅 re-pin |
+
+`--pin` 后逐条核对（`/tmp/hs-g06/pin_check.py` 对照 `_pins.json`）：11 个 repo 条目写入的 commit 全部等于审阅 HEAD，无差额。
+
+结论：上游无可合入内容；正文唯一改动来自下文文档复核（PG 19 状态措辞）。`version` 改为 2026.11.01。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| TencentCloudBase/CloudBase-AI-Toolkit `postgresql-best-practices-cloudbase`（`connectors/...` 与 `plugin/cloudbase-codex/...` 两份逐字节相同，MIT） | REJECT | CloudBase PG 的访问模式审查：`app.rdb()`、`queryPgDatabase`/`applyMigration`、`queryEnv` 容量检查。通用部分（外键引用侧建索引、等值列在前的复合/部分索引、不对列包函数、RLS 里 `(SELECT auth.uid())` 包一层、`TO` 与 `USING` 分工）均已在本 skill 覆盖；其余为托管产品面。`wechat-miniprogram` 的 Scope 也把 CloudBase 列为不覆盖 |
+| 同仓库 `postgresql-development-cloudbase`（两份相同） | REJECT | CloudBase PG 模式 SDK 与 MCP 工具手册（`app.rdb()` 方法对照表、PG 模式环境开通、存储桶），纯产品面 |
+| 同仓库 `relational-database-mcp-cloudbase`、`relational-database-web-cloudbase`（两份相同） | REJECT | 自述「[Deprecated] Existing CloudBase MySQL only」，不是 PostgreSQL |
+| TerminalSkills/skills `skills/postgres-js/SKILL.md`（Apache-2.0） | REJECT（跨组提示） | Postgres.js（Node 客户端）API：tagged template、`sql.begin`、cursor、`listen`。客户端/ORM 语法按 Scope 归框架 skill（`nodejs-backend`）；它对数据库侧的两点（事务池下 `prepare: false`、`listen` 需直连或会话池）本 skill 已有 |
+| first-fluke/oh-my-agent `.claude-plugin/directory/skills/oma-db/SKILL.md`（MIT） | REJECT | 跨引擎「DB Agent」人设与流程（3NF、ISO 27001 对齐、产出模板）；其 PostgreSQL 要点（`lock_timeout` + 重试、`CREATE INDEX CONCURRENTLY`、`CHECK ... NOT VALID` 再 VALIDATE 加 NOT NULL）已覆盖，且后者在 PG 18 有更直接的 `NOT NULL ... NOT VALID` 写法（本 skill 已按 18 写） |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "postgres agent skill"` / `"postgresql agent skill"` / `"postgres skills"` / `"postgresql SKILL.md"`（`--updated >2026-10-15`）；VoltAgent/awesome-agent-skills 自 2026-10-15 的新增行（无 PostgreSQL 条目）。除已追踪的 `timescale/pg-aiguide`、`microsoft/postgres-skills` 外只有一个新仓库：
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| gburd/postgres-agent-skills | 1 | 2026-10-30 | CC0-1.0 | 8（权威 2 / 新鲜 3 / 具体 1 / 正确 — / 许可 2） | REJECT（越界）：面向 PostgreSQL **内核贡献者**（patch 提交、commitfest、pgindent、邮件列表惯例、核心开发者「voices」），不是使用 PostgreSQL 写应用/运维，Scope 不覆盖 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| postgresql-docs | 18 为当前大版本，当前小版本 18.6；14 仍受支持（2026-11-12 EOL） | [Versioning policy](https://www.postgresql.org/support/versioning/) | 一致 |
+| postgresql-docs | 「19 is still in beta」 | 同页横幅与 [新闻归档](https://www.postgresql.org/about/newsarchive/pgsql/)：2026-10-15「PostgreSQL 19 RC 1 Released!」，尚无 GA 公告 | **已过时 → 更正**：SKILL.md Scope 改为「19 had not reached general availability at time of writing (release candidate only)」；`SOURCES.yaml` notes 同步改为 RC 1 |
+| postgresql-docs | 默认权限：按 schema 的 `ALTER DEFAULT PRIVILEGES IN SCHEMA ... REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` 无法撤销全局默认；不带 `IN SCHEMA` 才生效且作用于所有 schema（为同组 `supabase` 复核时实测，本 skill 的 `references/rls.md` 用逐函数 `REVOKE EXECUTE ... FROM PUBLIC`，不受影响） | [ALTER DEFAULT PRIVILEGES](https://www.postgresql.org/docs/18/sql-alterdefaultprivileges.html)；本机 `postgres:18`（18.6）实跑：schema 级撤销后新函数 `has_function_privilege` 仍为 t，全局撤销后 `public`、`private` 两个 schema 的新函数均为 f | 一致 |
+
+正文 1 处更正（版本状态措辞），`postgresql-docs` 的 `synced_at` 更新为 2026-11-01。新增回归场景 6（生产升级到 19 的提问），见 D2 节。
