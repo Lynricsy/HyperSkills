@@ -77,5 +77,15 @@
       "Fixes similar_products by passing `DIALECT 2` on the query itself, keeping the vector in `PARAMS`; if it suggests changing the instance default (`CONFIG SET search-default-dialect 2`) instead, it warns that this changes how every other query on the instance is parsed",
       "Gives a way to confirm the server's default rather than trusting the blog post, such as `CONFIG GET search-default-dialect` or `FT.CONFIG GET DEFAULT_DIALECT`"
     ]
+  },
+  {
+    "skills": ["redis"],
+    "query": "queue_consumer.py is our order-events consumer and page-view counter; the three incidents that started after we upgraded redis-py are in the docstring. What is causing each one, and what exactly should we change?",
+    "files": ["evals/files/queue_consumer.py"],
+    "expected_behavior": [
+      "Explains incident 1 from the client defaults: redis-py 8.0+ sets socket_timeout (and socket_connect_timeout) to 5 s where 7.x left them unset, so `BLPOP ... timeout=30` on a quiet queue outlives the client's read timeout; fixes it by making the server-side blocking timeout shorter than the client's command timeout (or giving the consumer its own client whose socket_timeout exceeds the BLPOP timeout), not by setting socket_timeout=None",
+      "Explains incident 2 as client-side pool exhaustion, not a server limit: the default ConnectionPool (100 connections since redis-py 8.0) raises MaxConnectionsError immediately when every connection is leased instead of waiting, which 2,000 concurrent `incr` tasks hit while the server is far below maxclients; fixes it by bounding concurrency (semaphore or pipelining the batch), a BlockingConnectionPool with a timeout, or a deliberately sized max_connections checked against maxclients across all pods",
+      "Explains incident 3 as a retried non-idempotent write: a timed-out or failover-interrupted INCR may already have been applied, and a client retry policy that covers timeouts and connection errors (redis-py 8.0+ retries by default) re-sends it; narrows retries for INCR or accepts the counter as approximate / makes the write idempotent"
+    ]
   }
 ]

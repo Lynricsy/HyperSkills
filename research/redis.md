@@ -488,3 +488,48 @@ D1：`validate_skills` / `build_catalog --check` 通过；`npx skills@latest add
 结论：两处更正相关的行为在有 skill 时均达成且不差于基线——场景 1 未把新增的 LRM 策略误作缓存处方，场景 6 方言结论正确并多给出核实命令（基线需联网查文档，耗时约 4.5 倍）。负例 `skill_read == false`。正文未改。
 
 遗留：场景 6 基线也能靠官方文档答对方言默认值，正文这条更正主要防止 skill 自身误导，增益仅在 EB3；本 VM 无 Redis Search 与 Docker，两侧都未端到端执行 KNN 查询。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/redis.md`）。`redisvl`、`redis-py` 用 `gh api repos/<o>/<r>/compare/<旧pin>...<审阅HEAD>` 读 patch；按简报，`redis-py` 的 28 个 connection/client/cluster 提交只核对正文引用的 API、默认值与行为。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| redisvl | fe583d5 → 6a81e13（20 commits） | `extensions/cache/llm/semantic.py`（983c02f：命中后的 TTL 刷新合并为一次 pipeline）；`extensions/cache/embeddings/embeddings.py`（a6bca3a：`get`/`mget` 把 `HGETALL` 与 `EXPIRE` 放进同一非事务 pipeline，`set` 改走 `mset`） | 无影响，仅 re-pin。纯往返优化，「命中即续期」的语义不变；正文的语义缓存一节不涉及其内部往返次数 |
+| redis-py | 0431fd6 → 05712b2（78 commits；paths 下 28 个） | 逐条看标题与 diff，与正文相关的只有 b29d3a3「Document BlockingConnectionPool and the default connection limit」：文档写明 8.0 起 `ConnectionPool` 默认最多 100 个连接、用尽时立即抛 `MaxConnectionsError` 而不等待，`BlockingConnectionPool` 默认 50 个、等待 20 s。其余（fork 后重置、CSC 支持 Unix socket、OCSP、SSL 握手受 `socket_connect_timeout` 约束、`address_remap` 用于 MOVED/ASK、CLUSTER SHARDS RESP2/3 形状、拓扑刷新节流、凭据脱敏等）均为客户端内部修复，正文未引用 | **事实更正**（见下） |
+| awesome-copilot-redis | 3cf7c7e → 5269f7e | 无（主代理树对比） | 噪声，仅 re-pin |
+| redis-oss | 498ecd0 → 1a2574c（6 commits） | 无 | 噪声，仅 re-pin |
+
+更正（依据源码与本机实跑，非新增规则）：
+
+1. **超时默认值。** `references/cluster-and-connections.md` 原写「Most clients default both to unset (`socket_connect_timeout`/`socket_timeout` are `None` in redis-py)」。核对源码：默认值已移到 `redis/_defaults.py`（bfaf0023，2026-05-28，随 redis-py 8.0.0 发布），`DEFAULT_SOCKET_TIMEOUT = 5`、`DEFAULT_SOCKET_CONNECT_TIMEOUT = DEFAULT_SOCKET_TIMEOUT`，旧 pin 0431fd6 上已是如此——该句在上次同步时就已过时，因为当时只看了 `connection.py`。本机 `uv run`（`redis==8.1.0`）对 `redis:8` 容器实测：`socket_timeout 5`、`connect_timeout 5`、`max_connections 100`；`BLPOP nokey 10` 在 59.2 s 后抛 `TimeoutError`（每次 5 s 读超时被默认重试策略带退避重发）；`max_connections=2` 的 `ConnectionPool` 第三次取连接 0.0 s 抛 `MaxConnectionsError: Too many connections`；`BlockingConnectionPool()` 默认 `max_connections 50`、`timeout 20`。改为：显式设置两种超时；redis-py 8.0 前两者为 `None`、8.0 起均为 5 s 且超时也会按默认重试策略重发；读安装版本的默认值而不是假设。
+2. **连接池用尽行为。** 原表格写「A lease blocks when the pool is exhausted」，对 redis-py 默认池（立即失败）不成立。改为「用尽时视池类型排队或立即失败」，并写明 redis-py 两种池的默认值（`[verified]`）。
+3. **阻塞命令与重试**两条补上上面的实测数字，并说明默认重试覆盖超时的客户端需为非幂等写收窄重试。
+
+`SOURCES.yaml` 的 `redis-py` 条目：`paths` 增加 `redis/_defaults.py`（默认值已迁到此文件；`gh api .../compare` 确认本区间未改动它），`contributes`/`notes` 按上述更正改写。
+
+`--pin` 后逐条核对：a84871d、6a81e13、5269f7e、1a2574c、05712b2、b41c7a6 全部等于审阅 HEAD，无差额。
+
+现有场景都不考察客户端超时与连接池，新增回归场景 7（夹具 `evals/files/queue_consumer.py`：升级 redis-py 7.4 → 8.1 后的三起事故），见 D2 节。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 节为空（三个已追踪仓库区间内无新增 skill 类文件）。
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "redis agent skill"` / `"redis skills"`（`--updated >2026-10-15`，无结果）；VoltAgent/awesome-agent-skills 自 2026-10-15 的新增行（无 Redis 条目；其「Skills by Redis」一节仍只列已追踪的 `redis/agent-skills` `redis-core`）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| （无新候选） | — | — | — | — | — |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| redis-io-docs | 当前稳定版 8.10（正文写「8.10.2 at time of writing」） | `gh api repos/redis/redis/releases`：2026-10-26 发布 8.10.3 / 8.8.4 / 8.6.8 / 8.4.8 / 8.2.11 / 7.4.12 / 7.2.17，2026-10-29 发布 8.12-rc1 | 一致：8.10 仍是当前稳定系列，8.12 仅 RC。8.10.3 等为安全修复（集群模式下经集群总线传播 >4 GB 的 `PUBLISH`/`SPUBLISH` 消息时堆溢出），正文无对应规则，属新安全事实，未合入；`security.md` 中 `cluster-bus-port-protected-mode` 的版本下限（8.10.2、8.8.3…）不受影响 |
+| redis-io-docs | 查询方言：Redis 8 弃用 1/3/4，但 DIALECT 1 仍为默认 | [Query dialects](https://redis.io/docs/latest/develop/ai/search-and-query/advanced-concepts/dialects/) | 一致（「Dialect version 1 remains the default dialect」） |
+| redis-io-docs | 客户端默认超时（正文 `cluster-and-connections.md` 引用 redis-py） | redis-py 源码 `redis/_defaults.py` 与 [connections 文档](https://redis.readthedocs.io/en/stable/connections.html)（b29d3a3 新增连接池一节） | **更正**，见上节 |
+
+`redis-io-docs` 的 `synced_at` 更新为 2026-11-01。

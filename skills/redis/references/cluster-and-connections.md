@@ -145,7 +145,7 @@ connection count is the number of in-flight requests.
 
 | Shape | How it behaves | Watch out for |
 |---|---|---|
-| **Pool** — N persistent connections, leased per call | A lease blocks when the pool is exhausted, so the pool size is a concurrency limit | Size against the server, not the app: total connections across all instances must stay well under `maxclients` (default 10000 `[verified]`) and the server has one thread regardless |
+| **Pool** — N persistent connections, leased per call | An exhausted pool either queues the caller or fails at once, depending on the pool class — redis-py's default `ConnectionPool` raises `MaxConnectionsError` immediately (100 connections by default since 8.0), its `BlockingConnectionPool` waits up to `timeout` (defaults 50 connections, 20 s) `[verified]`. Either way the pool size is a concurrency limit | Size against the server, not the app: total connections across all instances must stay well under `maxclients` (default 10000 `[verified]`) and the server has one thread regardless |
 | **Multiplex** — one connection, commands interleaved | No lease, no pool exhaustion, fewer sockets | A blocking command (`BLPOP`, `XREAD BLOCK`) stalls everything on that connection; a transaction or `WATCH` needs exclusive use |
 
 Rules either way:
@@ -161,15 +161,20 @@ Rules either way:
 
 ## Timeouts and retries
 
-- Set both a connect timeout and a command timeout. Most clients default both to unset
-  (`socket_connect_timeout`/`socket_timeout` are `None` in redis-py), which means a dead node
-  hangs the caller until the OS gives up.
+- Set both a connect timeout and a command timeout explicitly. Defaults differ by client and by
+  major version: redis-py before 8.0 left both unset (`None`), so a dead node hung the caller
+  until the OS gave up; 8.0+ defaults both to 5 s and retries a timed-out command with backoff.
+  Read the installed client's defaults instead of assuming either.
 - Connect timeout shorter than command timeout: failing to reach a node should be fast, while a
   legitimate `BITCOUNT` over a large string may take longer than the connect budget.
 - Blocking commands need their server-side timeout (`BLPOP key 5`) to be *shorter* than the
-  client's command timeout, or the client gives up on a healthy blocking read.
+  client's command timeout, or the client gives up on a healthy blocking read. Measured with
+  redis-py 8.1.0 defaults `[verified]`: `BLPOP key 10` against an empty list raised
+  `TimeoutError` only after ~59 s, because each 5 s socket timeout was retried with backoff.
 - Retry only idempotent commands automatically. A retried `INCR` or `LPUSH` after a timeout can
-  double-apply, because a timeout does not tell you whether the server ran the command.
+  double-apply, because a timeout does not tell you whether the server ran the command. A client
+  whose default retry policy covers timeouts (redis-py 8.0+) needs that policy narrowed for
+  non-idempotent writes.
 - `server timeout` (`CONFIG GET timeout`, default 0 `[verified]`) closes idle client
   connections; 0 means never, which is the right value when the client pools properly.
 - `tcp-keepalive` defaults to 300 seconds `[verified]` and is what detects a peer that vanished
