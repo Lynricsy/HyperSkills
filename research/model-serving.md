@@ -742,3 +742,52 @@ recipe 读法基线已会（场景 5 两侧 4/4），更正只是去掉正文的
 
 遗留：场景 2、3 的期望 2 要求写出指标名，两侧都只给了文字描述（◐）；正文已在规则 11 与告警表写明新名，场景 1 证明模型会照用，
 未为此改正文。各场景只有 1 次运行。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/model-serving.md`。vllm-model-recipes、trtllm、sglang、google-skills 用 blobless 裸仓库（`/tmp/hs-attr/<owner>__<repo>`）读 `git diff <pinned> <head> -- <paths>`。
+`--pin` 后比对：只有 trtllm 越界（审阅 7a62522 → 写入 0054d48），差额 1 个提交 `[None][infra] Check in most recent lock file from nightly pipeline` 只改 `security_scanning/**`，不碰 paths。dynamo、nvidia-skills、amd-skills、hf-skills 区间内 tracked paths 无变化，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| vllm-model-recipes | f46021a → e0d00e4 | b515648：recipes 迁入 vLLM 主仓 `recipes/models/`，Omni 仍留 vllm-project/recipes，`recipes.vllm.ai` 由 vllm-project/recipes 渲染 | 噪声：只改托管位置；`parallelism-and-topology.md` 引用的 `recipes.vllm.ai/<HF id>.json` 发布地址不变 |
+| trtllm | 15f060c → 7a62522 | b6d1a06 `parallel-strategy.md` 新增 per-layer dynamic EPLB（仅 `MEGAMOE_CUTEDSL`，不走 CUDA graph）；dddb74c `attention.md` `PyTorchConfig.attn_backend` → `TorchLlmArgs.attn_backend`；335e0b1/c146094/9f445c2/e4d5e2e/d870ded `.claude/skills/perf-*`：skill 互链改名（`trace-interpretation` → `perf-analysis` 等）、测试与内核文件路径迁移、ncu roofline 小节需 `--print-details all` 才在 CLI 打印数字、新增 FP64 层级 roofline 图 | 噪声：正文不涉及 EPLB、`attn_backend`、ncu roofline 小节（已 grep）；其余为仓库内路径与命名 |
+| sglang | 2528cd2 → b146a85 | 7b1d5cd/693d333 `.agents/skills/{llm-torch-profiler-analysis,clean-startup-log}`：内核与模块路径迁移；`http_server.py` 14 个提交（SageMaker `/ping` 反映就绪、`/get_hicache_l3_cache_layout`、Granian keep-alive、tokenizer worker 负载均衡与指标、rust-server 等） | 噪声：只核对正文引用的端点/指标——HEAD 上 `/health` 与 `/health_generate` 仍是同一处理函数（`SGLANG_ENABLE_HEALTH_ENDPOINT_GENERATION` 默认 True 时 `/health` 也跑 1 token 生成）、`/v1/loads`（`entrypoints/v1_loads.py`，`cache_hit_rate` 字段在 `load_snapshot.py`）、`sglang:cache_hit_rate`（`observability/metrics_collector.py`）均在；`kv-reuse-and-routing.md` 与 `engine-configuration.md` 陈述不变 |
+| google-skills | b85f257 → bb9b3f4 | 6c94642：`gke-ai-troubleshooting-handle-disruption-gpu-tpu`、`gke-inference` 加用量归因节与 `references/attribution.md` | 噪声：厂商用量埋点 |
+
+结论：正文与 references 不改，未跑 D2；re-pin 并把版本号改为 2026.11.01。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| NVIDIA/TensorRT-LLM `perf-instability-cookbook` / `perf-regression-cookbook` | REJECT | TRT-LLM 开发者用的提交史案例库（按 NVBug/PR 归档），上游自用；可迁移的「首轮 JIT/捕获落进测量迭代」「先看指标是否在变而非均值」已在 `benchmarking.md` 预热与方差要求中 |
+| NVIDIA/TensorRT-LLM `trtllm-visualgen-bench` | REJECT | 视觉生成模型的 `trtllm-serve` 压测向导，单产品流程 |
+| NVIDIA/skills `tao-token-efficient-execution` | REJECT | TAO 工作流的「技能编译成阶段卡片、小会话执行」工具包，单产品；不属模型服务（ai-engineering 侧同判 REJECT） |
+| TerminalSkills `sglang` | REJECT | SGLang 安装与启动手册的社区转述；官方 sglang 仓库已追踪 |
+| ai-dynamo/dynamo `dynamo-perf-best-practices` | REJECT | Dynamo 贡献者的热路径代码评审清单（Rust/Python 每 token 成本），上游自用；Scope 是运行中服务的性能而非服务框架源码 |
+| sgl-project/sglang `sglang-multi-graph-check` | REJECT | SGLang 内部 CUDA graph 生命周期测试工具用法，上游自用 |
+| vllm-project/vllm `vllm/models/deepseek_v41/nvidia/specialized_decode/AGENTS.md` | REJECT | 单模型单硬件（DeepSeek-V4.1 on GB300）解码执行器的开发约定 |
+| vllm-project/vllm `tests/AGENTS.md`（C2） | REJECT | vLLM 贡献者测试规范（真实对象、修复前先复现失败、不靠重跑买绿）；与模型服务无关，通用测试纪律属 test-driven-development 范畴，见汇报「跨组命中」 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search code "max-num-batched-tokens" --filename SKILL.md`（40 条，排除社区转载与已收录者），核验官方组织仓库。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| intel/skills `model-config-recommend`（及 `vllm-xpu-run`） | 28 | 2026-10-29 | Apache-2.0 | 3 | 3 | 2 | 2 | 2 | 12 | REJECT（内容裁决）：自标 experimental，只覆盖 Intel Arc B 系列 + vLLM-XPU，按规格表做 roofline 推荐并输出 docker 启动块；单一硬件族 |
+| intel/gpu-ai-skills | 46 | 2026-10-30 | Apache-2.0 | 3 | 3 | 2 | 2 | 2 | 12 | REJECT（内容裁决）：同上内容的插件打包 |
+| google-pytorch/tpu-agent-suite `roofline-analysis` 等 | 41 | 2026-10-20 | Apache-2.0 | 3 | 3 | 3 | 2 | 2 | 13 | REJECT（内容裁决）：TPU 上的分析式 roofline 与切分策略，硬件与 XLA 专用；本 skill 以 GPU 服务引擎为主，若将来扩 TPU 服务再议 |
+| ai-dynamo/aiconfigurator `aic-silicon-align` | 461 | 2026-10-29 | Apache-2.0 | 3 | 3 | 2 | 2 | 2 | 12 | REJECT（内容裁决）：aiconfigurator 自身的芯片校准流程，上游自用 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| vllm-docs | V1 默认开启 chunked prefill，调度优先 decode、剩余 `max_num_batched_tokens` 预算才排 prefill；小预算利 ITL、大预算利 TTFT | https://docs.vllm.ai/en/latest/configuration/optimization/ | 一致 |
+| vllm-docs | KV 不足时按 RECOMPUTE 抢占（V1 默认），出现即容量信号；补救依次为加 `gpu_memory_utilization`、降 `max_num_seqs`/`max_num_batched_tokens`、加 TP | 同上（Preemption 节） | 一致 |
+| vllm-docs | 指标在 API server 端口的 `/metrics`（`vllm serve` 无单独指标端口参数）；多 API server 时才用多进程模式 | https://docs.vllm.ai/en/latest/usage/metrics/ 、https://docs.vllm.ai/en/latest/design/metrics/ | 一致 |
+| vllm-docs | `vllm bench serve` 的 `--max-concurrency` / `--request-rate` 负载形状 | https://docs.vllm.ai/en/latest/benchmarking/cli/ | 一致（另见新增 `--probe-request-rate`，正文未涉及） |
+
+处理：`synced_at` 更新为 2026-11-01，无过时项。
