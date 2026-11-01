@@ -106,9 +106,11 @@ audience actually has.
   a heading's height to its expected line count; it wraps differently per width and per font.
 - **No tracking on Han text.** Adjacent Han characters are set solid `[official]` (W3C CLREQ).
   Negative letter-spacing collides glyphs; tracked body text stops reading as words.
-- **Line breaks need hands.** `text-wrap: balance` and `pretty` reduce a one- or two-character last
-  line but do not remove it. Keep a number with its unit (`38&nbsp;秒`, or a short `nowrap` span), do
-  not let a two-character word split across lines, and break short display lines at phrase
+- **Line breaks: body flows, display lines need hands.** Breaking between any two Han characters is
+  the normal CJK line-break rule (`word-break: normal`), so ordinary body wrapping is not a defect.
+  The care belongs to headings and short display lines: `text-wrap: balance` and `pretty` reduce a
+  one- or two-character last line but do not remove it; keep a number with its unit (`38&nbsp;秒`, or
+  a short `nowrap` span) and a fixed phrase whose split would misread together, and break at phrase
   boundaries, checked at every supported width.
 - **Measure in characters.** Past about 45 Han characters per line, body text gets hard to track
   `[community]`.
@@ -140,7 +142,8 @@ These are the ones worth flagging in a review with a `path:line`:
 - Button or input without `font: inherit`.
 - A synthesized italic or weight (style used but not loaded).
 - CJK page: no CJK family in the stack, Han body line-height under about 1.4, a fixed-height or
-  sub-1.2-leading Chinese heading, letter-spacing on Han text, a number split from its unit.
+  sub-1.2-leading Chinese heading, letter-spacing on Han text, a number split from its unit in a
+  heading or display line. Ordinary body wrapping between Han characters is not a finding.
 - `...` where `…` belongs; straight quotes in prose.
 - Loading state text that does not end in `…` (`Loading…`, `Saving…`).
 

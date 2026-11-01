@@ -92,9 +92,10 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - `text-wrap: balance` on headings, `text-wrap: pretty` on body, to avoid widows and orphans.
 - Buttons and inputs have `font: inherit`.
 - Only loaded weights and styles are used; nothing relies on a synthesized italic or weight.
-- CJK pages: the stack names a CJK family; Han body line-height at least about 1.6 (flag under 1.4);
-  Chinese headings at 1.2-1.35 with no fixed height; no letter-spacing on Han text; numbers stay
-  with their units (`typography.md`, CJK text).
+- CJK pages: the stack names a CJK family; Han body leading is judged against the `[community]`
+  starting points in `typography.md` (CJK text), not a hard floor, and is flagged only under about
+  1.4; Chinese headings have no fixed height; no letter-spacing on Han text; headings and display
+  lines keep numbers with their units.
 
 ## 6. Content handling
 
