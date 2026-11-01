@@ -777,3 +777,22 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 | w3c-clreq | 相邻汉字原则上密排（set solid） | https://www.w3.org/TR/clreq/（「The space between adjacent characters is, in principle, set solid」） | 一致（今日上午新增条目，复读无变化） |
 
 `w3c-wcag22`、`web-dev-vitals` 的 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `1e1bc61`。产物 `/tmp/hs-d2/G01-web-ui/frontend-design/omp-openai-gpt-6.1-sol-medium/`；场景 1 基线复用今日上午 `/tmp/hs-oil/b1`（场景与夹具未变）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 16 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ 3✔ | 50 s，基线已知 `@axe-core/cli`、多 h1 非失败、Lighthouse 12 移除 tap-targets |
+| 16 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3✔ | 164 s，读 `accessibility.md`；无回退 |
+| 17 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ 3✘ 4✔ 5✔ 6◐ | 见「场景 17 基线」 |
+| 17 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ **3✘** 4✔ 5✔ **6◐** | 55 s。只读了 `SKILL.md`、`ai-tells-and-calibration.md`、`review-checklist.md`，**未读 `ux-guidelines-catalog.md`**，新合入的两条未生效 |
+| 3 | gpt-6.1-sol medium | 无 | false | 1✔ 2✔ 3✔ 4✔ | 35 s |
+| 3 | gpt-6.1-sol medium | 有 | false | 未逐条判定 | 34 s，未读 skill（与基线同为直接作答） |
+| 1 | gpt-6.1-sol medium | 有 | true | 未逐条判定 | 83 s，读 `accessibility.md` 等；按 `landing.html:<line>` 分组给出焦点、命名、缩放、对比度实测与 320px 溢出，未见 h1 误报 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **false** | — | 43 s |
+
+结论：axe CLI、Lighthouse、h1 三处更正无回退（基线本已会）；负例未误读。**仪表盘两条新规则未通过 D2**：规则只在 `ux-guidelines-catalog.md`，
+`review-ui` 路由未把模型带到该文件。遗留：把「小基数不报百分比 / KPI 卡不写解释句」提炼到 `review-checklist.md`（场景 17 实际读取的文件）后重跑场景 17 有 skill；
+若仍不达成则撤回这两条与 `dashboard-design` 条目。场景 1、3 有 skill 未逐条判定（预算用尽）。
