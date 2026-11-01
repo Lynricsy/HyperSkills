@@ -471,3 +471,67 @@ expected_behavior 与当前 `evals.json` 逐字一致，场景加入后夹具与
 遗留：场景 5 有 skill 没有采用正文写的结果事件总线与 `UriDeepLinkMatcher`（1、3 ✘），与基线同一设计、不比基线差，且与今天的
 装饰器更正无关；这两条在 2026-09-29（旧口径）曾达成，VM 口径下是否需要加强正文留待单独评估。场景 1 的 2、7 仍未达成。
 各场景只有 1 次运行。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/android.md`。android/skills 用
+`gh api repos/android/skills/compare/5bda39f...6daa53e`（148 个文件，未超 300 上限）逐个读命中 paths 的 `patch`；
+maxrave 同法。`--pin android` 写入的 commit 与审阅 HEAD 逐条相等（android-official `6daa53e`、maxrave-footguns `2c391bc`、
+jetbrains-kotlin `087f568`、meetmiyani-compose `dbaa268`），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| android-official | 5bda39f → 6daa53e（4 个「Updates skills」提交：0fbcd28、4ebabf2、253e63c、1c8b1a0） | `testing/testing-setup`：`compose-screenshot-testing.md` 文档镜像把「AGP 9.5.0-alpha03 起弃用」改为「独立 `com.android.compose.screenshot` 插件不再维护，改用 AGP 9.5+ test suites」；其余为大小写 | **事实更正**：本 skill `testing.md` 把 Compose Preview Screenshot Testing 列为默认主机截图工具且源集写成 `test`。官方页（见「文档上游复核」）核实：AGP 9.5.0 已于 2026-10 稳定发布，截图测试改为 `testOptions.screenshotTests` 套件（实验开关 `android.experimental.enableScreenshotTest`、`android.experimental.testSuiteSupport`），源集为 `src/<suite>/`，任务 `update…TestSuite` / `test…TestSuite`。改表格源集列并补一段；新增回归场景 10 |
+| 同上 | 同上 | `jetpack-compose/adaptive`：新增 Step 6「跨配置变更保存状态」（禁止 `android:configChanges` 规避重建、逐个审 `remember`、`remember { LazyListState() }` 不保存滚动、`stateSaver`、Media3 播放状态）、Step 7 桌面（快捷键/提示/光标）、Step 8 折叠屏桌面模式；Nav3 `save-state.md` 镜像 | 新增规则 → 先测基线：新增哨兵场景 11（`ChatScreen.kt`），基线 4 条全部达成（见「上游新增内容评估」），**不合入**。桌面体验与 Media3 细节属新范围，不在本次 |
+| 同上 | 同上 | `jetpack-compose/jetpack-compose-performance`：效果顺序改为「`LaunchedEffect` 不保证在 Layout/Draw 之后」、`onGloballyPositioned` 触发条件更正、`onLayoutRectChanged` 节流参数、强跳过 `@Stable`/`@Immutable` 取舍改写、示例代码乱码修复 | 无影响：本 skill `compose-state.md` 只写 `LaunchedEffect` 运行在组合作用域、`SideEffect` 在每次成功组合后，未声称「帧后执行」；稳定性取舍与 2026-10-15 已合入的规则 9 一致 |
+| 同上 | 同上 | `navigation/navigation-3`：模块化 Hilt/Koin 配方改用 `BackStackMatcher.withBackStack` 合成返回栈深链、`multiple-backstacks` 改 `rememberNavKey` | 无影响：`navigation.md` 的深链匹配器与装饰器规则未变；配方级写法不收录 |
+| 同上 | 同上 | `security/android-intent-security`：嵌套 Intent 手工校验改为「剥离 `FLAG_GRANT_*` + `resolveActivity()` 后按 packageName/className 白名单」（不再要求目标 exported）、清空 `selector`；导出服务调用方校验须在每次 IPC（AIDL Stub/`Messenger`）里做 | 无影响：`platform-runtime.md` 已写「按白名单校验目标包与组件并剥离 URI 授权标志」，与新版结论一致；`selector` 清空与 AIDL 逐次校验属新增细节，未合入（未测基线，记为后续候选） |
+| 同上 | 同上 | `performance/r8-analyzer`：AGP < 9.3 改为临时把 R8 升到 9.4.34 生成报告、新增脚本与 `INSPECT-RULES.md`、`optimizedResourceShrinking` 只对 AGP 8.12/8.13 需手开、`optimization {}` 存在时不再报缺 minify | 无影响：`gradle-build.md` 的 9.3 DSL、`analyzeReleaseR8Config`、AGP 9 默认开启优化资源收缩均与之一致；分析脚本属工具面 |
+| 同上 | 同上 | `profilers/android-profiler`（`sql.md` 重写、`trace_processor` 启动脚本）、`device-ai/litert/litert-runtime`（Play services 运行时、内存选项、迁移七步） | 无影响：本 skill 只取分诊顺序与 `viewModelScope` 清理顺序，两处原文未变；LiteRT SDK 内容仍在 Scope 外 |
+| 同上 | 同上 | `jetpack-compose/theming/styles` 整目录删除；`adaptive` FlexBox/Grid 文档镜像 Compose 版本号 | 噪声：Styles 当初因 alpha 未采用 |
+| maxrave-footguns | f5f0b49 → 2c391bc（命中 `CATALOG.md` 2 提交） | 224 → 228 个陷阱、新增第 10 个领域 `webview-footguns`（3 条：WebView 启动拖垮低内存机、渲染进程被杀连带 App、`AndroidView` 生命周期与 Cookie）与 1 条 compose-visuals 图标陷阱 | 仅作覆盖自查（GPL-3.0，不可合入文字）：WebView 主题本 skill 未覆盖，记入新增内容评估；`notes` 更新 |
+| jetbrains-kotlin、meetmiyani-compose | c2f9069 → 087f568；f60bf88 → dbaa268 | 无（paths_unchanged） | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+来源：工作单 C/C2 节（android/skills、maxrave、TerminalSkills、first-fluke 区间新增 skill 类文件）。许可：android/skills
+Apache-2.0；maxrave GPL-3.0；TerminalSkills Apache-2.0（frontmatter）；first-fluke/oh-my-agent MIT。
+
+| 候选 | 来源 | 基线 / 核实 | 结论 |
+|---|---|---|---|
+| `performance/anr-audit-and-fix`：ANR 静态审计五步与 trace 诊断；后台线程 `invalidate()` 不过 `checkThread()`，可与 `scheduleTraversals()` 竞争泄漏同步屏障，主线程空闲在 `nativePollOnce` 却输入超时 | android/skills（官方，2026-10-16） | 新增哨兵场景 12（`GalleryFragment.kt`）：基线 3/3 达成——主动说出同步屏障竞争、驳回「换 service」，修法把 `update` 整体挪回 Main 并指出只换 `postInvalidate()` 仍有数据竞争 | REJECT（基线已会），场景 12 留作哨兵；期望 3 据基线答案收紧为「只换 `postInvalidate()` 不算修好」 |
+| `jetpack-compose/adaptive` Step 6 状态保存（同上节） | android/skills | 哨兵场景 11：基线 4/4 达成（拒绝 `configChanges` 并指出进程死亡仍丢状态；`rememberSaveable(conversationId)`；`listSaver` 存展开集合；`LazyListState.Saver`） | REJECT（基线已会），场景 11 留作哨兵 |
+| `system/glance-appwidget-updates-and-memory` | android/skills | 未测 | **待定（Scope）**：App Widget/Glance 与 2026-10-15 记录的 Wear/Glance 同属需主人先定 Scope 的方向 |
+| `xr/projected-hardware`（另有 XR glimmer 大改） | android/skills | 未测 | **待定（Scope）**：XR 眼镜不在当前 Scope |
+| `jetpack-compose/ink/ink-app-builder`、`ink-custom-brush-builder` | android/skills | 未测 | REJECT：单一库（`androidx.ink` 手写笔）手册，属库专用内容 |
+| `device-ai/litert/litert-lm`、`device-ai/mlkit-agent-api`（C2） | android/skills | 读 SKILL.md：`.litertlm` 端侧 LLM 与 ML Kit agent API 的 SDK 用法 | REJECT（Scope）：与 2026-10-15 对 LiteRT 的裁决一致，端侧 AI SDK 属厂商 SDK 集成 |
+| `skills/webview-footguns`（3 条 WebView 陷阱） | maxrave-dev/kotlin-footguns | GPL-3.0，只能作选题提示 | 待定：WebView 稳健性（`onRenderProcessGone` 返回 true、低内存机后台初始化）在 Scope 内但本 skill 未覆盖；需以官方文档为据另行写规则并先测基线，本次未做 |
+| `skills/scrcpy/SKILL.md` | TerminalSkills/skills | — | REJECT：投屏工具手册，非开发规则 |
+| `.claude-plugin/directory/skills/oma-mobile/SKILL.md` | first-fluke/oh-my-agent（1356★） | 读 SKILL.md：Flutter/RN/原生通用的移动端代理调度流程 | REJECT：上游自用多代理流程，无具体可验证规则 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos`（"android skill"、"jetpack compose agent skills"，按更新/stars 排序，筛 2026-10-01 后推送）、
+`VoltAgent/awesome-agent-skills` README 中 Android/Kotlin 条目与本文件已评仓库求差集。指标均由 `gh api repos/<o>/<r>` 核实（2026-11-01）。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| lennonpetrick/android-engineering-skills | 39 | 2026-10-29 | MIT | 1 | 3 | 2 | 0 | 2 | 8 | REJECT | 正确性 0 直接否决：`android-patterns` 用 `SharedFlow` 发一次性事件（与 developer.android.com「ViewModel 事件必须落为 UI 状态」相悖），并给持有 `List` 的 UI 状态默认标 `@Immutable`（与官方强跳过取舍相悖） |
+| skydoves/android-skills-mcp | 228 | 2026-10-26 | NOASSERTION | 2 | 3 | — | — | 0 | — | REJECT | 把官方 android/skills 打包成 MCP 服务/CLI 的工具，内容即已追踪的 android-official |
+
+## 2026-11-01 文档上游复核
+
+范围：2 条 `kind: docs` 条目的 `contributes` 与正文引用的版本门槛、默认值与 DSL 事实。developer.android.com 页面以脚本去标签后检索；
+kotlinlang.org 同法。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| android-docs | ViewModel 事件应始终落为 UI 状态更新 | https://developer.android.com/topic/architecture/ui-layer/events | 一致（Key Point 原文仍在） |
+| android-docs | 当前 AGP 线 | https://developer.android.com/build/releases/gradle-plugin → AGP 9.5.0（2026-10，最低 Gradle 9.6.0、JDK 17、Build Tools 36.0.0、最高 API 37） | 正文版本行不改（规则按 9.0/9.3 门槛表述）。另记：9.5.0-alpha06 也列出修复 #556343682（新 DSL 不设 `isMinifyEnabled`），与正文「9.3.3 之前」并存（9.3.0 发布说明的 9.3.3 修复条目仍在） |
+| android-docs | AGP 9.3 `optimization { enable = true }` 同开代码与资源优化、含 `proguard-android-optimize.txt` 等价默认规则；规则放 `src/<variant>/keepRules/*.keep`；旧 DSL 仍支持；`:app:analyzeReleaseR8Config` 不走完整构建 | https://developer.android.com/topic/performance/app-optimization/enable-app-optimization 、https://developer.android.com/build/releases/agp-9-3-0-release-notes | 一致 |
+| android-docs | Compose Preview Screenshot Testing 的设置方式 | https://developer.android.com/studio/preview/compose-screenshot-testing-with-testsuites （AGP 9.5.0-alpha03 + 引擎 0.0.1-alpha16 起集成进 AGP test suites，取代独立插件；`android.experimental.enableScreenshotTest`、`android.experimental.testSuiteSupport`；`testOptions.screenshotTests.create(...)`；`src/<suite>/kotlin/`；`update…TestSuite`/`test…TestSuite`）及 android/skills 镜像的「独立插件不再维护」 | **已变化 → 更正**：`testing.md` 源集列与段落（见上游同步节） |
+| android-docs | targetSdk 35 起在 Android 15+ 强制 edge-to-edge；强跳过在 Kotlin 2.0.20 默认开启 | https://developer.android.com/develop/ui/views/layout/edge-to-edge 、https://developer.android.com/develop/ui/compose/performance/stability/strongskipping | 一致 |
+| kotlin-docs | 默认层级模板与 `nativeMain` 等共享源集 | https://kotlinlang.org/docs/multiplatform/multiplatform-hierarchy.html | 一致（页面文字未变；模板树为图，2026-10-15 已对照 `KotlinHierarchyTemplate.kt`） |
+| kotlin-docs | 显式 backing field 在 2.4 稳定；当前 Kotlin 线 | https://kotlinlang.org/docs/properties.html （作为常规特性记载，无 opt-in 说明）、https://kotlinlang.org/docs/releases.html （最新 2.4.21；2.5.0 计划 2026-12） | 一致 |
+
+处理：一处 reference 更正（`testing.md`）；`synced_at` 2 条更新为 2026-11-01。

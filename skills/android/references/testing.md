@@ -20,7 +20,7 @@
 | Compose or Espresso behaviour of a screen | `test` | Robolectric |
 | Room DAO and anything that hits SQLite | `androidTest` | instrumented, in-memory database |
 | System UI, notifications, permissions dialogs, edge-to-edge rendering, picture-in-picture | `androidTest` | instrumented + UI Automator |
-| Screenshots on the host | `test` | Compose Preview Screenshot Testing (Layoutlib) or Roborazzi |
+| Screenshots on the host | `test` (Roborazzi) or the suite's own source set, `src/screenshotTest/` by default (Compose Preview Screenshot Testing) | Roborazzi or Compose Preview Screenshot Testing (Layoutlib) |
 | Screenshots on a device | `androidTest` | Dropshots |
 | Whole user journeys (≈5% of the suite) | `androidTest` | Compose test APIs or Espresso, UI Automator for system surfaces |
 
@@ -135,6 +135,17 @@ the state through a fake. Do not try to encode interaction sequences in screensh
 Host-side tools (Compose Preview Screenshot Testing, Roborazzi) are the default because
 they need no device. Use a device-based tool (Dropshots) only when the pixels depend on
 the real system — edge-to-edge insets, notifications, system UI overlap.
+
+Compose Preview Screenshot Testing changed shape with AGP 9.5: the standalone
+`com.android.compose.screenshot` plugin is no longer maintained, and the tool now runs as
+an AGP test suite — `android { testOptions { screenshotTests.create("screenshotTest") {
+engineVersion = …; targetVariants.add(…) } } }`, enabled with
+`android.experimental.enableScreenshotTest=true` and
+`android.experimental.testSuiteSupport=true`, tests annotated `@PreviewTest` under
+`src/<suiteName>/kotlin/`, recorded with `update<Suite><Target><Variant>TestSuite` and
+checked with `test<Suite><Target><Variant>TestSuite`. Below AGP 9.5 only the deprecated
+plugin exists, and the suite DSL is still experimental, so on an older AGP or where
+experimental flags are unwelcome, Roborazzi is the steadier choice.
 
 ## Navigation and end-to-end
 

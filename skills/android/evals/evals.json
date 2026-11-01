@@ -110,5 +110,36 @@
       "Says the default template already provides `webMain` as the shared parent of `jsMain` and `wasmJsMain` on Kotlin 2.2.20 and later (the module's version), so browser-shared code goes in `webMain` and `browserMain` is unnecessary",
       "Puts the Keychain wrapper in `appleMain`, which the template creates as the parent of `iosMain` and `macosMain` under `nativeMain`, without any manual `dependsOn` wiring"
     ]
+  },
+  {
+    "skills": ["android"],
+    "query": "catalog-app.build.gradle.kts in this directory is our app/build.gradle.kts; the project is on AGP 9.5.0 and Gradle 9.6.0. We want host-side screenshot tests for the components' existing @Preview functions, run on CI without a device. Set it up: show every Gradle and gradle.properties change, where the test file goes, one test, and the commands to record and verify the reference images.",
+    "files": ["evals/files/catalog-app.build.gradle.kts"],
+    "expected_behavior": [
+      "If it uses Compose Preview Screenshot Testing, configures it as an AGP test suite (`android { testOptions { screenshotTests.create(...) { engineVersion = ...; targetVariants.add(...) } } }` with `android.experimental.enableScreenshotTest=true` and `android.experimental.testSuiteSupport=true`) instead of applying the standalone `com.android.compose.screenshot` plugin, which is no longer maintained from AGP 9.5; choosing Roborazzi instead is also acceptable",
+      "Puts the test in a host-side source set named after the suite (for example `src/screenshotTest/kotlin/...`), not in `androidTest`, and does not require a device or emulator",
+      "Gives a record command and a separate verify command that match the chosen tool (for AGP test suites the `update…TestSuite` / `test…TestSuite` task pair) instead of a single run-and-compare step"
+    ]
+  },
+  {
+    "skills": ["android"],
+    "query": "On our foldable test devices, unfolding the phone or rotating it loses the message draft, the expanded messages and the scroll position in ChatScreen.kt (in this directory). A teammate proposes adding android:configChanges=\"orientation|screenSize|screenLayout|smallestScreenSize\" to ChatActivity in the manifest so the activity is not recreated. What should we do? Show the code.",
+    "files": ["evals/files/ChatScreen.kt"],
+    "expected_behavior": [
+      "Rejects the `android:configChanges` proposal as the fix: it hides the state loss instead of fixing it, the same state is still lost on process death, and the activity then stops reloading resources for the new window size",
+      "Replaces `remember { mutableStateOf(\"\") }` for the draft with `rememberSaveable` (keyed on `conversationId` or otherwise reset per conversation)",
+      "Keeps the expanded message IDs across recreation with `rememberSaveable`, using a `Saver`/`stateSaver` or a Bundle-saveable representation such as a `List<String>`",
+      "Replaces `remember { LazyListState() }` with `rememberLazyListState()`, explaining that a plain `remember` bypasses the state's `Saver`"
+    ]
+  },
+  {
+    "skills": ["android"],
+    "query": "GalleryFragment.kt in this directory is the screen behind our biggest ANR cluster; the trace excerpt is at the bottom of the file. The main thread looks idle in the dump, so the team thinks the trace is useless and wants to bump the ANR threshold by moving work to a service. What is actually causing the ANR, and what is the fix?",
+    "files": ["evals/files/GalleryFragment.kt"],
+    "expected_behavior": [
+      "Identifies `histogram.update(bins)` (and its `invalidate()`) being called from `Dispatchers.Default` as the cause: invalidating an attached View off the main thread does not hit `checkThread()`, so it does not crash, but it can race `scheduleTraversals()` and leak the traversal sync barrier, which blocks every later synchronous message while the main thread sits idle in `nativePollOnce` and input times out",
+      "Does not dismiss the idle main-thread stack as uninformative or attribute the ANR to CPU load, and does not propose moving the work into a service or raising thresholds as the fix",
+      "Fixes the threading at the root: computes the histogram off the main thread but calls `update`/`invalidate` on the main thread (for example launching the loop on Main with only the computation in `withContext(Dispatchers.Default)`, or `withContext(Dispatchers.Main)` around the whole `update`), not `postInvalidate()` alone, which still writes `bins` from the worker"
+    ]
   }
 ]
