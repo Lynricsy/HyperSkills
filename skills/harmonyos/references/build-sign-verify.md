@@ -27,13 +27,13 @@ The official ordering of recent API versions `[official]`:
 How each API version pairs with the device OS release and the toolchain `[official]`
 (release notes `overview-*` and `deveco-studio-new-features-*`, device table
 `sdk-version-percentage`). DevEco Studio and Hvigor give the first Release build, then the
-newest patch as of 2026-10-15; the SDK ships inside DevEco Studio and the Command Line
+newest patch as of 2026-11-01; the SDK ships inside DevEco Studio and the Command Line
 Tools of the same build:
 
 | API version (`build-profile` value) | Device OS release | API Release date | DevEco Studio | Hvigor |
 |---|---|---|---|---|
-| `26.0.0` | HarmonyOS 7.0.0 | 2026-08-29 | 26.0.0.821 → 26.0.0.851 | 6.26.4 → 6.26.8 |
-| `6.1.1(24)` | HarmonyOS 6.1.0 | 2026-05-26 | 6.1.1.280 → 6.1.1.418 | 6.24.2 → 6.24.5 |
+| `26.0.0` | HarmonyOS 7.0.0 | 2026-08-29 | 26.0.0.821 → 26.0.0.865 | 6.26.4 → 6.26.9 |
+| `6.1.1(24)` | HarmonyOS 6.1.0 | 2026-05-26 | 6.1.1.280 → 6.1.1.440 | 6.24.2 → 6.24.6 |
 | `6.1.0(23)` | HarmonyOS 6.1.0 | 2026-04-20 | 6.1.0.818 → 6.1.0.860 | 6.23.4 → 6.23.7 |
 | `6.0.2(22)` | HarmonyOS 6.0.0 | 2026-01-21 | 6.0.2.640 → 6.0.2.670 | 6.22.3 → 6.22.9 |
 | `6.0.1(21)` | HarmonyOS 6.0.0 | 2025-11-20 | 6.0.1.249 → 6.0.1.268 | 6.21.1 → 6.21.3 |

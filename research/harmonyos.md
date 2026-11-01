@@ -537,3 +537,39 @@ Preferences/RDB、权限、签名与 hvigor、版本说明）筛出 586 个文�
 结论：场景 4 有 skill 6✔2◐ 对基线 4✔4◐，第 10 项两侧均达成；新增 6 有 skill 5/5 对基线 3✔2◐（版本对照与 `@Computed` 下一帧两处为基线部分达成、有 skill 达成）；负例 `skill_read=false`。未改正文。
 
 遗留：场景 4 第 2、3 项（Navigation 为标准做法、TaskPool 64 上限与不可取消）有 skill 仍为部分达成，与今日改动无关。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/harmonyos.md`。两条 `behind`：dengshiying-harmonyos、liasica-harmonyos；
+其余 repo 条目 up to date。dengshiying 用 `gh api …/compare` 读 patch；liasica 用 `/tmp/hs-attr/liasica__harmonyos-skills` 裸仓库 `git diff`。
+`--pin` 后写入的 commit（77c78fc、e596a1f）与审阅 HEAD 一致，无越界差额。
+
+**liasica「6689 个文件变化」核实**：不是目录重构。`git diff --name-status` 统计为 6293 修改、396 新增、0 删除，`harmonyos/` 顶层仍是
+`SKILL.md`、`references/`、`rules/`，tracked path `harmonyos` 依旧存在，`paths` 不用改。按目录：harmonyos-faqs 3516、harmonyos-guides 2056、
+harmonyos-references 643、best-practices 468、harmonyos-releases 5；绝大多数是 `scraped_at`/`doc_updated_at`/`content_hash` 元数据与图片链接。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| dengshiying-harmonyos | 4aab51a → 77c78fc（2 提交，含 54d9807） | `harmonyos-development/`：默认基线由「API 24 生产、API 26 Beta1 预览」改为「HarmonyOS 7 / API 26.0.0 Release 用于新工程、既有 API 24 工程保持原设置」；配套 DevEco Studio 26.0.0.821、Hvigor 6.26.4、ohpm 26.0.0.630、Emulator 26.0.0.400、hstack 6.1.0；`compatible ≤ target ≤ compile`、升级 IDE 时显式钉 `targetSdkVersion`；删 `api26-preview.md`、增 `api26-release.md`；新增 `ndk-napi.md`（`napi_env`/`napi_ref` 绑定所属线程、async work 的 execute/complete 分工、TSFN 有界队列与 `napi_queue_full`、`napi_add_env_cleanup_hook`、libuv 规则）；`native-api-compatibility.md` 弱库需 API 22+ 运行时；`build-sign-release.md` 的 `packOptions.deduplicateSo`；性能工具（Native Leaks、支配链） | 版本事实：本 skill `build-sign-verify.md` 10-15 已写 HarmonyOS 7.0.0 ↔ `26.0.0`、821 首发构建与 Hvigor 6.26.4，`compatible ≤ target ≤ compile` 与 target 缺省随 compile 也已覆盖，一致，无需改（最新补丁号见文档复核，已更新）。NDK/Node-API 规则：本 skill `## Scope` 不含 Native/NDK 开发（只在 Android 迁移里提到 JNI → Node-API 的映射），需扩 Scope，**交主人决定**，本轮不合入。`deduplicateSo`、弱库、性能工具：单一功能开关或工具说明，不在 contributes 内，不合入。仅 re-pin |
+| liasica-harmonyos | d1ea543 → e596a1f（21 个每日同步提交，2026-10-16 至 11-01） | `harmonyos-releases/`：`overview-2600`/`deveco-studio-new-features-2600` 新增 DevEco Studio 26.0.0.865 补丁（2026-10-31，Hvigor 6.26.9、Emulator 26.0.0.402）；`overview-611`/`deveco-studio-new-features-611` 新增 6.1.1.440（2026-10-31，Hvigor 6.24.6）；`sdk-version-percentage` 截至 10-27：API 26.0.0 占 77.01%（10-07 为 18.98%）；Hvigor 新增 `ohos.rollup.transform.useUnifiedAst` | **事实更新**：`build-sign-verify.md` 版本对照表的最新补丁 26.0.0.851/6.26.8 → 26.0.0.865/6.26.9、6.1.1.418/6.24.5 → 6.1.1.440/6.24.6，「as of」日期改 2026-11-01（已用官方站点核实，见文档复核）。设备占比与 `useUnifiedAst` 本 skill 不写，噪声 |
+| 同上 | 同上 | 按本 skill 主题筛出 70 个修改文件，剔除元数据与图片行后只剩 7 个有实质 diff：`arkts-new-persistencev2.md`（列表编号「1、」→「1.」与缩进重排，API 23 起解除 8K 限制等内容原已存在）、`taskpool-vs-worker.md`/`worker-introduction.md`/`js-apis-worker.md`（链接文字、代码块语言标记、`terminate()` 示例注释、`transfer` 默认值措辞「undefined」→「空数组」）、`arkts-mvvm.md`/`arkts-statestyles.md`/`arkts-navigation-animation.md`（各 2 行排版） | 噪声：语义未变，本 skill 引用的规则不受影响 |
+| 同上 | 同上 | 新增 396 篇：367 篇 FAQ 拆分重排（如 `arkts-kit-faq-0005` 正则、`arkts-threading-model-troubleshooting-0001` HAR 内创建 Worker 失败、`signature-service-*` 自动签名报错）、14 篇 DevEco Code 插件文档、14 篇最佳实践 | 噪声：FAQ 拆分与工具文档镜像，未改变本 skill 引用的任何规则 |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 无预分配文件。dengshiying 区间内新增的 `references/ndk-napi.md`、`references/api26-release.md` 属已追踪路径内的新文件，已在上表裁决（Node-API 待主人决定 Scope；api26-release 的迁移步骤与本 skill 已有版本/兼容规则重合，不合入）。
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| huawei-docs | HarmonyOS 7.0.0 ↔ API `26.0.0` 仍为最新 API；无 26.0.1 / 26.1.0 / 7.1 发布 | [overview-2600](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/overview-2600)（官方文档门户接口取原文，更新于 2026-10-31）、`sdk-version-percentage`（10-27 表首行仍为 7.0.0 / 26.0.0） | 一致 |
+| huawei-docs | 26.0.0 首发 DevEco Studio 26.0.0.821（2026-08-29）、最新补丁、Hvigor 首发/最新 | overview-2600：Patch **26.0.0.865（2026/10/31）**、851（09/23）、821（08/29）；[deveco-studio-new-features-2600](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/deveco-studio-new-features-2600)：865 配 Hvigor **6.26.9**、Emulator 26.0.0.402，ohpm/Node.js/hstack 不变 | **已变化 → 更正**：表中 851/6.26.8 改为 865/6.26.9 |
+| huawei-docs | 6.1.1(24) 首发 6.1.1.280、最新补丁与 Hvigor | [overview-611](https://developer.huawei.com/consumer/cn/doc/harmonyos-releases/overview-611)：Patch **6.1.1.440（2026/10/31）**；`deveco-studio-new-features-611`：440 配 Hvigor **6.24.6** | **已变化 → 更正**：418/6.24.5 改为 440/6.24.6 |
+| huawei-docs | 6.1.0(23) 及更早行的补丁号 | `overview-610`、`overview-60x` 镜像区间内无变化 | 一致 |
+| huawei-docs | 26.0.0 的 `compatibleSdkVersion` 最低 `4.0.0(10)`、`targetSdkVersion` `4.0.0(10)~26.0.0`、`modelVersion` `26.0.0` | deveco-studio-new-features-2600 表 1/表 2（865） | 一致 |
+| huawei-docs | build-profile 三个 SDK 字段语义、`signingConfigs.material` 字段、hvigorw 参数 | `ide-hvigor-build-profile-app`、`ide-hvigor-commandline` 在 liasica 镜像区间内无改动；`ide-signing-auto/manual` 只改元数据与图片 | 一致（沿用 10-15 逐项核对结论） |
+
+官方页面经华为文档门户 JSON 接口（`documentPortal/getDocumentById`）直接取正文核对，与 liasica 镜像 e596a1f 一致。
+`huawei-docs` 的 `synced_at` 改为 2026-11-01。上次遗留「版本对照表缺 HarmonyOS 7.x」核对结果：10-15 已补 `26.0.0` / HarmonyOS 7.0.0 行，
+截至今日官方仍无更新的 API 或 7.x 版本，本次只更新补丁号。
