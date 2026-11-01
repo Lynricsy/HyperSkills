@@ -1,6 +1,6 @@
 # Lists, rendering and interaction performance
 
-Verified against: React Native 0.87, @shopify/flash-list 2.x, react-native-reanimated 4.x.
+Verified against: React Native 0.88, @shopify/flash-list 2.x, react-native-reanimated 4.x, react-native-gesture-handler 3.x.
 
 ## Contents
 
@@ -111,9 +111,13 @@ and characters appear late or out of order.
   is busy — which is exactly when the animation matters.
 - Derive dependent animated values with `useDerivedValue` rather than writing
   several shared values from one gesture handler.
-- Handle press with a gesture (`Gesture.Tap`) when the press competes with a pan
-  or a scroll; a plain `Pressable` inside an active gesture area can miss or
-  double-fire.
+- Handle press with a tap gesture when the press competes with a pan or a
+  scroll; a plain `Pressable` inside an active gesture area can miss or
+  double-fire. Read the installed Gesture Handler major first: 3.x replaces the
+  builder chain with hooks (`useTapGesture`, `usePanGesture`, composed with
+  `useExclusiveGestures` / `useCompetingGestures`), while 2.x uses `Gesture.Tap()`
+  with `Gesture.Exclusive` / `Gesture.Race`. Relations cannot be set between a
+  hook-based gesture and a builder one, so do not mix the two APIs.
 - Reanimated 4 needs `react-native-worklets` installed (Expo SDK 54+ resolves it
   with `npx expo install react-native-worklets`). A missing worklets package
   fails at runtime with a worklet-context error, not at build time.

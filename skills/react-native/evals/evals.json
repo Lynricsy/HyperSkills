@@ -70,5 +70,15 @@
       "Keeps Easing.bezier(...) for the withTiming easing and says the two APIs take different curve forms (cubicBezier for CSS transition/animation props, Easing.bezier for withTiming/.easing), rather than switching both to the same one",
       "Flags transitioning height as a per-frame layout animation and moves the expand to transform (or a layout animation) instead, keeping transform and opacity as the animated properties"
     ]
+  },
+  {
+    "skills": ["react-native"],
+    "query": "SwipeRow.tsx is one row of the inbox list in our Expo app (dependencies in package.json). Dragging a row to reveal archive sometimes also opens the message, and sometimes a tap does nothing. Fix the gesture handling and give me the corrected component.",
+    "files": ["evals/files/gestures/package.json", "evals/files/gestures/SwipeRow.tsx"],
+    "expected_behavior": [
+      "Reads the installed react-native-gesture-handler major from package.json (3.x) and writes the tap with the Gesture Handler 3 hook API (useTapGesture), not the 2.x builder Gesture.Tap()",
+      "Replaces the Pressable inside the pan's GestureDetector with a tap gesture and composes tap and pan through a 3.x relation (useExclusiveGestures, useCompetingGestures, or a requireToFail/block relation property) so a drag does not also fire onOpen",
+      "Does not mix the two APIs: no Gesture.Exclusive / Gesture.Race / Gesture.Simultaneous wrapped around the usePanGesture result, and no 2.x callback signatures such as onEnd(event, success) on a hook-based gesture"
+    ]
   }
 ]

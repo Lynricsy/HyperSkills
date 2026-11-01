@@ -1,6 +1,6 @@
 # Upgrading React Native and the Expo SDK
 
-Verified against: React Native 0.87 (latest stable), Expo SDK 57.
+Verified against: React Native 0.88 (latest stable), Expo SDK 58.
 
 ## Contents
 
@@ -40,6 +40,7 @@ Cross each of these and something changes whether or not the diff mentions it.
 | 0.83 | Experimental `RCT_REMOVE_LEGACY_ARCH` flag to compile legacy architecture code out on iOS |
 | 0.84 | Hermes V1 default; precompiled React Native iOS binaries default; legacy architecture code excluded from iOS builds by default (the interop layer stays); ESLint v9 flat config supported; `XHRInterceptor`/`WebSocketInterceptor` deprecated |
 | 0.87 | Strict TypeScript API is the **default**; `react-native/jest-preset` no longer ships in the package (use `@react-native/jest-preset`); `engines.node` narrows to `^22.13.0 \|\| ^24.3.0 \|\| >= 26.0.0` |
+| 0.88 | No user-facing breaking changes; events dispatch through the W3C `EventTarget` path by default, so only code reaching into React Native's private event-plugin internals needs testing; React 19.3; Metro minimum 0.87.1; `react-native/Libraries/Core/InitializeCore` deprecated in favour of `react-native/setup-env` |
 
 Four consequences that catch projects out:
 
@@ -123,8 +124,9 @@ with no shipping risk.
   `"moduleResolution": "bundler"` (or `node16`/`nodenext`) for conditions to
   apply at all.
 - On 0.87+, the temporary escape hatch is the
-  `react-native-legacy-deep-imports` condition. It is scheduled for removal;
-  use it to unblock a release, not as a resting place.
+  `react-native-legacy-deep-imports` condition. The legacy types stay available
+  through 0.88 and are slated for removal in the following release, so use it to
+  unblock a release, not as a resting place.
 - Deep imports must become root imports:
 
 | Before | After |

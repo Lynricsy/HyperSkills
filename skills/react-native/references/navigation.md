@@ -1,6 +1,6 @@
 # Navigation
 
-Verified against: Expo Router 6 (SDK 54–57), React Navigation 7.
+Verified against: Expo Router 6 (SDK 54) and the SDK-numbered releases for SDK 55–58, React Navigation 7.
 
 ## Contents
 

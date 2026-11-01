@@ -262,3 +262,45 @@ paths 的完整 patch。`--pin` 后 `pin_check.py` 输出 `PIN CHECK CLEAN`。
 | expo-docs | 运行时版本是 JS-原生接口边界、channel 写入构建、原生改动须升 runtime version；`EXPO_PUBLIC_` 前缀变量才内联进 JS；Expo SDK 57 为当前（npm `expo` 57.0.29） | [How EAS Update works](https://docs.expo.dev/eas-update/how-it-works/)、[Environment variables](https://docs.expo.dev/guides/environment-variables/) | 一致 |
 
 4 组事实全部一致，正文未改，`rn-docs`、`expo-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/react-native.md`。expo-official 与 maiko-awesome-rn
+用 `gh api .../compare` 读命中 paths 的 patch。`--pin` 后逐条比对写入的 `commit` 与审阅 HEAD：expo-official `05754e7`、vercel-rn-rules
+`1a2c79d`、maiko-awesome-rn `95c1dc4`，均相等，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| expo-official | d4f4840 → 05754e7（9 提交） | 全部 SKILL.md 删掉 frontmatter `version`（05754e7）；反馈命令从 `submit-expo-feedback` 改为 `@expo/agent-cli feedback`、删除 `expo-skill-feedback` 技能（3d1ca4e、0d03555）；Codex 清单迁移（d5caf7f）；`eas-observe` 新增 crash/error 上报、Expo Image/Reanimated 集成、MCP observe 工具与其余 CLI 旗标（927dd7c、ae459ef、8a0dc4f、55ec65c）；`expo-overview`/`expo-dev-client`/`eas-simulator`/`expo-web-to-native` 新增「SDK 58+ 用 `__expo_disable_*` URL 参数或 `EXPO_NO_DEV_MENU=1` 跳过引导页/开发菜单」（7ddc1f5，新文件 `launch-without-dev-menu.md`） | 无正文影响：遥测/反馈与 frontmatter 在合入时即已剥离；EAS Observe 属生产监控，不在本 skill 正文范围；开发菜单启动参数是 agent 自动截图/驱动设备的流程细节，正文未涉及，属新增内容不入本轮（SDK 58 的 launch URL 合约已在 SDK 58 changelog 核实，留待需要时评测先行） |
+| maiko-awesome-rn（reference，GPL-3.0） | eb79a1e → 95c1dc4（7647d93、b64a62b） | `react-native-ecosystem`：Reanimated 4、worklets（`scheduleOnRN`/`scheduleOnUI` 取代 `runOnJS`/`runOnUI`）、Gesture Handler 3 hook API、FlashList v2、MMKV v4 `createMMKV` | **触发事实更正**：其 Gesture Handler 3 改写提示本 skill `performance-lists.md` 仍写 2.x 的 `Gesture.Tap`。按官方 [Upgrading to Gesture Handler 3](https://docs.swmansion.com/react-native-gesture-handler/docs/guides/upgrading-to-3/) 核实：3.x 以 `useTapGesture`/`usePanGesture` 等 hook 取代 builder，组合改用 `useExclusiveGestures`/`useCompetingGestures`/`useSimultaneousGestures`，且 hook 与旧 API 之间不能建立关系；Expo SDK 58 捆绑 `react-native-gesture-handler ~3.3.0`，npm latest 3.4.0。已按版本改写该条（未复制 GPL 文本）。FlashList v2 与正文一致；MMKV/`runOnJS` 正文未涉及 |
+| vercel-rn-rules | 063bee9 → 1a2c79d | 无 | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 许可 | Scope 归属 | 结论 |
+|---|---|---|---|
+| maikotrindade `skills/react-native-e2e-testing`（Maestro） | GPL-3.0 | 在 Scope（`debugging-and-testing.md`「End-to-end on a device」已覆盖 Maestro/Detox 取舍、release-like 构建、少而精的旅程） | REJECT：GPL 只能 reference；EAS Workflows `type: maestro` 等细节属新增内容，未见能力缺口证据 |
+| maikotrindade `skills/react-native-i18n` | GPL-3.0 | 本地化/RTL 不在当前 Scope 列举范围 | 待定：需扩 Scope，交主人决定；即便扩也只能 reference |
+| maikotrindade `skills/react-native-native-modules` | GPL-3.0 | 在 Scope（原生边界的 JS 侧） | REJECT：与已合入的 callstack-rn / rn-docs 内容重复（spec、codegenConfig、Fabric 组件、create-react-native-library），GPL |
+| maikotrindade `skills/react-native-security` | GPL-3.0 | 移动端客户端加固（Keychain、证书锁定、越狱检测、MASVS）不在当前 Scope | 待定：需扩 Scope 或归 `security-review`，交主人决定 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/mobile-first` | MIT | 网页响应式布局审计，与 React Native 无关 | REJECT（本 skill）；跨组命中 → `frontend-design` |
+
+## 2026-11-01 文档上游复核
+
+当前版本：React Native 0.88.1（npm `latest`；0.88.0 发布于 2026-10-15，[发布博客](https://reactnative.dev/blog/2026/10/19/react-native-0.88) 2026-10-19）；
+Expo SDK 58（npm `expo` latest 58.0.22；[SDK 58 changelog](https://expo.dev/changelog/sdk-58) 2026-10-15，内含 React Native 0.88）；React Navigation 7.5.1（8.0 仍为 alpha）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| rn-docs | JSI 取代异步 bridge、同步布局与 effects、并发渲染支持 | [Architecture overview](https://reactnative.dev/architecture/landing-page) | 一致 |
+| rn-docs | Turbo Native Module spec 经 `TurboModuleRegistry` 导出、`get` 返回 null / `getEnforcing` 抛错、`codegenConfig`（name/type/jsSrcsDir/android.javaPackageName）；Fabric spec 文件必须以 `NativeComponent` 结尾 | [Turbo Native Modules](https://reactnative.dev/docs/turbo-native-modules-introduction)、[Fabric Native Components](https://reactnative.dev/docs/fabric-native-components-introduction) | 一致 |
+| rn-docs | `global.HermesInternal` 用于判断 Hermes | [Hermes](https://reactnative.dev/docs/hermes) | 一致 |
+| rn-docs | 版本下限表与「latest stable」标记 | 0.88 发布博客、[0.87 发布博客](https://reactnative.dev/blog/2026/08/11/react-native-0.87)、`npm view react-native@0.88.1 engines` | **过时，已修**：`upgrading.md` 写「React Native 0.87 (latest stable)」且下限表缺 0.88。0.88 无用户可见破坏性变更，事件改走 W3C `EventTarget` 派发、React 19.3、Metro 最低 0.87.1、`InitializeCore` 弃用改 `react-native/setup-env`；`engines.node` 与 0.87 相同。已加 0.88 行、标记改为 0.88 / SDK 58；并按 0.87 博客「legacy types available through React Native 0.88… remove in the following release」把 `react-native-legacy-deep-imports` 的「scheduled for removal」写实为「0.88 后的下一版移除」 |
+| expo-docs | EAS Update：构建分原生层与更新层、runtime version 必须精确匹配、channel 在 `eas.json` 定义并映射到 branch、分支最新兼容更新生效 | [How EAS Update works](https://docs.expo.dev/eas-update/how-it-works/) | 一致 |
+| expo-docs | 只有 `EXPO_PUBLIC_` 前缀变量被内联，必须以 `process.env.EXPO_PUBLIC_X` 点号静态引用，不得存放密钥 | [Environment variables](https://docs.expo.dev/guides/environment-variables/) | 一致 |
+| expo-docs | Expo Router 版本与 `expo-router/react-navigation` 规则（SKILL.md 规则 13、`navigation.md`） | [Migrate Expo Router from SDK 57 to SDK 58](https://docs.expo.dev/router/migrate/sdk-57-to-58/)、npm `expo-router` dist-tags | 规则仍成立：SDK 58 精简了该入口的兼容导出（React Navigation `Link`、`NavigatorScreenParams`、`NavigationIndependentTree` 等移除），但仍是受支持入口。`navigation.md` 头部「Expo Router 6 (SDK 54–57)」**不准确，已修**：SDK 55 起 `expo-router` 版本号随 SDK（55.x…58.x）。SDK 58 的 Router 迁移要点（完整 href 导航、`initialRouteName` → `unstable_settings.anchor`、`freezeOnBlur` 失效、`renderRouter` 返回 Promise）属新增内容，本轮不合入，记为下轮候选（需评测先行） |
+
+另记 SDK 58 其他与正文相邻但正文未作断言的变化（不改正文）：NODE_ENV 由 Expo CLI 按命令强制设定并据此加载 `.env.*`、Android 模板 release 默认开启 R8、fingerprint 默认 `balanced` 预设、iOS 27 SDK 要求 UIScene 生命周期（prebuild 生成 `SceneDelegate.swift`）、Expo Go 商店版只支持 SDK 58。
+
+7 组事实中 2 处过时（版本下限表/latest 标记、Expo Router 版本标记）已当场修正，另据 maiko diff 线索核实并修正 Gesture Handler 3 API；两个 docs 条目 `synced_at` 改为 2026-11-01。
+新增回归场景 7（`evals/files/gestures/`：Expo SDK 58 + Gesture Handler 3.3，Pressable 嵌在 pan 的 GestureDetector 中）覆盖 Gesture Handler 更正；场景 3（0.79 → 最新）覆盖 upgrading.md 更正。
