@@ -533,3 +533,15 @@ D1：`validate_skills` / `build_catalog --check` 通过；`npx skills@latest add
 | redis-io-docs | 客户端默认超时（正文 `cluster-and-connections.md` 引用 redis-py） | redis-py 源码 `redis/_defaults.py` 与 [connections 文档](https://redis.readthedocs.io/en/stable/connections.html)（b29d3a3 新增连接池一节） | **更正**，见上节 |
 
 `redis-io-docs` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 8bbcfd6（`cluster-and-connections.md` 超时/连接池更正 + 新增场景 7）。omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行；产物 `/tmp/hs-d2/G06-data/redis/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 redis-py 8 升级后三起事故 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ | 153.1 s。在 VM 内读出 8.1.0 默认值表（5 s / 5 s / 100 / 10 次重试含超时）；消费者独立客户端 `socket_timeout=35`、关闭重试（BLPOP 破坏性）；进程级信号量 + 显式池；INCR 非幂等。另指出 BLPOP 先删后处理的投递缺陷 |
+| 7 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ | 154.7 s。同样得出 5 s 默认、10 次重试约 55 s、默认池 100 立即抛错 |
+| 5 负例（Postgres 慢查询） | gpt-6.1-sol medium | 有（挂载） | false | — | 39.6 s |
+
+结论：更正后有 skill 3/3，不比基线差（基线亦 3/3，无可测增益）；场景 7 留作哨兵；负例未误读。
