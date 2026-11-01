@@ -304,3 +304,30 @@ Expo SDK 58（npm `expo` latest 58.0.22；[SDK 58 changelog](https://expo.dev/ch
 
 7 组事实中 2 处过时（版本下限表/latest 标记、Expo Router 版本标记）已当场修正，另据 maiko diff 线索核实并修正 Gesture Handler 3 API；两个 docs 条目 `synced_at` 改为 2026-11-01。
 新增回归场景 7（`evals/files/gestures/`：Expo SDK 58 + Gesture Handler 3.3，Pressable 嵌在 pan 的 GestureDetector 中）覆盖 Gesture Handler 更正；场景 3（0.79 → 最新）覆盖 upgrading.md 更正。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search code` 以 "React Native 0.88"、"Expo SDK 58" 搜 `SKILL.md`（各 20–25 个仓库，多数为单个 App 仓库内的自用 skill）；`VoltAgent/awesome-agent-skills`
+README（新见 LambdaTest `detox-skill`）；`github/awesome-copilot` 区间 3cf7c7e..5269f7e 新增文件中无 RN/Expo 相关 skill。上游新增内容评估中的 5 个候选见上节。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | TerminalSkills/skills `skills/react-native` | https://github.com/TerminalSkills/skills | 188 | 2026-10-30 | Apache-2.0 | RN 通用入门：Expo 起步、列表、导航、样式、动画 | 1 | 3 | 1 | 3 | 2 | 10 | REJECT（内容裁决） | 抽查 3 条（RN 0.88 需 Node 22.13+、SDK 58 对应 RN 0.88、Reanimated 4 需 worklets）均对，但是教程式要点（「超过 20 项用 FlatList + getItemLayout」），FlashList 只一笔带过，无本 skill 未覆盖的可验证规则 |
+| N2 | LambdaTest/agent-skills `detox-skill` | https://github.com/LambdaTest/agent-skills | 387 | 仓库 2026-10-30；该目录最后改动 2026-02-23 | MIT | Detox E2E 测试生成 + TestMu 云 | 2 | 0 | 1 | — | 2 | — | REJECT（新鲜度） | 目录内容 >6 个月未改；Detox 用例模板与厂商云接入，本 skill 只在 E2E 一节给出 Maestro/Detox 取舍 |
+| N3 | lukedj78/dev-flow `rn-animations-gestures`、`rn-components-apis` | https://github.com/lukedj78/dev-flow | 6 | 2026-10-22 | MIT | RN 动画/手势、组件 API | 0 | 3 | — | — | 2 | — | REJECT | 个人工作流仓库，6 星；动画/手势内容由官方 Reanimated / Gesture Handler 文档直接覆盖 |
+| N4 | Fandhe-AI/agent-reference-skills `skills/expo` | https://github.com/Fandhe-AI/agent-reference-skills | 4 | 2026-10-27 | 无 | Expo 参考 | 0 | 3 | — | — | 0 | — | REJECT（许可/权威） | 无许可、4 星，内容为官方文档摘录 |
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `8df2ff6`（Gesture Handler 3 API、0.88 版本下限行与 latest 标记、legacy deep-imports 移除时点、Expo Router 版本标记；新增场景 7）。
+结果目录：`/tmp/hs-d2/G02b-web-misc2/react-native/omp-openai-gpt-6.1-sol-medium/`，有 skill 一侧均在正文提交之后运行。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 | openai/gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ✔ EB6 ✔ | 目标定为 0.88.1（核实 npm `latest`），并按新增的 0.88 行写出「无用户可见破坏性变更、只需检查私有事件插件集成」；Node 下限取发布包 `engines`；EB3 改根导入但未点名 ESLint 自动修复或 `types_generated`；EB4 说 Hermes V1 为 0.84 默认，未讲退出方式 |
+| 3 | openai/gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ✔ EB6 ✔ | 基线同样联网核实到 0.88.1，并提到「legacy types 可用到 0.88」；未提 `RnDiffApp` 占位 |
+| 7（新增） | openai/gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ | `useTapGesture` + `useExclusiveGestures(pan, tap)`，`runOnJS: true` 后在 `onDeactivate` 判 `!e.canceled` 调 `onOpen`，未混用 builder API |
+| 7（新增） | openai/gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ | 基线读了 Gesture Handler 3 官方文档，写法与有 skill 一侧一致；场景作为该更正的回归哨兵保留 |
+| 5（负例） | openai/gpt-6.1-sol medium | 有 | false | ✔ | Next.js 搜索面板，未读本 skill |
+
+结论：更正内容被正确使用，未出现回归；场景 7 两侧都达成（基线会联网查文档），不构成新增规则的缺口证据，本轮也只是事实更正。
