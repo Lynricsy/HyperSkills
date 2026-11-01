@@ -548,3 +548,27 @@ openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 man
 | ecma-376 | OOXML 修订与批注语义 | https://ecma-international.org/publications-and-standards/standards/ecma-376/ | 页面有效，仍为第 5 版；正文未引版次。**更正上次记录**：10-15 表写「Part 1 仍为第 5 版（2021-12）」不准——页面列出 Part 1 为 5th edition December 2016，2021-12 是 Part 2（OPC）的日期；正文不受影响 |
 
 正文改动：`SKILL.md`（Core rules `ImageRun` 一条加版本限定）、`references/docx.md`（`ImageRun` 失效模式改写、svg fallback、`[verified]` 版本）、`references/pdf.md`、`pdf-forms-tables-ocr.md`、`markdown-to-docx.md`、`docx-tracked-changes-comments.md`（仅版本行 / 标记）。`scripts/` 未改（`md_to_docx.mjs` 锁定 docx 9.7.1，注释「type 必填」对该版本仍成立）。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：5bd77ad（`SKILL.md` Core rules 与 `references/docx.md` 的 `ImageRun` 版本限定、svg fallback；其余 references 只改版本标记）。
+
+选场景：场景 6（docx-js 生成 Letter 报告，期望 1 含「在 `ImageRun` 上设 `type: "png"`」，直接考察改动条目；查询固定 docx 9.11，正落在「9.13 之前」一侧）；负例 4（Google Sheets）。版本标记改动不涉及行为，未另设场景。
+
+运行：`uv run tools/run_evals.py office --only N [--baseline] --out /tmp/hs-d2/G12b-meta2`（omp + gpt-6.1-sol medium，VM），串行队列 `/tmp/hs-d2/G12b-queue.sh`；全部运行开始于 5bd77ad 提交（14:07:28）之后。场景 6 有 skill 跑了两次，第一次产物另存于 `/tmp/hs-d2/G12b-meta2-office-skill6-run1`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 有（第 1 次） | True | 1✔ 2◐ 3✘ | 166 s。读 `docx.md`、`render-qa-fonts.md`；624×351 并写明 96 px/in；`type: "png"`，注释「Required explicitly in docx 9.11」（照新的版本限定写法）；Letter `size` 与 1440 页边距（2：未说明不设即 A4）。3：没用 `estimatePageNumbers`，称「docx 9.11 does not paginate the TOC」，改用 LibreOffice UNO 脚本刷新目录后再存 docx，PDF 目录页码为 2 |
+| 6 | gpt-6.1-sol medium | 有（第 2 次） | True | 1✔ 2◐ 3✘ | 213 s。同型：624×351、`type: "png"`（注释「Required for correct media content types in docx 9.11」）、Letter 尺寸（代码注释「not default A4」，答案未解释）；目录同样走 UNO 刷新，称「docx creates a TOC field but does not paginate it」 |
+| 6 | gpt-6.1-sol medium | 无 | False | 1✔ 2◐ 3✘ | 192 s。624×351（96 logical px/in）、`type: "png"`、Letter 尺寸；目录也用 UNO 刷新，页码 2/3/4 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | 1✔ 2◐ | 74 s。未读 skill，答复无法访问 Google Sheets 会话、请用户提供链接与已登录浏览器；未提 Sheets API / Apps Script |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：
+- 改动条目（期望 1）两次有 skill 均达成，且模型按新写法把 `type` 与「docx 9.11」挂钩，无回退。
+- 期望 3 本轮有 skill 两次与基线都 ✘：模型读到了 `docx.md` 的 `estimatePageNumbers` 段落，仍选择用 LibreOffice UNO 刷新目录（结果上 PDF 有页码，但违背期望写明的做法，并错误声称 docx 不能写页码）。该段落今天只改了 `[verified]` 版本号；10-15 同场景有 skill 与基线均 ✔，属于模型行为漂移，不是本次改动引入。是否把「LibreOffice 渲染前用 `estimatePageNumbers` 写入目录页码」提到 `SKILL.md` Core rules 需先按评测先行另行评估，记为遗留。
+- 负例 4 通过（`skill_read == false`）：10-15 改过的 description 在本轮仍有效。
+
+遗留：场景 6 期望 3（见上）；期望 2 三次运行均只在代码里设 Letter、不解释 A4 缺省（与 10-15 相同）；各场景 1–2 次运行。
