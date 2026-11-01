@@ -437,3 +437,55 @@ blobless 归因确有 2 个提交命中 paths。用其裸仓库缓存 `/tmp/hs-a
 结论：Polars 2.0 更正相关的行为在有 skill 时达成——场景 6 唯有有 skill 一侧解释了「2.0 默认流式 → 偶然行序不再成立」（EB2 ✔ 对基线 ◐），场景 5 在 1.44.2 下两侧 4/4、无回退。负例 `skill_read == false`。正文按实测修正了 `no_optimization` / `no_optimizations` 的混淆。
 
 遗留：场景 6 两侧都没有点名 `ArgumentRemovedError` 与弃用版本（EB1 ◐），模型直接按报错删参数即可修好，这一句的行为价值有限；`references/pandas.md`、`duckdb.md` 仅版本行变化，未设场景。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/data-analysis.md`）。`polars-official` 用 `gh api repos/polars-inc/skills/compare/70bec73...b102cc9` 读 patch：上游把 skill 从 `polars/` 整体移到 `skills/polars/`（compare 中为 renamed），原追踪路径已不存在，按 Phase B 把 `paths` 改指新位置后再 `--pin`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| polars-official | 70bec73 → b102cc9（1 commit） | `skills/polars/SKILL.md`（原 `polars/SKILL.md`）：改为面向 Polars ≥ 2.0、Python 3.10+；「`collect()` 默认走流式引擎」写进默认立场；新增 SQL 一节（`pl.sql`/`lf.sql`/`SQLContext`，指向新 `references/sql.md`）；新增「join/group_by 不保序，需 `.sort()` 或 `maintain_order="left"`」；字符串转日期用 `str.to_date()` 而非 `.cast()`。`skills/polars/references/lazy-api.md`（原 `polars/references/lazy-api.md`）：流式一节改为「2.0 默认流式，过大结果用 sink」，新增「On Polars 1.x」差异（1.x 需显式 `engine="streaming"`、`cut`/`qcut` 对应 2.x `bin_intervals`/`bin_quantiles`、`explode(empty_as_null=False)`、SQL 数值字面量类型） | 已覆盖 → 仅改 paths 并 re-pin。2.0 流式默认、`map_batches` 默认值、join 不保序与 `maintain_order`、`nulls_equal` 已在 `references/polars.md`（2026-10-15 文档复核时据官方更正）写明且更细；Polars SQL 入口与 1.x 分箱改名属 API 教学，本 skill 只写人口/粒度敏感的语义陷阱，不合入 |
+| anthropic-data | f652327 → 2574e29（54 commits） | 无 | 噪声，仅 re-pin |
+| kdense-eda | a1043ef → 5f2bc03（2 commits） | 无 | 噪声，仅 re-pin |
+
+`--pin` 后逐条核对：b102cc9、7feda8e、2574e29、5f2bc03 全部等于审阅 HEAD，无差额。
+
+结论：正文未变；`polars-official` 的 `paths` 改为 `skills/polars/SKILL.md`、`skills/polars/references/lazy-api.md` 并在 `notes` 记录改名；`version` 改为 2026.11.01。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| github/awesome-copilot `instructions/sql-server-safe-tsql.instructions.md`（MIT） | REJECT | SQL Server 专属写安全规则（`XACT_ABORT`、`@@TRANCOUNT`、失败即 dry-run、`OUTPUT ... INTO` 分批归档、DMV）。属数据库运维/写操作安全，不是数据集分析方法；本仓库没有 SQL Server skill，交主代理判断是否记入 roadmap |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/analytics/SKILL.md`（MIT） | REJECT（跨组提示） | 产品埋点与监控实施（PostHog、Sentry、健康检查、内部看板），与仓库根 `analytics/SKILL.md` 同一份内容的插件镜像。不属于本 skill 的「对表格数据集做可靠分析」；埋点/错误监控部分更接近 `observability` |
+| polars-inc/skills `skills/polars/references/sql.md`（追踪仓库内新增 reference，非 skill 入口） | 不合入 | Polars SQL 入口与方言差异的 API 说明；本 skill 不教 Polars SQL，按需取官方文档即可 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "data analysis agent skill"` / `"data analysis skills"` / `"pandas skill"` / `"polars agent skill"` / `"duckdb skills"`（均 `--updated >2026-10-15`）；VoltAgent/awesome-agent-skills 自 2026-10-15 的新增行（`coupler-io/skills` 为营销/销售业务数据分析服务，产品绑定，未列入）。多数返回为个人学习项目（0–1★），只列读过 SKILL.md 的：
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| TaylorONeal/data-analysis（`honest-data-analysis` 等 6 个） | 0 | 2026-10-25 | MIT | 6（权威 0 / 新鲜 3 / 具体 1 / 正确 — / 许可 2） | REJECT：把四段提示词粘贴进聊天的「反幻觉」流程（引用行号、二次计算），教程式；其可验证要点（复算头条数字、不外推）已在 Core rules 覆盖 |
+| meridian-online/data-analysis-skills | 0 | 2026-10-25 | MIT | — | REJECT：仓库只有 README 与 LICENSE，无 SKILL.md |
+| asloci/duckdb-skills-for-vibe | 0 | 2026-10-17 | MIT | — | REJECT：已追踪的 `duckdb/duckdb-skills` 为 Mistral Vibe 改写的分叉，无增量 |
+| kamskans/pandastudio-skills | 1 | 2026-10-31 | NONE | — | REJECT：PandaStudio 产品 skill，与 pandas 无关 |
+
+## 2026-11-01 文档上游复核
+
+当前稳定版（PyPI）：pandas **3.1.0**（2026-10-22）、Polars **2.1.0**（2026-10-25）、DuckDB **2.0.0**（2026-10-21）、SciPy 1.18.1（文档仍为 v1.18.0 Manual）。三个库都在上次复核后发了新版，因此本轮把正文依赖的默认值与语义在新版本上实跑了一遍（`uv run`，`pandas==3.1.0 polars==2.1.0 duckdb==2.0.0`，脚本 `/tmp/hs-g06/da/check.py`）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| pandas-csv | `on_bad_lines` 默认 `'error'`、`keep_default_na` 默认 True | https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html | 一致（3.1.0 签名实测） |
+| pandas-merge | 两侧 null 键互相匹配（不同于 SQL） | https://pandas.pydata.org/docs/reference/api/pandas.merge.html | 一致（3.1.0 实跑：`None` 键左连接命中右侧 `None` 行） |
+| pandas-time | `tz_localize` 的 `nonexistent` 默认 raise | https://pandas.pydata.org/docs/user_guide/timeseries.html | 一致（3.1.0 实跑 America/New_York 2025-03-09 02:30 抛 ValueError） |
+| polars-streaming | 2.x 惰性 `collect()` 默认 `engine="auto"` 解析为流式；不支持的算子回退 | https://docs.pola.rs/user-guide/concepts/streaming/ | 一致（2.1.0 签名 `engine='auto'`） |
+| polars-map-batches | `predicate/projection/slice_pushdown`、`streamable` 默认 False，`validate_output_schema` 默认 True | https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.map_batches.html | 一致（2.1.0 签名实测） |
+| polars-join | `validate='m:m'`、`nulls_equal=False`、`coalesce=None`、`maintain_order=None`；null 键默认不匹配 | https://docs.pola.rs/api/python/stable/reference/lazyframe/api/polars.LazyFrame.join.html | 一致（2.1.0 实跑 inner join 丢弃 null 键行） |
+| duckdb-csv | `nullstr` 默认空串；`force_not_null` 使空值读为 `''`；`all_varchar` 不关闭 NULL 解析；`allow_quoted_nulls` 默认 true（关掉后带引号的空串保留为 `''`）；`NA` 与前导零按文本保留 | https://duckdb.org/docs/current/data/csv/overview | 一致（2.0.0 实跑） |
+| duckdb-aggregates | 空组 `sum`/`max` 为 NULL、`count` 为 0；全 NULL 输入同样 | https://duckdb.org/docs/current/sql/functions/aggregates | 一致（2.0.0 实跑） |
+| duckdb-workloads | 可溢出算子、阻塞算子 OOM、EXPLAIN 不执行 / EXPLAIN ANALYZE 执行 | https://duckdb.org/docs/current/guides/performance/how_to_tune_workloads | 一致；2.0.0 发布说明（`gh api repos/duckdb/duckdb/releases/tags/v2.0.0`）中与正文相关的是有序聚合改用 list 基础设施与 CSV 读取器异步 I/O 重构，未改变上述语义 |
+| scipy-ttest | `equal_var=False` 为 Welch、统计量方向 mean(a)−mean(b)、`nan_policy`、`confidence_interval` | https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html | 一致（页面仍为 v1.18.0） |
+
+10 条全部一致。各 reference 顶部的「Verified against」行（pandas 3.0.6、Polars 2.0.0、DuckDB 1.5.6）是当时的核对记录，本轮在新版本上复跑未发现语义变化，正文不改；所有 `kind: docs` 条目 `synced_at` 更新为 2026-11-01。
