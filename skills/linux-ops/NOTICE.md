@@ -2,9 +2,9 @@
 
 This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
 
-- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 6edcf94159d9f46b0759d2e1b59dd545cfaca254 — paths: skills/systemd/SKILL.md — Contributes the service lifecycle and unit-hardening organization, rewritten in SKILL.md and references/service-privileges-and-limits.md with explicit activation and recovery gates.
-- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 6edcf94159d9f46b0759d2e1b59dd545cfaca254 — paths: skills/ssh/SKILL.md — Contributes SSH identity, port, jump-path and forwarding distinctions rewritten in references/network-and-remote-changes.md.
-- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 6edcf94159d9f46b0759d2e1b59dd545cfaca254 — paths: skills/rsync/SKILL.md — Contributes trailing-slash and deletion-preview guidance rewritten in references/backup-and-restore.md with metadata and consistent-cutover constraints.
+- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 8a9852d489f274538be9bf1c9121aeb403750b1c — paths: skills/systemd/SKILL.md — Contributes the service lifecycle and unit-hardening organization, rewritten in SKILL.md and references/service-privileges-and-limits.md with explicit activation and recovery gates.
+- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 8a9852d489f274538be9bf1c9121aeb403750b1c — paths: skills/ssh/SKILL.md — Contributes SSH identity, port, jump-path and forwarding distinctions rewritten in references/network-and-remote-changes.md.
+- TerminalSkills/skills (Apache-2.0) — https://github.com/TerminalSkills/skills @ 8a9852d489f274538be9bf1c9121aeb403750b1c — paths: skills/rsync/SKILL.md — Contributes trailing-slash and deletion-preview guidance rewritten in references/backup-and-restore.md with metadata and consistent-cutover constraints.
 
 Reference-only sources (no content copied):
 

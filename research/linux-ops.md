@@ -314,3 +314,41 @@ refresh」），`skills/rsync/SKILL.md` 无提交判噪声。用裸仓库缓存 
 | rsync-manual | `-a` 等于 `-rlptgoD`，不含 -A/-X/-U/-N/-H；源路径尾斜杠复制内容而非目录名；`-H` 只能识别传输集内的硬链接；`host::module`/`rsync://` 守护进程连接不加密；`--fake-super` 以 xattr 存取特权属性；`--numeric-ids` 不按名映射 | https://download.samba.org/pub/rsync/rsync.1 | 一致（手册现标注「current for version 3.5.1」，日期 2026-09-21，新增的安全使用指南与正文传输结论一致） |
 
 处理：无事实更正；三份 reference 的 "Verified against" systemd 版本由 261.2 更新为 262，SOURCES notes 同步。另记：`references/backup-and-restore.md` 版本行仍写 restic 文档 commit `ba802d4`，而 `restic-docs`（`kind: repo`，不在本轮 docs 范围）已于 2026-10-15 上游同步 re-pin 到 `9da3b87`（tracked paths 未变），留待该条目的仓库同步处理。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 归因工作单（`/tmp/hs-sync/linux-ops.md`），用 blobless 缓存 `git -C /tmp/hs-attr/TerminalSkills__skills diff 6edcf94 8a9852d -- <path>` 读 diff。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| terminal-systemd | 6edcf94 → 8a9852d | 33b765f：frontmatter `tags` 由 YAML 列表改为逗号分隔字符串 | 无影响，只 re-pin |
+| terminal-ssh | 同上 | 同上（仅 metadata 格式） | 无影响，只 re-pin |
+| terminal-rsync | 同上 | b1bcd8b「freshness wave」重写：版本 1.0.0→1.1.0，description 扩写触发词，`compatibility` 改为「rsync 3.2+ on both ends」，正文补充尾斜杠、`--dry-run --itemize-changes`、`--delete` 系列、`--link-dest` 增量、`--partial`/`--append-verify` 续传、`-z`/`--compress-choice` 与 SSH 选项示例；33b765f metadata 格式 | 无影响：本 skill 的 rsync 内容（`references/backup-and-restore.md`「Preserve filesystem semantics through rsync」）已覆盖尾斜杠、删除前 dry-run 预览、`-a` 不含 `-H`/`-A`/`-X`、`--numeric-ids`、`--inplace` 风险与传输加密边界，且比上游更严（上游把 `--delete` 当常规镜像用法，不要求先核对删除清单与恢复代）；上游新增的压缩/续传示例属教程式用法，不形成新规则。本机 rsync 3.5.1 protocol 33 |
+| restic-docs | dd09b6b（仓库前进） | tracked paths 未变 | 噪声，只 re-pin |
+
+`--pin` 后逐条比对：写入的 `commit` 与审阅 HEAD 一致。正文无改动，不跑 D2。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `TerminalSkills/skills` `skills/frp` | REJECT | 单一内网穿透工具的安装与配置教程，不是主机运维边界规则 |
+| `TerminalSkills/skills` `skills/fzf` | REJECT | 交互式 shell 工具，Scope 明确不含 shell 程序设计 |
+| `laurigates/claude-plugins` `linux-plugin/skills/linux-disk-usage` | MAYBE，不合入 | 磁盘占用排查流程（`df -h -x tmpfs`、`dust`、`journalctl --disk-usage`、reflink 检查、先看所有挂载再删除）与 `references/storage-and-processes.md` 的按文件系统/对象计数、deleted-open、先保全证据重叠；其「把删除改成搬到另一块盘」与 `mise exec … dust` 依赖额外安装，与本 skill「事故中不装诊断包」冲突。无可证明的基线缺口 |
+| `nitinjain999/platform-skills` `plugins/platform-skills/skills/linux`、`backup-dr` | REJECT | 90b97a9 生成的插件副本（原件早于旧 pin，已评估）；`linux` 为 DNS/LB/VPC 杂烩向导，`backup-dr` 以 Velero（Kubernetes）为主，不属主机层 |
+| `NVIDIA/skills` `nvshmem-configure-nic-pe-mapping` | REJECT | NVSHMEM 专属 NIC-PE 映射，HPC 产品配置 |
+
+新候选仓库：`gh search repos <linux sysadmin skills|systemd skill> pushed:>2026-10-15 --sort stars` 结果均为 0–10 star 的个人收集或单工具封装，无达到 MAYBE 的候选。
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对 | 结论 |
+|---|---|---|
+| systemd-exec / systemd-service / systemctl-manual | freedesktop `man/latest` 页面版本仍为 systemd 262（GitHub 最新稳定发布 v261.4，2026-10-17）；正文引用的 capability 边界、`daemon-reload` 不改运行中 MainPID、`Type=notify` 就绪语义未变 | 一致 |
+| linux-unlink / linux-path | man7.org 仍为 man-pages 6.19 | 一致 |
+| openssh-sshd | `man.openbsd.org/sshd` 可达，`-t`/`-T` 与 Match 语义正文无版本依赖 | 一致 |
+| nft-manual | netfilter 手册页可达，`-c` 检查模式与 `inet` 族描述未变 | 一致 |
+| nginx-tls | `configuring_https_servers` 页面可达，SNI 与证书链说明未变 | 一致 |
+| rsync-manual | samba 托管手册对应 3.x 系列，最新发布 v3.5.1（2026-09-21），本机 3.5.1 | 一致 |
+
+九条 docs 条目 `synced_at` 改为 2026-11-01；版本号 2026.11.01。
