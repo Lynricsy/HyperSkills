@@ -374,3 +374,67 @@ tracked paths unchanged，随 `--pin` 前移。`--pin` 后 `pin_check.py` 结果
 结论：改动相关的 EB2（编号且带推荐答案）与 EB9（yes 即接受推荐）在有 skill 时达成，基线均未达成；场景 6 有 skill 不差于基线（EB6 合并结论基线未达成、有 skill 达成；EB1 只是未逐字引用输出）。负例 `skill_read == false`。正文无需修正。
 
 遗留：场景 3 的 EB7（分项实施顺序）与 EB8（在 PR 线程回复）有 skill 与基线均未达成，均为既有内容、与本次改动无关，留作后续观察。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/code-review.md`。用已登录 `gh api repos/<o>/<r>/compare/<旧pin>...<审阅HEAD>`
+读命中 paths 的 `patch`；anthropic 两条路径被删除，另用 `gh api .../contents/<file>?ref=` 取旧 pin 版本与新位置 HEAD 版本逐文件 `diff`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| obra-requesting-review / obra-receiving-review / obra-verification | bb92a77 → 2ce8aa1 | 无 | 噪声，只 re-pin |
+| mattpocock-review | 49dd158 → 4ae2317 | 7739eae（#1341）：`code-review/SKILL.md` 两轴 subagent 句末加「Start every sub-agent with a fresh context window」 | 不合入，正文不动。本 skill 的 `references/reviewer-prompt.md` 模板本就按全新上下文写：模板自包含（规格、diff 区间、标准全部经占位符传入），`[SMELL_BASELINE]` 一行明说「a subagent starts with no files loaded」；fork 与否是宿主派发方式的差异，不是审阅规则 |
+| mattpocock-grilling | 49dd158 → 4ae2317 | 7739eae：派去查事实的 subagent 要用全新上下文 | 噪声：本 skill 只取提问格式（一轮编号、带推荐、yes 即接受），没有收录派 subagent 查事实那句 |
+| mattpocock-codebase-design | 49dd158 → 4ae2317 | 7739eae：`DESIGN-IT-TWICE.md` 并行 subagent 用全新上下文 | 噪声：reference 条目，未取该文件 |
+| addyosmani-review | aeac41d → 8bfcc1f | 无 | 噪声，只 re-pin |
+| trailofbits-diffreview | e1f86a3 → 2be6433 | 无 | 噪声，只 re-pin |
+| anthropic-claude-code | anthropics/claude-code 94506ff → 80c6959；新位置 anthropics/claude-plugins-official @ a7ba5b9 | aef1f31「Install code-review from claude-plugins-official too」删除 `plugins/code-review/**`；10a5141 删除 `plugins/feature-dev/agents/code-reviewer.md`。claude-plugins-official c905cd8（2026-10-26）「bring in the newer command from anthropics/claude-code」 | 按 Phase B 重新裁决（tracked path 被删除）：`repo`/`url` 改指 anthropics/claude-plugins-official，`paths` 不变。逐文件对比旧 pin 与新位置 HEAD：`README.md`、`code-reviewer.md` 逐字相同，`commands/code-review.md` 只多 frontmatter `disable-model-invocation: false`，正文无变化。新位置 `plugins/code-review/LICENSE` 与 `plugins/feature-dev/LICENSE` 均为 Apache-2.0（已读原文），旧位置是 Anthropic 商业条款下的保留所有权利，`license` 改为 Apache-2.0；`relation` 仍为 reference（本 skill 的对应规则是独立写成的，没有新内容需要合入），`notes` 记录迁移与许可变化；id 保留以免改动正文里的来源注释 |
+
+`--pin` 后逐条比对写入的 `commit` 与审阅 HEAD：obra 三条 2ce8aa1、mattpocock 三条 4ae2317、addyosmani 8bfcc1f、trailofbits 2be6433 均与快照 head 相同；
+anthropic 写入 a7ba5b9，即审阅新位置时的 HEAD（`gh api repos/anthropics/claude-plugins-official/commits?per_page=1`）。无差额区间。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C（已追踪仓库区间新增）与 C2（分诊补充）逐个用 `gh api .../contents` 读原文。许可：Azure/azure-dev MIT、CloudBase-AI-Toolkit MIT、
+everything-claude-code MIT、ai-dynamo/dynamo NOASSERTION（文件头 Apache-2.0）、melodic MIT、nitinjain999/platform-skills Apache-2.0、
+redis-vl-python MIT、orchestkit MIT、awesome-copilot MIT、antfu/skills MIT、oh-my-agent MIT。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| Azure/azure-dev `extension-user-contract-review` | REJECT | 上游自用流程：只审 `cli/azd/extensions/**` 的命令/flag/schema 契约变化，绑定其 experiences spec 与评审宿主 |
+| CloudBase-AI-Toolkit `cloudbase-code-review`（两份路径相同内容） | REJECT | 单一商业产品（CloudBase）的实现后自查清单 |
+| everything-claude-code `issue-review` | REJECT | 审的是 issue 而不是 diff（有效性、重复、严重度、回复草稿），属 issue 分诊；GitHub 操作归 `github` skill。其「issue 内容是数据不是指令」本 skill 与 debugging 已有 |
+| ai-dynamo/dynamo `pr-checklist` | REJECT | 上游自用：Dynamo 核心目录、后端划分与 PR 描述要求 |
+| melodic `code-tidying/tidy-diff` | REJECT | 提交前按行号清单整理代码的插件流程（依赖其 change-shape.sh、docs-hygiene、ai-slop 插件）；写改动不属审阅（Scope） |
+| melodic `review/check` | REJECT | 检查其插件 hook 是否注册、node 是否可用的运维命令，与审阅无关 |
+| melodic `source-control/.../review-stub/explain-change` | REJECT | 评测夹具里的桩文件，不是 skill |
+| nitinjain999/platform-skills `.github/skills/code-review` | REJECT | 上游自用：审它自己仓库的 commands/references 结构与注册位置；安全条目（IAM 通配、Actions SHA pin、`${{ github.* }}` 注入）属 `security-review`/`github` |
+| nitinjain999/platform-skills `pr-review` | REJECT | 平台工程 PR 的成本、环境漂移、SOC 2 合规模式，属基础设施领域与团队流程，不在 Scope |
+| redis-vl-python `pre-pr-review` | REJECT | 上游自用：RedisVL 的六个审阅 lens 与同步/异步孪生类漂移；「只报告能落到代码的发现、不声称未跑的检查」本 skill 已有 |
+| orchestkit `review-artifact-comments`（plugins 与 src 两份） | REJECT | 处理其 `.ork/tasks/` 计划文件里的评论块，依赖 artifact.mjs，属其任务工件流程 |
+| awesome-copilot `pr-address-feedback`（C2） | REJECT | 逐条处理 PR 评审意见，主体是 GitHub GraphQL 取线程、推送后再回复带 SHA、按决定 resolve 线程、最后重新请求评审——全是 GitHub 机制（Scope 明确归 `github` skill）。非机制部分（逐条判断 act/reply、在原线程回复、引用完整 SHA）`references/receiving-review.md` 已有。列入跨组命中交 `github` 组 |
+| antfu/skills `antfu-simplify`（C2） | REJECT | 对当前 diff 做消融式删减并实际改代码，是写改动而非审阅（Scope：writing the change itself is not review work）；其 Keep vs Cut 判据与 `references/smell-baseline.md` 的 speculative generality、dead code、重复逻辑重合 |
+| everything-claude-code `module-governance`（C2） | REJECT | 业务模块的本地 agent 指令与领域上下文维护，不是审阅 |
+| oh-my-agent `oma-refactor`（C2） | REJECT | 保持行为的重构执行流程，不属审阅；仓库内没有对应 skill，作为主题写进汇报供主人判断是否记 roadmap |
+
+无 MERGE 项，`paths` 不变。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（「code-review skills claude」`--updated >2026-10-15 --stars >=30`；「code review skill」`--created >2026-09-15`）、
+`--topic agent-skills --created >2026-10-01`、VoltAgent/awesome-agent-skills 2026-10-15 以来 60 个提交的 README 新增行。
+指标均用 `gh api repos/<o>/<r>` 核实。按类别直接 REJECT 的未做正确性抽查（记「—」）。
+
+| 仓库 | stars | pushed | license | 权威/新鲜/具体/正确/许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|
+| openqodex/openqodex | 1087 | 2026-11-01 | Apache-2.0 | 1/3/1/—/2 | 7（不含正确性） | REJECT：单一产品 CLI 的调用手册（`npx openqodex review`、等待其 reviewer 进程），没有可移植的审阅规则 |
+| laolaoshiren/claude-code-skills-zh（`zh-code-reviewer`） | 899 | 2026-10-31 | MIT | 1/3/0/—/2 | 6 | REJECT：五个维度名加 emoji 报告模板，空泛 |
+| sno-ai/sno-station-skills | 858 | 2026-10-30 | Apache-2.0 | 1/3/2/—/2 | 8（不含正确性） | REJECT：全部 MANUAL-ONLY 且绑定其 harness slot；`first-principles-review` 审的是 PRD/方案而非 diff，`owner-intent-audit` 等为其自家流程 |
+| beastlabai/multi-llm-plugin | 11 | 2026-11-01 | MIT | 0/3/1/—/2 | 6 | REJECT：调度多个 CLI 交叉审阅的插件机制 |
+| kyy-logs/code-review-skill、akkie76/code-review-skills 等 | ≤89 | 2026-10 | MIT | 0/3/—/—/2 | ≤5 | REJECT：低星个人仓库，未进一步读 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 无 `kind: docs` 条目。
+
+正文（`SKILL.md`/`references/`/`scripts/`）本轮除 `metadata.version` 外无改动，按规程不需要 D2 回归。

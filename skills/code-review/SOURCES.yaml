@@ -1,5 +1,5 @@
 skill: code-review
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: obra-requesting-review
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/obra/superpowers
     paths: [skills/requesting-code-review]
     ref: main
-    commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
+    commit: 2ce8aa15d05bd57213e6f746f953aafb7ded7a8b
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Base-SHA pinning and the context argument for dispatching a reviewer instead of reading the diff inline, plus the reviewer prompt template: read-only guard, the no-nested-dispatch rule and its reasoning, the Strengths / Critical / Important / Minor / Recommendations / Assessment output contract with a worked example, the calibration rules, and the Set aside list of behaviours judged outside the spec, each with its reason, on which the dispatcher rules before the verdict (with the guard that spec silence alone is no reason to set a behaviour aside)."
 
   - id: obra-receiving-review
@@ -19,10 +19,10 @@ upstreams:
     url: https://github.com/obra/superpowers/tree/main/skills/receiving-code-review
     paths: [skills/receiving-code-review]
     ref: main
-    commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
+    commit: 2ce8aa15d05bd57213e6f746f953aafb7ded7a8b
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The whole responding direction: the six-step response pattern, the ban on content-free agreement, clarify-every-unclear-item-before-implementing-any, source-graded scepticism with its five verification questions, the YAGNI grep, blocking-then-simple-then-structural ordering, evidence-backed pushback, graceful self-correction, and inline-thread replies."
 
   - id: obra-verification
@@ -31,10 +31,10 @@ upstreams:
     url: https://github.com/obra/superpowers/tree/main/skills/verification-before-completion
     paths: [skills/verification-before-completion]
     ref: main
-    commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
+    commit: 2ce8aa15d05bd57213e6f746f953aafb7ded7a8b
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The evidence-before-claim completion gate shared verbatim across this repository's engineering-practice skills, and the verify-the-verification review step: which command the author ran and what its output showed."
 
   - id: mattpocock-review
@@ -43,10 +43,10 @@ upstreams:
     url: https://github.com/mattpocock/skills/tree/main/skills/engineering/code-review
     paths: [skills/engineering/code-review]
     ref: main
-    commit: 49dd158d1076134a641b33efb035946536778336
+    commit: 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Fixed-point pinning with a git rev-parse fail-fast and a three-dot diff, the spec-source priority order, separate gathering of the Standards and Spec axes with the ban on cross-axis reranking, and the twelve-smell Fowler baseline together with its three meta-rules (repo standards override, every smell is a judgement call, skip what tooling enforces)."
 
   - id: mattpocock-grilling
@@ -55,10 +55,10 @@ upstreams:
     url: https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling
     paths: [skills/productivity/grilling]
     ref: main
-    commit: 49dd158d1076134a641b33efb035946536778336
+    commit: 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The stop-and-ask format used when review feedback is ambiguous: ask every open question in one round, number each and attach a recommended answer, word each question so that yes accepts that recommendation, look facts up yourself and put only decisions to the user."
 
   - id: mattpocock-codebase-design
@@ -67,10 +67,10 @@ upstreams:
     url: https://github.com/mattpocock/skills/tree/main/skills/engineering/codebase-design
     paths: [skills/engineering/codebase-design]
     ref: main
-    commit: 49dd158d1076134a641b33efb035946536778336
+    commit: 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Source of the seam vocabulary shared across this repository's engineering-practice skills, and the second half of the argument that structural refactors belong to review rather than to the implementation loop. Read for alignment; no content copied."
 
   - id: addyosmani-review
@@ -79,10 +79,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills/tree/main/skills/code-review-and-quality
     paths: [skills/code-review-and-quality]
     ref: main
-    commit: aeac41d4d005999432bb7312f7ff06383a91d59d
+    commit: 8bfcc1f9916f2eea55494d8c1fa7f4bde867dd9e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The five quality lenses and their question lists, the severity prefix taxonomy, lead-with-what-matters, the eight structural remedies, change sizing with the four splitting strategies, review-the-tests-first, verify-the-verification, the honesty and anti-sycophancy rules, the disagreement hierarchy, dead-code hygiene, and the dependency and upgrade discipline."
     notes: "Its human-team process material (review SLAs, round cadence) and its cross-references to sibling skills in the same repository were dropped as meaningless for an agent skill."
 
@@ -92,22 +92,22 @@ upstreams:
     url: https://github.com/trailofbits/skills/tree/main/plugins/differential-review/skills/differential-review
     paths: [plugins/differential-review/skills/differential-review]
     ref: main
-    commit: e1f86a390d4caf28bf1c377a7d86707b2898669c
+    commit: 2be6433b39e009cd2b6fd3be1895f6b1faa5af9a
     license: CC-BY-SA-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Security-mode structure only: risk-class triggers, depth chosen from codebase size, git blame on removed guards and the regression pattern, caller-counted blast radius crossed with risk, test-coverage severity elevation, the escalation trigger list, and the rule that the report is written to a file with its coverage limits stated."
     notes: "CC-BY-SA-4.0 is share-alike and incompatible with this repository's MIT licensing, so no prose, table or template was copied. Only the checklist semantics and phase structure were taken and every sentence was written from scratch; the upstream's Solidity-specific material was reworked into language-neutral guidance."
 
   - id: anthropic-claude-code
     kind: repo
-    repo: anthropics/claude-code
-    url: https://github.com/anthropics/claude-code/tree/main/plugins/code-review
+    repo: anthropics/claude-plugins-official
+    url: https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review
     paths: [plugins/code-review, plugins/feature-dev/agents/code-reviewer.md]
     ref: main
-    commit: 94506ff0d3bd9185f1752da36e968775021fb48f
-    license: Proprietary
+    commit: a7ba5b93db0c7c8d17f3f1d25853adca79598a1a
+    license: Apache-2.0
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Confirmed the discipline of validating every candidate finding before reporting it and discarding what cannot be substantiated, the composition of the false-positive exclusion list, and the requirement that code cited in a pull-request comment uses a full-SHA permalink. Read as a quality benchmark only."
-    notes: "LICENSE.md states all rights reserved under Anthropic's Commercial Terms of Service. Reference-only and permanently so: no text, script or template was copied, and the equivalent rules here were written independently."
+    notes: "Upstream moved both paths out of anthropics/claude-code into anthropics/claude-plugins-official on 2026-10-26 (claude-code aef1f31 and 10a5141 delete them; claude-plugins-official c905cd8 brings the newer command in); the content is identical apart from a disable-model-invocation frontmatter field. In the new location plugins/code-review/LICENSE and plugins/feature-dev/LICENSE are Apache-2.0 (both read); in anthropics/claude-code the same files were all rights reserved under Anthropic's Commercial Terms of Service. The entry stays reference-only: no text, script or template was copied, and the equivalent rules here were written independently. The id is kept so existing source comments stay valid."
