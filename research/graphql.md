@@ -501,3 +501,20 @@ graphql-hive-tooling 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 pa
 | relay-connections | Connection/Edge/PageInfo 形状与参数对 | `facebook/relay` `website/spec/Connections.md` 提交历史 | 最近一次改动 55eeaa4（2026-02-12，错别字），10-15 以来无改动。一致 |
 
 三个 docs 条目 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `b154506`（Yoga 5 → 6 版本标注、`servers.md` 批处理一格更正）。旧场景 1–7 都不涉及 Yoga 的屏蔽或批处理默认值，
+故新增回归场景 8（`evals/files/yoga-server.ts`：Yoga 6 服务端关掉了 `maskedErrors`、开了 `batching: true`，驱动错误泄露数据库主机），
+按标准不要求制造知识缺口。负例用场景 5（REST 端点的分页与错误格式，`skills: []`）。口径：omp + `openai/gpt-6.1-sol` medium，
+隔离 VM，串行队列 `/tmp/hs-d2/G07-queue.sh`；产物 `/tmp/hs-d2/G07-lang-api/graphql/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`。
+三个结果均跑于 `b154506` 之后（13:12–13:19）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8 Yoga 服务端错误屏蔽与批处理加固 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB6 ✔；EB4 部分；EB5 部分 | 135 s。去掉 `maskedErrors: false` 改 `{ isDev: false }`，优惠券改抛带 `BAD_USER_INPUT` 的 `GraphQLError`，驱动错误保持普通 `Error` 由 Yoga 屏蔽；指出 `batching: true` 默认上限 10、显式写 `limit: 10`（未明说默认关闭、也未取更低上限）；用 Yoga 6.0.1 实跑 HTTP：改前泄露 `pg-primary-2`，改后 production/development 下均为 `Unexpected error.`，11 个操作的批次 413。日志只提「原始错误留在受控服务端日志」，未提关联 id |
+| 8 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB6 ✔；EB4 部分；EB5 ✘ | 135 s。同样修复与实跑，批处理同样给出「`true` 默认 10」并显式 `limit: 10`；未提服务端日志与关联 id |
+| 5 负例 | gpt-6.1-sol medium | 有 | **false** | — | 123 s，未读 graphql |
+
+结论：更正后的 Yoga 6 事实（屏蔽默认开、`isDev`、`batching` 为内置选项且 `true` 时上限 10）在有 skill 一侧全部体现，未见回退；
+与基线基本持平（有 skill 多出「原始错误只留服务端日志」半条），说明这组事实模型实跑即可得到，场景 8 作回归哨兵。负例 skill_read 为 false。
