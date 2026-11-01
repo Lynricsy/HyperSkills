@@ -93,7 +93,7 @@ Absent from all three lists means available everywhere.
 | Subsurface scattering | no | no | yes |
 | CompositorEffects | no | yes | yes |
 | Fullscreen-quad post-processing | yes | yes | yes |
-| MSAA 3D | yes | yes | yes |
+| MSAA 3D | yes, but no alpha to coverage (`alpha_antialiasing_mode` is ignored) | yes | yes |
 | MSAA 2D | no | yes | yes |
 | FXAA, SMAA | no | yes | yes |
 | TAA, FSR2 | no | no | yes |

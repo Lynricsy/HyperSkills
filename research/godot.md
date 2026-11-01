@@ -747,3 +747,57 @@ awesome-gamedev-godot（d4b0e35 → 0a70cfc）、wshobson-godot（156b7a5 → 46
 随 pin 前进。
 
 结论：无事实更正、无新增内容，正文与 references 未改，未跑 D2；只改版本号与 gd-agentic-skills 的仓库名元数据。
+
+## 2026-11-01 上游同步
+
+依据：`/tmp/hs-sync/godot.md` 工作单与 `/tmp/hs-upstream-2026-11-01.json` 旧 pin 快照。归因方法：godot-engine、godot-docs、
+awesome-gamedev-godot、godot-prompter、gd-agentic-skills 均用已登录 `gh api repos/<o>/<r>/compare/<旧 pin>...<审阅 HEAD>` 取
+`.files[].patch`，只读 tracked paths；wshobson-godot 用 compare 确认 46891e7 → 7e2fb55（25 提交）未触及 tracked path。各仓库区间内
+均无 LICENSE 变更。所有更正用 `gh api` 读 godotengine/godot `4.7` 分支的 `doc/classes`、模块源码核实（`4.3`–`4.6` 分支用于版本门）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| godot-engine | fde53e7 → 2ea68c7（1 提交） | `doc/classes/Control.xml`：`update_maximum_size` 描述改为「本节点及 `top_level=false` 的子节点」 | 噪声：本 skill 不涉及 maximum size |
+| godot-docs | f81cf71 → 56033f3（tracked 9 提交） | b19c2f6 `rendering/renderers.rst`：Compatibility 的 MSAA 3D 不支持 alpha to coverage | **事实更正**：4.7 分支 `drivers/gles3/rasterizer_scene_gles3.cpp` 的 `BLEND_MODE_ALPHA_TO_COVERAGE` 分支为「Do nothing for now」，全文无 `GL_SAMPLE_ALPHA_TO_COVERAGE`；`godot-rendering.md` 矩阵 Compatibility 列 MSAA 3D 由「yes」改为「yes, but no alpha to coverage」 |
+| 同上 | 同上 | 37e1d12 删除「Editor 前缀类在新建节点对话框中隐藏」警告；398fc47 等 styleguide 示例加 enum/const；f624d6d 2D 碰撞形状调试色/轮廓；2a604b9 typo；b38eee2/e6b6f83 prek 迁移 | 噪声：本 skill 未写 Editor 前缀类、未规定 enum/const 位置、未涉及调试轮廓 |
+| awesome-gamedev-godot | 0a70cfc → 19d93f9（tracked 21 提交，30 文件） | 5698c1e `godot-multiplayer`：客户端拥有的节点上服务器→所有者 RPC 须 `any_peer`+sender 校验；`public_visibility` 默认 true 时 `set_visibility_for` 无效；复制模式 Always/On Change/Never 与 `property_set_sync` 弃用；客户端也须设 `auth_callback` | **事实更正（三处）**：本 skill「server-authoritative shape」示例的 `apply_damage` 用 `"authority"`，而同一脚本的 `fire()` 证明 avatar 权威是拥有者客户端——4.7 `scene_rpc_interface.cpp:259` 以 `p_from == get_multiplayer_authority()` 判定，服务器调用会被所有客户端拒收；`multiplayer_synchronizer.cpp:194-208` 的 `is_visible_to` = 过滤器全过 且 (`peer_visibility.has(0)` 或 `has(peer)`)，原示例 `set_visibility_for(id, false)` 在公开可见下无效；`SceneReplicationConfig.xml` 中 `property_set_sync`/`property_set_watch` 带 `deprecated=`，原文「sync flag (sent continuously)」过时。auth 客户端一项本 skill 未写细节，无相反陈述 |
+| 同上 | 同上 | f7b9d49 `godot-nodes-scenes`：`change_scene_to_file` 立即把旧场景移出树，`get_tree()`/`current_scene` 为 null；`scene_changed`；d91b5c8 `change_scene_to_node` 为 4.6 | **事实更正**：`godot-nodes-and-scenes.md` 原文「Code after the call still runs against the old tree, and current_scene is not the new scene until the next frame」与 4.7 `SceneTree.xml` `change_scene_to_node` 的顺序说明相反；分支核对：「immediately removed from the tree」4.3 起即在，`scene_changed` 首见 4.5，`change_scene_to_node` 首见 4.6，按此加版本门 |
+| 同上 | 同上 | caef3b0 `godot-ui-control`：`FOCUS_CLICK` 仅鼠标、需 `FOCUS_ALL`；offset_transform；VirtualJoystick | **事实更正**：`godot-ui.md` 原文「focus_mode must not be FOCUS_NONE」漏了 `FOCUS_CLICK`；4.7 `Control.xml` 常量说明 `FOCUS_CLICK` 只在鼠标点击时获焦、`FOCUS_ALL` 才响应方向键/Tab/D-pad、`FOCUS_ACCESSIBILITY` 仅屏幕阅读器。offset_transform 版本门表已有；VirtualJoystick 属新增内容，未评测不合入 |
+| 同上 | 同上 | 其余：Jolt 关节软限位清单与 WorldBoundaryShape3D（本 skill 版本门表已有）；Jolt 默认 4.6+ 新项目（已有）；AreaLight3D/AgX、tween 绑定与 `tween_await`、动画轨道类型、音频 `max_polyphony`/线性音量/HardLimiter、着色器 hint 改名/ALPHA 管线/TIME rollover、TileMapLayer `make_input_local`、C# Android 需 .NET 9 与 Web 不支持、导出 Linux 预设名/线程默认关/PCK 加密需自编模板、`duplicate(true)` 语义与 `.uid` 提交、`emit()` 不校验参数、lambda 连接生命周期、await 超时 helper、4.7 override 继承类型返回、`check_godot_project.py`（新增 1262 行脚本） | 已覆盖 / Scope 外 / 不合入：信号、duplicate、`.uid`、Jolt 各条与本 skill 现有陈述一致；动画、音频、着色器创作、TileMap 属 Scope「Also out of scope」；C# 平台与导出各条本 skill 只写「查当前平台说明」、无相反陈述，属新增规则，未做基线不合入；检查脚本为上游自带工具链，按原裁决不复制 |
+| godot-prompter | bd9d180 → d7b26cd（tracked 6 提交） | 35bec70/67c6c02 `csharp-godot`：缺 `partial` 报 GD0001 而非 CS0260，构建直接失败 | **事实更正**：`godot-csharp-interop.md` 原文「build errors that point at the generated code rather than at the missing keyword」不成立；4.7 `Godot.SourceGenerators/Common.cs` 定义 GD0001（Error）消息 `Missing partial modifier on declaration of type '{0}' that derives from 'Godot.GodotObject'`，直接点名类型 |
+| 同上 | 同上 | 8c62c11/1f506a1 `godot-testing`：gdUnit4 命令改为 `-s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a res://tests --ignoreHeadlessMode`，headless 默认拒跑 | **事实更正**：`godot-build.md` Testing 节的 `GdUnitCmdTool.gd --run-tests` 不存在；MikeSchulze/gdUnit4（MIT）master 的 `GdUnitTestCIRunner.gd` 注册的选项只有 `-a`/`-i`/`-c`/`-rd`/`-rc`/`--ignoreHeadlessMode` 等，`DisplayServer.get_name() == "headless"` 且未传 `--ignoreHeadlessMode` 时以 `RETURN_ERROR_HEADLESS_NOT_SUPPORTED` 退出 |
+| 同上 | 同上 | d4573ed/1292c77 `godot-debugging`：`print_debug` 不在 release 剥离、错误消息原文、Monitor 名称、调试快捷键；3d8100a `godot-ui`：主题沿 Control/Window 链查找遇 CanvasLayer 截断、`ui_accept`/`ui_cancel` 默认无手柄键、TOP_RIGHT 偏移示例、`toggled(toggled_on)` | 噪声 / 不合入：本 skill 不含这些示例与陈述（主题只写「top-level Control 的 Theme 由子树继承」，无相反陈述）；`ui_accept` 无手柄默认键属新增规则，未评测不合入 |
+| gd-agentic-skills | 002d004 → db004d7（2 提交，35 文件） | 新增 `gdas-reader`、`godot-rea`、`bevy-rea`、`godot-master/references/rea*.md` 与脚本、`godot-version-migration/references/rea.md` | 噪声：逆向重建工作流，LGPL-3.0 仍只作 reference，覆盖检查无新主题 |
+| wshobson-godot | 46891e7 → 7e2fb55（25 提交） | 无 | 噪声，re-pin |
+
+`--pin` 后逐条核对：写入的 commit 与审阅 HEAD 一致（2ea68c7、56033f3、19d93f9、d7b26cd、db004d7；wshobson 7e2fb55 与快照 head
+一致），无差额区间。
+
+## 2026-11-01 上游新增内容评估
+
+| 新文件 | Scope 归属 | 历史去重 | 增量价值 | 权威 / 许可 | 结论 |
+|---|---|---|---|---|---|
+| jame581/GodotPrompter `skills/rendering-pipeline/SKILL.md` | 本 skill（渲染后端选择） | godot-prompter 已追踪，候选 #15 已 INCLUDE | 每渲染器灯光上限（Forward+ 512 clustered、Mobile/Compatibility 每网格 8 omni + 8 spot）、SubViewport 不继承根 AA/缩放 | 社区 / MIT | MERGE（追踪）：`skills/rendering-pipeline` 加入 godot-prompter `paths`；具体规则属新增内容，本轮未做基线，正文未合入 |
+| jame581/GodotPrompter `skills/web-export/SKILL.md` | 本 skill（导出预设、Web） | 同上 | C# 不能导出 Web、nothreads 构建下 `Thread.start()` 返回 OK 但不执行、Web 默认 Sample 播放使总线效果失效、`ensure_cross_origin_isolation_headers` | 社区 / MIT | MERGE（追踪）：`skills/web-export` 加入 `paths`；规则未经基线，不合入正文（待下轮评测） |
+| jame581/GodotPrompter `skills/web-services/SKILL.md` | 不在 Scope（HTTPRequest / REST / WebSocketPeer 客户端；Scope 只含高层多人） | — | HTTP 客户端模式 | 社区 / MIT | 待定：需扩 `## Scope`，交主人决定 |
+| thedivergentai/Game-Dev-Agentic-Skills `skills/godot-rea/SKILL.md` | 不属于任何 skill（从逆向证据账本生成 Godot 工程桩） | gd-agentic-skills 为 reference，已因人格化/多文件协议判内容不符 | 零（工作流脚手架） | 社区 / LGPL-3.0 | REJECT：上游自用流程；`skills` 路径已整体追踪，无需改 paths |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "godot SKILL.md"`（updated）、`"godot agent skills"`（stars）、`"godot claude skills"`（updated），筛 pushed >
+2026-10-15；`github/awesome-copilot` 全树与 `VoltAgent/awesome-agent-skills` README 均无 Godot 条目。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Qb-Lab/godot-agent-skills（`skills/godot4-api-guard`、`godot-scene-surgery` 等 20 个） | 0 | 2026-10-19 | MIT | 0 | 3 | 2 | 3 | 2 | 10 | REJECT（零增量）：Godot 3→4 改名表抽查 3 条（`Time.get_ticks_msec`、`randf_range`、`SubViewport`）全对，但与 `godot-scripting.md`「Old patterns」重叠且为基线常识；其余为 Steam 商店、评审、会话交接等流程 skill，Scope 外 |
+| rodrigopcoelho/godot-claude-skills | 0 | 2026-10-27 | MIT | 0 | 3 | 1 | 1 | 2 | 7 | REJECT：教程式代码生成提示；`@tool` 写在变量之后（须为脚本首行注解）一错 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 无 `kind: docs` 条目（godot-docs 以 `kind: repo` 追踪，已在上表按 patch 归因），本节无待核项。
+
+正文改动：`godot-multiplayer.md`（复制模式、`public_visibility` 与 `set_visibility_for`、客户端拥有节点上的服务器结果 RPC）、
+`godot-nodes-and-scenes.md`（切换场景时序与 `scene_changed`/`change_scene_to_node` 版本门）、`godot-rendering.md`（Compatibility
+无 alpha to coverage）、`godot-ui.md`（`FOCUS_CLICK`/`FOCUS_ALL`/`FOCUS_ACCESSIBILITY`）、`godot-build.md`（gdUnit4 命令行）、
+`godot-csharp-interop.md`（GD0001）。新增回归场景 8（`match-flow/`：authority RPC、可见性、切换场景）与场景 9
+（`compat-menu-ci/`：alpha to coverage、`FOCUS_CLICK`、gdUnit4 命令、GD0001）。

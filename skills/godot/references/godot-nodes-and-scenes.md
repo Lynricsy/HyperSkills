@@ -179,10 +179,14 @@ get_tree().change_scene_to_file("res://levels/level_2.tscn")
 get_tree().change_scene_to_packed(LEVEL_2)
 ```
 
-Both are **deferred**: the swap and the old tree's deletion happen at the end of the
-current frame. Code after the call still runs against the old tree, and
-`get_tree().current_scene` is not the new scene until the next frame. Read the new
-scene's nodes from that scene's own `_ready()`.
+Neither is a simple end-of-frame swap. The outgoing scene is **removed from the tree
+immediately**: from the next statement on, `get_tree()` called on it returns `null` and
+`get_tree().current_scene` is `null` as well. At the end of the frame the old scene is
+freed and the new one is added. So code after the call in the outgoing scene must not
+touch `get_tree()`, and the new scene's nodes are reached from that scene's own
+`_ready()`, or from an autoload with `await get_tree().scene_changed` `(Godot 4.5+)`.
+`change_scene_to_node(node)` `(Godot 4.6+)` swaps in a node you have already instanced
+and configured.
 
 Either call returns an `Error`: `ERR_CANT_OPEN` if the path will not load,
 `ERR_CANT_CREATE` if the scene will not instantiate. Ignoring it turns a typo'd path into

@@ -1,8 +1,12 @@
 [
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "player.gd is our arena player in a Godot 4.7 project. Movement speed changes when the framerate changes, the HUD update costs us frames on a Steam Deck, the death sequence crashes about half the time, and QA says the run summary file is empty in shipped builds but fine when they run it from the editor. Go through the file and tell me what is actually broken, what each defect causes at runtime, and the fix.",
-    "files": ["evals/files/player.gd"],
+    "files": [
+      "evals/files/player.gd"
+    ],
     "expected_behavior": [
       "Identifies the physics-loop error as two separate defects, not one: move_and_slide() belongs in _physics_process because it uses the physics step's delta internally, and CharacterBody2D.velocity is already in pixels per second, so `velocity.x = dir * speed * delta` is the documented mistake of turning a velocity into a per-frame displacement - the delta multiplication must be removed, not moved",
       "Rules that the two duplicated connect calls behave differently and explains why: a Signal can only be connected once to the same Callable, so the second `mgr.connect(\"wave_started\", _on_wave_started)` returns ERR_INVALID_PARAMETER, prints an error and leaves exactly one connection, whereas the two `func(b): _on_hurt(b)` lambdas are two distinct Callables that both connect, so _on_hurt really does run twice per overlap",
@@ -17,9 +21,13 @@
     ]
   },
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "In wave_spawner.gd the later waves are leaking difficulty into earlier ones - after wave 3, restarting the run gives us wave-3 grunts on wave 1, and the values stick even after closing the game. Loot also drops inconsistently. Godot 4.7. What is going on and how do we fix it?",
-    "files": ["evals/files/wave_spawner.gd"],
+    "files": [
+      "evals/files/wave_spawner.gd"
+    ],
     "expected_behavior": [
       "Identifies the root cause as Resource sharing rather than a reset bug: an exported Resource property assigned in the Inspector points at one loaded object, so every instance produced by PackedScene.instantiate() holds the same EnemyProfile, and `enemy.profile.damage = ...` mutates the single shared profile for every grunt already spawned and every grunt spawned later",
       "Explains why the values survive a restart: the mutated resource is the project file res://data/grunt_profile.tres, so in the editor the change is written back to disk on save, which is why wave-1 grunts come back with wave-3 numbers",
@@ -31,9 +39,15 @@
     ]
   },
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "We upgraded this project from Godot 4.3 to 4.7.2 and are about to add a web build. Review project.godot, export_presets.cfg and ci-export.sh together: which of these will behave differently from a project created fresh in 4.7, which will fail outright in CI, and what breaks on the web target?",
-    "files": ["evals/files/project.godot", "evals/files/export_presets.cfg", "evals/files/ci-export.sh"],
+    "files": [
+      "evals/files/project.godot",
+      "evals/files/export_presets.cfg",
+      "evals/files/ci-export.sh"
+    ],
     "expected_behavior": [
       "Establishes that the settings a freshly created 4.7 project writes into project.godot are absent here, and names them with their consequences: physics/3d/physics_engine is written as \"Jolt Physics\" for new projects while the engine default is GodotPhysics3D, so this upgraded project silently runs a different 3D physics engine; display/window/stretch/mode and stretch/aspect are written as canvas_items and expand while the defaults are disabled and keep; rendering/rendering_device/driver.windows is written as d3d12 while the default is vulkan",
       "Rules that the Web preset cannot use Forward+: web runs the Compatibility renderer only, which is why rendering/renderer/rendering_method.web defaults to gl_compatibility, and states the concrete losses for this project - volumetric fog is Forward+ only and is silently absent on the web build, while SSAO is supported on Compatibility - so the renderer for a build must be read at runtime from RenderingServer.get_current_rendering_method() rather than from the rendering_method project setting, which can be wrong after a fallback or a command-line override",
@@ -46,9 +60,13 @@
     ]
   },
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "net_player.gd is the avatar script for our Godot 4.7 deathmatch. It works when the host plays alone, but with two clients everyone can shoot everyone through walls, positions jitter, and one tester has a build where a completely different function runs when they take damage. The host spawns avatars with add_child(avatar) from net.gd. Review the networking.",
-    "files": ["evals/files/net_player.gd"],
+    "files": [
+      "evals/files/net_player.gd"
+    ],
     "expected_behavior": [
       "Identifies the authority assignment as wrong in kind, not in detail: the script runs on every peer for every avatar, so set_multiplayer_authority(multiplayer.get_unique_id()) in _ready makes each peer claim authority over all avatars locally; authority must be derived from a value that is identical on all peers, such as the node name set by the spawner, and set_multiplayer_authority does not replicate itself to other peers",
       "Rules that every @rpc here is marked \"any_peer\" with no server-side validation, so any client can call apply_damage, die and award_kill on any node - the server must own damage and scoring, with clients sending intent only",
@@ -62,7 +80,9 @@
   {
     "skills": [],
     "query": "PlayerController.cs is the player in our Unity 6 arena prototype on URP. Movement stutters and the speed changes with framerate, and the wave banner animation fires several times per wave after a scene reload. Also the HUD update shows up in the profiler. Fix it.",
-    "files": ["evals/files/PlayerController.cs"],
+    "files": [
+      "evals/files/PlayerController.cs"
+    ],
     "expected_behavior": [
       "Does not read the godot skill: this is a Unity MonoBehaviour on URP, and the godot skill's scope hands Unity off to the unity skill",
       "Treats the problems in Unity terms - Rigidbody work belongs in FixedUpdate rather than Update, MovePosition is being handed an absolute position derived from transform.position instead of a target, and OnEnable subscribes to CombatManager.WaveStarted with no matching OnDisable unsubscribe, so a scene reload stacks handlers",
@@ -71,9 +91,16 @@
     ]
   },
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "We switched our Godot 4.7.2 project from GodotPhysics3D to Jolt Physics yesterday (see project.godot) and three things broke that nobody touched: every bullet impact now plays the metal sound and spawns the metal decal (impact.gd); the vault doors (vault_door.tscn) swing outwards through the frame instead of into the vault, and they slam into their stop instead of easing into it; and the hydraulic press (press.gd) drives straight through the anvil, so the puzzle never completes. We are not switching back. Explain the exact cause of each and the fix.",
-    "files": ["evals/files/jolt-switch/project.godot", "evals/files/jolt-switch/impact.gd", "evals/files/jolt-switch/vault_door.tscn", "evals/files/jolt-switch/press.gd"],
+    "files": [
+      "evals/files/jolt-switch/project.godot",
+      "evals/files/jolt-switch/impact.gd",
+      "evals/files/jolt-switch/vault_door.tscn",
+      "evals/files/jolt-switch/press.gd"
+    ],
     "expected_behavior": [
       "Explains the all-metal impacts as a Jolt default rather than a data bug: under Jolt the face_index in intersect_ray() and RayCast3D results is always -1 unless the project setting physics/jolt_physics_3d/queries/enable_ray_cast_face_index is turned on (at roughly 25% extra memory for ConcavePolygonShape3D), and `surface_ids[-1]` does not error in GDScript but reads the last entry, which is why every hit gets the last triangle's surface; the fix enables the setting and guards face_index < 0",
       "Explains the outward swing as the single-body joint convention: with only node_a set, GodotPhysics3D treats the lone body as node_a, while Jolt treats it as node_b with node_a as the world, so the angular limits are applied in the other body's frame and come out inverted; the fix moves the door to node_b (re-checking the limits) or sets physics/jolt_physics_3d/joints/world_node for compatibility",
@@ -82,9 +109,14 @@
     ]
   },
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "Our GitHub Actions job runs tests/run_tests.gd with the official Godot 4.7.2 editor build in headless mode (run_tests.gd and godot-tests.yml attached). Two complaints: the job has gone green on commits where the log clearly shows a failing test, and on other commits it sits there until GitHub kills it after six hours. Review both files and give every reason for each symptom and how to fix the runner.",
-    "files": ["evals/files/ci-tests/run_tests.gd", "evals/files/ci-tests/godot-tests.yml"],
+    "files": [
+      "evals/files/ci-tests/run_tests.gd",
+      "evals/files/ci-tests/godot-tests.yml"
+    ],
     "expected_behavior": [
       "Explains the green-with-failures runs: push_error() only logs and never changes the process exit code, and quit() with no argument exits 0, so a runner must count failures itself and call quit(1) when any test failed",
       "Explains that a failing assert() does not fail the process: with the editor build asserts are active, but a failed assert() inside a test function prints `SCRIPT ERROR: Assertion failed` and aborts only that function, so _initialize() carries on to quit() and the job exits 0 - another source of green runs; (an assert() failing directly in _initialize() would abort _initialize() itself and hang instead). assert() must be replaced by a recording check helper",
@@ -93,13 +125,52 @@
     ]
   },
   {
-    "skills": ["godot"],
+    "skills": [
+      "godot"
+    ],
     "query": "inventory_screen.tscn and inventory_screen.gd are the inventory overlay for our Godot 4.7 3D game. It is opened on top of the running level. Players report that the character preview panel shows walls, enemies and their own character from the level behind the preview model instead of a clean background, that the level itself gets a second shadow-casting sun while the inventory is open, and that a copy of the preview model is standing at the level's world origin. Why, and what is the correct fix?",
-    "files": ["evals/files/subviewport-preview/inventory_screen.tscn", "evals/files/subviewport-preview/inventory_screen.gd"],
+    "files": [
+      "evals/files/subviewport-preview/inventory_screen.tscn",
+      "evals/files/subviewport-preview/inventory_screen.gd"
+    ],
     "expected_behavior": [
       "Identifies the single cause: a SubViewport shares the World3D of the viewport above it by default (own_world_3d is false), so the preview camera renders everything in the level's world, and the preview's model and DirectionalLight3D are part of that same world, which is why the model appears in the level and the level gets a second sun - a 3D SubViewport does not render only its own children",
       "Gives own_world_3d = true on PreviewViewport (or assigning it a dedicated World3D) as the fix, rather than hiding level objects with visibility layers and camera cull masks",
       "Notes the consequence of isolating the world: the level's WorldEnvironment and lighting no longer apply inside the preview, so the preview needs its own light and, if wanted, its own Environment"
+    ]
+  },
+  {
+    "skills": [
+      "godot"
+    ],
+    "query": "avatar.gd and round_controller.gd are from our Godot 4.7.2 team arena (dedicated host is peer 1 and also plays). Three bug reports: (1) when a projectile hits a player, the health bar drops on the host, but on the victim's own client and on everyone else's client hp never changes, and every client logs one error per hit; (2) stealth does nothing - the enemy team still sees a stealthed player moving; (3) when a round ends the host crashes with a null-instance error on the line right after change_scene_to_file. Explain each cause and give the fix.",
+    "files": [
+      "evals/files/match-flow/avatar.gd",
+      "evals/files/match-flow/round_controller.gd"
+    ],
+    "expected_behavior": [
+      "Explains report 1 as an authority-mode mismatch: \"authority\" in @rpc means the node's multiplayer authority, which _enter_tree sets to the owning client, not the server, so every receiving client rejects the server's apply_damage call (RPC ... is not allowed ... Mode is \"authority\") and only the host's call_local copy runs; the fix is \"any_peer\" plus a get_remote_sender_id() == 1 check, or moving server-decided results to a node the server owns - not making the client authority call it",
+      "Explains report 2: with public_visibility at its default true, set_visibility_for(peer, false) hides nothing, because a peer receives the synchronizer when every visibility filter passes and the node is public or explicitly visible to that peer; the fix is public_visibility = false with set_visibility_for(peer, true) for allowed peers, or an add_visibility_filter that rejects enemy peers while stealthed (followed by update_visibility)",
+      "Explains report 3: change_scene_to_file removes the outgoing scene from the tree immediately, so get_tree() called from RoundController (part of that scene) returns null on the next line, and current_scene would be null anyway until the new scene is added at the end of the frame; the fix is to pass the result through an autoload or the new scene's own _ready, await get_tree().scene_changed from an autoload (Godot 4.5+), or instance and configure the results scene and use change_scene_to_node (Godot 4.6+)"
+    ]
+  },
+  {
+    "skills": [
+      "godot"
+    ],
+    "query": "Grove Runner (Godot 4.7.2 .NET, attached files) targets low-end PCs and handhelds, so we run the Compatibility renderer everywhere. Four separate complaints before release: the alpha-scissored leaves in foliage.tres still shimmer even though MSAA is on and we enabled alpha to coverage; on a gamepad nobody can move between the main menu buttons; the gdUnit4 CI job in tests.yml fails immediately without running a single suite; and build.log shows a C# error a teammate says points at generated code. Diagnose each and give the concrete fix.",
+    "files": [
+      "evals/files/compat-menu-ci/project.godot",
+      "evals/files/compat-menu-ci/foliage.tres",
+      "evals/files/compat-menu-ci/main_menu.tscn",
+      "evals/files/compat-menu-ci/tests.yml",
+      "evals/files/compat-menu-ci/build.log"
+    ],
+    "expected_behavior": [
+      "States that the Compatibility renderer supports MSAA 3D but not alpha to coverage, so alpha_antialiasing_mode on foliage.tres has no effect there; options are a Forward+ or Mobile renderer where hardware allows, or other mitigation (e.g. alpha hash, mipmapped alpha, FXAA is not available on Compatibility) rather than tuning alpha_antialiasing_edge",
+      "Identifies focus_mode = 1 (FOCUS_CLICK) on the three buttons as the gamepad cause: FOCUS_CLICK only takes focus from mouse clicks, keyboard and gamepad navigation need FOCUS_ALL (the Button default), plus an initial grab_focus()",
+      "Identifies that GdUnitCmdTool.gd has no --run-tests option and that gdUnit4 refuses to run under --headless unless --ignoreHeadlessMode is passed; gives a command of the form godot --headless --path . -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a res://tests --ignoreHeadlessMode (or runtest.sh with GODOT_BIN)",
+      "Reads GD0001 as Godot's source-generator analyzer reporting that MainMenu derives from GodotObject but is not declared partial - the error names the type directly - and fixes it with public partial class MainMenu"
     ]
   }
 ]

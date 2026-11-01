@@ -150,8 +150,10 @@ func _ready() -> void:
     ($Menu/PlayButton as Control).grab_focus()
 ```
 
-`focus_mode` must not be `FOCUS_NONE` (buttons default to `FOCUS_ALL`, most other
-controls to none). Auto-neighbour resolution works for simple grids; for anything
+Keyboard and gamepad navigation only reach controls whose `focus_mode` is `FOCUS_ALL`:
+`FOCUS_CLICK` is mouse-only, `FOCUS_NONE` never focuses, and `FOCUS_ACCESSIBILITY` is
+for screen readers only. Buttons default to `FOCUS_ALL`, most other controls to none.
+Auto-neighbour resolution works for simple grids; for anything
 irregular set `focus_neighbor_left/top/right/bottom`, plus `focus_next`/`focus_previous`
 for tab order. When a focused control is hidden or freed, focus is lost and navigation
 dies silently — re-grab it when closing a submenu.

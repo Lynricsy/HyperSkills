@@ -189,14 +189,26 @@ the argument is replicated to the clients.
 
 `MultiplayerSynchronizer` is a child of the node being replicated and lists the properties
 to sync in its `SceneReplicationConfig`. Each property has a spawn flag (sent once, with
-the spawn) and a sync flag (sent continuously). This is the right tool for transform and
-animation state; a per-tick RPC broadcasting position is not.
+the spawn) and a replication mode: *Always* (unreliable, every `replication_interval`),
+*On Change* (reliable, checked every `delta_interval` and sent only when the value
+changed) or *Never*. In code that is `property_set_replication_mode()`; the older
+`property_set_sync`/`property_set_watch` are deprecated. This is the right tool for
+transform and animation state; a per-tick RPC broadcasting position is not.
+
+A peer receives a synchronizer's state only if every visibility filter returns `true`
+**and** the synchronizer is visible to it — through `public_visibility` (default `true`)
+or `set_visibility_for(peer, true)`. With public visibility on, `set_visibility_for(peer,
+false)` hides nothing:
 
 ```gdscript
 @onready var sync: MultiplayerSynchronizer = $MultiplayerSynchronizer
 
 func _ready() -> void:
-    sync.set_visibility_for(other_peer_id, false)   # hide this node's state from one peer
+    sync.set_visibility_for(other_peer_id, false)   # no effect: still public
+
+    sync.public_visibility = false                  # opt-in visibility instead
+    sync.set_visibility_for(teammate_peer_id, true)
+    # or keep it public and veto peers: sync.add_visibility_filter(_can_see)
 ```
 
 Visibility filters (`set_visibility_for`, `add_visibility_filter`) are how you avoid
@@ -223,11 +235,21 @@ func request_fire(direction: Vector2) -> void:
         return
     _spawn_projectile(sender, direction)         # replicated by MultiplayerSpawner
 
-# Results: authority-only, so a client calling it is ignored.
-@rpc("authority", "call_local", "reliable")
+# Results: the server decides them, but this avatar's authority is its owning client, so
+# "authority" here would make every client reject the server's call. Accept any peer and
+# keep only calls that come from the server (peer 1, also when run locally via call_local).
+@rpc("any_peer", "call_local", "reliable")
 func apply_damage(amount: int) -> void:
+    if multiplayer.get_remote_sender_id() != 1:
+        return
     hp -= amount
 ```
+
+`"authority"` means the **node's** multiplayer authority, not the server. A server-sent
+`"authority"` RPC on a node a client owns is dropped by every receiver with
+`RPC 'apply_damage' is not allowed on node <path> from: 1. Mode is "authority", authority is <owner id>.`
+Either use the `"any_peer"` plus sender-check shape above, or move server-driven results to
+a node the server owns (a game manager or a per-player state node).
 
 Every `"any_peer"` method is an entry point an arbitrary client can call with arbitrary
 arguments. The checklist for each one: does it verify `multiplayer.is_server()`, does it

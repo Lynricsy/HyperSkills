@@ -1,0 +1,6 @@
+$ dotnet build "Grove Runner.csproj"
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+/work/ui/MainMenu.cs(5,14): error GD0001: Missing partial modifier on declaration of type 'MainMenu' that derives from 'Godot.GodotObject' [/work/Grove Runner.csproj]
+
+Build FAILED.

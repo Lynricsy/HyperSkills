@@ -1,0 +1,13 @@
+name: tests
+on: [push]
+jobs:
+  gdunit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.7.2 .NET
+        run: ./ci/install-godot.sh   # puts `godot` on PATH
+      - name: Import
+        run: godot --headless --path . --import
+      - name: Run gdUnit4 suites (addon in res://addons/gdUnit4, suites in res://tests)
+        run: godot --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --run-tests

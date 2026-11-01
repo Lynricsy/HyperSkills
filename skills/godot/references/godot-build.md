@@ -234,7 +234,9 @@ runs outside it.
 
 ```bash
 # GdUnit4, a third-party addon under res://addons/gdUnit4  [community]
-godot --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --run-tests
+# It refuses to run under --headless unless --ignoreHeadlessMode is passed; tests that
+# send InputEvents do not work headless. addons/gdUnit4/runtest.sh wraps the same tool.
+godot --headless --path . -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a res://tests --ignoreHeadlessMode
 ```
 
 A no-dependency alternative is a plain script run with `--headless --script`, extending

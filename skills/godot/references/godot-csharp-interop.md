@@ -44,8 +44,9 @@ public partial class Player : CharacterBody2D
 
 Every class that extends a Godot type must be `partial`, because a source generator emits
 the other half (`SignalName`, `PropertyName`, `MethodName`, the signal events, the
-marshalling glue). Omit it and `[Export]` and `[Signal]` fail with build errors that point
-at the generated code rather than at the missing keyword. The file name should match the
+marshalling glue). Omit it and the build fails with Godot's own analyzer error
+`GD0001: Missing partial modifier on declaration of type 'Player' that derives from
+'Godot.GodotObject'`, which names the type directly. The file name should match the
 class name.
 
 ## Lifecycle names and delta type

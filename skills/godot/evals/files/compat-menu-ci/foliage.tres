@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c4folage0001"]
+
+[ext_resource type="Texture2D" path="res://art/leaves_albedo.png" id="1_leaf"]
+
+[resource]
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 1
+alpha_antialiasing_edge = 0.3
+cull_mode = 2
+albedo_texture = ExtResource("1_leaf")
