@@ -470,3 +470,22 @@ D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达
 | apple-docs | `ControlActiveState` 自 macOS 27.2 弃用 | 同 2026-10-15 记录；27.2 现已发布 | 一致 |
 
 处理：三处正文更正（`latest-apis.md`、`design-hig.md`、`swiftui-localization.md`）；`synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：904be12（`latest-apis.md` 27.2 弃用版本、`design-hig.md` 27.1 SDK 已发布、`swiftui-localization.md` `try Date(...)`；
+新增场景 12、场景 5 提问去掉 beta）。运行：`uv run tools/run_evals.py apple --only N [--baseline] --out /tmp/hs-d2/G09-mobile`
+（omp + gpt-6.1-sol medium，VM，13:45–13:53，均晚于 904be12），产物在 `/tmp/hs-d2/G09-mobile/apple/omp-openai-gpt-6.1-sol-medium/`。
+场景 5 提问今天改过，两侧都重跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12（新增，回归） | gpt-6.1-sol medium | 有 | True | 1✔ 2◐ 3✔ | 63 s。`try?` 失败回退原字符串，保留 `.iso8601`；表格给出 `PreviewProvider` 在 27.0 即报警、`foregroundColor`/`cornerRadius` 27.0 不报 27.2 才报，并列出替换；按 `latest-apis.md`「修 bug 时保留旧 API、迁移另提」没有把预览改成 `#Preview`（期望 2 要求替换，记 ◐） |
+| 12（新增，回归） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 85 s。联网查文档 JSON 后同样给出 27.0/27.2 两档，并直接替换三处 |
+| 5（提问去 beta） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ 6— | 152 s。设置页 `NavigationSplitView`；仪表盘按尺寸类两列；播放页 `ArrangementView` + `.arrangementViewStyle(.split)` 在 `#available(iOS 27.1, *)` 内、旧系统 `AnyLayout` 回退，未放进 `ScrollView`；去掉 `UIDevice`/`UIScreen.main`；缩略图改传 `displayScale`；未提 hinge |
+| 5（提问去 beta） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✘ 4✔ 5✔ 6— | 155 s。没有用 `ArrangementView`，播放页只用 `AnyLayout` 横竖切换 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 31 s。按 Flutter 作答，未加载 skill |
+
+结论：三处更正在有 skill 时按新正文落地，无回退——场景 12 的 27.0/27.2 报警分档与 `try` 均正确；场景 5 仍是有 skill 独有地用上
+`ArrangementView`（27.1 门槛正确）。场景 12 期望 2 的 ◐ 来自既有的「修 bug 时不顺手迁移」行为规则而非今天的改动，规则与期望的
+张力留待下次调期望时决定（改期望需两侧重跑）。负例 `skill_read == false`。各场景 1 次运行。
