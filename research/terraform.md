@@ -742,3 +742,12 @@ source 变量需 `const = true`；`references/modules.md` 同步。SOURCES：has
 「tfpolicy 0.4 未写 `operations` 时默认评估 no-op」）已删除；场景 6 留作哨兵。保留的是事实更正：引擎表的 Terraform policy 行（1.17 GA、
 Terraform-only、不可移植到 OpenTofu）、`required_providers`/module source 变量需 `const = true`、OpenTofu 1.13 拒绝该写法，这些与本次有 skill
 运行的结论一致，未引入回退。负例 `skill_read` 为 false。
+
+主代理补齐门禁：撤回 policy 段落的提交 fa19bf4 晚于上表全部「有 skill」运行，按规则重跑场景 6 与负例 4（产物 `/tmp/hs-d2/fix/terraform/`，均晚于 fa19bf4）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ◐ EB3 ✔ | 142 s。1.17.1 实测缺 `tfpolicy-plugin` 时 `Failed to connect to policy engine` 且 exit 0；OpenTofu 1.13.2 拒绝 `-policies`，保留 Conftest；`const = true` 与 OpenTofu `Invalid version constraint` 实测，改用字面量约束。EB2 未提 tfpolicy 非开源 |
+| 4（负例） | gpt-6.1-sol medium | 有（挂载） | False | — | 43 s |
+
+结论：撤回段落后有 skill 一侧仍达成三条主结论，无回退；负例未误读。
