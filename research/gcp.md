@@ -584,4 +584,20 @@ SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补
 
 ## 2026-11-01 D2 回归
 
-未完成（遗留）：正文有两处成本事实更正（credits 结构、billing export 回填），本轮未在 VM 上跑受影响场景与负例，需补跑。
+覆盖提交：5250343（credits 结构、billing export 回填）与 c400ea3（spend cap GA、自动 reset、项目级权限；场景 6 期望同步；新增场景 11）。运行在 c400ea3 提交前
+用同一份工作区内容启动（该提交相对运行时只多了 research 文本，正文与评测文件一致）。原有场景无一覆盖 billing export，故新增回归场景 11（`billing-recon/`：
+`SUM(cost) - SUM(c.amount)` + `CROSS JOIN UNNEST(credits)` 的对账查询，加 `europe-west1` 单 region 数据集、等回填、重启导出、当日告警的计划）。
+
+选场景：11（credits 与回填，新增）、6（spend cap，正文与期望已改）；负例 5。运行：`uv run tools/run_evals.py gcp --only N [--baseline] --out /tmp/hs-d2/G03c-cloud-left`
+（omp + `openai/gpt-6.1-sol` medium，VM，串行），产物 `/tmp/hs-d2/G03c-cloud-left/gcp/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 98 s。cost + credits（举例 100 / −20 → 80）；按行相关子查询 `IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0)`，指出 CROSS JOIN 丢空数组行、多 credit 重复计 cost；`europe-west1` 单 region 不回填、EU multi-region 也只到 9 月 1 日且最长 5 天；不要停用再启用；导出延迟可超 24 h，当日防护靠配额/伸缩上限 |
+| 11（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ 5✔ | 86 s。联网查官方 schema 与可用性页后同样全部达成，另提 Cost table CSV 补历史、`FREE_TIER` credit 不一定是空数组 |
+| 6 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4◐ 5◐ 6✔ | 108 s。未写 Preview；「Caps automatically reset at the next monthly period」、手动 lift 后当月不再触发；权限两级都点名（`billing.budgets.configureSpendCap` / `billing.resourcebudgets.configureSpendCap`，与更正一致）。4：只说另建 enforcement 预算，未明说旧预算不能转换；5：有 `max-instances`、鉴权，未提降 Vertex 配额 |
+| 6 | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3◐ 4✘ 5◐ 6✔ | 131 s。联网读 spend cap 页，自动 reset、在途/持久资源均答到；3：未讲毛估算成本，仅在 API 字段里写 `EXCLUDE_ALL_CREDITS`；4：既无「不能转换」也无权限名；5：同上缺 Vertex 配额 |
+| 5（负例） | gpt-6.1-sol medium | 有 | **False** | — | 77 s，按 Kubernetes 探针/资源/securityContext 作答，未读 gcp |
+
+结论：两处 billing export 更正与 spend cap 更正在有 skill 时全部按新事实作答，无回退；场景 6 有 skill（4✔2◐）优于基线（3✔2◐1✘），差在权限名与 credits/毛估算，
+正是本次补的内容。场景 11 基线也满分——模型联网即可查到 billing export 的 schema 与回填规则，该场景只作回归哨兵。负例 skill_read 为 false。正文无需再改。
