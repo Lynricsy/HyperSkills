@@ -491,3 +491,17 @@ OpenTelemetry configuration fails」——`_runtime.lifespan` 把 `_configure_fr
 | sqlmodel-docs | 仅用于确认 SQLModel 推荐的适用条件 | https://sqlmodel.tiangolo.com （HTTP 200） | 无新版本（0.0.48），定位未变，正文未改 |
 
 正文改动：`references/streaming.md`（WebSocket 鉴权段 + 版本行）、`references/testing.md`（httpx2 段、Streaming 节、版本行）、`references/tooling.md`（httpx2 段）、`SKILL.md` Environment 一条。为覆盖这三处更正新增回归场景 7（夹具 `evals/files/notify/`：pin 在 FastAPI 0.143.3 + Starlette 1.8.0、`filterwarnings = ["error"]`、无限 SSE、WebSocket 路由依赖 `OAuth2PasswordBearer`）；本地实跑确认三种失败均复现（收集时弃用警告报错、流测试挂起、`TypeError`），升级到 0.162.0 后两测通过。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 1440ad5（三处事实更正：WebSocket 安全依赖 0.144 门、`fastapi[standard]` 自 0.143.4 带 httpx2、Starlette 1.9 起 TestClient 流式）。三次运行均晚于该提交，在 `/tmp/hs-wt/G05-backend` 上执行，模型 omp + `openai/gpt-6.1-sol` medium，产物 `/tmp/hs-d2/G05-backend/fastapi/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 人工判定。
+
+选场景：场景 7（新增，三处更正各对应一条 EB）两侧；场景 4 负例（uv + ruff 迁移，纯 Python 打包）。场景 6 为不合入的哨兵，只有基线（见上游同步节）。既有场景 1/2/3/5 不涉及本次改动的段落，未选。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 notify 测试三连挂 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 ✔ | 148 s。最小修复为 `fastapi[standard]==0.144.0` + `starlette==1.9.0`，VM 内实跑 2 passed，并起 uvicorn 冒烟（SSE 增量、WS `hello 42`、缺令牌握手 401）；按版本说明 0.143.4 起 extras 带 httpx2、不放宽 `filterwarnings`；1.8 TestClient 先跑完应用再返回；保持 0.143.3 时给出读取 `WebSocket` 头并抛 `WebSocketException(1008)` 的自定义依赖 |
+| 7 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ EB5 — | 99 s。联网读 FastAPI 0.143.4/0.144.0 与 Starlette 1.9.0 发布说明，得出同样的两处 pin 并实跑 2 passed；未写自定义 WS 依赖（EB5 不适用） |
+| 4 负例（uv + ruff 迁移） | gpt-6.1-sol medium | 有（挂载） | false | — | 123 s。纯打包与 CI 建议，答案未出现 FastAPI 内容 |
+
+结论：三处更正在有 skill 时全部按更正后的版本门作答（5/5），不比基线差；基线联网读发布说明同样答对，场景 7 兼作哨兵。负例 `skill_read == false`。正文无需再改。
