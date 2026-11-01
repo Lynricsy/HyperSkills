@@ -395,3 +395,18 @@ event4u、oma-slide、playwright、carbon 用主代理的 blobless 裸仓库缓�
 | chromium-headless | root 下不加 `--no-sandbox` 不产出文件；无 `@page` 时 PDF 为 Letter | 页面未记载（本地实测项）；本机 Chromium 156.0.8078.47 重跑：stderr `Running as root without --no-sandbox is not supported`、无 PDF；加 `--no-sandbox` 后无 `@page` 的 deck `MediaBox [0 0 612 792]` | 一致（重新实测） |
 
 `synced_at` 改为 2026-11-01，notes 更新为 Chromium 156 的复测记录。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：5f3a70f（`export-and-qa.md` decktape 一节更正、新增场景 7）。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，
+单场景串行，输出 `/tmp/hs-d2/G02-web-misc/html-deck/omp-openai-gpt-6.1-sol-medium/`。基线（场景与夹具与提交内容一致）在提交前跑，
+有 skill 与负例在提交后跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 合作方 deck 键盘翻页导出（今日新增，回归 decktape 更正） | gpt-6.1-sol medium | 无 | false | ◐1 ✔2 ✔3 ✘4 ✘5 | 129 s。没用 decktape，自写 `puppeteer-core` 脚本（系统 Chromium、`--no-sandbox`）逐页按 `ArrowRight` 打印并用 `pdf-lib` 合并，不改 HTML；从 DOM 数出 5 页并断言 PDF 页数 = PNG 数 = 5。路线本身可行，但未涉及 decktape 的版本与 Node 要求、截图目录行为 |
+| 7 | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ✔4 ✔5 | 143 s。decktape `generic --key=ArrowRight`、`--slides=1-5`（指出末页仍改 class 致自动终止不可靠）、`--chrome-path=/usr/bin/chromium` + `--no-sandbox`；「固定 3.16.1：3.17.0 要求 Node ≥22.12，不适合 Node 20.18」；`cd /srv/exports` 后用相对名 `vendor.pdf` 避开 3.16.1 的截图目录拼接；`pdfinfo` + `pdftotext` 逐页核对标题顺序 |
+| 5 负例（响应式落地页） | gpt-6.1-sol medium | 有 | false | 3/3 | 386 s。按响应式网页做：桌面整屏吸附、手机自然滑动与折叠菜单、带校验的订阅表单；未引入翻页键位、备注或逐页 PDF |
+
+结论：通过。场景 7 的 E4（3.17.0 的 Node 22.12 要求）与 E5（截图目录按版本处理）基线 ✘、有 skill ✔，均来自今日更正；
+负例 `skill_read=false`，description 今日未改。
