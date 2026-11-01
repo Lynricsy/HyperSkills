@@ -547,3 +547,17 @@ tob-secure-contracts / tob-property-testing（82fe822 → e1f86a3）、erc-7201�
 | solidity-docs | 各版本未修复 bug | [docs/bugs_by_version.json](https://github.com/argotorg/solidity/blob/develop/docs/bugs_by_version.json)：0.8.37 = [`YulOptimizerKnowledgeBaseStaleBookkeeping`]，0.8.38 = []（released 2026-10-22） | 已据此更新 |
 
 修复：`SKILL.md` 规则 2 改为「新工作 pin 0.8.38（2026-10-22 发布，修复 0.8.19–0.8.37 的该 bug）；0.8.38 当前为空，但 0.8.37 发布时也是空的，pin 时与每次发布前重读」；`references/solidity-baseline.md` 的「As of」日期、表中「0.8.38 (unreleased)」、0.8.37 段落、practical floor（新增「新 pin 或 Yul 优化器在跑时用 0.8.38」）与 exact pragma 示例改为 0.8.38；`solidity-baseline.md`、`foundry-testing.md` 的 `solc` pin 示例改为 0.8.38。各 reference 的「Verified against … solc 0.8.37」与规则 1 的实测叙述保持原样：那是当时的实测记录，本轮未在 0.8.38 上重测。场景 7 的 EB3（原为「保留 0.8.37、0.8.38 未发布」）改为「pin 与每个 exact pragma 前移到 0.8.38 并重建/全量测试，同时改成每次 pin 与发布前重读」。`solidity-docs` 的 `synced_at` 更新为 2026-11-01，contributes/notes 补 0.8.38 发布事实。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：`de08261`（规则 2、`solidity-baseline.md`、`foundry-testing.md` 的 0.8.38 更正；场景 7 EB3 改写）。「有 skill」三次运行均晚于该提交；场景 7 的 expected_behavior 本轮改过，两侧都当天重跑。场景 1（Vault 评审）上轮反复触发服务端 `cyber_policy`，本轮不选。
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/G10b-games2/solidity-web3/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 与 `workspace/` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 部分 | 148.9 s。联网读到 SOL-2026-7 与 0.8.38 修复；改了 AUDIT-NOTES，但 `foundry.toml` 保留 0.8.37，只建议「部署前」再迁移到 0.8.38 |
+| 7 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ | 70.9 s。`solc_version` 改为 0.8.38 并用 `forge config --json` 核实；笔记写明 0.8.38 列表截至 2026-11-01 为空但不是保证、每次提交与发布前复查；点明 exact pragma 须同步改、重建与全量测试未验证 |
+| 5（负例） | gpt-6.1-sol medium | 有 | **False** | 全部 ✔ | 80.1 s。按 React 组件问题修复，未读本 skill |
+
+结论：更正相关行为在有 skill 时全部达成，且比基线多出「当场前移 pin」这一步；负例 `skill_read == false`。正文无需再改。
