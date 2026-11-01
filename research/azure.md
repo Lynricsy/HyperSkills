@@ -476,6 +476,7 @@ azure-functions-skills、bicep-registry-modules 用 `gh repo clone --bare --filt
 | `azure-logic-apps-standard-cli` | github/awesome-copilot `skills/`（MIT） | REJECT（越界，记入 Scope 问题） | Logic Apps Standard 不在本 skill `## Scope` 列出的托管服务内；且所依赖的 `az logicapp` 扩展 1.0.0b1 为公共预览 |
 | `plugins/platform-skills/skills/azure` | nitinjain999/platform-skills（Apache-2.0，71★，2026-10-26） | REJECT | 以 Terraform 生成为主（本 skill 明文排除 Terraform）、交互式向导结构，Azure 事实为通用常识，无新增 |
 | `extension-user-contract-review/evals/fixtures/cli/azd/AGENTS.md` | Azure/azure-dev `.github/skills/` | REJECT | 上游自用扩展评审流程的测试夹具 |
+| `foundry-agentic-loop`（G08 跨组转来） | github/awesome-copilot `skills/foundry-agentic-loop`（MIT；SKILL.md 12 KB + 22 个 references，2026-10-13 由 agentic-loop 改名，至 2026-10-23 共 15 提交） | REJECT（越界），不加 paths，无需基线 | 读了 SKILL.md、`references/azd-layout.md`、`references/rbac-contract.md`。主体是 Copilot CLI 插件的产品工作流（canvas、`extensions_manage`、foundry-agentic-loop-workflow、AGENTS.md 模式锁）加 Foundry hosted agent / toolbox / Foundry IQ 的构建流程，属本 skill `## Scope` 明文排除的「在 Azure AI Foundry 上构建 LLM 应用」（归 `ai-engineering`）。其中的通用 Azure 控制面内容——管理面角色（Owner/Contributor）不含 `dataActions`、写角色分配的最小角色是 Role Based Access Control Administrator、ACR 关闭 admin user 改用托管标识 + AcrPull——本 skill `SKILL.md` 第 10 条、清单与 `entra-and-rbac.md`、`aks-control-plane.md`、场景 1/2/3 已覆盖，无增量；azd 的 `azure.ai.*` 扩展版本号与 `azd ai agent init` 脚手架步骤是 beta 扩展细节，不属本 skill |
 
 ## 2026-11-01 新候选检索
 
