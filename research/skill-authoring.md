@@ -617,3 +617,19 @@ hyperskills-self 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 patch；me
 | codex-skills-docs | 初始列表 2% 或 8,000 字符、先缩短描述、可能省略并告警；`skills.max_context_tokens` 上限 10,000 tokens；`agents/openai.yaml` 的 interface / policy（`allow_implicit_invocation` 默认 true）/ dependencies；REPO（CWD 到仓库根每一级）/ USER / ADMIN `/etc/codex/skills` / SYSTEM；同名不合并 | https://learn.chatgpt.com/docs/build-skills | 一致 |
 
 五条 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 5745e5e（`client-extensions-and-paths.md` 仓库级清单更正、`publishing.md` 补 `skills.sh.json` 与 `skills check`）。受影响场景为新增的 7；
+负例 4。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，`--out /tmp/hs-d2/G12-meta`，单场景串行；有 skill 结果晚于正文提交，基线为当天同场景结果。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 78 s。压缩回挂 5,000 / 25,000 tokens，强制检查前移、细节按读取条件拆进 references；`tools/` 不是标准容器、只靠递归回退；根目录 `skills.sh.json` `paths: ["./tools/agent-skills"]`（`./` 开头、容器目录而非文件）；`npx skills check` 退出码 1 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ 5✔ | 56 s。联网读 code.claude.com 与 vercel-labs/skills docs 后答出同样内容 |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 18 s。直接追问工单系统与 API 契约，未加载 skill |
+
+（编号按 `expected_behavior` 从 1 起数。队列脚本的成功判定写错，每个场景实际串行跑了 3 次，表中为最后一次的产物。）
+
+结论：更正后的正文有 skill 时被正确使用，无回退；基线可联网读到同样的新页，两侧持平，这次更正属于消除正文里已不成立的陈述。
+压缩回挂事实基线已会，维持不入正文的裁决。负例 `skill_read == false`。各场景只计 1 次有效结果。
