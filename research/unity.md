@@ -423,3 +423,61 @@ docs.unity3d.com/Manual 当前默认渲染 Unity 6.6（6000.6，页脚 Built on 
 选择理由：3 的期望 #6 考察 GRD 资格（今日更正的动画项所在清单）；动画驱动可见性为排除条件没有场景直接考察，新增 7（`grd-checklist.md`）；5 为负例。
 
 结论：场景 3 有 skill 6/6 对基线 4✔2◐，未把「位于 Animator 层级」误当要求；新增 7 两侧 3/3（基线已会，作哨兵保留）；负例 `skill_read=false`。未改正文，无遗留。
+
+## 2026-11-01 上游同步
+
+依据：`/tmp/hs-sync/unity.md` 工作单与 `/tmp/hs-upstream-2026-11-01.json` 旧 pin 快照。gamedev-unity、unity-official-skills、
+unity-cs-reference 用已登录 `gh api repos/<o>/<r>/compare/<旧 pin>...<审阅 HEAD>` 读 tracked paths 的 patch；unity-graphics 用主代理的
+blobless 裸仓库缓存 `/tmp/hs-attr/Unity-Technologies__Graphics` 跑 `git diff`/`git log`，按工作单要求只核对正文实际引用的
+API/设置/版本事实；wshobson-unity-ecs 用 compare 确认 46891e7 → 7e2fb55（25 提交）未触及 tracked path。各区间均无 LICENSE 变更。
+更正依据 docs.unity3d.com 6000.3 Scripting API 与 Manual 原页。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| gamedev-unity | 0a70cfc → 19d93f9（tracked 11 提交，14 文件） | 704e9f6/cdad519/93f8d46 `unity-build-pipeline`：批处理模式不能用 `SwitchActiveBuildTarget`，改用命令行 `-buildTarget`；Build Profile 自带 Scene List；`-activeBuildProfile`/`-build`；`-version` 是 Unity 自有参数 | **事实更正**：`unity-build.md` 的 CI 构建脚本在 `-executeMethod` 内调用 `EditorUserBuildSettings.SwitchActiveBuildTarget(NamedBuildTarget.Android, …)`，要求 3 写「返回 bool，切换失败会产出错误平台」。6000.3 Scripting API `EditorUserBuildSettings.SwitchActiveBuildTarget` 的 Note：批处理模式下不可用（切换需重编脚本，脚本执行中无法进行，批处理没有后续 Editor update 可延后），应使用 `-buildTarget`。改为检查 `activeBuildTarget` 并要求 `-buildTarget android`，要求 3 重写，命令行表 `-buildTarget` 行补取值与「脚本在 `-executeMethod` 前按该平台编译」（Manual「Unity Editor command line arguments reference」6000.3）。原示例还缺 `using UnityEditor.Build`（`NamedBuildTarget`），随改动一并消失。Build Profile 各条本 skill `unity-build.md` 已写「每个 profile 自带 scene list、defines」，一致 |
+| 同上 | 同上 | 89229d9 `unity-scriptableobjects`：关闭 Reload Domain 时 SO 的 `OnEnable` 重置失效，用 `playModeStateChanged` 或 `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` | **事实更正**：`unity-editor-and-testing.md`「Domain reload and static state」列表写「`[InitializeOnLoad]` and `[RuntimeInitializeOnLoadMethod]` do not re-run」，与同节下一段「用 `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` 重置静态」自相矛盾；6000.3 Manual「Enter Play mode with domain reload disabled」把该属性列为进入 Play 时重置状态的手段，并写明非序列化字段（含 ScriptableObject、prefab 资产上的 MonoBehaviour）保留 Play 值。改为：`[InitializeOnLoad]` 不重跑、`[RuntimeInitializeOnLoadMethod]` 每次进入 Play 仍运行，并补非序列化字段一条 |
+| 同上 | 同上 | fa8fb38 `unity-physics`：查询默认命中触发器、Unity 6 改名（`linearDamping`/`angularDamping`、`PhysicsMaterial`）、kinematic 接触对；a2b23cd `unity-csharp-scripting`：Awake 在组件禁用时仍调用但 GameObject 未激活时不调用、Awaitable、FindObjectsByType | 已覆盖：规则 9–11、`unity-physics.md` 的碰撞矩阵与 `queryTriggerInteraction`、`unity-scripting.md` 的 Awake/Awaitable 陈述与上游一致，无相反陈述 |
+| 同上 | 同上 | 7948ece 动画 CrossFade 归一化时长；6fb6772 Tilemap Composite Operation；d7af7c9 NavMesh 窗口与 Agent/Rigidbody 混用；fcca996 Input System 1.20 项目级 actions；f963124 新增 `check_unity_project.py`（915 行） | 不合入：动画、Tilemap、导航、输入不在本 skill 正文范围内（无相关陈述）；检查脚本为上游工具链 |
+| unity-official-skills | 9d28210 → 089bede（4 提交） | 重新发布 6+14+5+1 个 skill；新增目录 `craft-game-floors`（35 个目录） | 噪声：仅按目录名做覆盖检查（Unity Companion License，正文不读不抄）；`craft-game-floors` 只读 frontmatter，为「美术风格、灯光、手感、菜单、存档」打磨工作流，非本 skill 覆盖缺口 |
+| unity-cs-reference | c57f9f0 → d2c1c01（2 提交，6000.3.27f1） | `EditorUserBuildSettings.bindings.cs`（Switch NVN aftermath 字段）、`ParticleSystem.bindings.cs`（PolySpatial 内部 `onEmit`）、`NativeSlice.cs`（long 防溢出）、`Graphics.bindings.cs`（内部 `backBufferHasDepthStencil`）、UI Toolkit/多人编辑器内部实现 | 噪声：本 skill 引用的 `[Obsolete]` 文本、`SerializeField`、`Awaitable`、`destroyCancellationToken`、`BuildReport`、`RaycastCommand` 声明均未改 |
+| unity-graphics | a7e4c05 → 0efc28e（URP 1386 文件 / core 689 文件，353 + 226 提交） | 仅核对正文引用项：GRD 前提（`GPUResidentDrawer.Validator.cs`、`UniversalRenderPipelineAsset.IsGPUResidentDrawerSupportedBySRP`）、SRP Batcher、`ScriptableRenderPass`/Render Graph、包版本 | 噪声：GRD 校验只改提示文案（「BatchRendererGroup Variants 须 Keep All」等条件不变），渲染路径仍以 `usesClusterLightLoop`（Forward+/Deferred+）判定；`ScriptableRenderPass` 区间改动为 URP 常量缓冲重构与 XR/2D 修复，未改 Render Graph 声明方式；master 包版本 17.6.0 → 17.7.0 属 6000.7 开发线，本 skill 以 6000.3/URP 17.x 为基线，无需改动 |
+| wshobson-unity-ecs | 46891e7 → 7e2fb55（25 提交） | 无 | 噪声，re-pin |
+
+`--pin` 后逐条核对：写入的 commit 与审阅 HEAD 一致（19d93f9、089bede、d2c1c01、0efc28e；wshobson 7e2fb55 与快照 head 一致），无差额区间。
+
+## 2026-11-01 上游新增内容评估
+
+| 新文件 | Scope 归属 | 历史去重 | 增量价值 | 权威 / 许可 | 结论 |
+|---|---|---|---|---|---|
+| Unity-Technologies/Graphics `Packages/com.unity.render-pipelines.core/AGENTS.md`、`CLAUDE.md`；`…universal/AGENTS.md`、`CLAUDE.md` | 无（仓库贡献者规则：AGENTS.md 只有一句「不要修改自动生成的 CHANGELOG.md」，CLAUDE.md 只有 `@AGENTS.md`） | — | 零 | 官方 / Unity Companion License | REJECT：上游自用流程 |
+| Unity-Technologies/skills `skills/craft-game-floors/SKILL.md` | 无（游戏打磨与美术方向工作流） | 已按目录名做覆盖检查 | 零 | 官方 / Unity Companion License | REJECT：非覆盖缺口；`skills` 路径已整体追踪，无需改 paths |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "unity agent skills"`（updated）、`"unity SKILL.md claude"`（stars），筛 pushed > 2026-10-15；
+`github/awesome-copilot` 全树与 `VoltAgent/awesome-agent-skills` README 无 Unity 条目。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| keijiro/unity-skills | 11 | 2026-10-31 | NOASSERTION | 2 | 3 | — | — | 0 | — | REJECT：README 自述为 Unity-Technologies/skills 的改名镜像（已作 reference 追踪），LICENSE.md 为 Unity Companion License；不重复追踪 |
+| Codeturion/skills（`unity-headless-cli`、`unity-addressables`、`unity-ios-cicd`、`unity-object-pooling`） | 0 | 2026-10-27 | MIT | 0 | 3 | 2 | 1 | 2 | 8 | REJECT：主体依赖 beta 版 Unity CLI 与实验包 `com.unity.pipeline` 0.9.0-exp.1，并写入 CLAUDE.md 的 agent 专属流程；正确性抽查无法对已发布版本核实，按「alpha/未发布功能」不合入 |
+| GameDevelopment2022/unity-agent-skills | 0 | 2026-10-29 | 无 | 0 | 3 | — | — | 0 | — | REJECT：无许可证 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| unity-docs | 碰撞/触发消息矩阵（规则 10、`unity-physics.md`） | Manual 6000.3「Interaction between collider types」 | 一致：至少一方 dynamic 才发碰撞消息；static↔kinematic、kinematic↔kinematic、static↔static 无；dynamic/kinematic trigger 对任意类型、static trigger 对 dynamic/kinematic 发触发消息 |
+| unity-docs | SRP Batcher 兼容条件与 `UnityPerDraw`/`UnityPerMaterial` CBUFFER | Manual 6000.3「Check whether a GameObject is compatible with the SRP Batcher in URP」 | 一致：须为 mesh/skinned mesh、不得用 MaterialPropertyBlock、内建属性在 `UnityPerDraw`、材质属性在 `UnityPerMaterial` |
+| unity-docs | GPU Resident Drawer 前提 | Manual 6000.3「Enable the GPU Resident Drawer in URP」 | 一致（Keep All、SRP Batcher、Instanced Drawing、计算着色器且非 OpenGL ES、Probe Atlas Blending 默认、构建变慢）；6000.3 页只写 Forward+，本 skill 写 Forward+ 或 Deferred+ 并注明按 6.6 手册，Graphics master 源码以 `usesClusterLightLoop` 判定（Forward+/Deferred+），不改 |
+| unity-docs | 运行时/编辑器 UI 推荐表 | Manual 6000.3「Comparison of UI systems in Unity」 | 一致：Runtime 推荐 uGUI、备选 UI Toolkit；Editor 推荐 UI Toolkit、备选 IMGUI |
+| unity-docs | 序列化规则（public 或 `[SerializeField]`、非 static/const/readonly、不支持 Dictionary 与嵌套容器、`[field: SerializeField]`） | Manual 6000.3「Serialization rules」 | 一致 |
+| unity-docs | Editor 命令行（`-quit` 可隐藏错误且 `-runTests` 时提前退出、异步时可能挂起；`-batchmode` 异常退出码 1；`-executeMethod` 须在 Editor 目录；`-nographics` 关闭日志、不能烘焙 GI；`-accept-apiupdate`；`-buildTarget` 取值） | Manual 6000.3「Unity Editor command line arguments reference」 | 一致；`-buildTarget` 行补充取值与编译时机（见上游同步表）。另见 `-quitTimeout`（默认等待异步任务 300 s），本 skill 未涉及 |
+| unity-docs | Unity Test Framework 命令行（`-quit` 测试期间不支持、`-testPlatform` 取值、`-testResults`） | Manual 6000.2「Command-line reference」（test-framework，1.5 包链接重定向至此） | 一致 |
+| unity-docs | Enter Play mode with domain reload disabled | Manual 6000.3 同名页 | **过时已修**：见上游同步表 89229d9 行 |
+
+`synced_at` 已改为 `2026-11-01`。
+
+正文改动：`unity-build.md`（批处理模式平台选择）、`unity-editor-and-testing.md`（关闭 domain reload 的效果）。评测：场景 4 新增期望 8
+（`SwitchActiveBuildTarget` 批处理不可用），新增场景 8（`run-stats/`：关闭 domain reload 时 SO 非序列化字段、
+`[RuntimeInitializeOnLoadMethod]`、静态事件残留）。

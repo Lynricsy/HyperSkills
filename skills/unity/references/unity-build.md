@@ -89,10 +89,11 @@ namespace CI
         // Exit codes: 0 ok, 1 build failed/cancelled, 2 unexpected exception, 3 bad setup.
         public static void BuildAndroid()
         {
-            if (!EditorUserBuildSettings.SwitchActiveBuildTarget(
-                    NamedBuildTarget.Android, BuildTarget.Android))
+            // SwitchActiveBuildTarget is not available in batch mode: launch the Editor with
+            // -buildTarget android so scripts already compiled for Android, then verify it.
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
             {
-                Debug.LogError("could not switch active build target to Android");
+                Debug.LogError("active build target is not Android; pass -buildTarget android");
                 EditorApplication.Exit(3);
                 return;
             }
@@ -144,8 +145,14 @@ Four requirements this satisfies that are easy to miss:
    player and the method is not found at build time in the way you expect. `[official]`
 2. **The method sets the exit code.** Either throw (batch mode exits 1) or call
    `EditorApplication.Exit(nonZero)`. `[official]`
-3. **`SwitchActiveBuildTarget` returns `bool`.** A failed switch followed by a build
-   produces an artifact for the wrong platform.
+3. **The platform comes from `-buildTarget`, not from the script.**
+   `EditorUserBuildSettings.SwitchActiveBuildTarget` is not available in batch mode: a
+   platform switch needs a script recompile, which cannot happen while the
+   `-executeMethod` code is running, and batch mode has no later Editor update to defer it
+   to. Launch with `-buildTarget <name>` (or `-activeBuildProfile <asset>`) and have the
+   script refuse to build when `activeBuildTarget` is wrong — otherwise it builds for
+   whatever platform the project was last on, or with that platform's `UNITY_*` defines.
+   `[official]`
 4. **`report.steps[].messages` carries the actual error text.** The console in batch mode
    often shows only `Aborting batchmode due to failure`; the useful text is in the report.
 
@@ -162,7 +169,7 @@ All of these are from the official Editor command-line reference `[official]`:
 | `-nographics` | no graphics device, for GPU-less runners. **Turns output logs off unless `-logFile` is given**, and cannot bake global illumination |
 | `-accept-apiupdate` | without it the API Updater does **not** run in batch mode, which surfaces as unexplained compiler errors |
 | `-projectPath <path>` | absolute or relative to the working directory |
-| `-buildTarget <name>` | opens the Editor with that active target, avoiding a mid-run switch |
+| `-buildTarget <name>` | starts the Editor on that target (`android`, `ios`, `linux64`, `osxuniversal`, `webgl`, `win64`, …), so scripts compile with its defines before `-executeMethod` runs; with `-activeBuildProfile`, the way to pick the platform in batch mode |
 | `-silent-crashes` | suppresses the crash dialog in automated runs |
 | `-disable-assembly-updater` | skips the assembly half of the API Updater; the script updater still runs |
 

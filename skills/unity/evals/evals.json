@@ -1,8 +1,12 @@
 [
   {
-    "skills": ["unity"],
+    "skills": [
+      "unity"
+    ],
     "query": "This component is the top entry in our Profiler's Scripting sample and the GC graph is a sawtooth. Review it and tell me exactly what to change and why each change matters. The project is on Unity 6000.3.",
-    "files": ["evals/files/EnemyHudController.cs"],
+    "files": [
+      "evals/files/EnemyHudController.cs"
+    ],
     "expected_behavior": [
       "Flags Object.FindObjectsOfType<T>() as deprecated in Unity 6 and names FindObjectsByType as the replacement, and states the Unity 6.4+ boundary: the FindObjectsSortMode overloads are themselves deprecated and FindFirstObjectByType gives way to FindAnyObjectByType, so code written to the 6.3 advice starts emitting warnings after an editor upgrade",
       "Says GetComponent<Rigidbody>() is called twice per frame and GameObject.Find plus Camera.main are whole-scene lookups per frame, and moves all three into a field cached in Awake",
@@ -13,9 +17,13 @@
     ]
   },
   {
-    "skills": ["unity"],
+    "skills": [
+      "unity"
+    ],
     "query": "Designers say this component's Inspector is broken in half a dozen ways and the runtime values are not what the code sets. Explain each symptom and give me the corrected component.",
-    "files": ["evals/files/LootTable.cs"],
+    "files": [
+      "evals/files/LootTable.cs"
+    ],
     "expected_behavior": [
       "States that on this project's Unity 6000.3 a [SerializeField] Dictionary is not serialized, and gets the version boundary right rather than repeating the folklore: Unity 6.6 added Dictionary<TKey,TValue> serialization behind [SerializeField], so the answer must either name 6.6 or scope the claim to 6.3 instead of calling Dictionary permanently unsupported",
       "States that jagged and multidimensional arrays and directly nested containers are unsupported on every Unity 6 version, and that a plain interface-typed field is not serialized unless it carries [SerializeReference], and gives the concrete replacement (a [Serializable] entry type in a List)",
@@ -26,9 +34,13 @@
     ]
   },
   {
-    "skills": ["unity"],
+    "skills": [
+      "unity"
+    ],
     "query": "Read this capture and tell me where the SetPass calls come from and the fix order. Be specific about which of the four things we already tried was wrong and why.",
-    "files": ["evals/files/urp-frame-report.md"],
+    "files": [
+      "evals/files/urp-frame-report.md"
+    ],
     "expected_behavior": [
       "Says a MaterialPropertyBlock makes the renderer SRP-Batcher-incompatible by definition, so the CrateTint script disqualifies all ~400 crates, and that allocating a new MaterialPropertyBlock every frame is separately a per-frame allocation",
       "Says GetComponent<Renderer>().material instantiates a per-renderer copy of the material (leaking one material instance per plank) and names sharedMaterial or a material variant as the shared-edit path",
@@ -39,9 +51,14 @@
     ]
   },
   {
-    "skills": ["unity"],
+    "skills": [
+      "unity"
+    ],
     "query": "Our Unity CI job reports success even when the player build fails, and the log is useless. Fix both files and tell me which flag or API is responsible for each symptom.",
-    "files": ["evals/files/ci-build.sh", "evals/files/BuildScript.cs"],
+    "files": [
+      "evals/files/ci-build.sh",
+      "evals/files/BuildScript.cs"
+    ],
     "expected_behavior": [
       "Says BuildPipeline.BuildPlayer returns a BuildReport and does not throw, so the script must inspect report.summary.result (or totalErrors) and call EditorApplication.Exit with a non-zero code itself — that, not the shell, is why the job is green on failure",
       "Says -quit makes the Editor exit after the invoked method returns and can hide error messages, so it must not be relied on to propagate a build result, and that -quit is actively unsafe with asynchronous work",
@@ -49,7 +66,8 @@
       "Says the script must live under an Editor folder for -executeMethod to find it, so Assets/CI/BuildScript.cs has to move (for example to Assets/Editor/CI/BuildScript.cs) or get its own Editor-only assembly definition",
       "Says a batch-mode run on a GPU-less runner needs -nographics, and that -nographics turns off output logs unless -logFile is given and cannot bake GI",
       "Says the API Updater does not run in batch mode unless -accept-apiupdate is passed, which surfaces as unexplained compiler errors",
-      "Flags BuildOptions.Development | BuildOptions.AllowDebugging as development-only flags that must not be in a shipping build, and notes the missing set -o pipefail / explicit exit-code propagation in the shell wrapper"
+      "Flags BuildOptions.Development | BuildOptions.AllowDebugging as development-only flags that must not be in a shipping build, and notes the missing set -o pipefail / explicit exit-code propagation in the shell wrapper",
+      "Flags EditorUserBuildSettings.SwitchActiveBuildTarget in BuildAndroid as unavailable in batch mode - a platform switch needs a script recompile that cannot happen while the -executeMethod code runs - and moves platform selection to -buildTarget android on the Unity command line, with the script checking activeBuildTarget instead of switching"
     ]
   },
   {
@@ -63,9 +81,13 @@
     ]
   },
   {
-    "skills": ["unity"],
+    "skills": [
+      "unity"
+    ],
     "query": "TrapdoorFloor.cs drives the trapdoor in our Unity 6000.3 warehouse level. Explain both bug reports in the file header - why only the crates that have been sitting on the slab for a while float in mid-air, and why LandingCheck sees a slab that has already moved - and give the corrected component.",
-    "files": ["evals/files/TrapdoorFloor.cs"],
+    "files": [
+      "evals/files/TrapdoorFloor.cs"
+    ],
     "expected_behavior": [
       "Explains the floating crates as Rigidbody sleeping: crates resting below the sleep threshold are put to sleep, and moving a static collider (a collider with no Rigidbody) through its Transform does not wake sleeping bodies, whereas a crate that landed a moment ago is still awake - which is exactly why only the long-resting crates float",
       "Fixes it by giving the slab a kinematic Rigidbody and moving it with MovePosition in FixedUpdate, so the physics system treats it as a moving body that wakes and carries what rests on it, or by calling Rigidbody.WakeUp() on the resting crates when the trapdoor opens; also notes that moving a static collider every frame is itself unsupported/expensive",
@@ -73,13 +95,32 @@
     ]
   },
   {
-    "skills": ["unity"],
+    "skills": [
+      "unity"
+    ],
     "query": "grd-checklist.md is our plan for getting the warehouse level onto the GPU Resident Drawer. Review it item by item before we run the editor script over ~3,000 prefabs: which items are right, which are backwards, and what should we do instead?",
-    "files": ["evals/files/grd-checklist.md"],
+    "files": [
+      "evals/files/grd-checklist.md"
+    ],
     "expected_behavior": [
       "Rejects item 1: being driven by Animation/Animator is an exclusion condition for the GPU Resident Drawer, not a requirement - the manual's wording reads as a requirement but the Editor's exclusion reason is 'Renderer visibility controlled by animation' - so static props need no Animator and adding one gains nothing",
       "Says the doors in item 2 are the renderers the drawer excludes, because an Animator keys their `MeshRenderer.enabled` (visibility controlled by animation), the opposite of the checklist's conclusion",
       "Corrects items 3 and 4: `OnRenderObject` does not exclude a renderer, whereas `OnBecameVisible` / `OnBecameInvisible` (and `OnWillRenderObject`) do - so LampFlicker can stay as far as the drawer is concerned, and the crate audio culling is what silently removes ~400 crates and should move to a non-visibility mechanism (for example a CullingGroup or a distance check)"
+    ]
+  },
+  {
+    "skills": [
+      "unity"
+    ],
+    "query": "RunStats.cs and HudLives.cs are from our Unity 6000.3 roguelite. We turned off Reload Domain in Enter Play Mode Options to iterate faster. Since then, in the Editor only: the second Play session starts with the lives and kills left over from the previous session, the log says \"Run #2\", \"Run #3\" and so on, and after a few sessions every lost life throws MissingReferenceException from HudLives.OnLivesChanged. Builds are fine. Explain each symptom and fix the code so it works with domain reload on or off.",
+    "files": [
+      "evals/files/run-stats/RunStats.cs",
+      "evals/files/run-stats/HudLives.cs"
+    ],
+    "expected_behavior": [
+      "Explains that with domain reload disabled non-serialized fields keep their Play-mode values, including on a ScriptableObject asset, so the OnEnable reset of lives and kills does not give each Play session a fresh state; resets them explicitly at Play-mode entry (for example in BeginRun, or via EditorApplication.playModeStateChanged in editor-only code)",
+      "Corrects the code comment: [RuntimeInitializeOnLoadMethod] methods still run on every Play-mode entry when domain reload is disabled, and [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] is the documented hook for resetting statics such as s_runsStarted and the LivesChanged event",
+      "Identifies the static LivesChanged event keeping subscribers from earlier sessions because HudLives never unsubscribes, so handlers on destroyed HUD objects throw MissingReferenceException; fixes it by unsubscribing in OnDisable or OnDestroy (subscribing in OnEnable) and clearing the static event in the SubsystemRegistration reset"
     ]
   }
 ]

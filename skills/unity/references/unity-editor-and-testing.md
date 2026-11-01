@@ -58,7 +58,12 @@ Play mode near-instant — and then:
 
 - `static` fields keep their values from the previous Play session;
 - `static` event subscriptions survive and fire twice;
-- `[InitializeOnLoad]` and `[RuntimeInitializeOnLoadMethod]` do not re-run.
+- non-serialized fields keep their Play-mode values — on MonoBehaviours (prefab assets
+  included), on ScriptableObjects and on plain C# objects — so a runtime value a
+  ScriptableObject only resets when it loads carries over into the next session;
+- `[InitializeOnLoad]` static constructors do not re-run, because nothing reloads. Methods
+  marked `[RuntimeInitializeOnLoadMethod]` **do** still run on every Play-mode entry, which
+  is what makes them the reset hook below.
 
 Code that assumed a fresh domain breaks in exactly the way that is hardest to attribute.
 Reset statics explicitly with `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]`
