@@ -360,3 +360,52 @@ E191还实际读取Epic RPC页面。
 | clang-tsan | 不支持 libc/libstdc++ 静态链接；`no_sanitize("thread")`/未插桩代码可能漏同步而误报；影子内存映射失败（如禁用 ASLR）是环境错误 | https://clang.llvm.org/docs/ThreadSanitizer.html | 一致 |
 
 结论：6 条事实全部一致，无更正、无新增内容需评测；两条 CMake 条目 url 由 v4.1 迁移到 v4.4（内容核对一致），6 个条目 `synced_at` 改为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 旧 pin 快照 `/tmp/hs-upstream-2026-11-01.json` 与 2026-11-01 `tools/check_upstream.py cpp`：`ecc-cpp-testing` 一条 `behind`（390 commits，diff too large to attribute to paths）；`cppcheatsheet`（8 commits）与 `cpp-core-guidelines`（1 commit）为 repo moved、tracked paths unchanged；`margelo-cpp` up to date。ECC 在主代理裸仓库缓存 `/tmp/hs-attr/affaan-m__everything-claude-code` 上对完整区间跑 `git log --oneline -- skills/cpp-testing/SKILL.md LICENSE` 与 `git diff --stat`（均空），两端 blob 同为 `a996a23`（SKILL.md）/`b832b6f`（LICENSE）；区间 421 个文件变更、`--diff-filter=AR` 中无 C++/CMake/sanitizer 相关路径。cppcheatsheet 与 CppCoreGuidelines 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 读文件清单：前者只改 `requirements.txt`，后者只改 `CppCoreGuidelines.md`（未追踪；条目只追踪 `LICENSE` 作许可边界）。`--pin` 写入的 commit 与审阅 HEAD 逐条一致（367fe0c、1e9e17b、b38be6a、d1dda82），无差额区间。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| ecc-cpp-testing | b92f181 → b38be6a（390 commits） | 无：`skills/cpp-testing/SKILL.md`、`LICENSE` 0 提交，两端 blob 相同 | 未变更，仅 re-pin |
+| cppcheatsheet | 7597054 → 367fe0c（8 commits） | 无：仅 `requirements.txt` 变更 | 未变更，仅 re-pin |
+| cpp-core-guidelines | 33bcd01 → d1dda82（1 commit） | 无：仅 `CppCoreGuidelines.md` 变更，`LICENSE` 未动 | 未变更，仅 re-pin |
+| margelo-cpp | 1e9e17b（up to date） | 无 | 未变更 |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 为空；C2 分诊补充候选 1 项（`TerminalSkills/skills` 由其他 skill 追踪，本 skill 未追踪）。
+
+| 候选 | 许可 | 结论 | 理由 |
+|---|---|---|---|
+| TerminalSkills/skills `skills/imgui/SKILL.md`（8a9852d，188 stars，pushed 2026-10-30） | Apache-2.0 | REJECT（范围） | Dear ImGui v1.93.0 的取源、GLFW+OpenGL3 后端初始化/帧循环/控件用法手册；单一第三方 GUI 库产品手册，不含通用 C++ 生命周期、并发或构建边界规则；Scope 排除语法课与库教程 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（`cpp skills claude`、`c++ agent skill` updated>2026-10-15，均无结果；topic `agent-skills` + `cpp` 按更新排序）、`VoltAgent/awesome-agent-skills` README 自 2026-10-15 起新增行（无 C++ 条目）、`github/awesome-copilot` 区间新增文件（只有语法高亮资源）；并复查 2026-10-15 后有更新的已 REJECT 候选。元数据用 `gh api repos/<o>/<r>` 核实（2026-11-01）。
+
+| # | 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | archibate/agent-skills `skills/cpp-oop-style/SKILL.md`（bf4c1df） | 16 | 2026-10-27T01:31:01Z | CC-BY-NC-SA-4.0（API 报 NOASSERTION，LICENSE 原文） | 1 | 3 | 2 | — | 0 | — | REJECT（许可/范围） | 个人 OOP 风格（「抽象类/数据类/值类型三选一」）覆盖默认习惯，属 Scope 明确排除的风格指南替代；非商业许可不得 merged，未做正确性抽查 |
+| 17 | archibate/agent-skills `skills/cpp-hpc-optimization/SKILL.md`（bf4c1df） | 16 | 2026-10-27T01:31:01Z | CC-BY-NC-SA-4.0 | 1 | 3 | 3 | — | 0 | — | REJECT（许可/范围） | 基于测量的 HPC 内核优化（SIMD/OpenMP/CUDA/缓存），超出本 skill 生命周期/并发/构建边界 Scope；非商业许可不得 merged |
+
+已 REJECT 候选复查：Jeffallan/claude-skills `cpp-pro`（12152 stars，自 pin 以来 83 commits 改了 SKILL.md）当前 `references/concurrency.md` 仍是 `delete old_head` 且仅注释「ABA problem exists」的无安全回收 lock-free pop，`references/modern-cpp.md` 的 `Generator` 仍在析构中 `handle.destroy()`，维持 REJECT；ericrisco/rsc-harness `skills/cpp`（416 stars，pushed 2026-10-31）仍把读取 moved-from 对象一概称为 use-after-move 缺陷（标准库类型为有效但未指定状态，无前置条件的操作可用），维持 REJECT。
+
+## 2026-11-01 文档上游复核
+
+范围：6 条 `kind: docs` 条目的 `contributes` 声明事实 + SKILL.md 与 references 实际引用的条款与限制。当前 CMake v4.4 页面为 4.4.5（`latest` 指向 4.5.0-rc2，尚未发布正式版，条目保持 v4.4）；4.4 与 4.5.0-rc2 句级 diff 只新增 SYCL 实验特性、Target Names 与 File Sets 小节，不影响下表事实。Clang 文档为当前开发版页面；C++ 草案 eel.is 生成于 2026-08-23。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| cpp-draft | [except.ctor]/3 非委托构造被异常终止时只析构已完成初始化的子对象；[vector.modifiers]/2 重分配使全部引用/指针/迭代器（含 past-the-end）失效，否则插入点及之后失效，/4 `erase` 使擦除点及之后失效；[lib.types.movedfrom] 有效但未指定；[atomics.order]/2 release 被 acquire 读到才 synchronizes-with；[dcl.fct.def.coroutine]/13 参数副本在替换体开头创建、引用参数副本仍是引用；[coroutine.generator.overview] `generator` 位于 Ranges 库 | https://eel.is/c++draft/ | 一致（generator 概述锚点为 `coroutine.generator.overview`，`coro.generator.overview` 404） |
+| cmake-buildsystem | PRIVATE/INTERFACE/PUBLIC 使用需求传播；静态库链接依赖向消费者传递 | https://cmake.org/cmake/help/v4.4/manual/cmake-buildsystem.7.html | 一致（4.4.5） |
+| cmake-features | `cxx_std_NN` 元特性只要求「至少知晓该标准」的模式，不保证任何具体特性 | https://cmake.org/cmake/help/v4.4/manual/cmake-compile-features.7.html | 一致（4.4.5） |
+| clang-asan | 覆盖 use-after-free、越界等；最终链接用 clang（不是 ld） | https://clang.llvm.org/docs/AddressSanitizer.html | 一致 |
+| clang-ubsan | `-fsanitize=undefined` 不含 float-divide-by-zero、unsigned-integer-overflow、implicit-conversion、local-bounds、vptr、nullability-*；默认报告后继续，`-fno-sanitize-recover=` 退出 | https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html | 一致 |
+| clang-tsan | 不支持 libc/libstdc++ 静态链接；`no_sanitize("thread")` 可致误报；影子内存/ASLR 环境限制 | https://clang.llvm.org/docs/ThreadSanitizer.html | 一致 |
+
+结论：6 条全部一致，无过时项、无正文更正；references 的「Verified against: CMake 4.4.4 documentation」仍是真实核对基准（v4.4 URL 现服务 4.4.5 补丁版，上表引用事实已在 4.4.5 页面逐条定位一致；无逐补丁版本化文档可做全文 diff），未改正文；6 个条目 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+正文（`SKILL.md` 正文、`references/`、`scripts/`）本轮未改（仅 frontmatter `metadata.version` 与 SOURCES.yaml），按 `.omp/commands/sync-upstreams.md` 第 5 节不触发 D2，未跑评测。
