@@ -436,3 +436,54 @@ too large，主代理归因为空；本轮在 `/tmp/hs-attr/github__awesome-copi
 `pin_check.py` 结果 `PIN CHECK CLEAN`。许可核对：obra/superpowers、addyosmani/agent-skills、github/spec-kit 均仍 MIT（`gh api`）。
 
 结论：正文与 references 未改，未新增评测，未跑 D2；SOURCES.yaml obra-brainstorming notes 记 v7.0.0 重写、re-pin、版本号改为 2026.10.15。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/planning.md`。用已登录
+`gh api .../compare/<旧pin>...<审阅HEAD>` 读命中 paths 的 `patch`。copilot-plan、speckit-docs 由主代理用裸仓库树 diff 确认 paths 无变化。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| obra-brainstorming | bb92a77 → 2ce8aa1（v7.0.1） | `brainstorming/SKILL.md`：新增「Look Before You Ask」（有上下文时先读代码与材料，不问项目已能回答的问题）；首条消息分「已说清需求→复述并补上发现、问一个最影响产出的问题」与「未说清→问一个开放问题并说明为什么问」；恢复「Lay out the approaches」（独立一条消息给出两三个基于项目现状的方案、各自取舍、推荐一个并说明理由，只有一种合理做法时说明其余为何不适用）；Size 表改为小改动写短设计文档、项目写完整文档，两者都含 Approaches 一节；用户没说要 brainstorm 时才附「也可以直接开干」 | 不合入，正文不动：v7.0.0 去掉而本 skill 保留的「两三个真实方案 + 推荐 + 被否方案的理由」正被 v7.0.1 恢复，与本 skill 的 plan 工作流「Settle the approach」及规则 16 一致；先查再问由 mattpocock-spec 的两项预检（按领域概念搜现有实现并报告查了哪里、查以往否决）覆盖。逐题一问的对话形态仍与本 skill 一轮编号提问冲突，维持 2026-10-15 的裁决。SOURCES `notes` 补记 v7.0.1 |
+| obra-executing | bb92a77 → 2ce8aa1 | `executing-plans/SKILL.md` 删去末尾 Example Workflow；`subagent-driven-development/SKILL.md` 删 260 行、拆成 7 个 `references/*.md`（batching、cannot-verify、final-review、fix-loop、handling-reports、preflight、resuming），为扛住上下文压缩 | 噪声：搬家式重组，逐个读新增 references，内容与旧 SKILL.md 对应段落一致；本 skill 只取了「执行前重读计划、停下提问的触发条件、证据先于结论、交给新执行者的步骤必须自包含」，均未改变 |
+| addy-planning | aeac41d → 8bfcc1f | 0004999：`spec-driven-development` 示例 `npm run lint --fix` 改为 `npm run lint -- --fix` | 噪声：本 skill 不收录该命令（`plan-document.md` 明确不写 `npm test` 之类默认命令） |
+| obra-writing-plans / mattpocock-spec | — | 无 | 噪声，只 re-pin |
+| copilot-plan | 3cf7c7e → 5269f7e | 无（主代理裸仓库树 diff） | 噪声，只 re-pin |
+| speckit-docs | 3238fa9 → 7370e59 | 无（主代理裸仓库树 diff） | 噪声，只 re-pin |
+| neolab-sdd | 23e2428（无变化） | — | up to date |
+
+`--pin` 后逐条比对写入的 `commit` 与审阅 HEAD：obra 三条 2ce8aa1、addyosmani 8bfcc1f、copilot 5269f7e、speckit 7370e59、mattpocock 4ae2317 均与快照 head 相同，无差额区间。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C、C2、C3 逐个用 `gh api .../contents` 读原文。许可：oh-my-agent MIT、laurigates/claude-plugins MIT、rampstackco/claude-skills MIT、
+orchestkit MIT、mattpocock/skills MIT、antfu/skills MIT。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| oh-my-agent `oma-pm`（两份路径） | REJECT | 「需求→任务、依赖、验收标准」的通用描述，产出其自家 JSON plan 与 task-board；本 skill 的依赖图、验收命令必填、垂直切片更具体 |
+| laurigates `workflow-implement-verify` | REJECT | 多 worktree 并行实现 + 独立验证 + 一轮修复的 Workflow 模板，属编排（orchestration）而非计划；「不信任未经他人验证的完成」本 skill 已有 |
+| rampstackco `sprint-operations`（三份路径） | REJECT | PMO 指标、估算与容量、Scrum 仪式与冲刺报告，团队管理流程，不在 Scope |
+| orchestkit `create-plan`、`iterate-plan`（plugins 与 src 各两份） | REJECT | 计划写成 `.ork/tasks/` 下的文件工件、评论块由 artifact.mjs 维护；「计划里的路径必须打开过」「评论先对照代码核实再改」本 skill 已有（计划步骤带真实路径；评审意见先核实） |
+| mattpocock `in-progress/software-factory`（C2） | REJECT | in-progress、`disable-model-invocation`；内容是设计「软件工厂」（agent 流水线）的术语表，属编排/ai-engineering 范畴 |
+| oh-my-agent `oma-architecture`（C3，G08 转来） | REJECT | 架构决策与 ATAM/CBAM 方法论、绑定其 archify 图引擎与 `.agents/results/` 产物；本 skill 的方案比较与 ADR（copilot-plan）已覆盖可移植部分，架构重设计不在 Scope |
+| antfu/skills `antfu-query`（C3，G07 转来） | REJECT | 改编自本 skill 已追踪的 mattpocock grilling，差异只是「用宿主的交互提问工具、每题 2–4 个选项」；这是宿主 UI 约定，且会与本仓库三 skill 共享的一轮编号文本提问格式分叉，其无工具时的回退正是本 skill 现行格式 |
+
+无 MERGE 项，`paths` 不变。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（「planning skills claude」`--updated >2026-10-15 --stars >=30`）、`--topic agent-skills --created >2026-10-01`、
+VoltAgent/awesome-agent-skills 2026-10-15 以来 README 新增行。指标用 `gh api repos/<o>/<r>` 核实。
+
+| 仓库 | stars | pushed | license | 权威/新鲜/具体/正确/许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|
+| OthmanAdi/planning-with-files | 27800 | 2026-10-30 | MIT | 1/3/2/3/2 | 11 | REJECT（覆盖已有 + 机制绑定）：把计划、发现、进度写成磁盘文件并在决策前重读，主体是 Claude Code hooks（UserPromptSubmit/PreToolUse/Stop/PreCompact）与 init/check 脚本、多宿主目录副本；可移植部分（不覆盖已有计划、执行中按阶段更新状态、上下文压缩后从文件恢复）由本 skill 的 track 工作流与「never overwrite an incomplete plan」覆盖。抽查三条（计划先于执行、只追加不重写、阶段状态唯一）无误 |
+| emotixco/claude-skills-founder | 768 | 2026-10-20 | MIT | 1/3/1/—/2 | 7（不含正确性） | REJECT：创业者的想法验证、定价、融资与发布计划，非软件实施计划 |
+| tobihagemann/turbo、guanyang/open-agent-hub 等 | ≤985 | 2026-10 | MIT | — | — | REJECT：综合型个人工具集，搜索命中关键词但无专门计划类 skill，未进一步读 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 无 `kind: docs` 条目（speckit-docs 是 `kind: repo`，按 tracked paths 处理）。
+
+正文（`SKILL.md`/`references/`/`scripts/`）本轮除 `metadata.version` 外无改动，按规程不需要 D2 回归。
