@@ -466,3 +466,40 @@ Queryable Encryption 的 prefix/suffix/substring 改为 9.0 GA、8.2/8.3 preview
 
 结论：两处更正相关的行为（9.0 GA、preview 与 GA 不兼容须重建集合、版本门槛）在有 skill 时全部达成，不比基线差（5/5 对 5/5）；
 负例 skill_read 为 false。正文无需修改。遗留：场景 6 基线已满分，仍只作哨兵。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/mongodb.md`）。`mongodb-agent-skills` 用 `gh api repos/mongodb/agent-skills/compare/<旧pin>...<审阅HEAD>` 取文件；`plugins/mongodb/...` 下 patch 缺失，改用 `contents?ref=` 取两版自行 diff。`awesome-copilot`、`mongodb-server` 报 behind（diff too large），主代理已在裸仓库缓存上按树对比确认追踪 paths 无变化。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mongodb-agent-skills | c370a63 → 155bb9c | `plugins/mongodb/skills/mongodb-search-and-ai`：68be65b 新增 `references/quick-start.md`（基于 `sample_mflix` 的导览教程）与 `scripts/quickstart_complete.py`；SKILL.md 加「先问是导览还是为自有数据建索引」路由、精简措辞；`references/automated-embedding.md` 新增 `voyage-code-4`（推荐用于代码，需 Atlas 部署；自管部署仍用 `voyage-code-3`）与其限额行。同区间删除各 `.agy-plugin/` 镜像目录，不在追踪 paths 内 | 无影响，仅 re-pin。导览是 Atlas 教学流程与 MCP 交互路由；`references/search-and-vector.md` 的自动嵌入一节不点名任何 Voyage 模型，不受模型清单变化影响 |
+| awesome-copilot | 3cf7c7e → 5269f7e（422 commits） | 无（主代理树对比） | 噪声，仅 re-pin |
+| mongodb-server | 4858a63 → aedd8ca（429 commits） | 无（主代理树对比） | 噪声，仅 re-pin |
+
+`--pin` 后逐条核对：155bb9c、1dd4bd5、5269f7e、aedd8ca、0211b09 全部等于审阅 HEAD，无差额。
+
+结论：正文未变，仅 re-pin，`version` 改为 2026.11.01。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 节为空（区间内无新增 skill 类文件）。追踪 paths 内新增的 `references/quick-start.md` 与 `scripts/quickstart_complete.py` 见上表：Atlas 样例数据导览，REJECT（教学流程，非可验证规则）。
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "mongodb agent skill"` / `"mongodb skills"`（`--updated >2026-10-15`）、VoltAgent/awesome-agent-skills 自 2026-10-15 的新增行（无 MongoDB 条目）。返回的只有已追踪的 `mongodb/agent-skills` 与 1 个 2022 年的圣诞树示例服务（`yuriy-kulakovskyi/christmas-tree-server`，1★，与 skill 无关），无新候选。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| （无新候选） | — | — | — | — | — |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| mongodb-docs | 当前稳定版 9.0 系列，8.3 / 8.0 / 7.0 为之前的稳定版（正文以 8.0 为基准、9.0 门槛单独标注） | [Release Notes](https://www.mongodb.com/docs/manual/release-notes/)（`.md` 读取） | 一致 |
+| mongodb-docs | `reshardCollection` 的 `forceRedistribution`（8.0 起，同键重分布以填充新分片） | [reshardCollection](https://www.mongodb.com/docs/manual/reference/command/reshardCollection/) | 一致（页面另新增 8.0.20 的 `numSamplesPerChunk`，正文未引用） |
+| mongodb-docs | 8.0.10 起可重分片时序集合，且所有分片须 ≥ 8.0.10 | [Reshard a collection](https://www.mongodb.com/docs/manual/core/sharding-reshard-a-collection/) | 一致 |
+| mongodb-docs | TTL 后台任务约每 60 秒运行一次，过期删除是近似的；TTL 为单字段索引 | [TTL indexes](https://www.mongodb.com/docs/manual/core/index-ttl/) | 一致 |
+
+4 组事实全部一致，正文未改，`mongodb-docs` 的 `synced_at` 更新为 2026-11-01。
