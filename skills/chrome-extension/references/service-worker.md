@@ -1,6 +1,6 @@
 # Extension service worker
 
-Verified against: Chrome 148 documentation on developer.chrome.com.
+Verified against: Chrome 156 documentation on developer.chrome.com.
 
 ## Contents
 
@@ -83,11 +83,15 @@ browser session: an in-progress recording, a capture state machine, an auth nonc
 `setTimeout` and `setInterval` are unreliable here: the worker can be gone before the
 callback fires. Use `chrome.alarms`, which wakes the worker.
 
-Chrome clamps alarms to at most once every 30 seconds and may delay them further.
-`periodInMinutes` or `delayInMinutes` below `0.5` is not honoured and logs a warning;
-`when` may be less than 30 seconds away but still will not fire sooner than that. Unpacked
-extensions have no clamp at all, which is why a too-frequent alarm looks fine in
-development and stops working once installed from the store.
+The minimum alarm interval depends on the Chrome version. From Chrome 153 a Manifest V3
+extension, packed or unpacked, may schedule alarms as often as once a second; a
+`periodInMinutes` or `delayInMinutes` under one second logs a warning and fires after
+the minimum instead. Chrome 120–152 clamp an installed Manifest V3 extension to once every
+30 seconds (`0.5` minutes) while unpacked builds are not clamped, which is why a
+too-frequent alarm looked fine in development and slowed down once installed from the
+store. If the extension relies on a sub-30-second alarm, set `minimum_chrome_version` to
+`"153"`; otherwise design for a 30-second tick. Chrome may delay any alarm further, and
+`when` never fires earlier than the floor.
 
 For a job that legitimately takes minutes, do not try to hold the worker open. Split it
 into steps, persist a cursor, and drive the steps from a repeating alarm; each step then

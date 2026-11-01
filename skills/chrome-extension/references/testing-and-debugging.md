@@ -162,7 +162,7 @@ confirm the injected UI tears itself down instead of throwing
 | A handler works once, then never again | Listener registered after an `await` or inside `onInstalled`; see `service-worker.md` |
 | `sendMessage` resolves with `undefined` | Missing `return true`, or no listener recognised the message type |
 | Works on first page load, dies after in-app navigation | Single-page-app route change; see `content-scripts.md` |
-| Works unpacked, fails once installed | Alarm period under the 30-second floor, or an extension id bound to the unpacked build |
+| Works unpacked, fails once installed | An extension id bound to the unpacked build, or on Chrome 152 and older an alarm period under the 30-second clamp for installed extensions |
 | A field on a `Tab` is `undefined` | Missing `tabs` permission or host permission |
 | Rules have no effect | A regex rule over the 2 KB compiled limit, or a redirect target not in `web_accessible_resources`; see `network-and-dnr.md` |
 

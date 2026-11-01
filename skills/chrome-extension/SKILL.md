@@ -4,7 +4,7 @@ description: "Builds Chrome extensions with Manifest V3, service workers and con
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: platform
 ---
 
@@ -54,10 +54,11 @@ Paths below are relative to this skill's directory.
 6. `localStorage` and `sessionStorage` do not exist in a service worker, so a call is a
    `TypeError` rather than a style problem. Use `chrome.storage`, IndexedDB or
    `CacheStorage`.
-7. Schedule with `chrome.alarms`, not `setTimeout`/`setInterval`, and never below the
-   30-second floor: `periodInMinutes` under `0.5` is refused with a warning. The clamp
-   does not apply to unpacked builds, so a too-frequent alarm works in development and
-   stops working once installed.
+7. Schedule with `chrome.alarms`, not `setTimeout`/`setInterval`, and know which floor
+   applies. From Chrome 153 a Manifest V3 alarm may fire as often as once a second,
+   packed or unpacked. Chrome 120–152 clamp an installed extension to 30 seconds
+   (`periodInMinutes` `0.5`) with a warning while unpacked builds are not clamped, so a
+   sub-30-second alarm needs `minimum_chrome_version` `"153"` or must tolerate a 30-second tick.
 8. Never keep the worker alive artificially. Split long work into alarm-driven steps with
    a persisted cursor; a keep-alive ping hides the bug instead of fixing it.
 9. Return a literal `true` from a `runtime.onMessage` listener that answers
@@ -179,8 +180,8 @@ Paths below are relative to this skill's directory.
       retry — that is the late-registration signature.
 - [ ] If a value is `undefined` with no error, suspect a missing permission
       (`tab.url` without `tabs`) before suspecting your own code.
-- [ ] If it works unpacked but not when installed, check the alarm floor and anything bound
-      to the extension id.
+- [ ] If it works unpacked but not when installed, check anything bound to the extension
+      id, and on Chrome 152 or older the 30-second alarm clamp.
 - [ ] **Gate:** the failure is reproduced deliberately — worker stopped, or extension
       reloaded with the page still open — and then does not reproduce after the fix.
 
@@ -265,9 +266,9 @@ src/background.js
   L22 blocking - tabs.onActivated is registered after an await, so it does not exist when
        a restarted worker is handed the queued event. Register at the top level and read
        settings inside the handler.
-  L47 important - alarms.create with periodInMinutes 0.1 is below the 30-second floor;
-       Chrome refuses it with a warning. Unpacked builds have no clamp, which is why this
-       looks fine in development.
+  L47 important - alarms.create with periodInMinutes 0.1 relies on the 1-second floor
+       that only Chrome 153+ has; Chrome 120–152 clamp an installed extension to 30
+       seconds. Declare minimum_chrome_version "153" or design for a 30-second tick.
   L52 minor - the onMessage listener does not return early for unknown types, so it
        answers messages meant for other listeners.
 

@@ -353,3 +353,39 @@ chrome-modern-web-guidance、samber-cc-skills 为 repo moved、tracked paths unc
 
 10 组事实全部一致，正文未改，三个 docs 条目的 `synced_at` 更新为 2026-10-15。另记：Chrome 稳定版已到 155（chromiumdash），
 references 的「Verified against: Chrome 148」是核对时点标记，所引事实在当前页面上未变。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/chrome-extension.md`。chrome-samples 一条 `behind`
+且 paths 下有提交，用 `gh api repos/GoogleChrome/chrome-extensions-samples/compare/5de90cf...2bc864f` 列出全部 20 个文件逐个核对；
+其余为 repo moved / paths unchanged 或 up to date。`--pin` 后逐条比对写入的 `commit` 与快照 head：chrome-modern-web-guidance
+`4f2b13e`、rsc-harness `6f7edd3`、tenequm-wxt `b648a09`、chrome-samples `2bc864f`，均等于审阅 HEAD，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| chrome-samples（reference） | 5de90cf → 2bc864f（5 提交，命中 3 个：fceec9a、7976604、d5bbc13） | `functional-samples/` 下 8 个样例的 `package.json` / `package-lock.json`（dependabot：npm minor/patch 组与 brace-expansion）；`api-samples/offscreen`、`api-samples/sidePanel` 0 个文件 | 噪声：只升级依赖版本，没有改 manifest、权限、offscreen 单例、侧边栏或测试写法，只 re-pin |
+| chrome-modern-web-guidance | b31dc0a → 4f2b13e | 无 | 噪声，re-pin |
+| rsc-harness | 5bf0616 → 6f7edd3 | 无 | 噪声，re-pin |
+| tenequm-wxt | db4b27c → b648a09 | 无 | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 为空：已追踪仓库在旧 pin..新 HEAD 区间内没有预分配给本 skill 的 skill 类新增文件。
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| chrome-docs | Service worker 三个终止条件：30 秒无活动、单个请求超过 5 分钟、`fetch()` 响应超过 30 秒 | [Extension service worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle) | 一致 |
+| chrome-docs | `chrome.alarms` 最小间隔 30 秒、低于 `0.5` 分钟被拒并告警、未打包扩展不受限 | [chrome.alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms)（2026-10-29 更新） | **过时，已修**：页面现写「at most once every second」，小于 1 秒才告警。源码核实：Chromium 45a017bab3（2026-08-13，`refs/heads/main@{#1678493}`，位于 M152 分支点 1669021 与 M153 分支点 1681091 之间，即 Chrome 153）把 `kMV3ReleaseDelayMinimum` 从 30 秒改为 1 秒，MV3 打包与未打包同为 1 秒；警告文案是「will fire after the minimum duration」（推迟到下限而非拒绝）。当前稳定版 156。已改 SKILL.md 规则 7、debug 清单、review 示例 L47，`references/service-worker.md`「Scheduling work」，`references/testing-and-debugging.md` 症状表，场景 1 的 expected_behavior 与 chrome-docs `contributes` |
+| chrome-docs | 同页新增：`persistAcrossSessions`（Chrome 150+，Chrome 默认 true）、`AlarmCreateInfo.name`（Chrome 152+）；whats-new：Chrome 150 起闹钟名 1024 字节上限 | 同上、[What's new](https://developer.chrome.com/docs/extensions/whats-new) | 正文未引用这些事实，属新增内容，不入本轮（需评测先行） |
+| chrome-docs | `local`/`session` 10 MB、`sync` 约 100 KB 总量与 8 KB 单项、`session` 需 `setAccessLevel` 才对内容脚本开放 | [chrome.storage](https://developer.chrome.com/docs/extensions/reference/api/storage) | 一致 |
+| chrome-docs | DNR：静态规则集声明 100、同时启用 50、保证 30,000 条静态规则、会话 5,000、不安全动态 5,000、安全动态 30,000（Chrome 121+） | [chrome.declarativeNetRequest](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest) | 一致 |
+| chrome-docs | Offscreen 同时只能有一个、`AUDIO_PLAYBACK` 无音频 30 秒后关闭、其他 reason 无寿命限制 | [chrome.offscreen](https://developer.chrome.com/docs/extensions/reference/api/offscreen) | 一致 |
+| chrome-docs | `userScripts`：Chrome 138 起由「Allow User Scripts」开关启用，之前为开发者模式 | [chrome.userScripts](https://developer.chrome.com/docs/extensions/reference/api/userScripts) | 一致 |
+| chrome-docs | `onMessage` 自 Chrome 148 可返回 Promise（逐步放量），`return true` 始终有效；`browser` 命名空间 148 起、含 `devtools_page` 的扩展 152 起 | [Messaging](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)、[browser namespace](https://developer.chrome.com/docs/extensions/develop/concepts/browser-namespace) | 一致 |
+| chrome-docs | 远程托管代码被拒标签 Blue Argon；无头加载扩展需 `--headless=new` | [Remotely hosted code](https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code)、[End-to-end testing](https://developer.chrome.com/docs/extensions/how-to/test/end-to-end-testing) | 一致 |
+| wxt-docs | `#imports`、`wxt/storage`/`wxt/client`/`wxt/sandbox` 迁到 `wxt/utils/*`；`storage.defineItem` 的 `version` 与 `migrations`；`WxtVitest`（`wxt/testing/vitest-plugin`）+ `fakeBrowser`（`wxt/testing/fake-browser`）；E2E 指向 `.output/chrome-mv3` | [Upgrading](https://wxt.dev/guide/resources/upgrading.html)、[Storage API](https://wxt.dev/storage.html)、[Unit testing](https://wxt.dev/guide/essentials/unit-testing.html)、[E2E testing](https://wxt.dev/guide/essentials/e2e-testing.html)；npm `wxt` latest 为 0.21.5（补丁版） | 一致 |
+| playwright-docs | 只在持久化上下文中加载、Chrome/Edge 已移除旁加载参数故用 `channel: 'chromium'`（也是无头前提）、从 service worker 取扩展 id、MV3 worker 空闲挂起后保留同一 `Worker` 且不再发 `serviceworker` 事件 | [Chrome extensions](https://playwright.dev/docs/chrome-extensions) | 一致 |
+
+11 组事实中 1 组过时（alarms 下限）已当场修正，三个 docs 条目 `synced_at` 更新为 2026-11-01；`references/service-worker.md` 的核对时点标记改为 Chrome 156。
