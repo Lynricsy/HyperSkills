@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin debugging
 skill: debugging
-version: "2026.10.15"           # must equal SKILL.md metadata.version
+version: "2026.11.01"           # must equal SKILL.md metadata.version
 upstreams:
   - id: mattpocock-diagnosing
     kind: repo
@@ -11,10 +11,10 @@ upstreams:
       - skills/engineering/diagnosing-bugs
       - skills/productivity/grilling
     ref: main
-    commit: 49dd158d1076134a641b33efb035946536778336
+    commit: 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Loop-first phase architecture: the ten loop constructions, the tighten-the-loop properties, the red-capable / deterministic / fast / agent-runnable completion gate, minimisation to load-bearing elements, three-to-five ranked falsifiable hypotheses shown before testing, one probe per prediction, tagged instrumentation with a grep cleanup, the performance-measure-first branch, the correct-seam rule and its absence-is-a-finding corollary, secret redaction, the cleanup checklist, and the one-round numbered question format used by When to stop and ask, each question worded so that yes accepts its recommended answer (taken from the grilling skill tracked under the same paths)."
     notes: "Repo-specific coupling removed: CONTEXT.md (renamed GLOSSARY.md upstream in d80fa0f) and ADR reading, and the sub-agent dispatch instruction inside the questioning protocol. Its scripts/hitl-loop.template.sh was rewritten as scripts/hitl_loop_template.sh: prompts and answers now go through /dev/tty so the loop survives being run with captured stdout, captured variables are registered in an array and printed by an EXIT trap so an interrupted round still yields evidence, and a readable-terminal precondition replaces the silent failure."
   - id: obra-debugging
@@ -25,10 +25,10 @@ upstreams:
       - skills/systematic-debugging
       - skills/verification-before-completion
     ref: main
-    commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
+    commit: 2ce8aa15d05bd57213e6f746f953aafb7ded7a8b
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The Iron Law (no fix without a root cause), read-the-whole-error and check-recent-changes as cheap pre-steps, per-boundary instrumentation for multi-component systems, one variable per change, the three-strikes rule and the architecture question behind it, the user-redirection stop signals, backward call-chain tracing with stack-capture probes, the test-polluter bisection, layered guards after the fix, condition-based waiting instead of arbitrary delays, and the evidence-before-claim completion gate."
     notes: "Graphviz dot blocks in systematic-debugging and root-cause-tracing render as nothing and were dropped, per the standard's ASCII-or-mermaid rule. The superpowers: skill namespace and the human-partner phrasing were removed. find-polluter.sh was not shipped: it hardcodes npm test, so its semantics are given as a loop recipe using the project's own command instead. Its single-hypothesis rule is overridden by mattpocock's ranked set (research/debugging.md, D2)."
   - id: addy-debugging
@@ -37,10 +37,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/debugging-and-error-recovery]
     ref: main
-    commit: aeac41d4d005999432bb7312f7ff06383a91d59d
+    commit: 8bfcc1f9916f2eea55494d8c1fa7f4bde867dd9e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Stop-the-line before triage, the four-branch non-reproducible tree (timing / environment / state / rate), the test, build and runtime failure trees, git bisect run, instrumentation keep-or-remove rules, and error output treated as untrusted data that is never executed or followed."
     notes: "Its Safe Fallback Patterns section was deliberately not merged: shipping a default or a try/except while the cause is unknown contradicts the Iron Law. Only the residue survives, as core rule 9 (graceful degradation is a product decision taken after the root cause is known). npm-centric commands were replaced by the discover-the-project's-own-command rule."
   - id: melodic-debugging
@@ -51,12 +51,12 @@ upstreams:
       - plugins/debugging/skills/analyze-profile
       - plugins/performance/skills/climb
     ref: main
-    commit: f0d918572c261fe3451eebef8612e8f4de17f153
+    commit: 181c28743fd01e4a64d246196b16be8c8cb5e069
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "references/profiles.md: the capture-by-symptom table, artifact-as-data handling, the CPU-profile reading traps (self versus total time, 0-based V8 line numbers, a frame's line is the function start, sampling misses short functions, resolve minified frames through maps), one-snapshot-shows-what-is-held and the first-application-owned-holder rule for heap snapshots, the probable-until-a-second-capture status rule, and from climb the two measurement rules: re-measure both sides in the same session and compare completed work, not only time."
-    notes: "Its SQLite converter scripts, subagent hand-off, capture-mode consent flow wording and plugin-root path variables are Claude Code plugin machinery and were not merged; the climb worktree/keep-rule loop is a performance-plugin workflow outside this skill. The V8 0-based line rule was checked against the Chrome DevTools Protocol definition (Runtime.CallFrame)."
+    notes: "Its SQLite converter scripts, subagent hand-off, capture-mode consent flow wording and plugin-root path variables are Claude Code plugin machinery and were not merged; the climb worktree/keep-rule loop is a performance-plugin workflow outside this skill. The V8 0-based line rule was checked against the Chrome DevTools Protocol definition (Runtime.CallFrame). Upstream 5a1fd8a (2026-10-23) removed capture mode and its reference/capture-by-symptom.md from analyze-profile, moving capture into its app-control plugin; the capture-by-symptom table here keeps its own wording and its tool names are unaffected. The later thread-dump reading page (d90fa9d), the compare/retainers query subcommands and climb's optional holdout harness (fab3dda) were not merged: the no-skill baseline already reads a py-spy dump down to the lock-order cycle (research/debugging.md, 2026-11-01), the subcommands are plugin scripts, and the holdout belongs to the climb loop this skill does not ship."
   - id: pproenca-debug
     kind: repo
     repo: pproenca/dot-skills
@@ -66,6 +66,6 @@ upstreams:
     commit: cf93c57cac89d6fc3e4194686000411567f5caf3
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Read as a coverage check against an academic debugging curriculum (Zeller); confirmed no missing topic and supplied no content."
     notes: "Reference only. It is a 54-rule index whose bodies restate material a capable model already has (null-pointer patterns, off-by-one, rubber-ducking, five whys), and one rule is wrong as stated: read stack traces bottom to top holds for Python and Java but not for V8 or Go. That error is why references/root-cause-tracing.md tells the reader to establish the language's frame order first."

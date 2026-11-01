@@ -266,3 +266,75 @@ code-review 场景 3：无 skill ✘、旧 skill ✘、本轮正文 ✔）。场
 结论：`profiles.md` 带来的场景 5 增益在当前正文上复现（有 skill 6/6，基线 EB1 ◐、EB5 ✘）；场景 3 与基线持平、无回退，但与上午三次运行一样模型自己造出了复现、没有走到「停下提问」，yes 措辞（EB7）仍无法在本 skill 内测到，证据仍以 test-driven-development 与 code-review 的同句评测为准。负例 `skill_read == false`。正文未改。
 
 遗留：场景 3 对 gpt-6.1-sol 不构成「必须提问」的情境，EB3/EB7 需要一个无法本地复现的场景才能考察；本轮未新增（该措辞属三 skill 共享段落，已有他处证据）。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/debugging.md`。mattpocock、addyosmani 用已登录
+`gh api .../compare/<旧pin>...<审阅HEAD>` 读命中 paths 的 `patch`；melodic 用主代理的裸仓库缓存
+`git -C /tmp/hs-attr/melodic-software__claude-code-plugins diff f0d9185 3a15fc1 -- <paths>` 读全部 12+2 个文件的真实 diff。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mattpocock-diagnosing | 49dd158 → 4ae2317 | 7739eae（#1341）：`grilling/SKILL.md` 派去查事实的 subagent 改为「with a fresh context window」 | 噪声：本 skill 合入时已删去提问协议里派 subagent 的那句（见 SOURCES `notes`），只取一轮编号提问格式 |
+| obra-debugging | bb92a77 → 2ce8aa1 | 无 | 噪声，只 re-pin |
+| addy-debugging | aeac41d → 8bfcc1f | 60b218f：Jest 30 不再接受 `--testPathPattern`，「隔离运行单个测试文件」示例改为位置参数 `npm test -- specific-file --runInBand` | 噪声：本 skill 不收录 npm/Jest 具体命令（SOURCES `notes`：改为「找项目自己的命令」），正文无 `testPathPattern` |
+| melodic-debugging `analyze-profile` | f0d9185 → 3a15fc1（5 提交） | 5a1fd8a 删除 capture 模式与 `reference/capture-by-symptom.md`（采集移到其 app-control 插件）；d90fa9d 新增 `formats/thread-dump.md`（读 py-spy dump：同处停住的线程、锁等待与外层 `with` 已持有的锁、主线程、按帧不按 idle 标签、一份 dump 是一瞬间要第二份才能说卡住、命令行里的 token 要脱敏）与 fixture；20066ba 给 `query_profile.py` 加 `compare`/`retainers` 子命令；a10fd6d 只改 cpuprofile 格式页的协议链接；fc9bbba 改插件凭据守卫 | capture 表：本 skill 的 `references/profiles.md` 用自己的措辞，工具名不受上游删除影响，正文不动，在 SOURCES `notes` 记录上游已删该页。thread-dump 读法：按「新增规则」先跑基线——新增场景 7（见下），基线已会，不合入，场景 7 留作哨兵。子命令是插件脚本，不合入 |
+| melodic-debugging `climb` | 同上（1 提交） | fab3dda：可选的 holdout harness（另一组输入上冻结的第二个基准，只在结束时比较一次、默认关闭） | 不合入：属于 climb 的 worktree/keep-rule 循环，本 skill 只取了两条测量纪律（SOURCES `notes` 已说明该循环不在本 skill） |
+| pproenca-debug | cf93c57（无变化） | — | up to date |
+
+`--pin` 后逐条比对：mattpocock 4ae2317、obra 2ce8aa1、addyosmani 8bfcc1f 与审阅 HEAD 相同；melodic 写入 `181c287`，审阅 HEAD 为 `3a15fc1`，
+差额 37 提交。`compare/3a15fc1...181c287` 文件数到 300 上限被截断，改用 `gh api 'repos/melodic-software/claude-code-plugins/commits?sha=<sha>&path=<path>&per_page=2'`
+分别在两个 sha 上取两条 tracked path 的最新提交：`analyze-profile` 两边都是 d90fa9db、5a1fd8a7，`climb` 两边都是 fab3dda0、e2005bd4，差额区间未触及 paths。
+
+### 评测：thread-dump 读法是否有基线缺口
+
+新增场景 7 与夹具 `evals/files/hang/`：`pyspy-dump.txt` 按上游 fixture（MIT）的 py-spy dump 版式自制，Process 行加了 `--ledger-token` 明文；
+`sync.py` 为本仓库重写：去掉上游用来必然复现的 `threading.Barrier`，换成锁内 `time.sleep(0.01)`，使死锁变成间歇性，并从命令行读 token。
+提问要求写进事故工单、不改代码。
+
+模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物 `/tmp/hs-d2/G11-process/debugging/omp-openai-gpt-6.1-sol-medium/baseline/7/`，逐条读 `answer.md` 判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 py-spy dump 死锁 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ✔ | 40 s。表格列出 stock-writer 持 `stock_lock`（:10）等 `ledger_lock`（:16）、ledger-reconciler 持 `ledger_lock`（:21）等 `stock_lock`（:27），定性为锁顺序不一致的循环等待；主线程卡在 `writer.join()`（:42）、heartbeat 与进度无关；用占位 token 本地实跑复现了同一循环等待（3 秒超时退出 124），并说明本次 dump 不能证明前一次挂起同因——没有提「第二份 dump」，但用复现代替了它（EB4 ◐）；未引用 token 原值并建议轮换；未改文件 |
+
+结论：上游 thread-dump 页的读法（锁等待 + 外层已持有的锁、锁顺序环、主线程 join、token 脱敏）基线已会，不合入；场景 7 留作哨兵。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 逐个用 `gh api .../contents` 读原文（NVIDIA holoscan/nvshmem/pva 三个按路径与描述判断）。许可：NVIDIA/skills Apache-2.0（部分文件 CC-BY-4.0 AND Apache-2.0）、
+amd/skills MIT、oh-my-agent MIT、awesome-copilot MIT、platform-skills Apache-2.0、trailofbits/skills CC-BY-SA-4.0、tushar-skills MIT。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| NVIDIA `compute-sanitizer-diagnose-cuda-bugs` | REJECT | 单一厂商工具（Compute Sanitizer 四个子工具）的使用手册，CUDA 领域；本仓库无 CUDA skill，列入汇报 |
+| NVIDIA `holoscan-app-debug-build-run`、`nvshmem-troubleshoot-and-report-bugs`、`pva-debug` | REJECT | 单一厂商 SDK/硬件的构建与排障手册 |
+| NVIDIA `runai-diagnose-failed-workload` | REJECT | Run:ai 平台工作负载失败分类，单一商业产品；其中「只读、证据是数据、脱敏」本 skill 已有 |
+| amd `rocprofiler-pc-sampling` | REJECT | ROCm `rocprofv3` PC 采样参数手册，单一厂商 GPU 性能工具 |
+| oh-my-agent `oma-debug`（三份路径） | REJECT | 复现→诊断→最小修复→回归测试的通用流程，本 skill 全部已有且更具体 |
+| awesome-copilot `java-debugging` | REJECT（跨组） | JDWP 只绑回环、`suspend=n`、JEP 358 版本差异等是 Java 生态内容，Scope 归 `java-spring`；列入跨组命中 |
+| awesome-copilot `java-diagnostics` | REJECT（跨组） | JVM 工具（jcmd/jstack/JFR/NMT）分级与按症状选工具，同上归 `java-spring`；其「线程 dump 取三次」与本 skill「一次录制只算最可能」一致 |
+| platform-skills `debug` | REJECT | Terraform/Kubernetes/OpenShift 分层排障命令，基础设施领域，向导式提问 |
+| trailofbits `patching-bugs`、`reproduce-bug`、`validate-bug`、`implement-patch`、`prove-patch` | REJECT | 安全漏洞补丁的多代理证据流水线：JSON 记录/manifest/渲染脚本、独立复现与独立验证代理、三臂证明（基线失败、补丁通过、还原后再失败）。可移植的部分（先在未改的基线上见红、修后同一命令转绿、不把证据缺口当通过）本 skill 已有；三臂中的「还原后再失败」在已有「修前同一命令见红」时不增加信息；其余是插件机制。CC-BY-SA-4.0 亦只能取语义 |
+| trailofbits `regression-hunt`、`hunt-regressions`、`prepare-regression`、`reproduce-regression`、`replay-regression`、`adjudicate-regression`、`report-regressions` | REJECT | 在 PR/提交中搜寻回归的多代理战役（registry、sealed record、按阶段分派），属审阅侧且为插件机制；code-review 已追踪同仓库的 differential-review 覆盖回归模式 |
+| tushar-skills `performance-diagnosis` | REJECT | 12 stars；先测量、排序假设、同条件复测本 skill 已有，其余是 Next.js 缓存细节（归 `react`） |
+
+无 MERGE 项，`paths` 不变。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（「debugging skills claude」`--updated >2026-10-15 --stars >=30`）、`--topic agent-skills --created >2026-10-01`、
+VoltAgent/awesome-agent-skills 2026-10-15 以来 README 新增行（无调试类新条目）。指标用 `gh api repos/<o>/<r>` 核实。
+
+| 仓库 | stars | pushed | license | 权威/新鲜/具体/正确/许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|
+| doraemonkeys/claude-code-debug-mode | 120 | 2026-10-24 | MIT | 1/3/2/3/2 | 11 | REJECT（覆盖已有）：编号假设、带 region 标记的埋点、日志按假设编号、先自己复现再问人——本 skill 的排序假设、`[DEBUG-xxxx]` 标签与一次 grep 清理已覆盖；其「埋点只写文件、禁止 stdout、写死项目根路径」是该工具的约定，不可移植。抽查三条（假设先于埋点、埋点可整体移除、证据映射到假设）无误 |
+| bjgreenberg/senior-engineering-partner | 154 | 2026-10-29 | Apache-2.0 | 1/3/1/—/2 | 7（不含正确性） | REJECT：单文件「全能工程伙伴」人设，DEBUG 模式只有一句流程概述 |
+| sno-ai/sno-station-skills（`e2e-red-triage`） | 858 | 2026-10-30 | Apache-2.0 | 1/3/2/—/2 | 8（不含正确性） | REJECT：MANUAL-ONLY，绑定其 e2e preflight 流程；「把一个结果拆成两半看（202 只是受理）」与本 skill「缺失本身是发现」同义 |
+| Terryc21/bug-echo、zhinkgit/embeddedskills 等 | ≤777 | 2026-10 | MIT | — | — | REJECT：嵌入式/个人工具集，未进一步读 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 无 `kind: docs` 条目。
+
+正文（`SKILL.md`/`references/`/`scripts/`）本轮除 `metadata.version` 外无改动（只新增评测场景 7 与夹具），按规程不需要 D2 回归。

@@ -1,0 +1,24 @@
+Process 2193339: /usr/bin/python3 inventory/sync.py --ledger-token lt_live_7Qx2mV9pR4sK8wNc3bZ1
+Python v3.14.4 (/usr/bin/python3.14)
+
+Thread 2193339 (idle): "MainThread"
+    join (threading.py:1133)
+    main (sync.py:42)
+    <module> (sync.py:47)
+Thread 2193383 (idle): "heartbeat"
+    heartbeat (sync.py:33)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2193385 (idle): "stock-writer"
+    post_ledger_entry (sync.py:16)
+    reserve_stock (sync.py:12)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2193387 (idle): "ledger-reconciler"
+    adjust_stock (sync.py:27)
+    reconcile_ledger (sync.py:23)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
