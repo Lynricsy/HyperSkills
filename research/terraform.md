@@ -658,3 +658,71 @@ whichever binary is running」，与 1.12+ 不符。
 
 结论：`convert()` 更正相关行为在有 skill 时达成，不比基线差（4/4 对 4/4，基线无缺口，场景留作哨兵）。另修正一处既有事实错误
 （OpenTofu 1.12+ 不读 `.tf` 中的 `required_version`），改后同场景复跑 4/4 且直接引用正文。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 归因工作单（`/tmp/hs-sync/terraform.md`）与旧 pin 快照 `/tmp/hs-upstream-2026-11-01.json`。hashicorp-agent-skills、
+antonbabenko、opentofu、tflint 用 `gh api …/compare/<pinned>...<head>` 取 patch；nitinjain 用主代理 blobless 裸仓库缓存 `git diff`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| hashicorp-agent-skills | f706481 → bc6b14b（1 提交） | `terraform-policy/`：维护线改为 tfpolicy 0.4.x / 0.5.x；0.4 新增 `no-op` 操作，未写 `operations` 的策略默认 `["create","update","no-op"]`（即评估整份 state），`prior_attrs` 只在仅含 update/delete 时可用、引用它的策略必须显式写 `operations`；0.5 起缺省的 `meta.*` 为 `null`（`meta.version != null ? … : false` 守卫，`&&` 不短路），`prior_attrs` 在 module/provider policy 中是解析错误 | 与合入面相关的只有 policy 引擎选型，见下「Terraform 1.17」一节：Terraform policy 已 GA，正文补一行与 0.4 默认值陷阱；其余 tfpolicy 语法细节不合入（Scope 不展开 HCP 平台功能） |
+| antonbabenko-terraform | 0a3a4a6 → 9c1e92d（1 提交） | `SKILL.md` 只改版本号 1.17.2 | 无影响 |
+| opentofu | f0f818d → 6356fbe（3 提交） | `CHANGELOG.md` 的 `1.14.0 (Unreleased)` 新增：模块 output 可声明类型（#4645）、从系统标准目录读取 `*.tfrc`（#4624）、`override_data`/`override_resource` 可覆盖非计算字段（#4777） | 无影响：均在未发布的 1.14 线（最新发布 v1.13.2 / v1.12.11）。差异表 output `type` 一行补注「main 分支 1.14 线已列入，1.13.x 仍拒绝」 |
+| nitinjain-platform-skills | 50031c1 → c2e75b7（1 提交命中） | `checkov-terraform-plan.sh`：不再用 `gh auth token` 从本机推导 GitHub 凭据，改为只读用户自己导出的 `GITHUB_PAT` | 无影响：本条为 reference，正文未复用该脚本 |
+| tflint | c82461f → eeb5377（2 提交） | `README.md`：Homebrew 安装改为 `brew install --cask terraform-linters/tap/tflint`；加 CONTRIBUTING 指引 | 无影响：正文未写安装命令 |
+| awesome-copilot-terraform、hashicorp-terraform、wshobson-terraform-specialist | — | 仓库移动、tracked paths 无变化 | 只 re-pin（见下 hashicorp-terraform 的盲区） |
+
+`--pin` 后逐条比对：全部条目写入的 `commit` 与审阅 HEAD 一致，无越界差额。
+
+### Terraform 1.17：tracked paths 漏掉的新小版本（事实更正）
+
+hashicorp-terraform 追踪的是 main 上的 `CHANGELOG.md`，切出发布分支后它只列下一个未发布版本，所以 2026-10-21 发布的 **Terraform 1.17.0**
+（当前 v1.17.1，2026-10-28）在本区间显示为「paths 无变化」。读 `gh api repos/hashicorp/terraform/releases/tags/v1.17.0` 并用下载的 1.17.1
+二进制实跑（`/tmp/hs-g04/tf117`），与正文相关的三点：
+
+1. **Terraform policy GA**：`plan`/`apply`/`query` 的 `-policies` 不再需要实验构建。实跑：1.16.2 报 `The -policies flag is only valid in
+   experimental builds of Terraform`；1.17.1 接受该参数，但评估要靠单独的 `tfpolicy-plugin` 引擎——releases.hashicorp.com 的 `tfpolicy` 0.5.0
+   压缩包只有 `tfpolicy` 本体（附 `EULA.txt`、`TermsOfEvaluation.txt`，HashiCorp 评估许可），没有该插件；缺插件时输出
+   `Failed to connect to policy engine … "tfpolicy-plugin": executable file not found in $PATH`，**照常打印计划并以 0 退出**。官方文档
+   （developer.hashicorp.com/terraform/policy、/policy/install）把执行面放在 HCP Terraform 策略集，本地只用 `tfpolicy test/validate`，要求 Terraform 1.16+。
+2. **`required_providers` 可用变量与 locals**：只限 `const = true` 的变量。实跑 1.17.1：普通变量报 `Unknown provider version … Only literal
+   values and const variables can be evaluated during init.`，加 `const = true` 后 `init` 安装 hashicorp/random v3.9.1，`source = local.x` 亦可；
+   OpenTofu 1.12.6 与 1.13.2 都拒绝（`Invalid source`、`Invalid version constraint`）。注意 web-unified-docs 的 v1.17.x `language/block/terraform.mdx`
+   仍写「terraform 块不能引用变量」，与发布说明和二进制不符，以后者为准。
+3. 顺带发现既有表述不完整：正文写「Terraform 1.15+ / OpenTofu 1.8+ 允许 module `source`/`version` 用变量」，但 Terraform 要求该变量声明
+   `const = true`（1.16.2 实跑：未声明时 `Unknown module source … Only literal values and const variables`，声明后通过）；OpenTofu 1.12.6、1.13.2
+   不要求、但接受 `const = true`，所以双运行时模块应声明它。官方 `variable` 块参考页有 `const`（「Allows the variable to be used during early
+   Terraform operations, such as initialization」）。
+
+正文改动（事实更正与版本对照补齐，不新增行为规则）：`SKILL.md` Scope 改为「差异表已按 OpenTofu 1.13 与 Terraform 1.17 复核」，主题路由补
+Terraform policy；`references/policy-and-security.md` 引擎表加 Terraform policy 一行与「缺插件仍 exit 0」「0.4 默认评估 no-op」两条注意；
+`references/opentofu-differences.md` Terraform-only 表加 `required_providers` 的 const 变量与 Terraform policy，「同功能不同版本」表注明 module
+source 变量需 `const = true`；`references/modules.md` 同步。SOURCES：hashicorp-terraform 的 contributes/notes 补 1.17 与上述盲区。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `first-fluke/oh-my-agent` `.claude-plugin/directory/skills/oma-tf-infra/SKILL.md` | REJECT | 插件目录生成副本（0f7024e），原件 `skills/oma-tf-infra` 早已存在；agent 人设式调度说明（Scheduling/Intent signature/Expected outputs），多云资源与 ISO 合规清单，无本 skill 未覆盖的可核实事实 |
+| `nitinjain999/platform-skills` `plugins/platform-skills/skills/terraform/SKILL.md` | REJECT | 同仓 90b97a9 生成的插件副本，原件 `skills/terraform` 早于旧 pin；fmt/validate/tflint/安全扫描流程本 skill 已覆盖 |
+| 同仓 `plugins/platform-skills/skills/opa`、`preflight`（C2） | REJECT | 同为插件副本；`opa` 是通用 Rego/Conftest 编写向导（本 skill 只写引擎选型与 plan JSON 结构），`preflight` 是 636 行跨文件类型的通用就绪检查，无新增事实 |
+
+## 2026-11-01 新候选仓库
+
+检索：`gh search repos <terraform skills|opentofu skill> pushed:>2026-10-15 --sort stars`，VoltAgent 区间新增（无 IaC 类）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 17 | `modulestf/modulestf` `.agents/skills/terraform-module-maintainer`、`change-scope` | https://github.com/modulestf/modulestf | 357 | 2026-10-31 | Apache-2.0 | terraform-aws-modules 家族的模块创建/变更/评审流程与约定 | 2 | 3 | 2 | 3 | 2 | 12 | REJECT（范围） | Anton Babenko 的 modules.tf 组织；抽查「示例区域固定 `eu-west-1`、第二区域只用 `us-east-1`」「不允许 `override.tf`/`*.tf.json`」等都是该家族的实测约定，正确但属单一模块家族与 AWS 字段；通用语言知识显式委托给已追踪的 antonbabenko/terraform-skill，强制 Terraform MCP 工具调用（agent 绑定） |
+| 18 | `pulumi/agent-skills` | https://github.com/pulumi/agent-skills | 78 | 2026-10-30 | Apache-2.0 | Pulumi | 3 | 3 | — | — | 2 | — | REJECT（范围） | Scope 明确不覆盖 Pulumi |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| terraform-docs-site | 风格指南、测试框架、import、模块重构、`terraform` 块、`variable` 块、S3 backend、workspace、check 页面：web-unified-docs 的 v1.16.x 与 v1.17.x 同名文件 blob SHA 完全相同 | https://developer.hashicorp.com/terraform/language/style 等 | 一致；`variable` 块的 `const` 参数页已有（据此补 module source 的 const 要求），`terraform` 块页仍写不能引用变量，滞后于 1.17 发布说明，已在上节注明 |
+| terraform-docs-site | Terraform policy 的执行面、本地 CLI、版本前提 | https://developer.hashicorp.com/terraform/policy 、/policy/install | 新增事实，见上节，已写入 `policy-and-security.md` |
+| opentofu-docs | 当前发布 v1.13.2（2026-10-21）、v1.12.11（2026-10-29）均为补丁；`website/docs`@v1.13 自 2026-10-01 起无提交 | https://opentofu.org/docs/ | 一致 |
+
+两条 docs 条目 `synced_at` 改为 2026-11-01。

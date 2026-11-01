@@ -177,7 +177,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`svelte`](skills/svelte/) | 框架 | Develops Svelte and SvelteKit applications with runes, routing and server data flows | 2026.10.15 | 11 |
 | [`tauri`](skills/tauri/) | 平台 | Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging | 2026.10.15 | 6 |
 | [`technical-writing`](skills/technical-writing/) | 任务 | Writes and audits READMEs, guides, reference docs, changelogs | 2026.10.15 | 20 |
-| [`terraform`](skills/terraform/) | 框架 | Manages infrastructure as code with Terraform or OpenTofu modules, state and providers | 2026.10.15 | 11 |
+| [`terraform`](skills/terraform/) | 框架 | Manages infrastructure as code with Terraform or OpenTofu modules, state and providers | 2026.11.01 | 11 |
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives features and bug fixes test-first and reviews tests | 2026.10.15 | 7 |
 | [`typescript`](skills/typescript/) | 框架 | Designs TypeScript types, fixes type errors and configures tsconfig builds | 2026.10.15 | 9 |
 | [`unity`](skills/unity/) | 平台 | Develops Unity games with C#, engine APIs, rendering and asset workflows | 2026.10.15 | 7 |

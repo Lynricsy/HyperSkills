@@ -1,9 +1,9 @@
 # Terraform and OpenTofu: what is actually different
 
 Verified against: Terraform 1.16.2, OpenTofu 1.12.6; the gap tables were rechecked against the
-OpenTofu 1.13 `CHANGELOG.md` and a 1.13.1 binary. Every version in this file was read from the
-two projects' `CHANGELOG.md` on the corresponding release branch, not from release notes
-summaries.
+OpenTofu 1.13 `CHANGELOG.md` and 1.13.1/1.13.2 binaries, and against the Terraform 1.17.0 release
+notes and a 1.17.1 binary. Every version in this file was read from the two projects'
+`CHANGELOG.md` on the corresponding release branch, not from release notes summaries.
 
 ## Contents
 
@@ -60,7 +60,9 @@ test suite under both binaries.
 | Actions (`action` blocks, resource action triggers, `-invoke`) | 1.14 | Provider-defined imperative operations outside the CRUD model, with `on_failure` modes of `halt`/`taint`/`continue` from 1.16 |
 | `import` blocks inside child modules | 1.16 | Below 1.16 they must live in the root module even when the target is in a child |
 | `terraform_data` `store` block | 1.16 | Holds ephemeral and sensitive values across plan and apply |
-| Explicit type constraints on `output` blocks | 1.15 | |
+| Explicit type constraints on `output` blocks | 1.15 | OpenTofu's main branch lists module output types for the unreleased 1.14 line; 1.13.x rejects `type` |
+| Variables and locals in `required_providers` (`source`, `version`) | 1.17 | Only `const = true` variables and locals built from them; OpenTofu 1.13.2 rejects them (`Invalid source`, `Invalid version constraint`) |
+| Terraform policy (`-policies` on `plan`/`apply`/`query`, `.policy.hcl`) | 1.17 GA | HCL policy framework enforced by HCP Terraform; experimental builds only before 1.17. See `policy-and-security.md` |
 | Sentinel policy enforcement | — | HCP Terraform / Terraform Enterprise only |
 
 ## Same feature, different version
@@ -75,7 +77,7 @@ not transfer:
 | S3 backend native locking (`use_lockfile`) | **1.11** | 1.10 |
 | `ephemeral` variables, outputs and resources | 1.10 | **1.11** |
 | `deprecated` on variables and outputs | **1.15** | 1.10 |
-| Variables and locals in `module` source/version | **1.15** | 1.8 |
+| Variables and locals in `module` source/version | **1.15** (variable needs `const = true`) | 1.8 |
 | Identity-based `import` blocks (`identity = {...}`) | 1.12 | 1.12 |
 | Write-only arguments (`*_wo`) | 1.11 | 1.11 |
 | `convert()` function | 1.15 | 1.13 |

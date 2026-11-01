@@ -64,5 +64,15 @@
       "Corrects Reviewer B on `required_version`: since OpenTofu 1.12 a `required_version` in a `.tf` file is treated as Terraform's constraint and ignored by OpenTofu, so `>= 1.15` neither blocks nor protects the OpenTofu callers; the OpenTofu floor (1.13, for `convert()`) belongs in a `.tofu` file, as `terraform { required_version = \">= 1.13\" }` or a `language { compatible_with { opentofu = \">= 1.13\" } }` block",
       "Prevents recurrence by running the module's tests under both binaries in CI (`terraform test` and `tofu test` on the same `.tftest.hcl` files, at the supported minimum versions), since only that proves dual-runtime support"
     ]
+  },
+  {
+    "skills": ["terraform"],
+    "query": "PR #212 for our shared edge-cache module: versions.tf and ci-and-notes.md (the plan job and Sven's notes) are in policy-gate/. Is Sven right that the policies are enforced and that we can drop Conftest, and can this be merged for both the Terraform and the OpenTofu consumers?",
+    "files": ["evals/files/policy-gate/versions.tf", "evals/files/policy-gate/ci-and-notes.md"],
+    "expected_behavior": [
+      "Rejects the conclusion that a green plan job proves enforcement: Terraform 1.17 accepts `-policies` without an experimental build, but evaluation needs the policy engine plugin (`tfpolicy-plugin`) on the runner, and with it missing Terraform 1.17.1 reports `Failed to connect to policy engine`, still prints the plan and exits 0 - so the job is green with no policy evaluated; the gate must check the evaluation output (or a deliberately failing policy), not the exit code, and the runner image with nothing else installed is exactly the failing case",
+      "Says Terraform policy does not carry over to OpenTofu: it is a Terraform-only (HCP Terraform-oriented) framework, the `tfpolicy` CLI is HashiCorp's own distribution rather than open source, and OpenTofu has no `-policies` equivalent, so the data team keeps Conftest/OPA over plan JSON (or the platform keeps both) rather than dropping Conftest for everyone",
+      "Flags `version = var.aws_provider_version` in `required_providers`: Terraform 1.17 allows variables there only when the variable is declared `const = true` (otherwise `init`/`validate` fail with `Only literal values and const variables can be evaluated during init`), and OpenTofu 1.13 rejects any variable in `required_providers` (`Invalid version constraint`), so for a module shared by both runtimes the constraint must be a literal (consumers narrow it in their own root `required_providers`)"
+    ]
   }
 ]

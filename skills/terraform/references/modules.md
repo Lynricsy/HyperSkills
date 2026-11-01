@@ -104,9 +104,12 @@ module "queue" {
   published rather than submoduled.
 - `terraform get -update` refreshes module sources; `init -upgrade` refreshes providers.
   Confusing the two is why "I pinned it and it still changed" happens.
-- Terraform 1.15+ and OpenTofu 1.8+ allow variables and locals in `source`/`version`. It works,
-  and it makes `init` depend on variable values — use it for a registry hostname, not to
-  select between modules.
+- Terraform 1.15+ and OpenTofu 1.8+ allow variables and locals in `source`/`version`. Terraform
+  accepts only a variable declared with `const = true` (otherwise `init` fails with `Only literal
+  values and const variables can be evaluated during init`); OpenTofu needs no flag but accepts
+  it, so a dual-runtime module sets it. Terraform 1.17 extends the same const rule to
+  `required_providers`, which OpenTofu 1.13 still rejects. It works, and it makes `init` depend on
+  variable values — use it for a registry hostname, not to select between modules.
 
 ## `count` versus `for_each`
 

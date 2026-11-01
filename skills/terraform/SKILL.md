@@ -4,7 +4,7 @@ description: "Manages infrastructure as code with Terraform or OpenTofu modules,
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -21,9 +21,9 @@ scanning, environment layering, the concrete feature gaps between the two runtim
 entry point to writing a provider.
 
 The body is written against **Terraform 1.16** and **OpenTofu 1.12**, with the runtime gaps
-rechecked against OpenTofu 1.13. Every rule that needs a newer runtime than 1.6 carries a
-gate such as `(Terraform 1.11+)`; where the two runtimes differ the gate names both, because
-they have diverged and a single number is now a wrong answer.
+rechecked against OpenTofu 1.13 and Terraform 1.17. Every rule that needs a newer runtime than
+1.6 carries a gate such as `(Terraform 1.11+)`; where the two runtimes differ the gate names
+both, because they have diverged and a single number is now a wrong answer.
 
 Not covered:
 
@@ -241,7 +241,7 @@ Paths below are relative to this skill's directory.
 | Backend selection and configuration, locking, splitting and sizing state, workspaces versus directories, sensitive values in state, backend migration, drift detection, recovery from a stuck lock or a corrupt state | Configuring a backend, splitting state, or recovering from a state incident | `references/state.md` |
 | `moved`, `import` (including `for_each` and identity forms), `removed`, `terraform state mv`, `list` blocks and `terraform query` for bulk discovery, generated-configuration cleanup | Changing addresses, adopting existing infrastructure, or retiring resources without destroying them | `references/refactoring.md` |
 | `.tftest.hcl` structure, `run`/`assert`/`expect_failures`/`plan_options`/`module`, plan versus apply mode, mock providers and overrides, set-type assertion traps, the CI command sequence, when Terratest is still the right tool | Writing or fixing tests for a module | `references/testing.md` |
-| Secrets that must not reach state, `sensitive` versus `ephemeral` versus write-only, policy engines (OPA/Conftest, Sentinel) and where they belong in the pipeline, configuration scanners, provider credential handling, the recurring findings worth automating | Reviewing for security, or adding a policy or scanning gate | `references/policy-and-security.md` |
+| Secrets that must not reach state, `sensitive` versus `ephemeral` versus write-only, policy engines (OPA/Conftest, Sentinel, Terraform policy) and where they belong in the pipeline, configuration scanners, provider credential handling, the recurring findings worth automating | Reviewing for security, or adding a policy or scanning gate | `references/policy-and-security.md` |
 | Feature-by-feature differences with the runtime that has each one, state encryption, provider `for_each`, `-exclude`, `enabled`, OCI sources, Stacks, list resources and actions, migration between the two | Supporting both runtimes, or deciding whether a feature exists on the target | `references/opentofu-differences.md` |
 | Plugin Framework resource and data-source structure, schema and plan modifiers, not-found and drift handling, waiters for eventually consistent APIs, acceptance tests, SDKv2 muxing and migration, generated documentation | Writing or reviewing a provider rather than a configuration | `references/provider-development.md` |
 

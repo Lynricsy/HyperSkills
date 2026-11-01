@@ -1,6 +1,6 @@
 # Secrets, policy-as-code and configuration scanning
 
-Verified against: Terraform 1.16, OpenTofu 1.12.
+Verified against: Terraform 1.16 and 1.17.1, OpenTofu 1.12.
 
 ## Contents
 
@@ -113,11 +113,22 @@ unredacted.
 | Conftest (Open Policy Agent) | Rego | Any pipeline, over plan JSON | Self-hosted pipelines; you want the policies in the same repository and testable offline |
 | OPA directly | Rego | Any pipeline, or a server | You already run OPA for other things |
 | Sentinel | Sentinel | HCP Terraform / Terraform Enterprise only | You are on that platform and want enforcement levels (advisory / soft-mandatory / hard-mandatory) tied to runs |
+| Terraform policy | HCL (`.policy.hcl`, tests in `.policytest.hcl`) | Enforced through HCP Terraform policy sets; the CLI flag `-policies=<dir>` on `plan`/`apply`/`query` is GA in Terraform 1.17 (experimental builds only before); `tfpolicy test`/`validate` locally | You are on HCP Terraform and want policies that read provider schemas, run at init (provider/module source and version), plan and apply time, and use `core::getresources()` — Terraform-only |
 
 For a self-managed setup, Conftest is the default: `conftest test tfplan.json` in the same job
 that produced the plan, with the policies versioned beside the configuration and unit-tested
-with `conftest verify`. Sentinel is not available outside HashiCorp's platform, so a policy
-written in it is not portable to OpenTofu.
+with `conftest verify`. Sentinel and Terraform policy are not portable to OpenTofu.
+
+Terraform policy needs care before it becomes a CI gate. The `tfpolicy` binary from
+releases.hashicorp.com ships under a HashiCorp evaluation licence, and the CLI evaluates
+policies through a separate `tfpolicy-plugin` engine. Measured with Terraform 1.17.1: without
+that plugin on `PATH`, `terraform plan -policies=./policies` prints `Failed to connect to policy
+engine`, then prints the plan and **exits 0** — the gate passes with no policy evaluated, so
+assert on the evaluation output, not on the exit code. Terraform 1.16.2 rejects the flag outright
+(`only valid in experimental builds`). From `tfpolicy` 0.4 a policy that omits `operations`
+also evaluates unchanged resources (`no-op`, i.e. the whole state), so a mandatory policy
+upgraded from 0.3 can start blocking runs on resources that already existed; set
+`operations = ["create", "update"]` when only changes should be checked.
 
 The `terraform-compliance` BDD project is archived; do not start new work on it.
 
