@@ -119,17 +119,6 @@ For a self-managed setup, Conftest is the default: `conftest test tfplan.json` i
 that produced the plan, with the policies versioned beside the configuration and unit-tested
 with `conftest verify`. Sentinel and Terraform policy are not portable to OpenTofu.
 
-Terraform policy needs care before it becomes a CI gate. The `tfpolicy` binary from
-releases.hashicorp.com ships under a HashiCorp evaluation licence, and the CLI evaluates
-policies through a separate `tfpolicy-plugin` engine. Measured with Terraform 1.17.1: without
-that plugin on `PATH`, `terraform plan -policies=./policies` prints `Failed to connect to policy
-engine`, then prints the plan and **exits 0** — the gate passes with no policy evaluated, so
-assert on the evaluation output, not on the exit code. Terraform 1.16.2 rejects the flag outright
-(`only valid in experimental builds`). From `tfpolicy` 0.4 a policy that omits `operations`
-also evaluates unchanged resources (`no-op`, i.e. the whole state), so a mandatory policy
-upgraded from 0.3 can start blocking runs on resources that already existed; set
-`operations = ["create", "update"]` when only changes should be checked.
-
 The `terraform-compliance` BDD project is archived; do not start new work on it.
 
 ## Writing a policy against plan JSON

@@ -696,7 +696,7 @@ hashicorp-terraform 追踪的是 main 上的 `CHANGELOG.md`，切出发布分支
    Terraform operations, such as initialization」）。
 
 正文改动（事实更正与版本对照补齐，不新增行为规则）：`SKILL.md` Scope 改为「差异表已按 OpenTofu 1.13 与 Terraform 1.17 复核」，主题路由补
-Terraform policy；`references/policy-and-security.md` 引擎表加 Terraform policy 一行与「缺插件仍 exit 0」「0.4 默认评估 no-op」两条注意；
+Terraform policy；`references/policy-and-security.md` 引擎表加 Terraform policy 一行（「缺插件仍 exit 0」「0.4 默认评估 no-op」两条注意起初也写入，D2 后撤回，见下）；
 `references/opentofu-differences.md` Terraform-only 表加 `required_providers` 的 const 变量与 Terraform policy，「同功能不同版本」表注明 module
 source 变量需 `const = true`；`references/modules.md` 同步。SOURCES：hashicorp-terraform 的 contributes/notes 补 1.17 与上述盲区。
 
@@ -722,7 +722,23 @@ source 变量需 `const = true`；`references/modules.md` 同步。SOURCES：has
 | 上游 id | 核对的事实 | 当前官方页面 | 结论 |
 |---|---|---|---|
 | terraform-docs-site | 风格指南、测试框架、import、模块重构、`terraform` 块、`variable` 块、S3 backend、workspace、check 页面：web-unified-docs 的 v1.16.x 与 v1.17.x 同名文件 blob SHA 完全相同 | https://developer.hashicorp.com/terraform/language/style 等 | 一致；`variable` 块的 `const` 参数页已有（据此补 module source 的 const 要求），`terraform` 块页仍写不能引用变量，滞后于 1.17 发布说明，已在上节注明 |
-| terraform-docs-site | Terraform policy 的执行面、本地 CLI、版本前提 | https://developer.hashicorp.com/terraform/policy 、/policy/install | 新增事实，见上节，已写入 `policy-and-security.md` |
+| terraform-docs-site | Terraform policy 的执行面、本地 CLI、版本前提 | https://developer.hashicorp.com/terraform/policy 、/policy/install | 新增事实，见上节；只把引擎表一行写入 `policy-and-security.md` |
 | opentofu-docs | 当前发布 v1.13.2（2026-10-21）、v1.12.11（2026-10-29）均为补丁；`website/docs`@v1.13 自 2026-10-01 起无提交 | https://opentofu.org/docs/ | 一致 |
 
 两条 docs 条目 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+新增场景 6（`evals/files/policy-gate/`：共享模块 PR 用 `version = var.aws_provider_version`，并以「1.17 的 `-policies` 计划作业全绿」为由要求两类消费方都弃用 Conftest），
+负例 4 复测。产物：`/tmp/hs-d2/G04-infra/terraform/omp-openai-gpt-6.1-sol-medium/{baseline,skill}/6`、`skill/4`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 [OK] EB2 [OK] EB3 [OK] | 186 s。基线自行在 VM 下载 1.17.1 实跑出 `Failed to connect to policy engine` 且 exit 0、OpenTofu 1.13.2 `flag provided but not defined: -policies`、两运行时对 `required_providers` 变量的报错原文，结论保留 Conftest、约束改字面量 |
+| 6 | gpt-6.1-sol medium | 有 | true | EB1 [OK] EB2 [OK] EB3 [OK] | 97 s，结论同基线，另补 OpenTofu 1.12+ 忽略 `.tf` 中 `required_version` 的版本门细节 |
+| 4 负例 | gpt-6.1-sol medium | 有 | false | EB1 [OK] EB2 [OK] EB3 [OK] | 36 s，按容器镜像问题作答，未引入 Terraform |
+
+结论：基线已全会，「缺插件时 `-policies` 仍 exit 0，门禁要看评估输出」这条**新规则不合入**，`policy-and-security.md` 中该段（含未经基线验证的
+「tfpolicy 0.4 未写 `operations` 时默认评估 no-op」）已删除；场景 6 留作哨兵。保留的是事实更正：引擎表的 Terraform policy 行（1.17 GA、
+Terraform-only、不可移植到 OpenTofu）、`required_providers`/module source 变量需 `const = true`、OpenTofu 1.13 拒绝该写法，这些与本次有 skill
+运行的结论一致，未引入回退。负例 `skill_read` 为 false。
