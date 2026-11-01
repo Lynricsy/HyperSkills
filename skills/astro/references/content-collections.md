@@ -1,6 +1,6 @@
 # Content collections
 
-Verified against: Astro 7.3
+Verified against: Astro 7.4
 
 ## Contents
 
@@ -70,9 +70,12 @@ export const collections = { blog, authors };
 
 Three things about this file are load-bearing:
 
-- The path is `src/content.config.ts`, not `src/content/config.ts`. The old
-  location is not read. `[official]`
-- `loader` is required. There is no `type: "content"` / `type: "data"` any more,
+- The path is `src/content.config.ts`, not `src/content/config.ts`. A config
+  left only at the old location stops the build with `LegacyContentConfigError`.
+  `[official]`
+- `loader` is required. There is no `type: "content"` / `type: "data"` any more
+  (in 7.4 a collection without a `loader` is skipped rather than rejected — see
+  Failure modes),
   and no implicit collection created by a folder under `src/content/` — that
   directory is now just a place the loader's `base` happens to point at.
   `[official]`
@@ -279,7 +282,9 @@ and feed the route cache without hand-written headers (Astro 7+).
 | Symptom | Cause |
 |---|---|
 | `Collection does not exist` after adding a folder | No collection defined; a folder under `src/content/` is not a collection by itself |
-| `Content collection missing loader` | `type:` was used instead of `loader:` |
+| Build passes, the collection's pages are empty, and the log warns `The collection "blog" does not exist or is empty` | The collection has no `loader:` (often a leftover `type: 'content'` / `'data'`). Astro 7 skips it at sync instead of erroring; add a `loader:` and delete `type:` |
+| `A content collection is defined with legacy features` | `type:` set alongside a `loader:`; delete `type:` |
+| `LegacyContentConfigError` (`Found legacy content config file`) | The config is still at `src/content/config.ts`; move it to `src/content.config.ts` |
 | Types missing right after editing the config | `.astro/types.d.ts` is stale; run `astro sync` |
 | `entry.slug` is `undefined` | Use `entry.id` |
 | `post.render is not a function` | Use the standalone `render(post)` |

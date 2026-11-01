@@ -21,9 +21,9 @@
     ],
     "expected_behavior": [
       "Moves the config from src/content/config.ts to src/content.config.ts and states that the legacy location is no longer recognised",
-      "Replaces type: 'content' / type: 'data' with a required loader, using glob({ pattern, base }) for the Markdown blog and file() or glob() for the authors data, and says collections without a loader now error",
+      "Replaces type: 'content' / type: 'data' with a required loader, using glob({ pattern, base }) for the Markdown blog and file() or glob() for the authors data, and says a collection without a loader is no longer loaded (Astro 7 skips it at sync, so it comes back empty with a 'does not exist or is empty' warning) rather than working as before",
       "Changes the Zod import from astro:content to astro/zod, and updates the Zod 4 forms (z.email(), z.url(), z.coerce.date()) instead of z.string().email() / z.string().url()",
-      "Distinguishes the removed APIs that actually break the Astro 7 build (legacy config location, type: without a loader, entry.slug, getEntryBySlug(), post.render(), Astro.glob()) from the deprecated ones that still load (z from astro:content, z.string().email()/url(), Astro.site in getStaticPaths), rather than presenting every item as a build failure",
+      "Distinguishes the removed APIs that actually break the Astro 7 build (legacy config location, entry.slug, getEntryBySlug(), post.render(), Astro.glob()) from the deprecated ones that still load (z from astro:content, z.string().email()/url(), Astro.site in getStaticPaths), and treats a loader-less type: collection as silently empty rather than as a build error, rather than presenting every item as a build failure",
       "Replaces entry.slug with entry.id in getStaticPaths params and in the reference lookup, and replaces getEntryBySlug() with getEntry()",
       "Replaces post.render() with the standalone render(post) imported from astro:content",
       "Replaces Astro.glob() with import.meta.glob() and notes that import.meta.glob() does not return a promise",

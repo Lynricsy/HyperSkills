@@ -1,6 +1,6 @@
 # Removed and changed APIs
 
-Verified against: Astro 7.3
+Verified against: Astro 7.4
 
 Read this before writing Astro code from memory. Most wrong Astro output is not
 invented — it is a correct Astro 4 or 5 answer that no longer runs.
@@ -19,7 +19,7 @@ invented — it is a correct Astro 4 or 5 answer that no longer runs.
 
 | | Requirement |
 |---|---|
-| Node | 22.12+ (18 and 20 dropped in Astro 6) |
+| Node | 22.23.4+ from Astro 7.4.2 (22.22.0 on 7.4.0–7.4.1, 22.12 on 6.0–7.3; 18 and 20 dropped in Astro 6) |
 | Vite | 8 in Astro 7, 7 in Astro 6 |
 | Zod | 4 (Astro 6+) |
 | Config file | `.mjs`, `.js`, `.ts`, `.mts` — CommonJS config removed |
@@ -32,7 +32,7 @@ invented — it is a correct Astro 4 or 5 answer that no longer runs.
 | `output: 'hybrid'` | `output: 'static'` (default) + `export const prerender = false` per route |
 | `src/content/config.ts` | `src/content.config.ts` |
 | `defineCollection({ type: 'content' \| 'data' })` | `defineCollection({ loader: glob(…) \| file(…) })` |
-| `legacy.collections` flag | Nothing; the content layer is the only implementation |
+| `legacy.collections` flag | Nothing; the content layer is the only implementation. `legacy.collectionsBackwardsCompat: true` (6.0+, still accepted in 7.4) temporarily keeps `src/content/config.ts`, loader-less `type:` collections, `entry.slug`, `entry.render()` and path-based ids loading — a migration aid to remove, not a target |
 | `entry.slug` | `entry.id` |
 | `getEntryBySlug()`, `getDataEntryById()` | `getEntry()` |
 | `entry.render()` | `render(entry)` from `astro:content` |
@@ -130,7 +130,7 @@ before assuming a config still applies.
 
 - [ ] `npx @astrojs/upgrade` — Astro and every official integration together, so
       the adapter and renderers move in lockstep.
-- [ ] Raise Node to 22.12+ locally and in the deploy target before anything
+- [ ] Raise Node to 22.23.4+ (Astro 7.4.2+) locally and in the deploy target before anything
       else; a version error there masks every other failure.
 - [ ] Delete the `experimental` block, relocating `cache`, `routeRules`,
       `logger` and `fetchFile` to the top level.

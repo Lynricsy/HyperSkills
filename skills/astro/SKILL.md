@@ -4,7 +4,7 @@ description: "Builds Astro sites with islands, content collections and server re
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -14,7 +14,7 @@ Paths below are relative to this skill's directory.
 
 ## Scope
 
-Astro application engineering, written against **Astro 7.3**: project and route
+Astro application engineering, written against **Astro 7.4**: project and route
 structure, the island model in both directions (`client:*` and `server:defer`),
 content collections and the content layer, output modes and adapters,
 `astro:actions`, middleware, sessions, `astro:env`, view transitions,
@@ -52,8 +52,12 @@ Not covered — do not answer from this skill:
 `references/removed-and-changed-apis.md` before writing or reviewing any Astro
 API from memory. Most incorrect Astro output is a correct Astro 4 or 5 answer:
 `output: 'hybrid'`, `entry.slug`, `post.render()`, `Astro.glob()`,
-`<ViewTransitions />`, `type: 'content'`. Each of those is removed, and each
-one fails at build time in a project that has upgraded. A second group —
+`<ViewTransitions />`, `type: 'content'`. Each of those is removed. Most fail
+at build time in a project that has upgraded; a collection left without a
+`loader` (the old `type: 'content'` form) is worse — Astro 7 skips it at sync,
+`getCollection()` returns `[]` with only a "does not exist or is empty"
+warning, and the build passes with empty lists and no generated pages. A
+second group —
 `z` from `astro:content`, `astro:schema`, a session driver given as a string —
 is deprecated but still loads in Astro 7, so a passing build does not make it
 correct; never write it into new code.
@@ -158,6 +162,10 @@ ls src/fetch.* 2>/dev/null                         # reserved filename in Astro 
 - An `experimental` block → check it against
   `references/removed-and-changed-apis.md`; most former flags are now build
   errors.
+- `legacy.collectionsBackwardsCompat: true` → the Astro 4 collection API
+  (`src/content/config.ts`, `type:`, `entry.slug`, `entry.render()`) still
+  loads, so the project is mid-migration; finish it and remove the flag rather
+  than writing new code against the legacy API.
 - Astro below 6 → the removals in that reference have not landed yet; say which
   version the advice targets instead of assuming the current API.
 
@@ -326,7 +334,7 @@ broken, not just heavy.
 
 ## Environment
 
-Node.js 22.12+; use the project's own package runner (`npm` / `pnpm` / `yarn` /
+Node.js 22.23.4+ (Astro 7.4.2 and later; 22.12+ up to 7.3); use the project's own package runner (`npm` / `pnpm` / `yarn` /
 `bun`).
 
 ```bash

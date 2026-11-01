@@ -61,3 +61,36 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 | withastro-docs | 移除 `@astrojs/db`、`astro:transitions` 内部常量与 `createAnimationScope()`；`getContainerRenderer()` 改从 `/container-renderer` 导入 | 同上 §Removed / §Deprecated | 一致 |
 
 7 条事实全部一致，正文未改，仅 `withastro-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+工作单 `/tmp/hs-sync/astro.md`：A 类（tracked paths 确有变更）为空；B 类两条为噪声。复跑树对比确认：
+`git -C /tmp/hs-attr/withastro__astro diff --stat 71e2b24 10dae2f -- .agents/skills/astro-developer .agents/skills/astro-code-review` 与
+`git -C /tmp/hs-attr/github__awesome-copilot diff --stat 3cf7c7e 5269f7e -- instructions/astro.instructions.md` 均为空。
+`--pin astro` 写入 `10dae2f`、`5269f7e`，与快照 HEAD 相等，无差额区间；其余三条 up to date。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| withastro-astro-skills | `71e2b24 → 10dae2f` | 无（树对比为空） | 未变更，仅 re-pin |
+| awesome-copilot-astro | `3cf7c7e → 5269f7e` | 无（树对比为空） | 未变更，仅 re-pin |
+| gigio-astro-dev / delineas-astro-framework / incluud-astro-skills | — | — | up to date |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 类为空（已追踪仓库区间内无预分配给本 skill 的新增 skill 类文件）。
+
+## 2026-11-01 文档上游复核
+
+核对来源：docs.astro.build 实读（[Install and setup](https://docs.astro.build/en/install-and-setup/) Prerequisites、[Upgrade Astro](https://docs.astro.build/en/upgrade-astro/) Node 政策）、
+`withastro/docs` 的 `upgrade-to/v6.mdx` 与 `v7.mdx`（v7 页最后修改 2026-08-24，上次复核后未变）、npm registry，以及 `withastro/astro@10dae2f`
+的 `packages/astro/CHANGELOG.md`（7.4.0–7.4.4）和 `packages/astro/src/content/*` 源码。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| withastro-docs | 版本基线：npm `astro` latest **7.4.4**（7.4.0 发布于 2026-10-15，晚于上次同步） | npm registry；CHANGELOG 7.4.0 | **过时，已修**：Scope 与 7 个 reference 的「Astro 7.3」改为 7.4。7.4.0 minor 只新增（`build --timings`、字体 provider `getFontProperties()`、实验 `redirectPage`/`parallelPrerender`、`astro/fetch`/`astro/hono` 的 `notFound()`、`image.service` 的 `build`/`runtime` 双服务、prerenderer 输出目录），7.4.1–7.4.4 为修复；均不改变正文依赖的移除项与默认值 |
+| withastro-docs | Node 最低版本 | Install and setup：「Node.js v22.23.4 or higher」；`astro@7.4.0/7.4.1` engines `>=22.22.0`，`7.4.2+` `>=22.23.4`（10 月 Node 安全发布，按政策的安全例外在 patch 中上调） | **过时，已修**：SKILL.md Environment、`assets-integrations-and-build.md`、`removed-and-changed-apis.md` 版本下限表与升级清单由 22.12+ 改为 22.23.4+（注明 7.4.0–7.4.1 为 22.22.0、≤7.3 为 22.12） |
+| withastro-docs | v6 移除旧版集合与 `legacy.collections`；`legacy.collectionsBackwardsCompat` 临时迁移开关 | `upgrade-to/v6.mdx` 206–235 行；源码 `schemas/base.ts:558` 在 7.4 仍接受该开关 | **遗漏，已补**：移除表 `legacy.collections` 行补上该开关保留的四项旧行为（且注明是待删除的迁移辅助）；SKILL.md 栈检测加一条「开关开着 = 迁移未完成」 |
+| withastro-docs | 无 `loader` / 带 `type:` 的集合在 Astro 7 的表现 | `upgrade-to/v6.mdx` 列 `ContentCollectionMissingALoaderError`、`ContentCollectionInvalidTypeError`；**但** 7.4 源码中这两个错误定义（`errors-data.ts`）无任何调用点：`defineCollection()` 无 loader 时置 `type: 'content'`，`content-layer.ts` 在开关关闭时直接跳过非 content-layer 集合，`getCollection()` 只 `warn` 「does not exist or is empty」并返回 `[]`；仅「`type:` 与 `loader` 同时出现」抛 `A content collection is defined with legacy features`，旧路径 `src/content/config.ts` 抛 `LegacyContentConfigError` | **事实更正（源码 + 实跑）**：本机 `astro@7.4.4` 最小工程（`type: 'content'` 无 loader + `getCollection('blog')`）`astro build` 退出 0，日志 `[WARN] [content] The collection "blog" does not exist or is empty`，页面输出 `count=0`。与 2026-09-29 遗留风险中基线在 7.3.5 的实测一致，该遗留就此关闭。改动：`content-collections.md` 故障表把「`Content collection missing loader`」换成三行（静默为空 / legacy features 报错 / `LegacyContentConfigError`），「旧路径不被读取」改为「只在旧路径时报 `LegacyContentConfigError`」；SKILL.md「Read first」不再称 `type: 'content'` 必在构建时失败；评测场景 2 的 EB2、EB4 同步改为「无 loader 集合静默为空」 |
+| withastro-docs | v7 升级指南：Rust 编译器、`src/fetch.ts` 保留名、Sätteri、`compressHTML: 'jsx'`、实验标志移除、`getContainerRenderer()` 弃用、`@astrojs/db` 移除 | `upgrade-to/v7.mdx`（2026-08-24 后无改动） | 一致 |
+
+5 组事实中 4 组过时或错误并当场修正；`withastro-docs` 的 `synced_at` 更新为 2026-11-01，notes 补「文档与源码冲突以源码为准」的记录。

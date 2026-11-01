@@ -1,6 +1,6 @@
 # View transitions and client-side routing
 
-Verified against: Astro 7.3
+Verified against: Astro 7.4
 
 ## Contents
 

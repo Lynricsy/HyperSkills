@@ -1,6 +1,6 @@
 # Images, fonts, integrations and the build
 
-Verified against: Astro 7.3
+Verified against: Astro 7.4
 
 ## Contents
 
@@ -249,7 +249,8 @@ Two Astro 7 behaviours to expect:
   browser closes an element early. It also serialises CSS colours and `url()`
   quoting differently, which only matters to exact-string tests. `[official]`
 
-Node 22.12 or newer is required.
+Node 22.23.4 or newer is required from Astro 7.4.2 (22.22.0 on 7.4.0–7.4.1,
+22.12 up to 7.3).
 
 ## Testing
 

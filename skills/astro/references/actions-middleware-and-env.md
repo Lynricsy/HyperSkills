@@ -1,6 +1,6 @@
 # Actions, middleware, sessions and typed env
 
-Verified against: Astro 7.3
+Verified against: Astro 7.4
 
 ## Contents
 

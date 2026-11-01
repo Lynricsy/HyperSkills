@@ -1,6 +1,6 @@
 # Routing, output modes and rendering
 
-Verified against: Astro 7.3
+Verified against: Astro 7.4
 
 ## Contents
 
