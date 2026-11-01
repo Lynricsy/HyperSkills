@@ -507,3 +507,30 @@ NAT 给无公网 IP 的 VM 出站；Dsv5 预留不跟到 Dasv5 需重算；删�
 | learn-azure | 新写入：`az costmanagement` 当前只有 `export` 与 `show-operation-result` | [az costmanagement](https://learn.microsoft.com/en-us/cli/azure/costmanagement?view=azure-cli-latest) | 一致，据此改正正文 |
 
 原有 4 组事实一致；新写入 4 组均与站点一致。`learn-azure` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：3183973（Core rule 4 / `entra-and-rbac.md` 角色分配命名；`aks-control-plane.md` NAP 限制与 `az aks stop`；`functions.md` Go on Flex 与 Windows
+迁移一句；`cost-and-quotas.md` `az costmanagement query` 移除；场景 1 EB2 改写，新增场景 11、12）。有 skill 结果全部晚于该提交（提交 11:50:50，首个
+有 skill 运行 11:51 开始）。场景 1 改过 `expected_behavior`，两侧重跑；场景 11 基线复用今天 11:44 的候选探针（夹具与期望此后未改）；场景 12 新增，两侧都跑。
+
+选场景：1（角色分配命名，覆盖 rule 4 更正）、11（`az costmanagement query` 更正）、12（NAP 限制 + Go on Flex 更正，新增回归场景）；负例 5。
+运行：`uv run tools/run_evals.py azure --only N [--baseline] --out /tmp/hs-d2/G03-cloud`（omp + `openai/gpt-6.1-sol` medium，VM，串行），
+产物 `/tmp/hs-d2/G03-cloud/azure/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✘ 6✔ 7✔ 8◐ 9✔ | 109 s。EB2：`guid(storage.id, site.id, blobRoleId)`，并明确「Use `site.id`, not the newly created `site.identity.principalId` … names must be computable at deployment start」（与更正一致）；未提 `getRoleAssignmentName()`（同文件 identity 场景本就不能直接用）。5：未提 `use-recent-api-versions` 默认关闭；8：未提硬编码 `eastus` 与 AVM |
+| 1 | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3◐ 4✘ 5✘ 6◐ 7◐ 8◐ 9✔ | 107 s。EB2 同样给出 `guid(resourceGroup().id, site.id, roleDefinitionId)` 并说不要用运行时 principalId；3：未给 Storage Blob Data Contributor 及 GUID；4：未提 linter 默认 warning 与 `bicepconfig.json` 升级 |
+| 11 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ 6✔ 7✔ | 154 s。「`az costmanagement query` was removed in extension **0.2.1**」，改 `az rest` 调 Query API 2025-03-01（与更正一致） |
+| 11 | gpt-6.1-sol medium | 无（复用） | False | 1✔ 2✔ 3✔ 4✔ 5✔ 6✔ 7✔ | 复用今天候选探针 `baseline/11`（见「新候选检索」）；EB2 未点名 0.2.1 |
+| 12（新增） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ 5✔ | 133 s。读 `aks-control-plane.md`：kubenet / Calico / Windows 池三项阻断、NAP 不能 stop 且与夜间停机二选一（并估算 11 h/天的停机收益）、NAP 后不能改 outbound type、节省不保证；Go 1.24+ 在 Flex 上 GA、HTTP/2 预览步骤不再需要、EP1 永不缩到零 |
+| 12（新增） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ 5✔ | 201 s。联网查 MS Learn 后同样全部达成，另提 CAS 与 NAP 并存需 `AllowClusterAutoscalerAndNAP` |
+| 5（负例） | gpt-6.1-sol medium | 有 | **False** | 1✔ 2✔ 3✔ | 151 s。按 Terraform `count` → `for_each` + `moved` 作答，未读 skill（2026-10-15 description 收窄后负例通过） |
+
+（编号按 `expected_behavior` 从 1 起数。）
+
+结论：四处更正在有 skill 时均体现在答案里，无回退；场景 11 有 skill 比基线多点名 0.2.1。场景 1、12 基线也能联网答对更正点，更正的价值在于消除
+正文里原本错误或不完整的陈述（`guid(scopeId, principalId, …)` 对同文件 identity 会 BCP120、「NAP usually beats autoscaler」与 `az aks stop` 并列、
+「Supported stacks」缺 Go、`az costmanagement query` 已不存在）。负例通过。遗留：场景 1 有 skill 仍漏 EB5（`use-recent-api-versions` 默认关闭）与
+EB8 的 location/AVM 部分——与本轮更正无关，各场景只跑 1 次。
