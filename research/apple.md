@@ -411,3 +411,62 @@ D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达
 结论：今天各处改动相关的行为在有 skill 时均达成（场景 6 E1 的宏答法、场景 7 E2/E3、场景 8 E3/E4、场景 10 E2、场景 11 全部），修正后不比基线差；场景 11 基线联网即可答对，留作哨兵。负例 `skill_read == false`。
 
 遗留：场景 8 E1、场景 7 E4 的解释深度属模型波动，与本次改动无关；`#Predicate` 局部常量写法的 store 翻译仍待在真实 `ModelContainer` 上验证。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/apple.md`。tracked paths 有变更的 2 条用
+`gh api repos/<o>/<r>/compare/<pin>...<审阅 HEAD>` 读 `.files[].patch`；`--pin apple` 写入的 commit 与审阅 HEAD 逐条相等（twostraws-swiftui
+`f2920b6`、tenequm-swift-dev `b648a09`、twostraws-swiftdata `8051f17`），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| twostraws-swiftui | f980071 → f2920b6（7 个提交命中 `swiftui-pro`） | `references/swift.md`：ISO 8601 解析示例改为 `try Date(myString, strategy: .iso8601)` | **事实更正**：本 skill `swiftui-localization.md` 同样写成不带 `try`。Apple 文档 `Date` 符号表两条 `init(_:strategy:)` 声明均为 `throws`（`init<T>(T.ParseInput, strategy: T) throws`），改为 `try` 并注明会抛错 |
+| 同上 | 同上 | `references/views.md`：`ReorderDifference.apply(to:)` 改为按 `sources` 顺序（用户选择顺序）插入移动项 | 无影响：本 skill 未收录该 helper（`reorderable()` / `reorderContainer` 只记可用性） |
+| 同上 | 同上 | `SKILL.md` 示例 `$0` 改具名参数；插件清单移到仓库根并删除嵌套副本 `swiftui-pro/skills/swiftui-pro/`（符号链接）；frontmatter 收进 Agent Skills 规范 | 噪声：`swiftui-pro/` 路径仍在，正文规则未变 |
+| tenequm-swift-dev | db4b27c → b648a09（1 提交） | `skills/swift-dev/SKILL.md`：Xcode 27.1 / iOS 27.1 SDK 已发布、27.2 在 RC；新增 iOS 27 SDK 必须声明启动屏、ODR 弃用、`PreviewProvider` 弃用、Catalyst 编译已知问题、`Thread.isMainThread` 在 async 上下文报错、`-parse-as-library`、`contextSize` | 触发两处**事实更正**（经官方核实，见「文档上游复核」）：`design-hig.md` 仍写 iOS 27.1 SDK「beta」；`latest-apis.md` 的「软弃用不报警」需按 27.2 SDK 的真实弃用版本补充。其余新增条目逐条见下节 |
+| twostraws-swiftdata | 922d989 → 8051f17 | 无（paths_unchanged） | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 节无预分配文件（twostraws/tenequm 区间内无新增 skill 类文件）。tenequm `swift-dev` 本次新增的条目逐条评估：
+
+| 候选 | 来源 | 结论 | 理由 |
+|---|---|---|---|
+| iOS 27 SDK 构建的 App 必须声明启动屏（`UILaunchScreen` 等），否则审核拒绝 | tenequm `swift-dev` | REJECT（基线已会） | 2026-10-15 场景 7 基线已答出（E1 ✔，见本文件 2026-10-15 节），场景 7 继续作哨兵 |
+| `PreviewProvider` 弃用，改 `#Preview` | 同上 | 并入事实更正 | `latest-apis.md` 替换表已有该行；文档 JSON `deprecatedAt: 27.0`，并入 27.2 弃用版本那段更正 |
+| On-Demand Resources / `NSBundleResourceRequest` 弃用，改 Background Assets | 同上 | REJECT（Scope） | 资源分发与 App Store 交付不在本 skill Scope（SwiftUI-first） |
+| Mac Catalyst：iOS 27.1 专属 API 在 Xcode 27.1/27.2 编译 Catalyst 失败 | 同上 | REJECT | 工具链已知问题，暂时性；编译器直接报错，无静默失败模式 |
+| `Thread.isMainThread` 在 Swift 6 async 上下文不可用，改 `MainActor.assertIsolated()` | 同上 | REJECT | 编译器直接报错且诊断自带说明，无静默失败模式，增量低 |
+| 单文件 `@main` 探针需 `swiftc -parse-as-library` | 同上 | REJECT | 调试技巧，错误信息自解释 |
+| Foundation Models 读 `SystemLanguageModel.default.contextSize` | 同上 | REJECT（Scope） | 本 skill 不覆盖 Foundation Models |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos`（"swiftui agent skill"、"ios skills claude"，按 stars/更新排序，筛 2026-10-01 后推送）、
+`VoltAgent/awesome-agent-skills` README 中 iOS/Swift/Apple 条目与本文件已评仓库求差集。指标均由 `gh api repos/<o>/<r>` 核实（2026-11-01）。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| raintree-technology/hig-doctor | 148 | 2026-10-29 | MIT | 1 | 3 | 1 | 3 | 0 | 8 | REJECT | 14 个 `hig-*` skill 基本是 HIG 原文转录加审计流程；本 skill 已直接以 HIG（apple-docs）为准，增量为零；Apple 文字无法经 MIT 再授权，许可记 0 |
+| truongduy2611/app-store-preflight-skills | 1406 | 2026-10-17 | MIT | 1 | 3 | 2 | — | 2 | — | REJECT（Scope） | App Store 审核拒绝模式扫描；App Store 提交明确不在本 skill Scope，建议记入 roadmap 由主人决定 |
+| wendylabsinc/claude-skills | 62 | 2026-10-27 | 无 | 1 | 3 | 2 | — | 0 | — | REJECT | 服务端 Swift（SwiftNIO、Hummingbird、Valkey）与自家平台流程，Scope 外且无许可 |
+| more-io/claude-apple-bridges | 49 | 2026-10-17 | MIT | 1 | 3 | — | — | 2 | — | REJECT | 让 agent 访问提醒事项/日历的 CLI 桥，是工具不是开发规则 |
+| ehmo/platform-design-skills | 637 | 2026-03-19 | MIT | 1 | 0 | 2 | — | 2 | — | REJECT | 推送超过 6 个月（新鲜度红线） |
+| efremidze/swift-patterns-skill | 12 | 2026-03-16 | MIT | 1 | 0 | — | — | 2 | — | REJECT | 超过 6 个月未更新 |
+| ramzesenok/iOS-Accessibility-Audit-Skill | 13 | 2026-03-01 | 无 | 1 | 0 | — | — | 0 | — | REJECT | 超过 6 个月且无许可 |
+
+## 2026-11-01 文档上游复核
+
+范围：`apple-docs`（唯一 `kind: docs` 条目）的 `contributes` 与正文引用的版本、发布状态、弃用版本、控件尺寸。读法同 2026-10-15：
+开发者发布 RSS、文档 JSON（`/tutorials/data/documentation/<path>.json` 的 `metadata.platforms`）、HIG JSON。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| apple-docs | 默认部署目标 iOS 27、Xcode 27 已发布 | https://developer.apple.com/news/releases/rss/releases.rss ：Xcode 27 (27A266a) 2026-09-14；Xcode 27.1 (27A9275) 2026-10-15；iOS/macOS 27.2 2026-10-26；Xcode 27.2 (27B52) 2026-10-29 | 一致；`contributes` 补 27.1 / 27.2 发布日期 |
+| apple-docs | iPhone Duo：`ArrangementView` 需 iOS 27.1 SDK | https://developer.apple.com/documentation/swiftui/arrangementview （各平台 `introducedAt: 27.1`，无 beta 标记） | **已变化 → 更正**：`design-hig.md` 原写「iOS 27.1 SDK, beta」，27.1 已随 Xcode 27.1 正式发布，改为「iOS 27.1 SDK, Xcode 27.1」；评测场景 5 的提问同步去掉「beta」 |
+| apple-docs | 软弃用 API「编译不报警」 | `foregroundColor(_:)`、`cornerRadius(_:antialiased:)`、`tabItem(_:)`、`navigationBarTitle(_:)` 的文档 JSON `deprecatedAt: 27.2`；`PreviewProvider` `deprecatedAt: 27.0` | **已变化 → 更正**：2026-10-15 记的「27.2 正式发布后需复核」已触发。Swift 只在部署目标（或外层 `#available`）≥ 弃用版本时报弃用（swiftlang/swift `lib/AST/AvailabilityRestriction.cpp` `getDeprecationRestrictionForAttr`：`availableRange->isContainedIn(*deprecatedRange)`；不在则只有软弃用标志）。`latest-apis.md` 补一段：iOS 27.0 目标下 `PreviewProvider` 已报警、27.2 这几行仍静默，表格仍是检查依据；「Verified against」补 27.2 复核 |
+| apple-docs | `Date(_:strategy:)` 是否抛错 | https://developer.apple.com/documentation/foundation/date （两条 `init(_:strategy:)` 均 `throws`） | **更正**（twostraws 上游触发）：`swiftui-localization.md` 补 `try` |
+| apple-docs | HIG 默认/最小控件尺寸 | https://developer.apple.com/design/human-interface-guidelines/accessibility （iOS/iPadOS、watchOS 44×44 / 28×28 pt；macOS 28×28 / 20×20；tvOS 66×66 / 56×56；visionOS 60×60 / 28×28） | 一致 |
+| apple-docs | `ControlActiveState` 自 macOS 27.2 弃用 | 同 2026-10-15 记录；27.2 现已发布 | 一致 |
+
+处理：三处正文更正（`latest-apis.md`、`design-hig.md`、`swiftui-localization.md`）；`synced_at` 更新为 2026-11-01。

@@ -1,7 +1,8 @@
 # Modern API index
 
 Verified against: iOS 26.6 SDK and the iOS 27 RC SDK. iOS 27 and Swift 6.4 have since
-shipped (September 2026).
+shipped (September 2026); deprecation versions re-checked against the documentation for
+Xcode 27.2 (released 2026-10-29).
 
 Read this before writing or reviewing any SwiftUI code. Model training data is dense with
 API shapes that still compile but are soft-deprecated, and this file is the fastest way to
@@ -10,6 +11,14 @@ avoid emitting them.
 A **soft-deprecated** API is marked deprecated in the SDK headers with a placeholder
 deprecation version (`100000.0`). It compiles without a warning. That is why it survives in
 training data and why it needs a lookup table rather than a compiler.
+
+The 27.2 SDK turns several rows of the table below into real deprecations at version 27.2
+(`foregroundColor(_:)`, `cornerRadius(_:antialiased:)`, `tabItem(_:)`,
+`navigationBarTitle(_:)`), and `PreviewProvider` is deprecated at 27.0. Swift reports a
+deprecation only where the deployment target (or an enclosing `#available`) is at or above
+that version: at an iOS 27.0 target `PreviewProvider` already warns while the 27.2 rows
+still compile silently, and below 27 none of them warn. The table, not the compiler, stays
+the check.
 
 ## Contents
 

@@ -1,5 +1,5 @@
 skill: apple
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: twostraws-swiftui
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/twostraws/SwiftUI-Agent-Skill
     paths: [swiftui-pro]
     ref: main
-    commit: f9800713b24580bc444931949aad4519128605e8
+    commit: f2920b63995263f57b3e198674e89a602efba6d2
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Nine-step review order, core instructions (default target for new apps, which 2.0.0 moved to iOS 27 with Swift 6.4 after iOS 27 shipped; no unsolicited third-party frameworks; one type per file), the review output format with worked examples, and rules for views, data flow, navigation, design, accessibility, performance, Swift style and hygiene. Its 2.0.0 note that ForEach over enumerated() needs an iOS 26 target was the cue for the corresponding availability correction, checked against the Swift standard library source."
 
   - id: avdlee-swiftui
@@ -22,7 +22,7 @@ upstreams:
     commit: 204dba7c67256a8b707ee3fbc5759a824191974f
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Correctness checklist of always-a-bug invariants, the topic-router pattern, the read-first deprecated-API index (including the corrected toolbarVisibility floor, the Visibility-only toolbarBackground deprecation, the back-deploying item-bound alert/confirmationDialog, and the iOS 27 defaultTabBarPlacement sidebar opt-in for iPhone), localization and scroll/focus/animation guidance, large and foldable iPhone display guidance (screen-structure choice, reflow reading order, ArrangementView nesting limits, hinge effects only), the corrected glassEffect signature, and the Instruments record-and-analyse workflow with its trace interpretation rules."
 
   - id: avdlee-update-apis
@@ -34,7 +34,7 @@ upstreams:
     commit: 204dba7c67256a8b707ee3fbc5759a824191974f
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Method for re-scanning Apple documentation to refresh the deprecated-API index after an SDK release; informed how latest-apis.md is structured for resync, no content copied."
 
   - id: yordi-liquid-glass
@@ -46,7 +46,7 @@ upstreams:
     commit: a6bac94c5a7a65ac42207452e3e63bb4eb7518e8
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Liquid Glass hard rules with per-symbol availability floors and confidence tags, the corrected availability table, the fabricated-API list, glass migration hygiene, morph preconditions, Reduce Motion gating, and Metal shader constraints."
     notes: "Its scripts/ is a derivative of AvdLee's Instruments parser. This skill keeps one parser lineage (AvdLee) and credits both authors rather than vendoring the derivative."
 
@@ -63,7 +63,7 @@ upstreams:
     commit: 6f9ff8d5ad6000491cb0f483a776b7062e41cd97
     license: NONE
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Apple-authored guidance used as the correctness oracle: view structure and invalidation boundaries, data-flow granularity, environment comparison, ForEach identity, conditional-modifier ban, soft-deprecation behaviour rules, iOS 27 SDK breakages, and UIKit scene-lifecycle modernization."
     notes: "No license grant; included under fair-use with attribution per project policy. Underlying guidance is Apple's, redistributed by the upstream repository."
 
@@ -76,7 +76,7 @@ upstreams:
     commit: d5770817d2622e1585b1f7eaebc791a9cb0959c8
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Build-settings intake table, task entry isolation against the synchronous prefix, the smallest-safe-fix ladder, the concurrency tool-selection table, and the Swift 6 migration validation loop."
 
   - id: twostraws-concurrency
@@ -88,7 +88,7 @@ upstreams:
     commit: bee3f69ba17142da148d3c5406f148ed62592b69
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Concurrency grep targets, the failure-mode catalogue (actor reentrancy, continuation misuse, swallowed errors, unbounded streams), the strict-concurrency diagnostic-to-fix mapping, and Swift 6.2 behaviour changes."
 
   - id: twostraws-swiftdata
@@ -97,10 +97,10 @@ upstreams:
     url: https://github.com/twostraws/SwiftData-Agent-Skill
     paths: [swiftdata-pro]
     ref: main
-    commit: 922d989473a9914210b41529a1ac5636aff4b8c1
+    commit: 8051f177a0076e7fd45bdf4ee687b070ba58fdc6
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "SwiftData model and relationship rules, temporary persistent identifiers, the predicate subset including the compile-clean patterns that crash at runtime, indexing, CloudKit constraints, and iOS 26 model inheritance."
 
   - id: twostraws-testing
@@ -112,7 +112,7 @@ upstreams:
     commit: 2d6bba14a3c8bf3694f218b92fffe617c41ae43e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Swift Testing conventions (structs over classes, no redundant @Suite, init over setUp), the expectation rules including why a leading bang defeats macro expansion, parameterised-test pitfalls, withKnownIssue semantics, and the XCTest mapping table."
 
   - id: avdlee-testing
@@ -124,7 +124,7 @@ upstreams:
     commit: 798e9b1a2bcac164d4f0c781908199e754f0bab6
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Async testing and waiting patterns, parallelization and isolation constraints, traits and tags usage, and the boundary where XCTest remains required for UI tests."
 
   - id: dadederk-a11y
@@ -136,7 +136,7 @@ upstreams:
     commit: dcc3a36ce1d0099341d545c1af4eb5a8c989bf66
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Topic checklist for assistive technologies beyond VoiceOver — Voice Control input labels, Switch Control scan cost, Full Keyboard Access focus order — plus the non-determinism framing; used to decide coverage, with prose written from Apple documentation."
     notes: "Last pushed 2026-03-09, marginally outside the six-month freshness bar, so it is reference-only rather than merged. Accessibility API surface is stable and its topic list remains accurate."
 
@@ -149,7 +149,7 @@ upstreams:
     commit: 05ba982bfeb0d77d3c97d4542b0ee15034d05f84
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Shipping-app perspective on SwiftUI performance triage and profiling intake; used to sanity-check the prioritisation order in the performance reference."
 
   - id: dpearson-swift
@@ -161,7 +161,7 @@ upstreams:
     commit: 8d90fd121a263355a4fb44fd082af1416a5c1c2a
     license: NOASSERTION
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Coverage map of niche Apple frameworks, used only to check this skill's scope statement for topic gaps. No content read into the prose."
 
   - id: rshankras-apple
@@ -173,7 +173,7 @@ upstreams:
     commit: 9ffb83138209057875698dd11c1720c657c47a92
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Freshness-CI approach for detecting stale API guidance; confirmed the decision to keep App Store and ASO topics out of this skill's scope."
 
   - id: tenequm-swift-dev
@@ -182,10 +182,10 @@ upstreams:
     url: https://github.com/tenequm/skills
     paths: [skills/swift-dev/SKILL.md]
     ref: main
-    commit: db4b27ce40acebb3371c0b995f7135636d0bdb3a
+    commit: b648a09c2a238d47fb690777c1095d210299ce58
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Three SwiftData and concurrency traps: enum cases named inside #Predicate fail in the macro, migration plans cannot pass through the SwiftUI modelContainer modifiers, and region-isolation errors appear only in a SIL-producing build, never in -typecheck."
     notes: "Each fact was re-verified before use (Swift 6.3.3 swift-foundation macro and SIL diagnostics, Apple documentation JSON for the modelContainer overloads). Its cloudKitDatabase default, isolated Codable conformance, memberwise-init test error and stored static versionIdentifier items were already handled by the baseline model and are not carried. The claim that an awaited @ModelActor runs on the main thread is unverified and excluded. The Xcode 27 build-breaker list stays out under research/apple.md ruling A12."
 
@@ -194,6 +194,6 @@ upstreams:
     url: https://developer.apple.com/documentation/
     license: NONE
     relation: merged
-    synced_at: "2026-10-15"
-    contributes: "Correctness oracle for every version floor, API spelling, and accessibility figure in this skill, including the release list that fixes the default deployment target at iOS 27 (Xcode 27 shipped 2026-09-14, iOS 27.0.1 on 2026-09-28) and the HIG's per-platform default and minimum control sizes."
+    synced_at: "2026-11-01"
+    contributes: "Correctness oracle for every version floor, API spelling, deprecation version and accessibility figure in this skill, including the release list that fixes the default deployment target at iOS 27 (Xcode 27 shipped 2026-09-14, iOS 27.0.1 on 2026-09-28, Xcode 27.1 with the iOS 27.1 SDK on 2026-10-15, Xcode 27.2 on 2026-10-29), the 27.2 deprecation versions of formerly soft-deprecated SwiftUI API, and the HIG's per-platform default and minimum control sizes."
     notes: "Apple developer documentation carries no open licence; facts are used and all prose is original. Availability floors are read from the documentation JSON (`developer.apple.com/tutorials/data/documentation/<path>.json`, `metadata.platforms`) and API spellings from the SwiftUI, UIKit, SwiftData, WebKit and Foundation symbol indexes (`tutorials/data/index/<framework>`); release dates from the developer releases RSS feed."

@@ -58,7 +58,7 @@
   },
   {
     "skills": ["apple"],
-    "query": "We're adding iPhone Duo support with the Xcode 27.1 beta; deployment target stays iOS 26. Adapt LibraryScreens.swift so each screen works well on the large inner display and when folded. Show the code.",
+    "query": "We're adding iPhone Duo support with Xcode 27.1; deployment target stays iOS 26. Adapt LibraryScreens.swift so each screen works well on the large inner display and when folded. Show the code.",
     "files": ["evals/files/LibraryScreens.swift"],
     "expected_behavior": [
       "Classifies the screens by structure before picking a technique: the settings list that pushes pages becomes a NavigationSplitView (no iPhone Duo-specific code; it collapses on compact width), rather than an ArrangementView or reserved-region code",
@@ -136,6 +136,16 @@
       "Raises the `dragContainer(for:…)` gate from iOS 26 to `#available(iOS 27, *)`, because `dragContainer` is iOS 27 (macOS 26)",
       "Removes the needless iOS 26 gates: `Tab(role: .search)` and the `Tab` API are iOS 18 and `ControlSize.extraLarge` is iOS 17, so at an iOS 18 target both work ungated and the fallback branches go",
       "Flags the 24×24 pt close button as below the HIG's 28×28 pt minimum control size on iOS (44×44 pt is the default to build to); the WCAG 24 px figure is not Apple's bar"
+    ]
+  },
+  {
+    "skills": ["apple"],
+    "query": "AgendaRow.swift in this directory was written by a contractor and does not build. We are also moving the app to Xcode 27.2 and raising the deployment target from iOS 17 to iOS 27.0. Fix the build, and tell the team lead which lines will show deprecation warnings at the new iOS 27.0 target and which only once the target reaches 27.2. Show the fixed file.",
+    "files": ["evals/files/AgendaRow.swift"],
+    "expected_behavior": [
+      "Fixes the build error by handling the throwing `Date(_:strategy:)` initializer (`try`, `try?` with a fallback, or a throwing helper) and keeps the `.iso8601` parse strategy instead of switching to `ISO8601DateFormatter` or `DateFormatter`",
+      "States that `PreviewProvider` is deprecated as of iOS 27.0, so it warns at the new target, and replaces `AgendaRow_Previews` with a `#Preview`",
+      "States that `foregroundColor(_:)` and `cornerRadius(_:)` are deprecated at 27.2, so they compile without a warning at an iOS 27.0 target and only warn once the deployment target reaches 27.2, and gives the replacements `foregroundStyle(_:)` and `clipShape(.rect(cornerRadius:))` (applied now or offered as a follow-up)"
     ]
   }
 ]

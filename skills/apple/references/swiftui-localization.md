@@ -125,7 +125,8 @@ Never hand-format a value that has a `FormatStyle`.
   is not universal.
 - If a manual date pattern is unavoidable for display, use `y` and never `yyyy`; `yyyy`
   produces the wrong year in some calendars. For data interchange this does not apply.
-- Parse with `Date(string, strategy: .iso8601)` rather than a `DateFormatter`.
+- Parse with `try Date(string, strategy: .iso8601)` rather than a `DateFormatter`; the
+  initializer throws on input it cannot parse.
 
 ## Layout and RTL
 

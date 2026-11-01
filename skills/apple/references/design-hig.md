@@ -98,7 +98,7 @@ conventions:
 
 - **iPadOS**: multitasking means the window is resizable at any moment; size classes, not
   device checks. Pointer and keyboard support are expected, not optional.
-- **Large and foldable iPhones** (iPhone Duo's inner display; iOS 27.1 SDK, beta): an
+- **Large and foldable iPhones** (iPhone Duo's inner display; iOS 27.1 SDK, Xcode 27.1): an
   iPhone can offer regular width. Choose by screen structure — rows that push pages →
   `NavigationSplitView`; a scrolling card feed → reflow into two columns; two peer regions
   → `ArrangementView` (`@available(iOS 27.1, *)`, never inside `ScrollView`, `List` or
