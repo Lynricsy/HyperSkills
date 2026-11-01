@@ -481,3 +481,19 @@ API/设置/版本事实；wshobson-unity-ecs 用 compare 确认 46891e7 → 7e2f
 正文改动：`unity-build.md`（批处理模式平台选择）、`unity-editor-and-testing.md`（关闭 domain reload 的效果）。评测：场景 4 新增期望 8
 （`SwitchActiveBuildTarget` 批处理不可用），新增场景 8（`run-stats/`：关闭 domain reload 时 SO 非序列化字段、
 `[RuntimeInitializeOnLoadMethod]`、静态事件残留）。
+
+## 2026-11-01 D2 回归
+
+隔离 VM，`uv run tools/run_evals.py unity --only <N> [--baseline] --out /tmp/hs-d2/G10-games-web3`，串行逐个运行；有 skill 结果均晚于正文
+提交 04a7bae。场景编号按 `--only` 的 1 起计。场景 4 本轮新增期望 8，两侧均重跑。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 4（CI 构建，新增期望 8） | openai/gpt-6.1-sol medium | 有 | True | 1、3、4、6、8（5/8；2、5、7 部分） | 期望 8 达成：`SwitchActiveBuildTarget` 批处理不可用、改 `-buildTarget android` 并在 C# 校验目标；期望 2 未提异步挂起、5 未提 `-nographics` 关闭日志与不能烘焙 GI、7 保留了 Development/AllowDebugging（只加了严格 shell 错误处理） |
+| 4 | openai/gpt-6.1-sol medium | 无 | False | 1、3、4、8（4/8；2、5 部分） | 基线同样引用 6000.3 `SwitchActiveBuildTarget` 页得出期望 8；缺 `-accept-apiupdate` 与 Development 标志 |
+| 8（run-stats，新增） | openai/gpt-6.1-sol medium | 有 | True | 1、2、3（3/3） | 指出注释错误（`[RuntimeInitializeOnLoadMethod]` 关闭 domain reload 仍运行）、`SubsystemRegistration` 清静态与事件、`BeginRun` 显式重置、`OnEnable`/`OnDisable` 成对订阅 |
+| 8 | openai/gpt-6.1-sol medium | 无 | False | 1、2、3（3/3） | 引 6000.3 domain-reloading 页，结论一致；回归场景不要求缺口 |
+| 5（ASP.NET 负例） | openai/gpt-6.1-sol medium | 有 | False | 负例：未读 skill | 路由正确 |
+
+结论：更正点（期望 8、场景 8）有 skill 均达成；场景 4 的期望 7（发布构建去掉 Development/AllowDebugging）本轮有 skill 一侧漏报，属既有
+规则的召回波动（正文 `unity-build.md` 示例已用 `BuildOptions.StrictMode` 并注明不带 Development），本轮未改该处，记为观察项；负例未误读。
