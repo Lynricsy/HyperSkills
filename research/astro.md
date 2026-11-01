@@ -132,3 +132,17 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 
 遗留：若要让评测直接覆盖「无 loader 集合静默为空」，需要一个配置已在 `src/content.config.ts`、但仍带 `type: 'content'` 且无 loader 的新夹具（本轮未加，
 理由：该事实已由实跑证明，且基线是否已会不影响事实更正的合入）。
+
+### 主代理补齐门禁：新增场景 5 直接覆盖「无 loader 集合静默为空」与 Node 下限
+
+上段遗留不符合「没有场景覆盖某处更正时新增一个回归场景」，源码阅读与本机实跑不能替代 VM 行为回归。新增场景 5：配置已在 `src/content.config.ts`（`evals/files/content.config.ts`），
+两个集合仍是 `type: 'content'` / `type: 'data'` 且无 loader；`evals/files/upgrade-ci-log.txt` 是构建全绿但两条「does not exist or is empty」告警、
+线上 `/blog` 为空的 CI 日志，并带 Node 22.12.0 下的 `EBADENGINE`（`required: { node: '>=22.23.4' }`，取自 `npm view astro@7.4.4 engines`）。
+产物 `/tmp/hs-d2/fix/astro/omp-openai-gpt-6.1-sol-medium/`，有 skill 运行晚于 `e59f32e`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5（新增） | gpt-6.1-sol medium | 无 | False | EB1 ◐ EB2 ✔ EB3 ✔ EB4 ✔ | 48 s。指出缺 loader、告警是关键信号，但「空查询导致无文章」标为 `[INFERENCE]`，没说 Astro 7 在 sync 时跳过无 loader 集合而不报错；`glob()` 修法、Node ≥22.23.4、`collectionsBackwardsCompat` 只作临时手段 |
+| 5（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 35 s。「Astro 7 skips these loader-less collections … without failing the build」；`glob()` 修法、Node ≥22.23.4，未推荐 `collectionsBackwardsCompat` |
+
+结论：EB1（本次更正的核心事实）基线 ◐ → 有 skill ✔，更正被行为证据覆盖；Node 下限两侧都达成（基线直接读了日志里的 engines）。上段遗留关闭。
