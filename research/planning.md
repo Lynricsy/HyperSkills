@@ -468,6 +468,7 @@ orchestkit MIT、mattpocock/skills MIT、antfu/skills MIT。
 | mattpocock `in-progress/software-factory`（C2） | REJECT | in-progress、`disable-model-invocation`；内容是设计「软件工厂」（agent 流水线）的术语表，属编排/ai-engineering 范畴 |
 | oh-my-agent `oma-architecture`（C3，G08 转来） | REJECT | 架构决策与 ATAM/CBAM 方法论、绑定其 archify 图引擎与 `.agents/results/` 产物；本 skill 的方案比较与 ADR（copilot-plan）已覆盖可移植部分，架构重设计不在 Scope |
 | antfu/skills `antfu-query`（C3，G07 转来） | REJECT | 改编自本 skill 已追踪的 mattpocock grilling，差异只是「用宿主的交互提问工具、每题 2–4 个选项」；这是宿主 UI 约定，且会与本仓库三 skill 共享的一轮编号文本提问格式分叉，其无工具时的回退正是本 skill 现行格式 |
+| rampstackco `skills/ticket-authoring`、`skills/dispatch-authoring`（G12 转来，主代理读原文） | REJECT | ticket-authoring 是 product 类工单模板（Jira/Linear 字段、各类型 definition of ready、研发资本化标记），本 skill 的任务拆分已要求验收命令与依赖，财务资本化不在 Scope；dispatch-authoring 是写给编码代理的无人值守交接单，属编排，skill-authoring 组已同判 REJECT |
 
 无 MERGE 项，`paths` 不变。
 
