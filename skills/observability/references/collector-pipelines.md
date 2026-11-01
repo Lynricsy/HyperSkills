@@ -61,8 +61,9 @@ metrics describe the sample, not the traffic.
 ## `memory_limiter`
 
 It is a safety valve, not a sizing tool. When the Go heap crosses the soft limit
-(`limit_mib - spike_limit_mib`) it refuses incoming data; past the hard limit it drops to protect
-the process.
+(`limit_mib - spike_limit_mib`) it refuses incoming data with a retryable error; past the hard
+limit (`limit_mib`) it additionally forces a garbage collection. It never drops data itself:
+refused data is lost only when the sender does not retry it.
 
 Placement is a convention the Collector does not enforce. Measured on 0.160.0, a pipeline
 declaring `processors: [resource, memory_limiter]` starts completely clean — `Memory limiter

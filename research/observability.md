@@ -522,3 +522,62 @@ SRE Workbook 读站点页面。
 已安装包的类型声明自行得出，该更正只是消除正文里的错误示例，无回退。负例 `skill_read == false`。正文无需修改。
 
 遗留：场景 2 的 4、8、9 与场景 3 的 4、5、10 两侧都未完全达成，与今天的改动无关，未调整。各场景只有 1 次运行。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 归因工作单（`/tmp/hs-sync/observability.md`）。ollygarden、otel-collector-contrib、prometheus 用主代理 blobless 裸仓库缓存
+`git diff <pinned> <head> -- <path>`；dash0、otel-semconv、otel-spec 用 `gh api …/compare` 取 patch。otel-collector-contrib 按简报不逐文件读：
+以区间内根 `CHANGELOG.md` 新增的 v0.164.0/v0.164.1 节（breaking / deprecation / enhancement / bugfix）为索引，只核对正文点名的组件、配置键、
+弃用与稳定性。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| ollygarden-otel-skills | 9900032 → 506c013 | `otel-collector`：按 v0.163/v0.164 刷新——`file_log`、`transform`、`resource_detection` 自 v0.164.0 进入 core 发行版；`PermissiveLabelSanitization` 与 `filelog.protobufCheckpointEncoding` Stable；`file_log` 默认 scope（`pkg.stanza.addDefaultScopeName`）；链式 `redaction` 的摘要属性归属；`routing` 在配置校验期解析 OTTL；`transform` `shared_cache` 去掉 experimental。其余 skill（semconv 包版本表、declarative-config 解析器表、OTTL、span-event 迁移、collector-builder、sdk-versions 生成索引、telemetry-emissions 230 个生成文件）均为带日期的版本刷新 | 无影响：本 skill 的 Collector 事实以 0.160.0 为基线并逐条带版本门，上述变化无一与正文陈述相反；正文不写发行版组件清单、redaction 摘要属性或 semconv 包版本 |
+| dash0-agent-skills | fd27094 → 76b6e98（2 提交） | `otel-collector`：示例改用 `otlp_grpc` 等新名并加 `sending_queue: { batch: {} }`；更正「未被 pipeline 引用的组件会导致启动失败」为「被静默忽略」；`batch` 处理器不再称已弃用；exporter 的内存队列默认开启、gzip 默认；**`memory_limiter` 超过 `limit_mib` 时是额外强制 GC，被拒数据只有发送方不重试才丢失**；`start_at` 默认是 `end`。`otel-ottl`：`error_mode` 默认值按组件不同（transform/filter 自 0.153 为 `ignore`，routing/signal_to_metrics 为 `propagate`，count/sum 无此键） | 前几条 dash0 追上了本 skill 已有的立场；**`memory_limiter` 一条暴露正文错误 → 更正**（见下）；`error_mode` 正文只在示例里显式写 `ignore`，未断言默认值 |
+| otel-semconv | 9878377 → 026271d | `http`/`db` README 措辞（databases→database）；版本选择列表加 `faas`；`non-normative`：RPC 语义约定标为 stable、gRPC 桶、k8s 内存 limit/request 利用率指标迁移 | 无影响：均在 main，未发版（最新仍 v1.44.0，正文按 v1.44.0 写） |
+| otel-collector-contrib | fc79b95 → 5044808 | v0.164.0 breaking：`connector/service_graph` 删除 stable 的 `virtualNode` 门；`prometheus`/`prometheus_remote_write` 永久保留前导下划线（禁用该门启动失败）；`pkg/ottl` 删除 stable 的 `ottl.set.allowNil` 门；`processor/filter` 删除 stable 的 `defaultErrorModeIgnore` 门；`receiver/prometheus` 删除 `IgnoreScopeInfoMetric` 门；`file_log` 的 protobuf 检查点门 Stable。deprecation：`probabilistic_sampler` 计数指标改名、`transform` 的 `flatten_data` 弃用（main 上已删除，未发布）。enhancement：`pkg/ottl` 三信号 Stable、`k8s_attributes` 可选 kubelet `/pods` 轮询、`resource_detection` env 检测器 include/exclude | 无影响：正文未引用上述门、指标名或选项；唯一的 OTTL `set` 示例带 `!= nil` 守卫 |
+| otel-spec | bb85bf4 → 25ebe40 | `trace/sdk.md`：Sampler 新增 Shutdown、导出到同步输出可不设超时、「SDK Span creation」移到 Tracer 下；`sdk-environment-variables.md`：新增 `OTEL_METRIC_EXPORT_MAX_BATCH_SIZE`，默认值变更允许安全例外 | 无影响：默认采样器 `ParentBased(root=AlwaysOn)` 与 `OTEL_TRACES_SAMPLER` 取值未变 |
+| prometheus | 6e69e84 → ef78ff6 | `docs`：OTLP delta 原生摄取推荐 `otlp-native-delta-ingestion`（`otlp-deltatocumulative` 弃用）、`promql-native-histograms-as-classic`、`query-cost` 特性门、`info()` 必须带至少一个匹配器、remote_write stateless 模式等；`CHANGELOG.md`：3.15.0、3.15.1（CA 证书去信任 emSign ECC Root CA - G3 与 Comodo AAA） | 无影响：正文 `info()` 仍为实验性、需 `promql-experimental-functions`（functions.md@ef78ff6 原文一致）；正文未写 delta 摄取与这些特性门 |
+| grafana-skills、addyosmani-agent-skills、o11y-dev-otel、rampstack-monitoring、awesome-copilot-appinsights | — | tracked paths 无变化 | 只 re-pin |
+
+`--pin` 后逐条比对：全部条目写入的 `commit` 与审阅 HEAD 一致。Collector 最新发布 v0.164.0（`opentelemetry-collector-releases`，2026-10-26），
+正文以 0.160.0 为基线的陈述不受影响，Scope 不改。
+
+### 事实更正：`memory_limiter` 越过硬限时不丢数据
+
+`references/collector-pipelines.md` 原写「past the hard limit it drops to protect the process」。官方 README（`open-telemetry/opentelemetry-collector`
+`processor/memorylimiterprocessor/README.md`）：超过软限开始拒绝数据并向前一个组件返回错误；「When the memory usage is above the hard limit the processor
+will additionally force garbage collection to be performed」。改为「软限起返回可重试错误拒收，硬限再额外强制 GC，自身不丢数据；只有发送方不重试时被拒数据才丢失」，
+与同节已有的「Refusal is a non-permanent error」一致。纯事实更正，不新增规则。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `NVIDIA/skills` `doca-telemetry-traceback-application`、`nvshmem-collect-performance-data` | REJECT | NVIDIA DOCA / NVSHMEM 产品专属的性能数据采集，不是通用遥测 |
+| `TencentCloudBase/CloudBase-AI-Toolkit` `ops-inspector`（两处） | REJECT | 腾讯云 CloudBase 单产品运维巡检 |
+| `TerminalSkills/skills` `skills/prometheus` | REJECT | 入门教程式（安装、scrape 配置、基础 PromQL）；本 skill 的基数与告警材料更深，已 REJECT 过同仓同类候选 |
+| `amd/skills` `flydsl-kernel-trace-analysis` | 不动，跨组 | GPU kernel trace 分析，属 model-serving / ml-training |
+| `elastic/agent-skills` `observability/csp-investigation`、`security/alert-analysis`（含 plugins 副本） | 不动，跨组 / REJECT | Elastic Security / Observability 产品内的调查流程，单一产品；若需评估归 elasticsearch（G06） |
+| `first-fluke/oh-my-agent` `.claude-plugin/directory/skills/oma-observability` | REJECT | 插件目录生成副本，agent 人设式调度说明 |
+| `grafana/skills` `grafana-lgtm/performance-rca` | REJECT（暂） | Grafana LGTM 栈内的 RCA 流程，依赖 Grafana 查询工具；与 `production-triage.md` 的厂商中立流程重叠，无可单独核实的新增事实 |
+| `nitinjain999/platform-skills` `plugins/platform-skills/skills/datadog`、`dynatrace`、`observability`，以及 C2 的 `dora`、`chaos`、`triage` | REJECT | 90b97a9 生成的插件副本（原件早于旧 pin）；Datadog/Dynatrace 为商业产品，`observability` 为通用向导，DORA 指标与混沌工程不在 Scope，`triage` 为泛化事故分诊 |
+
+## 2026-11-01 新候选仓库
+
+检索：`gh search repos <opentelemetry skills|observability agent skills|prometheus skill> pushed:>2026-10-15 --sort stars`，VoltAgent 区间新增（无遥测类）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| — | `SigNoz/agent-skills` | https://github.com/SigNoz/agent-skills | 20 | 2026-10-30 | MIT | SigNoz 产品 | 3 | 3 | — | — | 2 | — | REJECT | 单一可观测性产品的操作手册 |
+| — | `Dynatrace/dynatrace-for-ai` | https://github.com/Dynatrace/dynatrace-for-ai | 172 | 2026-10-29 | Apache-2.0 | Dynatrace 产品 | 3 | 3 | — | — | 2 | — | REJECT | 同上 |
+| — | `superloglabs/superlog` | https://github.com/superloglabs/superlog | 1476 | 2026-10-31 | Apache-2.0 | 可观测性产品本体 | — | — | — | — | — | — | REJECT | 是产品而非 skill |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| otel-docs | 信号与数据模型、资源、上下文传播、Collector 部署形态：`opentelemetry.io` 的 `concepts/signals`、`concepts/resources`、`concepts/context-propagation.md`、`collector/deploy` 自 2026-10-14 起无提交 | https://opentelemetry.io/docs/ | 一致 |
+| google-sre-workbook | 14.4×/1 h、6×/6 h 等多窗口多燃烧率参数与反对 `for:` 的建议 | https://sre.google/workbook/alerting-on-slos/ | 一致（页面仍含 14.4 倍规则） |
+
+两条 docs 条目 `synced_at` 改为 2026-11-01。
