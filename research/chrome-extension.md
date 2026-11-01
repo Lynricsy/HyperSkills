@@ -389,3 +389,30 @@ references 的「Verified against: Chrome 148」是核对时点标记，所引�
 | playwright-docs | 只在持久化上下文中加载、Chrome/Edge 已移除旁加载参数故用 `channel: 'chromium'`（也是无头前提）、从 service worker 取扩展 id、MV3 worker 空闲挂起后保留同一 `Worker` 且不再发 `serviceworker` 事件 | [Chrome extensions](https://playwright.dev/docs/chrome-extensions) | 一致 |
 
 11 组事实中 1 组过时（alarms 下限）已当场修正，三个 docs 条目 `synced_at` 更新为 2026-11-01；`references/service-worker.md` 的核对时点标记改为 Chrome 156。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（"chrome extension skill"、"browser extension agent skill"、"manifest v3 skills"，限 2026-10-10 后更新，均无有效结果）；
+`gh search code` 以 `wxt.config.ts` 搜 `SKILL.md`（31 个文件，其余多为单个项目内的自用 skill）；`github/awesome-copilot` 区间 3cf7c7e..5269f7e 新增文件中无扩展相关 skill；
+`VoltAgent/awesome-agent-skills` README 无新扩展类条目。已在上文候选表中的仓库不重复讨论。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | TerminalSkills/skills `skills/wxt` | https://github.com/TerminalSkills/skills | 188 | 2026-10-30 | Apache-2.0 | WXT 入门：init、目录结构、存储/消息、发布 | 1 | 3 | 1 | 3 | 2 | 10 | REJECT（内容裁决） | 抽查 3 条（0.21 需 Node 22+、`web-ext` 为可选 peer、Firefox/Safari 默认 MV2）均对，但全文是官方文档的教程式复述，本 skill 已直接追踪 wxt-docs，无增量 |
+| N2 | DobroslavRadosavljevic/skills `skills/wxt` | https://github.com/DobroslavRadosavljevic/skills | 3 | 2026-10-27 | MIT | WXT 全流程（配置、入口、ctx、UI、测试、发布、迁移） | 0 | 3 | 3 | 3 | 2 | 11 | MAYBE | 规则具体：`defineBackground` 的 `main` 不能 async、入口只允许零或一层嵌套、MAIN world 用 `injectScript`、`wxt:locationchange` 处理 SPA。前三条已在官方 [Entrypoints](https://wxt.dev/guide/essentials/entrypoints.html) / [Content Scripts](https://wxt.dev/guide/essentials/content-scripts.html) 核实——它们出自已追踪的 wxt-docs，不需要新上游；个人 3 星仓库。作为下轮「WXT 构建期陷阱」评测先行的线索记录 |
+| N3 | aktsmm/Agent-Skills `chrome-extension-dev` | https://github.com/aktsmm/Agent-Skills | 26 | 2026-10-30 | CC BY-NC-SA 4.0（frontmatter；API 报 NOASSERTION） | 日文扩展开发总览 + CWS API v2 提交 | 1 | 3 | 1 | — | 0 | — | REJECT（许可） | NC 条款不可作 merged；内容为技术栈推荐与 WXT 快速上手 |
+| N4 | Timeraa/skills `skills/wxt` | https://github.com/Timeraa/skills | 4 | 2026-03-11 | MIT | WXT | 1 | 0 | — | — | 2 | — | REJECT（新鲜度） | 最近推送 >6 个月 |
+| N5 | meiazero/wxt-skill | https://github.com/meiazero/wxt-skill | 2 | 2026-06-10 | MIT | WXT | 0 | 1 | — | — | 2 | — | REJECT | 个人单文件 skill，无新内容 |
+| N6 | yamadashy/repomix `browser/.claude/skills/browser-extension-developer` | https://github.com/yamadashy/repomix | — | — | MIT | repomix 自身浏览器扩展的开发约定 | — | — | — | — | — | — | REJECT（内容裁决） | 单一项目内部流程，非通用规则 |
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `fc478c4`（alarms 下限按 Chrome 版本区分；场景 1 第 6 条 expected_behavior 已改，两侧重跑）。结果目录：`/tmp/hs-d2/G02b-web-misc2/chrome-extension/omp-openai-gpt-6.1-sol-medium/`，有 skill 一侧在正文提交之后运行。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 1 | openai/gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2 ✗ EB3 ✔ EB4 ✔ EB5 ✔ **EB6 ✔** EB7 ✔ EB8 ◐ | 更正点：明确「0.1 分钟 = 6 秒、需要足够新的 Chrome、已安装的 Chrome 120–152 钳到 30 秒；用 0.5 分钟兼容 120+ 或声明最低版本」，未再说「被拒绝」。EB1 只说 API 调用会重置空闲计时器、未点名 30 秒；EB2 未提 `fetch` 30 秒响应上限；EB8 有 literal `true`，未说发送方 promise 解析为 `undefined` |
+| 1 | openai/gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ✗ EB3 ✔ EB4 ◐ EB5 ✔ EB6 ◐ EB7 ✔ EB8 ✔ | 基线自行读了当前 alarms 参考页，提到「Chrome 120 起 30 秒、当前文档写 1 秒」，但没有给出 153 分界或 `minimum_chrome_version` 方案；未区分 `storage.session` 与 `local` |
+| 4（负例） | openai/gpt-6.1-sol medium | 有 | false | ✔ | 普通网站 Playwright 登录测试，未读本 skill |
+
+结论：更正后的 alarms 事实被正确使用，未出现回归；EB1/EB2 两侧均未达成，属既有表现（与本轮更正无关），记录不处理。
