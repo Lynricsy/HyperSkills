@@ -444,3 +444,15 @@ marker、HTTP API 遇到多余 Prometheus 参数返回 400、`/api/v1/query_exem
 | elastic-docs | `index.max_result_window` 默认 10000 | [Index modules](https://www.elastic.co/docs/reference/elasticsearch/index-settings/index-modules) | 一致 |
 
 `elastic-docs` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 18a2143（`esql.md` FORK/FUSE/COMPLETION/SAMPLE 状态更正 + 实测补充 + 新增场景 7）。omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行；产物 `/tmp/hs-d2/G06-data/elasticsearch/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 9.5 上 FORK/FUSE 混合查询 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 66.3 s。9.4 起分支无隐式 LIMIT、FUSE 需有界输入；FORK GA 9.4 / FUSE GA 9.5；远程集群限制仅 9.3.0 前，另列 CCS 前提（两端 Enterprise、API key 远程连接、`remote_cluster_client`）；改写查询每分支 `LIMIT 1000` 并保留 `_index` |
+| 7 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 65.7 s。直接引用官方 FORK/FUSE 页得出同样结论 |
+| 5 负例（OTel 告警反查代码） | gpt-6.1-sol medium | 有（挂载） | false | — | 79.5 s |
+
+结论：更正后有 skill 4/4，不比基线差（基线 4/4）；场景 7 留作哨兵；负例未误读。
