@@ -494,6 +494,10 @@ octocat 的 GHSA 两份规则与锁文件更正合成新增场景 7（`evals/fil
 「SHA 是唯一不可变引用」，有 skill 一侧无回退。EB3 有 skill 一侧少说「发布不可撤回」，正文按决定未收录 GHSA 生命周期（基线已会），属模型取舍，
 不改正文。负例 `skill_read == false`。各场景只有 1 次运行。
 
+主代理补齐门禁：上表场景 7「有 skill」复用的是 11:56 的运行，早于正文提交，不符合「有 skill 结果必须晚于最后一次正文提交」。已重跑
+（产物 `/tmp/hs-d2/fix/github/omp-openai-gpt-6.1-sol-medium/skill/7/`，晚于 94bac9d）：skill_read True，1✔ 2✔ 3◐ 4✔ 5✔，110 s。锁文件 GA、传递依赖与
+仓库身份、可复用工作流仍需 SHA、`--migrate-local-actions`、allowlist 改按锁定 SHA 匹配全部达成；EB3 仍少「发布不可撤回」，与上表同档，无回退。
+
 ## 2026-11-01 跨组命中评估
 
 其他组转来的上游新增文件，`gh api` 读原文后裁决。github/awesome-copilot 已由本 skill 以 `awesome-copilot` 追踪。
