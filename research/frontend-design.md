@@ -810,6 +810,7 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 |---|---|---|
 | op7418/guizang-ppt-skill `SKILL.md`（AGPL-3.0，29034★，2026-10-30 推送）硬规则「大标题内强调字：英文用 italic + 300，中文用 `font-weight:400`（中文不用斜体）」 | REJECT（规则不合入，场景 18 留作哨兵） | AGPL 只能 reference。对照本 skill：`typography.md` 有「不依赖合成斜体/字重」，但「标题内强调用同族斜体或粗体」未点名 CJK。按规程新增场景 18（`lang="zh-CN"` 标题 `<em>` 斜体、已加载 Inter Italic、品牌规范要求同族斜体）先跑基线：基线明确说 Inter Italic 不覆盖汉字、浏览器会合成倾斜，改为 `font-style: normal` + 字重对比，并指出标题已是 700 必须降基准字重——4 条 expected_behavior 全达成（见下表），无缺口，不改正文 |
 | tushaarmehtaa/tushar-skills `plugins-labs/skills/mobile-first`（MIT，12★，2026-10-15 推送；`SKILL.md` + `references/{audit,patterns,standards}.md`） | REJECT | 320/375/768/1440 测量矩阵、200% 缩放与 320 CSS px 回流、`min-width: 0`/`minmax(0,1fr)`、24×24 AA 与 44×44 区分、安全区、容器内横向滚动区均已在 `layout-density-motion.md`、`accessibility.md`、`review-checklist.md` 覆盖；同仓 `interface-design`、`remove-ai-slop` 已于本日 REJECT。唯一可议的是视口单位：上游主张按意图在 `svh`（工具栏可见时也放得下）与 `dvh`（随工具栏实时变化）间选择，本 skill 写「移动端优先 `100dvh` 而非 `100vh`」——现有表述不构成事实错误（`100vh` 确按最大视口计算），作者权威度低，记为下轮可评估的细化，不改 |
+| melodic-software/claude-code-plugins `plugins/user-interface/skills/audit/SKILL.md`（MIT；G12b 跨组转来，主代理读原文） | REJECT | 上游 harness 的「按关注点分道审查 UI」命令（`diff/tree/launch` 参数、`--fix` 逐条确认、引用其 marketplace 合约文件）；可移植的触控症状（点击延迟、灰色闪烁、hover 粘滞）与真机验证已在 `review-checklist.md` 与 `layout-density-motion.md` 覆盖，其余是宿主专属流程 |
 
 ### 场景 18 基线
 

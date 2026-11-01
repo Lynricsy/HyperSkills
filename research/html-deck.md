@@ -385,6 +385,7 @@ event4u、oma-slide、playwright、carbon 用主代理的 blobless 裸仓库缓�
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 30 | arifszn/slide-wright | https://github.com/arifszn/slide-wright | 66 | 2026-10-24 | MIT | reveal.js（CDN）主题生成 + 两页预览确认门 + `check-deck.mjs` | 1 | 3 | 2 | 1 | 2 | 9 | MAYBE（未采纳） | 自称「单个自包含 HTML」却从 CDN 加载 reveal.js，与本 skill 离线双击可开的单文件契约冲突（正确 1）；可编辑 PPTX 导出属 `office`。唯一潜在增量是 `check-deck.mjs` 的「文本块相互重叠」检测（`scripts/deck_qa.mjs` 现查裁切、字号地板、字体未载入，不查重叠），需先建评测证明缺口，留待下轮 |
 | 31 | crawfordxx/xiaoma-studio | https://github.com/crawfordxx/xiaoma-studio | 16 | 2026-10-23 | MIT | 代码驱动动效视频（每帧是 t 的纯函数）+ 附带 HTML 幻灯片与落地页 | 0 | 3 | 2 | — | 2 | — | REJECT（范围） | 创建于 2026-10-13，主体是渲染成 MP4 的动效视频引擎（storyboard、拼图自检、音频合成、`qa.py` 查响度与跳帧），幻灯片也走同一 f(t) 渲染，不是本 skill 的固定画布放映产物；其 `lint.mjs` 的文字重叠检查与 slide-wright 同类，并入上一行的留待项。`slides skill` 检索的其余命中（bento、handdrawn、research-slides 等）均 ≤1★ 或无许可，留行以免重查 |
+| 32 | carnot-tech/jinba-consulting-pptx-skill | https://github.com/carnot-tech/jinba-consulting-pptx-skill | 1455 | 2026-10-30 | MIT | 日文咨询报告写作规范 + HTML 主产物（G12b 跨组转来） | — | 3 | — | — | 2 | — | REJECT（范围） | 主体是咨询式论证与日文行文规范，不是固定画布 deck 的工程与导出 QA；可编辑 PPTX 归 `office`，office 组已按形态 REJECT |
 
 ## 2026-11-01 文档上游复核
 

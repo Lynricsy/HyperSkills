@@ -424,6 +424,7 @@ marker、HTTP API 遇到多余 Prometheus 参数返回 400、`/api/v1/query_exem
 | elastic/agent-skills `plugins/kibana/skills/kibana-cases`（及 `skills/kibana/kibana-cases` 镜像，Apache-2.0） | REJECT（越界） | Kibana Cases（Security/Observability 事件工单）经 `elastic kb cases` 操作；Scope 明确「Kibana … Not covered by any skill here」，与候选表 #22 同类 |
 | elastic/agent-skills `skills/kibana/kibana-context-engine`（工作单 C 与 C2 分诊补充同一项，Apache-2.0） | REJECT（越界） | 查询 Kibana Context Engine 的 AI Index / Knowledge Indicators，要求 Kibana 9.6+（Stack 尚未发布，官方文档标为 Planned）并开启 `contextEngine:enabled`；属 Kibana 功能与未发布版本 |
 | first-fluke/oh-my-agent `.claude-plugin/directory/skills/oma-search/SKILL.md`（MIT） | REJECT | 「Search Router」是外部文档/网页/远程代码检索的调度 skill，与 Elasticsearch 无关（路径名误命中） |
+| elastic/agent-skills `skills/security/ml-integrations/SKILL.md`（及 `plugins/security/...` 镜像，Apache-2.0；G12b 跨组转来，主代理读原文） | REJECT（越界） | 经 Kibana Fleet 安装/排障 Elastic Security 的 ML 集成包（beaconing、dga、pad 等），要求 Kibana 9.4+、Platinum 及 `elastic` CLI；属 Kibana / Security 产品功能，Scope 已排除 |
 
 ## 2026-11-01 新候选检索
 
