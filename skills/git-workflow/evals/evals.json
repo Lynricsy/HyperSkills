@@ -80,5 +80,19 @@
       "Says a plain `git commit` after the resolution records the user as the author because nothing carries the original authorship, and finishes with `git commit -C 4e1f0a2` / `-c 4e1f0a2` (or an explicit `--author`) so Priya stays the author, optionally adding the `(cherry picked from commit 4e1f0a2)` provenance line",
       "Keeps docs/ops-runbook.md out of the backport commit — commits only the picked paths"
     ]
+  },
+  {
+    "skills": [
+      "git-workflow"
+    ],
+    "query": "staged-ttl.diff is what I have staged. It fixes issue #412 (reported by support), Priya Raman <priya@example.com> paired with me on it, and Sam Ortiz <sam@example.com> reviewed it. Write the exact commit message I should use, footer lines included — our changelog script reads them back out of git. Then name the branch for the follow-up I start next, which upgrades our Node runtime to v20.11. We follow Conventional Commits and Conventional Branch.",
+    "files": [
+      "evals/files/staged-ttl.diff"
+    ],
+    "expected_behavior": [
+      "Writes a Conventional Commits subject that matches the diff (a `fix` scoped to rates, imperative, no trailing period) and a body that explains why the stale rate was wrong rather than restating the diff",
+      "Writes every footer in git's `Token: value` trailer form — `Fixes: #412` (or `Closes: #412`), `Co-authored-by: Priya Raman <priya@example.com>`, `Reviewed-by: Sam Ortiz <sam@example.com>` — as one block with no blank lines, and does not use the colon-less `Fixes #412` form that git does not parse as a trailer",
+      "Names the follow-up branch with a dot-preserving version such as `chore/upgrade-node-v20.11` (or an equivalent valid type), and does not claim that dots are reserved for release branches or must be replaced with hyphens"
+    ]
   }
 ]

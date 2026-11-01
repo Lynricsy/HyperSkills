@@ -523,3 +523,64 @@ mattpocock-guardrails、fvadicamo-commit）区间内跟踪路径无提交，随 
 跟踪路径。git/git 许可仍 GPL-2.0（reference-only 不变），melodic、mattpocock 仍 MIT（`gh api` 核对）。
 
 结论：正文与 references 未改，未新增评测，未跑 D2；仅 re-pin、parham-worktree notes 补复核日期、版本号改为 2026.10.15。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/git-workflow.md`。melodic、awesome-copilot 在 `/tmp/hs-attr/<owner>__<repo>` 裸仓库缓存读树 diff；addyosmani、git/git 用 compare API 读命中 patch。
+`--pin` 后只有 melodic-resolve 越过审阅 HEAD（写入 899a46a，审阅 3a15fc1，差额 40 提交、compare 文件列表截断在 300）：改用 `commits?sha=899a46a&path=plugins/source-control/skills/resolve-conflicts` 取该路径最新提交，最新仍是已审阅的 87c423f9，差额区间不触及跟踪路径。其余条目 `commit` 均等于审阅 HEAD。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| melodic-resolve | 904db68 → 3a15fc1（写入 899a46a） | 87c423f9 新增纪律 2「即使用户要求也不用命令选边」（`checkout/restore --ours/--theirs`、`-X`/`--strategy-option`、`-s ours`、`checkout <ref> -- <path>`、`restore --source`、`show :2:<path> >`），先一句拒绝再逐文件解决；68880d00 gather-block 链接改为约定文档；0b2eaf4e CI 模式改为无 shell、读 `conflicts.json`、只改冲突文件 | 不合入，只 re-pin：CI 模式与 gather-block 是上游自家流水线；「用户明确要求也拒绝」与本 skill 的立场冲突——`conflict-resolution.md` 允许对真正生成的文件（锁文件、编译产物）选边后立即重新生成，且集成方式与取舍由用户决定。核心规则 12 已把 `-X ours/theirs` 与 `checkout --ours` 定性为整块删除对方工作；补列等价命令属新增内容，需另起评测，记待定 |
+| addyosmani-git | aeac41d → 8bfcc1f | 9c3d367 只改 description（内联粘贴 diff 也适用）；30187c1 暂存区密钥扫描改为 `git diff --staged -i -G'…' --name-only`，避免把凭据回显到输出 | 不合入，只 re-pin：description 属本地路由维护；本 skill 的提交前清单紧前一步就是 `git diff --staged` 全文阅读，`-G` 扫描只负责标记，加 `--name-only` 并不能让密钥离开记录，正文不动 |
+| awesome-copilot-commit | 3cf7c7e → 5269f7e | `skills/git-commit/SKILL.md` 重写：footer 写 `Token: value` 或 `Token #value`，**Git 只把 `Token: value` 读作 trailer**；`build` 与 `chore` 分开；`git reset -q --` 取消暂存；冲突后 `git add --resolved`（声明需 Git 2.56）；不用实验性 `git history`。`commit-message-storyteller` 拆出 `build` 类型，其余为 Markdown 排版 | **事实更正已合入**：本机 git 2.56.0 实测 `git interpret-trailers --parse` 对我们示例块（`Fixes #412`/`Refs #398`/`Co-authored-by:`/`Reviewed-by:`）输出为空——不仅 `Fixes #412` 不算 trailer，整块因无 git 生成的 trailer 而不被识别，连 `Co-authored-by` 也丢失；改为冒号形式后四行全部解析。`commits-and-messages.md` 示例与 `-m "Fixes: #412"` 改为冒号形式，并补「Git 只解析冒号形式、混入会让整块失效、用 `--parse` 预检」；GitHub 文档确认关键字可带冒号（`Closes: #10`）。`build` 类型已有；`git add --resolved` 本机 `git add -h` 确认存在（`--[no-]resolved  add conflict-resolved tracked files`），属新增内容，记待定 |
+| awesome-copilot-branch | 3cf7c7e → 5269f7e | `skills/conventional-branch/SKILL.md`：规范站迁到 conventionalbranch.org（1.1.0）；新增 AI 代理来源前缀 `ai/`、`claude/`、`codex/`、`copilot/`、`cursor/`；**点号允许出现在任何描述里**（原「只在 release/ 版本号里」）；新增 commit-check 校验 | **事实更正已合入**：读 https://conventionalbranch.org 规范正文与 ABNF（`desc-segment = 1*(ALPHA / DIGIT) *("." 1*(ALPHA / DIGIT))`，示例 `chore/upgrade-node-v20.11` 有效）确认。`branching-and-worktrees.md` 改为「点号可出现在任何描述里，通常用于版本号」，保留不连续、不与连字符相邻、不在首尾；SOURCES `contributes` 同步。AI 代理前缀与 commit-check 不合入（本 skill 的分支类型沿用提交类型词汇，`git check-ref-format --branch` 已作校验） |
+| git-docs | 6de20f6 → 50fe5cc（48 提交，v2.56.0 之后的下一版开发） | 只核对正文引用的命令/选项/版本事实，见下方「git Documentation 区间核对」 | 无需改正文，re-pin |
+| obra-worktrees / obra-finishing | bb92a77 → 2ce8aa1 | 跟踪路径无变化 | 噪声，re-pin |
+| mattpocock-conflicts / mattpocock-guardrails | 49dd158 → 4ae2317 | 跟踪路径无变化 | 噪声，re-pin |
+| getsentry-commit | d18b7aa → d12f250 | 跟踪路径无变化 | 噪声，re-pin |
+| fvadicamo-commit | 8e710c5 | 未移动 | 无动作 |
+| parham-worktree | 97a62c4（MISSING） | 2026-11-01 复核：`gh api repos/1995parham/parham-plugins` 仍 404；账号活跃（100 个公开仓库，名称无 plugin/skill/agent/worktree/marketplace），`gh search repos parham-plugins`、`gh search repos "git-worktree skill user:1995parham"`、`gh search code "filename:SKILL.md git-worktree user:1995parham"` 均为空 | 保留条目，notes 追加复核结果；`--pin` 不动它 |
+
+### git Documentation 区间核对
+
+本机 `git version 2.56.0`；git/git 标签最新为 v2.56.0，区间内 `GIT-VERSION-GEN` 为 `v2.56.GIT`，下列行为均**未发布**。
+
+| 区间变更 | 正文相关位置 | 结论 |
+|---|---|---|
+| 52890fc blame 默认读取工作树根的 `.git-blame-ignore-revs`（裸仓库读 `HEAD:`），`--no-ignore-revs-file` 或空值关闭 | `bisect-and-archaeology.md`：`blame.ignoreRevsFile`（惯例 `.git-blame-ignore-revs`）让忽略永久生效 | 对已发布的 2.56.0 仍准确；默认读取未发布，记待定，发布后补「新版无需配置」 |
+| e4bf62f/5f6b6aa rerere 等待 `MERGE_RR.lock`（`rerere.lockTimeout`，默认 1000 ms），`gc --skip-locked` | 规则 15 与 `conflict-resolution.md` rerere 两种误导状态 | 不涉及，无影响 |
+| 1c0cec6 `git history` 支持 `--gpg-sign` | 正文未提 `git history` | 无影响 |
+| 72c41c3 `@{p}` 作为 `@{push}` 简写 | 正文未提 | 无影响 |
+| 42017ff interpret-trailers 文档示例措辞修正 | `commits-and-messages.md` 的 `git interpret-trailers --trailer` | 只改示例说明文字，无影响；冒号形式本身另行实测（见上表） |
+| c5f8f60 `git remote set-head` 只影响本地 | 正文用 `git symbolic-ref refs/remotes/<remote>/HEAD` 读默认分支，未用 set-head | 无影响 |
+| `git status` 合并冲突后改提示 `git merge --continue` | 正文结束合并的写法 | 无影响（正文未依赖提示文字） |
+| includeIf `hostname:`、`git var` 新变量/`-z`、format-patch `--range-diff-notes`、core.pager LESS 示例、refs 子命令分组、section 7 SYNOPSIS | 正文未引用 | 无影响 |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 的新增文件逐个用 `gh api .../contents` 读原文；许可用 `gh api repos/<o>/<r>` 核实。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| first-fluke/oh-my-agent `oma-scm`（3 份副本：directory、domains/frontend、domains/research；MIT，1356★） | REJECT | 通用 SCM 路由 skill（提交拆分、冲突保留双方意图、不强推、密钥只报路径不回显值），全部已覆盖；无可验证的新事实 |
+| modelcontextprotocol/typescript-sdk `examples/**/skills/git-workflow/SKILL.md`（NOASSERTION） | REJECT | SDK 示例夹具，三行团队约定 |
+| nitinjain999/platform-skills `commit`（Apache-2.0，71★） | REJECT | 通用 Conventional Commits 生成器；footer 示例 `Fixes #<issue>` 恰是 git 不解析的形式 |
+| shipshitdev/skills `skills/git`（无 SPDX，38★） | REJECT | Bun/gh 专用九合一路由（`disable-model-invocation`），PR/CI 部分属 `github` skill；无许可 |
+| melodic「即使用户要求也拒绝选边」与补列的等价选边命令 | 待定 | 见上表；若要合入需先建「用户要求直接 take theirs」场景跑基线 |
+| awesome-copilot `git add --resolved`（Git 2.56） | 待定 | 本机 2.56.0 确认选项存在；作为「暂存已解决文件、有冲突标记则拒绝」的安全写法有价值，但属新增内容，需另起评测 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "git worktree skill" --updated >=2026-10-15`、`"merge conflict resolution skill claude" --updated >=2026-10-15`、`"conventional-branch"`；VoltAgent/awesome-agent-skills 2026-10-15 以来 README 新增条目（无 git 工作流相关）；awesome-copilot 区间新增 skill（无 git 相关）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| conventional-branch/conventional-branch（`content/_index.md` 规范正文） | 143 | 2026-10-31 | CC-BY-4.0 | 权威 3 新鲜 3 具体 3 正确 3 许可 2 = 14 | INCLUDE 为 `relation: reference`（id `conventional-branch-spec`）：分支命名规范本体，awesome-copilot 版本是其派生；CC-BY 只作校验、不复制文字 |
+| commit-check/commit-check | 82 | 2026-11-01 | MIT | 权威 1 新鲜 3 具体 2 正确 - 许可 2 = 8- | REJECT：校验工具而非知识来源；本 skill 用 `git check-ref-format --branch` 已足够 |
+| michalschroeder/claude-statusline | 2 | 2026-10-15 | MIT | ≤4 | REJECT：状态栏脚本，与 git 工作流无关 |
+| R0drig0V1/claude-code-multi-agent | 1 | 2026-10-17 | MIT | ≤4 | REJECT：多代理编排样例，worktree 内容为通用口号 |
+
+## 2026-11-01 文档上游复核
+
+本 skill 无 `kind: docs` 上游（工作单 D 为空；git-docs 是 `kind: repo`，已在上方区间核对）。

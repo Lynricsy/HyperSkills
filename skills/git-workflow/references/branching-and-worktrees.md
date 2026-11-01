@@ -39,8 +39,9 @@ where the project uses them). Keep the description kebab-case, three to six word
 Constraints that are worth knowing because they fail late rather than at creation time:
 
 - Lowercase only, and `a-z0-9-.` only. No underscores, no spaces, no capitals.
-- Dots are reserved for release versions (`release/v1.2.0`); avoid them elsewhere, and never
-  produce `..`, `-.`, `.-`, `--`, or a leading/trailing `-` or `.`.
+- Dots are allowed in any description, typically for a version (`release/v1.2.0`,
+  `chore/upgrade-node-v20.11`; Conventional Branch 1.1.0), but never produce `..`, `-.`, `.-`,
+  `--`, or a leading/trailing `-` or `.`.
 - `main`, `master` and `develop` are trunk names. Branch *off* them; never create a topic branch
   that reuses one of those names.
 - `git check-ref-format --branch <name>` rejects a name git itself will not accept. Use it when
@@ -208,4 +209,4 @@ while the worktree still exists, or note the SHA.
   expensive half of conflict resolution and that agent still has it.
 - `git worktree list --porcelain` is the inventory; `git worktree prune` after any manual cleanup.
 
-<!-- sources: obra-worktrees, obra-finishing, parham-worktree, addyosmani-git, awesome-copilot-branch, getsentry-commit, mattpocock-conflicts, git-docs -->
+<!-- sources: obra-worktrees, obra-finishing, parham-worktree, addyosmani-git, awesome-copilot-branch, conventional-branch-spec, getsentry-commit, mattpocock-conflicts, git-docs -->

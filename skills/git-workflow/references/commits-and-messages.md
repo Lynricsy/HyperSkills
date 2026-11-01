@@ -137,18 +137,25 @@ diff is attached.
 ## Trailers and footers
 
 ```
-Fixes #412
-Refs #398
+Fixes: #412
+Refs: #398
 Co-authored-by: Name <email>
 Reviewed-by: Name <email>
 ```
 
-Trailers go last, one per line, no blank lines between them. `git interpret-trailers --trailer
-'Fixes: #412'` appends one correctly if you are generating messages programmatically;
+Trailers go last, one per line, no blank lines between them, each as `Token: value`. Git parses
+only the colon form (the default `trailer.separators` is `:`). Conventional Commits also allows
+`Fixes #412`, but git does not read that line as a trailer, and a block that mixes it in with no
+git-generated trailer such as `Signed-off-by:` is not a trailer block at all — verified on git
+2.56.0: `git interpret-trailers --parse` returns nothing for the block above written with
+`Fixes #412` / `Refs #398`, dropping `Co-authored-by` and `Reviewed-by` with it.
+`git interpret-trailers --trailer 'Fixes: #412'` appends one correctly if you are generating
+messages programmatically; `git interpret-trailers --parse` checks a block before you commit it;
 `git log --format='%(trailers:key=Fixes,valueonly)'` reads them back.
 
 Whether an issue-closing keyword actually closes anything is a property of the forge, not of git —
-that belongs to the `github` skill.
+that belongs to the `github` skill. GitHub documents the colon form (`Closes: #10`) as valid, so
+`Fixes: #412` costs nothing there.
 
 ## Creating the commit without an editor
 
@@ -157,7 +164,7 @@ Pass one `-m` per paragraph. Git joins them with a blank line, which is exactly 
 ```bash
 git commit -m "fix(rates): honour the cache TTL when reading" \
            -m "The cache was checked for presence only, so a stale rate stayed in use." \
-           -m "Fixes #412"
+           -m "Fixes: #412"
 ```
 
 Do not put a literal `\n` in an argument — it lands in the message as backslash-n. A heredoc

@@ -1,0 +1,33 @@
+diff --git a/src/rates.ts b/src/rates.ts
+index 3b1c9e2..8f04d1a 100644
+--- a/src/rates.ts
++++ b/src/rates.ts
+@@ -12,9 +12,13 @@ const cache = new Map<string, { rate: number; storedAt: number }>();
+ export function readRate(pair: string, now = Date.now()): number | undefined {
+   const hit = cache.get(pair);
+-  if (hit) {
+-    return hit.rate;
+-  }
+-  return undefined;
++  if (!hit) {
++    return undefined;
++  }
++  if (now - hit.storedAt > DEFAULT_TTL_MS) {
++    cache.delete(pair);
++    return undefined;
++  }
++  return hit.rate;
+ }
+diff --git a/src/rates.test.ts b/src/rates.test.ts
+index 51d0a7e..c2e93b4 100644
+--- a/src/rates.test.ts
++++ b/src/rates.test.ts
+@@ -40,3 +40,12 @@ describe('readRate', () => {
+     expect(readRate('EURUSD')).toBe(1.08);
+   });
++
++  it('drops an entry older than DEFAULT_TTL_MS', () => {
++    writeRate('EURUSD', 1.08, 0);
++    expect(readRate('EURUSD', DEFAULT_TTL_MS + 1)).toBeUndefined();
++  });
+ });
