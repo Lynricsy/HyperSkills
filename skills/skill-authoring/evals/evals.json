@@ -70,5 +70,16 @@
       "Says Codex reads `.agents/skills/` in every directory from the working directory up to the repository root — so both `services/payments/.agents/skills/` and the root `.agents/skills/` (plus the user-level `~/.agents/skills/`) — and that two skills named `deploy` are not merged: both appear in Codex's selectors, so they need distinct names",
       "Says the open specification lists no reserved words, which is why its validator accepts `claude-review`, but Anthropic's platform rejects names containing `claude` or `anthropic`, so a portable skill should be renamed"
     ]
+  },
+  {
+    "skills": ["skill-authoring"],
+    "query": "Two problems with the skills our platform team publishes; answer in this conversation. (1) Our `release-runbook` skill for Claude Code is a single 900-line SKILL.md, and the mandatory rollback check is its last section. In long sessions the agent follows the early steps, but once the conversation has been auto-compacted it stops doing the rollback check; invoking the skill again fixes it for a while. Why does this happen, and how should we restructure the skill? (2) We keep the skills at `tools/agent-skills/<name>/SKILL.md` in the `acme/platform` repository and do not want to move them. What does `npx skills add acme/platform --list` actually rely on to find them, and how do we declare that location explicitly? We also want a CI job that fails when any skill we installed from upstream has an update, without reinstalling anything — which command?",
+    "expected_behavior": [
+      "Explains that after auto-compaction Claude Code re-attaches only the start of each invoked skill — the first 5,000 tokens of its most recent invocation, within a 25,000-token budget shared by all re-attached skills, most recently invoked first — so a final section of a 900-line body is cut off and stays gone until the skill is invoked again",
+      "Restructures accordingly: moves the must-hold rollback check (and other standing rules) near the top of SKILL.md, shrinks the body well under the 500-line / ~5,000-token budget by moving detail into references/ files read at the step that needs them, and names re-invoking the skill only as a stopgap",
+      "Says `tools/` is not one of the installer's container directories, so `--list` only finds these skills through the recursive fallback that runs when the standard locations are empty (or with `--full-depth`), which should not be relied on",
+      "Declares the location in a `skills.sh.json` file at the repository root with a `paths` entry such as `\"./tools/agent-skills\"` (entries must start with `./`; each is walked like `skills/`, up to three levels deep), or alternatively lists the skills in a `.claude-plugin/marketplace.json` manifest",
+      "Uses `npx skills check` for CI, which checks installed skills for updates without reinstalling and exits with code 1 when any skill has an update"
+    ]
   }
 ]

@@ -560,3 +560,60 @@ docs/workflow.md tools` 亦为空。`PIN CHECK CLEAN`。
 ### 同日修正与复测（主代理）
 
 统一措辞：`references/description-optimization.md` 改为「Anthropic's platform rejects them (the open specification does not forbid them)」，与 `spec-reference.md` 的归属一致。场景 6（含保留词 / 预算修法）有 skill 复测一次（`/tmp/hs-d2/main-sa/…/skill/6/`，69 s，`skill_read == true`）：EB1 ◐（讲清整体预算与单条上限，未提 8,000 字符回退值）、EB2 ✔（含「在源头精简 `description`/`when_to_use`」，即上午按官方文档更正的修法）、EB3 ✔、EB4 ✔（区分开放规范与 Anthropic 平台的保留词）。无回退。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/skill-authoring.md`。obra、vercel、
+hyperskills-self 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 patch；melodic 用 `/tmp/hs-attr/melodic-software__claude-code-plugins`
+裸仓库树 diff。`--pin` 写入的 commit 与审阅 HEAD 逐条比对：obra 2ce8aa1、vercel 92a9a34、hyperskills-self 9534e10 相等；melodic 写入
+899a46a 越过审阅 HEAD 48ad7c7（差额 39 提交，compare 文件列表截断在 300），改用 `commits?path=plugins/harness-ops/skills/audit-skill-visibility&sha=899a46a`
+确认该路径最新提交仍是区间内已审的 00ae8d58，差额无命中。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| obra-writing-skills | bb92a77 → 2ce8aa1 | `skills/writing-skills`：v7.0.1 把 SKILL.md 从约 650 行削到约 350 行，模板与描述/命名/预算/交叉引用移到 `references/discovery.md`，防合理化移到 `references/bulletproofing.md`，流程图约定移到 `references/flowcharts.md`，其余支撑文件 `git mv` 进 `references/`；正文改为「When you …, read references/…」的触发式指针。发布说明给出动机：Claude Code 压缩后每个 skill 只保留开头约 20,000 字符 | 无新规则：规则原文未变，只是搬家。动机所涉事实按 code.claude.com 核实（见下「文档上游复核」与「新增内容评估」），基线已会，不入正文；SOURCES notes 记录。re-pin |
+| vercel-skills-cli | 13e4063 → 92a9a34 | `README.md`：f906c46 把 README 削成概览（+55 −522），细节拆到 `docs/agents.md`、`docs/commands.md`、`docs/creating-skills.md`、`docs/troubleshooting.md`；50bc705/215c397/699d35b 增加 `experimental_sync`、`experimental_install` 说明；区间内 4d786c1 新增根目录 `skills.sh.json` 的 `paths` 字段（`src/skills-sh-config.ts`）；`skills check` 出现在命令表（退出码 1 可作 CI 闸门） | **事实更正**：`client-extensions-and-paths.md`「there is no other repository-level manifest」已不成立，改为可选的 `skills.sh.json`；`publishing.md` 扫描规则补 `skills.sh.json`（必须 `./` 开头、按 `skills/` 同样走三层），子命令补 `check`，并注明 `experimental_` 前缀命令是预览。`paths` 跟迁到新 docs 页；旧引用事实（10/25 MiB 与 1000 文件、57 个容器目录、三层、`metadata.internal`）在新页逐条复现。re-pin |
+| hyperskills-self | f56f2ee → 9534e10 | `docs/workflow.md` 8cec18e 指向 `/sync-upstreams` 命令；`tools/` 48ce097 VM smol 角色、ad299cd check_upstream 处理 409 | 本仓库自身流程与工具实现，无影响。re-pin |
+| melodic-audit-skill-visibility | 5810ed7 → 48ad7c7（写入 899a46a） | 5 文件：`unattended` → `--unattended` 参数改名、`docs/conventions` → `docs/contracts` 链接、usage-counters 补 `claude purge` 说明 | reference 条目只取「整表预算」指针，无影响。re-pin |
+| anthropic-skill-creator、grafana-skill-authoring、getsentry-skill-writer | — | paths_unchanged | 噪声，re-pin；`skills/skill-creator/LICENSE.txt`@ca45fc4 仍为 Apache-2.0 |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C（已追踪仓库区间内新增的 skill 类文件）为空。C2 分诊补充候选用 `gh api repos/<o>/<r>/contents/<path>` 读原文后裁决：
+
+| 候选 | 许可 | 结论 | 理由 |
+|---|---|---|---|
+| rampstackco/claude-skills `skills/dispatch-authoring` | MIT | REJECT（跨范围） | 写给编码代理的任务交接单（header / Gate 0 / scope / stop conditions），是提示与编排，不是 Agent Skill；本 skill `## Scope` 不含。若有归属应看 planning / orchestration 类 skill |
+| first-fluke/oh-my-agent `.agents/skills/oma-skill-creation` | MIT | REJECT | 绑定 OMA 自有四段式 SSL-lite 模板与 `oma skill lint`；通用部分（单一权威位置、按条件加载、500 行）本 skill 已覆盖 |
+| melodic-software/claude-code-plugins `plugins/corrections/skills/codify` | MIT | REJECT（跨范围） | 把复发错误升级为强制检查的「enforcement ladder」，对象是仓库规则与 CI 检查，不是 skill；规则文件在本 skill `## Scope` 排除项中 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/skill-creator` | MIT | REJECT | 12 星个人仓；模式划分、近似负例、前置关键词、资源图、Contents ≥100 行等全部已在本 skill 正文，无可验证增量 |
+
+另：obra v7.0.1 发布说明引出的「Claude Code 压缩后只回挂每个 skill 开头」——按 code.claude.com「Skill content lifecycle」核实为
+每个 skill 最近一次调用的前 5,000 tokens、所有回挂 skill 合计 25,000 tokens、从最近调用者开始填（obra 的 20,000 字符是同一限额的字符近似）。
+按评测先行新增场景 7（Claude Code 900 行 runbook 压缩后漏掉末尾回滚检查 + `tools/agent-skills/` 布局声明 + CI 更新闸门）跑基线：
+基线（`/tmp/hs-d2/G12-meta/skill-authoring/omp-openai-gpt-6.1-sol-medium/baseline/7/answer.md`，56 s，联网读官方文档）五条期望全部达成，
+包括 5,000 / 25,000 两个数字与「把强制检查前移、正文压到 5,000 tokens 以下、细节按步骤读 references」。**基线已会，不入正文**；场景 7 留作哨兵，
+同时覆盖今天的 `skills.sh.json` 与 `skills check` 更正。
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "agent skills authoring"`、`"skill-creator SKILL.md"`（按星排序、筛 2026-10-15 后推送），VoltAgent/awesome-agent-skills
+自 2026-10-15 以来 README 新增条目，`/tmp/hs-attr/github__awesome-copilot` 3cf7c7e..5269f7e 新增 SKILL.md（无 skill 编写类）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| Loveacup/skill-authoring | 0 | 2026-10-28 | MIT | 权威 0 / 新鲜 3 / 具体 2 / 正确 2 / 许可 2 = 9 | REJECT：2026-10-28 新建、0 星、无外部采用；内容（可移植编写、评测、治理）与本 skill 同主题，未见本 skill 缺的可验证事实 |
+| galligan/skills | 1 | 2026-10-22 | MIT | 0 / 3 / 1 / 2 / 2 = 8 | REJECT：Skillset 工具链产出的个人 skill 集（agentish、people-words、redliner），不是编写指南 |
+| bisque-cloud/presenter | 36 | 2026-10-30 | MIT | 0 / 3 / 1 / 2 / 2 = 8 | REJECT：单一产品的讲解视频 skill，与 skill 编写无关 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| anthropic-best-practices | name ≤64、无 XML、保留词 `anthropic`/`claude`；正文 <500 行；引用一层；三种自由度；先建评测；动名词命名 | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices | 一致 |
+| agentskills-spec | 六字段与限值（name 1–64 五条规则 + 目录一致、description 1–1024、compatibility 1–500、metadata 字符串映射、allowed-tools 实验性）；~100 tokens / <5000 tokens / 按需；<500 行；引用一层；`skills-ref validate` | https://agentskills.io/specification | 一致（页面写 `skills-ref validate`；正文的 `npx skills-ref validate` 沿用 2026-10-15 实跑结论，npm 包由 agentskills 发布） |
+| claude-code-skills-docs | 1,536 单条上限（`skillListingMaxDescChars`）；整表 1%（`skillListingBudgetFraction`）与 `SLASH_COMMAND_TOOL_CHAR_BUDGET` 8,000 回退（env-vars 页）；最少调用者先丢描述、名字保留；`name-only` 的 `skillOverrides`；企业 > 个人 > 项目；`synced`、`anthropic-skills` 保留名；仅规范字段可跨主机 | https://code.claude.com/docs/en/skills 、/env-vars 、/settings-reference | 一致。新见「Skill content lifecycle」：压缩后回挂每个 skill 前 5,000 tokens、合计 25,000 tokens；基线已会（场景 7），未入正文 |
+| cursor-skills-docs | `paths`（旧名 `globs`）、`disable-model-invocation`、`icon`、`color`；递归发现与嵌套目录自动作用域；`.agents/`、`.cursor/` 及 Claude/Codex 目录；用户级 `~/.cursor/skills/`、`~/.agents/skills/` | https://cursor.com/docs/skills | 一致 |
+| codex-skills-docs | 初始列表 2% 或 8,000 字符、先缩短描述、可能省略并告警；`skills.max_context_tokens` 上限 10,000 tokens；`agents/openai.yaml` 的 interface / policy（`allow_implicit_invocation` 默认 true）/ dependencies；REPO（CWD 到仓库根每一级）/ USER / ADMIN `/etc/codex/skills` / SYSTEM；同名不合并 | https://learn.chatgpt.com/docs/build-skills | 一致 |
+
+五条 `synced_at` 改为 2026-11-01。

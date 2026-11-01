@@ -89,7 +89,10 @@ directory), `-g` for user scope, `--copy` instead of symlinking, `-y` for
 non-interactive use.
 
 Other subcommands: `use` (generate a prompt for one skill without installing),
-`list`, `find [query] [--owner org]`, `update`, `remove`, `init`.
+`list`, `find [query] [--owner org]`, `check` (reports available updates
+without reinstalling and exits 1 when any skill has one, so it can gate CI),
+`update`, `remove`, `init`. Commands prefixed `experimental_` are previews whose
+names and behaviour may change; do not build on them.
 
 Direct download URLs also work, pointing at a single `SKILL.md` or an archive.
 Limits apply: 10 MiB download, 25 MiB extracted, 1000 files, each overridable by
@@ -109,6 +112,11 @@ at all:
 - A `SKILL.md` found at a shallower level **shadows** anything nested beneath it.
   A stray `SKILL.md` at a container root hides every skill under it.
 - `--full-depth` additionally finds skills outside the container directories.
+- A `skills.sh.json` at the repository root can name extra container
+  directories in its `paths` field, for example `"paths": ["./tools/skills"]`.
+  Entries must start with `./` and stay inside the repository; each is walked
+  like `skills/`, up to three levels deep. Use it when the skills cannot live
+  under a standard container.
 - If nothing is found in the standard locations, a recursive search runs as a
   fallback — convenient, and not something to rely on.
 

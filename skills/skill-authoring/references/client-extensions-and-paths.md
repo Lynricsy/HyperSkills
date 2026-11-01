@@ -6,7 +6,8 @@ occasionally rejected — everywhere else. A skill meant to be portable uses non
 of them.
 
 Verified against: the Claude Code, Cursor and Codex skill documentation, and the
-`npx skills` installer README, as published at the time of writing.
+`npx skills` installer README and its `docs/` reference pages, as published at
+the time of writing.
 
 ## Contents
 
@@ -112,8 +113,10 @@ metadata:
 ```
 
 An internal skill is hidden from listing and installation unless an environment
-variable opts in. Useful for work in progress; there is no other repository-level
-manifest, because the layout *is* the manifest.
+variable opts in. Useful for work in progress. The only repository-level file
+the installer reads is optional: a root `skills.sh.json` whose `paths` field
+adds extra container directories (see `references/publishing.md`); a layout
+under the standard containers needs no manifest at all.
 
 ## Body-level extensions
 
