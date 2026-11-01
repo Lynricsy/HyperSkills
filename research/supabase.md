@@ -522,3 +522,19 @@ SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，supabase-docs 的 `
 | postgres-docs | ALL/UPDATE 策略无 WITH CHECK 时 USING 兼作 WITH CHECK | https://www.postgresql.org/docs/current/sql-createpolicy.html | 一致 |
 
 两条 docs 条目 `synced_at` 更新为 2026-11-01。受影响场景：3（存储签名 URL）、6（CI 凭据/PAT），见 D2 节。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 6427963（storage 签名 URL 撤销、默认授权与函数 EXECUTE、PAT 术语）。选场景 3（含签名 URL 撤销提问）与 6（CI 凭据 / PAT），负例 5。omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行；产物 `/tmp/hs-d2/G06-data/supabase/omp-openai-gpt-6.1-sol-medium/`。
+
+两条 expected_behavior 原文写的是更正前的事实，已同步改写（场景 3 EB6：提前撤销 = 轮换 Storage URL 签名密钥后 revoke 旧 key、CDN 需 purge、单个 URL 不可撤销；场景 6 EB1：「classic」改为带 Legacy 徽标的全权限 token）。下表运行的 query 与夹具与改写前完全相同（expected_behavior 对 agent 不可见），按改写后的 EB 判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 3 私有桶 upsert / URL / list | gpt-6.1-sol medium | 有 | true | EB1–EB7 ✔ | 44.3 s。「rotate the dedicated Storage URL signing key, then revoke the previous key. Rotation alone leaves the old standby key accepted」；单个 URL 只能删/移/改名对象；300 s 起步并按需重签 |
+| 3 | gpt-6.1-sol medium | 无 | false | EB1–EB7 ✔ | 103.1 s。联网读到新文档，同样给出轮换 + 撤销旧 key |
+| 6 CI 凭据收窄 | gpt-6.1-sol medium | 有 | true | EB1 ◐ EB2–EB7 ✔ | 103.4 s。称旧 token 为 full-access PAT 并要求吊销，但未展开「覆盖现在与将来所有组织/项目」 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ✘ EB2–EB7 ✔ | 178.4 s。只说「Dana's old PAT」，未说明其全账户权限 |
+| 5 负例（PG 慢查询索引） | gpt-6.1-sol medium | 有（挂载） | false | — | 27.1 s |
+
+结论：更正相关行为在有 skill 时全部达成或部分达成，无回退；场景 6 EB1 有 skill ◐ 对基线 ✘。负例未误读。
