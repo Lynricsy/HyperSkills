@@ -799,5 +799,22 @@ awesome-gamedev-godot、godot-prompter、gd-agentic-skills 均用已登录 `gh a
 正文改动：`godot-multiplayer.md`（复制模式、`public_visibility` 与 `set_visibility_for`、客户端拥有节点上的服务器结果 RPC）、
 `godot-nodes-and-scenes.md`（切换场景时序与 `scene_changed`/`change_scene_to_node` 版本门）、`godot-rendering.md`（Compatibility
 无 alpha to coverage）、`godot-ui.md`（`FOCUS_CLICK`/`FOCUS_ALL`/`FOCUS_ACCESSIBILITY`）、`godot-build.md`（gdUnit4 命令行）、
-`godot-csharp-interop.md`（GD0001）。新增回归场景 8（`match-flow/`：authority RPC、可见性、切换场景）与场景 9
-（`compat-menu-ci/`：alpha to coverage、`FOCUS_CLICK`、gdUnit4 命令、GD0001）。
+`godot-csharp-interop.md`（GD0001）。新增回归场景 9（`match-flow/`：authority RPC、可见性、切换场景）与场景 10
+（`compat-menu-ci/`：alpha to coverage、`FOCUS_CLICK`、gdUnit4 命令、GD0001）；场景编号按 `run_evals.py --only` 的 1 起计。
+
+## 2026-11-01 D2 回归
+
+隔离 VM，`uv run tools/run_evals.py godot --only <N> [--baseline] --out /tmp/hs-d2/G10-games-web3`，串行逐个运行；有 skill 结果均晚于正文
+提交 be2826b。场景编号按 `--only` 的 1 起计。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9（match-flow，新增） | openai/gpt-6.1-sol medium | 有 | True | 1、2、3（3/3） | `any_peer` + `get_remote_sender_id() != 1`、`public_visibility` 下 `set_visibility_for(false)` 无效并给出过滤器 + `update_visibility()`、旧场景立即出树并用 autoload `await scene_changed` |
+| 9 | openai/gpt-6.1-sol medium | 无 | False | 1、2、3（3/3） | 引用 `multiplayer_synchronizer.cpp` 与 SceneTree 文档，结论一致；回归场景不要求缺口 |
+| 10（compat-menu-ci，新增） | openai/gpt-6.1-sol medium | 有 | True | 1、2、3、4（4/4） | Compatibility 忽略 alpha to coverage、`FOCUS_CLICK`→`FOCUS_ALL` + `GrabFocus`、`-a res://tests --ignoreHeadlessMode`（未带 `-d`，不影响判定）、GD0001 直接点名类型 |
+| 10 | openai/gpt-6.1-sol medium | 无 | False | 1、2、3、4（4/4） | 引 3d_antialiasing 文档与 `GdUnitTestCIRunner.gd`，结论一致 |
+| 4（net_player，受多人参考改动影响） | openai/gpt-6.1-sol medium | 有 | True | 1、2、3、4、5、7（6/7，6 部分） | 期望 6 只说「服务器快照 + 有序/序列化」与 hp 被旧包覆盖，未点名 `MultiplayerSynchronizer`；明确写出「`"authority"` 指节点权威而非服务器」 |
+| 4 | openai/gpt-6.1-sol medium | 无 | False | 1、2、4、7（4/7，3、5、6 部分） | 未给出按排序方法名分配 RPC id 的机制、未解释 `@` 前缀生成名、未点名 `MultiplayerSynchronizer` |
+| 5（Unity 负例） | openai/gpt-6.1-sol medium | 有 | False | 负例：未读 skill | 路由正确 |
+
+结论：两条新回归场景有 skill 全部达成，更正后的文本未引入错误；场景 4 有 skill 仍优于基线（6/7 对 4/7）；负例未误读。
