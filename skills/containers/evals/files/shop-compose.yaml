@@ -1,0 +1,34 @@
+# Production stack on shop-prod-1 (single Docker host, Engine 29, Compose v5).
+# Deployed by deploy.sh:  docker compose pull && docker compose up -d --remove-orphans
+x-app-image: &app-image registry.example.com/shop/api:${API_VERSION:-2.14.0}
+
+x-awslogs: &awslogs
+  driver: awslogs
+  options:
+    awslogs-region: eu-central-1
+    awslogs-group: /shop/prod
+
+services:
+  api:
+    image: *app-image
+    ports: ["8080:8080"]
+    environment:
+      DATABASE_URL: postgres://shop@db.internal:5432/shop
+    logging: *awslogs
+
+  worker:
+    image: *app-image
+    command: ["worker"]
+    logging: *awslogs
+
+  # Legacy uploader. Retired on 2026-10-22: worker 2.14 uploads to S3 itself, and
+  # the profile was dropped from deploy.sh (it used to run
+  # `docker compose --profile s3-sidecar up -d --remove-orphans`).
+  s3-sync:
+    image: registry.example.com/shop/s3-sync:1.3.0
+    profiles: ["s3-sidecar"]
+    volumes: ["uploads:/data:ro"]
+    ports: ["9100:9100"]
+
+volumes:
+  uploads:

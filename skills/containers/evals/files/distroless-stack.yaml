@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api.Dockerfile      # final stage: gcr.io/distroless/static-debian12:nonroot
+      ssh: [default]                  # private Go modules from github.com/acme
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      retries: 5
+
+  worker:
+    image: registry.example.com/acme/worker:3.2.0
+    depends_on:
+      api:
+        condition: service_healthy

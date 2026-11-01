@@ -127,5 +127,28 @@
       "Corrects the DRA premise: Dynamic Resource Allocation is GA (stable) since Kubernetes 1.34 with the `resource.k8s.io/v1` API enabled by default, so on 1.34.4 there is no feature gate to switch on and the manifests should use `v1`, not `v1beta2`; from 1.35 the gate is locked and an explicit setting is ignored",
       "Corrects the Helm 4 premise: server-side apply is the default for releases created by Helm 4, while a release created by Helm 3 stays on client-side apply when Helm 4 upgrades it, so the 140 existing releases do not all switch on the first upgrade and the blanket two-week freeze is not needed for that reason; the SSA conflict work applies to new releases or an explicit switch"
     ]
+  },
+  {
+    "skills": ["containers"],
+    "query": "Bob's ops-review draft is in shop-incident-notes.md and shop-compose.yaml is the production stack. Before the review meeting, check his three conclusions: which ones are wrong, what is actually going on, and what should we do instead?",
+    "files": ["evals/files/shop-compose.yaml", "evals/files/shop-incident-notes.md"],
+    "expected_behavior": [
+      "Rejects the stale-scanner conclusion: services in a profile that the command does not enable are ignored by `docker compose down` and by `up --remove-orphans`, and a service that is still defined in the file is not an orphan, so the s3-sync 1.3.0 container started under the old profile is very likely still running and publishing 9100; `config --services` only shows what the current command would start. Says to check with `docker ps` filtered on the compose project label (or `docker compose --profile s3-sidecar ps`) and to remove it explicitly - `docker compose --profile s3-sidecar down` / `--profile '*' down`, `docker compose rm -s -f s3-sync` or `docker compose down s3-sync`, or delete the service from the file so `--remove-orphans` treats it as an orphan",
+      "Explains the 2026-10-27 slowdown by the logging driver: Docker's default log delivery mode is blocking, so once the awslogs driver's own buffer is full a stalled CloudWatch endpoint blocks the application's writes to stdout/stderr and with them the requests - idle CPU and a normal database fit that; the in-memory buffering Bob describes is the opt-in `mode: non-blocking` (with `max-buffer-size`), which drops lines instead. Recommends `mode: non-blocking` with a sized `max-buffer-size` for the awslogs services rather than read replicas and a longer timeout",
+      "Names the limits of the logging fix: non-blocking mode loses log lines during a stall, stopping or restarting a container during the outage can still wait on the endpoint, and with non-blocking awslogs a broken log setup no longer fails the deploy, so verify after deploying that lines actually arrive",
+      "Rejects the `grep -ci emudhra` evidence: the Alpine bundle is bare concatenated PEM blocks without label lines, so a grep for the CA name returns 0 whether or not the roots are present; the roots have to be listed by parsing each certificate (e.g. `openssl x509 -noout -subject -fingerprint -sha256` per PEM, comparing fingerprints from the advisory) and the `ca-certificates` package version read from the image's package database",
+      "Treats the build date and layer cache as the real question: an image built on 2026-10-15 carries the bundle that was in the repository that day, and `apk add --no-cache` does not invalidate Docker's cached `RUN` layer, so the image has to be rebuilt with `--pull --no-cache` (or the cache busted), and the release note may only claim coverage after measuring the published image digest"
+    ]
+  },
+  {
+    "skills": ["containers"],
+    "query": "distroless-notes.md describes two problems with our local stack (distroless-stack.yaml). What is going on, and what should we change - is my plan for the first one right?",
+    "files": ["evals/files/distroless-stack.yaml", "evals/files/distroless-notes.md"],
+    "expected_behavior": [
+      "Explains the unhealthy `api`: the healthcheck runs inside the container, and the distroless final image has no shell and no `wget`, so `CMD-SHELL` cannot run at all - the host curl succeeding is irrelevant",
+      "Keeps the distroless image instead of switching to Alpine or dropping the readiness gate: either a probe binary compiled into the image (an exec-form `CMD` healthcheck), or a small healthcheck sidecar that shares the api's network namespace (`network_mode: \"service:api\"`, a curl image kept alive with `sleep infinity`, its own healthcheck against `localhost:8080`) with `worker` depending on the sidecar's `service_healthy`",
+      "Flags the SSH build setup: `--mount=type=ssh` with `ssh: [default]` forwards the developer's whole agent, so the build can use every key `ssh-add -l` lists (bastion, signing key, customer VPN); expose only a dedicated key (a separate agent holding just the deploy key, or `ssh: [\"default=<key-file>\"]` / `--ssh default=<file>` for an unencrypted deploy key)",
+      "Rejects `StrictHostKeyChecking no`: it disables host-key verification; populate `known_hosts` instead, ideally with GitHub's published host key rather than an unpinned `ssh-keyscan`"
+    ]
   }
 ]

@@ -814,3 +814,85 @@ release 全部切到 SSA」安排两周冻结）。负例 5（Terraform `count`/
 
 遗留：场景 1 有 skill 一侧没给泄漏的检查命令，`SKILL.md` 规则 2/3 与 `image-security.md` 都写了，属模型在无 Docker daemon 的 VM 里的取舍；
 场景 9 基线已满分，三处更正模型联网即可查到，场景作回归哨兵。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 归因工作单（`/tmp/hs-sync/containers.md`）与旧 pin 快照 `/tmp/hs-upstream-2026-11-01.json`。netresearch、kustomize、
+两条 NVIDIA 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch；google-skills 用主代理的 blobless 裸仓库缓存
+`git diff b85f257..bb9b3f4 -- <path>`；netresearch 另外读了 SKILL.md 索引行指向、但不在 paths 内的三个新增 reference
+（`compose-runtime-lifecycle.md`、`image-ca-trust.md`、`bake-ci-cache.md`），以免只凭索引行下结论。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| netresearch-docker | de9aa6e → df9215a（6 提交） | `SKILL.md`：版本 1.17.1；bake 示例去掉 `cache-from/to`，改指向 netresearch 自家的 `build-container-bake.yml@main` 可复用工作流；Compose 一节新增两条——停用某个 profile 后，`down` 与 `--remove-orphans` 都不碰该 profile 下仍在运行的容器；日志驱动默认 blocking，远端（awslogs）卡住会卡住应用写日志，`mode: non-blocking` + `max-buffer-size` 改为丢行；索引新增 `image-ca-trust.md`（CA 失陷后量已发布镜像的根证书与 `ca-certificates` 版本，Alpine bundle 里 grep CA 名恒为 0） | 新内容，评测先行 → 基线已会（场景 10，4✔1◐），不合入；bake 一条是 netresearch 内部 CI，REJECT |
+| google-skills | b85f257 → bb9b3f4（1 提交命中） | `gke-app-onboarding/SKILL.md`：新增 Attribution 节（gcloud 前缀 `CLOUDSDK_METRICS_REQUEST_ATTRIBUTION`、User-Agent 追加） | 无影响：GKE/gcloud 内容合入时已整体剥离 |
+| kustomize | 1b4d309 → f9936b6（1 提交命中） | `site/content/en/docs`：c6fecae 全仓拼写修正（`modifed`→`modified`） | 无影响 |
+| nvidia-gpu-operator | fbe7930 → af4995c（1 提交命中） | `values.yaml`：`node-feature-discovery.gc` 新增 `tolerations: []` | 无影响：本 skill 断言的驱动升级默认值与 MIG 默认值未动 |
+| nvidia-container-toolkit | 3e112b4 → f18b579（3 提交命中） | `cuda_image.go`：volume-mount 方式请求设备时新增 `void` 设备（返回无设备，对齐 CDI spec）；`NVIDIA_IMEX_CHANNELS=none` 不再被当成「全部通道」 | 无影响：与正文「`void`/空/未设 → 等同 runc、无 GPU」一致；正文未写 IMEX 通道环境变量 |
+| compose-spec、awesome-copilot、nvidia-device-plugin、nvidia-dra-driver、rocm-device-plugin | — | 仓库移动、tracked paths 无变化（awesome-copilot 由主代理裸仓库树 diff 确认） | 只 re-pin |
+
+### netresearch 新规则：本机核实与评测
+
+- **profile 陷阱**（本机 Docker Engine 29.9.2 / Compose 5.6.1，项目 `proftest`，`side` 在 profile `s3-sidecar`）：带 profile `up` 后，
+  不带 profile 的 `down`、`up -d --remove-orphans`、`down --remove-orphans` 之后 `side` 都仍在运行；`docker compose down side` 与
+  `--profile '*' down` 能删掉；把服务从文件里删掉后 `up --remove-orphans` 才把它当孤儿删除。另测到不带 profile 的 `docker compose ps`
+  **会**列出该容器（上游没提），`docker compose config --services` 只列当前启用的服务。
+- **日志投递模式**：`docker create --log-driver awslogs --log-opt max-buffer-size=4m …` 报
+  `logger: max-buffer-size option is only supported with 'mode=non-blocking'`，`mode=nonblocking` 报 `logging mode not supported`，
+  `mode=non-blocking --log-opt max-buffer-size=4m` 通过；默认 blocking 见 docs.docker.com `engine/logging/configure`（delivery mode）。
+- **CA bundle grep**：`redis:8.10-alpine`（Alpine 3.23.6）里 `grep -ci emudhra /etc/ssl/certs/ca-certificates.crt` 与 `grep -ci emsign`
+  均为 0，逐个 PEM 跑 `openssl x509 -noout -subject` 列出 4 个 eMudhra/emSign 根。
+- 三条合成新增场景 10（`evals/files/shop-compose.yaml`、`shop-incident-notes.md`：退役 sidecar 仍占 9100 被判扫描器缓存；CloudWatch
+  故障期间请求超时被归因到数据库；`grep -ci emudhra` 为 0 即宣称镜像已不信任）先跑基线：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10 运维复盘三条结论 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ | 117 s。引 Compose v5.6.1 源码说明停用 profile 的服务不算孤儿、`config --services` 只反映当前选择，改为删掉服务定义再 `--remove-orphans`；默认 blocking 投递、加 `mode: non-blocking` + `max-buffer-size` 并否决加只读副本；本地复现 PEM grep 为 0 而解码出 4 个 emSign 根，`apk --no-cache` 不使 Docker 层缓存失效、`--pull --no-cache` 重建并以已部署 digest 为准。EB3 只说了满了会丢行，没提故障期间停/重启容器仍会卡、非阻塞下日志配置错误不再让部署失败 |
+
+结论：基线主体已会，缺口只剩 non-blocking 的两条次要限制，按规则不合入正文；场景 10 与夹具留作哨兵（未跑有 skill 一侧）。
+
+`--pin` 后逐条比对：14 条 repo 条目写入的 `commit` 与工作单审阅 HEAD 全部一致（`/tmp/hs-g04/pincheck.py`），无越界差额。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `NVIDIA/skills` `runai-audit-assigned-quota`、`runai-get-cluster-health-summary`、`runai-get-utilization-overview`、`runai-get-workload-health-summary` | REJECT | 单一商业产品（Run:ai）的查询手册，不在 Scope |
+| `ai-dynamo/dynamo` `deploy/operator/internal/webhook/defaulting/CLAUDE.md`、`AGENTS.md`（C2） | REJECT | 上游自用：`CLAUDE.md` 只有 `@AGENTS.md`，`AGENTS.md` 只要求先读包内 `STRUCTURAL_DEFAULTING.md` |
+| `github/awesome-copilot` `java-testcontainers` | 不动，跨组 | Testcontainers 2.x 的 JUnit 集成测试写法，属 java-spring / test-driven-development，不是容器制品本身 |
+| `github/awesome-copilot` `quarkus-native-and-container` | REJECT | Quarkus 框架专属的 native 构建与 Jib/OpenShift 清单生成；通用部分本 skill 已覆盖，Quarkus 部分不在任何 skill 的 Scope |
+| `laurigates/claude-plugins` `tools-plugin/skills/apptainer` | REJECT（记 Scope 问题） | Apptainer/SIF 的 HPC 批处理容器运行时，本 skill Scope 只覆盖 Docker/Compose/Kubernetes；是否扩 Scope 交主人 |
+| `nitinjain999/platform-skills` `skills/kubescape`、`skills/kubescape-operator`（及 `plugins/platform-skills/skills/` 下同名副本） | REJECT | 单一扫描器（Kubescape CLI/Operator）操作手册；本 skill 不覆盖集群安全扫描器选型 |
+| 同仓 `plugins/platform-skills/skills/` 下 `cluster-upgrade`、`fluxcd`、`helmchart`、`karpenter`、`keda`、`kubernetes`、`kyverno`、`linkerd`、`openshift` | REJECT | 90b97a9「ship the directory listing from a generated plugin-only folder」生成的插件目录副本，原件 `skills/<name>/` 早于旧 pin；内容是交互式向导脚手架。其中 GitOps（Flux）、服务网格（Linkerd）在 Scope 明确不覆盖，托管集群升级、Karpenter、OpenShift 属云平台或单一产品；`helmchart`/`kubernetes` 无本 skill 未覆盖的可核实事实 |
+
+## 2026-11-01 新候选仓库
+
+检索：`gh search repos <docker|kubernetes|helm> skills pushed:>2026-10-15 --sort stars`，`VoltAgent/awesome-agent-skills` 2026-10-15 之后的
+100 个提交（README 新增条目中无容器类），`github/awesome-copilot` 区间新增（见上节）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 25 | `docker/skills` `skills/docker-build-strategies`、`docker-compose-patterns`、`docker-destructive-guardrails` | https://github.com/docker/skills | 608 | 2026-10-30 | Apache-2.0 | Dockerfile、Compose、破坏性命令护栏（另有 Docker Agent / Sandboxes / docs MCP，不在范围） | 3 | 3 | 2 | 3 | 2 | 13 | INCLUDE（reference） | Docker 官方，推翻了本文件第 24 行「Docker 官方组织没有 agent-skills 仓」（该仓 2026-03 建立，当时未见于组织列表）。抽查三条：secret mount 不进层、`COPY --link` 配 `--chown` 用数字 UID:GID、`down -v` 删命名卷，均与官方文档一致。本 skill 未写的两条（distroless 用共享网络命名空间的健康检查 sidecar；`--mount=type=ssh` 只暴露专用 key、`ssh-keyscan` 不等于固定主机密钥）按评测先行写成场景 11，基线 4/4，不合入正文；作为 `relation: reference` 交叉校验源加入 SOURCES（`docker-skills`） |
+| 26 | `vidispine/hull` | https://github.com/vidispine/hull | 295 | 2026-10-31 | Apache-2.0 | Helm library chart | — | — | — | — | — | — | REJECT | 是 Helm 库 chart 产品，不是 agent skill |
+| 27 | `culiops/culiops-skills`、`hoangminhung/devops-ai-kit` | https://github.com/culiops/culiops-skills | 5 / 5 | 2026-10-31 | MIT | AWS+K8s SRE / DevOps 护栏 | 0 | 3 | 1 | — | 2 | ≤6 | REJECT | 个人仓库、匿名作者，泛化清单为主，无本 skill 未覆盖的可核实事实 |
+
+场景 11 基线（`evals/files/distroless-stack.yaml`、`distroless-notes.md`）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11 distroless 健康检查与 SSH 构建 | gpt-6.1-sol medium | 无 | false | EB1–EB4 ✔ | 90 s。distroless 无 shell/wget、宿主 curl 无关；保留 distroless 与 `service_healthy`，改为编进镜像的探针 + exec 形式 `CMD`；`ssh: [default]` 转发整个 agent、四个 key 都可被调用，改用只含专用只读 key 的独立 agent 与命名 socket；删 `StrictHostKeyChecking no`，用核实过的 GitHub 主机密钥，不信任构建时的 `ssh-keyscan` |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| kubernetes-docs | 当前稳定 1.37（`gh api repos/kubernetes/kubernetes/releases`：v1.37.2，2026-10-28）；`deprecation-guide.md`、DRA/PodLevelResources/UserNamespacesSupport 特性门文件、`pod-priority-preemption.md` 自 2026-10-14 起无提交；`pod-security-standards.md` 唯一提交 4cf2ded 只给 baseline 允许的 safe sysctls 补了 1.32/1.37 的四项 | https://kubernetes.io/docs/reference/using-api/deprecation-guide/ 、`kubernetes/website` 源文件 | 一致（sysctl 白名单本 skill 未写） |
+| docker-docs | 缓存失效、SLSA provenance `mode=min/max`、多平台前提、Compose `version` 过时：对应 `docker/docs` 源文件自 2026-10-14 起无提交；Engine 29.9.2、Compose 5.6.1、buildx 0.38.1 / BuildKit 0.34.1 均为同一主线的补丁/小版本 | https://docs.docker.com/build/cache/invalidation/ 等 | 一致 |
+| helm-docs | Helm 4 当前 v4.3.1；Helm 3 v3.22.0 为最后功能版，2026-10-15 的 v3.22.1 为安全补丁，符合「安全修复至 2027-02-10」；helm-www 区间提交只有依赖升级、托管仓库列表与模板函数文档 | https://helm.sh/docs/ 、`gh api repos/helm/helm/releases` | 一致（notes 补记 v3.22.1） |
+| devcontainers-spec | `json_reference.md` 自 2026-10-14 起无提交 | https://containers.dev/implementors/json_reference/ | 一致 |
+| nvidia-cuda-docs | 13.x ≥580、12.x ≥525（<580）、11.x ≥450（<525） | https://docs.nvidia.com/deploy/cuda-compatibility/latest/minor-version-compatibility.html | 一致 |
+
+5 条 docs 条目 `synced_at` 改为 2026-11-01；`docker-docs` notes 中「Docker 没有官方 agent-skills 仓」一句随新候选 25 更正。
+
+结论：正文（SKILL.md / references）未改，只新增哨兵场景 10、11 与夹具、re-pin、版本号 2026.11.01、SOURCES 新增 `docker-skills`（reference）；
+无正文改动，按规程不跑 D2。
