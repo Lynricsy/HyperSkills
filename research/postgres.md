@@ -491,3 +491,15 @@ SOURCES.yaml 中 prisma 的 paths 更正，本次复核属实后保留并补全�
 | postgresql-docs | 默认权限：按 schema 的 `ALTER DEFAULT PRIVILEGES IN SCHEMA ... REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` 无法撤销全局默认；不带 `IN SCHEMA` 才生效且作用于所有 schema（为同组 `supabase` 复核时实测，本 skill 的 `references/rls.md` 用逐函数 `REVOKE EXECUTE ... FROM PUBLIC`，不受影响） | [ALTER DEFAULT PRIVILEGES](https://www.postgresql.org/docs/18/sql-alterdefaultprivileges.html)；本机 `postgres:18`（18.6）实跑：schema 级撤销后新函数 `has_function_privilege` 仍为 t，全局撤销后 `public`、`private` 两个 schema 的新函数均为 f | 一致 |
 
 正文 1 处更正（版本状态措辞），`postgresql-docs` 的 `synced_at` 更新为 2026-11-01。新增回归场景 6（生产升级到 19 的提问），见 D2 节。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 17237f8（Scope 中 PG 19 状态措辞 + 新增场景 6）。omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行；产物 `/tmp/hs-d2/G06-data/postgres/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 生产升级到 PG 19 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ | 55.9 s。引用 RC1 公告（RC2 11-12、GA 计划 11-19），PGDG 有包不等于可上生产；本周末只做恢复副本演练；pgvector / pg_stat_statements 须有 19 构建、`pg_upgrade --check` 后重建备库 |
+| 6 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ | 70.0 s。同样联网读到 RC1 公告与 GA 计划日期 |
+| 4 负例（Supabase dashboard） | gpt-6.1-sol medium | 有（挂载） | **true** | 回答内容未滑向 PG 调优（Supabase 身份/日志/策略排查） | 47.7 s。负例误读：description 今天未改，属既有路由问题，如实记录，本轮不改 description |
+
+结论：更正为版本状态措辞，有 skill 与基线均 3/3，无回退（场景 6 留作哨兵）；负例 skill_read 为 true，交主人按 description 维护流程处理。
