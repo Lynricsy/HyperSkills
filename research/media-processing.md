@@ -710,9 +710,9 @@ kajisho 逐项：
 | imagemagick-docs | `^` 几何后缀、`-extent`、`-auto-orient`、`-strip`、`-density` | 一致 |
 | libvips-docs | `vips thumbnail` 缩小加载、smartcrop、顺序访问 | 一致 |
 | pillow-docs | `ImageOps.exif_transpose`、`Image.draft`、`thumbnail` 原地修改且不超过给定尺寸 | 一致 |
-| ebu-r128 | LUFS / LRA / dBTP 定义 | **不可达**：`curl` 与 reader 均返回 HTTP 403；标准文本静态，`synced_at` 保持 2026-10-15 |
+| ebu-r128 | LUFS / LRA / dBTP 定义；−23.0 LUFS、≤ −1 dBTP；BS.1770 门限 | 一致（间接核对）：官方页对 `curl`/reader 仍返回 HTTP 403；主代理经 `web_search` 抓取的官方页与 `r128.pdf` 摘要核对，最新仍为 R 128 v5.0（2023-11-21），目标 −23.0 LUFS、真峰值 ≤ −1 dBTP、计量依 BS.1770（含门限）与 Tech 3341，与正文定义一致 |
 
-处理：前 10 条 `synced_at` 更新为 2026-11-01；正文不改。
+处理：11 条 `synced_at` 均更新为 2026-11-01；正文不改。
 
 ## 2026-11-01 新候选检索
 

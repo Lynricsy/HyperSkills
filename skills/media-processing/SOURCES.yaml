@@ -240,6 +240,6 @@ upstreams:
     url: https://tech.ebu.ch/publications/r128
     license: NONE
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Definitions of integrated loudness in LUFS, loudness range, true peak in dBTP and the gating model, which give loudnorm's I, LRA and TP parameters their meaning."
     notes: "Copyrighted standard text. Only the definitions are referenced; the per-destination loudness target table in this skill was compiled here from delivery conventions and is not taken from the standard."
