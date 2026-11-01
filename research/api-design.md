@@ -477,3 +477,62 @@ reference 改动不影响路由，不重跑。
 负例 skill_read 为 false。上述 lint 表述修正随本提交合入。
 
 遗留：场景 7 基线已满分，说明这组 3.1 关键字事实模型联网即可查到，场景作回归哨兵。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 旧 pin 快照 `/tmp/hs-sync/_pins.json` 与工作单 `/tmp/hs-sync/api-design.md`。jeffallan、microsoft、wshobson 用
+`gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch 按 paths 过滤；redocly-cli、borghei 用主代理裸仓库缓存
+`/tmp/hs-attr/<owner>__<repo>` 跑 `git diff <pinned> <head> -- <paths>`（redocly 另排除 `__tests__` 读非测试代码）。`--pin` 写入的 commit
+与审阅 HEAD 逐条比对全部相等，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| jeffallan-api-designer | 1be15d8 → 078a25c（2 提交命中） | be8783e、a57ac17：`references/error-handling.md` 的 `Bearer invalid_token`/`valid_token` 改为 `<invalid-access-token>`/`<access-token>`；`references/pagination.md` 的 base64 游标样例改为 `<cursor>`/`<next-cursor>` 占位符 | 噪声：示例占位符替换，规则未动 |
+| microsoft-azure-guidelines | a7022a2 → 1c58ca7（1 提交命中） | 15c1266：`azure/Guidelines.md` 修订表加一行，版本一节加一句指向 `azure/VersioningGuidelines.md` 与 Azure Service Versioning Guideline wiki 的链接 | 噪声：只加交叉链接；本 skill 取的 LRO、`api-version` 与「首版之后不得新增必填字段」未变 |
+| wshobson-openapi-spec-generation | 46891e7 → 7e2fb55（1 提交命中） | 0f73766（#797）：`api-design-principles/assets/rest-api-template.py` 的 404 `details` 从对象改为字段数组；同目录 `references/graphql-schema-design.md` 的改动归 graphql skill（见 research/graphql.md） | 噪声：上游 FastAPI 模板仍用自造错误信封，本 skill 本就以 RFC 9457 为准（裁决 1），未取该模板 |
+| redocly-cli（reference） | 4e6f421 → 6fd4857（7 提交、18 文件命中） | 非测试代码：`no-schema-type-mismatch` 改为对任何非 `array` 类型带 `items`、非 `object` 类型带 `properties` 都报告（0d73cdc）；`no-unresolved-refs` 不再把 discriminator `mapping` 里的 schema 名当作未解析 `$ref`（9434758）；`operation-4xx-response` 新增 `excludedMethods` 选项并覆盖 callback（d74268d）；Arazzo 1.1 action `parameters` 的唯一性与输出检查（82da67d）；`utils.ts` 换 levenshtein 实现。其余为 `__tests__` | 噪声：均为规则误报/漏报修复与新选项，本条目只核定的 lint 门语义（exit 0、警告不影响退出码、断 `$ref` exit 1、接受 3.2）不变；正文未提及这些规则 |
+| borghei-api-design-reviewer（reference，Proprietary） | 4a698e8 → 2c12c7e（2 提交命中） | `SKILL.md`：frontmatter 加 `metadata.tags`；「Clarify First」由清单改写为规则句 | 噪声：只读条目，未取内容 |
+| google-aip、orchestkit-api-design、prism-cli、bm629-rest-api-design、lambdatest-api-skill | 见工作单 B | 仓库移动、tracked paths 无变化（orchestkit 经主代理裸仓库树 diff 确认） | 噪声，只 re-pin |
+
+结论：正文与 references 未变，仅 re-pin、版本号改为 2026.11.01、新增 reference 条目 `samber-developer-platform`；正文未变，不跑 D2。
+
+## 2026-11-01 上游新增内容评估
+
+| 来源 | 新增文件 | 结论 | 理由 |
+|---|---|---|---|
+| Redocly/redocly-cli | `.claude/skills/pr/SKILL.md` | REJECT | 上游自用流程：在 Redocly CLI 仓库开 draft PR、加 changeset、填 PR 模板 |
+| Redocly/redocly-cli | `packages/client-generator/examples/ejected-generator/.claude/skills/client-generators/SKILL.md` | REJECT | 单一产品工具手册：Redocly 客户端生成器的插件契约与选项 schema，是 SDK 代码生成而非契约设计 |
+| Redocly/redocly-cli | `packages/client-generator/examples/ejected-generator/generators/AGENTS.md` | REJECT | `redocly eject-generator` 生成的标记区块，只指向上一条与 php 生成器 skill，无内容 |
+| TencentCloudBase/CloudBase-AI-Toolkit | `plugin/cloudbase-codex/skills/http-api-cloudbase/SKILL.md` | REJECT（跨组命中） | 单一商业平台（CloudBase）的 HTTP API 调用指南，是消费方集成而非契约设计；该仓库由 wechat-miniprogram 追踪，已写入汇报「跨组命中」 |
+| nitinjain999/platform-skills | `plugins/platform-skills/skills/gateway-api/SKILL.md` | REJECT（跨组命中） | Kubernetes Gateway API / ingress-nginx 迁移，属 Scope 明确排除的网关与基础设施；更接近 containers skill（该仓库由 terraform 追踪），已写入汇报「跨组命中」 |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "api design" skills pushed:>2026-10-15`、`gh search repos openapi agent skill pushed:>2026-10-15`（均按星排序）、
+`gh search code openapi --filename SKILL.md`（噪声大，只列出单一产品 API 客户端）、`github/awesome-copilot` 10-15 以来提交标题（无 API/OpenAPI 相关新增）、
+`VoltAgent/awesome-agent-skills` README（API 相关只有已追踪的 LambdaTest 与 WordPress 的 `wp-rest-api`）；另评估工作单 C2 的三个分诊候选（#28–#30）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 25 | samber/developer-platform-skills `skills/api-error-design`、`api-idempotency-retry`、`api-versioning-policy`（另有 `api-rate-limit-policy`） | https://github.com/samber/developer-platform-skills | 9 | 2026-10-31 | MIT | 公开 API 的错误面、幂等与重试、版本与弃用、限流政策 | 1 | 3 | 2 | 3 | 2 | 11 | INCLUDE（reference） | 抽查三条全对：RFC 9110 中 GET/PUT/DELETE 幂等而 POST 不是；`Retry-After` 两种形式（秒数 / HTTP-date）；RFC 6585 禁止缓存 429。与本 skill 一致处：RFC 9457 信封 + 机器可读重试信号、`Idempotency-Key` 未标准化（它补充 IETF 草案已于 2026-04 过期未批准）、同 key 不同 body 回 409、RFC 9745 + 8594 双头。**冲突**：其限流 skill 以遗留 `X-RateLimit-*` 三件套为默认，本 skill 按裁决 8 维持不给 `X-` 形式作默认（RFC 6648）。无本 skill 未覆盖的可验证契约规则，余下大量是访谈问题、记忆文件约定与开发者关系/市场/招聘类策略，故只作校验，不合入文字；已加 `relation: reference` 条目并 `--pin` |
+| 26 | jentic/jentic-api-scorecard `skills/jentic-api-scorecard` | https://github.com/jentic/jentic-api-scorecard | 21 | 2026-10-31 | Apache-2.0 | 用 `@jentic/api-scorecard-cli` 按厂商自有 JAIRF 框架给 OpenAPI 文档打「AI 就绪度」分 | 1 | 3 | 3 | — | 2 | — | REJECT（工具绑定） | 单一厂商工具的 CLI 手册（需 Docker 拉引擎镜像），评分维度是厂商私有框架；本 skill 的验证门已定为 `redocly lint` + `prism mock`（裁决 11 不并列第二个 linter） |
+| 27 | WordPress/agent-skills `skills/wp-rest-api` | https://github.com/WordPress/agent-skills | 2317 | 2026-10-26 | NOASSERTION | WordPress REST 路由注册、schema、鉴权与响应整形 | 3 | 3 | — | — | — | — | REJECT（范围外） | 平台实现层（`register_rest_route` 等），属 Scope 排除的「实现契约」；本库无 WordPress/PHP CMS skill，不转交 |
+| 28 | TerminalSkills/skills `skills/scalar`（工作单 C2） | https://github.com/TerminalSkills/skills | 188 | 2026-10-30 | Apache-2.0 | Scalar API 参考页渲染 + `@scalar/cli` 的 validate/lint/mock | 1 | 3 | 2 | — | 2 | — | REJECT（工具绑定） | 文档站与另一套 lint/mock 工具；按「一个默认方案」不引入第二套验证门（裁决 11），API 文档渲染也不在契约设计范围 |
+| 29 | tushaarmehtaa/tushar-skills `plugin/skills/rate-limit`（工作单 C2） | https://github.com/tushaarmehtaa/tushar-skills | 12 | 2026-10-15 | MIT | Upstash Redis + Next.js 路由限流实现 | 1 | 3 | 2 | 3 | 2 | 11 | REJECT（范围外） | 限流器实现属 Scope 明确排除的「rate-limiter implementations」；契约层只与本 skill 已有的「429 + 非负 `Retry-After`」一致，无增量 |
+| 30 | pytorch/pytorch `.agents/skills/deprecate-feature`（工作单 C2） | https://github.com/pytorch/pytorch | 105050 | 2026-11-01 | NOASSERTION | PyTorch Python/C++ API 的弃用流程（`FutureWarning`、`TORCH_WARN_ONCE`、N+2 版本移除） | 3 | 3 | 3 | — | — | — | REJECT（范围外） | 上游自用的库 API 弃用流程，与 HTTP 契约的 `Deprecation`/`Sunset` 机制无关 |
+
+## 2026-11-01 文档上游复核
+
+RFC 为不可变文档，核对点同上轮：rfc-editor `rfc<N>.json` 的当前状态与 obsoleted_by / updated_by，以及 `https://www.rfc-editor.org/errata/rfc<N>` 的勘误。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| openapi-spec | `nullable` 不在 3.1.2；单数 `example` 为 Deprecated（「later versions … may remove it」）；`discriminator`、`externalDocs` 仍属 OAS 词汇；OAD 须含 `paths`/`components`/`webhooks` 之一；解析要求继承 JSON Schema 2020-12；3.1.2 / 3.2.1 为当前补丁 | https://spec.openapis.org/oas/v3.1.2.html；`gh api repos/OAI/OpenAPI-Specification/releases` | 一致。页面全文无 `nullable`，`example` 的弃用原句仍在；releases 最新仍为 3.2.1（2026-09-10）、3.1.2（2025-09-19），无新补丁 |
+| rfc9457 | 五个成员、`application/problem+json`、缺省 `about:blank`、按 `type` 分支、类型不符成员 MUST 忽略、只回最相关问题、`errors` 扩展 | https://www.rfc-editor.org/rfc/rfc9457 | 一致。PROPOSED STANDARD，未被废止/更新；勘误仍为 2 条（8858 Reported、7731 Held），与上轮相同 |
+| rfc9110-http | 方法 safe/idempotent/cacheable；201+Location、202、204、409、412、422；条件请求；`Retry-After` | https://www.rfc-editor.org/rfc/rfc9110 | 一致。INTERNET STANDARD，未被更新；Verified 勘误仍为 6 条；新增 2 条 Reported（9162 §5.2、9164 §6.5.1，2026-09）未核实且不涉及方法与状态码语义 |
+| rfc9111-caching | `Cache-Control` 与 `Vary` | https://www.rfc-editor.org/rfc/rfc9111 | 一致。INTERNET STANDARD；无 Verified 勘误（3 条 Reported/Held 涉及 §3.5、§4.3.4、§5.2.3，不改变响应侧缓存契约） |
+| rfc9745-deprecation | `Deprecation` 为 Structured Field Date（`Deprecation: @1688169599`）；Sunset 不得早于 Deprecation | https://www.rfc-editor.org/rfc/rfc9745 | 一致（示例原文仍在）。PROPOSED STANDARD，无勘误 |
+| rfc8594-sunset | `Sunset = HTTP-date` | https://www.rfc-editor.org/rfc/rfc8594 | 一致。INFORMATIONAL，未被废止/更新，无勘误 |
+| rfc7396-merge-patch | `application/merge-patch+json`；null 删除；不能寻址数组元素 | https://www.rfc-editor.org/rfc/rfc7396 | 一致。PROPOSED STANDARD，未被废止/更新，无勘误 |
+
+七个 docs 条目 `synced_at` 改为 2026-11-01，正文无过时项。
