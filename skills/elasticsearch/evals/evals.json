@@ -83,5 +83,16 @@
       "Warns that Elasticsearch does not apply Prometheus staleness markers, so a vanished target's series keeps appearing until its samples leave the lookback window (5 minutes for instant queries), which matters for panel 4's one-minute requirement",
       "Writes the ES|QL version with the `PROMQL` source command (GA in 9.5), an explicit `index=metrics-prometheus-default` and a named result column, such as `PROMQL index=metrics-prometheus-default mem_ratio=(avg by (instance) (...) / avg by (instance) (...))`"
     ]
+  },
+  {
+    "skills": ["elasticsearch"],
+    "query": "hybrid-query.md describes our ES|QL hybrid search after the upgrade to 9.5 and the questions from the review meeting. Answer the ask at the end.",
+    "files": ["evals/files/esql-hybrid/hybrid-query.md"],
+    "expected_behavior": [
+      "Explains the failure from the FORK semantics change: on 9.1-9.3 every FORK branch had an implicit LIMIT 1000, but from 9.4 (FORK GA) branches have no implicit limit, so the unbounded branch SORTs and the FUSE input are rejected at verification; fixes it with an explicit LIMIT in each branch (for example `| SORT _score DESC | LIMIT 50`)",
+      "Says ops' premise is outdated on 9.5: FORK is GA since 9.4 and FUSE is GA since 9.5 (both were tech preview earlier), while still noting the licence check for fusion features",
+      "Does not reject the EU change on the grounds that FORK cannot use remote cluster references: that restriction applied only before 9.3.0, so on 9.5 the remaining requirements are the ordinary cross-cluster ones (remote cluster configured, matching mappings/semantic_text inference on the remote side)",
+      "Gives a corrected 9.5 query that keeps METADATA _score/_id, bounds each branch, fuses, and limits the final result"
+    ]
   }
 ]

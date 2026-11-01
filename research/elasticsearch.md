@@ -391,3 +391,56 @@ marker、HTTP API 遇到多余 Prometheus 参数返回 400、`/api/v1/query_exem
 | elastic-docs | `rrf` / `linear` 检索器与 RRF 混合检索为 Enterprise 层（basic/gold/platinum 无） | [Subscriptions](https://www.elastic.co/subscriptions) 功能矩阵 | 一致 |
 
 6 条事实全部一致，正文未改，`elastic-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/elasticsearch.md`）。`elastic-agent-skills` 用 `gh api repos/elastic/agent-skills/compare/baa5111...09d879d` 读 patch（v0.7.0 发布提交 cdcc551 一次性带入 `elasticsearch-esql` 0.7.0 → 0.10.0、`elasticsearch-ingest` 0.1.0 → 0.1.3）；`elasticsearch-repo`（835 commits，diff too large）由主代理在裸仓库缓存上按树对比确认 paths 无变化。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| elastic-agent-skills | baa5111 → 09d879d | `elasticsearch-esql`：新增「Stack 版本门」与 9.5/Serverless 专属特性回退表（`DEDUP` 仅 Serverless、`IN (FROM …)` 子查询 9.5 preview、`IP_LOCATION`/`URI_PARTS`/`FIELD_EXTRACT` preview）；`PROMQL` 改为 GA 9.5 并重写 `promql-command.md`（9.4/9.5 不支持 `topk`/`predict_linear` 等、9.4 无即时查询）；`CATEGORIZE` 必须是第一个分组键；保留字须加反引号；`SET approximation` 改用 map 传参；`esql-version-history.md` 改写：FORK GA 9.4、FUSE GA 9.5、SAMPLE GA 9.5、COMPLETION GA 9.3、LIMIT BY 9.4 preview、FROM 子查询 GA 9.5。`elasticsearch-ingest`：先 `GET /` 确认连通、已成对的 NDJSON 原样提交、映射错误时须用户确认才删索引 | **事实更正**（esql 版本状态，见下）；其余新增（9.5 preview 命令、PromQL 细节、保留字、ingest 流程纪律）属新增内容或已覆盖，不合入 |
+| elasticsearch-repo | ed90157 → 9690301（835 commits） | 无（主代理树对比） | 噪声，仅 re-pin |
+| elastic-rally / wshobson-vector-tuning | 445d915 → e6f20c2 / 46891e7 → 7e2fb55 | 无（repo moved, tracked paths unchanged） | 噪声，仅 re-pin |
+
+更正（上游提示后对照 Elastic 官方命令页 `applies-to` 与本机 9.5.3 实测，非新增规则）：`references/esql.md`（正文以 9.5 为基准）把四个命令写成了过时状态。
+
+| 命令 | 原文 | 官方页面（2026-11-01） | 改为 |
+|---|---|---|---|
+| `FORK` | tech preview, 9.1；每分支隐式 `LIMIT 1000`；不支持远程集群引用 | [FORK](https://www.elastic.co/docs/reference/query-languages/esql/commands/fork)：GA since 9.4（preview 9.1–9.3）；9.4+ 分支**没有**隐式 `LIMIT 1000`；「In versions older than 9.3.0 using remote cluster references and FORK is not supported」；9.4–9.5 每查询一个 FORK；[Combine and reuse](https://www.elastic.co/docs/reference/query-languages/esql/esql-combine-reuse-queries)：9.4–9.5 的 FROM 子查询内不能有 FORK | GA 9.4、9.4+ 每个喂给 `FUSE` 的分支自带 `LIMIT`、远程集群限制仅 9.3.0 之前 |
+| `FUSE` | tech preview, 9.2 | [FUSE](https://www.elastic.co/docs/reference/query-languages/esql/commands/fuse)：GA since 9.5（preview 9.2–9.4）；「A `LIMIT` is required before `FUSE`」 | GA 9.5 |
+| `COMPLETION` | Tech preview; Platinum licence | [COMPLETION](https://www.elastic.co/docs/reference/query-languages/esql/commands/completion)：GA since 9.3（preview 9.1–9.2）；Platinum 依据上游官方 `esql-reference.md`「Requires Platinum license」 | GA 9.3（preview 9.1–9.2）; Platinum licence |
+| `SAMPLE` | 未标状态 | [SAMPLE](https://www.elastic.co/docs/reference/query-languages/esql/commands/sample)：GA since 9.5（preview 9.1–9.4） | 补 GA 9.5 |
+
+本机 `docker.elastic.co/elasticsearch/elasticsearch:9.5.3`（单节点、试用许可）实测：两个分支不带 `LIMIT` 时 `STATS COUNT(*) BY _fork` 各返回 3000 行（无隐式 1000）；其后接 `FUSE` 报 `verification_exception`「FUSE can only be used on a limited number of rows. Consider adding a LIMIT before FUSE.」；分支内 `SORT _score DESC` 不带 `LIMIT` 报「Unbounded SORT not supported yet ... please add a LIMIT」；`METADATA` 缺 `_index` 时 `FUSE` 报「FUSE requires a key column, default [_index] column not found」；各分支 `LIMIT 50` 后正常返回。这三条实测写进了 FORK/FUSE 一段（默认键 `_id` + `_index` 一句是实测所得的使用前提）。
+
+`--pin` 后逐条核对：09d879d、f825206、5076c03、e6f20c2、9690301、65b9ae3、7e2fb55、850bfef 全部等于审阅 HEAD，无差额。
+
+现有场景无一考察 FORK/FUSE，新增回归场景 7（夹具 `evals/files/esql-hybrid/hybrid-query.md`：9.3 上写好的 FORK/FUSE 混合查询升级 9.5 后报错，外加「仍是 preview」与「FORK 不能跨集群」两个过时说法），见 D2 节。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| elastic/agent-skills `plugins/kibana/skills/kibana-cases`（及 `skills/kibana/kibana-cases` 镜像，Apache-2.0） | REJECT（越界） | Kibana Cases（Security/Observability 事件工单）经 `elastic kb cases` 操作；Scope 明确「Kibana … Not covered by any skill here」，与候选表 #22 同类 |
+| elastic/agent-skills `skills/kibana/kibana-context-engine`（工作单 C 与 C2 分诊补充同一项，Apache-2.0） | REJECT（越界） | 查询 Kibana Context Engine 的 AI Index / Knowledge Indicators，要求 Kibana 9.6+（Stack 尚未发布，官方文档标为 Planned）并开启 `contextEngine:enabled`；属 Kibana 功能与未发布版本 |
+| first-fluke/oh-my-agent `.claude-plugin/directory/skills/oma-search/SKILL.md`（MIT） | REJECT | 「Search Router」是外部文档/网页/远程代码检索的调度 skill，与 Elasticsearch 无关（路径名误命中） |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "elasticsearch agent skill"` / `"elasticsearch skills"`（`--updated >2026-10-15`，无结果）；VoltAgent/awesome-agent-skills 自 2026-10-15 的新增行（无 Elasticsearch/OpenSearch 条目）；官方组织 `elastic/` 下仍只有已追踪的 `elastic/agent-skills`。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| （无新候选） | — | — | — | — | — |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| elastic-docs | 正文基线 9.5 | `gh api repos/elastic/elasticsearch/releases`：最新 v9.5.5、v9.4.8、v8.19.23（2026-10-06），之后无新版 | 一致 |
+| elastic-docs | ES\|QL 默认最多返回 1000 行，`LIMIT` 上限 10,000 | [ES\|QL limitations](https://www.elastic.co/docs/reference/query-languages/esql/limitations) | 一致 |
+| elastic-docs | FORK / FUSE / COMPLETION / SAMPLE 的 GA 版本与 FORK 分支隐式 LIMIT | 见上节表格 | **已过时 → 更正**（见上节） |
+| elastic-docs | 磁盘水位 low 85% / high 90% | [Cluster-level shard allocation and routing settings](https://www.elastic.co/docs/reference/elasticsearch/configuration-reference/cluster-level-shard-allocation-routing-settings) | 一致 |
+| elastic-docs | `index.max_result_window` 默认 10000 | [Index modules](https://www.elastic.co/docs/reference/elasticsearch/index-settings/index-modules) | 一致 |
+
+`elastic-docs` 的 `synced_at` 更新为 2026-11-01。

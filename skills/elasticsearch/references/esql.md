@@ -74,9 +74,9 @@ exceed 1000 needs one too — otherwise the "top" you are reading is an arbitrar
 | `SORT` | Order | On a `text` field it fails; sort on the `keyword` sub-field |
 | `DISSECT` / `GROK` | Parse a string column | `DISSECT` for fixed delimiters, `GROK` for patterns; both at query time, so a hot path wants an ingest pipeline instead |
 | `MV_EXPAND` | One row per value of a multi-valued field | Row count multiplies |
-| `SAMPLE` | Probability sample of rows | For exploring a huge index cheaply |
+| `SAMPLE` | Probability sample of rows | For exploring a huge index cheaply. GA 9.5 (preview 9.1–9.4) |
 | `CHANGE_POINT` | Detect a change in a metric series | — |
-| `COMPLETION` | Call an LLM inference endpoint per row | Tech preview; Platinum licence |
+| `COMPLETION` | Call an LLM inference endpoint per row | GA 9.3 (preview 9.1–9.2); Platinum licence |
 
 ## Full-text search in ES|QL
 
@@ -116,9 +116,13 @@ left join that fills unmatched rows with nulls.
 
 ## Multi-branch retrieval and fusion
 
-`FORK` (tech preview, 9.1) runs up to 8 branches over the same input and tags rows with `_fork`.
-Each branch has its own implicit `LIMIT 1000`. `FUSE` (tech preview, 9.2) merges those branches and
-recomputes `_score`, with `rrf` or `linear` strategies:
+`FORK` (GA 9.4, preview 9.1–9.3) runs up to 8 branches over the same input and tags rows with
+`_fork`. On 9.4+ a branch has **no** implicit `LIMIT 1000` — the preview added one per branch — so
+every branch that feeds `FUSE` needs its own `LIMIT`. Measured on 9.5.3: unlimited branches return
+every match, `FUSE` after them fails verification with "FUSE can only be used on a limited number
+of rows", and a branch `SORT` without a `LIMIT` is rejected as an unbounded sort. `FUSE` (GA 9.5,
+preview 9.2–9.4) merges those branches and recomputes `_score`, with `rrf` or `linear` strategies;
+its default key is `_id` plus `_index`, so request both in `METADATA`:
 
 ```esql
 FROM articles METADATA _score, _id, _index
@@ -129,8 +133,8 @@ FROM articles METADATA _score, _id, _index
 ```
 
 Same licence gate as the Query DSL fusion retrievers — check `GET /_license` before designing
-around it. Constraints: one `FORK` per query, no remote cluster references, not usable inside or
-after subqueries.
+around it. Constraints on 9.5: one `FORK` per query, and no `FORK` inside a `FROM` subquery;
+before 9.3.0 `FORK` also rejects remote cluster references.
 
 ## Time series
 
