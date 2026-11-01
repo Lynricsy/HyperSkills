@@ -157,7 +157,8 @@ These are greppable and they are specific.
   above the same name in the first sentence.
 - **Assistant markup leftovers**: `:contentReference`, `oaicite`, `[cite: 1]`,
   `turn0search0`, or `utm_source=openai` / `utm_source=chatgpt.com` /
-  `referrer=grok.com` inside a link. These are unambiguous. [official]
+  `utm_source=copilot.com` / `referrer=grok.com` inside a link. These are
+  unambiguous. [official]
 - **Links that 404.** Several dead links in a page that was written in one
   sitting means the URLs were produced rather than visited. [official]
 

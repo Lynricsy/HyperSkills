@@ -200,5 +200,16 @@
       "Replaces the configuration-file screenshot with a fenced code block (copyable and translatable) and turns the flowchart into text steps or a list",
       "Does not invent facts beyond screenshots.md (no extra ports, fields or steps)"
     ]
+  },
+  {
+    "skills": [
+      "technical-writing"
+    ],
+    "query": "Before we publish docs/troubleshooting.md, check this passage and its links for anything an AI tool left behind, then give me the cleaned passage. Only fix what is actually a leftover.\n\n\"If tile rendering stalls, clear the cache with `tilekit cache --purge` and restart the server ([cache guide](https://tilekit.dev/docs/cache?utm_source=copilot.com)). Version 2.3 changed the cache layout, so caches written by 2.2 are discarded on first start ([release notes](https://tilekit.dev/releases/2.3?utm_source=chatgpt.com)). If the stall persists, open an issue with the output of `tilekit doctor` ([issue tracker](https://github.com/tilekit/tilekit/issues?utm_source=newsletter&utm_medium=email)).\"",
+    "expected_behavior": [
+      "Identifies `utm_source=copilot.com` and `utm_source=chatgpt.com` as tracking parameters that AI assistants append to the links they cite, i.e. unambiguous leftovers, and removes them so the cache-guide and release-notes links point at the bare pages",
+      "Treats `utm_source=newsletter&utm_medium=email` on the issue-tracker link differently: it is an ordinary campaign tag, not an assistant marker, so it is either left alone or removed only as optional link hygiene, never reported as an AI tell",
+      "Leaves the prose, the commands and the version facts unchanged, because nothing in the sentences themselves is a tell"
+    ]
   }
 ]

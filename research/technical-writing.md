@@ -341,3 +341,56 @@ neolab、standard-readme、github-readme-stats、best-readme-template up to date
 | v4 | Writes and audits project READMEs, guides and changelogs; not doc-site setup or profile READMEs. | 0/3 | 0/3 | 2/2 | 1/1（另 1 次不确定） |
 
 结论：N10 只有 v1 达到 3/3、v2 为 1/3，同样点名「profile READMEs」的 v4 却是 0/3，措辞与结果没有稳定对应；mkdocs 站点（N5）各版本最多 1/3 未读，单 skill 挂载下模型把站点导航与内容视为文档工作，描述无法稳定区分。各版本在 6 次负例上 0–3 次之间波动，抽样噪声大。v2 在不丢正例的前提下最均衡（负例 2/6，旧 0/6；正例 4/4；保留负例营销文案两侧都 0/2、保留正例 2/2，无回退），采用 v2。遗留：N5、N10 及营销类请求仍多半会读取本 skill；正文 `## Scope` 已明确排除，D2 中读取后答案仍正确，影响限于多读一次上下文。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/technical-writing.md`。google-styleguide、
+addyosmani-skills 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 patch。`--pin` 写入的 commit 与审阅 HEAD 逐条比对：google-styleguide
+70d70c9、addyosmani-skills 8bfcc1f 相等；copilot-docs 5269f7e、jph-adr 86893bc 与快照 head 相等（主代理裸仓库树 diff 已确认 paths 无变化）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| google-styleguide | 0acdb47 → 70d70c9 | `docguide/{READMEs,best_practices,style}.md`：591feda 手写目录换成 kramdown autotoc（`* TOC {:toc}`）；a81f9cf mdformat 重排换行、去掉链接定义前的 BOM、嵌套代码块外层改四个反引号；08224f0/89e0e1b 导出同步：READMEs 开头「readable with GitHub and Gitiles」改为「readable with markdown」，`bazel run`/`bazel test` 改为 `bazel` 命令，语法修正 there's → there are | 无影响：纯格式与措辞；本 skill 本就不带 Gitiles 与 bazel（见 notes）。re-pin |
+| addyosmani-skills | aeac41d → 8bfcc1f | `skills/documentation-and-adrs`：8e6726d 把「GOOD 注释」示例从 sliding window 改成与代码相符的 fixed window 描述 | 无影响：注释示例所在段落未合入（本 skill 只取 ADR 约定与生命周期）。re-pin |
+| mblode-docs-writing、mattpocock-skills、mcollina-skills、awesome-readme-skill、shields | — | paths_unchanged | 噪声，re-pin |
+| copilot-docs、jph-adr | — | behind，主代理裸仓库树 diff 确认 paths 无变化 | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 与 C2 的文件均用 `gh api repos/<o>/<r>/contents/<path>` 读原文；许可用 `gh api repos/<o>/<r>` 核实。
+
+| 候选 | 许可 | 结论 | 理由 |
+|---|---|---|---|
+| first-fluke/oh-my-agent `.claude-plugin/{directory,domains/research}/skills/oma-academic-writing`（两份相同） | MIT | REJECT（跨范围） | 学术论文英语写作（rubric、证据、期刊体例），不是项目随附文档；本 skill `## Scope` 不含，也不属于任何现有 skill |
+| nitinjain999/platform-skills `plugins/platform-skills/skills/awesome-docs` | Apache-2.0 | REJECT | 71 星；核心是生成动画 SVG 图示的 GitHub Markdown 文档，属装饰性呈现；README 呈现与可移植性规则本 skill 已有，动画 SVG 在 npm/PyPI 渲染器上的表现未给出可验证事实 |
+| rampstackco/claude-skills `skills/ticket-authoring` | MIT | REJECT（跨组） | Issue tracker 工单（bug/story/spike/epic 的 definition of ready），不是项目文档；若有归属更接近 planning / github skill，记入跨组命中 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/humanize` | MIT | REJECT | 12 星个人仓；「先诊断后改写、保留作者立场与不确定性、不编造细节、不给 AI 百分比」均已在 `references/human-voice.md`，无新可验证信号 |
+| vercel-labs/agent-browser `.agents/skills/technical-writer` | Apache-2.0 | REJECT | `metadata.internal: true` 的公司内部 skill，绑定 Vercel 文档站与 Vercel voice；通用部分（先定读者任务、以源码核实、改写要有理由、通篇复查重复句式）与本 skill 已有规则重合，无增量 |
+| vercel/ai `skills/edit-package-readme` | NOASSERTION | REJECT | AI SDK monorepo 自用 README 模板（上游自用流程），许可不明 |
+| first-fluke/oh-my-agent `.agents/skills/oma-docs` | MIT | REJECT | 文档引用检查与翻译漂移，依赖 `oma` CLI；文档—代码漂移审计本 skill 已由 copilot-docs 覆盖 |
+| first-fluke/oh-my-agent `.agents/skills/oma-explanation` | MIT | REJECT（跨范围） | 生成离线 HTML 交互讲解页，属演示产物而非项目文档 |
+| tushaarmehtaa/tushar-skills `plugin/skills/changelog`、`plugins-labs/skills/{readme,decision-doc,agent-instructions}` | MIT | REJECT | 12 星；readme 的「先核实声明、按读者任务选节、命令分已执行/未执行」与本 skill 重合；changelog 偏社交卡片；decision-doc 无 ADR 编号与生命周期约定；agent-instructions（AGENTS.md/CLAUDE.md）不在本 skill 范围 |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "technical writing skill agent docs"`（筛 2026-10-15 后推送，无相关结果）、VoltAgent/awesome-agent-skills 自 2026-10-15 以来
+README 新增条目、`/tmp/hs-attr/github__awesome-copilot` 3cf7c7e..5269f7e 新增 SKILL.md（无文档写作类）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| vercel-labs/agent-skills `skills/writing-guidelines`（规则在 vercel-labs/writing-guidelines `command.md`） | 33317（规则仓 21） | 2026-10-28（规则仓 2026-06-01） | 未声明（规则仓 MIT） | 权威 2 / 新鲜 1 / 具体 2 / 正确 2 / 许可 1 = 8 | REJECT：skill 本体只是「抓取远端 command.md 再审查」；规则是 Vercel house style（`meta.contentType`、`<Steps/>`、TypeScript 默认、`64 KB`/`30s` 单位、占位符写法），通用部分（主动语态、第二人称、禁 easy/simple、句长、术语首现定义、AI 腔过渡句）已由 google-devdocs-style 与 wikipedia-ai-signs 覆盖 |
+| Hyacehila/humanizer-zh-next | 229 | 2026-10-25 | MIT | 1 / 3 / 2 / 2 / 2 = 10 | REJECT（范围外）：去除中文文本 AI 痕迹（含学术与基金申请模式）；本 skill 的 human-voice 规则针对英文项目文档，中文写作不在 `## Scope`，交主人决定 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| diataxis | 罗盘两问 action/cognition × acquisition/application；四类文档 | https://diataxis.fr/compass/ | 一致 |
+| google-devdocs-style | global audience 页（Last updated 2026-10-02）、images 页（2026-10-09）、code samples 页（2025-10-10）与上次复核同一版本；word list（2026-10-09）`utilize`：意为 use 时不要用 | https://developers.google.com/style | 一致（三页未更新） |
+| github-writing-docs | 标题锚点：小写、空格变连字符、其他空白与标点删除、重复加 `-1`；自定义锚点不进大纲；两个以上标题自动生成目录；`<picture>` 支持；alerts 仅在关键时用、每篇一两个、不相邻、不可嵌套 | `gh api repos/github/docs/contents/content/get-started/writing-on-github/.../basic-writing-and-formatting-syntax.md`（最近提交 2026-07-08） | 一致 |
+| pypa-readme | `long_description_content_type`（`text/markdown`、`text/x-rst`）；PyPI 的 README renderer；`twine check dist/*` 报告渲染问题 | https://packaging.python.org/en/latest/guides/making-a-pypi-friendly-readme/ | 一致 |
+| wikipedia-ai-signs | copula avoidance、rule of three、negative parallelism、vague attribution、challenges-and-future 结尾、em dash、弯直引号、Title Case；助手标记 | `action=raw` 读主页与 `/Markup` 子页 | **补一项**：主页「utm_source」节新增 `utm_source=copilot.com`（Copilot），已补进 `references/human-voice.md`。`turn0search0`、`[cite: 1]`、`oaicite` 等逐家示例已移到 `Wikipedia:Signs_of_AI_writing/Markup` 子页，仍成立 |
+
+五条 `synced_at` 改为 2026-11-01。正文改动仅 `references/human-voice.md` 一处；为它新增回归场景 12（段落内链接带 `utm_source=copilot.com`、
+`utm_source=chatgpt.com` 与普通 newsletter 活动参数）。基线（27 s）删掉了两个助手参数、保留 newsletter 参数、正文不动，但只给出清理后段落、
+没有说明它们是 AI 工具留下的标记（EB1 ◐、EB2 ✔、EB3 ✔）。
