@@ -181,7 +181,7 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 | [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives features and bug fixes test-first and reviews tests | 2026.10.15 | 7 |
 | [`typescript`](skills/typescript/) | 框架 | Designs TypeScript types, fixes type errors and configures tsconfig builds | 2026.11.01 | 9 |
 | [`unity`](skills/unity/) | 平台 | Develops Unity games with C#, engine APIs, rendering and asset workflows | 2026.10.15 | 7 |
-| [`unreal`](skills/unreal/) | 平台 | Develops Unreal Engine gameplay with C++, Blueprints and engine APIs | 2026.10.15 | 10 |
+| [`unreal`](skills/unreal/) | 平台 | Develops Unreal Engine gameplay with C++, Blueprints and engine APIs | 2026.11.01 | 10 |
 | [`vue`](skills/vue/) | 框架 | Develops Vue and Nuxt applications with Composition API, Pinia and routing | 2026.11.01 | 10 |
 | [`web-testing`](skills/web-testing/) | 任务 | Tests web applications in real browsers with Playwright end-to-end automation | 2026.11.01 | 11 |
 | [`wechat-miniprogram`](skills/wechat-miniprogram/) | 平台 | Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro | 2026.11.01 | 11 |

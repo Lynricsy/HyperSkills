@@ -68,5 +68,29 @@
       "Fixes the real C++ defects: the new[] buffer is never deleted, and the copy constructor copies the raw pointer so two Emitters own one buffer - the fix is a std::vector or std::unique_ptr member plus correct copy/move semantics, not a manual delete added to the destructor",
       "Does not introduce Unreal types or idioms such as UPROPERTY, TObjectPtr, TSharedPtr, TArray, UObject, GENERATED_BODY or a Build.cs into the answer"
     ]
+  },
+  {
+    "skills": ["unreal"],
+    "query": "We moved ArenaGame from UE 5.6 to UE 5.8 and our Windows CI packaging job (package_ci.sh) still exits 0 on the old agents, but the uploaded zip is now a few KB with nothing but a ue.projectstore file in it. The new agent image fails even earlier with a toolchain error. Explain what changed, what the artifact should be, and what to change in the job and on the agents.",
+    "files": ["evals/files/package_ci.sh"],
+    "expected_behavior": [
+      "Explains that in UE 5.8 Zenserver as Cooked Output Store is enabled by default, so the cook writes the cooked data into Zenserver's data directory and Saved/Cooked/<Platform> holds only the small ue.projectstore descriptor with no .uasset/.uexp/.ubulk files - the cook did not fail",
+      "Fixes the artifact rather than the cook: ship the staged build under Saved/StagedBuilds/<Platform> (or the -archive output), whose .pak/.utoc/.ucas container files are produced from Zenserver exactly as before; zipping Saved/Cooked was never the distributable",
+      "Mentions the escape hatches only as options for workflows that really need loose cooked files: the Packaging setting that turns off Zenserver as cooked output store, or -skipzenstore on the cook",
+      "Addresses zenserver on CI: Epic recommends LimitProcessLifetime=false under [Zen.AutoLaunch] in DefaultEngine.ini so zenserver is not started and stopped on every step, and the job must then tolerate (or explicitly shut down) the long-running process on a wiped agent",
+      "Names the UE 5.8 Windows toolchain minimums the new agent misses: Visual Studio 2022 17.14 or newer (2026 recommended), MSVC 14.38 or newer and Windows SDK 10.0.22621.0 or newer, so 17.10 with SDK 10.0.19041.0 cannot build",
+      "Does not claim to have run the packaging job or inspected the agent: no invented log output"
+    ]
+  },
+  {
+    "skills": ["unreal"],
+    "query": "Review ArenaHeroCharacter.cpp from our UE 5.8 listen-server game. Input works for the host but remote clients cannot control their character at all. Also tell me if the dash combo and the planned rebind menu are a sound approach.",
+    "files": ["evals/files/ArenaHeroCharacter.cpp"],
+    "expected_behavior": [
+      "Identifies why clients get no input: the mapping context is added in BeginPlay, which on a client can run before the pawn is possessed, so GetController() is null and AddMappingContext never runs; the fix is to add the context when the owning client takes control - override PawnClientRestart as Epic's Input Overview does (clearing old mappings first because it can run more than once), or add it from the PlayerController",
+      "States that the Combo trigger is deprecated in UE 5.8 because it is unreliable and can corrupt mapping contexts in the editor, so new input should not be built on UInputTriggerCombo",
+      "Rejects editing a duplicated Input Mapping Context through a const_cast as the rebind mechanism and points to Enhanced Input's User Settings (UEnhancedInputUserSettings with Player Mappable Key Settings, registered contexts and SaveSettings) as the supported way to remap and persist keys",
+      "Keeps the existing correct parts: binding through UEnhancedInputComponent::BindAction and the per-local-player UEnhancedInputLocalPlayerSubsystem"
+    ]
   }
 ]

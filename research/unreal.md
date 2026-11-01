@@ -382,3 +382,64 @@ dev.epicgames.com 文档当前仍服务 UE 5.8（页面 title「Unreal Engine 5.
 | epic-ue-docs | Automation：纯单元测试用 Low-Level Tests；测试可乱序/跨机并行；Smoke 测试须 1 秒内完成；`TObjectPtr` 为 UE5 引入的可选替代 | [Automation Test Framework](https://dev.epicgames.com/documentation/en-us/unreal-engine/automation-test-framework-in-unreal-engine)、[UE5 Migration Guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-migration-guide) | 一致 |
 
 7 组事实全部一致，正文未改，`epic-ue-docs` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+依据：主代理工作单 `/tmp/hs-sync/unreal.md` 与旧 pin 快照 `/tmp/hs-upstream-2026-11-01.json`。用已登录 `gh api repos/<o>/<r>/compare/<旧>...<审阅>` 取 tracked paths 的真实 patch 逐条阅读。`--pin` 写入的 commit 与审阅 HEAD 逐条比对一致（gamedev-unreal 19d93f9、epic-ue-skills 0e27bde、benjaminastera-skills 41354a0），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| gamedev-unreal | 0a70cfc → 19d93f9（`skills/unreal` 下 8 提交） | 676ab59 BTTask 示例改为每 AI 节点内存 + `AbortTask` 清定时器；203e698 Blueprint 软引用说明更正、5.8 局部变量与成员同名的默认值继承坑；284ee03 Live Coding 改为「函数体可靠、结构性改动依赖 Object Reinstancing」并补 `TStrongObjectPtr`/`FGCObject`；0cef2af Enhanced Input 改名 `PlayerInputComponent` 避免遮蔽、`PawnClientRestart`、User Settings 改键四步、5.8 弃用 Combo 触发器；379b812 Niagara 生成返回空指针与构造脚本不安全、Cascade To Niagara Converter；0863f59 打包：5.8 Zenserver 为默认 cooked output store（`Saved/Cooked` 只剩 `ue.projectstore`）、IoStore、`LimitProcessLifetime=false`、5.8 SDK 最低版本、`DataValidation`；65ca920 Arm64 仅游戏目标；4817f30 点名 `Automation RunTest` 校验命令 | 无事实冲突；新增内容基线已会 → 不合入，只 re-pin。逐项：Live Coding 措辞改成与本 skill `unreal-build.md`/`unreal-blueprints.md` 现有说法一致（上游纠正了我们 2026-09 记录的冲突，SOURCES notes 已更新）；`FGCObject`/`TStrongObjectPtr` 本 skill 已有（`unreal-scripting.md`、规则 5）。5.8 Zen 默认、SDK 最低版本、Arm64、Combo 弃用、Blueprint 局部变量同名均已对照 [UE 5.8 Release Notes](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-8-release-notes) 与 [Zenserver as Cooked Output Store](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-zen-storage-server-as-cooked-output-store-for-unreal-engine) 核实为真；`PawnClientRestart` 对照 [Input Overview](https://dev.epicgames.com/documentation/en-us/unreal-engine/input-overview-in-unreal-engine) 核实。新增场景 6（5.8 打包/Zen/SDK）与场景 7（Enhanced Input 客户端无输入/Combo/改键）跑基线：基线联网后分别 6/6、4/4 达成（见下表），按「基线已会就不合入」不进正文，场景留作哨兵。「参数名 `InputComponent` 遮蔽 `AActor::InputComponent`」一条：Epic 自己的 Input Overview 示例就用 `InputComponent` 作参数名，且官方页面未写明 shadow 警告默认即错误，不作为缺陷规则合入，已从场景 7 的 expected_behavior 删去。行为树节点内存一条属于 AI/行为树，本 skill `## Scope` 未列，交主人决定 |
+| epic-ue-skills | a6aa73a → 0e27bde（1 提交） | 0e27bde `skills/unreal-mcp`：多编辑器并行各用独立 `ServerPortNumber`、`initialize` 结果里的实例元数据（`_meta["com.epicgames.unrealengine/instance"]`）用于确认是哪个编辑器应答，插件版本 3.1.2 | 无影响：本 skill 只引用该仓库划定「编辑器内操作走官方 MCP」的边界（`unreal-build.md`「Editor automation from an agent」），不复述 MCP 运维细节。只 re-pin |
+| benjaminastera-skills | 7f5e06c → 41354a0 | 无（tracked paths 未变） | 噪声，只 re-pin |
+
+结论：正文（`SKILL.md`/`references/`）未改，只改版本号、pin 与 SOURCES notes；`evals/evals.json` 新增哨兵场景 6、7 及夹具 `package_ci.sh`、`ArenaHeroCharacter.cpp`。
+
+### 基线取证（场景 6、7）
+
+模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/G10b-games2/unreal/omp-openai-gpt-6.1-sol-medium/baseline/`，逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6（新增） | gpt-6.1-sol medium | 无 | False | EB1–EB6 全部 ✔ | 229.5 s。联网读 Zen 文档与 5.8 release notes：Zen 默认、`ue.projectstore`、改传 `-archive`/StagedBuilds 的 `.pak/.utoc/.ucas`、`-skipzenstore` 仅作调试、`LimitProcessLifetime=false`、VS 17.14/MSVC 14.38/SDK 10.0.22621.0；声明未实跑 |
+| 7（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔（按删去遮蔽条后的 4 条计） | 121 s。指出 `BeginPlay` 早于占有、改用 `PawnClientRestart` 或 `SetupPlayerInputComponent`；以论坛帖为据说 5.8 弃用 Combo 并保留不确定性；改键指向 `UEnhancedInputUserSettings`/`MapPlayerKey`/`SaveSettings`；未提参数遮蔽 |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 为空：两个移动过的已追踪仓库在区间内没有新增本组相关的 skill 类文件（gamedev-unreal 区间内的新增文件归属其他游戏/图形 skill，由各自工作单处理）。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| gamedev-unreal `unreal-behavior-trees` 的「任务节点默认非实例化、每 AI 状态放节点内存」规则（676ab59，已在 tracked path 内） | 待定（Scope） | 内容具体可核（`GetInstanceMemorySize`/`InitializeNodeMemory`/`CastInstanceNodeMemory`/`AbortTask`），但行为树/AI 不在本 skill `## Scope` 列举范围内，按流程交主人决定是否扩 Scope |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "unreal engine skill" --sort updated`、`"ue5 skills claude"`、`"unreal SKILL.md agent"`（后两者无结果）、`VoltAgent/awesome-agent-skills` README 与 `github/awesome-copilot` 树（均无 Unreal 条目）。只看 2026-10-15 之后新建或大更新者。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | ICY0U/unreal-engineering-skill `skills/unreal-engineering` | <https://github.com/ICY0U/unreal-engineering-skill> | 0 | 2026-10-24 | MIT | 0 | 3 | 1 | 1 | 2 | 7 | REJECT | 2026-10-24 新建的个人仓库；SKILL.md 是通用流程（建检查点、核对版本、按需读参考），无可证伪的引擎规则；含 mod 制作/逆向重建，超出本 skill Scope |
+| N2 | liuli-zsl/dsh-unreal-engine-skills | <https://github.com/liuli-zsl/dsh-unreal-engine-skills> | 1 | 2026-10-21 | MIT | 0 | 3 | 1 | — | 2 | — | REJECT | `create-toolset`/`unreal-mcp`/`unreal-skill` 三个目录与已追踪的 EpicGames 官方插件同名同结构，属转载，无增量 |
+| N3 | Oleg-Soroko/unreal-engine-skills-for-codex-plugin | <https://github.com/Oleg-Soroko/unreal-engine-skills-for-codex-plugin> | 1 | 2026-10-19 | MIT | 0 | 3 | 1 | — | 2 | — | REJECT | 仓库描述即「Epic 官方插件的非官方 Codex 改编」，只含 `unreal-mcp`；同类 jym4/unreal-engine-skills-for-codex-plugin 一并 REJECT |
+| N4 | costrict-plugins-repo/github-trending-unreal-engine-skills-for-claude-code | <https://github.com/costrict-plugins-repo/github-trending-unreal-engine-skills-for-claude-code> | 0 | 2026-10-20 | — | 0 | 3 | — | — | — | — | REJECT | 与 2026-09 已 REJECT 的 costrict 镜像同一组织的又一镜像 |
+
+## 2026-11-01 文档上游复核
+
+dev.epicgames.com 当前仍服务 UE 5.8（各页 title「Unreal Engine 5.8 Documentation」；`unreal-engine-5-9-release-notes` 仍无内容）。页面可直接 HTTP 抓取正文。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| epic-ue-docs | 文档当前版本为 5.8 | [UE 5.8 Release Notes](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-8-release-notes) | 一致 |
+| epic-ue-docs | Enhanced Input：同一 Action 多 context 时只考虑最高优先级；`AddMappingContext(..., Priority)` | [Enhanced Input](https://dev.epicgames.com/documentation/en-us/unreal-engine/enhanced-input-in-unreal-engine) | 一致 |
+| epic-ue-docs | Live Coding：`.cpp` 构造函数默认值不更新已有实例、头文件中改会生效；Reinstancing 开启时需用 `ReloadReinstancingCompleteDelegate`/`ReloadCompleteDelegate` 更新缓存指针 | [Live Coding](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-live-coding-to-recompile-unreal-engine-applications-at-runtime) | 一致 |
+| epic-ue-docs | Nanite：只支持 Opaque/Masked，其余替换默认材质并 Output Log 警告；不支持 Morph Target、Forward、VR stereo、MSAA；场景实例硬上限 16 million（含所有流入实例） | [Nanite](https://dev.epicgames.com/documentation/en-us/unreal-engine/nanite-virtualized-geometry-in-unreal-engine) | 一致 |
+| epic-ue-docs | `TG_PostPhysics` 开始时已用本帧物理数据 | [Actor Ticking](https://dev.epicgames.com/documentation/en-us/unreal-engine/actor-ticking-in-unreal-engine) | 一致 |
+| epic-ue-docs | Automation：依赖引擎系统、纯单元测试用 Low-Level Tests；测试可乱序/跨机并行；Smoke 测试应在 1 秒内完成 | [Automation Test Framework](https://dev.epicgames.com/documentation/en-us/unreal-engine/automation-test-framework-in-unreal-engine) | 一致 |
+| epic-ue-docs | `TObjectPtr` 为 UE5 引入的可选替代 | [UE5 Migration Guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-migration-guide) | 一致 |
+| epic-ue-docs | 打包章节（`unreal-build.md`「Cook, package, deploy, run」「Release versions and patches」）与 5.8 变更的兼容性：Zenserver 默认作 cooked output store 后 `Saved/Cooked/<Platform>` 只含 `ue.projectstore`，容器 staging 输出不变 | [Zenserver as Cooked Output Store](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-zen-storage-server-as-cooked-output-store-for-unreal-engine)、5.8 Release Notes「Zenserver as Cooked Output Store」 | 一致：正文只要求从 `Saved/StagedBuilds/` 测试与发布、从 `Releases/` 保留资产注册表与 pak，从未把 `Saved/Cooked` 当交付物；注意 Zen 页面正文仍写「As of 5.5 not default」，以 5.8 Release Notes 的「now enabled by default」为准 |
+
+8 组事实全部一致，无过时项，正文未改；`epic-ue-docs` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+正文（`SKILL.md`/`references/`/`scripts/`）本轮无改动，按简报第 6 步不需要 D2；新增的场景 6、7 只跑了基线（见上「基线取证」），作为哨兵保留。
