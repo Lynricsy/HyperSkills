@@ -16,7 +16,7 @@ Verified against: Svelte 5.57, SvelteKit 2.70 and 3.1.
 
 A browser is stateful; a server is not, and a long-lived server process is
 shared by every visitor. Any value held at module scope — in a `.svelte.js`
-module, in `+page.server.js`, in a `$lib` helper — is one value for all of them.
+module, in `+page.server.js`, in a `#lib` helper — is one value for all of them.
 
 ```js
 // +page.server.js — never do this

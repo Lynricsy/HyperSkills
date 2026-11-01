@@ -167,8 +167,10 @@ configuration:
 | `error()` | `error(status, { message, ...props })` allowed | second argument must be the message string; extra props go in a third argument |
 | `handleError` | called for unexpected errors only | called for every error with a `kind` (`app`, `framework`, `validation`, `unknown`) and may set `status`; `handleValidationError` removed |
 | Failed form actions | enhanced responses return 200 | the status passed to `fail()` |
+| Cross-page `use:enhance` | `<form action="/other?/x" use:enhance>` stays on the current page | navigates to the action's page on success or failure, like a native submit; `update({ navigate: false })` keeps the old behaviour |
+| `$app/paths` | `base`, `assets`, `resolveRoute` (deprecated) | removed; `resolve('/blog/[slug]', { slug })` for a route id, `resolve('blog/hello')` for a pathname (no leading `/`), `asset('foo.png')` |
 | Param matchers | `src/params/<name>.js` | consolidated into `src/params.js` with `defineParams` |
-| Server-only dirs | recognised under `src/lib` | any `/server/` segment in the project |
+| Server-only modules | `.server.` filename infix; directories only under `src/lib/server` | a `server` filename segment (`x.server.js`, `server.js`); any `server` directory except inside `src/routes` and `static` |
 | Types | `Handle` and friends from `@sveltejs/kit` | hooks types from `@sveltejs/kit/hooks`, remote function types from `$app/server`; `RequestEvent` and `Cookies` stay in `@sveltejs/kit` |
 | Redirects | external redirects allowed | forbidden unless `redirect(..., { external })` opts in |
 | Baseline | — | Node 22.17+, Vite 8.0.12+, TypeScript 6, Svelte 5.57.1+, `@sveltejs/vite-plugin-svelte` 7 |

@@ -132,5 +132,38 @@
       "Says `toHaveTextContent` compares the whole text in Vitest 5, so `toHaveTextContent('1')` and `toHaveTextContent('5')` must assert 'Increment: 1' / 'Increment: 5' (or use a RegExp or `toMatchTextContent` for a partial check)",
       "Leaves Counter.svelte unchanged and does not reach for `{ force: true }`, `container.querySelector` or added test ids"
     ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "acme-shop is on SvelteKit 3.1 (package.json is here). Since we upgraded from 2.x, subscribing to the newsletter from the footer form in +layout.svelte throws the visitor onto /newsletter, and a typo in the address also lands them there instead of showing the inline error. Product wants people to stay on the page they were reading. +page.server.ts is src/routes/newsletter/+page.server.ts. Explain the cause, fix it, and tidy anything else in the footer form that is outdated for 3.1.",
+    "files": [
+      "evals/files/kit3-forms/package.json",
+      "evals/files/kit3-forms/+layout.svelte",
+      "evals/files/kit3-forms/+page.server.ts"
+    ],
+    "expected_behavior": [
+      "Explains that on SvelteKit 3 `use:enhance` on a form whose `action` is on another page navigates to that page after a successful or failed submission, as a native submit would, whereas SvelteKit 2 stayed on the current page — which is why the upgrade changed the behaviour",
+      "Fixes it inside the existing submit callback with `update({ navigate: false })` (or an equivalent that applies non-redirect results to the current page), keeping `method=\"POST\"`, the cross-page action and `use:enhance` so the form still works without JavaScript",
+      "Keeps reading the result through `page.form` from `$app/state` in the layout, and says the inline error and thank-you message now render on the current page",
+      "Removes or replaces the `invalidateAll()` call: it is a deprecated alias of `refreshAll()` on SvelteKit 3, and `update()` already refreshes all data after a successful result",
+      "Treats SvelteKit 3 as the current line: no move back to 2.x behaviour through a downgrade, `svelte.config.js` or `$app/stores`"
+    ]
+  },
+  {
+    "skills": ["svelte"],
+    "query": "Our vite.config.ts is the one `sv add vitest` generated; the other files are from src/lib (cart.svelte.ts, cart.test.ts) and src/lib/server (pricing.ts, pricing.svelte.test.ts). cart.test.ts fails with `Svelte error: rune_outside_svelte`, and someone claims cart.svelte.ts is not being compiled. Separately, the two pricing tests never show up in the Vitest report at all. Explain both problems and fix them without changing vite.config.ts.",
+    "files": [
+      "evals/files/vitest-names/vite.config.ts",
+      "evals/files/vitest-names/cart.svelte.ts",
+      "evals/files/vitest-names/cart.test.ts",
+      "evals/files/vitest-names/pricing.ts",
+      "evals/files/vitest-names/pricing.svelte.test.ts"
+    ],
+    "expected_behavior": [
+      "Says the error comes from the `$state` written in cart.test.ts itself: a test file may use runes only when its name contains `.svelte`, while the imported cart.svelte.ts is compiled by its own name and is not the problem",
+      "Fixes cart.test.ts by renaming it to `cart.svelte.test.ts` (noting it then runs in the browser `client` project) or by removing the rune from the test, and does not add `optimizeDeps` or other config workarounds",
+      "Explains that pricing.svelte.test.ts matches neither project: the client project excludes `src/lib/server/**` and the server project excludes every `*.svelte.{test,spec}` file",
+      "Fixes it by renaming to `pricing.test.ts` so it runs in the Node `server` project (the test uses no runes), and leaves vite.config.ts unchanged"
+    ]
   }
 ]

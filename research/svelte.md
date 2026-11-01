@@ -365,3 +365,70 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD。
 结论：改动相关行为在 2、3、6、7、8 上均不比基线差（2：4✔ 对 3✔；3、6、7、8 持平——7、8 为今日新增的 SvelteKit 3 / Vitest 5 场景，基线已会，作为哨兵保留）；负例 `skill_read=false`。未改正文。场景 2、3 两侧都保留 `export let` / `$app/stores`（夹具为 legacy 文件、无 package.json，模型按「legacy 文件 → 迁移而非修 bug」处理），非今日改动所致。
 
 遗留：场景 7 两侧都没有把 `$env/*` 明确说成弃用别名（有 skill 直接迁到 `$app/env/private`，基线保留旧导入并说明弃用），EB3 均为部分达成。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/svelte.md`。A 类三条用 `gh api .../compare` 读真实 patch；
+B 类（`svelte-ai-tools`、`sv-cli` paths_unchanged，`awesome-copilot` 主代理裸仓库树 diff 确认 paths 无变化）只 re-pin。
+`--pin svelte` 写入的 commit 与审阅 HEAD 逐条相等（`svelte-core` fe21fce、`sveltekit-core` 3da859a、`fubits1-svelte` a024d57、
+`svelte-ai-tools` 75a688c、`sv-cli` 09d19cb、`awesome-copilot` 5269f7e），无差额区间。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| `svelte-core` | `4473857 → fe21fce`（1 提交命中） | `fe21fce` FAQ 里 Svelte v2 文档链接改指 GitHub 仓库 | 噪声（链接） |
+| `sveltekit-core` | `73bf98c → 3da859a`（16 提交命中 docs + CHANGELOG） | 8 个提交只给各页 frontmatter 加 `tags:`（crosslink）；`52ec59c` 换视频链接；`a2683c1`/`ec46f92` FAQ 新增「客户端运行时支持的浏览器」（Vite 8 `baseline-widely-available`：Chrome/Edge 111、Firefox 114、Safari 16.4，不做 polyfill，service worker 以 `type: 'module'` 注册）；`f789e88`/`18c0220` adapter-vercel `runtime` 支持任意偶数 Node 版本（`nodejs26.x`）与 `bun1.4.x`；`ae07803`/`d695947` `messages.json` 新增 `remote_module_server_only` 报错（位于 `server` 目录或带 `server` 段的 remote 模块不能被浏览器代码导入），`server_only_module` 说明补 `src/params.js`；CHANGELOG 3.1.1 为 11 条 patch 修复 | 无影响：tags/链接/浏览器矩阵/Vercel runtime 均不在正文覆盖范围；remote 模块位置报错是新的可执行报错，报错文本本身已给出修法（移出 `server` 目录、去掉文件名里的 `server` 段），不合入正文；3.1.1 修复不改变任何正文结论。**另：本次以当前 3.x 文档复核 references 时发现若干 2.x-only 陈述，见下「事实更正」** |
+| `fubits1-svelte` | `0f7dcdb → a024d57`（6 提交命中 `testing-svelte`） | 措辞重写与目录化；示例改用 SvelteKit 3 名称（`#lib/server/database.js`）；`$derived` 直接读取无需 `flushSync`；`untrack()` 包住 harness 同步写模块级状态；剪贴板 `NotAllowedError` 两种文本；**Error 8 原因更正**：`rune_outside_svelte` 来自不带 `.svelte.` 中缀的 `.js`/`.ts` 文件里写了 rune（浏览器模式下未加载 Svelte 运行时则为 `$state is not defined`），被导入的 `.svelte.*` 文件按其自身文件名编译；Vite 8 下 `optimizeDeps.exclude` 无效；`sv add vitest` 配置下 `src/lib/server/` 里的 `*.svelte.test.ts` 不匹配任一 project | **事实更正（合入）**：`testing.md`「Filename is configuration」原写「普通 `.test.ts` 里的组件测试会编译不了其导入里的 runes」，与 Svelte 官方 testing 文档（「filename includes `.svelte`」才能在**测试文件内**用 runes）和上游更正相悖，改写为：导入按自身文件名编译；测试文件名决定跑在哪个 project 以及**它自己**能否用 runes；`src/lib/server/` 下的 `.svelte.test.ts` 两个 project 都不匹配、永远不跑（由 `testing.md` 自带的 `sv` 配置直接推出）。其余为写法偏好/Storybook/MSW，不合入 |
+| `svelte-ai-tools` | `f47bce8 → 75a688c` | paths 未变（新增 `tools/skills/svelte-mcp-feedback` 见下节） | 噪声，re-pin |
+| `sv-cli` | `7bbb1c3 → 09d19cb` | paths 未变 | 噪声，re-pin |
+| `awesome-copilot` | `3cf7c7e → 5269f7e` | paths 未变 | 噪声，re-pin |
+
+### 事实更正：references 改用 SvelteKit 3 名称（上次遗留）
+
+上次遗留：「references 的示例仍用 SvelteKit 2 名称，靠规则 1 与对照表翻译；待 3.x 成为主线后宜整体改为 3.x 写法」。
+本次裁决：**改**。依据——npm `@sveltejs/kit` latest 3.1.1（2026-10-29），svelte.dev 只服务 3.x 文档，`sv create` 生成 3.x，
+已追踪的社区上游（`fubits1-svelte`）也已把示例迁到 `#lib/...js`；而且逐条对照 3da859a 的文档后发现 references 里有几处
+标着「Verified against SvelteKit 2.70 and 3.1」却只在 2.x 成立的陈述，属事实错误而不只是命名问题：
+
+- `sveltekit-forms-and-mutations.md`：bare `use:enhance` 在 3.x 调用 `refreshAll()`；**跨页 action 的表单在 3.x 会导航到 action 所在页**（成功或失败都会，
+  与原生提交一致），2.x 留在原页且只有同页 action 才更新 `form`——原文只写了 2.x 行为。补 `update({ navigate: false })`、`update` 的
+  `refreshAll`/`navigate` 选项、`applyAction` 的 redirect 为 `goto(location, { refreshAll: true })`；手写提交示例改 `refreshAll`；
+  cookie `secure` 默认值在 3.x 是「开发期间为 false」（2.x 为 localhost）。来源：`30-form-actions.md` 343–462 行、
+  `35-migrating-to-sveltekit-3.md`「`$app/forms`」节、svelte.dev/docs/kit/form-actions 实读。
+- `sveltekit-routing-and-load.md`：`browser` 来自 `$app/env`；server-only 示例改 `#lib/server/*`；`transport` 示例改 `#lib/models/invoice.js`；
+  失效示例改 `refreshAll`（并注明 3.x 中 `invalidateAll` 为弃用别名、`refreshAll` 还会重跑活动 query 且不重置 `page.state`）；
+  环境变量节按 3.x 重写：`src/env.js` + `defineEnvVars`、`$app/env/private|public`、`public: true` 取代 `PUBLIC_` 前缀、`schema` 校验失败则
+  启动/构建失败、默认运行时读取、`static: true` 内联；server-only 文件名为 `server` 段（`server.js` 也算）、任意 `server` 目录
+  （`src/routes`、`static` 除外）；2.x 形态并列写出。来源：`70-environment-variables.md`、`50-server-only-modules.md`、`20-load.md` 640–695 行。
+- `migration.md` 对照表：「Server-only dirs」行原写「any `/server/` segment in the project」，更正为文件名 `server` 段 + 任意 `server`
+  目录但不含 `src/routes`/`static`；补「跨页 `use:enhance`」与「`$app/paths` 的 `base`/`assets`/`resolveRoute` 移除 → `resolve`/`asset`」两行
+  （迁移指南 169–192、99–101、593–601 行）。
+- `state-sharing-and-ssr.md`：`$lib` → `#lib`。
+- `SKILL.md`：版本号；规则 1 改为「references 以 3.x 书写、每处并列 2.x 形态」，并补 `invalidateAll` → `refreshAll`；`$env/*` 由「renames」
+  改为「deprecates」（3.x 中仍为弃用别名，SvelteKit 4 移除）；栈检测分支由「3.x → 翻译 2.x 名称」改为「2.x → 用并列的 2.x 形态」。
+
+新增评测场景 9（`kit3-forms/`：3.1 项目页脚订阅表单跨页 `use:enhance` + 冗余 `invalidateAll`）与 10（`vitest-names/`：测试文件内 `$state`
+报 `rune_outside_svelte`、`src/lib/server/` 下 `.svelte.test.ts` 不被任何 project 收录），覆盖本次更正，D2 见下。
+
+## 2026-11-01 上游新增内容评估
+
+| 仓库 | 新增文件 | Scope 归属 | 结论 | 理由 |
+|---|---|---|---|---|
+| fubits1/svelte-skills | `plugins/frontend/skills/comments/SKILL.md` | 无（跨语言注释规范） | REJECT | 通用代码注释风格规则，依赖第三方 `deslop` skill，不含 Svelte 事实；不属本组任何 skill，也不值得单独追踪 |
+| sveltejs/ai-tools | `tools/skills/svelte-mcp-feedback/SKILL.md` | 无 | REJECT | 上游自用流程：把用户纠错整理成 issue 提给 `sveltejs/ai-tools` 的 autofixer，属「上游自用流程」 |
+| fubits1/svelte-skills | `plugins/svelte-5/skills/vitest/**`（由 `plugins/frontend/skills/vitest` 改名迁入，非新增） | 通用 Vitest 配置/flake 处理 | REJECT（不追踪） | 内容是 Vitest 5 通用配置、Storybook、flake 协议；与本 skill 相关的唯一事实（`rune_outside_svelte` 成因、`optimizeDeps.exclude` 无效）已通过已追踪的 `testing-svelte` Error 8 合入 |
+
+## 2026-11-01 文档上游复核
+
+以 svelte.dev 当前页面为准（实读 [Form actions](https://svelte.dev/docs/kit/form-actions)、[Environment variables](https://svelte.dev/docs/kit/environment-variables)），
+其源文件即 `sveltejs/kit@3da859a` 的 `documentation/docs`（本次逐页取过）；版本号取 npm registry。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| svelte-dev-docs | 站点服务 3.x；npm `@sveltejs/kit` latest 3.1.1（2026-10-29）、svelte latest 5.57.3；3.x 基线 Node ≥22.17、peer svelte ^5.57.1、vite ^8.0.12、TS ^6、vite-plugin-svelte ^7 | npm registry；[Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3) | 一致（SKILL.md 环境节、`migration.md` 基线行） |
+| svelte-dev-docs | `$app/env/private|public` + `src/env.js` `defineEnvVars`；`$env/*`、`$app/environment` 在 3 弃用、4 移除；`public: true`、`schema`、`static: true` | [Environment variables](https://svelte.dev/docs/kit/environment-variables) | **正文原按 2.x 写，已更正**（见上） |
+| svelte-dev-docs | `use:enhance` 默认 `refreshAll`；跨页 action 导航；`update({ navigate, refreshAll, reset })`；`applyAction` redirect `goto(..., { refreshAll: true })`；cookie `path` 默认 `'/'`、`secure` 开发期为 false | [Form actions](https://svelte.dev/docs/kit/form-actions) | **原文只写 2.x 行为，已更正** |
+| svelte-dev-docs | server-only：文件名 `server` 段、任意 `server` 目录（除 `src/routes`、`static`）；测试时禁用非法导入检测 | [Server-only modules](https://svelte.dev/docs/kit/server-only-modules) | 对照表行已更正 |
+| svelte-dev-docs | `refreshAll` 重跑所有 load 与活动 query、不重置 `page.state`；server load 不追踪其 fetch | [Loading data](https://svelte.dev/docs/kit/load) | 一致（示例已改 `refreshAll`） |
+| svelte-dev-docs | Svelte：测试文件名含 `.svelte` 才能在测试内用 runes | [Testing](https://svelte.dev/docs/svelte/testing) | **`testing.md` 原描述有误，已更正** |
+
+6 组事实中 4 组发现过时/错误并当场修正；`svelte-dev-docs` 的 `synced_at` 更新为 2026-11-01。

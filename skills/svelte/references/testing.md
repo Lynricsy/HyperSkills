@@ -71,10 +71,16 @@ installed in the environment — say so when you fall back to it.
 - `*.test.ts` / `*.spec.ts` — runs in the Node project. No runes, no DOM.
 - `*.svelte.ts` / `*.svelte.js` — a non-component module that may use runes.
 
-A component test in a plain `.test.ts` file will fail to compile the runes in
-its imports; a server test in a `.svelte.test.ts` file will try to open a
-browser to test a database query. Both symptoms look like configuration bugs and
-are filename bugs.
+Imports are compiled by their own names: a `.svelte` component or a
+`.svelte.ts` module imported from any test file keeps its runes. What the test
+file's own name decides is where it runs and whether *it* may use runes. A
+component test in a plain `.test.ts` file lands in the Node project, with no
+DOM to render into; a `$state` written in that file throws `rune_outside_svelte`
+(`$state is not defined` in browser mode). A server test in a `.svelte.test.ts`
+file will try to open a browser to test a database query, and a
+`.svelte.test.ts` file under `src/lib/server/` matches neither project's globs
+and never runs at all. These symptoms look like configuration bugs and are
+filename bugs.
 
 ## Testing runes outside components
 

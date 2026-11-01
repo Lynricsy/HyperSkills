@@ -98,8 +98,9 @@ On SvelteKit 2, `cookies.set`, `cookies.delete` and `cookies.serialize` require
 an explicit `path` — usually `path: '/'`. Without it SvelteKit throws, because
 the browser default (the parent of the current path) is almost never what was
 intended. SvelteKit 3 makes `'/'` the default instead. `httpOnly` and `sameSite`
-default to safe values; `secure` defaults to true except on `localhost`, so
-hard-coding `secure: true` breaks local development over plain HTTP.
+default to safe values; `secure` defaults to true except during development on
+SvelteKit 3 (on `localhost` on 2), so hard-coding `secure: true` breaks local
+development over plain HTTP.
 
 Set the cookie *before* redirecting; the redirect response carries it.
 
@@ -107,11 +108,17 @@ Set the cookie *before* redirecting; the redirect response carries it.
 
 Bare `use:enhance` reproduces what the browser would do, minus the full reload:
 it updates `form`, `page.form` and `page.status`, resets the `<form>` element,
-calls `invalidateAll()` on a successful response, follows a `redirect` result
+calls `refreshAll()` on a successful response, follows a `redirect` result
 with `goto`, and renders the nearest `+error` boundary on an `error` result.
-Focus is reset in every case. The one asymmetry: `form` and `page.form` are only
-updated when the action lives on the page being submitted from — for
-`<form action="/somewhere/else">` use `applyAction` instead.
+Focus is reset in every case.
+
+A form whose `action` points at another page behaves differently by version.
+SvelteKit 3 navigates to that page on a successful *or* invalid result, as a
+native submission would, and fills that page's `form`; a newsletter widget in a
+layout that must stay put calls `update({ navigate: false })` in its callback.
+SvelteKit 2 stays on the current page, calls `invalidateAll()` instead of
+`refreshAll()`, and updates `form` / `page.form` only when the action lives on
+the page being submitted from — use `applyAction` there.
 
 That default is what you want most of the time. Reach for a callback only when
 one of those behaviours is wrong for the page.
@@ -143,12 +150,13 @@ The pre-submit callback receives `{ formElement, formData, action, cancel,
 submitter }`; calling `cancel()` aborts the submission. Returning a
 callback replaces the default handling entirely, so it must call `update()` or
 `applyAction(result)` — otherwise nothing on the page changes and the form looks
-dead.
+dead. `update` takes `reset`, `refreshAll` (`invalidateAll` on SvelteKit 2) and,
+on SvelteKit 3, `navigate`.
 
 `applyAction(result)` differs from `update()`: it applies `success`/`failure`
-data regardless of which page the action lived on, follows a `redirect` with
-`goto(location, { invalidateAll: true })`, and renders `+error` for an `error`
-result.
+data to the current page regardless of which page the action lived on, follows
+a `redirect` with `goto(location, { refreshAll: true })` (`invalidateAll: true`
+on SvelteKit 2), and renders `+error` for an `error` result.
 
 ## Hand-rolled submission
 
@@ -158,11 +166,11 @@ action results, like `load` results, may contain `Date` and `BigInt`:
 
 ```js
 import { applyAction, deserialize } from '$app/forms';
-import { invalidateAll } from '$app/navigation';
+import { refreshAll } from '$app/navigation'; // invalidateAll on SvelteKit 2
 
 const response = await fetch(form.action, { method: 'POST', body: new FormData(form) });
 const result = deserialize(await response.text());
-if (result.type === 'success') await invalidateAll();
+if (result.type === 'success') await refreshAll();
 applyAction(result);
 ```
 

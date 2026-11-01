@@ -58,13 +58,13 @@ browser is preferable to routing through your server, or when the return value
 cannot be serialized (a component constructor, a class instance).
 
 The universal `load` running in the browser is what makes `localStorage`,
-`window` and `document` a hazard: guard them with `browser` from
-`$app/environment`, or read them in an effect in the component instead, which is
-usually the better place.
+`window` and `document` a hazard: guard them with `browser` from `$app/env`
+(`$app/environment` on SvelteKit 2), or read them in an effect in the component
+instead, which is usually the better place.
 
-Importing anything from `$lib/server/*` into `+page.js` is not a runtime bug to
-be handled — SvelteKit refuses the build with an illegal-import error, and the
-work has to move into `+page.server.js`.
+Importing a server-only module (`#lib/server/*`, `$app/env/private`) into
+`+page.js` is not a runtime bug to be handled — SvelteKit refuses the build
+with an illegal-import error, and the work has to move into `+page.server.js`.
 
 ## What a server `load` may return
 
@@ -89,7 +89,7 @@ which is what makes symmetric encode/decode possible):
 
 ```js
 // src/hooks.js
-import { Invoice } from '$lib/models/invoice';
+import { Invoice } from '#lib/models/invoice.js';
 
 /** @type {import('@sveltejs/kit').Transport} */
 export const transport = {
@@ -206,32 +206,47 @@ export async function load({ depends }) {
 ```
 
 ```js
-import { invalidate, invalidateAll } from '$app/navigation';
+import { invalidate, refreshAll } from '$app/navigation';
 
 invalidate('app:rates');                       // just the loads that declared it
 invalidate((url) => url.pathname === '/api/x'); // predicate form
-invalidateAll();                               // every load for the current page
+refreshAll();                                  // every load for the current page
 ```
 
-Custom identifiers must be `[a-z]:`-prefixed. Reach for `invalidateAll()` only
+Custom identifiers must be `[a-z]:`-prefixed. Reach for `refreshAll()` only
 after a change whose blast radius you genuinely cannot scope — a sign-in, for
-example, where `event.locals` changed for every loader.
+example, where `event.locals` changed for every loader. On SvelteKit 2 the call
+is `invalidateAll()`; SvelteKit 3 keeps that name as a deprecated alias, and
+`refreshAll()` also re-runs active remote queries and leaves `page.state`
+alone.
 
 ## Server-only modules and environment variables
 
 Two mechanisms, both enforced at build time:
 
-- `$env/static/private` and `$env/dynamic/private` can only be imported from
-  server-only code. `$env/static/public` and `$env/dynamic/public` require the
-  `PUBLIC_` prefix and are safe to ship.
-- Your own modules become server-only by living in `src/lib/server/` or by
-  carrying a `.server.` segment in the filename.
+- Environment variables are declared in `src/env.js` (or `src/env.ts`) with
+  `defineEnvVars` from `@sveltejs/kit/env` and imported from
+  `$app/env/private`, which only server-only code may import, or from
+  `$app/env/public` for the ones declared with `public: true`. Each
+  declaration may carry a `schema` (any Standard Schema validator, or a
+  function that throws); an invalid value stops the app from starting or
+  building. Variables are read at runtime unless declared `static: true`.
+- Your own modules become server-only by carrying a `server` segment in the
+  filename (`db.server.js`, `server.js`) or by living in a `server` directory
+  anywhere outside `src/routes` and `static` (`src/lib/server/db.js`).
+
+On SvelteKit 2 the modules are `$env/static/private`, `$env/dynamic/private`
+and their `public` counterparts, public names need the `PUBLIC_` prefix, a
+server-only filename needs the `.server.` infix, and only `src/lib/server/`
+counts as a server-only directory. SvelteKit 3 keeps `$env/*` as deprecated
+aliases until SvelteKit 4.
 
 `process.env` bypasses all of it: it is not validated, not statically replaced,
-and not available on every adapter. Prefer `$env/static/private` so a missing
-variable fails the build rather than the request. A secret returned from `load`
-is serialized into the HTML payload no matter which module it came from — the
-boundary that matters is the return value, not the import.
+and not available on every adapter. Declare the variable — with a `schema` on
+SvelteKit 3, through `$env/static/private` on 2 — so a missing or malformed
+value fails at startup or build time rather than in a request. A secret
+returned from `load` is serialized into the HTML payload no matter which module
+it came from — the boundary that matters is the return value, not the import.
 
 ## Page options
 

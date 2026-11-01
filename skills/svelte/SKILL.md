@@ -4,7 +4,7 @@ description: "Develops Svelte and SvelteKit applications with runes, routing and
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -48,11 +48,12 @@ regression. Rule ids in parentheses are the ids cited by `## Output format`.
    the component itself for whether it is in runes or legacy mode. SvelteKit 3
    has been the stable line since 3.0.0 (2026-10-01) and is what svelte.dev
    documents; it moves config into `vite.config.js`, replaces `$lib` with
-   `#lib`, renames `$env/*` and `$app/environment` to `$app/env/*` and
-   `$app/env`, and removes `$app/stores`. The examples in `references/` use
-   the SvelteKit 2 names; translate them with the table at the end of
-   `references/migration.md` on a 3.x project. Advice for the wrong line does
-   not merely underperform, it fails to build.
+   `#lib`, deprecates `$env/*` and `$app/environment` for `$app/env/*` and
+   `$app/env`, renames `invalidateAll` to `refreshAll`, and removes
+   `$app/stores`. The examples in `references/` use the SvelteKit 3 names and
+   give the SvelteKit 2 form beside each one; the full table is at the end of
+   `references/migration.md`. Advice for the wrong line does not merely
+   underperform, it fails to build.
 2. Never mix runes with legacy reactivity in one component
    (`no-mixed-modes`). `$state` beside `$:` or `export let` is a compile error.
    Mode is per file, so migrate a component completely or leave it alone.
@@ -164,9 +165,10 @@ grep -rlE '\$:|export let|on:[a-z]+=|<slot' src --include=*.svelte | head
 
 - No `@sveltejs/kit` → skip every `sveltekit-*` reference; the route rules do
   not apply.
-- `@sveltejs/kit` on `3.x` → translate the SvelteKit 2 names used in the
-  references (config location, env modules, `$lib`, `$app/stores`) with the
-  version table at the end of `references/migration.md` before writing code.
+- `@sveltejs/kit` on `2.x` → use the SvelteKit 2 form given beside each 3.x
+  example in the references (config location, env modules, `$lib`,
+  `invalidateAll`), checked against the version table at the end of
+  `references/migration.md`, before writing code.
 - Legacy-mode files present → the task is a migration, not a bug fix. Say so
   rather than half-converting one component.
 - `experimental.async` or `experimental.remoteFunctions` already on → those
