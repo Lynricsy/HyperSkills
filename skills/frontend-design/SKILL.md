@@ -4,7 +4,7 @@ description: "Designs and audits web interfaces for visual quality, usability an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: task
 ---
 
@@ -66,21 +66,24 @@ Not covered, and do not improvise here:
 Use when the deliverable is a look, not a fix.
 
 - [ ] Name the subject, the audience and the page's primary job. If the brief does not say, propose one concrete answer and confirm it.
+- [ ] Translate every quality word in the brief ("premium", "restrained", "clean", 高级, 克制) into decisions you could check on screen, using the table in `references/ai-tells-and-calibration.md`. A word that will not translate is not a reason.
 - [ ] State the design read in one line: `Reading this as: <kind> for <audience>, with a <vibe> language, leaning toward <aesthetic family>.`
 - [ ] Set the dials. Tooling surfaces (devtools, dashboards, app shells) start at variance 2-3, motion 2-3, density 7-9. Marketing surfaces (landing, portfolio, product) start at variance 7-8, motion 5-7, density 3-4. Override only from the read.
-- [ ] Write the design plan, four parts: **Color** as 4-6 named hex values with a role each; **Type** as one or two families with roles and a reason; **Layout** as a one-sentence concept plus an ASCII wireframe plus stated alignment; **Principles** as what makes this page specific to this brief.
-- [ ] Cliché gate. Re-read the plan against `references/ai-tells-and-calibration.md`. For each trait that matches a cluster, either revise it or justify it from the brief, and say what changed. Ask whether a similar prompt would have produced the same plan; if yes, the plan is a default.
+- [ ] Name one primary subject and one primary action for the first viewport. List what is cut, merged or demoted so each stays single, before drawing anything.
+- [ ] Write the design plan, five parts: **Color** as 4-6 named hex values with a role each, plus where the hue comes from and the category default it departs from (`references/color-and-tokens.md`; a metaphor in the brief drives structure and texture, never the hue); **Type** as one or two families with roles and a reason; **Layout** as a one-sentence concept plus an ASCII wireframe plus stated alignment; **Icons** as a named set with a stroke weight matched to the body text, or none; **Principles** as what makes this page specific to this brief.
+- [ ] Cliché gate. Re-read the plan against `references/ai-tells-and-calibration.md`. For each trait that matches a cluster, either revise it or justify it from the brief, and say what changed. Ask whether a similar prompt would have produced the same plan, and put an unrelated product's name on the first viewport: if either still holds, the plan is a default.
 - [ ] Build to the revised plan. Watch CSS specificity: a type-based selector (`.section`) and an element-based one cancel each other out, which usually shows up as missing space between sections.
-- [ ] Self-critique. Remove one accessory. Confirm the quality floor: reflows at 320 CSS px, visible focus, reduced motion honored, contrast met, real content in place.
+- [ ] Self-critique on the rendered page, at the target viewport. Remove one accessory. Confirm the quality floor: reflows at 320 CSS px, visible focus, reduced motion honored, contrast met, real content in place. A direction delivered as text says it is unrendered; nothing counts as visually checked until someone has looked at it rendered.
 
-Gate: the plan lists 4-6 hex values, contains at least one ASCII wireframe, and contains a paragraph naming what the cliché gate changed. No component code before that gate passes.
+Gate: the plan lists 4-6 hex values with their source, contains at least one ASCII wireframe, names the icon approach, and contains a paragraph naming what the cliché gate changed. No component code before that gate passes.
 
 ### review-ui
 
 Use when UI code already exists.
 
 - [ ] Fix the file set and read each file end to end. Guessing from names produces wrong line numbers.
-- [ ] Walk `references/review-checklist.md` category by category. Do not stop after accessibility; the later categories (content handling, locale, touch) are where most real defects hide.
+- [ ] Render it where a browser is available, at the widths the audience uses, and look at the result before writing visual findings. Mark anything judged from source alone as unrendered.
+- [ ] Walk `references/review-checklist.md` category by category. Do not stop after accessibility; the later categories (content handling, locale, touch) are where most real defects hide. On a Chinese or Japanese page also walk the CJK section of `references/typography.md`.
 - [ ] Count before judging: eyebrow labels against `ceil(sections / 3)`, layout families against the section count, grid cells against items, and runs of consecutive same-split sections. These are the findings a read-through misses, because each section looks fine on its own.
 - [ ] Walk `references/ai-tells-and-calibration.md` as a separate axis. No linter sees this one, so it is the axis worth your attention.
 - [ ] Skip what the project's own tooling already enforces (formatter, `eslint-plugin-jsx-a11y`, stylelint). Say once that it was skipped.
@@ -172,7 +175,7 @@ src/Hero.tsx:31 - "Ship faster — effortlessly" uses an em dash in visible copy
 
 State the issue and its location. Skip the explanation when the fix is obvious from the replacement.
 
-`design-direction` output. Sensible default, adapt to the brief: the design read line, then the four
+`design-direction` output. Sensible default, adapt to the brief: the design read line, then the five
 plan parts, then the cliché-gate paragraph. The wireframe stays ASCII so it survives in any
 transcript. A worked shape, for a brief about a workshop that hand-brazes steel touring frames.
 Copy the shape, never the contents: this palette, this type pairing and this section order are
@@ -183,7 +186,8 @@ Reading this as: a portfolio-shaped product page for buyers who need proof of cr
 with a workshop-document language, leaning toward drawing-office typography.
 
 Color   #E9EAE6 drafting paper / #17191A ink text / #565C59 muted / #78858B hairline rules /
-        #2B5566 blueprint accent, single CTA only
+        #2B5566 blueprint accent, single CTA only. Source: the workshop's own frame drawings.
+        Category default (cream, brass, oxblood) avoided.
 Type    Display: a compressed grotesque with drawing-office roots (reason: the subject's own
         documents are engineering drawings, not editorial pages).
         Body: the same family at 400. Numbers: a mono face with tabular figures, because the
@@ -200,6 +204,8 @@ Layout  Left-aligned throughout on an exposed 12-column grid, hairline rules as 
         +----------------------------+-------------------------+
         | geometry table, mono, tabular figures                |
         +------------------------------------------------------+
+
+Icons   None on the page; numbered spec callouts and `↗` for external links carry the wayfinding.
 
 Principles  Evidence over atmosphere. One accent, used once. No card containers.
 

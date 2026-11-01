@@ -1,5 +1,5 @@
 skill: frontend-design
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: anthropic-frontend-design
     kind: repo
@@ -146,3 +146,23 @@ upstreams:
     synced_at: "2026-10-15"
     contributes: "Font metric overrides (size-adjust, ascent-override, descent-override, line-gap-override) as the fix when the font swap itself is the layout shift, with the warning that the percentages must be derived from the actual pair rather than copied. The passive-listener check for touchstart, touchmove and wheel."
     notes: "Deliberately narrow. Its measurement and RUM references, the INP phase split, CrUX scope semantics, the lab-versus-field matrix and the Lighthouse-score caveat were all dropped after the 2026-09-15 baseline: scenarios 6 and 7 showed Claude Opus 5 already produces them unprompted, in more detail than the upstream text. What the same references did earn is a correction inside this skill: the field-data definition in references/performance-core-web-vitals.md had a bare onLCP(report) snippet standing in for field data, and now states that aggregation is what makes it field data. Its seo and web-quality-audit bodies also prompted the one-h1 correction recorded as R11. Not used: skills/seo entirely (out of scope, and its FAQPage example has been dead in Google Search since 2026-05-07), the CSP, Trusted Types, SRI and prototype-pollution material (security-review owns those), scripts/analyze.sh (bash plus jq, only globs .html, and reports success with zero files scanned on a component codebase), and two upstream errors: View Transitions labelled Baseline 2026 (webstatus.dev: newly, 2025-10-14) and decoding=\"sync\" recommended for the LCP image."
+  - id: oil-ui
+    kind: repo
+    repo: oil-oil/oil-ui
+    url: https://github.com/oil-oil/oil-ui
+    paths: [SKILL.md, references/design-direction.md, references/visual-language.md, references/reviewer-manual.md, scripts/shoot.mjs]
+    ref: main
+    commit: 56240e1f9600088b6e658c9c2b37acbb91bfb95b
+    license: MIT
+    relation: merged
+    synced_at: "2026-11-01"
+    contributes: "Hue sourcing order and the metaphor-material palette trap, the category-default naming step, quality-word translation table, one primary subject and action per viewport with a cut list, the product-name swap test, render-before-judging for visual claims, CJK typography (stack, mixed-script weight, body and heading leading, line breaks, measure), icon-set convergence and stroke-to-text matching, and the review heuristics for side-stripe cards, emoji icons, Latin caps labels on CJK pages and heading proximity (from the lint rules in scripts/shoot.mjs)."
+    notes: "Upstream body is Chinese; rewritten in English from semantics only. Not used: the update checker (check_update.sh/.py, loaded through a !`cmd` injection with ${CLAUDE_SKILL_DIR}), recommend_once.py and the Oil UI Pro / oil-tone recommendations, the scripts themselves (shoot.mjs, curate-media.mjs, build_explorer.py), the mandatory fresh-subagent concept and review protocol, the style explorer, scroll narrative, play and media references. Motion durations (press 150-300ms, page change 350-500ms), the exit-at-60-70%-with-accelerating-curve rule and the three-mandatory-animations rule conflict with emil-animations (R3) and were not adopted. Its icon table recommends IconPark, archived upstream since 2023; not carried over."
+  - id: w3c-clreq
+    kind: docs
+    url: https://www.w3.org/TR/clreq/
+    license: W3C-20150513
+    relation: merged
+    synced_at: "2026-11-01"
+    contributes: "Adjacent Han characters are set solid in principle, the basis for the no-tracking rule on Han text."
+    notes: "W3C Document License. Only the cited fact was used; it gives no body line-height value, so the CJK size and leading figures stay marked [community]."

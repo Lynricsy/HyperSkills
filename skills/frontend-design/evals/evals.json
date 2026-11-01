@@ -162,5 +162,33 @@
       "Chooses wrap or truncation per field rather than one global rule: never truncates the project count, and keeps any truncated name or email readable in full (tooltip, title or a detail view)",
       "Checks the result at the real 360px panel width, at 320px, at 200% zoom and in RTL"
     ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "帮我看看 zh-landing.html 这个落地页的视觉和排版问题，要具体到位置。我们的用户主要用手机看。",
+    "files": ["evals/files/zh-landing.html"],
+    "expected_behavior": [
+      "Flags that the font stack names no CJK family, so the Chinese text falls back to whatever the OS supplies, and adds explicit CJK families in the stack",
+      "Flags the weight-300 body against the CJK fallback: Latin and Chinese glyphs render at visibly different weights (or the CJK face has no 300 and is substituted), and asks to check mixed-script weight on the real font",
+      "Flags the h1: Latin display leading (line-height 0.95, negative tracking) on a multi-line Chinese heading plus a fixed 128px height, and recommends roughly 1.2-1.35 leading with content-driven height",
+      "Flags the 13px / 1.45 lead and feature copy (and 1.45 story text) as too small or too tight for Chinese reading text on phones, recommending about 16px or more and roughly 1.6-1.75 line height",
+      "Flags the uppercase, letter-spaced English labels (Bookkeeping for small shops, Features, Our story) in a Chinese interface as a template tell in their own right, not only as an eyebrow-count issue",
+      "Flags the icons: emoji used as feature icons mixed with a stroked SVG, asks for one icon set, and notes the 2px stroke does not match the weight-300 text",
+      "Flags the h2 spacing (8px above, 40px below): the heading sits closer to the preceding content than to the content it introduces",
+      "Flags the colored left border stripe on the rounded feature cards as decoration",
+      "Renders the page in a browser at a phone width (and a desktop width) and bases the visual findings on what rendered, or explicitly marks which findings were not verified by rendering"
+    ]
+  },
+  {
+    "skills": ["frontend-design"],
+    "query": "我们在做「回声 Echo」：给独立音乐人用的在线母带处理工具，上传混音，几分钟后拿到母带和响度报告。创始人说它是“声音的暗房”，希望官网首页“高级、克制”。先别写代码，给我首页的视觉方向。",
+    "expected_behavior": [
+      "Translates 高级 and 克制 into observable decisions (for example accent share of the viewport, number of hues, type contrast, motion amplitude) instead of using the words themselves as the justification",
+      "Names the category default look for audio and AI tools (near-black ground with purple or blue glow, neon waveforms, or similar) and states how this direction departs from it",
+      "Does not take the palette from the darkroom metaphor (safelight red or amber on black, or chemical-tray tones); the colors are sourced from the product itself (its master and loudness report, musicians' artwork, or brand) and that source is stated. If the metaphor is used at all, it drives structure, texture or motion rather than hue",
+      "Names one primary subject and one primary action for the first viewport, and lists what is removed or demoted so that each stays single",
+      "Specifies the icon approach: a named set with a stroke weight matched to the text weight, or a deliberate choice of no icons, rather than an unexamined Lucide or Heroicons default or leaving icons unspecified",
+      "Applies a distinctiveness check to the first viewport, such as swapping in an unrelated product name to see whether it still holds, or comparing its structure against named competitors, and says what that check changed"
+    ]
   }
 ]

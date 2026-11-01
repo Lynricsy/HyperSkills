@@ -92,6 +92,9 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - `text-wrap: balance` on headings, `text-wrap: pretty` on body, to avoid widows and orphans.
 - Buttons and inputs have `font: inherit`.
 - Only loaded weights and styles are used; nothing relies on a synthesized italic or weight.
+- CJK pages: the stack names a CJK family; Han body line-height at least about 1.6 (flag under 1.4);
+  Chinese headings at 1.2-1.35 with no fixed height; no letter-spacing on Han text; numbers stay
+  with their units (`typography.md`, CJK text).
 
 ## 6. Content handling
 
@@ -156,6 +159,8 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - Content reflows at 320 CSS px with no two-dimensional scrolling.
 - `100dvh` rather than `100vh` on mobile layouts.
 - Fixed and sticky chrome reserves space for the content beneath it.
+- A heading sits closer to the content it introduces than to the block above it. `margin-top` smaller
+  than `margin-bottom` on a heading attaches it to the wrong group.
 
 ## 12. Dark mode and theming
 
@@ -218,5 +223,8 @@ Skip anything the project's own tooling already enforces, and say once that it w
 - Positive `tabindex`.
 - A single radius value used on every element.
 - The same shadow under every card.
+- A colored stripe down one side of a card or callout.
+- Emoji used as icons, or two icon styles on one screen.
+- Uppercase, tracked Latin labels on a CJK page.
 
-<!-- sources: vercel-wig, addy-frontend-ui, uiux-pro-max, w3c-wcag22, antfu-design, emil-animations -->
+<!-- sources: vercel-wig, addy-frontend-ui, uiux-pro-max, w3c-wcag22, antfu-design, emil-animations, oil-ui -->

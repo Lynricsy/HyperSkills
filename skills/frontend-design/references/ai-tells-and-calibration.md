@@ -13,8 +13,10 @@ on a default.
 - [Composition tells](#composition-tells)
 - [Text and data tells](#text-and-data-tells)
 - [Decoration tells](#decoration-tells)
+- [Icons](#icons)
 - [Motion tells](#motion-tells)
 - [The cliché gate](#the-cliche-gate)
+- [Translating quality words](#translating-quality-words)
 - [Design read and dials](#design-read-and-dials)
 
 ## The five clusters
@@ -41,7 +43,7 @@ default until the brief justifies it.
 
 | Trait | Why it is a tell | Instead |
 |---|---|---|
-| Purple, indigo or violet as the reflex accent | The "visually safe" default; every generated app lands here | One accent chosen from the subject's own materials or brand |
+| Purple, indigo or violet as the reflex accent | The "visually safe" default; every generated app lands here | One accent from the brand or the product's own content, never from a metaphor's material (`color-and-tokens.md`) |
 | Gradient as decoration (mesh, wash, gradient text on large headings) | Noise that carries no information and clashes with most systems | Flat surfaces; gradient only where it encodes something |
 | Neon or outer glow | Reads as a demo, not a product | Inner border, or a shadow tinted toward the background hue |
 | Pure `#000` or `#fff` | No real surface is either | Off-black and off-white |
@@ -98,6 +100,9 @@ default until the brief justifies it.
   with weight or italic of the same family; never splice a serif word into a sans headline.
 - **All-caps labels** as the standard label treatment, and typographic labels stacked above content
   that already says what it is.
+- **Uppercase, tracked Latin labels on a CJK page** (`FEATURES`, `OUR STORY` above Chinese headings).
+  The audience reads Chinese; the English exists only to look designed. Use a label in the page's
+  language, or none. Product names and genuine English terms are not this tell.
 - **Category labels printed under a logo wall.** A logo wall is logos. `Stripe` with `payments`
   underneath adds nothing the reader does not already know. Brand name as `alt` text, optionally a
   link, nothing else. Real marks come from a single-color icon CDN or the brand's own asset page; for
@@ -139,6 +144,30 @@ default until the brief justifies it.
 - Text rotated 90 degrees as an agency-portfolio flourish.
 - Crosshairs and hairline grid lines drawn to make a page "feel designed". Rules organize content or
   they come out.
+- A colored stripe down one side of a card or callout (`border-left: 4px solid var(--accent)`). A
+  side rule belongs to a blockquote or the current navigation item; on a rounded card it is
+  decoration.
+
+## Icons
+
+Icons converge the same way type does. The reflex is Lucide or Heroicons: 24px, 2px stroke, round
+caps, on every direction. The library is fine; the problem is that it is never chosen.
+
+- **Name the set and its weight in the plan**, or decide on no icons. Editorial directions often do
+  better with characters and numbering (`→`, `↗`, `§`, `01`) than with pictograms.
+- **Stroke follows the text.** Icon stroke should sit near the stem weight of the text beside it:
+  1-1.5px next to light or regular text, 2px or filled next to bold. Size the icon at about 1-1.25x the
+  font size and align it to the text's optical center, not its box.
+- **Pick by direction.** Fine and editorial: Phosphor Thin or Light, Iconoir. Industrial and
+  enterprise: Carbon, Material Symbols Sharp, Radix Icons (drawn on a 15x15 grid for compact UI).
+  Friendly and consumer: Phosphor Fill or Duotone. Continuous control of fill, weight and optical
+  size: Material Symbols, a variable font with those axes `[official]`.
+- **One set per product.** Gap-fill only from a set with the same stroke, caps and corner radius, at
+  the same canvas size. Emoji standing in for icons, or two icon styles on one screen, read as
+  assembled rather than designed.
+- **Check the license.** Most sets are MIT or Apache-2.0, but Remix Icon ships its own license, and SF
+  Symbols are licensed only for apps on Apple platforms `[official]` (Apple SDK agreement,
+  System-Provided Images), so they never belong on a website.
 
 ## Motion tells
 
@@ -159,8 +188,29 @@ Run this before writing any component code, and again during self-critique.
    brief.
 4. Ask whether a similar prompt with a different subject would have produced the same plan. If yes,
    the plan is a template.
-5. Say what changed and why. The revision note is part of the deliverable, not internal monologue.
-6. Then remove one accessory. There is almost always one element carrying no load.
+5. Run the name swap: put an unrelated product's name on the first viewport. If it still works
+   unchanged, nothing on it was designed for this product. Proven category baselines in tooling (a
+   sidebar, a table, a toolbar) are exempt; marketing heroes are not.
+6. Say what changed and why. The revision note is part of the deliverable, not internal monologue.
+7. Then remove one accessory. There is almost always one element carrying no load.
+
+## Translating quality words
+
+"Premium", "refined", "restrained", "clean" (高级, 精致, 克制, 简洁) decide nothing on their own. Translate
+each into decisions someone could check on the screen, and drop any word that will not translate.
+
+| Word | Observable decisions |
+|---|---|
+| Premium | Which kind: the type contrast, how sections are divided, the spacing scale, the number of hues |
+| Refined | Tolerances: tracking values, the grid unit everything snaps to, shadow levels allowed, hue count |
+| Restrained | Budgets: accent at most about 10% of the viewport, a hue cap, a motion amplitude cap |
+| Epic | Scale: display size, share of the viewport given to the hero image, light-dark contrast |
+| Literary | Family character, measure, leading and palette, each with a value |
+| Raw | Which marks and how far: misregistration in px, rotation in degrees, texture opacity |
+| Clean, simple | The density dial, and the list of what was removed and why |
+
+Motion words need the same treatment: "smooth page changes" becomes a named transition pattern with
+a duration; "make the background feel deep" becomes which layers move at which speed and which do not.
 
 ## Design read and dials
 
@@ -202,4 +252,4 @@ What the dials drive:
 If the brief is genuinely ambiguous, ask exactly one question. If it can be inferred, state the read
 and proceed.
 
-<!-- sources: anthropic-frontend-design, addy-frontend-ui, antfu-design, leonx-taste, emil-animations -->
+<!-- sources: anthropic-frontend-design, addy-frontend-ui, antfu-design, leonx-taste, emil-animations, oil-ui -->

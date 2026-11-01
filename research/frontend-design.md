@@ -606,3 +606,99 @@ expected_behavior 与当前逐字一致；场景 13 基线（11:56）的期望 5
 好于基线，场景 12 两侧全部达成（哨兵）。负例 `skill_read == false`。正文无需修改。
 
 遗留：各场景只有 1 次运行。
+
+## 2026-11-01 新仓库评估：oil-oil/oil-ui
+
+触发：主人询问 <https://github.com/oil-oil/oil-ui> 是否值得合入。审阅 HEAD `56240e1`（v0.28.0，2026-10-31）。
+`gh api repos/oil-oil/oil-ui`（2026-11-01）：2554★、142 forks、MIT、创建 2026-09-30、推送 2026-10-30。
+
+### 候选行
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 29 | oil-oil/oil-ui（`SKILL.md` + 17 个 references + 脚本） | https://github.com/oil-oil/oil-ui | 2554 | 2026-10-30 | MIT | 设计方向、视觉语言、CJK 排版、图标、截图驱动的视觉验收、评审手册 | 1 | 3 | 3 | 3 | 2 | 12 | INCLUDE (merged，仅语义) | 补上本 skill 没有的几层：色彩来源顺序与隐喻材质陷阱、模糊词翻译、每屏唯一主角/主动作、换名测试、CJK 排版、图标趋同。正文为中文，按英文重写；更新器、Pro 推荐与脚本不取 |
+
+正确性抽查（量表要求对照官方文档 3 条）：
+
+| 上游规则 | 官方来源 | 结论 |
+|---|---|---|
+| `visual-language.md`：SF Symbols 只能用于 Apple 平台界面，不能用于网页 | Apple《Xcode and Apple SDKs Agreement》2.10 System-Provided Images：仅授权用于「为运行该系统的 Apple 品牌产品开发应用」 | 正确 |
+| `visual-language.md`：Radix Icons 为 15px 紧凑界面设计 | `radix-ui/icons` 仓库描述「A crisp set of 15×15 icons」 | 正确 |
+| `visual-language.md`：Material Symbols 是可变字体，填充、字重、光学尺寸可连续调节 | developers.google.com/fonts/docs/material_symbols：`FILL 0..1`、`wght 100..700`、`opsz 20..48`（另有 `GRAD`、`ROND`） | 正确 |
+
+三条全对，正确记 3。附带发现（不计入抽查）：上游图标表推荐的 IconPark（`bytedance/IconPark`）已于 2023 年归档；Remix Icon
+许可为自有的「Remix Icon License v1.0」（`gh api` 报 `NOASSERTION`），不是上游所说的 MIT / Apache / ISC 之一。
+
+### 深度审查
+
+- **结构**：`SKILL.md`（145 行）+ 17 个 references（约 1.4k 行）+ `scripts/`（约 5.2k 行：`shoot.mjs` 2238 行截图与 lint、
+  `curate-media.mjs` 素材检索、`build_explorer.py` 风格对比页、`check_update.*`、`recommend_once.py`）+ `tests/`。
+- **frontmatter**：`allowed-tools: Bash(sh *check_update.sh*)` 等，正文 `` !`sh "${CLAUDE_SKILL_DIR}/scripts/check_update.sh"` ``，
+  违反标准 1.3（动态注入、harness 变量）。`check_update.py:38` 设 10 分钟缓存，2 s 超时、失败 1 h 内不重试，有 `.git`
+  或 `OIL_NO_UPDATE_CHECK` 时跳过；购买提示只在有新版本且 `reason == "inactive"` 时出现。
+- **推广**：`recommend_once.py` 每个用户只提示一次 Pro；`SKILL.md:87`、`:143` 在特定任务时让 agent 在回复末尾推荐 Pro，
+  `:116` 推荐 oil-tone。属 harness 交互话术，不取。
+- **范围**：`SKILL.md:55` 明确覆盖存量 UI 优化、改流程、加新功能；`:87` 说明交互、表单、状态、弹窗、响应式的实现规则
+  沿用项目规范，不在本 skill 内。
+- **可取内容**：`design-direction.md`（色彩来源三步与隐喻材质陷阱、模糊词翻译表、删除清单与唯一主角/主动作、差异检验）、
+  `visual-language.md`（CJK 字号行高与断行、图标趋同表与描边匹配）、`reviewer-manual.md`（换名测试、三秒缩略图测试）、
+  `shoot.mjs` 的 `lintPage()`（单侧彩色边线、表情符号当图标、中文页英文大写标签、标题离上文比离下文近、中文正文行高
+  `< 1.4`、每行 `> 46` 字）。
+- **不取内容**：脚本本身；强制派全新子 Agent 的概念生成与评审协议（依赖宿主能力，且本 skill 已有 cliché gate 与 self-critique）；
+  风格对比页、滚动叙事、游玩、素材检索；动效数值（见 R16）。
+
+### 冲突与裁决
+
+| # | 冲突点 | 各方主张 | 裁决 | 依据 |
+|---|---|---|---|---|
+| R16 | 动效时长与离场曲线 | oil-ui `motion.md`：按压 150-300ms、整页切换 350-500ms、离场为进场 60-70% 且用加速曲线、每个新界面必做三处动效；Emil：按压 100-160ms、UI 动效上限 300ms、UI 上不用 `ease-in`、先问该不该动 | 维持 R3，以 Emil 为准，oil-ui 动效数值与「必做三处」一律不取 | 公认专家 > 社区；Emil 的频率表直接否定「每个界面都要动」 |
+| R17 | 色彩取自「主题的材料」 | 本 skill `ai-tells` 原写「One accent chosen from the subject's own materials」；oil-ui：产品实物可取色，生成引擎的隐喻材质不可 | 收窄为「品牌或产品自身内容，不取隐喻材质」；`color-and-tokens.md` 写出来源顺序 | 场景 15 基线正中此陷阱：取「暗房朱红 `#C6604D`」作强调色。原表述无法区分产品实物与比喻 |
+| R18 | CJK 正文行高的数值来源 | oil-ui：阅读页 16-18px、行高 1.6-1.75；W3C CLREQ 未给正文行高值，只规定汉字原则上密排 | 数值标 `[community]` 作起点；「汉字不加字距」标 `[official]`（CLREQ） | 官方文档没有的数字不冒充官方 |
+| R19 | 图标库推荐 | oil-ui 表含 IconPark、Remix Icon | 不列 IconPark（已归档）；Remix Icon 只在许可提醒里出现 | `gh api`：IconPark `archived: true`、最近推送 2023-02-24；Remix 为自有许可 |
+
+### 基线缺口（gpt-6.1-sol medium，VM）
+
+新增场景 14（夹具 `evals/files/zh-landing.html`：中文小店记账落地页，植入无 CJK 字体栈、300 字重、拉丁式标题行距加固定高度、
+13px / 1.45 正文、英文大写眉题、emoji 与线框图标混用、标题上 8px 下 40px、卡片左侧彩条）与场景 15（「回声 Echo」母带工具首页方向：
+「声音的暗房」隐喻 +「高级、克制」）。
+
+| 场景 | 基线达成 | 未达成 |
+|---|---|---|
+| 14 | 3 ✔ / 1 ◐ / 5 ✘（106 s，用 Playwright 渲染了 390 与 360 宽） | 字体栈无 CJK 字族、300 字重的中英混排、英文大写标签、标题邻近关系（只当成 88px 空白过大）、卡片左侧彩条；图标只说统一、未提描边与字重 |
+| 15 | 2 ✔ / 1 ◐ / 3 ✘（50 s） | 强调色取「暗房朱红 `#C6604D`」（正中隐喻陷阱）；图标未指定；无换名或竞品对照；模糊词只给一句定性解释 |
+
+### 正文改动
+
+- `SKILL.md` `design-direction`：新增模糊词翻译、唯一主角/主动作与删减清单两步；计划由四部分改为五部分（Color 写来源与所避开的
+  品类默认，新增 Icons）；cliché gate 加换名测试；self-critique 改为在渲染结果上做，方向只交文字时写明未渲染；gate 与示例同步。
+  `review-ui`：新增「能渲染就先渲染再下视觉结论，否则标明」，中文/日文页面另走 `typography.md` 的 CJK 节。版本号 2026.11.01。
+- `references/typography.md`：新增 `## CJK text`（字体栈、混排字重、字号行高起点、标题行高与高度、汉字不加字距、断行、行长）与对应可检查规则。
+- `references/color-and-tokens.md`：色彩来源顺序、隐喻材质陷阱、先写品类默认、比较方向须换色相族。
+- `references/ai-tells-and-calibration.md`：强调色来源改写（R17）、中文页英文大写标签、卡片单侧彩条、新增 `## Icons` 与
+  `## Translating quality words`，cliché gate 加换名测试。
+- `references/review-checklist.md`：Typography 加 CJK 行，Safe areas and layout 加标题邻近关系，Anti-patterns 加三条。
+- `SOURCES.yaml`：新增 `oil-ui`（merged，pin `56240e1`）与 `w3c-clreq`（docs）。其余上游未重新 pin：本次未审阅它们的区间，
+  `--pin` 会把未审阅的 HEAD 写成已同步（首次执行时已发生并回滚）。
+
+### 评测结果（D2）
+
+产物：`/tmp/hs-oil/<b|s><N>/frontend-design/omp-openai-gpt-6.1-sol-medium/`。场景 1、2 因 `review-ui` 与 `design-direction` 正文改动
+两侧重跑；场景 4 为负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 14 | gpt-6.1-sol medium | 无 | false | 1✘ 2✘ 3✔ 4✔ 5✘ 6◐ 7✘ 8✘ 9✔ | 见基线缺口 |
+| 14 | gpt-6.1-sol medium | 有 | true | **1✔** 2◐ 3✔ 4✔ **5✔** 6◐ 7✘ **8✔** 9✔ | 106 s。渲染 320/375/390/430 宽；补 `PingFang SC`/`Noto Sans CJK SC`/`Microsoft YaHei` 并把正文改 400；英文眉题判为「用户读中文、信息已由中文标题表达」并改中文或删除；4px 侧边彩条删除。2 只说「粗细可能变化」，未点中英字重差；7 仍只当 88px 空白 |
+| 15 | gpt-6.1-sol medium | 无 | false | 1◐ 2✔ 3✘ 4✔ 5✘ 6✘ | 强调色「暗房朱红」 |
+| 15 | gpt-6.1-sol medium | 有 | true | **1✔** 2✔ **3✔** 4✔ **5✔** **6✔** | 83 s。「克制」= 一种强调色、首屏占比约 5%；明写避开「近黑底＋紫蓝光晕」；浅冷灰底 + 蓝绿 `#286860`，来源写明为母带文件与响度报告的阅读场景，「不是模拟暗房灯光」，隐喻只用于前后对照的体验结构；Phosphor Light 约 1.5px；「把产品名换成别的软件，这个首屏就不能原样成立」并列出删掉的三种默认；末尾写明未渲染 |
+| 1 | gpt-6.1-sol medium | 无 | false | 1✘ 2✘ 3✔ 4✔ 5✘ 6✔ 7✔ 8◐ 9✔ | 按问题类别分组，混用 `line 62` 写法；俗套一轴空白 |
+| 1 | gpt-6.1-sol medium | 有 | true | 1✔ 2◐ 3✔ 4✔ 5✔ 6✔ 7✔ 8◐ 9✔ | 185 s，渲染后在浏览器验证焦点与 320px 溢出。2 漏中点串、`→` 后缀、em dash；8 漏 `Loading…`、`Acme`、filler verb |
+| 2 | gpt-6.1-sol medium | 无 | false | 1✘ 2✘ 3✘ 4✘ 5✘ 6✔ 7✔ | 无 hex、无线框、字体未命名 |
+| 2 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3✔ 4✔ 5◐ 6✔ 7✔ | 72 s。新增步骤生效：首屏唯一主体与主行动并列删减项、`Icons: none needed`、末尾写明未渲染。5：有 Cliché check 段且说明改动，但未逐一对照五个簇 |
+| 4（负例） | gpt-6.1-sol medium | 有 | false | — | 78 s，纯按 SQL 作答 |
+
+结论：**通过**。场景 14 的 1、5、8 与场景 15 的 1、3、5、6 由基线未达成转为达成；场景 1、2 有 skill 均优于基线，负例未误触发。
+
+遗留：场景 14 的标题邻近关系（7）两侧都未触发，规则只写在 `review-checklist.md` §11，未提到 `SKILL.md`（Core rules 已 26 条）；
+中英混排字重（2）只到部分。场景 1 的 2、8 与 2026-09 Claude Opus 5 的 9/9 相比有差距，模型口径不同，不作比较。各场景只有 1 次运行。
+`references/typography.md` 的「One `h1` per page」与可检查规则「more than one `h1`」仍与 R11 矛盾，本次未改，留待单独修正。

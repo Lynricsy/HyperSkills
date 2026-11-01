@@ -16,6 +16,19 @@ Name 4-6 hex values with a role each, and derive them from the subject rather th
 generator. A brief about brazed steel frames yields brass, paper, oxide; a brief about clinical
 records yields something else entirely. That derivation is what makes a palette specific.
 
+**Where the hue comes from**, in order: the brand's existing assets; the product's real content and
+objects (the frame builder's steel and drawings, a mastering tool's master file and loudness report,
+the user's own photos); then audience and setting. A metaphor in the brief ("a darkroom for sound",
+"a library for code") is not a color source. Let it drive structure, texture and motion. Metaphor
+materials (brass, walnut, darkroom red, chalkboard green) are where unrelated products collide,
+because every brief that reaches for the same image lands on the same palette. Before choosing,
+write down the category's default ground and accent (audio and AI tools: near-black with a purple or
+blue glow) and say how the palette departs from it, or why it keeps it. Put the source in the plan
+next to the hex values.
+
+Compared directions need different hue families. A light one, a dark one and a warm one are the same
+direction three times.
+
 - **One accent.** Neutral base first, then one intentional accent. A second accent is almost always a
   decision nobody made. If a semantic color is needed (danger, success, warning), it is semantic, not
   a second brand accent.
@@ -148,4 +161,4 @@ pattern. This covers color-vision deficiency and also grayscale printing and low
 - A section whose theme is inverted relative to the page, with no brief asking for the switch.
 - Contrast below the table above, checked in both themes.
 
-<!-- sources: anthropic-frontend-design, vercel-wig, addy-frontend-ui, antfu-design, w3c-wcag22, uiux-pro-max -->
+<!-- sources: anthropic-frontend-design, vercel-wig, addy-frontend-ui, antfu-design, w3c-wcag22, uiux-pro-max, oil-ui -->

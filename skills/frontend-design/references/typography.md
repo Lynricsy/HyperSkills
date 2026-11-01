@@ -9,6 +9,7 @@ repeatable mistakes rather than taste disagreements.
 - [Scale, weight and hierarchy](#scale-weight-and-hierarchy)
 - [Measure, leading and wrapping](#measure-leading-and-wrapping)
 - [Numbers and technical values](#numbers-and-technical-values)
+- [CJK text](#cjk-text)
 - [Loading and rendering](#loading-and-rendering)
 - [Checkable rules](#checkable-rules)
 
@@ -82,6 +83,36 @@ horizontal scrollbar at 320 CSS px.
 - Format with `Intl.NumberFormat`, never a hand-rolled pattern. `1234567` unformatted next to
   `99.99%` is both a locale bug and a placeholder tell.
 
+## CJK text
+
+Most of the rules above were written for Latin text. Chinese and Japanese pages break them in
+specific ways, and the source rarely shows it: render at the target width with the fonts the
+audience actually has.
+
+- **Name a CJK family in the stack.** A Latin-only stack (`"Inter", Arial, sans-serif`) leaves every
+  Han glyph to whatever each OS substitutes, so the page has a different Chinese face, weight and
+  width on every platform. Latin face first so letters and figures use it, then CJK families matching
+  the page `lang` (SC, TC, HK or JP variants), then the generic:
+  `"Inter", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif`.
+- **Check weights on a mixed line.** The browser picks the nearest weight each fallback face has, so a
+  light Latin face can sit next to regular-weight Han glyphs. Look at one line mixing Chinese, figures
+  and a Latin word, and compare stem weight and baseline.
+- **Size and leading start higher** `[community]`. Han glyphs fill the em square, so Latin leading
+  looks cramped. Starting points: reading pages 16-18px body, product UI 14-16px, dense all-day
+  tools 13-14px; body line-height 1.6-1.75. Multi-line Chinese below about 1.4 reads as a block. These
+  are starting points, not WCAG requirements.
+- **Headings at 1.2-1.35, with content-driven height.** Display leading copied from Latin posters
+  (0.9-1.0) makes Han lines touch, because there are no ascenders or descenders leaving room. Never fix
+  a heading's height to its expected line count; it wraps differently per width and per font.
+- **No tracking on Han text.** Adjacent Han characters are set solid `[official]` (W3C CLREQ).
+  Negative letter-spacing collides glyphs; tracked body text stops reading as words.
+- **Line breaks need hands.** `text-wrap: balance` and `pretty` reduce a one- or two-character last
+  line but do not remove it. Keep a number with its unit (`38&nbsp;秒`, or a short `nowrap` span), do
+  not let a two-character word split across lines, and break short display lines at phrase
+  boundaries, checked at every supported width.
+- **Measure in characters.** Past about 45 Han characters per line, body text gets hard to track
+  `[community]`.
+
 ## Loading and rendering
 
 - `font-display: swap` avoids invisible text. Reserve the space so the swap does not shift layout.
@@ -108,7 +139,9 @@ These are the ones worth flagging in a review with a `path:line`:
 - Updating numbers without `tabular-nums`.
 - Button or input without `font: inherit`.
 - A synthesized italic or weight (style used but not loaded).
+- CJK page: no CJK family in the stack, Han body line-height under about 1.4, a fixed-height or
+  sub-1.2-leading Chinese heading, letter-spacing on Han text, a number split from its unit.
 - `...` where `…` belongs; straight quotes in prose.
 - Loading state text that does not end in `…` (`Loading…`, `Saving…`).
 
-<!-- sources: anthropic-frontend-design, vercel-wig, addy-frontend-ui, antfu-design, uiux-pro-max -->
+<!-- sources: anthropic-frontend-design, vercel-wig, addy-frontend-ui, antfu-design, uiux-pro-max, oil-ui, w3c-clreq -->
