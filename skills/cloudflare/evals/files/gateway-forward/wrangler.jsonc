@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "saas-upload-tagger",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": true
+}

@@ -150,5 +150,78 @@
       "Says a heap profile shows sampled allocations, not retained memory, so it narrows allocating code but does not alone prove a leak",
       "Flags missing `upload_source_maps: true` with `minify: true` as a prerequisite for readable frames"
     ]
+  },
+  {
+    "skills": [
+      "cloudflare"
+    ],
+    "query": "orders-api (wrangler.jsonc, index.ts) talks to our Postgres through Hyperdrive; db.md has the database location, the latency report and our deploy setup. Users in Frankfurt and Singapore get p95 above 750 ms on /orders/:id, and a teammate says Hyperdrive should already have fixed that. Separately, since last week's wrangler upgrade every payment webhook fails signature verification. Tell me exactly what to change in the configuration and the deploy, and how we confirm each fix.",
+    "files": [
+      "evals/files/placement/wrangler.jsonc",
+      "evals/files/placement/index.ts",
+      "evals/files/placement/db.md",
+      "evals/files/placement/production.env",
+      "evals/files/placement/package.json"
+    ],
+    "expected_behavior": [
+      "Explains that Hyperdrive pools and caches connection setup but does not move the Worker: the Worker still runs near each user, so all five sequential queries cross to us-east-1 and pay the long round trip each time; the fix is to run the Worker near the database",
+      "Configures an explicit placement hint for the single-homed database, `\"placement\": { \"region\": \"aws:us-east-1\" }`, rather than relying only on Smart Placement (`mode: \"smart\"`), which learns from traffic and suits unknown or multiple back ends; does not set `mode` and `region` together",
+      "Notes that placement applies only to fetch handlers: the `OrdersService` named entrypoint called over RPC by admin-dashboard is not placed, so that path stays slow unless it goes through a placed fetch handler or a separate placed Worker",
+      "Verifies placement on the deployed Worker (request duration analytics by location, or the `cf-placement` header), not with `wrangler dev`, which cannot measure production placement",
+      "Identifies the Wrangler 4.153.0 change: dotenv files passed to `--secrets-file` now expand `$VAR`/`${VAR}` references, so `WEBHOOK_SECRET=whsec_9Kq$Lm2Vx7$Tz4Rp` uploads as `whsec_9Kq` (unset references become empty) and every signature fails",
+      "Fixes the secret by escaping the literal dollar signs (`\\$`) or switching to a JSON secrets file, redeploys, and confirms with a signed test webhook; notes that process environment values in CI now override matching keys in the file"
+    ]
+  },
+  {
+    "skills": [
+      "cloudflare"
+    ],
+    "query": "Our D1 rows-read bill jumped about 30x in a month (billing.md). notes.md is what the team has concluded so far, and project-do.ts is the Durable Object they say is fast. How do we find which databases and which queries are responsible, what exactly do we run, and is the team right that the Durable Object is not part of the problem?",
+    "files": [
+      "evals/files/d1-cost/billing.md",
+      "evals/files/d1-cost/project-do.ts",
+      "evals/files/d1-cost/notes.md"
+    ],
+    "expected_behavior": [
+      "Uses account-level D1 query analytics instead of looping `wrangler d1 execute` over 38 databases: `wrangler d1 insights` (experimental; with no database name it ranks queries across every D1 database in the account, each result carrying `databaseId`, e.g. `--sort-by=reads --time-period=7d --json`) or `cf sql query` over the `events.d1Queries` dataset",
+      "Says the CI token needs the Account Analytics Read permission for these commands; D1 Edit and Workers Scripts Edit are not enough",
+      "Ranks by rows read and looks for queries whose rows read vastly exceed rows returned, then fixes them with an index added through a D1 migration applied with `--remote`, checks `EXPLAIN QUERY PLAN` shows `SEARCH ... USING INDEX` instead of `SCAN`, and re-runs the ranking over a short recent window to confirm rows read dropped",
+      "Explains that the `ms: 0` is not evidence: in deployed Workers and Durable Objects `Date.now()` and `performance.now()` only advance after I/O (a Spectre mitigation), and `sql.exec` is synchronous, so the timer and the non-I/O trace spans report 0 ms regardless of cost",
+      "Proposes a real measure for the Durable Object query: the cursor's `rowsRead` (or an index on `status, updated_at`), timing under local development where timers advance, or a production CPU profile, rather than trusting the 0 ms"
+    ]
+  },
+  {
+    "skills": [
+      "cloudflare"
+    ],
+    "query": "Security wants this Worker to run on Gateway HTTP traffic to our file-sharing SaaS via a Gateway Forward policy. worker.ts and wrangler.jsonc are the draft. Make it work as a Gateway Forward Worker, keep the intent (tag uploads with the tenant, survive upstream failures, log who uploaded), and tell me what the Gateway side needs and what this setup cannot do.",
+    "files": [
+      "evals/files/gateway-forward/worker.ts",
+      "evals/files/gateway-forward/wrangler.jsonc"
+    ],
+    "expected_behavior": [
+      "Rewrites the entry point as a named `GatewayMiddleware` class extending `WorkerEntrypoint` from `cloudflare:workers` with `handle(request, context, next)` returning a `Response`; says Gateway invokes it over RPC and a default `fetch()` handler alone is never called by the Forward action",
+      "Continues the user's request with `next(request)` at most once: removes the retry and the backup-host fallback, because `next()` always targets the original destination and cannot retry or redirect, and a plain `fetch()` is an independent subrequest that does not carry the user's Gateway policies or egress IP",
+      "Takes the uploader from `await context.identity()` (null means anonymous, the call can throw and must be caught separately) instead of the client-supplied `x-user-email` header",
+      "Stops buffering with `response.text()` and streams the body through, keeps HEAD/204/205/304 responses bodiless, and notes Worker or invocation failures fail closed rather than bypassing the Worker",
+      "States the Gateway-side requirements and gaps: an HTTP policy with the Forward action selecting the deployed Worker in the same account, HTTPS traffic must be TLS-decrypted (Do Not Inspect traffic never reaches the Worker), only the first matching Forward policy runs and Block takes precedence, WebSocket and CONNECT traffic bypass the Worker, and Gateway does not re-inspect the modified request bytes",
+      "Turns off public exposure of the Worker (`workers_dev: false`, `preview_urls: false`) and mentions the feature is in public beta"
+    ]
+  },
+  {
+    "skills": [
+      "cloudflare"
+    ],
+    "query": "plan.md is our tenant isolation plan for Workers Paid. Is the architect right that Cloudflare's per-account caps kill it? Give finance a yes/no per resource type at launch and at 150,000 tenants, the monthly cost of anything beyond what the plan includes, and what you would change.",
+    "files": [
+      "evals/files/tenant-limits/plan.md"
+    ],
+    "expected_behavior": [
+      "D1: Workers Paid allows up to 1,000,000 databases per account with the first 100,000 included, so 80,000 tenants fit at no database-count charge and 150,000 cost about 50,000 x $0.10 = $5,000 per month; the architect is wrong for D1 (Free would be capped at 10)",
+      "R2: buckets are not hard-capped at a small number - the default is 100,000 per account, raisable at $0.10 per bucket per month above that, so 80,000 fits and 150,000 adds about $5,000 per month; suggests one bucket with per-tenant key prefixes instead",
+      "KV: Workers Paid has a default of 1,000 namespaces, raisable at $0.10 per namespace per month above that, so per-tenant namespaces cost about $7,900 per month at 80,000 and $14,900 at 150,000; recommends one namespace with tenant-prefixed keys",
+      "Queues: Workers Paid has a default of 10,000 queues, raisable at $0.10 per queue per month above that, so per-tenant queues add about $7,000 at launch and $14,000 at 150,000; recommends shared queues carrying a tenant id",
+      "Does not quote stale caps such as 50,000 D1 databases, 1,000,000 R2 buckets, or a hard 1,000-namespace / 10,000-queue ceiling on Paid"
+    ]
   }
 ]

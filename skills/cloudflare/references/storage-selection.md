@@ -103,8 +103,8 @@ S3-compatible object storage with no egress fee, strongly consistent per object.
   to 10,000 parts.
 - **1 concurrent write per second to the same object key**; beyond that, HTTP 429. R2 is not a
   mutable record store.
-- Key 1,024 bytes, custom metadata 8,192 bytes, 1,000,000 buckets per account, 50 bucket
-  management operations/second per bucket.
+- Key 1,024 bytes, custom metadata 8,192 bytes, a default of 100,000 buckets per account
+  (raisable, $0.10/month each above), 50 bucket management operations/second per bucket.
 - The `r2.dev` subdomain is rate limited and bandwidth throttled and is for testing only.
   Production traffic goes through a custom domain, which also gives cache control, Workers in
   front, and URL-level analytics.

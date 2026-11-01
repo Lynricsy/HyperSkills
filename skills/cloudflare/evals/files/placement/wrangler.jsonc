@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "orders-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "traces": { "enabled": true, "head_sampling_rate": 0.05 } },
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "8a1f0c3e5b7d4f2a9c6e1b3d5f7a9c2e" }],
+  "routes": [{ "pattern": "api.shop.example", "custom_domain": true }]
+}

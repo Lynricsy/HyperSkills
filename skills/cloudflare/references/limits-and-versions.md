@@ -85,7 +85,7 @@ uncompressed number is what the 64 MiB limit measures; the `gzip` figure is info
 | Key size | 512 bytes | 1,024 bytes | n/a | n/a | n/a |
 | Metadata | 1,024 bytes | 8,192 bytes | n/a | n/a | ~100 bytes internal, counts to message size |
 | Total size | 1 GB Free / unlimited Paid | unlimited | 500 MB Free / **10 GB Paid, not raisable** | 10 GB per object | 25 GB backlog per queue |
-| Count | 1,000 namespaces/account | 1,000,000 buckets/account | 10 DBs Free / 50,000 Paid | unlimited objects; 100/500 classes | 10,000 queues/account |
+| Count | 1,000 namespaces Free; Paid default 1,000, raisable at $0.10/month each above | default 100,000 buckets/account, raisable at $0.10/month each above | 10 DBs Free; Paid 1,000,000 (first 100,000 included, $0.10/month each above) | unlimited objects; 100/500 classes | 10,000 queues Free; Paid default 10,000, raisable at $0.10/month each above |
 | Per-invocation ops | 1,000 external-service ops | counts as subrequests | 50 Free / 1,000 Paid queries | n/a | n/a |
 
 Other numbers worth having exact:
@@ -126,6 +126,7 @@ limited to 1,000 characters.
 
 | Gate | What it unlocks |
 |---|---|
+| Wrangler 4.153+ | dotenv files passed to `--secrets-file` (`deploy`, `versions upload`, `preview`) expand `$VAR`/`${VAR}`; an unset reference becomes an empty string and process environment values override file keys, so a secret containing a literal `$` is silently truncated unless escaped (`\$`) or supplied as JSON (`references/wrangler.md`) |
 | Wrangler 4.150+ | `wrangler deploy`, `versions upload` and `preview` stop when `.cloudflare/output` exists (a project that builds for `cf`) and point at `cf deploy`; delete a stale directory to deploy with Wrangler again (`references/cf-cli.md`) |
 | Wrangler 4.136+ | required in the project before `cf migrate` can convert it with the Wrangler bundler |
 | Wrangler 4.135+ | Workers Previews (`wrangler preview`, the `previews` block): isolated per-branch/PR environments under one Worker, the replacement for aliased Version URLs. Open beta since 4.134.0; an older pin labels the commands private beta, so upgrade the project's wrangler instead of building per-PR environments |

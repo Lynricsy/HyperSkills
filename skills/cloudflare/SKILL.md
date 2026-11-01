@@ -4,7 +4,7 @@ description: "Builds on Cloudflare Workers, Durable Objects, storage services an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: platform
 ---
 
@@ -30,8 +30,8 @@ documentation of 2026-09-30 and is `[official]`.
 Not covered:
 
 - General web performance, Core Web Vitals and visual design. Use the `frontend-design`
-  skill. This skill covers only the Cloudflare-side levers (asset caching headers, Smart
-  Placement, `cacheTtl`).
+  skill. This skill covers only the Cloudflare-side levers (asset caching headers, Workers
+  placement, `cacheTtl`).
 - React and Next.js themselves. Use the `react` skill. On Cloudflare, Next.js deploys as a
   Worker with static assets through an adapter, not to Pages; the adapter is the only part of
   that which belongs here.
@@ -297,7 +297,7 @@ output are a stale limit or a retired plan name, not a wrong API call.
 | Topic | Read when | File |
 |---|---|---|
 | Every quota, default and version gate in one table: CPU and wall time, memory, subrequests, asset and store limits, the wrangler/compat-date gates, retired names | Before quoting any number or any "since version X" claim | `references/limits-and-versions.md` |
-| Isolate lifecycle, request-scoped I/O, `waitUntil` and `passThroughOnException`, streaming, crypto, service bindings and RPC, Smart Placement, Cron Triggers, `nodejs_compat` | Writing or reviewing Worker code, or explaining a runtime error | `references/workers-runtime.md` |
+| Isolate lifecycle, request-scoped I/O, `waitUntil` and `passThroughOnException`, streaming, crypto, service bindings and RPC, placement (region hints and Smart Placement), Cron Triggers, `nodejs_compat` | Writing or reviewing Worker code, or explaining a runtime error | `references/workers-runtime.md` |
 | Wrangler or `cf` for this project, `cf` setup and login, what changes (modes, IDs, remote-by-default data), why `cf dev`/`build`/`deploy` must not run before `cf migrate`, the migration steps | Starting a new project, a project with `cloudflare.config.ts`, or a request to use or switch to `cf` | `references/cf-cli.md` |
 | Configuration shape and schema, compatibility dates and flags, binding declarations, environments and non-inheritable keys, secrets and `.dev.vars`/`.env`, `limits`, `observability`, `wrangler types`, auto-provisioning | Editing `wrangler.jsonc`/`wrangler.toml` or adding a binding | `references/wrangler.md` |
 | Local versus remote dev and where state lives, data commands, `deploy --dry-run`, versions and gradual deployments, rollback constraints, secret commands, Workers roles and API token scope for deploys, diagnostics | Running wrangler, deploying, setting up CI credentials, or recovering a deployment | `references/wrangler.md` |

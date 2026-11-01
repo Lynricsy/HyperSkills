@@ -158,9 +158,9 @@ environment at deploy time does not retarget an already-flattened build.
 encrypted and invisible after they are set, and to the Worker there is no difference at read
 time.
 
-- Deployed: `wrangler secret put <KEY>`, `wrangler secret bulk`, or
-  `wrangler deploy --secrets-file .env.production` (up to 100 secrets per bulk request;
-  secrets absent from the file are preserved).
+- Deployed: `wrangler secret put <KEY>`, `secret bulk`, or `deploy --secrets-file <file>` (up
+  to 100 secrets per bulk request; secrets absent from the file are preserved). From 4.153.0 a
+  dotenv file expands `$VAR` (unset = empty): escape a literal `$` as `\$`, or use JSON.
 - Local: `.dev.vars` **or** `.env`, in the configuration file's directory. Pick one — if
   `.dev.vars` exists, `.env` values are ignored. Gitignore `.dev.vars*` and `.env*`.
 - Per environment: `.dev.vars.<env>` replaces `.dev.vars` entirely, whereas `.env` files merge

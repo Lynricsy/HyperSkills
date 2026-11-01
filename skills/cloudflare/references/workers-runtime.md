@@ -13,7 +13,7 @@ failures, not style preferences — each one has an error string or a measurable
 - [Serialization boundaries](#serialization-boundaries)
 - [Crypto and secret comparison](#crypto-and-secret-comparison)
 - [Error posture](#error-posture)
-- [Cron Triggers, Smart Placement and routing](#cron-triggers-smart-placement-and-routing)
+- [Cron Triggers, placement and routing](#cron-triggers-placement-and-routing)
 - [nodejs_compat](#nodejs_compat)
 
 ## The isolate model and what it forbids
@@ -214,14 +214,22 @@ try {
 Use it deliberately, if at all: a Worker that only adds an optional header in front of a real
 origin is the case where failing open is the correct product decision.
 
-## Cron Triggers, Smart Placement and routing
+## Cron Triggers, placement and routing
 
 - Cron Triggers invoke the `scheduled` handler with a 15-minute wall-time budget, 30 s CPU for
   intervals under an hour and 15 min CPU at or above an hour. Limits are 5 triggers per account
   on Free and 250 on Paid.
-- Smart Placement moves invocation closer to a back end when a Worker makes several round
-  trips to the same origin or database. It helps a chatty origin-bound Worker and hurts a
-  Worker whose job is to answer near the user; it is a config field, not a default.
+- Placement runs a Worker near its back end instead of near the user. It is a `placement`
+  config field, not a default, and its options are mutually exclusive. For one single-homed
+  database or service in a known cloud region — the usual Hyperdrive case — set a Placement
+  Hint such as `"placement": { "region": "aws:us-east-1" }` (`gcp:` and `azure:` regions work
+  the same way); outside the three clouds, `host` (TCP probe) or `hostname` (HTTP probe), which
+  are experimental; for several or unknown back ends, `"mode": "smart"`, which learns from
+  traffic and needs steady traffic from several locations. A Hyperdrive binding pools
+  connections but does not move the Worker. Placement only affects `fetch` handlers, not RPC
+  methods or named entrypoints, and it hurts a Worker whose job is to answer near the user.
+  Measure it on the deployed Worker (request duration, the `cf-placement` request header),
+  never under `wrangler dev` `[official]`.
 - Routes have a fail-open/fail-closed mode that decides what happens when the Free daily
   request limit is exceeded. For security-bearing Workers, fail closed.
 - Workers do not accept `fetch()` from another Worker on the same zone without a service

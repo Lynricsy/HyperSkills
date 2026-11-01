@@ -386,3 +386,88 @@ DLP profile 的引用方、Cloudflare One Client / Mesh 改名；新增场景 7�
 属模型取舍。场景 9 有 skill 一侧发现 Cloudflare 文档自相矛盾：CASB 概览页写后续扫描「typically between every 1 hour and every 24 hours」、
 `troubleshooting/casb` 写首扫「up to 24 hours」，而 `integrations/cloud-and-saas/troubleshooting/casb` 写「several hours … approximately every
 24-48 hours」（本 skill 依据后者）。不影响「别急着重连」的结论，下次同步 Cloudflare One 时按届时官方口径统一。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 工作单（`/tmp/hs-sync/cloudflare.md`）与 `/tmp/hs-upstream-2026-11-01.json` 旧 pin 快照。cloudflare/skills 用
+`gh api repos/cloudflare/skills/compare/be68fd8...1a33048` 逐文件读 patch；workers-sdk 用裸仓库缓存
+`git -C /tmp/hs-attr/cloudflare__workers-sdk diff b81efbc 3f14c76 -- packages/wrangler/CHANGELOG.md`（4.151.1–4.156.0，281 行）；
+cloudflare-computer 在缓存上 `git log ef00c0a..071b2b2 -- .agents/skills/cloudflare/SKILL.md` 为空。`--pin` 写入的 commit 与审阅 HEAD
+逐条相等（cloudflare-skills/cf-nextjs `1a33048817d0`、workers-sdk `3f14c760aba6`、cloudflare-computer `071b2b2f24db`），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| cloudflare-skills | be68fd8 → 1a33048（40 提交） | `workers-best-practices`：d0e1671/49a31e0 查询单一区域数据库的 Worker 先配显式 placement（region hint），Hyperdrive 不会自动放置 Worker；fe02920/9d6ba25 删除 runtime-patterns.md 的 Bundled/Unbound 旧计划名 | placement：按官方 placement 页更正 `workers-runtime.md`（见下）；CPU 旧名：上游已自行修正我们 2026-09 的否决理由，只改 SOURCES notes |
+| cloudflare-skills | 同上 | `durable-objects`：a1a0fa0…5e8ada8 共 11 个提交把 references/workers.md 的日志/追踪代码换成文档指针——Workers Logs 结构化对象、`observability.traces.enabled` + 显式 `head_sampling_rate`、Local Explorer（`/cdn-cgi/local/explorer/api`）、生产环境 `Date.now()`/`performance.now()` 只在 I/O 后前进、非 I/O span 显示 0 ms | traces 字段我们已有（Core rule 27）；计时器/0 ms 与 Local Explorer 属新增规则，场景 13 基线已会 → 不合入，场景留作哨兵 |
+| cloudflare-skills | 同上 | `cloudflare/references/d1`：5611bbb 指向新文档页 Find slow and expensive queries（`cf sql query` / `wrangler d1 insights`，API token 需 Account Analytics Read） | 新增规则，场景 13 基线已会 → 不合入 |
+| cloudflare-skills | 同上 | `cloudflare-one`：be9f5e1 新增指向 gateway-workers 的一句；`wrangler`/上述各 skill：0e09df4/29de2b2 新增 `references/skill-feedback.md`（向 cloudflare/skills 提 issue 的流程） | gateway-workers 见下节；skill-feedback 是上游自用反馈流程，噪声 |
+| workers-sdk | b81efbc → 3f14c76（10 个 Version Packages 提交，4.151.1–4.156.0） | 4.153.0：`--secrets-file` 的 dotenv 文件展开 `$VAR`/`${VAR}`，未设置的引用变空串、进程环境覆盖文件键；4.156.0：实验命令 `wrangler d1 insights` 可省略库名做全账户排名、鉴权失败提示 Account Analytics: Read；4.152.0 远程 Hyperdrive 绑定、Workflows `jurisdiction`；4.155.0 远程 Analytics Engine；其余为 autoconfig/本地开发/依赖修复 | 4.153.0 改变了正文推荐命令 `wrangler deploy --secrets-file` 的语义 → `wrangler.md` 补一句、`limits-and-versions.md` 增 Wrangler 4.153+ 门槛行；其余不涉及正文引用的命令/配置/版本事实 |
+| cloudflare-computer | ef00c0a → 071b2b2（35 提交） | 无（tracked path 未变） | 噪声，只 re-pin |
+| cf-nextjs | be68fd8 → 1a33048 | `nextjs-on-cloudflare/SKILL.md`：0e09df4 末尾加 Skill feedback 段 | 噪声 |
+
+### 裁决：placement 指导
+
+上游把 Smart Placement 专题整个删除（`skills/cloudflare/references/smart-placement/`），产品路由改成「Workers placement：已知区域数据库用
+显式 region hint，否则用流量驱动的 Smart Placement」。核对 [Workers placement](https://developers.cloudflare.com/workers/configuration/placement/)
+（2026-10-12）：`placement.mode`/`region`/`host`/`hostname` 互斥；Smart 适合多个或未知后端，Region 适合已知云区域的单一后端，Host 适合三大云以外
+（host 型为 experimental）；placement 只影响 fetch handler，不影响 RPC 方法与 named entrypoint；Smart Placement 需多地稳定流量、最长 15 分钟分析。
+我们 `workers-runtime.md` 原句把「对同一源站/数据库多次往返」归给 Smart Placement，与现行文档的选项划分不符，按事实更正改写，并补 Hyperdrive
+不移动 Worker、只影响 fetch handler、在已部署 Worker 上用请求时长与 `cf-placement` 头验证；`SKILL.md` Scope/Topic router 的「Smart Placement」
+同步改为「Workers placement」。场景 12 基线已会 region hint，此处按事实更正处理而非新增规则。
+
+### 新增评测场景与基线（omp + `openai/gpt-6.1-sol` medium，VM）
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12 Hyperdrive 跨洲延迟 + 4.153 secrets-file | gpt-6.1-sol medium | 无 | false | EB1–EB6 ✔ | 172 s。`placement.region: "aws:us-east-1"`、指出 RPC named entrypoint 不受 placement 影响并改走 binding `fetch`；识别 4.153.0 dotenv 展开、`\$` 转义或 JSON、本地复现 401/200 |
+| 13 D1 账单暴涨 + DO 计时 0 ms | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ✔ | 150 s。`wrangler@4.156.0 d1 insights` 省略库名、Account Analytics Read、GraphQL `d1AnalyticsAdaptiveGroups`；计时器只在 I/O 后前进；cursor `rowsRead`、生产 CPU profile。EB3 缺 `SEARCH … USING INDEX` 对比与短窗口复核 |
+| 14 Gateway Forward Worker | gpt-6.1-sol medium | 无 | false | EB1–EB5 ✔；EB6 ◐ | 183 s。`GatewayMiddleware extends WorkerEntrypoint`、`next()` 至多一次、`fetch()` 不走 Gateway 策略、`context.identity()`、TLS 解密/WebSocket/CONNECT/fail closed；`workers_dev`/`preview_urls` 关闭，但未提 public beta |
+
+结论：三类新增内容（显式 placement、D1 成本排查与计时器语义、Gateway Forward Worker）基线都已自行检索到官方页面并基本答对，按规程不合入，
+场景 12–14 留作哨兵。场景 12 同时覆盖本轮两处事实更正（placement、4.153 secrets-file），用于 D2。产物：
+`/tmp/hs-d2/G03b-cloudflare/cloudflare/omp-openai-gpt-6.1-sol-medium/baseline/{12,13,14}`。
+
+## 2026-11-01 上游新增内容评估
+
+区间 be68fd8..1a33048 的新增文件：`skills/gateway-workers/SKILL.md` 及其 `references/skill-feedback.md`、其余 16 个 skill 的
+`references/skill-feedback.md`、`.antigravity-plugin/plugin.json`、`mcp_config.json`。workers-sdk 与 cloudflare-computer 的 tracked 区间无 skill 类新文件。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| cloudflare/skills `skills/gateway-workers`（Apache-2.0） | 不合入（paths 已加入追踪） | 属本 skill Scope（Cloudflare One → Gateway）。内容为 Gateway Forward 动作调用 Worker 的契约：具名 `GatewayMiddleware`、`handle(request, context, next)`、`next()` 至多一次且目的地不可改、`fetch()` 不继承 Gateway 策略、identity/posture getter 可抛错、首个匹配 Forward 策略、WebSocket/CONNECT 绕过、失败 fail closed。官方页标注 public beta（2026-10-15）。场景 14 基线 5✔1◐，无缺口 |
+| `*/references/skill-feedback.md`（17 份） | REJECT | 上游自用的「向 cloudflare/skills 提 issue」流程，与平台知识无关 |
+| `.antigravity-plugin/plugin.json`、`mcp_config.json` | REJECT | 上游插件分发清单，非 skill 内容 |
+| 删除：`skills/cloudflare/references/smart-placement/`（未追踪） | 不适用 | 只作为 placement 更正的佐证；我们未追踪该目录 |
+
+跨组：无（gateway-workers 属本 skill 的 Cloudflare One 范围）。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "cloudflare workers skill"`/`"wrangler SKILL.md"`/`"durable objects agent skills"`（按更新排序几乎无结果）、
+`gh search repos cloudflare skills --sort stars`、`gh search code "name: cloudflare" --filename SKILL.md`、`VoltAgent/awesome-agent-skills` README
+（Cloudflare 节）、`github/awesome-copilot` 全树按 `cloudflare|wrangler` 过滤（零命中）。
+
+| # | 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 18 | mikehasa/golive-skill | 1349 | 2026-10-11 | MIT | 1 | 3 | 1 | – | 2 | ≤7 | REJECT | 多云「上线」编排 CLI（托管、数据库、域名、邮件、支付），Cloudflare 只有 DNS/SPF 适配器；主题是自家 CLI 的 detect→plan→apply 流程，不是平台知识 |
+| 19 | free-dam-man/warp-zerotrust-masque-skill | 65 | 2026-10-25 | NOASSERTION | 0 | 3 | 1 | – | 0 | ≤4 | REJECT | 个人把 Zero Trust 团队 + WARP MASQUE 当代理用的部署向导，许可不明 |
+| 20 | openai/skills `skills/.curated/cloudflare-deploy` | 28436 | 2026-10-28（该路径最后提交 2026-02-02） | Apache-2.0（目录内 LICENSE.txt；仓库 API 为 null） | 2 | 1 | 2 | 1 | 2 | 8 | REJECT（重复） | 早期 cloudflare/skills `cloudflare` 树的快照，仍指向上游已删除的 smart-placement；官方原版已追踪 |
+| 21 | getsentry/sentry-for-ai `skills-legacy/sentry-cloudflare-sdk` | 273 | 2026-10-30 | MIT | 2 | 1 | 2 | – | 2 | ≤7 | REJECT | 位于 `skills-legacy/`；内容是 Sentry SDK 接入，属单一商业产品手册，与 `observability` 边界也不符 |
+| – | cloudflare/security-audit-skill | 55468 | 2026-09-14 | MIT | – | – | – | – | – | – | 跨组 | 已在 `research/security-review.md` 评估，不属本 skill |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| cloudflare-docs | Paid CPU 默认 30 s、`limits.cpu_ms` 上限 300,000；128 MB；6 个连接等待响应头；Cron 5/250 个、<1 h 间隔 30 s CPU、≥1 h 15 min；静态资源 20,000/100,000 文件、单文件 25 MiB | [Workers limits](https://developers.cloudflare.com/workers/platform/limits/) | 一致 |
+| cloudflare-docs | API 上传无日期默认 2021-11-02 | [Compatibility dates](https://developers.cloudflare.com/workers/configuration/compatibility-dates/) | 一致 |
+| cloudflare-docs | KV 其他位置最多 60 s 或更久、否定查询被缓存、同 key 每秒 1 次写、值 25 MiB | [How KV works](https://developers.cloudflare.com/kv/concepts/how-kv-works/)、[KV limits](https://developers.cloudflare.com/kv/platform/limits/) | 一致 |
+| cloudflare-docs | 每账户数量：KV namespace、R2 bucket、D1 数据库、Queues | KV/R2/D1/[Queues limits](https://developers.cloudflare.com/queues/platform/limits/) | **过时已修**：Paid 上 KV namespace 默认 1,000、R2 bucket 默认 100,000、Queues 默认 10,000，均可超出、每个 $0.10/月；D1 Paid 上限 1,000,000、前 100,000 含在计划内。原表写「1,000 namespaces / 1,000,000 buckets / 50,000 DBs / 10,000 queues」，已改 `limits-and-versions.md` 与 `storage-selection.md`，并新增回归场景 15 |
+| cloudflare-docs | D1 Paid 10 GB 不可提升 / Free 500 MB、单线程、每次调用 50/1,000 条查询；DO 约 1,000 req/s、10 GB、key+value 2 MB、100/500 个类；R2 5 TiB / 5 GiB / 4.995 TiB、同 key 每秒 1 次写、每 bucket 50 次管理操作/秒；Queues 消息 128 KB | D1/DO/R2/Queues limits | 一致 |
+| cloudflare-docs | `_redirects` 2,000 静态 + 100 动态、单条 1,000 字符；回滚只到最近 100 个版本 | [Redirects](https://developers.cloudflare.com/workers/static-assets/redirects/)、[Rollbacks](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/rollbacks/) | 一致 |
+| cloudflare-docs | Previews 需 Wrangler 4.135.0+、每 Worker 100/500 个、超限删最久未部署的 | [Previews](https://developers.cloudflare.com/workers/previews/) | 一致（路径已从 `/workers/configuration/previews/` 移到 `/workers/previews/`，正文未写死该路径） |
+| cloudflare-docs | `secret put` 与 `versions secret put`、`secrets.required`、`--secrets-file` | [Secrets](https://developers.cloudflare.com/workers/configuration/secrets/) | 一致；dotenv 展开（4.153.0）只见于 CHANGELOG，已按 workers-sdk 写入 |
+| cloudflare-docs | Smart Placement「对同一源站/数据库多次往返」 | [Workers placement](https://developers.cloudflare.com/workers/configuration/placement/) | **过时已修**：现行文档把单一已知区域后端划给 Placement Hints（`placement.region`），Smart 只用于多个/未知后端；`workers-runtime.md` 已改写 |
+| cloudflare-docs | 生产计时器只在 I/O 后前进、非 I/O span 0 ms；D1 insights 为实验命令 | [Performance and timers](https://developers.cloudflare.com/workers/runtime-apis/performance/)、[Traces known limitations](https://developers.cloudflare.com/workers/observability/traces/known-limitations/)、[D1 metrics](https://developers.cloudflare.com/d1/observability/metrics-analytics/) | 正文未引用；仅作场景 13 期望行为的出处 |
+
+`cloudflare-docs` 的 `synced_at` 改为 2026-11-01。
