@@ -493,3 +493,26 @@ octocat 的 GHSA 两份规则与锁文件更正合成新增场景 7（`evals/fil
 结论：锁文件更正相关的 EB4、EB5 在有 skill 时全部达成，与基线持平（基线联网读到了 10-28 GA 的官方页面）；正文更正消除的是过时的
 「SHA 是唯一不可变引用」，有 skill 一侧无回退。EB3 有 skill 一侧少说「发布不可撤回」，正文按决定未收录 GHSA 生命周期（基线已会），属模型取舍，
 不改正文。负例 `skill_read == false`。各场景只有 1 次运行。
+
+## 2026-11-01 跨组命中评估
+
+其他组转来的上游新增文件，`gh api` 读原文后裁决。github/awesome-copilot 已由本 skill 以 `awesome-copilot` 追踪。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| github/awesome-copilot `skills/npm-trusted-publishing` | REJECT（规则不合入，不扩 paths；场景 8 留作哨兵） | Scope 内：Scope 明写「只覆盖 workflow 到部署目标的认证」，npm 受信发布正是这一半。事实按 npm 官方文档 docs.npmjs.com/trusted-publishers 核对：npm CLI ≥ 11.5.1 且 Node ≥ 22.14.0；仅 GitHub 托管 runner；workflow 文件名精确匹配（含扩展名、大小写敏感）、environment 须一致、保存时不校验；npm 先试 OIDC 再回退到已配置 token；可复用 workflow 校验调用方文件名且两侧都要 `id-token: write`；`repository.url` 须与仓库一致；公开仓库公开包自动生成 provenance。按规程新增场景 8（夹具 `npm-publish.yml`：self-hosted runner、Node 22、job 级 `permissions` 缺 `id-token`、发布步骤保留 `NODE_AUTH_TOKEN`、publisher 文件名/environment 不符）先跑基线：5 条中 3✔ 2◐，所有陷阱都被指出且给出正确 workflow，◐ 只差解释细节（见下表），无可由正文填补的缺口，不合入 |
+| github/awesome-copilot `skills/pr-address-feedback` | REJECT（不扩 paths） | 线程内回复（`pulls/{n}/comments/{id}/replies`）、先回复后 resolve（`resolveReviewThread`）、引用已推送提交的完整 SHA、本轮答完才重新请求评审并核对新评审的 `commit.oid`，均已在 `SKILL.md` respond-to-review 与 `references/pull-requests.md` 覆盖。其余是 Copilot 专属交互流程（plan mode、`ask_user` 逐条呈现模板、`reply_and_resolve_review_thread` 工具），不可移植 |
+
+### 场景 8 基线
+
+产物 `/tmp/hs-d2/G13-cross/github/omp-openai-gpt-6.1-sol-medium/baseline/8/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8（新增，npm 受信发布迁移） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3◐ 4◐ 5✔ | 33.8 s。开门见山「先别撤销 token，这次成功发布不能证明受信发布生效」，引用 OIDC 优先、token 回退；加 job 级 `id-token: write` 并保留 `contents: write`；runner 改 GitHub 托管；publisher 改为 `publish.yml`、job 加 `environment: npm-prod`；先无 token 发布一次再删 secret。3：要求 Node ≥ 22.14 / npm ≥ 11.5.1 并加 `npm install -g npm@11`，但没点明 Node 22 自带的是 npm 10；4：未提 npm 保存 publisher 时不校验 |
+
+结论：基线已会，正文不改，无需 D2；场景 8 留作哨兵。
+
+## 2026-11-01 关闭关键字与 trailer 核对
+
+主代理转来 git-workflow 组的实测结论（git 2.56.0：`git interpret-trailers --parse` 只认 `Token: value`，`Fixes #412` 解析为空）。核对本 skill 全部正文：`references/pull-requests.md`「Linking an issue」写的是关键字「放在 PR 描述或提交信息里」，`SKILL.md` 第 12 条与 PR 描述模板末行的 `Closes #412` 都是 PR 正文用法，全文没有把关闭关键字称作 trailer 的表述（`grep -i trailer` 无命中）。GitHub 的关闭关键字在描述/提交信息任意位置生效、也允许关键字后跟冒号，与 trailer 解析无关——现有写法正确，不改。
