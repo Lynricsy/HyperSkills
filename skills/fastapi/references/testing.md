@@ -1,7 +1,7 @@
 # Testing a FastAPI application
 
 Verified against: FastAPI 0.141, Starlette 1.6, httpx2 2.12; re-checked on FastAPI 0.143.1,
-Starlette 1.8.0 and httpx2 2.13.1.
+Starlette 1.8.0 and httpx2 2.13.1, and on FastAPI 0.162.0 with Starlette 1.10.0.
 
 ## Contents
 
@@ -31,10 +31,13 @@ Default to `TestClient`. It is shorter, it runs lifespan, and it needs no async 
 
 ## Install `httpx2`
 
-Starlette's test client (1.6 through 1.8) imports `httpx2` and falls back to `httpx` with
+Starlette's test client (1.6 through 1.10) imports `httpx2` and falls back to `httpx` with
 `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2
-instead.` [verified]. `fastapi[standard]` pulls in httpx v1 only, so a default install hits the
-warning — and a project with `filterwarnings = ["error"]` fails on import.
+instead.` [verified]. Up to FastAPI 0.143.3, `fastapi[standard]` pulls in httpx v1 only, so a
+default install hits the warning — and a project with `filterwarnings = ["error"]` fails on import.
+From 0.143.4 the `standard` extras install `httpx2` as well [verified in the 0.162.0
+`pyproject.toml`], but plain `fastapi` and older pins still do not; declare the test client's
+dependency in the test group rather than relying on a runtime extra.
 
 ```bash
 uv add --group test httpx2
@@ -208,5 +211,11 @@ with client.stream("GET", "/events") as response:
 
 Bound what you read. A test that consumes an unbounded stream to completion hangs the suite instead
 of failing it.
+
+The `TestClient` only streams from Starlette 1.9. Up to 1.8, `client.stream()` does not return until
+the application has finished the whole response, so an endless SSE or event generator hangs the test
+even when the loop above reads three lines [verified: hangs on 1.8.0, returns on 1.10.0]. From 1.9,
+leaving the `with` block early cancels the application. On an older Starlette, make the generator
+finite under test (an override or parameter that caps the events) instead of relying on the bounded read.
 
 <!-- sources: fastapi-docs, starlette-docs, kludex-fastapi-tips, fastapi-official-skill -->

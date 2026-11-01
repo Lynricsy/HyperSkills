@@ -1,0 +1,14 @@
+[project]
+name = "notify-api"
+version = "0.4.0"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]==0.143.3",
+    "starlette==1.8.0",
+]
+
+[dependency-groups]
+test = ["pytest>=9.1"]
+
+[tool.pytest]
+filterwarnings = ["error"]

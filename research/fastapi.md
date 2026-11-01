@@ -442,3 +442,52 @@ OpenTelemetry configuration fails」——`_runtime.lifespan` 把 `_configure_fr
 结论：今天改动涉及的行为在有 skill 时全部达成——场景 3 用了新推荐的 `validate_by_name`，场景 5 在版本门改写后仍按 0.142.1 的行为作答且 6/6，场景 1 未回退（`asyncify` 偏好调整在纯同步 handler 上没有被用到，两侧都选 `def`）。有 skill 在场景 1、3、5 均不比基线差（场景 3 的 EB7 基线 ◐、有 skill ✘，与今天改动无关）。负例 `skill_read == false`。正文未改。
 
 遗留：场景 1 未触发「保留 `async def` 时用 `asyncify`」分支，偏好调整的行为证据仍只有官方 skill 的表述；场景 3 EB6/EB7 两侧均未稳定达成，属既有缺口，非本次回归。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/fastapi.md`。两条在 tracked paths 下有提交，均用
+`gh api repos/<o>/<r>/compare/<pinned>...<head>` 读 `.files[].patch`；其余三条为噪声。`--pin` 写入的 7 个 `commit` 与审阅 HEAD 逐条相等，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| fastapi-official-skill | 49a09a0 → 45cb225（159 提交） | 64efa4f（#16505，Ruff 格式化 Markdown 里的 Python）：`references/dependencies.md` 示例中加一个空行 | 噪声，只 re-pin |
+| wshobson-fastapi-templates | 46891e7 → 7e2fb55（25 提交） | 00da14c（#765）：`SKILL.md` 加依赖清单、conftest 改 `ASGITransport` + `pytest_asyncio.fixture`、去掉 `event_loop` 夹具；`references/details.md` CORS 改为显式来源并注明「`["*"]` + `allow_credentials=True` 时 Starlette 回显任意 Origin」、`SettingsConfigDict`、`DeclarativeBase`、`model_dump`、python-jose/passlib → PyJWT/pwdlib、`datetime.now(timezone.utc)`、异常信息不再 `str(e)` 回传 | 测试与 v2 写法的修正与本 skill 现有内容一致；PyJWT/pwdlib 本 skill 不涉及。CORS 一条属**新增规则**，按流程跑基线（场景 6）→ 基线已会，不合入，场景留作哨兵。更新该条目 `notes` |
+| pydantic-official-skill | e0fb2ce → 132df97 | 无（主代理裸仓库树 diff） | 噪声，只 re-pin |
+| microsoft-skills-py | d2f769f → 3f5b461 | 无 | 噪声，只 re-pin |
+| fastapi-full-stack-template | 7257e60 → f4bcfab（4 提交） | 无 | 噪声，只 re-pin |
+
+### CORS 规则的缺口评测（新增场景 6，夹具 `evals/files/accounts_main.py`）
+
+先本地核实上游说法：Starlette 1.10.0 下 `CORSMiddleware(allow_origins=["*"], allow_credentials=True)`，预检、带 Cookie 的简单请求、不带 Cookie 的简单请求三种情况都回 `Access-Control-Allow-Origin: https://evil.example`（回显请求 Origin）+ `Access-Control-Allow-Credentials: true`。说法成立。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 CORS + Cookie 会话 | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ◐ EB5 ✔ | 120 s。指出通配 + 凭据会回显攻击者 Origin、`/me/account` 可被跨站读取；凭据策略只放 `https://portal.example.com`（硬编码常量，未走配置）；`/plans` 单独非凭据策略；写接口加精确 Origin 校验并说明 CORS 不防 CSRF；`iban` 仍是 query 参数；方法与头已收窄 |
+
+结论：核心规则（EB1）基线已会 → 不合入，场景 6 留作哨兵。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 节为空：本 skill 追踪的仓库在区间内没有新增 skill 类文件。fastapi 相关的新增只见于下节检索。
+
+## 2026-11-01 新候选
+
+检索：`gh search repos 'fastapi skill' --updated '>=2026-10-15'`、`gh search code 'name: fastapi' --filename SKILL.md`、`VoltAgent/awesome-agent-skills` README（2026-10-30 提交）中 fastapi/pydantic 条目、`github/awesome-copilot` 3cf7c7e..5269f7e 区间新增文件（无 fastapi/pydantic 命中）。VoltAgent 列出的 microsoft `fastapi-router-py` / `pydantic-models-py` 已追踪。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 21 | gavmor/fastapi-skill | https://github.com/gavmor/fastapi-skill | 0 | 2026-10-27 | 无 | 把 fastapi.tiangolo.com 文档整站搬进 `references/` 的「文档 skill」 | 0 | 3 | 1 | 2 | 0 | 6 | REJECT | 官方文档副本（已作为 `fastapi-docs` 追踪），无许可、无独立规则 |
+
+## 2026-11-01 文档上游复核
+
+范围：5 条 `kind: docs` 的 `contributes` + 正文引用的版本与行为。当前版本：FastAPI 0.162.0（2026-10-23）、Starlette 1.10.0（2026-10-24）、Pydantic 2.14.2（2026-10-29）、ruff 0.17.3、SQLModel 0.0.48（无新版）。逐条读了 FastAPI 0.143.2–0.162.0、Starlette 1.9.0/1.10.0、Pydantic 2.14.2 的发布说明（`gh api repos/<o>/<r>/releases`），涉及正文的条目本地实跑（`uv run --no-project --with ...`）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| fastapi-docs | 0.143.2–0.162.0 全部发布说明；安全工具缺凭据 401 + `WWW-Authenticate`；WebSocket 文档对自定义依赖的建议；`fastapi[standard]` 的 extras | https://fastapi.tiangolo.com/release-notes/ 、/advanced/websockets/ 、`pyproject.toml`@0.162.0 | **两处更正**：① 0.144.0（#10147）起内置安全类接受 `HTTPConnection`，WebSocket 路由可直接依赖 `OAuth2PasswordBearer` 等；实跑 0.143.1 报 `TypeError: OAuth2PasswordBearer.__call__() missing 1 required positional argument: 'request'`，0.162.0 无令牌时握手被 401 + `Bearer` 拒绝、带令牌正常。同时实测 0.143.1 上自定义依赖抛 `HTTPException` 并非「无处可放」：Starlette 经 ASGI WebSocket Denial Response 扩展回 HTTP 401（TestClient 抛 `WebSocketDenialResponse`；uvicorn 0.54 三种 WS 实现都支持该扩展）。`streaming.md` 改写该段，保留官方文档「自定义依赖用 `WebSocketException`」的建议。② 0.143.4（#16512）把 `httpx2` 加入 `standard` 等 extras（0.143.3 的 `pyproject.toml` 只有 httpx）；`SKILL.md` Environment、`testing.md`、`tooling.md` 中「`fastapi[standard]` 只装 httpx v1」改为按版本表述。其余破坏性变更（0.145 删 `openapi_prefix`、0.146 弃用 `root_path`、0.147–0.162 表单布尔/空值/文件、0.148 默认值不再校验、0.151 JSON `null` 与缺省区分、0.155 删请求参数 `**extra`、0.160 参数模型 `extra` 作用于同位置兄弟字段）正文均未涉及，未改 |
+| pydantic-docs | `populate_by_name` 2.11+ 不推荐、v3 弃用，`validate_by_name` 替代；别名与 `from_attributes`；2.14.2 JSON 校验按别名/字段名匹配的修正 | https://docs.pydantic.dev/latest/api/config/ （源：`pydantic/config.py`@v2.14.2） | 一致。2.14.2 让 JSON 校验中只匹配未启用别名/字段名的键按 extra 处理（`extra='forbid'` 时报错），与正文「推荐 `validate_by_name=True`」不冲突 |
+| starlette-docs | TestClient 优先 httpx2、仅 httpx 时发弃用警告；TestClient 流式；lifespan 需 `with` | https://starlette.dev/testclient/ 、1.9.0/1.10.0 发布说明 | **更正**：1.9.0（#3491）起 TestClient 才真正流式，`client.stream()` 在应用结束前返回、提前退出会取消应用。实跑无限 SSE 生成器 + 读 3 行：1.8.0 挂起 >8 s，1.10.0 立即返回。`testing.md` Streaming 节补充版本门与旧版本的做法；版本行改为 1.6–1.10（1.10.0 仍发 `StarletteDeprecationWarning`，已实测） |
+| ruff-fast-rules | FAST 组默认关闭；FAST001–003 | https://docs.astral.sh/ruff/rules/#fastapi-fast | 一致。ruff 0.17.3 `rule --all` 中 FAST 仍只有 001–003；默认规则集对示例只报 `I001`，`--select FAST` 报出三条 |
+| sqlmodel-docs | 仅用于确认 SQLModel 推荐的适用条件 | https://sqlmodel.tiangolo.com （HTTP 200） | 无新版本（0.0.48），定位未变，正文未改 |
+
+正文改动：`references/streaming.md`（WebSocket 鉴权段 + 版本行）、`references/testing.md`（httpx2 段、Streaming 节、版本行）、`references/tooling.md`（httpx2 段）、`SKILL.md` Environment 一条。为覆盖这三处更正新增回归场景 7（夹具 `evals/files/notify/`：pin 在 FastAPI 0.143.3 + Starlette 1.8.0、`filterwarnings = ["error"]`、无限 SSE、WebSocket 路由依赖 `OAuth2PasswordBearer`）；本地实跑确认三种失败均复现（收集时弃用警告报错、流测试挂起、`TypeError`），升级到 0.162.0 后两测通过。

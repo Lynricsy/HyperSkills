@@ -4,7 +4,7 @@ description: "Builds Python APIs with FastAPI, Pydantic, dependency injection an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -244,9 +244,9 @@ Paths below are relative to this skill's directory.
 
   Then `fastapi dev` (reload, localhost) and `fastapi run` (production) work from anywhere in
   the project.
-- Add `httpx2` as a test dependency (`uv add --group test httpx2`). Starlette 1.6's `TestClient`
-  prefers it and emits a deprecation warning when it falls back to httpx v1 — which is the
-  version `fastapi[standard]` installs.
+- Add `httpx2` as a test dependency (`uv add --group test httpx2`). Starlette's `TestClient`
+  (1.6–1.10) prefers it and emits a deprecation warning when it falls back to httpx v1 — the only
+  client `fastapi[standard]` installs up to 0.143.3 (0.143.4+ adds `httpx2` to the extras).
 - Enable the FastAPI lint group explicitly — it is off by default:
 
   ```toml

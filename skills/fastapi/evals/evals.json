@@ -66,5 +66,39 @@
       "Moves the health-check exclusion to FastAPI's own setting, `telemetry={\"exclude\": lambda scope: scope[\"path\"] == \"/healthz\"}` (or equivalent), and restores `tenant.id` on the request span by a supported route — e.g. `trace.get_current_span().set_attribute(...)` from HTTP middleware, where the native request span is current",
       "Flags that FastAPI now exports unhandled exceptions as OpenTelemetry log records with the exception message and stack trace, so the `ValueError` carrying the full card number leaks it to the telemetry backend - remove the PAN from the message, redact with a log processor, or set `logs: False`"
     ]
+  },
+  {
+    "skills": [
+      "fastapi"
+    ],
+    "query": "accounts_main.py goes live behind our customer portal next week. The portal is a SPA at https://portal.example.com that calls the API with credentials: \"include\"; partner widgets on other domains only read /plans. Review the CORS setup and the cookie-session auth for security problems and give me the corrected file.",
+    "files": [
+      "evals/files/accounts_main.py"
+    ],
+    "expected_behavior": [
+      "Flags `allow_origins=[\"*\"]` combined with `allow_credentials=True` as the critical bug and explains Starlette's actual behaviour: instead of sending a literal `*` (which browsers would reject for credentialed requests) `CORSMiddleware` echoes the request's own `Origin` and sends `Access-Control-Allow-Credentials: true`, so any website can read `/me/account` with the victim's session cookie",
+      "Replaces the wildcard with an explicit origin list (`https://portal.example.com`), loaded from configuration rather than hard-coded for every environment, and does not use `allow_origin_regex` as a broad wildcard substitute",
+      "Keeps the public `/plans` endpoint reachable for partner widgets without opening credentialed access to every origin, e.g. a separate non-credentialed CORS policy or sub-application for public routes, or explains that partners do not need credentials",
+      "Points out that CORS is not CSRF protection: the state-changing `POST /me/payout` authenticated only by a cookie still needs `SameSite` cookies plus a CSRF token or Origin check, and that taking `iban` from a query parameter on a POST is a poor contract (move it into a request body model)",
+      "Narrows `allow_methods` and `allow_headers` to what the portal uses instead of `[\"*\"]`"
+    ]
+  },
+  {
+    "skills": [
+      "fastapi"
+    ],
+    "query": "notify-api's tests are broken in CI. On the pinned versions in pyproject.toml the test module will not even import; when someone made it import locally, test_events_streams_ticks hung until the CI timeout even though it only reads three lines, and test_ws_requires_token fails with a TypeError. Explain each failure and tell me the smallest set of changes that makes the suite pass, including whether upgrading FastAPI/Starlette would help.",
+    "files": [
+      "evals/files/notify/pyproject.toml",
+      "evals/files/notify/app.py",
+      "evals/files/notify/test_app.py"
+    ],
+    "expected_behavior": [
+      "Explains the import failure: Starlette's `TestClient` prefers `httpx2` and, when only httpx v1 is installed (all that `fastapi[standard]` brings up to 0.143.3), emits a `StarletteDeprecationWarning` that `filterwarnings = [\"error\"]` turns into a collection error; fixes it by adding `httpx2` to the test dependency group (noting FastAPI 0.143.4+ also ships it in the `standard` extras), not by loosening the warning filter",
+      "Explains the hang: before Starlette 1.9 the `TestClient`'s `client.stream()` waits for the application to finish the whole response, so the endless `/events` generator never returns no matter how few lines the test reads; fixes it by upgrading Starlette to 1.9+ (where leaving the stream cancels the app) or by making the generator finite under test",
+      "Explains the `TypeError`: before FastAPI 0.144 the built-in security classes such as `OAuth2PasswordBearer` take a `Request` and cannot be used as dependencies of a WebSocket route; fixes it by upgrading to 0.144+ (where they accept WebSocket connections and reject a missing token with a 401 handshake response) or by a small dependency that reads the `Authorization` header from the `WebSocket`",
+      "Gives a consistent minimal plan (e.g. upgrade to a FastAPI release whose Starlette is 1.9+ and add `httpx2` to the test group) and keeps pinned versions coherent with each other",
+      "For any custom WebSocket auth dependency, rejects with `WebSocketException(code=1008)` (or closes with 1008) as the docs recommend rather than relying on `HTTPException`"
+    ]
   }
 ]

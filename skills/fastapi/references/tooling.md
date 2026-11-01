@@ -31,7 +31,8 @@ install for a service that brings its own server; there is no separate slim pack
 more.
 
 `httpx2` is a test dependency, not a runtime one, and it is needed because Starlette's test client
-prefers it over httpx v1.
+prefers it over httpx v1. From 0.143.4 `fastapi[standard]` installs it too (alongside httpx v1),
+but declare it in the test group anyway: the test suite should not depend on a runtime extra.
 
 ## Running the app
 

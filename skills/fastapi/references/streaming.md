@@ -1,6 +1,7 @@
 # Streaming responses
 
-Verified against: FastAPI 0.141.
+Verified against: FastAPI 0.141; WebSocket authentication re-checked on FastAPI 0.143.1 and 0.162.0
+with Starlette 1.10.0.
 
 ## Contents
 
@@ -130,8 +131,18 @@ Use `async for` over the iterator rather than `while True: await receive_text()`
 `WebSocketDisconnect` end the handler — a client closing the tab is normal traffic, not an error
 worth logging at error level.
 
-Dependencies work in WebSocket handlers, but `HTTPException` does not — the handshake has no place
-to put a 401 body. Raise `WebSocketException(code=status.WS_1008_POLICY_VIOLATION)` from the
-dependency instead, or `await websocket.close(code=1008)` inside the handler.
+Dependencies work in WebSocket handlers. In your own dependencies follow the official docs: raise
+`WebSocketException(code=status.WS_1008_POLICY_VIOLATION)` rather than `HTTPException`, or
+`await websocket.close(code=1008)` inside the handler. An `HTTPException` raised before `accept()`
+is not silently lost, though: Starlette sends it as an HTTP response to the handshake through the
+ASGI WebSocket Denial Response extension, which uvicorn implements and `TestClient` surfaces as
+`WebSocketDenialResponse` [verified].
+
+The built-in security classes (`OAuth2PasswordBearer`, `HTTPBearer`, `APIKeyHeader` and the rest)
+accept WebSocket connections only from FastAPI 0.144. Before that, depending on one in an
+`@app.websocket` route fails on every connection with `TypeError: ... missing 1 required positional
+argument: 'request'`; write a small dependency that reads the header or query parameter from the
+`WebSocket` instead. From 0.144 a missing credential rejects the handshake with 401 and
+`WWW-Authenticate`, and a valid one reaches the handler [verified on 0.143.1 and 0.162.0].
 
 <!-- sources: fastapi-official-skill, fastapi-docs, starlette-docs, kludex-fastapi-tips -->
