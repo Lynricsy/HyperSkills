@@ -4,7 +4,7 @@ description: "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app an
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: platform
 ---
 

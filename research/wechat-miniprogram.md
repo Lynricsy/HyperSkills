@@ -355,3 +355,81 @@ packageA 的 JS 与组件，同事建议改用 `await import()`。
 | miniprogram-ci | npm `latest` 仍为 2.1.31；`robot` 可选 1~30；`type` 枚举含 `miniProgram`/`miniProgramPlugin`/`miniGame`/`miniGamePlugin`；`privateKey`（内容）与 `privateKeyPath`（路径）并列；无提交审核接口；tarball 不含 LICENCE 文件 | `npm view miniprogram-ci`；`npm pack miniprogram-ci@2.1.31` 后读 `README.md` 第 221/272/318 行、`dist/@types/config/config.d.ts`、`dist/@types/project/ciProject.d.ts` | 一致 |
 
 6 组事实全部一致，正文未改；`wx-official-docs`、`miniprogram-ci` 的 `synced_at` 更新为 2026-10-15。
+
+## 2026-11-01 上游同步
+
+依据：2026-11-01 主代理快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/wechat-miniprogram.md`。worktree 内重跑
+`check_upstream.py wechat-miniprogram`，五条 `behind` 的 HEAD 与工作单审阅 HEAD 一致。归因：skyline-skills、uni-app、taro、
+sonofmagic/skills 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 `.files[].patch`（文件数 4 / 217 / 167 / 6，均 <300）；
+CloudBase-AI-Toolkit 用主代理的 blobless 裸仓库缓存 `git diff 2ba79cc..c5c329e -- config/.claude/skills/miniprogram-development`。
+`--pin` 后逐条核对写入的 commit 与审阅 HEAD：skyline-skills `ca0a3b3`、uni-app `150a29d`、taro `0493b52`、CloudBase `c5c329e`、
+sonofmagic `34a58a4` 全部相等，无越界差额；`wx-glass-easel`（repo moved、tracked paths unchanged）前移到 `9daa336`。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| wx-skyline-skills | `050bb07 → ca0a3b3`（3 提交） | `afd142d`：`skills/skyline-overview/references/introduction/component-support.md` 删去「text 组件」示例小节（纯文本须包 `<text>`、单行省略须用 `<text>`、多行用 `max-lines`）。同一事实仍保留在同为 tracked path 的 `skills/skyline-components/references/media/text.md`（「内联文本必须用 text 组件」、`overflow`/`max-lines` 属性表）与 `skyline-wxss/references/text.md`（`text-overflow: ellipsis` 仅对 `<text>` 生效） | 噪声（去重），`references/skyline.md`「Text and ellipsis」不变 |
+| wx-skyline-skills | 同上（tracked path 外） | `8da0507`：`skyline-wxss` 说明 `drop-shadow()` 改 `box-shadow` 只在盒子即可见形状时等价；`ca0a3b3`：`animation-fill-mode` 四值均生效（原写 `none`/`backwards` 表现为 `forwards`） | 不涉正文：本 skill 未写 `filter`/`drop-shadow`/`animation-fill-mode`（grep 零命中） |
+| dcloud-uni-app | `fb45bda → 150a29d`（156 提交，命中 1） | `5125057`：`docs/mp/native-component-and-wxs.md` 示例 `<script setup lang="uts">` → `<script setup>`；`docs/compiler/platform.md` 未改 | 噪声：本 skill 只取条件编译语法、平台常量与 glass-easel 开关 |
+| taro | `c48bec6 → 0493b52`（36 提交，命中 3） | `18ea23f`：`@tarojs/cli` 4.3.0→4.3.1；`864d0bc`：`taro create` 改写 `app.config` 时按最后一个有效 `pages`/`subPackages` 属性识别、遇 spread/computed/getter 放弃改写（新增 `create-page.spec.ts`）；`5a84b9b`：RN 平台缺 `@react-native/babel-preset` 时自动补装 | 噪声：CLI 修复与 RN 端，本 skill 只写 `taro init` 产物、`build:*` 脚本与 pxtransform，「Verified against: Taro 4.2.1」是验证记录 |
+| cloudbase-ai-toolkit | `2ba79cc → c5c329e`（361 提交，命中 4：`900e608`、`a9068cd`、`82b9b11`、`94551f5`） | `SKILL.md` 版本 2.35.2→2.36.2；`references/cloudbase-integration.md` 加「充值续费前先核对当前账号与环境归属账号（`sts/GetCallerIdentity`、`cam/GetUserAppId`）」 | 噪声：CloudBase 计费，属 Scope 明确排除项 |
+| sonofmagic-skills | `c44f95b → 34a58a4`（2 提交） | `3d50f9b`：weapp-vite `web-runtime-compatibility.md` 增「小程序 Web API 注入与 SSE」（`weapp.appPrelude.webRuntime`、`enableChunked`、EventSource 边界）；`wevu-best-practices` 增 SSE 在同步 `setup` 注册 `onUnload` 清理 | 噪声：作者自有工具链 API；区间另有 `skills/playwright-cli/**` 改动，不在本 skill paths |
+| wx-glass-easel | `83b1c44 → 9daa336`（7 提交） | 无 | 噪声，只 re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+本 skill 的 `## Scope` 明文排除「CloudBase cloud development (`wx.cloud`, cloud functions, cloud database, cloud storage), WeChat Pay and
+other merchant product APIs」。CloudBase-AI-Toolkit 区间内新增 67 个 `SKILL.md`（裸仓库缓存 `git diff --diff-filter=A`），其中 34 个在
+`connectors/cloudbase/**`，其余基本是 `plugin/cloudbase-codex/skills/**` 镜像。逐个用 `git show` 读了工作单 C/C2/C3 列出的文件：
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `connectors/cloudbase/skills/references/miniprogram-development/SKILL.md`、`plugin/cloudbase-codex/skills/miniprogram-development/SKILL.md` | REJECT（重复） | 与已追踪的 `config/.claude/skills/miniprogram-development` 在 `c5c329e` 上 `git diff` 为空，逐字节相同；不另加 paths |
+| `connectors/cloudbase/skills/SKILL.md`（CloudBase 总入口）及 `references/*` 其余 13 个 | REJECT（Scope 排除） | 内容是 CloudBase 国内站/国际站、MCP 接入、云函数、云托管、PG/NoSQL、云存储、内置大模型；不是小程序工程规则 |
+| `connectors/cloudbase/qianwen/entry/cloudbase-miniprogram/SKILL.md` | REJECT（Scope 排除） | 「小程序 + 云开发后端」的通义千问入口，19 处 `wx.cloud`/云开发；非云开发部分（预览、上传、提审）已由本 skill 与 `miniprogram-ci` 覆盖 |
+| `…/auth-wechat-miniprogram`（connectors 与 plugin 两份相同） | REJECT（Scope 排除） | CloudBase 下小程序免登录、`wx.cloud` 取 OPENID/UNIONID；本 skill 的 `wx.login` + `code2Session` 路径不变 |
+| `…/cloudbase-document-database-in-wechat-miniprogram` | REJECT（Scope 排除） | `wx.cloud.database()` CRUD/聚合/地理查询 |
+| `…/cloudbase-wechat-integration` | REJECT（Scope 排除） | 微信支付、虚拟支付、公众号 JSAPI/Native 支付、集成中心——支付与商户能力双重排除 |
+| `plugin/cloudbase-codex/skills/ai-model-wechat`（及 connectors 同名） | REJECT（Scope 排除） | `wx.cloud.extend.AI` 大模型调用 |
+| `…/http-api-cloudbase`（G07 转来） | REJECT（Scope 排除，且非小程序） | CloudBase 平台 HTTP API 客户端指南，服务端/脚本调用，与小程序运行时无关 |
+| `…/cloudbase-document-database-web-sdk`（G08 转来） | REJECT（Scope 排除，且非小程序） | CloudBase NoSQL 的 Web SDK |
+
+许可：仓库 MIT（`gh api` 与 skill 目录 `LICENSE.md` 一致），不构成障碍；拒绝全部出于 Scope。若主人决定为 CloudBase 单独立项，
+这批 `connectors/cloudbase/skills/**` 是现成的官方候选（权威 3、新鲜 3、许可 2），已在汇报中提出，本轮不扩 Scope、不改 `docs/roadmap.md`。
+
+## 2026-11-01 新候选检索
+
+检索途径：`gh search repos "miniprogram skills"`、`gh search repos "小程序 skill"`（各 15 条，按更新排序）、
+`gh api orgs/wechat-miniprogram/repos?sort=pushed`（前 12 个）、`VoltAgent/awesome-agent-skills` README 与 `github/awesome-copilot`
+全树 grep（小程序零命中；VoltAgent 唯一 WeChat 命中是视频号上传，无关）。新鲜度以 2026-11-01 为基准。
+
+| # | 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 23 | wechat-miniprogram/skylint | 84 | 2026-10-30（最后实质提交 2025-06-30） | MIT | 3 | 0 | 2 | — | 2 | — | REJECT | 官方 Skyline 迁移 lint 工具而非 skill；默认分支最后提交 `e89e4c6`（2025-06-30），规则集止于 2024-05；skyline-skills 现在指向的是 `npx skyline-cli wxss check` |
+| 24 | wechat-miniprogram/miniprogram-ci-dist | 0 | 2026-10-16 | 无 | 3 | 3 | 0 | — | 0 | — | REJECT | 构建产物分发仓，无描述、无许可，无 skill 内容；`miniprogram-ci` 的取证仍以 npm 包为准 |
+| 25 | roriawu-ux/wechat-miniprogram-skills | 0 | 2026-10-30 | 无 | 0 | 3 | — | — | 0 | — | REJECT | 2026-10-17 新建、零星标、无许可；主题是小程序 + CloudBase + 订阅消息，云开发部分在 Scope 外 |
+| 26 | EchoTechFE/qdmp-skill | 0 | 2026-10-29 | 无 | 0 | 3 | — | — | 0 | — | REJECT | 单一商业平台（「千岛小程序」）的 skill，无许可 |
+| 27 | Wenmao-AI-Lab/wechat-miniprogram-skills | 0 | 2026-09-23 | 无 | 0 | 2 | — | — | 0 | — | REJECT | 零星标、无许可 |
+| 28 | larkwins/wechat-miniprogram-skills | 24 | 2026-03-31 | 无 | 1 | 0 | — | — | 0 | — | REJECT | 推送 7 个月前，新鲜度 0；无许可 |
+| 12（复核） | Sun-sunshine06/miniprogram-skills | 28 | 2026-10-22 | MIT | 1 | 3 | 1 | 2 | 2 | 9 | MAYBE → 不再追踪 | 2026-10-22 唯一新提交 `8beb42b` 是「宣布暂停维护并链接相关项目」，内容未变；原裁决（无独有事实）不变 |
+
+结论：无 INCLUDE；`docs/roadmap.md` 本 skill 无新增条目（CloudBase 立项问题见上节，交主人决定）。
+
+## 2026-11-01 文档上游复核
+
+微信文档站现在每页提供「查看 Markdown」（同路径 `.md`），本次直接 `read` `.md` 版本取正文，不再需要浏览器渲染。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| wx-official-docs | 两种更新算法；绑定映射表更新仅在单字段且未被 `wx:if`/`wx:for`/`let:` 及其子孙使用时；glass-easel 下 WXS 只在逻辑层、只调用受影响绑定 | [数据更新策略](https://developers.weixin.qq.com/miniprogram/dev/framework/component-framework/data-update-strategy.md) | 一致 |
+| wx-official-docs | 除 focus 态 `input` 外全部原生组件支持同层渲染；鸿蒙 OS 只有同层渲染；`bindrendererror` 失败原因；工具用 web 组件模拟 | [原生组件](https://developers.weixin.qq.com/miniprogram/dev/component/native-component.html) | 一致 |
+| wx-official-docs | 页面创建/销毁顺序；`navigateTo`/`redirectTo` 不可指向 tabBar 页；tabBar 页必为栈底且单实例；单页栈 `navigateBack` 无论 `delta` 都失败；`reLaunch` 不重启 AppService；悬垂页面 | [页面路由](https://developers.weixin.qq.com/miniprogram/dev/framework/app-service/route.md) | 一致 |
+| wx-official-docs | 总包 30M（服务商代开发 20M）、单包 2M；独立分包不能定义 `App`、不能依赖主包/其他分包（分包异步化例外）、`app.wxss` 无效、`getApp({ allowDefault: true })` 自 2.2.4；`lazyCodeLoading: "requiredComponents"` 自 2.11.1、全局 `usingComponents` 计为每页依赖、占位组件即用时注入（2.11.2） | [分包加载](https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages.md)、[独立分包](https://developers.weixin.qq.com/miniprogram/dev/framework/subpackages/independent.md)、[按需注入](https://developers.weixin.qq.com/miniprogram/dev/framework/ability/lazyload.md) | 一致 |
+| wx-official-docs | 拒绝后不再弹窗直接 fail，`getSetting`/`openSetting`；定位类 scope 须配置用途说明；`wx.login` code 有效期五分钟；隐私：未在指引中声明的接口直接禁用，`getPrivacySetting`/`onNeedPrivacyAuthorization` 自 2.32.3，未同意时 `<input type="nickname">` 降级为 `text` | [授权](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/authorize.md)、[wx.login](https://developers.weixin.qq.com/miniprogram/dev/api/open-api/login/wx.login.md)、[隐私协议开发指南](https://developers.weixin.qq.com/miniprogram/dev/framework/user-privacy/PrivacyAuthorize.md) | 一致 |
+| miniprogram-ci | npm `latest` 仍为 2.1.31（`time.modified` 2026-09-30；另有 `beta` 2.1.48 / `alpha` 2.1.42 / `gamma` 2.1.38 预发布 tag） | `npm view miniprogram-ci version dist-tags time.modified` | 一致；正文写的是 latest 2.1.31 的 API 形状，预发布 tag 不采用 |
+
+另查：npm `miniprogram-api-typings` latest 仍 5.2.3；`glass-easel` latest 1.2.1（正文「Verified against 1.2.0」是验证记录，glass-easel 的 tracked paths 区间内未改，不变）；`@tarojs/cli` latest 4.3.1（同上，验证记录）。
+
+6 组事实全部一致，正文未改；`wx-official-docs`、`miniprogram-ci` 的 `synced_at` 更新为 2026-11-01。
+
+结论：正文（SKILL.md / references）未改，只改 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml`（version、re-pin、两条 docs 的 synced_at、
+`cloudbase-ai-toolkit` notes 记录新增镜像目录的裁决）。正文无改动，不需要 D2 回归。

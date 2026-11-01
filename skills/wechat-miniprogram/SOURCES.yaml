@@ -1,5 +1,5 @@
 skill: wechat-miniprogram
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: wx-api-typings
     kind: repo
@@ -10,7 +10,7 @@ upstreams:
     commit: 6092df9100c73b84e140c20b9a42a8e8799e0660
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Official TypeScript declarations for wx.*, Page, Component, Behavior; used as the machine-checkable source for API shapes, base-library version gates, setData/storage hard limits and deprecations."
     notes: "LICENSE read in full: MIT. Verified locally against npm miniprogram-api-typings@5.2.3, whose types/ directory is published from this repository."
 
@@ -20,10 +20,10 @@ upstreams:
     url: https://github.com/wechat-miniprogram/glass-easel
     paths: [glass-easel-skills/glass-easel, glass-easel/src]
     ref: master
-    commit: 83b1c44009d7e9ab4bb1f9fd6b8ff05de81db733
+    commit: 9daa336da249cb8e8a99de7d0e0a90212aa01d30
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Official component-framework skill and runtime source: advanced data-update APIs, observer semantics, deep-copy options, wx:key sub-algorithms, slot modes, virtualHost."
     notes: "LICENSE read in full: MIT text (header line is a bare copyright, not the string 'MIT License'). API names verified against npm glass-easel@1.2.0 dist/glass_easel.d.ts."
 
@@ -33,10 +33,10 @@ upstreams:
     url: https://github.com/wechat-miniprogram/skyline-skills
     paths: [skills/skyline-overview, skills/skyline-config, skills/skyline-components]
     ref: master
-    commit: 050bb071e091c2d0f7ac3e294f1e1514382b3978
+    commit: ca0a3b3a1a0e60de01c7f8bc35e4e2055a36f76e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Skyline renderer configuration triad, WebView-to-Skyline behavioural differences, local-scrolling layout pattern and progressive migration granularity."
     notes: "LICENSE read in full: MIT text under 'Copyright 2024 wechat-miniprogram'."
 
@@ -49,7 +49,7 @@ upstreams:
     commit: f6044fd0ab3183eb170f4f64aebe1a9576ba76f2
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Custom-component unit testing: load/render/attach flow and what the simulator does not emulate."
 
   - id: dcloud-uni-app
@@ -58,10 +58,10 @@ upstreams:
     url: https://github.com/dcloudio/uni-app
     paths: [docs/compiler/platform.md, docs/mp]
     ref: uni-app-x
-    commit: fb45bda34032da1f8fac5700f4b9467d16e4dfc2
+    commit: 150a29da2ba78f24d1c0d942c89d84fdd0f4b1fe
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "uni-app conditional-compilation syntax and platform constants, the undefined-platform fallthrough rule, and the mp-weixin glass-easel switches."
 
   - id: taro
@@ -70,10 +70,10 @@ upstreams:
     url: https://github.com/NervJS/taro
     paths: [packages/taro-cli]
     ref: main
-    commit: c48bec60fd07b7ad701b756983ae29e2c80466b2
+    commit: 0493b5251dab0681ae7358ea43db9d7df380479f
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Taro project layout, per-platform build targets and the pxtransform/designWidth contract; verified by scaffolding a project with taro 4.2.1."
     notes: "GitHub API reports NOASSERTION; LICENSE read in full and is MIT (Copyright (c) 2018 O2Team)."
 
@@ -82,7 +82,7 @@ upstreams:
     url: https://developers.weixin.qq.com/miniprogram/dev/framework/
     license: Proprietary
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Normative source for the data-update algorithm, native-component same-layer rendering status, routing and lifecycle ordering, subpackage size caps, startup flow, authorization scopes and the privacy-agreement APIs."
     notes: "Page footer reads 'Copyright (c) 2012-2026 Tencent. All Rights Reserved.' - proprietary, so facts are cross-checked and restated, never copied."
 
@@ -91,7 +91,7 @@ upstreams:
     url: https://www.npmjs.com/package/miniprogram-ci
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Upload/preview/packNpm option shapes and robot range, read from the published dist/@types declarations of miniprogram-ci@2.1.31."
     notes: "package.json declares MIT but the published tarball ships no LICENCE file, so the licence is recorded as NONE and nothing is copied; only the declared API surface is restated."
 
@@ -104,7 +104,7 @@ upstreams:
     commit: 9bd1f25a7051ff137206f15251f716536f8409e9
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Read to confirm coverage of the JSAPI whitelist and project-config integration; content ruling keeps it reference-only."
     notes: "Content ruling, not a licence ruling: the repository targets the wx.modelContext AI-mode product surface, which is product packaging rather than mini program engineering."
 
@@ -114,12 +114,12 @@ upstreams:
     url: https://github.com/TencentCloudBase/CloudBase-AI-Toolkit
     paths: [config/.claude/skills/miniprogram-development]
     ref: main
-    commit: 2ba79cc8a2f4c5b6f9522b84d4099fa505b1676d
+    commit: c5c329e0cb34261c7b466be43c7f76afd78c7aaa
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Cross-checked for project-structure and devtools/CI routing conventions."
-    notes: "Content ruling: the normative core is CloudBase and the Nightly wechatide CLI, both outside this skill's scope, and the CLI claims could not be verified here. Since v2.35.1 the skill directory ships its own LICENSE.md (MIT, same terms as the repository), and v2.35.2 made Nightly wechatide the default path with an explicit ask-before-downgrade rule; that remains a CloudBase workflow choice and was not adopted."
+    notes: "Content ruling: the normative core is CloudBase and the Nightly wechatide CLI, both outside this skill's scope, and the CLI claims could not be verified here. Since v2.35.1 the skill directory ships its own LICENSE.md (MIT, same terms as the repository), and v2.35.2 made Nightly wechatide the default path with an explicit ask-before-downgrade rule; that remains a CloudBase workflow choice and was not adopted. Around v2.36 the repository added connectors/cloudbase/skills (a CloudBase router plus references/*) and plugin/cloudbase-codex/skills; their miniprogram-development copies are byte-identical to the tracked path, and every other skill there is CloudBase-specific (wx.cloud auth, document database, WeChat Pay integration, AI models, HTTP API), so none of them is tracked."
 
   - id: sonofmagic-skills
     kind: repo
@@ -127,9 +127,9 @@ upstreams:
     url: https://github.com/sonofmagic/skills
     paths: [skills/weapp-vite, skills/weapp-tailwindcss]
     ref: main
-    commit: c44f95bbacce3d2a753ec3fea86f64ec4226a793
+    commit: 34a58a4028f4c54d3dbf5d14790e203667d74d8c
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Cross-checked for third-party build-chain constraints (WXSS class-name escaping, rpx handling) when a project uses a non-official toolchain."
     notes: "Content ruling: the skills document the author's own weapp-vite / wevu / weapp-tailwindcss packages, so they are not used to pick a default toolchain."
