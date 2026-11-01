@@ -432,3 +432,40 @@ B 类（`svelte-ai-tools`、`sv-cli` paths_unchanged，`awesome-copilot` 主代�
 | svelte-dev-docs | Svelte：测试文件名含 `.svelte` 才能在测试内用 runes | [Testing](https://svelte.dev/docs/svelte/testing) | **`testing.md` 原描述有误，已更正** |
 
 6 组事实中 4 组发现过时/错误并当场修正；`svelte-dev-docs` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos "svelte skills"` / `"sveltekit agent skill"`（`--updated >=2026-10-15`）、`gh search code sveltekit --filename SKILL.md`、
+`github/awesome-copilot` 区间 `3cf7c7e..5269f7e` 新增文件（仅构建产物，无 Svelte 指令文件）、`VoltAgent/awesome-agent-skills` README、
+`sveltejs` 组织近期新建仓库（最新为 2026-09 的 Railway 模板/add-on，无 skill 仓库）。指标均由 `gh api repos/<o>/<r>` 核实。
+
+| # | 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 23 | joshuadavidthomas/agent-skills `sveltekit` | 61 | 2026-07-20 | MIT | 1 | 1 | 2 | 1 | 2 | 7 | REJECT（MAYBE 档） | 「心智模型」式 SvelteKit 规则，结构好；但第 3 条称受保护的 `+layout.server.ts` 能把关子页面，与官方「layout guard 只对 `await parent()` 的子 load 生效」相反（本 skill 规则 23）；SvelteKit 3 前写成，无增量事实 |
+| 24 | Mindrally/skills `svelte` / `sveltekit` | 289 | 2026-10-08 | Apache-2.0 | 0 | 2 | 1 | 1 | 2 | 6 | REJECT | 聚合仓库的通用模板（「You are an expert…」+ Tailwind），示例为 stores/`onMount`/`PageData` 旧写法，无 runes/3.x 内容 |
+| 25 | getsentry/skills `sentry-svelte-sdk`（经 VoltAgent 列表） | 1105 | 2026-10-26 | Apache-2.0 | 2 | 3 | 2 | ? | 2 | — | REJECT（越界） | 单一商业产品（Sentry SDK）接入手册，不是 Svelte 语义；可观测性 SDK 归 `observability` 一类，且属单一厂商 |
+| 26 | gh code search 其余命中（`authdog/agent-skills` 0★、`diegosouzapw/awesome-omni-skills`、`omer-metin/skills-for-antigravity`、`Sandeeprdy1729/skill_galaxy` 等） | 0–低 | — | — | 0 | — | — | — | — | ≤4 | REJECT | 聚合/转载仓库或 0 star 个人仓库，内容为通用复述 |
+
+## 2026-11-01 D2 回归
+
+覆盖提交：`9576f43`（references 改用 SvelteKit 3 名称与 3.x 表单 / 环境变量 / 测试文件名更正，新增场景 9、10）。口径 omp + `openai/gpt-6.1-sol` medium，
+隔离 VM，串行队列，输出 `/tmp/hs-d2/G01b-svelte-astro/svelte/omp-openai-gpt-6.1-sol-medium/`；全部「有 skill」运行晚于 `9576f43`，基线均为当天新跑。
+选择理由：9、10 为本次新增（跨页 `use:enhance` / `refreshAll`；测试文件名与 project 匹配）；7 覆盖 `$app/env/private`、`#lib`、`$app/stores` 等被改写的 3.x 名称；
+3 覆盖被改写的 `use:enhance` / cookie 节；2 覆盖被改写的 server-only 与环境变量节、`refreshAll` 失效示例；4 为负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9 SvelteKit 3 跨页 `use:enhance`（新增） | gpt-6.1-sol medium | 有 | true | 5/5 | 76 s。点明 3.x 跨页 action 成功/失败都导航；`update({ navigate: false })`；去掉弃用且冗余的 `invalidateAll`（说明 `update` 成功时已刷新）；保留 `page.form` 与原生提交 |
+| 9 | gpt-6.1-sol medium | 无 | false | 5/5 | 145 s。同样引迁移指南给出 `navigate: false` 并删 `invalidateAll`；另把 action 改成 `resolve('/newsletter')`（3.x `$app/paths` 用法），在 3.1.1 临时工程实测 |
+| 10 测试文件名与 project（新增） | gpt-6.1-sol medium | 有 | true | 4/4 | 77 s。`$state` 写在 `cart.test.ts` 本身、导入按自身文件名编译；改名 `cart.svelte.test.ts`（client）；`pricing.svelte.test.ts` 被两侧 exclude，改 `pricing.test.ts`；实跑 2 files / 3 tests passed |
+| 10 | gpt-6.1-sol medium | 无 | false | 4/4 | 526 s。结论与修法相同，实跑通过 |
+| 7 SvelteKit 3.1 升级 | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ✔4 ✔5（4✔1◐） | 112 s。迁到 `$app/env/private` + `src/env.js` `defineEnvVars`（`static: true` 保持构建期内联），但未说 `$env/*` 是弃用别名；其余与上次一致 |
+| 7 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ◐3 ✔4 ✔5（4✔1◐） | 173 s。保留 `$env/static/private` 并说明「弃用仍支持」，未迁移 |
+| 3 form actions（2.x 夹具） | gpt-6.1-sol medium | 有 | true | ✔1 ◐2 ✔3 ◐4 ✔5 ◐6 ◐7 ✔8 ✘9 —10（4✔4◐1✘） | 169 s。代码去 `throw`、加 `path: '/'`、303、`method="POST"` + `enhance`，但答复极简不解释原因；仍 `export let form`（未 runes 化） |
+| 3 | gpt-6.1-sol medium | 无 | false | ✔1 ◐2 ✔3 ◐4 ✔5 ◐6 ◐7 ✔8 ✘9 —10（4✔4◐1✘） | 160 s。代码几乎相同 |
+| 2 server/universal 数据流（2.x 夹具） | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ◐3 ◐4 ◐5 ✔6 ✘7 ✘8 ◐9 ✔10（4✔4◐2✘） | 230 s。只提「没有 transporter」，给 plain data 方案；`depends('app:rates')` 落地；`parent()` 与 fetch 并行；保留 `export let`/`$app/stores`（无 package.json，按 2.x legacy 处理） |
+| 2 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ◐3 ◐4 ◐5 ✔6 ✘7 ✘8 ◐9 ✘10（3✔4◐3✘） | 223 s。删掉 exchange fetch 后保留 `await parent()`，未识别瀑布 |
+| 4 负例（Vue） | gpt-6.1-sol medium | 有 | false | 3/3 | 43 s。按 Vue 3 回答，无 Svelte 建议 |
+
+结论：改动相关行为在 2、3、7、9、10 上均不比基线差（2：4✔ 对 3✔；其余持平），与 2026-10-15 同场景结果一致，无退化；负例 `skill_read=false`。
+新增场景 9、10 基线已会，作为 3.x 表单与测试文件名更正的回归哨兵保留。场景 2、3 两侧都保留 legacy 语法（夹具无 package.json），非本次改动所致。
