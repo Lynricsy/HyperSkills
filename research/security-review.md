@@ -581,4 +581,10 @@ c5b0249 只动 research / SOURCES。
 |---|---|---|---|---|---|
 | — | gpt-6.1-sol medium | — | — | — | 正文未改，未跑 |
 
-遗留：10-15 记录的场景 9 期望 4（Windows 路径规则只 ◐）本轮未复跑。
+补跑遗留：10-15 记录的场景 9 期望 4 只 ◐，本轮正文未改，借队列空档复跑一次有 skill（`uv run tools/run_evals.py security-review --only 9 --out /tmp/hs-d2/G12b-meta2`，晚于本 skill 最后一次正文提交）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 116 s。另报 `tenant_slug` 由模型参数决定（跨租户 + 绝对路径/`..` 逃逸）；前缀包含越权用 `os.path.commonpath` 修；重定向绕过白名单并用 requests 真实重定向逻辑在内存传输里实测 `X-Api-Key` 被转发；4：Windows 保留设备名、NTFS 备用数据流、盘符相对路径、结尾句点/空格四类全部点名，并写「Reject special components explicitly」，但仍放在「需验证」表（无 Windows 运行环境） |
+
+结论：场景 9 期望 4 本次达成（比 10-15 的 ◐ 多给了明确的拒绝规则），暂无需把该规则提到 `SKILL.md`；仍只有 2 次有 skill 运行，下轮可再观察。
