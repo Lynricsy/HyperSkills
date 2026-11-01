@@ -477,3 +477,17 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | openai-alignment-compaction-report | 27 条越狱式摘要、继任上下文照做 | https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/ | 一致（200，「only 27 summaries」原文仍在） |
 
 处理：三条 docs 条目 `synced_at` 更新为 2026-11-01。12 小时档没有场景覆盖，新增场景 11（`evals/files/cache-ttl/`：每 3 小时一次的 cron 作业在 GPT-6.1 Sol 上每次都写缓存、从不命中）。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：ca4549b（`cost-and-reliability.md` 补 OpenAI 12 小时缓存寿命与写价，新增场景 11）。口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行，输出 `/tmp/hs-d2/G08-ai-media/ai-engineering/omp-openai-gpt-6.1-sol-medium/`；有 skill 运行均晚于 ca4549b。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11 每 3 小时 cron 的缓存寿命（新增） | gpt-6.1-sol medium | 有 | true | 3/3 | 73 s。指出默认 30 分钟寿命对 3 小时间隔必然失效、每次 1.25× 写不读；改 `prompt_cache_options={"mode": "explicit", "ttl": "12h"}` 并在策略块末设断点；按 12 小时写 2.5×、读 0.05× 算出每天 $0.255 → $0.171（比不缓存再省 $0.049），一次写 + 三次读 2.65× 对 4×；上线后看 `ttl_12h_tokens` 与 `cached_tokens` |
+| 11 | gpt-6.1-sol medium | 无 | false | 3/3 | 65 s。同样结论与算术（基线自行查官方页面得到 12 小时档），并点明读不会重启 12 小时时钟 |
+| 9 缓存报表与账单 | gpt-6.1-sol medium | 有 | true | ✔1 ✔2 ✔3 ✘4 | 107 s。分家归一、5 分钟写 1.25× 计价并给 1 小时写 2× 情形、节省只算输入侧；点出「三写一读」且原因无法从样本确定；未提最小可缓存长度（与 10-15 结论一致，已知缺口不合入） |
+| 9 | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ✘4 | 95 s。与有 skill 同级 |
+| 5 负例（pgvector HNSW） | gpt-6.1-sol medium | 有 | **false** | ✔1 ◐2 ✔3 | 49 s。未读 skill；按索引问题作答（`ef_search` 默认 40、`m`/`ef_construction`、`EXPLAIN (ANALYZE, BUFFERS)` 查缓存压力），但把 `maintenance_work_mem` 溢出只当构建慢、未开出重建处方 |
+
+结论：12 小时档的更正不误导（11 两侧 3/3，基线靠联网查文档也能做到——此场景为回归覆盖，不要求缺口）；9 持平，未见回退。负例 5 本轮未误读（10-15 描述维护后的首次 D2 负例通过）。
