@@ -584,3 +584,16 @@ mattpocock-guardrails、fvadicamo-commit）区间内跟踪路径无提交，随 
 ## 2026-11-01 文档上游复核
 
 本 skill 无 `kind: docs` 上游（工作单 D 为空；git-docs 是 `kind: repo`，已在上方区间核对）。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `7935f71`（trailer 冒号形式、分支名点号规则两处 references 更正，新增场景 7）。模型 `openai/gpt-6.1-sol` medium（run_evals 默认，VM 内 omp），产物 `/tmp/hs-d2/G11b-process2/git-workflow/omp-openai-gpt-6.1-sol-medium/`；有 skill 轮次均晚于该提交。场景 7 基线在提交前跑（场景与夹具此后未变，按规则复用当天结果）。逐条读 `answer.md` 与 `events.jsonl` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 无 | False | EB1 ◐ EB2 ✔ EB3 ✔ | 18 s。`fix(rates): expire cached rates after TTL`；正文基本复述 diff；footer `Fixes: #412` + `Reported-by: support` + `Co-authored-by:` + `Reviewed-by:` 一块；分支 `chore/upgrade-node-v20.11` 并引规范站说点号允许 |
+| 7 | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ | 17 s。读了 `branching-and-worktrees.md` 与 `commits-and-messages.md`；正文先说缓存不看时效的原因再说改法；footer 三行冒号形式无空行；分支 `chore/upgrade-node-v20.11` |
+| 5 负例（PR 的 CI 失败） | gpt-6.1-sol medium | 有（r1） | **True** | EB1 ✘ EB2 ✔ EB3 ✔ | 42 s。读了 `skill://git-workflow` 后转查 `pr://`，报告缺 PR URL 与 gh 认证、标记阻塞；没有冲突风格/rerere/reflog/force-with-lease 内容。副本 `/tmp/hs-d2/G11b-process2/git-workflow-skill5-r1` |
+| 5 负例（PR 的 CI 失败） | gpt-6.1-sol medium | 有（r2） | **True** | EB1 ✘ EB2 ✔ EB3 ✔ | 42 s。同样读了 skill（也尝试 `skill://github`），回答为「要 PR URL、`gh auth login`，查失败 check 日志、不绕过必需检查后再合并」 |
+
+结论：两处更正在有 skill 运行中被采用，无回归（场景 7 基线本已会写冒号 trailer 与带点分支名，属不要求制造缺口的回归场景）。负例 2/2 误读 skill：本轮 `description` 未改（`7935f71` 的 SKILL.md diff 只有 `metadata.version`），属既有路由问题，如实记录、本轮不改 description；误读后行为仍按 GitHub PR/Actions 处理，未输出本地 git 机制内容。遗留：负例路由需走「本地 description 维护」流程。
