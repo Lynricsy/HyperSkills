@@ -4,7 +4,7 @@ description: "Develops Rust code with ownership, lifetimes, async, Cargo and saf
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 

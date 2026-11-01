@@ -471,3 +471,65 @@ unchanged 的 full-stack-cargo / full-stack-unsafe 前移到 b8a6af7）。十四
 | cargo-workspaces | 虚拟工作区无 `package.edition` 须显式设 resolver；`default-members` 决定未选包时的作用范围；成员清单中的 `[profile.*]` 被忽略；`workspace.package`/`dependencies` 继承 1.64+，`workspace.lints` 1.74+，成员须显式继承 | https://doc.rust-lang.org/cargo/reference/workspaces.html | 一致 |
 
 结论：14 条全部一致，无更正、无新增内容需评测；14 个条目 `synced_at` 改为 2026-10-15，references 的「Verified against」版本行更新为 Rust 1.99.0（Tokio 行注明 1.53.3 同文），`rust-sync` notes 同步版本号。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 旧 pin 快照 `/tmp/hs-upstream-2026-11-01.json` 与 2026-11-01 `tools/check_upstream.py rust`：`github-rust` 一条 `behind`（422 commits，diff too large to attribute to paths）；`full-stack-cargo`、`full-stack-unsafe` 为 up to date。在主代理的 shallow blobless 裸仓库缓存 `/tmp/hs-attr/github__awesome-copilot` 上对完整 `<旧pin>..<审阅HEAD>` 区间跑 `git log --oneline -- instructions/rust.instructions.md`（空）、`git diff --stat`（空），两端 `git rev-parse <commit>:<path>` 同为 blob `75ac0e4`；未用日期过滤。`--pin` 写入的 commit 与审阅 HEAD 逐条一致（5269f7e、b8a6af7、b8a6af7），无差额区间。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| github-rust | 3cf7c7e → 5269f7e（422 commits） | 无：`instructions/rust.instructions.md` 区间内 0 提交，两端 blob 同为 `75ac0e4` | 未变更，仅 re-pin |
+| full-stack-cargo | b8a6af7（up to date） | 无 | 未变更 |
+| full-stack-unsafe | b8a6af7（up to date） | 无 | 未变更 |
+
+区间新增文件（`--diff-filter=AR`）中与 Rust/C++ 相关的只有 `extensions/github-security/assets/{rust,cpp,cmake}-*.js`（语法高亮打包资源），不是 skill 类文件。
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 预分配的两份 Bevy 文件来自其他 skill 追踪的仓库（`TerminalSkills/skills` 由 linux-ops/media-processing/python/react/sqlite 追踪；`thedivergentai/Game-Dev-Agentic-Skills` 由 godot 追踪），本 skill 未追踪这两个仓库。
+
+| 候选 | 许可 | 结论 | 理由 |
+|---|---|---|---|
+| TerminalSkills/skills `skills/bevy/SKILL.md`（8a9852d，188 stars，pushed 2026-10-30） | Apache-2.0 | REJECT（范围） | Bevy 0.20 游戏引擎的安装、ECS、Message/States API 手册；属单一框架/引擎 API，本 skill Scope 明确不做框架 API 与 crate 目录，也不属于 godot/unity/unreal 任一现有游戏引擎 skill；如需 Bevy 支持应作为新 skill 交主人决定 |
+| thedivergentai/Game-Dev-Agentic-Skills `skills/bevy-rea/SKILL.md`（db004d7，915 stars，pushed 2026-10-16） | LGPL-3.0 | REJECT（上游自用流程） | 依赖其 `gdas-reader` 证据账本与 `emit_project.py` 脚本生成 Bevy 存根 crate 的上游自用重建流程；不含可迁移的 Rust 语言规则，且是单一引擎生成器 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（`rust skill` created>2026-10-01、`rust agent skills` updated>2026-10-15、topic `agent-skills` + `rust` 按 stars）、`VoltAgent/awesome-agent-skills` README 自 2026-10-15 起的新增行（无 Rust/C++ 条目）、`github/awesome-copilot` 区间新增文件（见上）；并复查 2026-10-15 后有更新的已 REJECT 候选。元数据均用 `gh api repos/<o>/<r>` 核实（2026-11-01）。
+
+| # | 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 15 | morganlinton/BeautifulRust `skills/rust-best-practices/SKILL.md`（a9cdcfa；2026-10-23 新建） | 1628 | 2026-10-30T23:52:41Z | MIT | 1 | 3 | 2 | 3 | 2 | 11 | INCLUDE（不选，待定 Scope） | 抽查 `catch_unwind` 在 `panic = "abort"` 下无效、跨 `.await` 持有 `Rc`/`RefCell` 借用使 future `!Send`、`#[expect]` 需 1.81 三项均对。但主体是命名/派生 trait/文档/模块布局等风格与 API 指南合成，本 skill Scope 排除教程与风格目录；与正文重叠的部分（借用参数、错误中归还输入、`# Safety`/SAFETY 注释）已覆盖；其强制 `cargo clippy --all-targets --all-features -- -D warnings` 与 `references/cargo-and-verification.md`「不盲目开 `--all-features`」冲突。是否扩为风格/API 设计范围交主人决定 |
+| 16 | postmelee/google-rust-skill `skills/google-rust-guidelines/SKILL.md` | 0 | 2026-10-23T08:09:29Z | CC-BY-3.0（API 报 NOASSERTION，LICENSE 原文为 CC BY 3.0） | 1 | 3 | 3 | 3 | 2 | 12 | INCLUDE（不选，待定 Scope） | 社区改编的 Google Rust Style Guide，作者明示非 Google 维护；抽查「先定错误契约再用 `expect`」「unsafe 注释不证明可靠性」「不默认 `--all-features`」均对且与本 skill 一致。独有内容是仅在项目采用 Google 策略时适用的风格规则，属 Scope 扩展 |
+| 17 | i-am-logger/rust-pillars `skills/rust-idioms/SKILL.md` 等 6 份 | 0 | 2026-10-26T18:37:35Z | CC-BY-NC-SA-4.0 | 1 | 3 | 3 | 1 | 0 | 8 | REJECT（许可/项目绑定） | 非商业许可不得 merged；规则绑定其 `rust-template`/`devenv test` 门禁；把 clippy `clone_on_copy` 当作「为过借用检查而 clone」的门禁不准确（该 lint 只覆盖 Copy 类型） |
+| 18 | alexcarterhq/cuda-rust-skill | 1 | 2026-10-28T19:16:43Z | NOASSERTION | 1 | 3 | — | — | 0 | — | REJECT（范围） | CUDA Oxide/cuTile GPU 内核，Scope 外；仅读 README 描述未打分 |
+| 19 | LakoMoor/rustport-skill | 1 | 2026-10-31 | — | 1 | 3 | — | — | — | — | REJECT（范围） | 游戏/应用移植到 Rust + wgpu 的流程，Scope 外；仅读仓库描述 |
+
+已 REJECT 候选复查：apollographql/skills `rust-best-practices`（123 stars，pushed 2026-10-30，52 commits 改了 SKILL.md 与 chapter_01–09）当前 `chapter_09.md` 仍写 `&mut T`「No, not Send」、`Cell<T>` 仅限 Copy，两处硬错误未修，维持 REJECT；leonardomso/rust-skills（661 stars）、actionbook/rust-skills（1563 stars）自上次评审后未推送；existential-birds/beagle 自 pin 以来 0 提交。
+
+## 2026-11-01 文档上游复核
+
+范围：14 条 `kind: docs` 条目的 `contributes` 声明事实 + 正文实际引用的版本号与限制。当前 stable 为 Rust 1.99.1（std 页面 `58cf8f9c3 2026-10-13`）；Tokio 最新为 1.54.1（2026-10-21），条目仍指向评测夹具锁定的 1.53.1。方法：抓取 5 个 Tokio 页面 1.53.1 与 1.54.1 版本做句级 diff（仅页头发布日期与侧栏关联函数排序不同，正文 0 差异）；9 个 doc.rust-lang.org 页面以 `/1.99.0/` 版本化 URL 与当前 stable 句级 diff（3 个 std 页面仅版本/构建哈希行不同；Reference、Nomicon、Edition Guide 与 3 个 Cargo Book 页面完全一致），并在当前页面逐条定位下表事实。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| tokio-select | 默认随机首轮、`biased;`；取消安全清单（`read_exact`/`write_all` 不安全）；`Mutex::lock` 等取消丢队列位置 | https://docs.rs/tokio/1.53.1/tokio/macro.select.html | 一致（1.54.1 同文） |
+| tokio-sender | `send` 在 select 中输掉时消息丢弃，建议 `reserve`；取消 `reserve` 丢失排队位置；`Permit` 归还容量 | https://docs.rs/tokio/1.53.1/tokio/sync/mpsc/struct.Sender.html | 一致（1.54.1 同文） |
+| tokio-tasks | 丢弃 `JoinHandle` 分离任务；`&mut JoinHandle` 取消安全；`JoinError`；abort | https://docs.rs/tokio/1.53.1/tokio/task/struct.JoinHandle.html | 一致（1.54.1 同文） |
+| tokio-blocking | 已开始的阻塞任务不能 abort；`shutdown_timeout` 只停止等待；信号量限并发；长期任务用专用线程 | https://docs.rs/tokio/1.53.1/tokio/task/fn.spawn_blocking.html | 一致（1.54.1 同文） |
+| tokio-mutex | 守卫可跨 `.await`；纯数据优先阻塞锁；不中毒；公平 FIFO | https://docs.rs/tokio/1.53.1/tokio/sync/struct.Mutex.html | 一致（1.54.1 同文） |
+| rust-sync | `&T`/`&mut T`/`Arc`/`Mutex` 的 Send/Sync 条件；`Cell<T>: !Sync` | https://doc.rust-lang.org/std/marker/trait.Sync.html | 一致（1.99.0→1.99.1 正文 0 差异）；notes 版本号改为 1.99.1 |
+| rust-result | `#[must_use]`；`?` 传播 | https://doc.rust-lang.org/std/result/index.html | 一致 |
+| rust-raw-slice | 非空对齐（零长度亦然）；单一分配；`len` 个已初始化值；≤ `isize::MAX`；FFI 空指针处理 | https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html | 一致 |
+| rust-ub | 列表非穷尽、无形式化模型；`bool` 仅 0/1；`[undefined.validity.str]` str 同 `[u8]` 只需初始化；数据竞争 | https://doc.rust-lang.org/reference/behavior-considered-undefined.html | 一致 |
+| rust-ffi-unwind | 非 unwind ABI 上 Rust panic abort、外来异常进入 Rust 为 UB；`-unwind` ABI；`panic=abort`；`catch_unwind` 限制 | https://doc.rust-lang.org/nomicon/ffi.html#ffi-and-unwinding | 一致 |
+| rust-edition-unsafe | `unsafe_op_in_unsafe_fn` 2024 默认 warn；Edition 2024 自 1.85.0 | https://doc.rust-lang.org/edition-guide/rust-2024/unsafe-op-in-unsafe-fn.html | 一致 |
+| cargo-features | 特性可加；并集统一；`default-features = false` 限制；`dep:`/`?/` 自 1.60 | https://doc.rust-lang.org/cargo/reference/features.html | 一致 |
+| cargo-resolver | resolver 2 需 1.51+、dev 特性统一时机；resolver 3 需 1.84+、`fallback` | https://doc.rust-lang.org/cargo/reference/resolver.html | 一致 |
+| cargo-workspaces | 虚拟工作区须显式 resolver；`default-members`；成员 `[profile.*]` 被忽略；继承 1.64+、`workspace.lints` 1.74+ | https://doc.rust-lang.org/cargo/reference/workspaces.html | 一致 |
+
+结论：14 条全部一致，无过时项、无正文更正。references 的「Verified against」行（Rust 1.99.0、Tokio 1.53.1）仍为真实的核对基准，且 1.99.1/1.54.1 正文与之逐句相同，故未改正文；仅 `rust-sync` notes 记录 1.99.1，14 个条目 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+正文（`SKILL.md` 正文、`references/`、`scripts/`）本轮未改（仅 frontmatter `metadata.version` 与 SOURCES.yaml），按 `.omp/commands/sync-upstreams.md` 第 5 节不触发 D2，未跑评测。
