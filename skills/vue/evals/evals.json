@@ -67,5 +67,15 @@
       "Replaces `createError({ statusCode, statusMessage })` with `createError({ status, statusText })`, saying `statusCode`/`statusMessage` are deprecated in Nuxt 4 (since 4.3) and slated for removal in Nuxt 5",
       "Does not claim the stale row stays stale forever: it updates once a listed dependency (the selection) changes, which matches the reported symptom"
     ]
+  },
+  {
+    "skills": ["vue"],
+    "query": "After our dependency bump (nuxt-package.json) the storefront pipeline is red: the Docker build (nuxt-Dockerfile) and the CI test job (nuxt-ci.yml) both misbehave. Which Node version should each of them use, and what exactly do we change?",
+    "files": ["evals/files/nuxt-package.json", "evals/files/nuxt-Dockerfile", "evals/files/nuxt-ci.yml"],
+    "expected_behavior": [
+      "States that Node 20 is no longer supported here: Nuxt 4.5+ and Vitest 5 require Node 22, so both Dockerfile stages on `node:20.18-alpine` must move",
+      "Identifies that the CI job's 22.11.0 is also too old: Nuxt 4.6 needs Node 22.22.3+ on the 22 line (or 24.15+ / 26+), so merely being on Node 22 is not enough",
+      "Changes both the Dockerfile (build and runtime stages) and the CI `node-version` to one supported version, rather than fixing only one of them"
+    ]
   }
 ]

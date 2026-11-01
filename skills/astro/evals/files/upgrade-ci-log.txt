@@ -1,0 +1,18 @@
+# CI log excerpt, job "build" (node:22.12.0-bookworm image)
+$ node --version
+v22.12.0
+$ npm ci
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'astro@7.4.4',
+npm warn EBADENGINE   required: { node: '>=22.23.4', npm: '>=9.6.5', pnpm: '>=7.1.0' },
+npm warn EBADENGINE   current: { node: 'v22.12.0', npm: '10.9.0' }
+npm warn EBADENGINE }
+added 412 packages in 9s
+$ npx astro build
+[content] Syncing content
+[WARN] The collection "blog" does not exist or is empty. Please check your content config file for errors.
+[WARN] The collection "authors" does not exist or is empty. Please check your content config file for errors.
+[build] 4 page(s) built in 3.12s
+[build] Complete!
+# Deployed. /blog shows "No posts yet" and every /blog/<slug> URL is a 404.
+# src/content/blog/ still holds 37 .md files; src/content/authors/ holds 5 .json files.

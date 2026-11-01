@@ -62,5 +62,16 @@
       "Fixes it by narrowing the dependencies to the primitive query inputs and not writing derived server data back into the dependency object (separate total into its own state, drop results from the array)",
       "Mentions guarding against out-of-order or stale responses (AbortController or an ignore flag) as part of a correct effect"
     ]
+  },
+  {
+    "skills": ["astro"],
+    "query": "We finished our Astro 7 upgrade: the content config is now at src/content.config.ts (content.config.ts here) and the build is green, but production shows no blog posts and every post URL 404s. upgrade-ci-log.txt is the CI output. What is wrong and what exactly do we change? Is anything else in that log a problem?",
+    "files": ["evals/files/content.config.ts", "evals/files/upgrade-ci-log.txt"],
+    "expected_behavior": [
+      "Diagnoses that both collections have no `loader:` (they still use `type: 'content'` / `type: 'data'`), and that Astro 7 does not fail the build for this: it skips loader-less collections at sync, so `getCollection()` returns an empty array with only the 'does not exist or is empty' warning, which is why the build is green while the pages are empty",
+      "Fixes the config by adding `loader: glob({ pattern: '**/*.md', base: './src/content/blog' })` for the blog and `glob()` or `file()` for the JSON authors, imported from `astro/loaders`, and deletes the `type:` keys",
+      "Treats the EBADENGINE warning as a real problem: this Astro release needs Node 22.23.4 or newer, the CI image runs 22.12.0, so CI must move to a newer Node 22 (or 24) image rather than ignoring the warning",
+      "Does not recommend `legacy.collectionsBackwardsCompat` as the fix; at most mentions it as a temporary bridge to remove once the collections have loaders"
+    ]
   }
 ]

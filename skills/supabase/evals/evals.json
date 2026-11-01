@@ -97,5 +97,16 @@
       "Explains that `getClaims()` verifies locally against the cached JWKS only on projects with asymmetric signing keys; on this project, still signing with the legacy symmetric (HS256) JWT secret, it calls the Auth server on every request, so the round trip is a likely source of the 80 ms",
       "Gives the fix as migrating the project to asymmetric JWT signing keys (after which `getClaims()` verifies locally), and does not suggest `getSession()` as a faster server-side guard because it does not verify the token"
     ]
+  },
+  {
+    "skills": ["supabase"],
+    "query": "default-privileges.sql is the migration we wrote so that new tables and functions in public stay off the Data API until we grant them on purpose. It is already applied on our production Supabase project (Postgres 17). Did it actually achieve that? If not, give me a corrected migration.",
+    "files": ["evals/files/default-privileges.sql"],
+    "expected_behavior": [
+      "Points out that new tables get every privilege by default, not only CRUD: revoking select/insert/update/delete leaves TRUNCATE, REFERENCES, TRIGGER (and MAINTAIN on Postgres 17) granted, so the fix revokes `all` on tables, and that the sanity check only looked at the four CRUD privileges",
+      "Points out that `alter default privileges ... in schema public revoke execute on functions from public` has no effect, because the EXECUTE grant to PUBLIC on new functions is a global default; only the form without `in schema` removes it (affecting functions in every schema the role creates), or EXECUTE must be revoked from PUBLIC per function",
+      "Notes the consequence of removing the global PUBLIC default: helper functions that RLS policies or the app call then need an explicit `grant execute` to the roles that use them",
+      "Covers the remaining gaps: sequences (`USAGE, SELECT, UPDATE` default grant), the `service_role` grants left in place, and recommends reading `pg_default_acl` to confirm the project's actual default privileges rather than assuming"
+    ]
   }
 ]

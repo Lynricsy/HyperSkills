@@ -102,5 +102,16 @@
       "Leaves linkutil compatible with its `go 1.24` floor: does not use CutLast, URL.Clone or other post-1.24 APIs there and does not raise its `go` directive just to reach them, because dependents still build with Go 1.24 (a raised floor is imposed on every dependent)",
       "Verifies with `go vet ./...` / `go test ./...` (whose `stdversion` check reports standard-library symbols newer than a module's go directive) or an equivalent build in each module"
     ]
+  },
+  {
+    "skills": ["go"],
+    "query": "Review PR #212 on our config library before I merge it: cfglib-config.go is the changed file and cfglib-go.mod is the module's go.mod. CI runs `go build ./...` on Go 1.27 (the package has no tests yet) and is green. Anything blocking?",
+    "files": ["evals/files/cfglib/cfglib-go.mod", "evals/files/cfglib/cfglib-config.go"],
+    "expected_behavior": [
+      "Flags `cmp.Or` as blocking for this module: it was added in Go 1.22 (the `cmp` package itself is 1.21), while go.mod declares `go 1.21` and the library promises 1.21 support, so the PR silently breaks that promise",
+      "Explains why CI did not catch it: a newer toolchain builds the code anyway, and the version mismatch is reported by `go vet`'s `stdversion` check (which `go test` also runs), not by `go build`",
+      "Offers the two honest fixes: keep the explicit if-zero fallbacks (or a small local helper) while 1.21 is supported, or raise the go directive to 1.22 as a deliberate, announced support-policy change",
+      "Recommends adding `go vet ./...` (or tests run with `go test`) to CI, or a job on the minimum supported toolchain, so the next such change fails CI"
+    ]
   }
 ]
