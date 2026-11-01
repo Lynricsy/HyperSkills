@@ -1,6 +1,6 @@
 # Server implementations
 
-Verified against: graphql-js 17.0.2, GraphQL Yoga 5.22, Apollo Server 5.5, Pothos 4.13.
+Verified against: graphql-js 17.0.2, GraphQL Yoga 6.0.1, Apollo Server 5.5, Pothos 4.13.
 
 ## Contents
 
@@ -31,13 +31,13 @@ as stated. Masking is a Yoga default and an Apollo Server opt-in.
 
 ## Defaults that differ
 
-| Behaviour | graphql-js 17 | Yoga 5 | Apollo Server 5 |
+| Behaviour | graphql-js 17 | Yoga 6 | Apollo Server 5 |
 |---|---|---|---|
 | Plain `Error` from a resolver | message passed through | masked to `Unexpected error.` | message passed through, `extensions.code: INTERNAL_SERVER_ERROR` |
 | Stack traces in responses | not added | only when `NODE_ENV=development`, under `extensions.originalError` | `includeStacktraceInErrorResponses` defaults **true** unless `NODE_ENV` is `production` or `test` |
 | Introspection | not its concern | enabled; disable with a plugin | `introspection` defaults **true**, and **false** when `NODE_ENV=production` |
 | "Did you mean …" validation hints | `hideSuggestions` execution option | passed through | `hideSchemaDetailsFromClientErrors` defaults **false**; Apollo's docs recommend enabling in production |
-| HTTP request batching | not its concern | plugin | `allowBatchedHttpRequests` defaults **false** |
+| HTTP request batching | not its concern | `batching` option, off by default; `true` allows 10 operations per request | `allowBatchedHttpRequests` defaults **false** |
 | CSRF protection on `GET` | not its concern | not enabled by default | `csrfPrevention` **enabled** by default; blocks `GET` without specific headers |
 | Recursive-fragment selection cap | none | none | `maxRecursiveSelections` defaults **false** (10 000 000 when `true`) |
 | Parsed-document cache | caller's job | built in | `documentStore`, ~30 MiB LRU by default |

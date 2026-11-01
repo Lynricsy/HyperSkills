@@ -1,6 +1,6 @@
 # Error modelling
 
-Verified against: GraphQL specification (September 2025 edition), GraphQL Yoga 5, Apollo Server 5.
+Verified against: GraphQL specification (September 2025 edition), GraphQL Yoga 6, Apollo Server 5.
 
 ## Contents
 
@@ -177,7 +177,7 @@ Consequences to check when reviewing:
 Never let an unknown error reach a client verbatim: messages carry connection strings, table
 names and internal hostnames. How much work that is depends entirely on the server. [verified]
 
-| | GraphQL Yoga 5 | Apollo Server 5 | graphql-js 17 |
+| | GraphQL Yoga 6 | Apollo Server 5 | graphql-js 17 |
 |---|---|---|---|
 | Plain `Error` thrown in a resolver | masked to `Unexpected error.` | message passed through, `extensions.code: INTERNAL_SERVER_ERROR` | passed through; the library does not mask |
 | Stack trace in the response | only when `NODE_ENV=development`, under `extensions.originalError` | `includeStacktraceInErrorResponses` defaults to **true** unless `NODE_ENV` is `production` or `test` | not added |

@@ -462,3 +462,42 @@ paths 下确有提交。归因方法：skillmedev-graphql-schema 为 too-large �
 
 更正只涉及版次名，不改任何规则，不需要评测。SOURCES：三个 docs 条目 `synced_at` 改为 2026-10-15；graphql-spec 的
 `contributes`/`notes` 写明核对的是 September 2025 版次。graphql-js 当前仍为 17.0.2，与 `references/servers.md` 一致。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 旧 pin 快照 `/tmp/hs-sync/_pins.json` 与工作单 `/tmp/hs-sync/graphql.md`。graphql-js、wshobson-graphql、
+graphql-hive-tooling 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch 按 paths 过滤；graphql-yoga 用主代理裸仓库缓存
+`/tmp/hs-attr/dotansimha__graphql-yoga` 跑 `git diff <pinned> <head> -- <paths>`。`--pin` 写入的 commit 与审阅 HEAD 逐条比对全部相等，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| graphql-js | e35a025 → 805fadd（1 提交命中） | 106e879（#4907）：`src/execution/execute.ts` 的 JSDoc 示例改成可被 Node 实跑的写法（`// =>` 结果注释合并到调用行、`contextValue.locale` 断言挪到 `validatedArgs` 上）；`src/type/directives.ts` 无改动 | 噪声：文档注释，`errorPropagation`、`@oneOf`、`@defer`/`@stream`、`hideSuggestions` 事实不变；npm `graphql@latest` 仍为 17.0.2 |
+| graphql-yoga | 9fde867 → 1909526（2 提交命中） | `packages/graphql-yoga/src/index.ts`：862447a（#4575）改用 `@graphql-hive/logger`、导出 `useRequestId`/`getRequestId`/`withSchemaCoordinate`；be89d05（#4623）去掉 `createGraphQLError`、`mergeSchemas`、`mapAsyncIterator`、`DisposableSymbols` 等再导出。两者属 **Yoga 6.0.0**（npm 2026-10-22 发布，`latest` = 6.0.1）；`error-masking.mdx` 区间内无改动 | **事实更正（版本）**：正文三处把服务端写成 "Yoga 5"。逐条对 6.0.1 源码复核正文引用的默认值：`server.ts` 中 `maskedErrors` 不为 `false` 即开启、默认消息 `Unexpected error.`；`utils/mask-error.ts` 的 `isDev` 取 `NODE_ENV === 'development'`，仅此时写 `extensions.originalError`；`csrf-prevention`、`disable-introspection`、`persisted-operations` 仍为独立插件；`parserAndValidationCache` 默认开；订阅默认 SSE —— 均与正文一致。顺带发现 **批处理一格写错**：`servers.md` 表中 Yoga 的 HTTP batching 写 "plugin"，实为内置 `batching` 选项、默认关闭，`true` 时上限 10（`server.ts` `batchingLimit = 10`；`request-batching.mdx` "Batching is disabled by default … up to 10"）。已改：`SKILL.md` Scope 版本行、`errors.md` Verified against 与表头、`servers.md` Verified against（→ 6.0.1）与表头、batching 一格。Yoga 6 新增的按请求 `context.log` + `x-request-id` 关联属新内容，未合入（需基线证缺口，留作下轮候选） |
+| wshobson-graphql | 46891e7 → 7e2fb55（1 提交命中） | 0f73766（#797）：`graphql-schema-design.md` 删掉 SDL 里非法的 `privateData: PrivateData @include(if: $isOwner)`（`@include` 是可执行指令，不能用在类型定义），改为在 resolver 鉴权；复杂度校验示例补上超限抛错并修正返回函数名 | 噪声：上游示例代码修错；本 skill 未取这两段，`performance.md` 的复杂度预算是按全文档求和后在校验期拒绝，本就与修正后的注释一致 |
+| graphql-hive-tooling（reference） | bc73368 → 37179b5（1 提交命中） | 37179b5：`packages/commands/diff` 发版 7.0.2，仅随 `@graphql-inspector/commands` 7.0.1 升依赖 | 噪声：`diff` 门命令形态与退出码语义不变 |
+| apollo-skills-graphql、pothos | aafc894 → 9dda139；4c8bc28 → a27f068 | 仓库移动、tracked paths 无变化 | 噪声，只 re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 来源 | 新增文件 | 结论 | 理由 |
+|---|---|---|---|
+| antfu/skills（vue/tauri/html-deck/frontend-design 追踪的仓库） | `skills/antfu-query/SKILL.md` | REJECT（跨组命中） | 与 GraphQL 无关：是「用交互式提问工具反复追问需求」的规划流程（改编自 mattpocock 的 grilling skill）。若有归属应看 `planning` skill，已写入汇报「跨组命中」 |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos graphql skill pushed:>2026-10-15`（按星排序）、`gh search code graphql --filename SKILL.md` 限 `graphql`/`graphql-hive`/`the-guild-org`/`dotansimha` 组织、`VoltAgent/awesome-agent-skills` README 中的 GraphQL 条目（只有已追踪的 apollographql/skills）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 25 | graphql/gaps `gaps/GAP-10/SKILL.md`（`graphql-mock`） | <https://github.com/graphql/gaps> | 10 | 2026-09-29 | null（无 LICENSE） | 客户端 `@mock` 指令与 `__graphql_mocks__` 文件约定 | 3 | 2 | 2 | 2 | 0 | 9 | REJECT（范围外） | 虽在 graphql 官方组织下，但 GAP-10 是 DRAFT 阶段的辅助提案（`@mock` 指令未进规范），skill 本身是客户端 mock 生成工作流，不属于 schema/操作/服务端契约；仓库无许可证，按规则不得 merged。提案若定稿再重估 |
+| 26 | alphaparkinc/genpark-autonomous-graphql-query-complexity-calculator-skill（及 Alpha-Park 同名镜像、同作者 depth/cost analyzer 仓） | <https://github.com/alphaparkinc/genpark-autonomous-graphql-query-complexity-calculator-skill> | 7 | 2026-10-25 | null | 查询复杂度/深度计算 | 0 | 3 | 1 | 1 | 0 | 5 | MAYBE（未采纳） | 同一内容在两个账号下重复发布，无许可证（不得 merged）、无采纳证据；本 skill 的复杂度预算与深度上限已取自 graphql.org 与 SkillMedev，无增量 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| graphql-org-learn | contributes 全部事实（可空默认、errors-as-data 分类表、分页、需求控制清单、内省与提示屏蔽、授权、缓存、federation、客户端健壮性） | `graphql/graphql.github.io` 分支 `source`，`gh api .../commits?path=src/pages/learn&since=2026-10-15` | 区间内只有 100885b（#2534）：`execution.mdx`、`global-object-identification.mdx`、`queries.mdx`、`schema-design.mdx` 各改一个指向 `/learn/schema/#…` 的锚点。正文事实未动，一致 |
+| graphql-spec | 当前版次 `September2025`；执行错误处理与 Non-Null 传播；`@oneOf` 为规范指令；`@defer`/`@stream` 不在当前版次 | `gh api repos/graphql/graphql-spec/releases`、`/tags`；`commits?since=2026-10-15` | 最新 release 仍是 September2025（2025-09-04），无新版次；10-15 以来 main 无提交。一致 |
+| relay-connections | Connection/Edge/PageInfo 形状与参数对 | `facebook/relay` `website/spec/Connections.md` 提交历史 | 最近一次改动 55eeaa4（2026-02-12，错别字），10-15 以来无改动。一致 |
+
+三个 docs 条目 `synced_at` 改为 2026-11-01。

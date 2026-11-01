@@ -4,7 +4,7 @@ description: "Designs GraphQL schemas, operations, resolvers, federation and que
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -19,7 +19,7 @@ demand control, the differences between server implementations, federated subgra
 authorisation placement, introspection, and evolving a schema without breaking clients.
 
 Facts here are checked against the GraphQL specification and graphql.org, then against
-**graphql-js 17**, **GraphQL Yoga 5**, **Apollo Server 5** and **Pothos 4** where behaviour
+**graphql-js 17**, **GraphQL Yoga 6**, **Apollo Server 5** and **Pothos 4** where behaviour
 differs by implementation. Rules that hold only for one server say so in the same sentence.
 
 Not covered:

@@ -92,5 +92,22 @@
       "Notes that a default is a behavioural contract: every old client now implicitly sends `USD` and `false`, so the default must equal today's behaviour (schema-diff tools flag such additions as dangerous rather than breaking)",
       "Verifies with a mechanised check - `graphql-inspector diff` between the shipped and the PR schema, or validating the old operations against the new schema - rather than asserting the result"
     ]
+  },
+  {
+    "skills": [
+      "graphql"
+    ],
+    "query": "Harden yoga-server.ts before launch. Shoppers never saw our coupon message, so a teammate turned masking off, and batching is on for the mobile app. Security says production errors now leak database hosts. What should the error handling and batching configuration be, and what would I check to prove it?",
+    "files": [
+      "evals/files/yoga-server.ts"
+    ],
+    "expected_behavior": [
+      "Restores error masking (removes `maskedErrors: false`): Yoga masks by default, turning any unexpected error into `Unexpected error.`, and switching masking off is what leaks the driver message and host",
+      "Throws the coupon failure as a `GraphQLError` (optionally with an `extensions.code`) or models it as errors-as-data, because only a `GraphQLError` message survives Yoga's masking - a plain `Error` is masked",
+      "States that Yoga adds `originalError` to `extensions` only when `NODE_ENV=development` and that `maskedErrors: { isDev: false }` suppresses even that, so production behaviour depends on `NODE_ENV` being set correctly",
+      "Identifies `batching` as a built-in Yoga option that is off by default, notes that `true` allows up to 10 operations per request, and sets an explicit lower `limit` (or leaves batching off) as part of demand control",
+      "Logs the original error server-side with a correlation id that the client can quote rather than exposing internals",
+      "Verifies with a concrete check - a request that triggers the driver failure returning `Unexpected error.`, the coupon case returning its message, and a batch above the limit being rejected - rather than asserting the result"
+    ]
   }
 ]
