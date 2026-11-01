@@ -471,3 +471,23 @@ cloudflare-computer 在缓存上 `git log ef00c0a..071b2b2 -- .agents/skills/clo
 | cloudflare-docs | 生产计时器只在 I/O 后前进、非 I/O span 0 ms；D1 insights 为实验命令 | [Performance and timers](https://developers.cloudflare.com/workers/runtime-apis/performance/)、[Traces known limitations](https://developers.cloudflare.com/workers/observability/traces/known-limitations/)、[D1 metrics](https://developers.cloudflare.com/d1/observability/metrics-analytics/) | 正文未引用；仅作场景 13 期望行为的出处 |
 
 `cloudflare-docs` 的 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `de80713`（`limits-and-versions.md`/`storage-selection.md` 账户数量上限更正、`workers-runtime.md` placement 改写、
+`wrangler.md`/`limits-and-versions.md` 的 Wrangler 4.153+ `--secrets-file` 门槛、SKILL.md Scope/Topic router 措辞）。
+选场景：12 覆盖 placement 与 secrets-file 两处更正；15 为数量上限更正新增的回归场景；负例 5。13、14 只是哨兵（正文未改相关内容），未跑有 skill 一侧。
+口径：omp + `openai/gpt-6.1-sol` medium，VM；产物 `/tmp/hs-d2/G03b-cloudflare/cloudflare/omp-openai-gpt-6.1-sol-medium/{skill,baseline}/N`；
+有 skill 结果均晚于 `de80713`。基线 12 复用当天上午结果（场景与夹具此后未改）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 12 Hyperdrive 跨洲延迟 + secrets-file | gpt-6.1-sol medium | 有 | true | EB1–EB6 ✔ | 176 s。`placement.region: "aws:us-east-1"`、不用 smart、RPC named entrypoint 不受 placement 影响、在已部署 Worker 上看 `cf-placement` 与请求时长且说明 `wrangler dev` 无法验证；4.153.0 dotenv 展开、首推 JSON secrets 文件、备选 `\$` 转义，并本地复现 HMAC 失效 |
+| 12 | gpt-6.1-sol medium | 无（复用） | false | EB1–EB6 ✔ | 见上节 |
+| 15 租户隔离的账户数量上限 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ◐ EB3 ◐ EB4 ✔ EB5 ✔ | 84 s。四类资源的默认值/上限与 $14,900（上线）/$38,900（15 万）附加费全部正确；R2 认为前缀方案改变隔离边界而不推荐，KV 建议把设置并入各租户 D1 而非共享 namespace |
+| 15 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ◐ EB3 ◐ EB4 ✔ EB5 ✔ | 68 s。数字与有 skill 一致（自行读官方 limits/pricing 页），另补 D1 1 TB 账户存储与约 5,000 个 D1 绑定上限 |
+| 5 负例（React 组件性能） | gpt-6.1-sol medium | 有 | **false** | — | 164 s，按 React 性能作答，未读 cloudflare |
+
+结论：两处事实更正与 4.153 门槛在有 skill 时全部达成（场景 12：6/6），数量上限更正后有 skill 与基线结论一致、未再出现旧数字（场景 15：EB5 两侧 ✔）。
+场景 15 的 EB2/EB3 两侧都只部分达成：两个模型都以「硬隔离是需求」为由不主动推荐共享 bucket/namespace，属期望行为写得偏主观，下次同步可放宽措辞后两侧重跑。
+负例 skill_read 为 false。正文无需再改。
