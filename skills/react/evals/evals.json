@@ -151,7 +151,7 @@
   },
   {
     "skills": ["react"],
-    "query": "Next.js 16.4.3 App Router. We just turned on cacheComponents (next.config.ts) and `next build` now fails on app/orders/page.tsx (orders-page.tsx). Our team convention is to pin data routes to Node.js and to put the geo lookup at app/api/geo/route.ts (geo-route.ts) on the edge. Get the build passing without losing what those exports were for, and while you are there review the loading skeleton orders-skeleton.tsx for accessibility. Explain each change.",
+    "query": "Next.js 16.4.3 App Router. We just turned on cacheComponents (next.config.ts) and `next build` now fails on app/orders/page.tsx (orders-page.tsx). Cache Components stays on; that is decided. The runtime exports in orders-page.tsx and app/api/geo/route.ts (geo-route.ts) were added years ago by someone who has left, and nobody knows whether we still need them. Get the build passing, tell me what to do with both runtime exports, and while you are there review the loading skeleton orders-skeleton.tsx for accessibility. Explain each change.",
     "files": [
       "evals/files/runtime-exports/next.config.ts",
       "evals/files/runtime-exports/orders-page.tsx",
@@ -160,7 +160,7 @@
     ],
     "expected_behavior": [
       "Identifies the `export const runtime = 'nodejs'` in the page as the build error: with `cacheComponents` enabled the `runtime` route segment config is rejected whatever its value, and Node.js is already the default, so the export is deleted rather than changed",
-      "States that the Edge Runtime is deprecated (Next.js 16.3+ warns at build) and removes `runtime = 'edge'` from the route handler so it runs on the default Node.js runtime; does not recommend keeping or adding an Edge runtime export",
+      "States that the Edge Runtime is deprecated (Next.js 16.3+ warns at build) and removes `runtime = 'edge'` from the route handler so it runs on the default Node.js runtime (it would also be rejected under `cacheComponents`); does not recommend keeping, re-adding or relocating an Edge runtime export",
       "Flags that `aria-label` on a plain `<div>` is not exposed (the generic role prohibits naming) and gives the skeleton container `role=\"status\"` (or an equivalent live-region/labelled structure) alongside `aria-busy`"
     ]
   }

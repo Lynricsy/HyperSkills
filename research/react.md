@@ -453,3 +453,17 @@ React DevTools for agents 页）。
 | nextjs-docs | 自托管缓存：多实例需共享 cache handler | https://nextjs.org/docs/app/guides/self-hosting | 一致：v16.4.3 把示例改为生产要求清单（共享存储、限容、序列化 `Buffer`/`Map`、按 tag 建索引、处理存储错误），与正文「多实例需共享 cache handler」不冲突，细节不入正文 |
 
 处理：两处 references 更正；三条 docs 的 `synced_at` 改为 2026-11-01，`react-docs`/`nextjs-docs`/`react-security-advisories` 的 notes 更新当前版本与核对方式。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `6ee9421`（Edge 弃用、cacheComponents 拒绝 `runtime` 导出、骨架屏 `role="status"`）。新增场景 11（夹具 `evals/files/runtime-exports/`）。
+首轮 query 写「不要丢掉这些导出原本的目的」，两侧都选择回滚 `cacheComponents` 保留 Edge——与用户约束一致、与 EB2 冲突，属场景设计问题；
+改为「Cache Components 已定、导出来历不明」后两侧重跑，下表为重跑结果。产物 `/tmp/hs-d2/G01-web-ui/react/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 11 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ◐ EB3 ✔ | 164 s。删除两处 `runtime`（含 `'nodejs'`），但删 Edge 的理由只是「Cache Components 不支持」，未提 Edge Runtime 已弃用；骨架屏改 `sr-only` + `role="status"` |
+| 11 | gpt-6.1-sol medium | 有 | true | EB1 ✔ **EB2 ✔** EB3 ✔ | 202 s。读了 `nextjs-app-router.md`、`nextjs-cache-components.md`；明确「Edge Runtime is also deprecated」「旧导出不应为部署位置而保留」 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **false** | — | 60 s，按 Vue 3 作答 |
+
+结论：通过，EB2 由 ◐ 转 ✔，无回退；负例未误读。首轮（旧 query）两侧结果：EB1 ◐ / EB2 ✘ / EB3 ✔，相同。
