@@ -37,7 +37,7 @@ embedding struct. When a field genuinely has no sensible zero, either give the t
 constructor that is the only way to build it (unexported fields, exported `New`), or
 document the invariant on the type.
 
-`cmp.Or(a, b, c)` (Go 1.21+) returns the first non-zero argument, which replaces the
+`cmp.Or(a, b, c)` (Go 1.22+; the `cmp` package itself is 1.21) returns the first non-zero argument, which replaces the
 `if cfg.Timeout == 0 { cfg.Timeout = ... }` shape:
 
 ```go

@@ -67,7 +67,7 @@ keys first.
 
 ```go
 cmp.Compare(a, b)          // -1, 0, +1 for any cmp.Ordered type
-cmp.Or(a, b, c)            // first non-zero argument — default-value chains
+cmp.Or(a, b, c)            // first non-zero argument — default-value chains (Go 1.22)
 cmp.Less(a, b)
 min(a, b), max(a, b)       // builtins since Go 1.21
 ```

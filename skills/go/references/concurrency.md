@@ -145,12 +145,17 @@ so passing the same `ctx` to several calls is fine.
   parameters; the context carries deadlines, cancellation, and cross-cutting metadata such
   as a trace ID.
 
-`time.After` in a loop is fine for correctness: since Go 1.23 (module `go` line 1.23 or
-later) an unreferenced, unstopped `Timer` or `Ticker` is garbage-collected at once, and
-`Stop` is no longer needed to free it. The remaining cost is one timer allocation per
-iteration, which matters only in a hot loop; there, use one `time.NewTimer` and `Reset` it.
-Below 1.23 an unstopped timer lived until it fired and an unstopped ticker forever, so
-`time.NewTicker` always needs `defer Stop()` in modules on older `go` lines.
+`time.After` in a loop is fine for correctness: an unreferenced, unstopped `Timer` or
+`Ticker` is garbage-collected at once, and `Stop` is no longer needed to free it. The
+remaining cost is one timer allocation per iteration, which matters only in a hot loop;
+there, use one `time.NewTimer` and `Reset` it. Which code gets this depends on the toolchain
+that builds the binary. Go 1.23–1.26 apply it only to modules whose `go` line is 1.23 or
+later (`asynctimerchan=1` restored the old timers). Go 1.27 removed `asynctimerchan`: timer
+channels are always unbuffered and collectable whatever the `go` line, and a
+`godebug asynctimerchan=1` line in `go.mod` is now a build error. Only a binary built with
+Go 1.22 or earlier, or with Go 1.23–1.26 for a module whose `go` line is below 1.23, keeps
+the old behaviour: an unstopped timer lived until it fired and an unstopped ticker forever,
+so there `time.NewTicker` always needs `defer Stop()`. [verified]
 
 ## Picking a primitive
 
@@ -246,7 +251,7 @@ resort, not the first move.
 | Receiver closes the channel | Only the sender closes |
 | Arbitrary buffer size to "avoid blocking" | 0, or a count you can name |
 | `select` without `<-ctx.Done()` | Add the case; a blocked send is a leak |
-| `time.After` in a hot loop | One `time.NewTimer` plus `Reset` (a leak only below Go 1.23) |
+| `time.After` in a hot loop | One `time.NewTimer` plus `Reset` (a leak only in old-timer builds: Go ≤1.22, or a `go` line below 1.23 on Go 1.23–1.26) |
 | Hand-rolled semaphore channel | `g.SetLimit(n)` |
 | Mutex held across an HTTP call | Copy what you need, unlock, then call |
 | Results channel plus a collector goroutine | Pre-sized slice, one index per goroutine |

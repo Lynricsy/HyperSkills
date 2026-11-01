@@ -385,3 +385,64 @@ client / transport / handler 路径，手写 `RoundTripper` 会跳过），只�
 | 5 | gpt-6.1-sol medium | 有（修正后第 2 次） | True | 1✔ 2◐ 3✔ 4✔ | 79 s，`/tmp/hs-d2/main-go-r2/…/skill/5/`。同样改用 `NewTestServer`，但只说「替换真实网络服务器」，未讲非持久阻塞的原因 |
 
 结论：期望 2 由修正前两次 ◐（手写 `RoundTripper`）变为一次 ✔、一次 ◐（做法正确、解释不全），基线不变（◐），无回退；场景 5 遗留关闭。
+
+## 2026-11-01 上游同步
+
+依据：主代理工作单 `/tmp/hs-sync/go.md` 与阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json`。A 类 spf13-go 用已登录 `gh api repos/spf13/go-skills/compare/9ac6eca...9adc400` 读 `go/` 下全部 patch（16 提交、16 文件）；B 类四条 paths 未变，随 `--pin` 前移。`--pin` 后逐条核对：写入 commit 与审阅 HEAD 全部一致（246b6c4、9adc400、91f0c2e、62cdd95、5269f7e、85e89af、45573dd、1d60a91），无越界差额。本机工具链 go1.27.1。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| spf13-go | 9ac6eca → 9adc400（5 个命中提交） | `go/SKILL.md`（+422/−8）：72caeea「Version Gating」节与 1.17–1.27 版本→特性索引、`stdversion` 强制；9edc95c 补 Go 1.26/1.27 语言、标准库、测试与运行时变化（`new(expr)`、`errors.AsType`、`slog.NewMultiHandler`、reflect 迭代器、`T.ArtifactDir`、`cryptotest.SetGlobalRandom`、泛型方法、提升字段字面量键、泛化函数类型推断、`uuid`、`strings/bytes.CutLast`、`URL/Values.Clone`、`(*Rand).N`、`synctest.Sleep`、`httptest.NewTestServer`、`goroutineleak` GA、timer 通道恒为无缓冲、json/v2 实现、实验包）；5c69a68「When Flat Stops Working」与拆分 god object；f319411「Necessity Ladder」；`cmp.Or` 标注改为 Go 1.22；4c9440f 发版 1.1.0 | **事实更正 2 处**，其余以基线划界未合入（见下）。① `cmp.Or`：本 skill `language-idioms.md` 写「Go 1.21+」，本机 `$GOROOT/api/go1.22.txt` 收录 `pkg cmp, func Or`，`go 1.21` 模块里 `go vet` 报 `cmp.Or requires go1.22 or later (module is go1.21)`，改为 1.22（`stdlib-modern-apis.md` 同步标注）。② timer：上游写明 Go 1.27 永久移除 `asynctimerchan`；go1.27 发行说明原文「Channels created by package time are now always unbuffered (synchronous), irrespective of GODEBUG settings」。本机 go1.27.1 在 `go 1.21`/`1.22`/`1.23` 三个模块里 `cap(timer.C)` 均为 0，100 万个未 Stop 的 `time.After(time.Hour)` 在 `runtime.GC()` 后堆不增长；`go.mod` 写 `godebug asynctimerchan=1` 直接报 `removed GODEBUG "asynctimerchan" set to old value "1"`。`concurrency.md` 原写「Go 1.23 起（模块 `go` 行 ≥1.23）……低于 1.23 才泄漏」，改为取决于构建工具链：1.23–1.26 看 `go` 行，1.27 起与 `go` 行无关；常见错误表同步。场景 7 的 EB3 原写「取决于 go.mod 而非工具链」，同步改写（两侧重跑，见 D2） |
+| samber-golang | 8e899e2 → 246b6c4 | paths 未变 | 噪声，仅 re-pin |
+| ashwin-go | d071a92 → 62cdd95 | paths 未变 | 噪声，仅 re-pin |
+| awesome-copilot-go | 36e95df → 5269f7e | 主代理裸仓库树 diff 确认 `instructions/go.instructions.md` 无变化 | 噪声，仅 re-pin |
+| leeovery-go | 88b5924 → 85e89af | paths 未变 | 噪声，仅 re-pin |
+
+### spf13 新增内容：以基线划界
+
+本 skill 已覆盖 `go` 行先行（规则 1）、`stdversion`、`errors.AsType`、`synctest.Sleep`、`httptest.NewTestServer`、`goroutineleak`、泛型方法、json/v2。未覆盖的候选是 1.26/1.27 的标准库新增（`uuid`、`strings.CutLast`、`slog.NewMultiHandler`、`URL.Clone`、`new(expr)`、`T.ArtifactDir` 等，均已用 `go doc` 在 go1.27.1 上核实）。新增场景 8（夹具 `evals/files/modernize/`：`go 1.27` 的服务模块用 google/uuid、LastIndex 切分、手写 fanout handler、结构体复制 URL；`go 1.24` 的共享库有同类写法）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 8（EB2 初版） | gpt-6.1-sol medium | 无 | false | EB1 ◐ EB2 ◐ EB3 ✔ EB4 ✔ | 246 s。svc 换标准库 `uuid`（保留随机 v4，未谈 B-tree 主键与 v7）并删掉 google/uuid 依赖、`strings.CutLast`；**有意保留** fanout 与结构体复制，理由是 `MultiHandler` 出错后仍继续写其余 handler、`URL.Clone` 深拷 Userinfo——查 go1.27.1 源码 `MultiHandler.Handle` 确为逐个调用后 `errors.Join`，理由成立；linkutil 保持 1.24 不动并说明 CutLast/Clone 需 1.27；两模块 `go vet`，linkutil 用 Go 1.24.0 构建。产物移到 `…/baseline/8-oldEB2` |
+
+判定：基线已经知道 1.26/1.27 新标准库并按 `go` 行划界，**不合入** spf13 的版本索引与新特性小节；场景 8 留作哨兵。基线对 fanout/URL 的保留理由正确而初版 EB2 要求一律替换，EB2 改为「替换或给出正确的行为差异理由」，基线据此重跑（见 D2）。Necessity Ladder、「flat 何时不再适用」、拆分 god object 属风格/设计主张，与本 skill 现有布局规则（`modules-and-layout.md`）一致且无可验证新事实，不合入。
+
+### 正文改动
+
+- `references/concurrency.md`：`time.After`/未 Stop 的 Timer、Ticker 回收语义按构建工具链分述（Go 1.27 移除 `asynctimerchan`）；常见错误表同步。
+- `references/language-idioms.md`、`references/stdlib-modern-apis.md`：`cmp.Or` 标为 Go 1.22。
+- `SOURCES.yaml`：go-release-notes `notes` 记录本次复核；新增 `jetbrains-modern-go`（reference，见新候选）。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| gamedev-skills/awesome-gamedev-agent-skills `skills/ebitengine/ebitengine-game/SKILL.md`（Apache-2.0，6335★） | REJECT（本 skill） | 用 Ebitengine 做 2D 游戏的交付流程（游戏设计、输入、渲染、打包），属单一第三方引擎；Scope 只覆盖 Go 语言与标准库，第三方库仅限生态已收敛的少数几个。仓库已作为 godot 的路线图种子，交主代理统一判断是否值得记入 roadmap |
+| spf13/go-skills `AGENTS.md` | REJECT | 上游维护者自用的多机同步流程（sage、dotagents、ssh 拉取），无 Go 内容 |
+
+## 2026-11-01 新候选检索
+
+途径（有界）：`gh search code '"errors.AsType" filename:SKILL.md'`（用 Go 1.26 专有 API 筛新近更新的 Go skill），对未在候选表出现、星数较高者用 `gh api repos/<o>/<r>` 核实并读原文；顺藤摸到 `use-modern-go` 的源头仓库。
+
+| 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| JetBrains/go-modern-guidelines `plugin/skills/use-modern-go` + `internal/guidelines/guidelines.json` | 3909 | 2026-10-15 | Apache-2.0 | 2 | 3 | 3 | 3 | 2 | 13 | INCLUDE（reference） | 按目标 Go 版本列出现代写法与对应 `go fix` modernizer，生成自 guidelines.json；抽查 generic_methods / strings_bytes_cut_last / stdlib_uuid 为 1.27、new_expression / errors_as_type 为 1.26，与发行说明一致。场景 8 基线已会按版本现代化，无可证明缺口，故只作 reference 追踪该数据的漂移；其「1.27 起新 JSON 代码一律用 json/v2」不采纳 |
+| ardanlabs/service `.agents/skills/use-modern-go` | 4130 | 2026-10-24 | Apache-2.0 | — | — | — | — | — | — | 不单列 | 上一行的 vendored 副本（另见 stackrox、codeready-toolchain 等多处），以源头为准 |
+| smallnest/goal-workflow `skills/modern-go` | 297 | 2026-09-13 | MIT | 1 | 2 | 2 | — | 2 | — | REJECT | 与 JetBrains 清单同类、权威度更低，无独立增量 |
+| netresearch/go-development-skill | 13 | 2026-10-30 | NOASSERTION | 1 | 3 | — | — | 0 | — | REJECT | 许可不明、星数低 |
+| Fusengine/claude-plugins `go-expert/go-core-idioms` | 34 | 2026-10-30 | MIT | 1 | 3 | — | — | 2 | — | REJECT | 个人插件集合，未见超出本 skill 的内容 |
+
+## 2026-11-01 文档上游复核
+
+读 go.dev 页面原文（脚本抓取后按关键句定位），并用本机 go1.27.1 实跑能实跑的项。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| go-effective-go | 有用的零值、接口隐式满足与组合（embedding）、"Do not communicate by sharing memory" | https://go.dev/doc/effective_go | 一致 |
+| go-wiki-codereview | `var t []string`；Context 作首参；错误串不大写；不丢弃错误；In-Band Errors；Receiver Type；import 分组（标准库在第一组、空行分隔）；`crypto/rand`；Goroutine Lifetimes | https://go.dev/wiki/CodeReviewComments | 一致 |
+| go-wiki-testcomments | got/want 失败信息格式；比较可观察行为 | https://go.dev/wiki/TestComments | 一致 |
+| go-doc-diagnostics | Profiling / Tracing / Debugging / Runtime statistics 分类；「via go test or endpoints made available from the net/http/pprof package」 | https://go.dev/doc/diagnostics | 一致（页面未提 `goroutineleak`，该项以 go1.27 发行说明为准） |
+| go-release-notes | 1.26：`errors.AsType`、`slog.NewMultiHandler`、`T.ArtifactDir`、`new(expr)`、Green Tea 默认；1.27：`goroutineleak` GA 与 `/debug/pprof/goroutineleak`、`go test` 默认 `stdversion`、`httptest.NewTestServer`、json/v2、泛型方法、`uuid`、`CutLast`、`URL.Clone`；发布历史 go1.27.0（2026-08-19）至 go1.27.3（2026-10-19）、go1.26.10（2026-10-19） | https://go.dev/doc/go1.26 、https://go.dev/doc/go1.27 、https://go.dev/doc/devel/release | 本 skill 引用的标记全部一致；**发现过时项 2 处并已修**：`asynctimerchan` 在 1.27 永久移除（timer 语义不再取决于 `go` 行，见上游同步表）、`cmp.Or` 为 1.22 而非 1.21 |
+
+五个条目 `synced_at` 改为 2026-11-01。

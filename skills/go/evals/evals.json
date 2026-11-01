@@ -83,8 +83,24 @@
     "expected_behavior": [
       "Pushes back on the `time.After` comment: since Go 1.23, and this module's `go` line is 1.24, an unreferenced, unstopped timer is garbage-collected immediately, so the per-iteration timer is not leaked until it fires; the only remaining cost is one timer allocation per loop iteration, negligible at a few messages per minute",
       "Pushes back on the ticker comment for the same reason: with a `go` line of 1.23 or later an unreferenced, unstopped `Ticker` is collected after `Run` returns, so `Stop` is no longer needed to free it (adding `defer heartbeat.Stop()` is harmless tidiness, not a leak fix)",
-      "Says both comments would be correct for a module whose `go` line is below 1.23 (timer alive until it fires, ticker forever), so the answer depends on the `go.mod` version rather than the Go toolchain alone",
+      "Says both comments describe the old timer implementation (timer alive until it fires, ticker forever), which only a binary built with Go 1.22 or earlier, or with Go 1.23-1.26 for a module whose `go` line is below 1.23, still has; since Go 1.27 removed `asynctimerchan` the new semantics apply whatever the `go` line, so the answer depends on the building toolchain together with the `go.mod` version",
       "Notices that `time.After(idleTimeout)` is re-armed on every heartbeat tick as well as every message, so the 30-second heartbeat keeps the idle timeout from ever firing when `idleTimeout` exceeds 30 s - a real behaviour bug - and fixes it with one timer that is reset only when a message arrives"
+    ]
+  },
+  {
+    "skills": ["go"],
+    "query": "We're doing a dependency and boilerplate cleanup before the next release. modernize/svc is our orders service and modernize/linkutil is a small shared library (each has its own go.mod). Replace hand-rolled code and third-party dependencies with the standard library wherever the standard library now covers them, and show me the updated files and go.mod changes. Don't change behaviour.",
+    "files": [
+      "evals/files/modernize/svc/go.mod",
+      "evals/files/modernize/svc/orders.go",
+      "evals/files/modernize/linkutil/go.mod",
+      "evals/files/modernize/linkutil/link.go"
+    ],
+    "expected_behavior": [
+      "In svc (go 1.27) replaces github.com/google/uuid with the standard library `uuid` package added in Go 1.27, uses a time-ordered `uuid.NewV7()` for the B-tree primary key (or explicitly keeps random v4 via `uuid.New()` with the reason), and removes the google/uuid requirement from svc/go.mod",
+      "In svc replaces the LastIndex-and-slice code with `strings.CutLast` (Go 1.27), and for the fanout handler and the URL copy either adopts `slog.NewMultiHandler` (Go 1.26) and `base.Clone()` (Go 1.27) or keeps the hand-written code for a correct behavioural reason: `MultiHandler.Handle` calls every enabled handler and returns `errors.Join` of their errors where the fanout stops at the first error, and `URL.Clone` deep-copies the userinfo the struct copy shares",
+      "Leaves linkutil compatible with its `go 1.24` floor: does not use CutLast, URL.Clone or other post-1.24 APIs there and does not raise its `go` directive just to reach them, because dependents still build with Go 1.24 (a raised floor is imposed on every dependent)",
+      "Verifies with `go vet ./...` / `go test ./...` (whose `stdversion` check reports standard-library symbols newer than a module's go directive) or an equivalent build in each module"
     ]
   }
 ]
