@@ -20,9 +20,9 @@ appear only where the standard library has no answer and the ecosystem has conve
 one: `golang.org/x/sync/errgroup`, `github.com/google/go-cmp/cmp`, `go.uber.org/goleak`.
 
 Not covered: cloud provider SDKs (AWS, GCP, Azure — use the `aws`, `azure` or `gcp`
-skill), Kubernetes operators, controllers and client-go, and MCP server implementation.
-The latter two have no skill in this repository yet,
-so work from the vendor's own documentation. Deploying the binary (container images,
+skill) and Kubernetes operators, controllers and client-go, which have no skill in this
+repository yet, so work from the vendor's own documentation. The MCP surface of a Go MCP
+server belongs to the `mcp-server` skill. Deploying the binary (container images,
 Kubernetes manifests, cloud infrastructure) belongs to `containers` and `terraform`.
 Web frameworks (Gin, Echo, Fiber) and ORMs
 are out of scope by design; the `net/http` and `database/sql` guidance here is about the

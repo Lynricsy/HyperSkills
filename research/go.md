@@ -477,3 +477,6 @@ client / transport / handler 路径，手写 `RoundTripper` 会跳过），只�
 结论：timer 更正在有 skill 一侧由 ✘ 变为 ◐（规则 2 生效，模型把回退开关限定到 1.23–1.26），基线仍持旧口径（✘），无回退；场景 8 两侧持平，作哨兵保留；负例两轮均 `skill_read == false`。各场景每轮 1 次运行。
 
 遗留：场景 7 EB3 有 skill 仍只 ◐——模型优先引用 go.dev/wiki/Go123Timer（该页仍描述 `asynctimerchan` 回退）。若下一轮仍未满分，可考虑在规则 2 直接写出「两条意见只对旧构建成立」并重跑。
+
+主代理续做：`## Scope` 原写「MCP server implementation 本仓库还没有 skill」，已过时（`mcp-server` 已存在），改为指向 `mcp-server`（只改指针，不扩范围）。
+改后补跑负例 4（有 skill 挂载）：`skill_read == false`，22 s，按 Python asyncio / 线程池作答，产物 `/tmp/hs-d2/main/go/`。
