@@ -6,7 +6,7 @@
 - [Scope reference](#scope-reference)
 - [OIDC instead of stored cloud credentials](#oidc-instead-of-stored-cloud-credentials)
 - [Secret hygiene](#secret-hygiene)
-- [Pinning `uses:` references](#pinning-uses-references)
+- [Locking and pinning `uses:` references](#locking-and-pinning-uses-references)
 - [Upgrading action versions](#upgrading-action-versions)
 - [Dependabot for actions](#dependabot-for-actions)
 - [Artifact and cache trust boundaries](#artifact-and-cache-trust-boundaries)
@@ -107,11 +107,52 @@ reviewers so it is only issued after a human approves the deployment.
 - `actions/checkout` leaves the token in `.git/config` by default; set
   `persist-credentials: false` on any job that later runs code it did not write.
 
-## Pinning `uses:` references
+## Locking and pinning `uses:` references
 
-Pinning to a full-length commit SHA is the only way to reference an action immutably. A tag or a
-branch is a movable pointer: whoever gains write access to the action's repository can point `v4`
-at new code that runs inside your job with your token and secrets.
+A tag or a branch is a movable pointer: whoever gains write access to the action's repository can
+point `v4` at new code that runs inside your job with your token and secrets. There are two ways
+to make the code that runs the code that was reviewed, and GitHub now recommends the first.
+
+### Workflow dependency lockfile (preferred)
+
+Generally available since 2026-10-28 (public preview from 2026-10-14). A lockfile at
+`.github/workflows/actions.lock`, generated and maintained by the `gh actions-lock` CLI extension
+and never edited by hand, lets the workflow keep a readable reference such as `@v3` while the
+runner executes the recorded commit. [official]
+
+```bash
+gh extension install github/gh-actions-lock
+gh actions-lock                              # all workflows; or pass one workflow path
+gh actions-lock --verify                     # CI check: lockfile complete and provenance intact
+gh actions-lock --relock                     # advance moved refs (main, v4) after reviewing upstream
+```
+
+- Each entry records the `ref`, the resolved `commit`, and the source repository's numeric
+  `owner_id`/`repo_id`. At run time the commit must still be reachable from the recorded ref in
+  that repository (a fork-only commit is rejected), and a changed `owner_id`/`repo_id` in a
+  lockfile diff means the name now points at a different repository — investigate it.
+- It covers transitive dependencies — the actions used inside the actions you call — which
+  in-file SHA pinning never did. For an onboarded workflow every dependency must be in the
+  lockfile, and it satisfies the "Require actions to be pinned to a full-length commit SHA"
+  policy; the **Require lockfile** policy enforces adoption. Dependabot regenerates the matching
+  entry in the same PR when it bumps an action in an onboarded workflow.
+- **Not covered:** reusable-workflow calls (`jobs.<id>.uses`) — pin those to a full SHA; their
+  own dependencies belong in the lockfile of the repository that defines them. A local
+  `uses: ./…` action is not followed (it runs whatever is in the workspace): migrate it with
+  `--migrate-local-actions` to `uses: $/…`, which runs your repository's action at the
+  workflow's own commit, or keep `./` and give the workflow lockfile entries for what it uses.
+  The lockfile controls action code only, not inputs, secrets or the runner image; `zizmor`'s
+  documentation adds that composite-action definitions on their own and Docker image references
+  are not locked either, so keep those hash-pinned.
+- **Allowlist interaction:** once a workflow is onboarded, an "allow select actions" policy is
+  checked against the locked SHA, so tag entries such as `actions/checkout@v6` stop matching; use
+  a wildcard or the full SHA.
+- A lockfile proves the code did not change after you locked it, not that it was safe when you
+  did. Review a changed `commit` like any dependency bump.
+
+### In-file SHA pinning
+
+Without a lockfile, pin to a full-length commit SHA in the workflow file:
 
 ```yaml
 steps:
@@ -120,30 +161,33 @@ steps:
 ```
 
 Keep the version in a trailing comment — the SHA alone tells a reader nothing about what it is or
-whether it is current.
+whether it is current. This pins only the top-level reference: actions that a pinned action uses
+internally still float unless their author pinned them.
 
 The rule is not uniform across contexts, and saying which one you are applying avoids a
 contradiction:
 
-- **Writing or hardening a workflow:** pin everything, first-party included. Enforce it with the
-  repository- or organisation-level policy that requires actions to be pinned to a full-length
-  commit SHA, rather than with review.
+- **Writing or hardening a workflow:** lock or pin everything, first-party included. Enforce it
+  with the Require lockfile policy or the policy that requires actions to be pinned to a
+  full-length commit SHA, rather than with review.
 - **Reporting a vulnerability:** an unpinned *third-party* action in a job that holds secrets,
-  OIDC rights, a write token, or release/publish/signing power is a finding. `actions/*` and
-  `github/*` on a version tag are not, and neither is a vendored `./.github/actions/...` local
-  action — it comes from your own repository and belongs to the pwn-request analysis instead.
-- `@main` or `@master` on any third-party reference is worse than a tag and should be reported
-  regardless: it is "whatever the author pushed most recently".
+  OIDC rights, a write token, or release/publish/signing power is a finding — unless the workflow
+  is onboarded to a lockfile, which already fixes the commit. `actions/*` and `github/*` on a
+  version tag are not, and neither is a vendored `./.github/actions/...` local action — it comes
+  from your own repository and belongs to the pwn-request analysis instead.
+- `@main` or `@master` on any third-party reference outside a lockfile is worse than a tag and
+  should be reported regardless: it is "whatever the author pushed most recently".
 
-Reusable workflows referenced with `uses: owner/repo/.github/workflows/x.yml@ref` follow the same
-rule.
+Reusable workflows referenced with `uses: owner/repo/.github/workflows/x.yml@ref` follow the
+in-file rule in every case, because no lockfile covers the call.
 
 ## Upgrading action versions
 
 When a run warns that an action uses a deprecated runtime:
 
-- Move to the latest stable **major** version compatible with the workflow, then resolve that
-  release to a commit SHA and pin the SHA.
+- Move to the latest stable **major** version compatible with the workflow, then pin it: rerun
+  `gh actions-lock` in a repository with a lockfile, otherwise resolve the release to a commit
+  SHA and pin the SHA.
 - One action (or one tightly related group) per commit, so a failure names its cause.
 - Preserve behaviour: same triggers, same permissions, same inputs unless the upgrade requires a
   change.
@@ -156,7 +200,8 @@ When a run warns that an action uses a deprecated runtime:
 
 All Dependabot configuration lives in a single `.github/dependabot.yml` on the default branch;
 GitHub does not read a second file. The `github-actions` ecosystem covers `uses:` references and
-keeps SHA pins current, which is what makes pinning maintainable.
+keeps SHA pins current — and, for workflows onboarded to `actions.lock`, regenerates the lockfile
+entry in the same PR — which is what makes locking and pinning maintainable.
 
 ```yaml
 version: 2

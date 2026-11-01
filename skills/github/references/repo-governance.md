@@ -238,10 +238,12 @@ Repository- and organisation-level Actions settings that no amount of workflow r
   block inherits something harmless.
 - "Allow GitHub Actions to create and approve pull requests": off unless a bot needs it.
   Otherwise a compromised workflow can open and approve its own PR.
-- Required SHA pinning: the policy that makes unpinned third-party actions fail, rather than
-  something a reviewer has to catch.
+- Require lockfile (or required SHA pinning): the policy that makes unlocked or unpinned
+  third-party actions fail, rather than something a reviewer has to catch. A workflow onboarded
+  to `.github/workflows/actions.lock` satisfies the SHA-pinning policy too.
 - Allowed actions: restrict to actions created by GitHub plus a verified-creator or explicit
-  allow list.
+  allow list. For workflows onboarded to a lockfile the list is matched against the locked SHA,
+  so tag-pinned entries (`actions/checkout@v6`) stop matching; use a wildcard or the full SHA.
 - Workflow execution protections: restrict which events and actors can trigger workflows. If the
   repository has no legitimate use for `pull_request_target`, disabling the event removes the
   entire pwn-request class regardless of how workflows are written.

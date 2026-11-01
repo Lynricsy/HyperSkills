@@ -402,3 +402,74 @@ github-docs 条目补 cache-mode 来源页并把 `synced_at` 改为 2026-10-15�
 6✔1◐ 对基线 4✔1◐2✘；cache-mode（场景 5）3/3 对 1/3。负例 skill_read 为 false。正文修正随本提交合入。
 
 遗留：场景 1 的 OIDC 两侧都只部分达成（有 skill 一侧提为可选项），正文已写，属模型取舍。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 归因工作单（`/tmp/hs-sync/github.md`），各条用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 patch；cli/cli 只看正文引用的
+`gh` 命令与参数的帮助文本改动（逐提交 `gh api repos/cli/cli/commits/<sha>`）。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| zizmor | f8dda18 → 2658f19（3 提交） | `docs/usage.md`：1.32.0（未发布，最新 v1.31.1）起按是否为 Git 根收集本地目录输入；新增「GitHub Actions workflow lockfiles」节（实验性支持；锁文件不锁可复用工作流调用、不单独锁 composite action 定义、不锁 Docker 镜像，`unpinned-uses`/`unpinned-images` 会提示）；`docs/audits.md` 只改测试数据文件名 | 线索 → 引出锁文件更正（见下）；zizmor 版本行为不写入正文 |
+| octocat（mcollina/skills） | 72b7275 → c75d70d（2 提交） | 新增 `security-advisory-lifecycle.md`（triage→draft→published/closed、PATCH 只接受 draft/closed/published、发布不可逆且删除临时私有 fork）与 `security-advisory-private-fork-prs.md`（只推私有 fork、`gh pr create --repo <fork>`、fork 内不跑 Actions、合并在公告页完成） | 新内容，评测先行 → 场景 7 基线已会，不合入 |
+| gh-cli（cli/cli） | ff67d76 → 9490d20 | `pkg/cmd/pr`、`issue`：`--attach` 附件凭据检查交给服务端、安装令牌可附件、`--body-file` 中的引用按文件所在目录解析；`issue view`/`pr view --comments` 帮助补「管道输出时只打印评论（PR 还含 review）」；新增 `gh issue artifact` 系列命令；`pkg/cmd/release`：`release create` 帮助说明「建草稿→传资产→发布」不是原子操作、不可变保护只在发布后生效 | 无影响：与 `pull-requests.md`「`gh pr view --comments` 取顶层评论与 review」、`releases.md`「先草稿、再附资产、后发布」一致；`--attach`、`issue artifact` 是正文未涉及的新功能 |
+| scorecard | a1fe90a → 2ef237f（4 提交） | `docs/checks.md`：Pinned-Dependencies 把「指向已发布不可变 release 的 tag」也算作已固定；Branch-Protection 接受合并队列作为「需最新分支」；删 LGTM.com；Azure DevOps 映射 | 无影响（本条 reference）：正文只引用 Scorecard 的检查名与「工具定发现、你判链路」 |
+| awesome-copilot、getsentry-skills、scrutineer、coderabbit-skills、citadel | — | tracked paths 无变化 | 只 re-pin |
+
+`--pin` 后逐条比对：全部条目写入的 `commit` 与审阅 HEAD 一致。
+
+### 事实更正：workflow 依赖锁文件取代「SHA 是唯一不可变引用」
+
+zizmor 的新文档指向 GitHub 的 workflow lockfile；核对官方：docs.github.com `actions/concepts/security/workflow-dependency-lockfiles`、
+`actions/how-tos/secure-your-work/lock-workflow-dependencies`、`actions/reference/security/secure-use`（「最佳措施是用锁文件……对采用的仓库取代
+SHA 固定」），GitHub changelog 2026-10-14（公开预览）与 2026-10-28「GitHub Actions workflow lockfiles are generally available」；扩展
+`github/gh-actions-lock`（MIT，v0.4.0）README 的 `--verify`/`--relock`/`--accept-moved`。正文原规则 6「SHA 是引用 action 的唯一不可变方式」与
+`actions-tokens-and-supply-chain.md` 同句已过时。
+
+改动：`SKILL.md` 规则 6 改为「锁定或固定每个 action 引用」——优先锁文件（`gh actions-lock` 写 `.github/workflows/actions.lock`，含传递依赖与
+源仓库身份），可复用工作流调用及无锁文件的仓库仍用 40 位 SHA；审计清单与治理清单相应调整，主题路由补锁文件。`references/actions-tokens-and-supply-chain.md`
+「Pinning」节改写为「Locking and pinning」：锁文件条目字段与运行时校验、传递依赖、满足 SHA 固定策略、Require lockfile、Dependabot 同 PR 更新、
+不覆盖项（`jobs.<id>.uses`、`./` 本地 action 与 `--migrate-local-actions` → `$/`、输入/密钥/runner 镜像；zizmor 文档补充的 composite 定义与 Docker
+镜像）、允许列表改按锁定 SHA 匹配；漏洞报告口径中「已纳入锁文件的 workflow 用 tag 不是发现项」；升级与 Dependabot 两节同步。
+`references/repo-governance.md` 的组织策略两条同步。SOURCES：github-docs 的 contributes 改写对应句。
+
+## 2026-11-01 上游新增内容评估
+
+octocat 的 GHSA 两份规则与锁文件更正合成新增场景 7（`evals/files/security-response-plan.md`：私有漏洞报告后计划在 origin 开公开 PR、先发布公告拿 CVE；
+加固计划手工 SHA 固定并称锁文件「仍是预览」，允许列表保留 tag 项）先跑基线：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 安全响应与 workflow 加固 | gpt-6.1-sol medium | 无 | false | EB1–EB5 ✔ | 102 s。联网读到 GHSA 与锁文件官方页面：接受为草稿→临时私有 fork、CI 不在 fork 内运行且公告页合并不执行分支保护、草稿即可申请 CVE、发布会删 fork；锁文件 10-28 GA、传递依赖与仓库身份、可复用工作流仍需 SHA、`./` 本地 action 用 `--migrate-local-actions`、允许列表改按锁定 SHA |
+
+结论：GHSA 生命周期与私有 fork 流程基线已会，不合入正文（与 2026-10-15 对公告评论 API 的结论一致，场景 7 留作哨兵）；锁文件属事实更正，照改。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| `ai-dynamo/dynamo` `.agents/skills/dynamo-issue-first`、`dynamo-release-cherry-pick` | REJECT | 上游自用流程 |
+| `antfu/skills` `antfu-issue-triage` | REJECT | 个人仓库的 issue 分诊习惯；分诊流程本 skill 已有 |
+| `github/awesome-copilot` `pr-artifact-explorer` | REJECT | 围绕 Copilot 生成的 PR 制品浏览，单产品工作流 |
+| `nitinjain999/platform-skills` `plugins/platform-skills/skills/composite-actions`、`github-actions`、`gitops`、`progressive-delivery`、`renovate` | REJECT | 90b97a9 生成的插件目录副本（原件早于旧 pin）；GitOps/渐进式交付不在任何 skill 的 Scope，Renovate 非 GitHub 平台功能，Actions 两份为通用向导 |
+| `prometheus/prometheus` `.agents/skills/pr-triage-board` | REJECT | Prometheus 维护者自用的 PR 看板流程 |
+| `rampstackco/claude-skills` `oss-contribution-research`、`ticket-authoring`（含 `dist/codex`、`dist/pi` 副本） | REJECT | 通用写作/调研流程，与 GitHub 平台机制无关；dist 下为生成副本 |
+| `shipshitdev/skills` `skills/issue` | REJECT | 泛化 issue 撰写模板，`issues-and-triage.md` 已覆盖 |
+| `getsentry/skills` `skills/pr-screenshots`（C2） | REJECT | PR 截图生成与上传的 Sentry 内部流程，非平台规则 |
+
+## 2026-11-01 新候选仓库
+
+检索：`gh search repos <github actions skills|gh cli skill> pushed:>2026-10-15 --sort stars`，VoltAgent 区间新增（无 GitHub 平台类）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| — | `github/gh-actions-lock` | https://github.com/github/gh-actions-lock | 279 | 2026-10-29 | MIT | 锁文件 CLI 扩展（不是 skill） | 3 | 3 | — | — | 2 | — | 作事实来源，不入候选表 | README 的命令表用于核实 `--verify`/`--relock`；以 github-docs 条目为准 |
+| — | `aprameyak/github-agent-skills`、`homeos-dev/homeos-plugin-gh-skill` | https://github.com/aprameyak/github-agent-skills | 2 / 0 | 2026-10-26 | MIT / Apache-2.0 | 个人 gh 封装 | 0 | 3 | 1 | — | 2 | ≤6 | REJECT | 匿名小仓库，命令封装，无新增事实 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| github-docs | 依赖锁定的推荐方式 | actions/reference/security/secure-use、actions/concepts/security/workflow-dependency-lockfiles | **已变化 → 更正**（见上） |
+| github-docs | checkout 守卫、`pull_request_target` 缓存只读与 `cache-mode`、关闭关键字、CODEOWNERS、规则集聚合、不可变发布与草稿顺序 | securely-using-pull_request_target、dependency-caching、linking-a-pull-request-to-an-issue、about-code-owners、about-rulesets、immutable-releases | 一致（secure-use 页 pull_request_target 段落与 10-15 版本相同） |
+| github-docs | 临时私有 fork：CI 与集成无法访问、状态检查不运行、合并在公告页一次合并全部 PR 且不执行分支保护；草稿即可申请 CVE、发布删除 fork | code-security/tutorials/fix-reported-vulnerabilities/collaborate-in-a-fork、…/publish-repository-advisory | 新事实，用于评估 octocat 与判定场景 7，未写入正文 |
+
+`synced_at` 改为 2026-11-01。

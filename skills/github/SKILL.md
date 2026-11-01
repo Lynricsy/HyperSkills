@@ -4,7 +4,7 @@ description: "Manages GitHub pull requests, issues, Actions workflows, releases 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: platform
 ---
 
@@ -56,9 +56,13 @@ registry expects is its own subject, and only the workflow's authentication to i
 5. **Every workflow declares `permissions:`.** With no block it inherits the repository default,
    which on older repositories is write to almost everything. Start from `permissions: {}` or
    `contents: read` at the top and elevate per job.
-6. **Pin third-party actions and reusable workflows to a full 40-character commit SHA with the
-   version in a trailing comment.** A tag is a movable pointer; a SHA is the only immutable way
-   to reference an action. Enforce it repo-wide with the SHA-pinning policy rather than by review.
+6. **Lock or pin every action reference; a tag or branch is a movable pointer.** Prefer the
+   workflow dependency lockfile (GA since 2026-10-28): `gh actions-lock` writes
+   `.github/workflows/actions.lock` with the resolved commit and source-repository identity of
+   every action, transitive ones included, and the runner executes the locked commit. It does
+   not lock reusable-workflow calls (`jobs.<id>.uses`): pin those, and every `uses:` in a
+   repository without a lockfile, to a full 40-character SHA with the version in a comment.
+   Enforce with the Require lockfile or SHA-pinning policy rather than by review.
 7. **Prefer OIDC over stored cloud credentials.** A long-lived key in repository secrets stays
    valid until someone rotates it by hand; an OIDC token is minted per run, scoped to the repo,
    and expires in minutes. Requires `id-token: write`.
@@ -132,7 +136,8 @@ Detail in `references/actions-triggers-and-injection.md` and
 - [ ] Check authorisation on comment-driven workflows: an `issue_comment` job with no
       `author_association` gate is a command anyone on the internet can run.
 - [ ] Audit tokens and supply chain: missing or over-broad `permissions:`, unpinned third-party
-      `uses:`, stored cloud credentials where OIDC would do, secrets reachable from an
+      `uses:` in a workflow not onboarded to `actions.lock` (and any unpinned reusable-workflow
+      call), stored cloud credentials where OIDC would do, secrets reachable from an
       externally triggerable job, secrets written to logs or to `$GITHUB_ENV`.
 - [ ] Check cache access per trigger: a low-trust trigger gets read-only access to the default
       branch's cache, and an explicit `cache-mode: write` or `write-only` there switches that
@@ -259,7 +264,7 @@ Detail in `references/repo-governance.md`.
       the patterns against the CODEOWNERS-specific syntax limits before committing.
 - [ ] Configure supply-chain and secret defences: `.github/dependabot.yml` with one entry per
       detected ecosystem including `github-actions`, secret scanning with push protection, and
-      the SHA-pinning policy for actions.
+      the Require lockfile (or SHA-pinning) policy for actions.
 - [ ] Gate deployments with environments: required reviewers, branch restrictions, and
       environment-scoped secrets, so credentials are only issued after approval.
 - [ ] **Gate — re-query and report:** after applying, re-read the rulesets, protection and
@@ -289,7 +294,7 @@ Detail in `references/releases.md`.
 | Topic | Read when | File |
 |---|---|---|
 | Trigger trust matrix, attacker-controllable contexts, the `env:` fix, `pull_request_target` and `workflow_run` privilege, comment-driven authorisation | Auditing or writing any workflow that outside contributors can influence | `references/actions-triggers-and-injection.md` |
-| `permissions:` scopes and recipes, `GITHUB_TOKEN` blast radius, OIDC, secret hygiene, SHA pinning, action version upgrades, `zizmor` | Auditing tokens and dependencies, or hardening a workflow you are writing | `references/actions-tokens-and-supply-chain.md` |
+| `permissions:` scopes and recipes, `GITHUB_TOKEN` blast radius, OIDC, secret hygiene, workflow lockfiles and SHA pinning, action version upgrades, `zizmor` | Auditing tokens and dependencies, or hardening a workflow you are writing | `references/actions-tokens-and-supply-chain.md` |
 | Caching, concurrency, path and matrix scoping, reusable workflows, composite actions, run inspection commands | The workflow is slow, expensive or duplicated | `references/actions-efficiency.md` |
 | `gh pr` surface, description shapes, issue linking, CI check semantics, review-thread GraphQL, merge strategies | Opening, updating, reviewing or merging a pull request | `references/pull-requests.md` |
 | Issue creation and update calls, issue types vs labels, label taxonomy, issue forms and templates, triage output | Filing or triaging issues | `references/issues-and-triage.md` |
