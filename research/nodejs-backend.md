@@ -319,3 +319,53 @@ Hono 4」一致。
 | 4（负例） | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ✔ | 194 s。按 Next.js Server Action 回答 `revalidatePath`，无 Node 框架建议 |
 
 结论：四处更正在有 skill 时全部按更正后的内容作答；场景 5 基线联网也能答对前四条，只在 Mount Middleware 上弱于有 skill，不构成需要新增正文的缺口，留作哨兵。场景 1 两侧持平。负例 `skill_read == false`。正文无需修正。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 `check_upstream.py --json` 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单。`--pin` 写入的 commit 与审阅 HEAD 逐条一致（amirtaherkhani-nestjs `31f798a`、awesome-copilot `5269f7e`、mcollina-skills `c75d70d`），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| amirtaherkhani-nestjs | b688def → 31f798a（2 提交命中：b894152、31f798a） | `SKILL.md`：上游自身版本号 1.2.0 → 1.2.1；`references/dependency-injection.md` 末尾新增「Runnable constructor and scope evidence」段：指向上游仓库自己的 `examples/runtime-contracts/`（`npm run test:runtime`），并顺带一句「请求作用域类不接收应用生命周期钩子」 | 无影响，仅 re-pin。前半段是上游自有示例工程的导引；后半句是 NestJS 官方 lifecycle-events 页已有的事实，属新增规则而非对本 skill 现有正文的更正，本轮未见对应能力缺口，不合入 |
+| mcollina-skills | 72b7275 → c75d70d | 无（`paths_unchanged`） | 噪声，仅 re-pin |
+| awesome-copilot | 3cf7c7e → 5269f7e（422 提交） | 无：裸仓库缓存 `git diff --stat 3cf7c7e 5269f7e -- instructions/nestjs.instructions.md` 为空 | 噪声，仅 re-pin |
+
+其余 repo 条目 up to date，随 `--pin` 只更新 `synced_at`。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 许可 | 结论 | 理由 |
+|---|---|---|---|
+| TencentCloudBase/CloudBase-AI-Toolkit `connectors/cloudbase/skills/references/auth-nodejs-cloudbase/SKILL.md`、`plugin/cloudbase-codex/skills/{ai-model-nodejs,auth-nodejs-cloudbase}/SKILL.md` | MIT | REJECT | 单一商业产品（腾讯云 CloudBase `@cloudbase/node-sdk`）手册，含强制 preflight 与兄弟 skill 编排，不是通用 Node 服务规则 |
+| TerminalSkills/skills `skills/axios/SKILL.md` | Apache-2.0 | REJECT（范围） | 出站 HTTP 客户端库用法手册（实例、拦截器、超时、恶意版本 1.14.1/0.30.4）。本 skill 管服务端各层，不收客户端库说明书；出站调用只保留「断言发出的请求」这一层 |
+| github/awesome-copilot `skills/npm-trusted-publishing/SKILL.md` | MIT | REJECT（跨组） | npm 包发布 + GitHub Actions OIDC，与 HTTP 服务无关；若要收录，归 `github` skill（Actions 工作流），已在汇报列为跨组命中 |
+| first-fluke/oh-my-agent `.agents/skills/oma-backend`（C2） | MIT | REJECT | 多语言通用「后端 agent」人格 + 执行协议，不针对 Node，规则全在 `resources/` 的流程文档里，无可验证的 Node 具体事实 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/auth-implementation`（C2） | MIT | REJECT（范围） | 认证/授权落地，provider 参考是 Clerk、Auth.js、Supabase（Next.js 为主）；本 skill 已裁定不写认证协议实现（候选 4 同理），12 stars |
+| TerminalSkills/skills `skills/postgres-js`（C3，G06 转来） | Apache-2.0 | REJECT（范围） | `postgres`（porsager）客户端库手册；数据库与查询层归 `postgres` skill，本 skill 只写「查询层用真实引擎测」这一层 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（`nestjs skill` 限 2026-09 之后创建、`fastify skills SKILL.md`、`hono agent skills`、`nodejs backend agent skills`）、`gh search code`（两条均无结果）、`VoltAgent/awesome-agent-skills` README（Node 相关只有 Sentry SDK 接入与测试框架生成类条目）、官方组织 `nestjs`/`fastify`/`honojs`/`expressjs`/`nodejs` 最近新建仓库。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 21 | honojs/skills `skills/hono` | https://github.com/honojs/skills | 17 | 2026-10-15 | MIT | Hono 官方 agent skill：内联 API 参考 + 用 Hono CLI（`hono request`/`batch`/`snapshot`）在进程内验证 | 3 | 3 | 1 | 2 | 2 | 11 | 待定（Hono 5 GA / CLI 1.0 后重评） | 官方来源，但 643 行里绝大部分是路由、Context、中间件的 API 参考，模型本来就会；真正的增量是 Hono CLI 验证工作流，而它要求 `@hono/cli@next`（文件内 `TODO at the 1.0 release`），`create-hono@next` 也挂在 Hono v5 GA 上——属未发布工具链，按流程不合入。另两个 skill（`hono-jsx`、`hono-void`）是 JSX 渲染与 Void 框架，不在范围 |
+| 22 | BothSann/agent-nestjs-skills | https://github.com/BothSann/agent-nestjs-skills | 0 | 2026-10-30 | MIT | NestJS 54 条规则 | 0 | 3 | 2 | — | 2 | 7 | REJECT | 零采纳的新仓库，描述（「54 best-practice rules ranked by impact」）与已合入的 Kadajett 同构，无新增来源；正确性未抽查 |
+| 23 | baxy/nestjs-skills | https://github.com/baxy/nestjs-skills | 0 | 2026-10-29 | NONE | NestJS | 0 | 3 | — | — | 0 | 3 | REJECT | 零采纳、无许可、无描述 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| nodejs-docs | 发布计划：v20 EOL 2026-04-30；v24 2026-10-20 转 Maintenance（EOL 2028-04-30）；v26 2026-10-28 进入 Active LTS | `nodejs/Release` `schedule.json` | **过时项已修**：正文「Written against Node.js 24 LTS」在 v26 转 LTS 后不再对应「Target the active LTS line」。改为「Node.js 24 and 26 LTS」并写明 26 为 Active LTS、24 维护至 2028-04-30；六个 reference 的「Verified against」同步。环境节「Node.js 24 LTS or newer」仍成立，未改 |
+| nodejs-docs | `--unhandled-rejections` 默认 `throw` 自 v15；`withScope()` added v25.9.0、Experimental（v24 页标 v24.20.0）；`--env-file` 20.6+、`--env-file-if-exists` 22.9+ | `doc/api/cli.md`、`async_context.md`@v26.13.0；latest-v24.x 页 | 一致。本机 Node 26.11.1 实跑：`withScope` + `using` 离开块后还原外层 store；`--env-file` 载入变量；未处理 rejection 以 exit 1 结束 |
+| nodejs-docs | 类型剥离 22.6+、不支持 enum/namespace/参数属性；24.12/25.2 转稳定 | `doc/api/typescript.md`@v26.13.0 | 一致。v26.0.0 删除了 `--experimental-transform-types`（本机实跑 `node: bad option`）；正文从未推荐该 flag，只在 SOURCES notes 记录 |
+| nodejs-docs | `pipeline` 传播错误并销毁全链；`mock.timers.enable/tick/reset`；`Readable.fromWeb`/`toWeb` | `stream.md`、`test.md`@v26.13.0；v26.0.0 release notes | 一致。Node 26 `node --test` 实跑 `mock.timers` 片段与 pipeline 错误传播用例均通过；v26 运行时弃用的 DEP0201 只涉及 `Duplex.toWeb()` 的 `options.type`，正文未用 |
+| fastify-docs | 默认错误处理器原样外发 message/code、`FST_ERR_DEC_REFERENCE_TYPE`、`close()` 六步与默认值、`handlerTimeout`、baseline `removeAdditional: true` | `docs/Reference/*`@v5.12.7 | 一致。5.x 最新仍是 5.12.7；main 上 10-15 之后的 `Errors.md`/`Server.md`/`Validation-and-Serialization.md` 提交属 v6 线（`v6.0.0-alpha.5`），未 GA，不作基线 |
+| nestjs-docs | REQUEST 作用域上冒、禁用位置、NestJS 12 gateway 连接级作用域；生命周期与 shutdown hooks；`ValidationPipe` | `content/fundamentals/provider-scopes.md`、`lifecycle-events.md`、`application/validation.md`、`websockets/gateways.md` | 一致。provider-scopes 10-30/10-31 两次提交只把示例改成 `import type`；gateways 10-16 新增「异步 `handleConnection()` 不是消息闸门」警告，正文未涉及 gateway 认证，属新增内容，未合入。当前 `@nestjs/core` 12.3.0 |
+| hono-docs | json/form content-type 要求、header 小写键、流式 helper、`contextStorage`、Mount Middleware、`@hono/node-server` 2.x 需 Node 20+ | `docs/guides/validation.md`（10-13 仅修链接）、`docs/api/hono.md`、`docs/middleware/builtin/mount.md`、`docs/getting-started/nodejs.md`（10-25 加 serve-static 大小写提示，Node 下限仍是 v1 口径） | 一致。hono 最新 4.13.16，v5 处于 `5.0.0-rc.1`；`@hono/node-server` 2.1.5 |
+| express-docs | Express 5 需 Node 18+、`@expressjs/v5-migration-recipe`、移除的方法与签名 | https://expressjs.com/en/guide/migrating-5/（源文件已迁到 `src/content/pages/en/guide/migrating-5.mdx`） | 一致。express 最新 5.3.0 |
+
+SOURCES：五个 docs 条目 `synced_at` 改为 2026-11-01；nodejs-docs `notes` 补记 v26 复核与 `--experimental-transform-types` 移除。
+
+下次同步要盯的：Hono v5 GA（`app.mount()` 移除、honojs/skills 与 `@hono/cli` 1.0 重评）；Fastify v6 GA；NestJS gateway `handleConnection()` 闸门问题若在评测里暴露再按新增规则走基线。

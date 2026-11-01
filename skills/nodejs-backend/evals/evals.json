@@ -75,5 +75,20 @@
       "Says `@hono/node-server` 2.x requires Node 20 or later, so it is not ready for Node 18.20 hosts: upgrade the hosts (and the `engines` field) or pin the adapter to 1.x",
       "Flags `app.mount()` as deprecated (removed in Hono v5) and replaces it with the Mount Middleware, `app.all('/auth/*', mount(authHandler))` from `hono/mount`"
     ]
+  },
+  {
+    "skills": [
+      "nodejs-backend"
+    ],
+    "query": "billing-worker (Fastify 5) — runtime.package.json and runtime.Dockerfile attached. Since we switched the start script to --env-file-if-exists, the container exits at boot with `node: bad option`. The platform team also wants every service off Node 20 by Friday. Which Node line should this service move to, and exactly what changes in package.json and the Dockerfile?",
+    "files": [
+      "evals/files/runtime.package.json",
+      "evals/files/runtime.Dockerfile"
+    ],
+    "expected_behavior": [
+      "Explains the boot failure: `--env-file-if-exists` only exists from Node 22.9, so Node 20 rejects it as a bad option, and the `engines` floor of `>=20` is wrong for the script it ships",
+      "States that Node 20 is end-of-life and picks Node 26 as the target because it is the Active LTS line (since 2026-10-28); if Node 24 is mentioned it is described as maintenance LTS, not as the current Active LTS line",
+      "Changes the `engines.node` floor, both Docker base images and the `@types/node` major consistently to the chosen line"
+    ]
   }
 ]

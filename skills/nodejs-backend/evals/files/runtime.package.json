@@ -1,0 +1,21 @@
+{
+  "name": "@acme/billing-worker",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "fastify": "^5.12.7",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.9.2"
+  }
+}

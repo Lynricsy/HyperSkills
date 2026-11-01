@@ -1,6 +1,6 @@
 # Process and request lifecycle
 
-Verified against: Node.js 24 LTS, Fastify 5.12, NestJS 12, Hono 4.13
+Verified against: Node.js 24 and 26 LTS, Fastify 5.12, NestJS 12, Hono 4.13
 
 ## Contents
 

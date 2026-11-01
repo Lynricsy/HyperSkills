@@ -1,6 +1,6 @@
 # Streams, backpressure and the event loop
 
-Verified against: Node.js 24 LTS
+Verified against: Node.js 24 and 26 LTS
 
 ## Contents
 

@@ -1,6 +1,6 @@
 # Structured logging and request context
 
-Verified against: Node.js 24 LTS, pino 10, Fastify 5.12, NestJS 12, Hono 4.13
+Verified against: Node.js 24 and 26 LTS, pino 10, Fastify 5.12, NestJS 12, Hono 4.13
 
 ## Contents
 

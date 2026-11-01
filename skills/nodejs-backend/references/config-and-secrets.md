@@ -1,6 +1,6 @@
 # Configuration and secrets
 
-Verified against: Node.js 24 LTS
+Verified against: Node.js 24 and 26 LTS
 
 ## Contents
 

@@ -4,7 +4,7 @@ description: "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: framework
 ---
 
@@ -20,8 +20,9 @@ injection, streams, the event loop — is in `## Core rules` and applies whateve
 the framework is. Framework-specific mechanics live in one branch reference per
 framework, selected from `package.json` (rule 1).
 
-Written against **Node.js 24 LTS**, Fastify 5, NestJS 12 and Hono 4. Rules that
-need a newer runtime carry a version floor inline.
+Written against **Node.js 24 and 26 LTS** (26 has been the Active LTS line
+since 2026-10-28; 24 is in maintenance until 2028-04-30), Fastify 5, NestJS 12
+and Hono 4. Rules that need a newer runtime carry a version floor inline.
 
 Not covered — do not answer from this skill:
 
