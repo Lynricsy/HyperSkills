@@ -1,6 +1,6 @@
 # PDF reading, writing and manipulation
 
-Verified against: pypdf 6.20, pdfplumber 0.11, reportlab 5.0, qpdf 12.4, poppler 26.07
+Verified against: pypdf 6.21, pdfplumber 0.11, reportlab 5.1, qpdf 12.4, poppler 26.07
 
 ## Contents
 
@@ -43,7 +43,7 @@ pdfplumber reads; mixing writers on one file is how content ends up duplicated.
 - **Merging PDFs that both contain forms collides field names.** Appending the
   same form twice gives two sets of widgets sharing one set of field names, so
   filling one fills both. Four pages, six widgets, three distinct names.
-  `[verified: pypdf 6.20]` Rename fields before merging, or flatten first.
+  `[verified: pypdf 6.21]` Rename fields before merging, or flatten first.
 - **Page indices are zero-based in pypdf and one-based everywhere in the UI.**
   `reader.pages[0]` is what a user calls page 1. Off-by-one here produces a
   plausible-looking wrong document.
@@ -92,7 +92,7 @@ Notes that save a rebuild:
   `<sub>`, `<br/>`. Escape a literal `&`, `<` or `>` (`&amp;`, `&lt;`, `&gt;`):
   unescaped, `AT&T` prints as `AT&T;`, anything shaped like a tag (`x<y>z`)
   vanishes without a word, and an unclosed tag raises `ValueError`.
-  `[verified: reportlab 5.0]`
+  `[verified: reportlab 5.1]`
 - Use plain ASCII hyphens. The non-breaking hyphen (U+2011), the Unicode hyphen
   (U+2010) and the figure dash (U+2012) are missing from the built-in Type 1
   fonts and render as a black box; en and em dashes are fine.
@@ -102,7 +102,7 @@ Notes that save a rebuild:
   no fallback, so an unregistered name fails the build — `KeyError` from
   `canvas.setFont`, `ValueError` from a `Paragraph` style. For `<b>`/`<i>`
   inside paragraphs, also map the family's faces with `registerFontFamily`.
-  `[verified: reportlab 5.0]`
+  `[verified: reportlab 5.1]`
 - Page numbers come from an `onPage` callback that draws on the canvas.
 
 ## Merge, split, rotate, reorder

@@ -1,6 +1,6 @@
 # Markdown to Word
 
-Verified against: docx 9.7.1 and marked 18.0 (the scripts lockfile), pandoc 3.12
+Verified against: docx 9.7.1 and marked 18.0 (the scripts lockfile), pandoc 3.13
 
 ## Contents
 
@@ -93,7 +93,7 @@ The style has to exist in the reference document, spelled exactly as in Word,
 including spaces and capitalisation. When it does not, pandoc creates a style of
 that name inheriting from body text and says nothing, so the block renders as
 an ordinary paragraph and the callout appears to have done nothing.
-`[verified: pandoc 3.12]` To tell the two cases apart, look the name up in the
+`[verified: pandoc 3.13]` To tell the two cases apart, look the name up in the
 packed `word/styles.xml`: a style pandoc invented has only `w:name`, `w:basedOn
 w:val="BodyText"` and `w:qFormat`, with none of the shading or border you
 designed.

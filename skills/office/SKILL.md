@@ -4,7 +4,7 @@ description: "Creates, edits and converts local Word, PowerPoint, Excel and PDF 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: task
 ---
 
@@ -53,8 +53,9 @@ Not covered:
   an error.
 - Pass pptxgenjs colours as six hex digits or a `pptx.SchemeColor`. Eight-digit
   hex and CSS names are replaced with black on a stderr warning nothing shows.
-- Give every `ImageRun` an explicit `type`. Without it the media part is
-  written with an `undefined` extension and no content type.
+- Give every `ImageRun` an explicit `type`. Before docx 9.13 a missing type
+  writes the media part with an `undefined` extension and no content type;
+  later versions read it from the bytes, but the bundled converter pins 9.7.
 - Wrap every docx-js run in a `Paragraph`. A `TextRun` or `PageBreak` placed
   directly in a section is written to the file and then ignored by every
   renderer.

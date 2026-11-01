@@ -495,3 +495,56 @@ openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 man
 | HP | 保留正例 | 新写：Turn the Summary sheet of quarterly-report.xlsx into a two-page Word r… | 2/2 | 2/2 |
 
 结论：调优负例（Google Sheets）0/3 → 3/3 未读，保留负例（Google Docs API）0/2 → 2/2；正例与保留正例全部读取。采用新描述。
+
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单：本 skill 无「已追踪路径确有变更」条目。`copilot-md-to-docx`（422 commits）、`open-design-pptx`（86 commits）为 `behind` / diff too large to attribute to paths；本次在裸仓库缓存（`/tmp/hs-attr/github__awesome-copilot`、`/tmp/hs-attr/nexu-io__open-design`）复跑 `git log --oneline <pinned>..<head> -- <paths>` 为空，树对比 `git diff --stat <pinned> <head> -- <paths>` 为空，`git ls-tree` 两端追踪路径均存在。`anthropic-*` 四条由 `check_upstream.py` 判为 repo moved, tracked paths unchanged。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| anthropic-docx / -pptx / -xlsx / -pdf | dbd4588 → ca45fc4（1 commit） | 无：`skills/{docx,pptx,xlsx,pdf}` 未变 | 未变更，仅 re-pin |
+| copilot-md-to-docx | 3cf7c7e → 5269f7e（422 commits） | 无：`skills/md-to-docx` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| open-design-pptx | 14fee23 → 12d970e（86 commits） | 无：`skills/pptx` 区间内无提交、树对比为空 | 未变更，仅 re-pin |
+| openai-pdf、slidespeak-design、ourarash-md-docx | — | up to date | 不动 |
+
+`--pin` 写入的 commit 与审阅 HEAD 逐条一致（ca45fc4 ×4、49f948f、5269f7e、12d970e、5e87d8a、4456f82），无越界差额。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| github/awesome-copilot `skills/markdown-to-word-mermaid`（MIT） | REJECT（记为观察） | Mermaid 渲染成 SVG，经 Office SVG 扩展嵌入 docx 并保留 3x PNG 回退；全局设 `htmlLabels: false` 以免 `foreignObject` 标签在 Word 里不显示。本 skill 的路线是「Mermaid 先渲染成 PNG 再走任一路径」（`markdown-to-docx.md`），该路线下 `foreignObject` 问题不出现；SVG 路线需要 mmdc + 无头浏览器 + 新版 Word，属于新增可选路线而非更正，未见基线缺口，不合入。若以后有「图要矢量清晰」的需求再按评测先行评估。 |
+| TerminalSkills/skills `skills/ppt-master`（Apache-2.0） | REJECT | 是 hugohe3/ppt-master 的安装与使用说明（clone 仓库、装依赖、让 agent 跑其流水线），单一第三方工具手册，无可迁移的事实。 |
+| first-fluke/oh-my-agent `oma-pdf`（两处同文件，MIT） | REJECT | 绑定 opendataloader-pdf 的 PDF→Markdown 调度模板（Scheduling/Scenes 框架），本 skill 的读取路径已覆盖文本层判断与 OCR 切换；无增量。 |
+| first-fluke/oh-my-agent `oma-hwp`（两处同文件，MIT） | REJECT（Scope 外） | 韩文 HWP/HWPX/HWPML → Markdown（kordoc）。HWP 不在本 skill 的 Scope 格式清单内，扩格式需主人决定；内容本身是工具调度模板，无独立价值。 |
+| hugohe3/ppt-master `skills/ppt-master`（MIT，71762 stars，C3 转来） | REJECT（形态） | 见下方新候选行：自带 SVG→原生 PPTX 转换流水线的整套框架（skills/ 下 13213 个条目），SKILL.md 只是其路由与执行纪律；采用它等于改用一个外部工具链，与本 skill「直接用 pptxgenjs / python-pptx」的形态不符。 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "office skills claude"`、`"pptx skill"`（按 stars）、`"docx pptx xlsx skill"`（按更新，无结果）；C3 转来的 hugohe3/ppt-master；工作单 C 中的 awesome-copilot 新增。评分口径同「候选表」。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 26 | hugohe3/ppt-master `skills/ppt-master` | https://github.com/hugohe3/ppt-master | 71762 | 2026-10-30 | MIT（skill 内 LICENSE 实读） | 文档 → SVG 逐页创作 → 原生 PPTX；模板提炼、旁白视频 | 1 | 3 | 2 | — | 2 | 8 | REJECT（形态） | 个人项目但采用量极高。SKILL.md 只做路由与执行纪律，所有实质在其自带脚本流水线；不能拆出与我们 pptxgenjs/python-pptx 路线兼容的规则。值得主人知悉，不建议追踪 |
+| 27 | carnot-tech/jinba-consulting-pptx-skill | https://github.com/carnot-tech/jinba-consulting-pptx-skill | 1455 | 2026-10-30 | MIT（另有 TRADEMARK.md） | 日文咨询风格幻灯片规约，HTML 为主产物、PDF 打印，PPTX 次要 | 1 | 3 | 3 | — | 2 | 9 | REJECT（范围） | 2026-09 新建。主产物是 HTML（本 skill Scope 排除 HTML 作为交付物），内容是商务写作与版式规约（日文），不是 Office 文件机制；如有价值应归 `html-deck` 评估（跨组提示） |
+| 28 | Gabberflast/academic-pptx-skill | https://github.com/Gabberflast/academic-pptx-skill | 1421 | 2026-07-14 | 仓库 MIT / SKILL.md frontmatter 写 Proprietary | 学术演讲的论证结构与版式规范，技术实现交给 Anthropic pptx skill | 1 | 2 | 2 | — | 0 | 5 | REJECT | 许可自相矛盾（同 #10 的情形）；内容是演讲写作方法，不是文件操作，依赖专有的 Anthropic pptx skill |
+
+## 2026-11-01 文档上游复核
+
+范围：10 条 `kind: docs` 的 `contributes` + references / SKILL.md 中实际引用的 API、默认值与版本。当前版本：docx **9.15.1**（9.12.0–9.15.1 于 2026-10-16 至 10-31 发布）、pptxgenjs 4.0.1、openpyxl 3.1.5、python-docx 1.2.0、python-pptx 1.0.2、pypdf **6.21.4**（2026-10-28）、pdfplumber 0.11.10、reportlab **5.1.0**（2026-10-22）、pandoc **3.13**（2026-10-26）、LibreOffice 26.8（本机 26.8.1.1）。实跑：Node `/tmp/hs-g12b/docxt` 下独立 `npm i docx@9.15.1`；Python 用 `uv run --no-project --with <pkg>==<ver>`；pandoc 3.13 用 `gh release download` 取官方二进制。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| docx-js-docs | `ImageRun` 缺 `type`；裸 run / `PageBreak` 直接放 section；不存在的样式名；`transformation` 为 96 dpi 像素；未给 `size` 时为 A4；TOC 字段只含条目不含页码、`estimatePageNumbers` | `dolanmiu/docx` `docs/usage/images.md`、`table-of-contents.md`、`page-layout.md`；9.12–9.15.1 发布说明 | **过时 1 处，已修**：9.13.0「read an image's type from its data when it isn't given (#2952)」。实跑 9.15.1：不给 `type` 时写出 `word/media/image1.png`，python-docx 1.2.0 正常打开；数据不是 PNG/JPEG/GIF/BMP 时抛 `ImageRun: type isn't given, and data isn't a PNG, JPEG, GIF or BMP file…`；官方 images 页「TypeScript requires it. From JavaScript, an image without one has its type read from the start of its data」。`references/docx.md` 该条改为「9.13 之前」并说明脚本锁定的 9.7.1 仍受影响；`SKILL.md` Core rules 同条加版本限定。另按 images 页补一句 `svg` 需要栅格 `fallback`。其余：裸 run 仍写成 `<w:body>` 下的 `<w:r>`；`width: 468` 仍得 `cx=4457700`（4.875 in）；无 `size` 仍为 `w:pgSz 11906×16838`；LO 26.8.1 渲染 TOC 页码为空，加 `estimatePageNumbers` 后为 1/2——一致，`[verified]` 标记改为 9.15.1 |
+| pptxgenjs-docs | 四种布局尺寸与 `LAYOUT_16x9` 默认 | https://gitbrent.github.io/PptxGenJS/docs/usage-pres-options/ | 一致；npm 最新仍为 4.0.1，其余实跑事实沿用 10-15 结论 |
+| openpyxl-docs | read-only 需 `close()`；write-only 新建无工作表、只能保存一次 | https://openpyxl.readthedocs.io/en/stable/optimized.html | 一致；版本仍 3.1.5 |
+| python-openxml-docs | python-pptx `slides` 无删除 API | python-docx / python-pptx 文档 | 一致；版本未变，实跑 python-pptx 1.0.2 `slides` 公有属性仍为 `add_slide,element,get,index,parent,part` |
+| pypdf-docs | `auto_regenerate=False`；`flatten=True` + `remove_annotations(subtypes="/Widget")`；复选框状态名带斜杠；无字段页警告；同表单合并字段名冲突；AES-256 | https://pypdf.readthedocs.io/en/stable/user/forms.html ；CHANGELOG 6.21.0–6.21.4 | 一致。6.21.x 只有安全加固（扁平化时限制复制的页属性数等）与 bug 修复，未改上述 API。实跑 6.21.4：`True/"Yes"/"1"/"/1"` 均留 `/Off`、`"/Yes"` 写 `/V` 与 `/AS`，`/NeedAppearances False`；扁平化后 `get_fields()` 为 `None`、文本可提取、`qpdf --check` 无错；合并两份表单得 4 页 6 widget 3 个字段名；AES-256 加解密通过。标记改为 6.21 |
+| pdfplumber-docs | 表格默认 `lines/lines`、`text_x_tolerance`、`explicit_vertical_lines`、`layout` | https://github.com/jsvine/pdfplumber README | 一致；仓库自 2026-06-15 无提交，版本仍 0.11.10 |
+| reportlab-docs | 段落转义（`AT&T` → `AT&T;`、`x<y>z` 丢标签、未闭合抛 `ValueError`）；未注册字体 `KeyError`/`ValueError` | https://docs.reportlab.com/releases/notes/whats-new-51/ | 一致。5.1.0 说明只有 `rl_safe_eval` 沙箱逃逸修复、重定向主机也套 `trustedHosts`、`Canvas.getpdfdata` 用 latin1 等，无功能变化。实跑 5.1.0 四条全部复现；破折号字形一条未重测，标记保持 5.0 |
+| pandoc-docs | `--track-changes` 默认 accept、reject/all；缺失 `custom-style` 被建成基于 BodyText 的空样式 | https://pandoc.org/MANUAL.html ；3.13 发布说明 | 一致。3.13 的 docx reader/writer 变更（`w:fldSimple`、无宽度 gridCol、列表续段等）不涉及上述行为。实跑 3.13：`w:del`/`w:ins` 夹具默认与 accept 读 net 30、reject 读 net 60、all 带 author；`NoSuchStyle` 生成 `w:basedOn BodyText` + `w:qFormat`。相关 references 版本行 3.12 → 3.13 |
+| libreoffice-docs | `--headless`、`--convert-to` 过滤器语法、缺省 `--outdir` 为当前目录、`-env:UserInstallation` | https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html | 一致；本机 LO 26.8.1.1 转换正常 |
+| ecma-376 | OOXML 修订与批注语义 | https://ecma-international.org/publications-and-standards/standards/ecma-376/ | 页面有效，仍为第 5 版；正文未引版次。**更正上次记录**：10-15 表写「Part 1 仍为第 5 版（2021-12）」不准——页面列出 Part 1 为 5th edition December 2016，2021-12 是 Part 2（OPC）的日期；正文不受影响 |
+
+正文改动：`SKILL.md`（Core rules `ImageRun` 一条加版本限定）、`references/docx.md`（`ImageRun` 失效模式改写、svg fallback、`[verified]` 版本）、`references/pdf.md`、`pdf-forms-tables-ocr.md`、`markdown-to-docx.md`、`docx-tracked-changes-comments.md`（仅版本行 / 标记）。`scripts/` 未改（`md_to_docx.mjs` 锁定 docx 9.7.1，注释「type 必填」对该版本仍成立）。

@@ -1,6 +1,6 @@
 # Creating Word documents with docx-js
 
-Verified against: docx 9.11.0, python-docx 1.2, LibreOffice 26.8, pandoc 3.12
+Verified against: docx 9.15.1, python-docx 1.2, LibreOffice 26.8, pandoc 3.13
 
 ## Contents
 
@@ -38,13 +38,17 @@ what makes them expensive.
   A `TextRun("bare run")` placed directly in a section renders as nothing at
   all; a `PageBreak` placed directly in a section produces a one-page document
   where you expected two. Wrap both in a `Paragraph`. `[verified]`
-- **`ImageRun` without `type` writes an unreadable package.** Omitting `type`
-  writes the media part as `word/media/<hash>.undefined` with no matching
-  content-type entry. LibreOffice still converts the file, so a render-only
-  check passes, while python-docx fails with
-  `no content type for partname '/word/media/<hash>.undefined'`. Always pass
-  `type: "png" | "jpg" | "gif" | "bmp" | "svg"` and make it match the bytes.
-  `[verified]`
+- **Before docx 9.13, `ImageRun` without `type` writes an unreadable package.**
+  Omitting `type` writes the media part as `word/media/<hash>.undefined` with no
+  matching content-type entry. LibreOffice still converts the file, so a
+  render-only check passes, while python-docx fails with
+  `no content type for partname '/word/media/<hash>.undefined'`. From 9.13 the
+  format is read from the first bytes of `data` when `type` is left out, and
+  data that is not PNG, JPEG, GIF or BMP throws instead. The bundled
+  `scripts/md_to_docx.mjs` is locked to an older docx, and an installed copy
+  may be too, so still pass `type: "png" | "jpg" | "gif" | "bmp" | "svg"` and
+  make it match the bytes; an `svg` also takes a raster `fallback` for apps
+  that cannot draw SVG. `[verified: docx 9.11.0, 9.15.1]`
 - **A style name that does not exist is silently ignored.** Referring to
   `style: "Quote"` when no such style is defined leaves the paragraph with
   default formatting and no error. Define custom styles in the `Document`
@@ -85,7 +89,7 @@ fs.writeFileSync("report.docx", await Packer.toBuffer(doc));
 Units are the ones Word uses, and they differ per property: `size` is
 half-points (22 = 11 pt), margins and indents are twentieths of a point
 (1440 = 1 inch), and image transformations are pixels at 96 per inch
-(624 = 6.5 inches) — not points. `[verified: docx 9.11.0]`
+(624 = 6.5 inches) — not points. `[verified: docx 9.15.1]`
 
 ## Headings and styles
 
@@ -160,7 +164,7 @@ image is stretched. With no `size` in the section properties docx writes an A4
 page, and its 1-inch default margins leave 9026 twips (about 6.27 in, 601 px)
 of text width; a Letter page (`size: { width: 12240, height: 15840 }`) leaves
 6.5 in = 624 px. Sizing in points instead (468 for 6.5 in) yields an image a
-quarter narrower than intended. `[verified: docx 9.11.0]`
+quarter narrower than intended. `[verified: docx 9.15.1]`
 
 ## Page breaks, sections, headers and footers
 
@@ -180,12 +184,12 @@ but no page numbers: those depend on page layout, so they are left for Word to
 fill when it updates fields (set `features: { updateFields: true }` on the
 `Document` so Word offers to on open). LibreOffice does not update fields on
 conversion, so a rendered preview shows the entries with blank page numbers.
-That is expected, not a defect. `[verified: docx 9.11.0]`
+That is expected, not a defect. `[verified: docx 9.15.1]`
 
 When the contents list must carry page numbers without user interaction, pass
 `pageNumbers: estimatePageNumbers` (from `docx/layout`) to the `Document`,
 which lays the pages out as Word would and writes the numbers into the field;
-a number it cannot work out stays blank. `[verified: docx 9.11.0]`
+a number it cannot work out stays blank. `[verified: docx 9.15.1]`
 
 ## Reading a document
 

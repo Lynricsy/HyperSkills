@@ -1,6 +1,6 @@
 # PDF forms, tables and OCR
 
-Verified against: pypdf 6.20, pdfplumber 0.11, tesseract 5.5, poppler 26.07
+Verified against: pypdf 6.21, pdfplumber 0.11, tesseract 5.5, poppler 26.07
 
 ## Contents
 
@@ -67,7 +67,7 @@ page that owns none of the fields. And pass `auto_regenerate=False`: pypdf
 writes each widget's appearance stream itself, while the default `True` sets
 `/NeedAppearances`, which makes the viewer re-render the fields and may raise a
 "save changes" dialog when the recipient opens the file — pypdf's own forms
-guide recommends `False`. `[verified: pypdf 6.20]`
+guide recommends `False`. `[verified: pypdf 6.21]`
 
 ## Checkboxes and radio groups
 
@@ -80,7 +80,7 @@ annot.get("/AP").get("/N").keys()   # dict_keys(['/Off', '/Yes'])
 ```
 
 `True`, `"Yes"`, `"1"` and `"/1"` all leave the box at `/Off` with no error
-raised. `"/Yes"` sets both `/V` and the widget's `/AS`. `[verified: pypdf 6.20]`
+raised. `"/Yes"` sets both `/V` and the widget's `/AS`. `[verified: pypdf 6.21]`
 
 The on-state name is per widget: `/Yes`, `/On`, `/1` and `/Choice1` are all
 common. Radio groups work the same way — one field, one on-state per button,
@@ -107,7 +107,7 @@ writer.write("flat.pdf")
 The text stays selectable and `get_fields()` on the result returns `None`.
 Without the last deletion the file still opens, but `qpdf --check` and poppler
 warn about field references to objects that no longer exist.
-`[verified: pypdf 6.20]` Render the result: a field whose appearance pypdf
+`[verified: pypdf 6.21]` Render the result: a field whose appearance pypdf
 cannot draw well (an unusual font, a comb field) is better drawn as content
 from the start (overlay path below), or rasterised with
 `scripts/render_preview.py filled.pdf --dpi 200` and rebuilt from the page
