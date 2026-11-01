@@ -535,3 +535,22 @@ kotlinlang.org 同法。
 | kotlin-docs | 显式 backing field 在 2.4 稳定；当前 Kotlin 线 | https://kotlinlang.org/docs/properties.html （作为常规特性记载，无 opt-in 说明）、https://kotlinlang.org/docs/releases.html （最新 2.4.21；2.5.0 计划 2026-12） | 一致 |
 
 处理：一处 reference 更正（`testing.md`）；`synced_at` 2 条更新为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：8b3ff35（`testing.md` 截图测试源集与 AGP 9.5 test suites 更正；新增场景 10–12）。运行：
+`uv run tools/run_evals.py android --only N [--baseline] --out /tmp/hs-d2/G09-mobile`（omp + gpt-6.1-sol medium，VM），产物在
+`/tmp/hs-d2/G09-mobile/android/omp-openai-gpt-6.1-sol-medium/`。有 skill 运行（13:41–13:45）晚于 8b3ff35；基线（13:35–13:41）
+在场景与夹具定稿后运行，`result.json` 的 query 与当前一致。场景 12 期望 3 在基线运行后收紧（不再接受只换 `postInvalidate()`），
+基线答案本身已明确拒绝该做法，判定不受影响。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10（新增，回归） | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ | 163 s。明说不加已弃用的 `com.android.compose.screenshot`，用 `testOptions.screenshotTests.create("screenshotTest")` + 两个实验开关，测试放 `src/screenshotTest/kotlin/`，`updateScreenshotTestDefaultDebugTestSuite` / `testScreenshotTestDefaultDebugTestSuite` 分开记录与校验 |
+| 10（新增，回归） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 125 s。联网读到官方 test suites 页面后给出同一套设置 |
+| 11（新增，哨兵） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4◐ | 121 s。拒绝 `configChanges` 并指出进程死亡仍丢状态；`rememberSaveable(conversationId)`；`listSaver` 存展开 ID；滚动用 `rememberSaveable(saver = LazyListState.Saver)`（等价于 `rememberLazyListState()`，未点明普通 `remember` 绕过 Saver） |
+| 12（新增，哨兵） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ | 92 s。指出后台 `invalidate()` 与 `scheduleTraversals()` 竞争、泄漏同步屏障、主线程停在 `nativePollOnce`；驳回 service 方案；循环放回 Main、只把计算放进 `withContext(Dispatchers.Default)` |
+| 4（负例） | gpt-6.1-sol medium | 有 | False | — | 51 s。按 React Native / FlashList 作答，未加载 skill |
+
+结论：`testing.md` 更正在有 skill 时按新正文落地（场景 10 全部达成，不比基线差；基线靠联网读官方页面同样达成，属消除过时陈述）。
+场景 11、12 基线全部达成，上游 adaptive 状态保存与 ANR 审计内容不合入，两场景留作哨兵。负例 `skill_read == false`。各场景 1 次运行。
