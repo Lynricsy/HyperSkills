@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin react
 skill: react
-version: "2026.10.15"           # must equal SKILL.md metadata.version
+version: "2026.11.01"           # must equal SKILL.md metadata.version
 upstreams:
   - id: vercel-react-bp
     kind: repo
@@ -9,10 +9,10 @@ upstreams:
     url: https://github.com/vercel-labs/agent-skills
     paths: [skills/react-best-practices, skills/composition-patterns]
     ref: main
-    commit: 063bee94c3f4df8453406c830b0a7df0f2860278
+    commit: 1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Impact-ordered React performance rules with their stable ids, plus the composition and state-contract rules."
     notes: "Repo declares no root license; the skill frontmatter declares MIT. Its rerender-memo-with-default-value rule is rewritten: a non-primitive default parameter does not break memo()'s own prop comparison (defaults apply after it), but it does destabilise downstream hook dependencies and memoized children."
   - id: addy-frontend-ui
@@ -21,10 +21,10 @@ upstreams:
     url: https://github.com/addyosmani/agent-skills
     paths: [skills/frontend-ui-engineering]
     ref: main
-    commit: aeac41d4d005999432bb7312f7ff06383a91d59d
+    commit: 8bfcc1f9916f2eea55494d8c1fa7f4bde867dd9e
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Colocated file layout, composition over configuration, container/presentation split, the state-location ladder, prop-drilling limit, and loading/empty/error state requirements."
     notes: "Only the architecture and state sections are merged; the design and accessibility sections belong to the frontend-design skill. The upstream reference to a repo-level references/ directory is dropped because a per-skill install does not copy it."
   - id: nextjs-cache-components
@@ -38,10 +38,10 @@ upstreams:
       - skills/next-dev-loop
       - skills/next-bundle-optimizer
     ref: canary
-    commit: 0b3693ddd5fca101fe6d286849a980ddc1bf0650
+    commit: 3bccd4df910c984ca60f796e50b8d43db3227162
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Cache Components adoption sequence and the instant-navigation loop: phases and gates, the blocking-shape fixes, the instant() guard, loading-UI reuse, and the post-optimization prefetching check. next-bundle-optimizer surfaced the 16.4 rename of the bundle analyzer command (`next analyze`, with `experimental-analyze` kept as an alias)."
     notes: "Tracked on the canary branch, which is where these skills ship. Version floor Next.js 16.3+ is stated in the reference because none of its verdicts hold below it. The analyzer rename was verified in `packages/next/src/bin/next.ts` at v16.4.0 (`command('analyze').alias('experimental-analyze')`) against v16.3.8 (only `experimental-analyze`); next-bundle-optimizer's snapshot/export workflow was not merged."
   - id: openai-plugins-nextjs
@@ -53,7 +53,7 @@ upstreams:
     commit: 0722921d5542fc593105c27bd52630babd8b8c2a
     license: NONE
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "App Router API semantics: file conventions, RSC boundary validity, async request APIs, runtime choice, directives, error handling, data-pattern selection, route handlers, metadata, image, font, scripts, hydration, suspense bailout, parallel routes, bundling, self-hosting and dev-server debugging."
     notes: "No license grant; included under fair-use with attribution per project policy. Codex-specific frontmatter (metadata.priority, docs, sitemap, pathPatterns, bashPatterns, promptSignals) was stripped."
   - id: shadcn-official
@@ -62,10 +62,10 @@ upstreams:
     url: https://github.com/shadcn-ui/ui
     paths: [skills/shadcn]
     ref: main
-    commit: 4233ed1caded8c38f4bc14b14afe1f93ebcaf966
+    commit: c0d63c339d6cd2fc26135590a54cf1f362269451
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The shadcn workflow (info, docs, search, add, review), the styling and Tailwind conventions, form and composition rules, icon rules, base-vs-radix API differences, registry rules and theming."
     notes: "Claude-Code-specific frontmatter (user-invocable, allowed-tools) was stripped, and the upstream load-time command-injection block was rewritten as an explicit first step of the add-shadcn-component workflow."
   - id: anthropic-web-artifacts
@@ -74,10 +74,10 @@ upstreams:
     url: https://github.com/anthropics/skills
     paths: [skills/web-artifacts-builder]
     ref: main
-    commit: dbd4588f9e1033efb41dad4bef2f7947c8993d44
+    commit: ca45fc496a3436251f191354091d557da31c15b5
     license: NOASSERTION
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Read for scaffolding conventions when starting a React project from scratch; no content was copied."
     notes: "Per-skill LICENSE.txt. Reference only: its scaffolding is bound to the Claude artifact runtime, and the shadcn CLI covers the same ground portably."
   - id: terminalskills-react
@@ -86,10 +86,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills/tree/main/skills/react
     paths: [skills/react]
     ref: main
-    commit: 6edcf94159d9f46b0759d2e1b59dd545cfaca254
+    commit: 8a9852d489f274538be9bf1c9121aeb403750b1c
     license: Apache-2.0
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Surfaced the missing rule that RSC apps must keep `react-server-dom-*` on a patched release; the rule as written (latest patch of the line, Next.js vendoring, evidence to close) rests on the React and Next.js security advisories. No content copied."
     notes: "The rest of the file is tutorial material this skill already covers."
   - id: react-security-advisories
@@ -97,22 +97,22 @@ upstreams:
     url: https://github.com/facebook/react/security/advisories
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The RSC security-release section in references/nextjs-ops-and-debug.md and core rule 21: every RSC advisory since December 2025 patches `react-server-dom-webpack`/`-turbopack`/`-parcel` on all supported lines at once (19.0.x, 19.1.x, 19.2.x and, from October 2026, 19.3.x)."
-    notes: "Read through `gh api repos/facebook/react/security-advisories` and the React CHANGELOG on 2026-10-15: ten advisories from GHSA-fv66-9v8q-g76r (2025-12-03) to GHSA-xqc2-xf4c-x3h3 (2026-10-14, patched in 19.0.9/19.1.10/19.2.9/19.3.1). Next.js App Router vendors these packages under `packages/next/src/compiled/react-server-dom-*` (checked at v16.4.0), and vercel/next.js publishes its own advisories with `next` patched versions."
+    notes: "Read through `gh api repos/facebook/react/security-advisories` and the React CHANGELOG on 2026-10-15: ten advisories from GHSA-fv66-9v8q-g76r (2025-12-03) to GHSA-xqc2-xf4c-x3h3 (2026-10-14, patched in 19.0.9/19.1.10/19.2.9/19.3.1); re-read 2026-11-01, no newer advisory. Next.js App Router vendors these packages under `packages/next/src/compiled/react-server-dom-*` (checked at v16.4.0), and vercel/next.js publishes its own advisories with `next` patched versions."
   - id: react-docs
     kind: docs
     url: https://react.dev/reference
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Correctness arbiter and version floors; the sole source for the Actions form-state section (useActionState, useFormStatus, useOptimistic)."
-    notes: "React 19.2 release notes fix the availability floor for Activity and useEffectEvent; npm reports react 19.3.1 as current (2026-10-15). The useOptimistic example follows the reference's rule that the setter runs inside an Action, re-checked by rendering it under react-dom 19.3.1."
+    notes: "React 19.2 release notes fix the availability floor for Activity and useEffectEvent; npm reports react 19.3.1 as current (2026-11-01). The useOptimistic example follows the reference's rule that the setter runs inside an Action, re-checked by rendering it under react-dom 19.3.1."
   - id: nextjs-docs
     kind: docs
     url: https://nextjs.org/docs
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Arbiter for data-fetching and caching semantics, and for the cacheComponents and instant-navigation version facts."
-    notes: "Same repository and license as vercel/next.js; npm reports next 16.4.1 as current (2026-10-15). Docs read from the vercel/next.js `docs/` tree at tag v16.4.1."
+    notes: "Same repository and license as vercel/next.js; npm reports next 16.4.3 as current (2026-11-01). Docs read from the vercel/next.js `docs/` tree at tag v16.4.3; the runtime-export facts (Edge Runtime deprecated with a build warning from 16.3.0, any `runtime` export rejected under cacheComponents) were checked against `warn-about-edge-runtime.ts` and the `react_server_components.rs` segment-config check at v16.4.1."

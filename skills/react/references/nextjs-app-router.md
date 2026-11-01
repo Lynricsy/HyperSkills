@@ -212,14 +212,16 @@ them — a top-level `await` blocks the route's static shell. See
 
 ## Runtime selection
 
-Use the default Node.js runtime. Add `export const runtime = 'edge'` only when
-the project already uses Edge, or there is a stated latency requirement and
-every dependency is Edge-compatible.
+Use the default Node.js runtime and do not write a `runtime` export. The Edge
+Runtime is deprecated: from Next.js 16.3, `export const runtime = 'edge'` logs a
+deprecation warning at build time, and the documented migration is to delete
+the export, not to replace it. Behaviour that needs to run before routing at
+the edge belongs in `proxy.ts`, which always runs on Node.js and fails the
+build if it exports a `runtime`.
 
-| Runtime | Trade |
-|---|---|
-| Node.js (default) | full Node API, `fs`, full `crypto`, database drivers, most npm packages |
-| Edge | smaller cold start, geographic distribution; no `fs`, reduced `crypto`, many packages unusable |
+With `cacheComponents: true` the `runtime` export is a build error whatever its
+value, `'nodejs'` included; remove it along with `dynamic`, `revalidate` and
+`fetchCache` (see `nextjs-cache-components.md`).
 
 ---
 

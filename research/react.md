@@ -392,3 +392,64 @@ re-pin、版本号改为 2026.10.15。`pin_check.py`：PIN CHECK CLEAN。
 遗留：① provider 恢复后重跑场景 9 有 skill；若再次漏掉 EB4，把规则 21 的「state that rule」提到 `nextjs-ops-and-debug.md`「RSC security releases」节首句并要求写进答复。② 场景 7 EB4、场景 8 EB1 有 skill 低于复用基线，均为本 skill 未覆盖的内容（上游同步时因基线已会未合入），单样本，留观察。
 
 补跑（主代理，provider 恢复后）：场景 9 有 skill 重跑一次（`/tmp/hs-d2/main/react/omp-openai-gpt-6.1-sol-medium/skill/9/`，68 s，`skill_read == true`）：EB1 ✔ EB2 ✔ EB3 ✔ **EB4 ✔**——给出 `next` 16.4.1 与 `react-server-dom-webpack` 19.3.1 并附 `npm ls`/`npm audit` 关单证据，结尾明确「下次公告要复核所在受支持版本线的最新补丁，不要把这些数字当永久安全目标」。三次有 skill 样本中两次达成 EB4，与基线（未达成）相比无回退；遗留 ① 关闭，正文不改，继续留作观察项。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/react.md`：`addy-frontend-ui` 用 `gh api …/compare` 读 patch；
+`nextjs-cache-components`（too large）与 `terminalskills-react`（too large）用主代理裸仓库缓存 `git diff <旧pin> <审阅HEAD> -- <paths>` 读树 diff。
+`vercel-react-bp`、`shadcn-official`、`anthropic-web-artifacts` 为 paths 未变的噪声；`openai-plugins-nextjs` up to date。`--pin` 写入的 6 个 commit
+与快照 HEAD 逐条一致（`8bfcc1f`、`3bccd4d`、`8a9852d`、`1a2c79d`、`c0d63c3`、`ca45fc4`），无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| addy-frontend-ui | aeac41d → 8bfcc1f（5 提交命中） | `frontend-ui-engineering/SKILL.md`：`d14cf2d`/`2ba5de2` 骨架屏容器加 `role="status"`（「so its label is exposed」）；`6720a51`/`f97d842` 容器把 `toggleTask`/`deleteTask` 传给 `TaskList`→`TaskItem`；`081b915` 空状态示例声明 `onCreateTask` prop | **事实更正（合入）**：`references/architecture-and-state.md` 的 `TaskListSkeleton` 同样是带 `aria-label` 的无角色 `<div>`。WAI-ARIA 1.2 `generic` 角色「Prohibited States and Properties: aria-label, aria-labelledby」、`status` 角色 Name From author（https://www.w3.org/TR/wai-aria-1.2/ 实读），无角色时标签不暴露。示例加 `role="status"`，正文写明原因。处理函数与空状态 prop 两处：本 skill 示例未定义 `TaskItemProps`、无空状态 action 示例，无影响 |
+| nextjs-cache-components（too large） | 0b3693d → 3bccd4d（1 提交命中） | `7812b031`：`next-bundle-optimizer` 新增「Unexpected client dependencies」流程与 `references/client-dependencies.md`——流式读取 `next analyze export` 的 JSON Lines，按 `[app-client]` 层、`client_bootstrap` 根与 `[client-fs]` 字节做图连接与 BFS 溯链，判定服务端专属模块（ORM、密钥签名、权限表、管理 SDK）是否进入客户端输出；Server Action 引用存根判 suppressed；fix 模式下「边界修复」需另行授权 | **不合入**：上游工具专属审计流程（依赖 `next analyze export` 的 schema 与字段名），与 2026-10-15「`next analyze export` JSON Lines 不做」口径一致；规则层面本 skill `nextjs-app-router.md` 已写「数据库客户端或带密钥 SDK 被 `'use client'` 文件引入即编进浏览器包」 |
+| terminalskills-react（too large） | 6edcf94 → 8a9852d（1 提交命中） | `33b765f0`：全仓 1,074 个 SKILL.md 的 `metadata` 列表改为逗号分隔字符串 | 无影响（frontmatter 格式化），只 re-pin |
+| vercel-react-bp / shadcn-official / anthropic-web-artifacts | 063bee9 → 1a2c79d / 4233ed1 → c0d63c3 / dbd4588 → ca45fc4 | paths 未变 | 噪声，只 re-pin |
+
+阶段 4 复核中另发现两处 Next.js 事实已过时，一并更正（证据见「文档上游复核」）：
+- `nextjs-app-router.md`「Runtime selection」原写「需要时可加 `export const runtime = 'edge'`」并列 Edge 优劣表。Edge Runtime 已弃用：
+  `packages/next/src/build/warn-about-edge-runtime.ts` 自 v16.3.0 存在（v16.2.0 无），构建时打印「The Edge Runtime is deprecated」；官方迁移是删掉导出而非替换。
+  改为「默认 Node.js、不写 `runtime` 导出；需在路由前执行的逻辑放 `proxy.ts`（恒为 Node.js，导出 `runtime` 时生产构建报错）」。
+- `nextjs-cache-components.md` 前置条件只列 `dynamic`/`revalidate`/`fetchCache`。`crates/next-custom-transforms/src/transforms/react_server_components.rs`
+  自 v16.0.0 起在 `cache_components_enabled` 时把任何 `runtime` 导出标为「Route segment config "runtime" is not compatible with `nextConfig.cacheComponents`」，
+  v16.4.3 文档也补写「Remove the export even when it is set to `runtime = 'nodejs'`」。前置条件补上 `runtime`（含 `'nodejs'`）。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| TerminalSkills/skills `skills/react-bits`（Apache-2.0） | REJECT | 单一第三方组件库（React Bits 动画组件）的安装手册：shadcn registry 命名、jsrepo、四种 flavor。属组件库教程，不在本 skill「React 工程与 Next.js」范围的规则层 |
+| TerminalSkills/skills `skills/react-doctor`（Apache-2.0） | REJECT | 单一工具（`react-doctor` CLI）的命令参数手册；无本 skill 未覆盖的 React 规则 |
+| TerminalSkills/skills `skills/xyflow`（C2，Apache-2.0） | REJECT | React Flow / Svelte Flow 单一库手册（`@xyflow/react` v12 与 `reactflow` v11 区分、父容器须有高度等），库专属教程，不入规则层 |
+| vercel/next.js `crates/AGENTS.md` | REJECT | 上游自用开发流程（Rust crates 贡献说明），非应用开发内容 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（`react skills`、`nextjs skills` 等，`--created >2026-08-01` / `--updated >2026-10-15`，各查询间隔 4 s）；
+`VoltAgent/awesome-agent-skills` README 10-15 以来的新增行（React 相关只有已追踪/已评估的 vercel-labs 条目与 `finom/vovk` 等）；
+`github/awesome-copilot` 3cf7c7e..5269f7e 新增文件（无 React/Next.js 相关）。另见 `vercel-labs/agent-skills` `react-view-transitions` 10-27
+「ViewTransition 与 addTransitionType 在 React 19.3 转为 stable」——本 skill 不涉及 ViewTransition，候选 3 维持 MAYBE。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| rootchzt13/nextjs-skills | 0 | 2026-10-17 | 无 | 0+3+1+1+0=5 | REJECT：个人项目流程（印尼语 `/nextjs-review` 等斜杠命令，依赖本仓库自己的 `rules.md`），无可复用的 Next.js 规则 |
+| laserjm/nextjs-skills | 0 | 2026-10-29 | 无 | 0+3+1+1+0=5 | REJECT：仅 `migrate-module`/`new-module` 两个项目内脚手架命令 |
+| Reactive-Skills/reactive-skills | 1 | 2026-10-30 | AGPL-3.0 | 0+3+0+0+2=5 | REJECT：名称含 react，实为 AI 工作流状态机运行时，范围无交集 |
+
+## 2026-11-01 文档上游复核
+
+范围：3 条 `kind: docs` 的 `contributes` + 正文引用的版本门槛与默认值。npm 当前：react 19.3.1、next 16.4.3（latest）、16.5.0-canary.36。
+Next.js 文档读 `gh api repos/vercel/next.js/compare/v16.4.1...v16.4.3` 的 `docs/` 变更（43 个文件）与 v16.4.3 `runtime.mdx`、`cacheComponents.mdx`、
+`errors/edge-runtime-deprecated.mdx`；react.dev 读 `reactjs/react.dev` 10-14 以来提交（仅 2 个：`preloadModule`/`preinitModule` 支持 `fetchPriority`、
+React DevTools for agents 页）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| react-security-advisories | 每条 RSC 公告同时修补全部受支持发布线；最新公告 | https://github.com/facebook/react/security/advisories（`gh api repos/facebook/react/security-advisories`） | 一致：仍为 10 条，最新 GHSA-xqc2-xf4c-x3h3 / GHSA-h3gv-c5rc-p453（2026-10-14），10-14 后无新公告 |
+| react-docs | `useActionState`/`useFormStatus`/`useOptimistic` 用法、Activity 与 useEffectEvent 版本底线；`preloadModule`/`preinitModule` 用途表 | https://react.dev/reference/react 、/reference/react-dom/preloadModule | 一致：10-14 后 react.dev 仅新增 `fetchPriority` 选项说明与 DevTools 页，不影响正文 |
+| nextjs-docs | `cacheComponents` 须配 `partialPrefetching`；启用后被拒绝的路由段导出 | https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents 、/app/guides/migrating-to-cache-components#runtime--edge | **已变化 → 更正**：v16.4.3 文档写明 Cache Components 不支持 `runtime` 路由段配置、`runtime = 'nodejs'` 也要删；源码 v16.0.0 起即如此。`nextjs-cache-components.md` 前置条件补 `runtime` |
+| nextjs-docs | Edge Runtime 地位 | https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config/runtime 、/docs/messages/edge-runtime-deprecated | **已变化 → 更正**：`'edge'` 标 deprecated，迁移为删除导出；`proxy.ts` 不接受 `runtime`。`nextjs-app-router.md`「Runtime selection」重写 |
+| nextjs-docs | 自托管缓存：多实例需共享 cache handler | https://nextjs.org/docs/app/guides/self-hosting | 一致：v16.4.3 把示例改为生产要求清单（共享存储、限容、序列化 `Buffer`/`Map`、按 tag 建索引、处理存储错误），与正文「多实例需共享 cache handler」不冲突，细节不入正文 |
+
+处理：两处 references 更正；三条 docs 的 `synced_at` 改为 2026-11-01，`react-docs`/`nextjs-docs`/`react-security-advisories` 的 notes 更新当前版本与核对方式。

@@ -58,9 +58,9 @@ Preconditions, all of them blocking:
 - Remove `experimental.dynamicIO`; it was renamed to top-level `cacheComponents`
   and the old key now aborts the build. `experimental.useCache` is a deprecated
   alias and redundant once `cacheComponents` is set.
-- Inventory `export const dynamic`, `revalidate` and `fetchCache`.
-  `cacheComponents: true` errors on any file that still exports one, and no
-  codemod removes them. Translate each per the migration guide.
+- Inventory `export const dynamic`, `revalidate`, `fetchCache` and `runtime`; the
+  flag errors on any file that still exports one (`runtime = 'nodejs'` too) and no
+  codemod removes them. Translate each per the migration guide; delete `runtime`.
 - A file with a top-level `'use cache'` directive cannot also export `instant`.
   If both are present, the directive was wrong for that route; remove it first.
 

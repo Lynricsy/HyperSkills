@@ -137,14 +137,16 @@ A component that handles only the success path is unfinished. Requirements:
 
 - Loading: a skeleton that matches the real layout, not a centred spinner —
   a spinner throws away the layout information you already have and causes a
-  jump when content arrives. Mark it with `aria-busy`.
+  jump when content arrives. Mark it with `aria-busy`, and give the container
+  `role="status"`: ARIA prohibits `aria-label` on a plain `<div>` (role
+  `generic`), so without a role the label is never exposed.
 - Empty: say what is missing and offer the action that fixes it.
 - Error: say what failed, in the user's terms, and offer a retry.
 
 ```tsx
 function TaskListSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading tasks">
+    <div role="status" aria-busy="true" aria-label="Loading tasks">
       {Array.from({ length: 3 }, (_, i) => (
         <div key={i} className="h-12 animate-pulse rounded bg-muted" />
       ))}
