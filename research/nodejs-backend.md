@@ -369,3 +369,15 @@ Hono 4」一致。
 SOURCES：五个 docs 条目 `synced_at` 改为 2026-11-01；nodejs-docs `notes` 补记 v26 复核与 `--experimental-transform-types` 移除。
 
 下次同步要盯的：Hono v5 GA（`app.mount()` 移除、honojs/skills 与 `@hono/cli` 1.0 重评）；Fastify v6 GA；NestJS gateway `handleConnection()` 闸门问题若在评测里暴露再按新增规则走基线。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 `da64ed0`（Node LTS 基线更正：SKILL.md Scope 段与六个 reference 的「Verified against」改为 Node.js 24 and 26 LTS）。现有场景都不考察 LTS 选线，按简报新增场景 6（夹具 `runtime.package.json`、`runtime.Dockerfile`：`engines >=20` + `node:20-slim` 却在启动脚本用 `--env-file-if-exists`，同时平台要求离开 Node 20）。负例用场景 4。模型 `openai/gpt-6.1-sol` medium（VM 内 omp），产物 `/tmp/hs-d2/G05b-backend2/nodejs-backend/omp-openai-gpt-6.1-sol-medium/`，逐条读 `answer.md` 人工判定。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6（新增） | gpt-6.1-sol medium | 有 | True | EB1 ◐ EB2 ✔ EB3 ✔ | 45 s。选 Node 26（Active LTS，引 schedule.json），24 标为 Maintenance LTS、20 EOL 2026-04-30；`--env-file-if-exists` 自 22.9.0；`engines` 改 `>=26 <27`、两段 `FROM node:26-slim`、`@types/node ^26`，提示重生成 lockfile。EB1 只说了「运行时二进制不支持该 flag」，没有明说旧 `engines` 下限与脚本不匹配 |
+| 6（新增） | gpt-6.1-sol medium | 无 | False | EB1 ◐ EB2 ✔ EB3 ✔ | 65 s。联网查 schedule.json 与 CLI 文档、并在 VM 里实跑 Node 26.13.0 验证 flag，结论与有 skill 一致；EB1 同样未点明 `engines` 下限错误 |
+| 4（负例） | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ✔ | 22 s。按 Next.js Server Action 回答 `revalidatePath('/products')`，无 Node 框架建议 |
+
+结论：更正后的基线声明在有 skill 时被正确采用，无回退；基线能联网查到同样结论，不构成新增正文的缺口，场景 6 留作哨兵。负例 `skill_read == false`。正文无需修正。
