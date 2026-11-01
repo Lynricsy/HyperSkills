@@ -573,3 +573,40 @@ harmonyos-references 643、best-practices 468、harmonyos-releases 5；绝大多
 官方页面经华为文档门户 JSON 接口（`documentPortal/getDocumentById`）直接取正文核对，与 liasica 镜像 e596a1f 一致。
 `huawei-docs` 的 `synced_at` 改为 2026-11-01。上次遗留「版本对照表缺 HarmonyOS 7.x」核对结果：10-15 已补 `26.0.0` / HarmonyOS 7.0.0 行，
 截至今日官方仍无更新的 API 或 7.x 版本，本次只更新补丁号。
+
+## 2026-11-01 新候选检索
+
+检索（有界）：`gh search repos` 关键词 `harmonyos skill`（按更新）、`arkts skills`、`鸿蒙 skill`、`harmonyos agent`、`harmonyos claude`（筛 2026-10-01 后推送）；
+`gh search code 'ArkTS filename:SKILL.md'`；`VoltAgent/awesome-agent-skills` 与 `github/awesome-copilot` 无 HarmonyOS/ArkTS 条目。
+Stars / 推送 / 许可为 2026-11-01 `gh api repos/<o>/<r>` 值；聚合注册表（majiayu000/claude-skill-registry、diegosouzapw/awesome-omni-skill）与业务应用仓库中的零散 SKILL.md 不计。
+
+| 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CarSmallGuo/deveco-code `packages/opencode/resources/skills/{arkts-error-fixes,arkts-runtime-fix,arkui-knowledge,…}` | 54 | 2026-06-14 | MIT | 1 | 1 | 1 | — | 2 | — | REJECT | OpenCode 分叉（DevEco Code）内置 skill：依赖该分叉私有的 `node {SKILL_DIR}/scripts/*.mjs` 与工具名，属 agent 专用契约；推送已超 4 个月 |
+| xiaowu5255/harmonyos-skills | 9 | 2026-10-26 | NONE | — | — | — | — | — | — | 维持 REJECT | 候选表 #11 已因正确性 0 REJECT；10-15 之后只有每周 `chore: update sdk watch state` 机器人提交 |
+| Octo-o-o-o/harmonyos-ai-workspace | 4 | 2026-10-21 | NOASSERTION | 0 | 3 | — | — | 0 | — | REJECT | 个人工作区，许可不明 |
+| Rainbow609/agent-skills | 1 | 2026-10-31 | NOASSERTION | 0 | 3 | — | — | 0 | — | REJECT | 2026-10-14 新建的个人合集，许可不明，无外部验证 |
+| noiseorigin/build-harmony-apps、vingeraycn/build-harmonyos-apps、xinthink/harmonyos-dev | 0–1 | 2026-06～09 | MIT | 0 | 1 | — | — | 2 | — | REJECT | 0–1★ 个人仓库，均早于 10-15 且无更新 |
+| composable-tu/pangu.arkts、HarmonyOS-AI/HarmonyOS-Plugins | 1–2 | 2026-08～09 | MulanPSL-2.0 / 无 | 0 | 1 | — | — | 0–2 | — | REJECT | 低星、非 skill 主体或无许可 |
+
+本轮没有 2026-10-15 之后新出现或大幅更新、且值得追踪的 HarmonyOS 候选。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 e8fe8e2（`build-sign-verify.md` 版本对照表：26.0.0 最新补丁 26.0.0.865 / Hvigor 6.26.9，6.1.1(24) 最新补丁 6.1.1.440 / Hvigor 6.24.6）。
+口径 omp + `openai/gpt-6.1-sol` medium，隔离 VM，产物 `/tmp/hs-d2/G09b-mobile2/harmonyos/omp-openai-gpt-6.1-sol-medium/`，均在 e8fe8e2 之后运行，串行。
+受影响场景为 6（版本对照与 CI 工具链同构建），5 为负例。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 HarmonyOS 7.0 ↔ API 26.0.0 与 `@Computed` 下一帧重算 | gpt-6.1-sol medium | 有 | true | 5/5 | 86 s。`"7.0.0(26)"` 无效、target `"26.0.0"`、compatible `"6.0.0(20)"`；CI 换成与 DevEco Studio 同一构建号的 26.0.0 Command Line Tools；`@Computed` 下一帧重算，改普通 getter，无定时器 |
+| 6 | gpt-6.1-sol medium | 无 | false | 5/5 | 138 s。结论与有 skill 一致（引用官方 build-profile 与 `arkts-new-computed` 页）；10-15 基线为 3✔2◐，本次基线已全部达成 |
+| 5 负例（Compose） | gpt-6.1-sol medium | 有（挂载） | false | 3/3 | 98 s。不可变 LineItem + `StateFlow.update`、总价由列表派生、`key` 保滚动，无 ArkTS |
+
+结论：更正后的版本表在有 skill 时正确使用，不比基线差；补丁号本身不在 expected_behavior 内，场景未改。负例 `skill_read == false`。
+
+## 2026-11-01 待主人决定
+
+- **NDK / Node-API 范围**：dengshiying-harmonyos 新增 `references/ndk-napi.md`（`napi_env`/`napi_value`/`napi_ref` 绑定所属 ArkTS 线程、
+  `napi_async_work` 的 execute/complete 分工与取消语义、TSFN 有界队列与 `napi_queue_full`、环境清理钩子、libuv 禁区），
+  earfrog-arkts 也已提供 Native 工作流路由。本 skill `## Scope` 未列 Native/NDK 开发，是否扩 Scope 由主人决定；若扩，按 Phase B 先跑基线。
