@@ -646,3 +646,17 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 | openai-docs | 图像生成指南页面可达 | https://developers.openai.com/api/docs/guides/image-generation | 一致（200） |
 
 处理：两条 docs 条目 `synced_at` 更新为 2026-11-01；`google-gemini-docs` 的 `contributes`/`notes` 补本轮核对内容。语音导演与视频下线两处更正无场景覆盖，新增场景 7（`promo_voiceover.py`：3.8 TTS 下念出标题与 take 标签）与场景 8（`clip_pipeline.py`：Veo 预览下线后的 404 与重试循环）。
+
+## 2026-11-01 D2 回归
+
+覆盖：6cd1f63（`speech.md` 按代际改写 TTS 导演方式；`video-generation.md` 记录 Veo 预览 2026-10-22 下线、新默认模型限制、对话式编辑例外、托管文件轮询）。在 worktree `/tmp/hs-wt/G08-ai-media` 上跑，omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行队列，产物 `/tmp/hs-d2/G08-ai-media/generative-media/omp-openai-gpt-6.1-sol-medium/`。
+
+| 场景 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|
+| 7 3.8 TTS 念出标题与 take 标签（新） | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ | 133 s。三次独立请求、同一 `VoiceConfig`、各自短 `speech_metadata.style`，存成 `take_{1,2,3}.wav`；方括号改尖括号；去掉人设段落，但用固定库音色 `Puck`，未按口音选音色（说明真正的 Brixton 人设需设计音色 ID） |
+| 7 | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✘ | 150 s。联网查到 3.8 逐字稿合约，用 Voice design 生成并缓存音色 ID；但三条 take 放在**同一请求**的三段里输出一个 `brightline_hook_takes.wav`，编辑无法单独取用 |
+| 8 Veo 预览下线后的 404（新） | 有 | true | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ | 321 s。认定下线、迁到 Omni/Interactions；注明 1080p 为上采样但仍请求 8 s/1080p；去掉 50 次重试、关 SDK 重试、SQLite 持久化 interaction id 可续跑；立即下载、按哈希落盘并记录 |
+| 8 | 无 | false | EB1 ✔ EB2 ◐ EB3 ◐ EB4 ◐ | 253 s。联网同样得知下线与 Omni；去掉重试、轮询 ACTIVE 后下载；但不持久化 job id（自认「重跑不幂等」），不记录哈希 |
+| 4 负例（RAG 回答收紧） | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 118 s |
+
+结论：两处事实更正基线都能靠联网查到（下线日期、3.8 逐字稿合约），差距落在 skill 的既有规则上：场景 7「每个 take 一次请求」基线漏掉，场景 8 job id 持久化与输出哈希基线只做到一半。有 skill 时没有一项比基线差（场景 7 EB3 的 ◐ 是选库音色而非按口音选，基线用设计音色反而更好，记为小差距、不改正文）。负例 `skill_read == false`。正文不再改。
