@@ -212,5 +212,18 @@
       "Flags that revenue disagrees between the KPI ($1.24M) and the table total ($1,198,400) and requires one consistent figure",
       "Ranks the honesty problems (wrong comparisons, misleading colours, disagreeing or fake numbers) above layout and styling issues, and treats the explanatory sentences under each KPI as clutter to remove or move to tooltips"
     ]
+  },
+  {
+    "skills": [
+      "frontend-design"
+    ],
+    "query": "Our Simplified Chinese product homepage (<html lang=\"zh-CN\">) has this hero headline: <h1>让每一笔账都<em>清清楚楚</em></h1>. CSS: h1 { font-family: \"Inter\", \"PingFang SC\", \"Noto Sans SC\", \"Microsoft YaHei\", sans-serif; font-weight: 700; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.25; } h1 em { font-style: italic; }. We load Inter 400 and 700 plus Inter Italic 400 and 700, and our brand guide says emphasis inside a headline uses the italic or bold of the same family. Review the headline's emphasis and give me the CSS you would ship.",
+    "files": [],
+    "expected_behavior": [
+      "States that Chinese fonts such as PingFang SC, Noto Sans SC and Microsoft YaHei have no italic face, so `font-style: italic` on the Han characters makes the browser synthesize a slanted oblique; the loaded Inter Italic covers only Latin glyphs and does not help",
+      "Removes italic from the Chinese emphasis (for example `em:lang(zh)` or `h1 em` set to `font-style: normal`, optionally with `font-synthesis-style: none`) rather than keeping the slant",
+      "Replaces it with an emphasis native to Chinese text: a weight contrast that actually exists in the CJK face (the headline is already 700, so the base weight has to drop or the emphasis cannot read), or emphasis dots via `text-emphasis` placed under the characters for horizontal Chinese",
+      "Does not switch the emphasised word to a different colour or font family as the fix"
+    ]
   }
 ]

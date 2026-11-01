@@ -801,3 +801,22 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 提炼进 `review-checklist.md` 新增的「17. Dashboards and data」（两条 + 指向 catalog「Charts and data」）后重跑，场景 17 由 3✘ 6◐ 变为 3✔ 6✔，保留规则与 `dashboard-design` 条目。
 同时把 `SKILL.md` Core rules 中「过五个生成式特征簇」与「brief 指定方向时 brief 优先」两条合为一条（语义不变），Core rules 由 26 条回到 25 条（标准上限）；该改动不改变任何判据，未单独补跑设计方向场景。
 主代理补跑设计方向场景 9、15（两次）：合并后的 Core rule 仍被执行（brief/宿主优先、避开生成式特征簇），两次 15 各有一条 ◐ 且落在不同期望上，属单样本波动；与 2026-10 的 15 有 skill 6/6 相比无系统性回退，不回滚合并。
+
+## 2026-11-01 跨组命中评估
+
+其他组转来的上游新增文件，`gh api` 读原文后裁决。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| op7418/guizang-ppt-skill `SKILL.md`（AGPL-3.0，29034★，2026-10-30 推送）硬规则「大标题内强调字：英文用 italic + 300，中文用 `font-weight:400`（中文不用斜体）」 | REJECT（规则不合入，场景 18 留作哨兵） | AGPL 只能 reference。对照本 skill：`typography.md` 有「不依赖合成斜体/字重」，但「标题内强调用同族斜体或粗体」未点名 CJK。按规程新增场景 18（`lang="zh-CN"` 标题 `<em>` 斜体、已加载 Inter Italic、品牌规范要求同族斜体）先跑基线：基线明确说 Inter Italic 不覆盖汉字、浏览器会合成倾斜，改为 `font-style: normal` + 字重对比，并指出标题已是 700 必须降基准字重——4 条 expected_behavior 全达成（见下表），无缺口，不改正文 |
+| tushaarmehtaa/tushar-skills `plugins-labs/skills/mobile-first`（MIT，12★，2026-10-15 推送；`SKILL.md` + `references/{audit,patterns,standards}.md`） | REJECT | 320/375/768/1440 测量矩阵、200% 缩放与 320 CSS px 回流、`min-width: 0`/`minmax(0,1fr)`、24×24 AA 与 44×44 区分、安全区、容器内横向滚动区均已在 `layout-density-motion.md`、`accessibility.md`、`review-checklist.md` 覆盖；同仓 `interface-design`、`remove-ai-slop` 已于本日 REJECT。唯一可议的是视口单位：上游主张按意图在 `svh`（工具栏可见时也放得下）与 `dvh`（随工具栏实时变化）间选择，本 skill 写「移动端优先 `100dvh` 而非 `100vh`」——现有表述不构成事实错误（`100vh` 确按最大视口计算），作者权威度低，记为下轮可评估的细化，不改 |
+
+### 场景 18 基线
+
+产物 `/tmp/hs-d2/G13-cross/frontend-design/omp-openai-gpt-6.1-sol-medium/baseline/18/`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 18（新增，CJK 强调斜体） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ | 23.7 s。「Inter 不覆盖这些汉字，加载 Inter Italic 也不会给『清清楚楚』配上中文斜体，浏览器会合成倾斜」；`h1` 降到 400、`em` 设 `font-style: normal; font-weight: 700`；说明标题须保持 700 时品牌规范需另定强调方式；未改色/换族。未提 `text-emphasis` 着重号（EB3 的两种做法之一已满足） |
+
+结论：基线已会，正文不改，无需 D2；场景 18 留作哨兵。
