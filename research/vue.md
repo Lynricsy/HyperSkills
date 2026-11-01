@@ -258,3 +258,16 @@ v4.6.3 文档 `create-error.md`/`server.md` 只用 `status`/`statusText`，`Nuxt
 结论：无回退，负例未误读。`createError` 更正在有 skill 时生效（基线只当作可选迁移，不知已弃用）。v-memo 更正与基线同水平：基线已会「按引用比较、列入对象本身」；
 `performance.md` 的新增说明（收益范围、只用于测得的热点）未被读取，场景 5 第 3 条两侧都未达成——本次是上游自我更正而非新增规则，不据此加 Core rule，场景 5 留作哨兵。
 components.md 拆分阈值改为 review 信号、Environment 的 Node 版本无行为差异可测，未单独设场景。
+
+### 主代理补齐门禁：Node 版本更正补场景
+
+上一行「Node 版本无行为差异可测」不成立：升级依赖后 Docker/CI 的 Node 版本选择是可观察行为。新增场景 6（`evals/files/nuxt-package.json`、`nuxt-Dockerfile` 两阶段
+`node:20.18-alpine`、`nuxt-ci.yml` 的 `node-version: 22.11.0`）。`npm view nuxt@4.6.3 engines` 为 `^22.22.3 || ^24.15.0 || >=26.0.0`，与正文一致。
+产物 `/tmp/hs-d2/fix/vue/omp-openai-gpt-6.1-sol-medium/`，有 skill 运行晚于 `d512876`。components.md 拆分阈值改为 review 信号属措辞调整，仍不单设场景。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6（新增） | gpt-6.1-sol medium | 无 | False | EB1–EB3 ✔ | 39 s。直接读 npm registry 的 engines，两阶段镜像与 CI 都改 22.22.3，并指出 22.12 只满足 Vitest |
+| 6（新增） | gpt-6.1-sol medium | 有 | True | EB1–EB3 ✔ | 57 s。同上，逐行标 blocking |
+
+结论：基线已会，场景 6 留作哨兵；有 skill 无回退。
