@@ -793,7 +793,11 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 | 3 | gpt-6.1-sol medium | 有 | false | 1✔ 2✔ 3✔ 4✔ | 34 s，未读 skill（概念题直接作答，与基线同）。SC 2.5.8 AA 24×24、五项例外（含 24 px 直径圆的间距测试，并说明不是 24 px 间隙）、SC 2.5.5 AAA 44×44 且无间距例外；建议设计系统写 44 但标注为自有政策 |
 | 1 | gpt-6.1-sol medium | 有 | true | 1✔ 2◐ 3✔ 4◐ 5✔ 6✔ 7✔ 8◐ 9✔ | 83 s，读 `accessibility.md`、`ai-tells-and-calibration.md`、`review-checklist.md`。2：命名渐变、重阴影卡片、单一半径、tracked 大写 eyebrow、彩色斜体单词；漏 `→` 后缀、em dash，中点串只报成「假导航」。4：入场动画要求 reduced-motion 变体，hover 缩放只要求门控 `(hover: hover)`，未要求其 reduced 变体。8：`1234567`/日期 Intl、`John Doe`、`50%` 无基准已报；漏 `Loading…` 字符（只报成永不结束的假加载态）与 `Acme`。另有对比度实测（3.96:1、4.47:1）、320px 溢出、未加载的斜体/字重合成。与今日上午同场景（第 695 行：2◐ 8◐）同档，h1 无误报 |
 | 4（负例） | gpt-6.1-sol medium | 有 | **false** | — | 43 s |
+| 9 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3◐ 4✔ 5✔ | 主代理补跑（Core rules 合并后），59 s，产物 `/tmp/hs-d2/main/`。Polaris web components + App Bridge、颜色「参考值而非覆盖 token」、宿主惯例优先、无落地页式 hero；3：只说「不用通用 dashboard kit、不复制宿主外壳」，未明说单一设计系统、不混第二套组件 |
+| 15 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3✔ 4✔ 5✔ 6◐ | 主代理补跑 r1，97 s。浅冷灰底 + `#365F7D`，来源写明为音频报告纸面语境、不借暗房红灯；Phosphor Light 1.5px；6：列出「刻意排除的套路」但未做换名/竞品检查 |
+| 15 | gpt-6.1-sol medium | 有 | true | 1✔ 2✔ 3◐ 4✔ 5✔ 6✔ | 主代理补跑 r2，69 s。「换成别的产品名，这套核心内容就不成立」并列出排除的两条捷径；3：色彩来源写成「长时间面对音频工具的使用环境」，未落到产品本身的母带/报告 |
 
 结论：axe CLI、Lighthouse、h1 三处更正无回退（基线本已会）；负例未误读；场景 1、3 无回退。**仪表盘两条规则**：首轮只在 `ux-guidelines-catalog.md`，`review-ui` 路由读不到；
 提炼进 `review-checklist.md` 新增的「17. Dashboards and data」（两条 + 指向 catalog「Charts and data」）后重跑，场景 17 由 3✘ 6◐ 变为 3✔ 6✔，保留规则与 `dashboard-design` 条目。
 同时把 `SKILL.md` Core rules 中「过五个生成式特征簇」与「brief 指定方向时 brief 优先」两条合为一条（语义不变），Core rules 由 26 条回到 25 条（标准上限）；该改动不改变任何判据，未单独补跑设计方向场景。
+主代理补跑设计方向场景 9、15（两次）：合并后的 Core rule 仍被执行（brief/宿主优先、避开生成式特征簇），两次 15 各有一条 ◐ 且落在不同期望上，属单样本波动；与 2026-10 的 15 有 skill 6/6 相比无系统性回退，不回滚合并。
