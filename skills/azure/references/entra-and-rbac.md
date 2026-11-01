@@ -117,7 +117,11 @@ var blobDataContributor = subscriptionResourceId(
 
 resource assignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: storage
-  name: guid(storage.id, principalId, blobDataContributor)
+  name: getRoleAssignmentName({
+    scope: storage.id
+    principalId: principalId
+    roleDefinitionId: blobDataContributor
+  })
   properties: {
     roleDefinitionId: blobDataContributor
     principalId: principalId
@@ -126,12 +130,21 @@ resource assignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 }
 ```
 
-Four rules, each of which breaks a deployment when ignored:
+Six rules, each of which breaks a deployment when ignored:
 
 - **The name must be a GUID.** ARM rejects anything else, and `bicep build` does not catch it.
-- **Derive the GUID from `(scope, principal, role)` with `guid()`.** That makes redeployment
-  idempotent. `newGuid()` produces a new assignment on every deployment and is only legal in a
-  parameter default anyway.
+- **Derive it deterministically from `(scope, principal, role)`.** For new assignments the
+  documented form is `getRoleAssignmentName()` (Bicep 0.48+), which lowercases its inputs, trims
+  trailing slashes from the scope and keeps only the role GUID; `guid(scope, principal, role)` is
+  the older equivalent. Either makes redeployment idempotent. `newGuid()` produces a new
+  assignment on every deployment and is only legal in a parameter default anyway.
+- **The name must be computable when the deployment starts.** `site.identity.principalId` of an
+  identity created in the same file is not, and both forms fail with `BCP120`. Use the identity's
+  resource ID instead (`guid(storage.id, site.id, blobDataContributor)`), or put the assignment in
+  a module that takes the principal ID as a parameter.
+- **Never rename an existing assignment.** The two functions can produce different GUIDs for the
+  same inputs, and deploying the same scope, principal and role under a new name fails with
+  `RoleAssignmentExists`. Keep the existing name, or delete the old assignment first.
 - **`scope:` sets the assignment scope**, and the resource is an extension resource - it attaches
   to whatever you point it at. Omitting `scope:` in a resource-group-scoped template silently
   grants at the whole resource group.

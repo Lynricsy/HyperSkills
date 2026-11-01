@@ -432,3 +432,78 @@ Event Grid 且与私有化冲突）。b141cac 只动 research / SOURCES。这些
 | HP | 保留正例 | 新写：Should our new internal API run on Azure Container Apps or App Service… | 2/2 | 2/2 |
 
 结论：调优负例（Terraform `count`→`for_each`）0/3 → 3/3 未读，保留负例（azurerm provider 升级）0/2 → 2/2；正例与保留正例全部读取。采用新描述。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 `check_upstream.py --json` 快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/azure.md`。归因方法：
+azure-docs、bicep、azure-dev、microsoftdocs-agent-skills 用主代理裸仓库缓存 `/tmp/hs-attr/<owner>__<repo>`；microsoft-azure-skills、
+azure-functions-skills、bicep-registry-modules 用 `gh repo clone --bare --filter=blob:none` 克隆到 `/tmp/hs-up/G03/`。均对
+`<pinned>..<审阅 HEAD> -- <paths>` 跑 `git diff --stat` 与 `git diff`（microsoft-azure-skills 加 `-w`）逐文件读真实 diff。
+`--pin` 写入的 commit 与各条审阅 HEAD 逐条一致（无越界差额）；awesome-copilot（5269f7e）与 avm（8224eb1）为 B 类噪声，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| microsoft-azure-skills | d1736f3 → fbda857（5 个 Sync 提交） | `azure-kubernetes`：NAP 从「所有池开启」改为「按集群开启、节省不保证」，新增 `azure-aks-nap-readiness.md`（Windows 池、IPv6、服务主体、自定义 VNet 的 Basic LB、kubenet、Calico、Pod Subnet 动态分配不支持；NAP 后不能 stop、不能改 outbound type）；成本一节删「考虑 RI/SP」并加统一成本评审；Python 基础镜像改 Azure Linux；`azure-diagnostics`：毒消息重放前先验证、脚本退出码 0/1/2；`azure-prepare`：SQL 授权脚本由 `rdbms-connect` 改 go-sqlcmd；`azure-validate` 脚本空数组展开修复；`azure-cost`：AKS 异常检测改写、承诺分析交接 AKS 需求证据 | **事实更正 1 处**，其余噪声 | 本 skill `aks-control-plane.md` 写「NAP usually beats hand-tuned autoscaler」且成本一节推荐 `az aks stop`，两者合起来是不可执行的建议。按 MS Learn `node-auto-provisioning`（Limitations）、`node-auto-provisioning-networking`（Supported networking configurations）、`start-stop-cluster`（「You can't stop clusters which use NAP」）改正；其余内容（镜像、SQL 授权脚本、MCP 驱动的成本流程、毒消息重放）本 skill 未写 |
+| azure-functions-skills | a747a49 → 8c0999a（2 提交） | `azure-functions-deploy`：部署观测遥测改为本地 bundled runtime、暂停自动遥测 | 噪声 | 上游自用遥测，本 skill 未合入任何遥测步骤 |
+| bicep | 20c8e39 → d955a5b（1 提交命中） | `NoLocationExprOutsideParamsRule`：表达式类型为 ErrorType 时不再报误导性 location 警告 | 噪声 | 本 skill 不写该规则 |
+| azure-docs | caabee6 → 84ce263 | `management/resources-without-resource-group-limit.md`：userAssignedIdentities 800 上限；`role-based-access-control/troubleshooting.md`：角色分配属性与 scope 不可改、换主体/角色须删旧建新；`built-in-roles/integration.md`：FHIR bulk 权限；`azure-functions`（44 文件）：Go 在 Flex Consumption 上 GA、删 HTTP/2 关闭步骤、删「Flex 子网名不能含下划线」、Connector 触发器新文档、Python HTTP 不支持无 `Content-Length` 的 chunked 请求体、管道符渲染修复；`bicep`（17 文件）：新增 `getRoleAssignmentName()` 并在 `scenarios-rbac.md` / `patterns-name-generation.md` 中把它定为新角色分配的命名方式、`bicep.version` 编译器版本约束（BCP456/457 与两条 linter 规则）、deployment stacks what-if 检查漂移 | **事实更正 2 处**，其余噪声 | (1) `getRoleAssignmentName()`（Bicep 0.48+）取代 `guid()` 成为官方推荐，且官方新增两条陷阱：名称须在部署开始时可算（同文件创建的 identity 的 principalId 不行）、给已有分配换名会 `RoleAssignmentExists`——本 skill Core rule 4 只写 `guid()` 且示例 `guid(scopeId, principalId, ...)` 对同文件 identity 会 BCP120，改正文；(2) Go 在 Flex Consumption 上 GA，本 skill「Supported stacks」列表因此不完整，补上。RBAC 不可改属性一条与本 skill 既有表述一致；800 个 UAMI、FHIR、Connector、chunked 请求、编译器版本约束、stack 漂移本 skill 未涉及 |
+| bicep-registry-modules | 61dcfb4 → 8295083（3 提交命中） | `avm/res/insights/scheduled-query-rule`（simplelogalert kind）、`desktop-virtualization/host-pool`、`event-hub/namespace` | 噪声 | 只取路径形态与版本形式，storage-account 未动 |
+| azure-dev | 5667b6a → d5ed6cd（10 提交命中） | 只动 `cli/azd/docs`：provision 校验新增 critical warning（缺 roleAssignments/write 时默认 No、`--no-prompt` 下退出码 1）、AI 模型可用性/配额检查、`azd env unset`（beta）、扩展框架 GA、取消传播；`schemas` 未变 | 噪声 | 本 skill 的 azd 命令面（`provision --preview`、`env set-secret`、`pipeline config --auth-type federated`、hooks）未被改写 |
+| microsoftdocs-agent-skills | ba74e8f → 9554420（2 提交） | 三个 SKILL.md 的 description、行号目录与链接标题重新生成 | 噪声 | 仅生成元数据 |
+| aks-skills | 7fac4bc（未动） | 仓库于 2026-10-12 归档（7fac4bc「deprecate repository; AKS Skills moved to azure-skills」） | Phase B 重新裁决 | 保留条目、pin 冻结并在 notes 记录；`aks-troubleshooting` 与 `aks-cost-optimization` 的新位置 `.github/plugins/aks-skills/skills/*` 加入 microsoft-azure-skills 的 paths（`aks-cluster-setup`、`aks-automatic-readiness` 已并入已追踪的 `skills/azure-kubernetes`）。新位置在本区间内：`aks-troubleshooting` 无变化，`aks-cost-optimization` 为新增（见下节） |
+
+正文改动（均为事实更正）：
+- `SKILL.md` Core rule 4、两处 checklist 与 `references/entra-and-rbac.md`「Role assignments in Bicep」：新分配用 `getRoleAssignmentName({scope, principalId,
+  roleDefinitionId})`（Bicep 0.48+），`guid()` 仍可用；名称必须在部署开始时可算——同文件创建的 identity 用资源 ID（`guid(storage.id, site.id, role)`）或放进
+  module；不要给已有分配换名（`RoleAssignmentExists`）。本机用 `bicep-linux-x64 0.48.1` 复现：`getRoleAssignmentName()` 编译通过；`getRoleAssignmentName()`
+  与 `guid()` 喂 `site.identity.principalId` 都报 BCP120；`guid(storage.id, site.id, role)` 通过。函数由 Azure/bicep cc2160ba（2026-09-15）加入，是 v0.48.1 的祖先，
+  不在 v0.47.16（2026-09-08）。
+- `references/aks-control-plane.md`：NAP 节省不保证；NAP 集群不能 stop、不能改 outbound type，不支持 Windows 池、纯 IPv6、服务主体、自定义 VNet 中的 Basic LB、
+  kubenet、Calico、Pod Subnet 动态分配；成本一节 `az aks stop` 注明对 NAP（含所有 AKS Automatic）集群不可用。
+- `references/functions.md`：Flex 支持栈补 custom handlers 与 Go 1.24+（仅 Flex Consumption、GA，预览期的关 HTTP/2 步骤不再需要），依据
+  `supported-languages.md`、`functions-reference-go.md`（「Go function apps run on Linux in the Flex Consumption plan only」）、`flex-consumption-plan.md`；
+  同节首条「A Windows app cannot migrate to it」与 2026-10-15 已改正的迁移清单矛盾（官方支持 Windows Consumption → Flex），一并改为「去掉 Windows 依赖后可迁」。
+- `references/cost-and-quotas.md`「Attributing cost」：示例里的 `az costmanagement query` 已不存在——Azure/azure-cli-extensions `src/costmanagement/HISTORY.rst`
+  0.2.1「[BREAKING CHANGE] Remove the command `az costmanagement query`」，当前 CLI 参考页只剩 `export` 与 `show-operation-result`。改为 `az rest` 调
+  Cost Management Query REST API（`Microsoft.CostManagement/query?api-version=2025-03-01`，REST 参考页当前版本）。该错误是阶段 3 评估新候选时发现的。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 来源 | 结论 | 理由 |
+|---|---|---|---|
+| `aks-cost-optimization`（v1.0.10） | microsoft/azure-skills `.github/plugins/aks-skills/skills/`（MIT）；microsoft/skills 同名文件逐字相同 | 部分合入（仅事实），加入 paths | 主体是 MCP 驱动的 NAP 就绪、bin-packing、PVC 成本评估流程；其中可核实的硬事实（NAP 不支持的网络/身份/OS 组合、不能 stop、不能改 outbound type）已按 MS Learn 写入 `aks-control-plane.md`（见上节）。判定流程与 CAS→NAP 迁移步骤属上游 MCP 工作流，不合入 |
+| `azure-advisor`、`azure-advisor-actionability` | microsoft/skills `.github/plugins/azure-advisor/skills/`（MIT） | REJECT | 全部是 Advisor MCP 工具路由与输出格式，无可验证的新事实；本 skill 已有 `az advisor recommendation list --category Cost` 一条。microsoft/skills 整仓此前已因 SDK/Foundry 越界 REJECT |
+| `azure-logic-apps-standard-cli` | github/awesome-copilot `skills/`（MIT） | REJECT（越界，记入 Scope 问题） | Logic Apps Standard 不在本 skill `## Scope` 列出的托管服务内；且所依赖的 `az logicapp` 扩展 1.0.0b1 为公共预览 |
+| `plugins/platform-skills/skills/azure` | nitinjain999/platform-skills（Apache-2.0，71★，2026-10-26） | REJECT | 以 Terraform 生成为主（本 skill 明文排除 Terraform）、交互式向导结构，Azure 事实为通用常识，无新增 |
+| `extension-user-contract-review/evals/fixtures/cli/azd/AGENTS.md` | Azure/azure-dev `.github/skills/` | REJECT | 上游自用扩展评审流程的测试夹具 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "azure agent skills" / "azure skills" --updated >2026-10-10`、`gh search repos --owner Azure --owner microsoft skills --updated >2026-10-01`、
+`"bicep skill SKILL.md"`（无新结果），每次之间间隔数秒。新发现：Azure/AKS-Skills 已归档（见上）；microsoft 组织新近活跃的 skills-for-fabric、power-platform-skills、
+Dataverse-skills、skills-for-copilot-studio、win-dev-skills 均为 Azure 控制面以外的产品，不入候选表。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 23 | stratisd-labs/cloud-agent-skills `azure/skills/*`（cost-review、fault-triage、resource-naming、resource-tagging、blue-green-deploy、propose-only） | https://github.com/stratisd-labs/cloud-agent-skills | 0 | 2026-10-25 | Apache-2.0 | Azure 成本评审、故障分诊、命名与标签 | 0 | 3 | 3 | 3 | 2 | 11 | 总分达 INCLUDE，但基线无缺口 → 不合入（场景 11 留作哨兵） | 2026-09-24 新建、0 star 的匿名组织。`azure-cost-review` 抽查三条均对（`VM stopped` 仍计费须 deallocate、App Service plan 按实例计费停 app 不省钱、`az costmanagement query` 已移除——后者正是本 skill 的错误，已更正）。新写场景 11（成本清理提案：预留购买致 ActualCost 尖峰、`az costmanagement query` 失效、停止的 VM/App Service、ASR 副本盘、低流量 NAT 网关、跨系列 resize 脱离预留、删除 PIP 释放地址）跑基线：7/7 全部达成，无缺口，不合入其余规则 |
+
+基线结果（omp + `openai/gpt-6.1-sol` medium，VM，产物 `/tmp/hs-d2/G03-cloud/azure/omp-openai-gpt-6.1-sol-medium/baseline/11`，162 s）：EB1 ✔（预留一次性购买、比 AmortizedCost）；
+EB2 ✔（「no `query` subcommand」、不要 pin 旧版本、改 `az rest` 调 Query API 2025-03-01，未点名 0.2.1）；EB3–EB7 ✔（deallocate；plan 按实例计费；先查 Recovery Services 复制项；
+NAT 给无公网 IP 的 VM 出站；Dsv5 预留不跟到 Dasv5 需重算；删除 PIP 后地址不可找回、先查合作方白名单）。
+
+## 2026-11-01 文档上游复核
+
+`learn-azure` 是人工比对入口；正文数字取自 `azure-docs`（今日已 re-pin 到 84ce263）。逐条在渲染后的 learn.microsoft.com 页面（`Accept: text/markdown`）上比对：
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| learn-azure | 每订阅 5000 个角色分配、固定不可提额；每管理组 500 个、固定 | [Troubleshoot Azure RBAC limits](https://learn.microsoft.com/en-us/azure/role-based-access-control/troubleshoot-limits) | 一致 |
+| learn-azure | 每订阅 980 个资源组、资源组部署历史 800 条、每资源/资源组 50 个标签 | [Azure subscription and service limits](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits) | 一致 |
+| learn-azure | Flex Consumption 512 / 2,048 / 4,096 MB 对应 0.25 / 1 / 2 核；区域默认 250 核（512,000 MB），Free Trial / Azure for Students 15 核（30,720 MB），可经容量评审提额 | [Flex Consumption plan](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan) | 一致 |
+| learn-azure | 每个应用或用户分配托管标识最多 20 个联合身份凭据 | [Workload identity federation considerations](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations) | 一致 |
+| learn-azure | 新写入：`getRoleAssignmentName()` 的输入规范化、`RoleAssignmentExists` 警告 | [Bicep resource functions](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-resource) | 一致（与 azure-docs 源一致） |
+| learn-azure | 新写入：NAP 限制（不能 stop、不能改 outbound type、Windows/IPv6/SP/Basic LB）；kubenet / Calico / Pod Subnet 动态分配不支持；start-stop 页「can't stop clusters which use NAP」 | [NAP overview](https://learn.microsoft.com/en-us/azure/aks/node-auto-provisioning)、[NAP networking](https://learn.microsoft.com/en-us/azure/aks/node-auto-provisioning-networking)、[Start/stop cluster](https://learn.microsoft.com/en-us/azure/aks/start-stop-cluster) | 一致（AKS 文档不在 azure-docs 仓库，取自站点，仅作事实核对） |
+| learn-azure | 新写入：Go 1.24+、仅 Flex Consumption | [Go developer reference](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-go) | 一致 |
+| learn-azure | 新写入：`az costmanagement` 当前只有 `export` 与 `show-operation-result` | [az costmanagement](https://learn.microsoft.com/en-us/cli/azure/costmanagement?view=azure-cli-latest) | 一致，据此改正正文 |
+
+原有 4 组事实一致；新写入 4 组均与站点一致。`learn-azure` 的 `synced_at` 更新为 2026-11-01。

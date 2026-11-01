@@ -186,12 +186,15 @@ Cost is attributed by subscription, resource group, resource and **tags**. Since
 inherit, a cost report grouped by `cost-center` is only as good as the policy that enforces the
 tag.
 
+The `costmanagement` CLI extension removed `az costmanagement query` in 0.2.1 and now only manages
+exports, so an ad-hoc query goes to the Cost Management Query REST API through `az rest`:
+
 ```bash
-az costmanagement query \
-  --type ActualCost --timeframe MonthToDate \
-  --scope "/subscriptions/$SUB" \
-  --dataset-aggregation '{"total":{"name":"Cost","function":"Sum"}}' \
-  --dataset-grouping name="ResourceGroupName" type="Dimension"
+az rest --method post \
+  --url "https://management.azure.com/subscriptions/$SUB/providers/Microsoft.CostManagement/query?api-version=2025-03-01" \
+  --body '{"type":"ActualCost","timeframe":"MonthToDate","dataset":{
+    "aggregation":{"totalCost":{"name":"Cost","function":"Sum"}},
+    "grouping":[{"type":"Dimension","name":"ResourceGroupName"}]}}'
 ```
 
 For anything recurring, configure a Cost Management export to storage and query that; the API is

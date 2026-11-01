@@ -4,7 +4,7 @@ description: "Manages Azure architecture, Bicep deployments, identity and cloud 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: platform
 ---
 
@@ -60,9 +60,14 @@ Paths below are relative to this skill's directory.
 3. Storage accounts and container registries take lowercase letters and digits only, 3-24 and
    5-50 characters. The general `<type>-<workload>-<env>` pattern produces an illegal name for
    both, and the compiler accepts it (`references/naming-and-structure.md`).
-4. A `Microsoft.Authorization/roleAssignments` name must be a GUID, and it must be derived with
-   `guid(scopeId, principalId, roleDefinitionId)` so redeployment is idempotent. `newGuid()` is
-   legal only in a parameter default and would create a new assignment every deployment.
+4. A `Microsoft.Authorization/roleAssignments` name must be a deterministic GUID so redeployment
+   is idempotent. For a new assignment use `getRoleAssignmentName({ scope, principalId,
+   roleDefinitionId })` (Bicep 0.48+), or `guid(scopeId, principalId, roleDefinitionId)`. The
+   name must be computable at deployment start: for an identity created in the same file use its
+   resource ID (`guid(storage.id, site.id, roleId)`), never `site.identity.principalId` (BCP120).
+   Never rename an existing assignment - a new name for the same scope, principal and role fails
+   with `RoleAssignmentExists`. `newGuid()`, legal only as a parameter default, makes a new
+   assignment every deployment.
 5. Reach for a symbolic reference (`plan.id`, `storage.listKeys()`, `site.identity.principalId`)
    rather than `resourceId()` / `reference()` / `listKeys(resourceId(...))`. The string forms
    erase the dependency edge, which is why templates that use them need a hand-written
@@ -149,7 +154,7 @@ Paths below are relative to this skill's directory.
       references and delete the `dependsOn` they required.
 - [ ] Remove every secret from outputs and from `appSettings`, and replace it with a managed
       identity plus a data-plane role assignment (`references/entra-and-rbac.md`).
-- [ ] Check role assignments: GUID name derived from `guid(scope, principal, role)`, correct
+- [ ] Check role assignments: deterministic GUID name (`getRoleAssignmentName()` or `guid()`), correct
       `scope:`, `principalType` set, and a data-plane role rather than a management-plane one.
 - [ ] Prefer a pinned AVM module where the module encapsulates something real - diagnostics,
       private endpoints, RBAC - and confirm its `ModuleStatus` is `Available`.
@@ -185,7 +190,7 @@ Paths below are relative to this skill's directory.
       accordingly. If the design still needs `listKeys`, it is not finished.
 - [ ] Look up the role definition GUID rather than using the display name, and scope the
       assignment to the narrowest resource that works - the container, not the storage account.
-- [ ] Write the assignment in IaC with a `guid()`-derived name, and check the deploying identity
+- [ ] Write the assignment in IaC with a deterministic name (rule 4), and check the deploying identity
       can create role assignments at all: Contributor cannot, and
       `Role Based Access Control Administrator` is the least-privilege role that can.
 - [ ] For Key Vault, confirm the vault is in RBAC mode; otherwise the assignment is accepted and

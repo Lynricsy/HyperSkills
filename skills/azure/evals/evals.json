@@ -5,7 +5,7 @@
     "files": ["evals/files/main.bicep"],
     "expected_behavior": [
       "Identifies that `storageName` is built as `st-${workload}-${env}-${uniqueString(...)}`, which produces hyphens and roughly 30 characters, while a storage account name must be 3-24 characters of lowercase letters and digits only - and says explicitly that `bicep build` cannot catch this because resource name rules are enforced by ARM at deployment time, not by the compiler",
-      "Says the role assignment `name: '${workload}-owner-assignment'` is invalid because a `Microsoft.Authorization/roleAssignments` name must be a GUID, and prescribes `guid(<scope id>, principalId, roleDefinitionId)` so that redeploying is idempotent rather than creating or colliding with a new assignment",
+      "Says the role assignment `name: '${workload}-owner-assignment'` is invalid because a `Microsoft.Authorization/roleAssignments` name must be a GUID, and prescribes a deterministic name that can be computed at deployment start - `guid(<scope id>, site.id, roleDefinitionId)` using the site's resource ID, or `getRoleAssignmentName()` / `guid()` inside a module that receives the principal ID - rather than feeding `site.identity.principalId` (created in the same file) into the name, which fails with BCP120",
       "Rejects Owner (`8e3af657-a8ff-443c-a75c-2fe8c4bcb635`) at resource-group scope for the site identity and replaces it with a data-plane role at the storage scope - `Storage Blob Data Contributor` (`ba92f5b4-2d11-453d-a403-e96b0029c9fe`) or narrower - noting the site has no identity block at all today",
       "States that the template compiles with exit code 0 even though the linter reports `outputs-should-not-contain-secrets` and `secure-parameter-default`, because those rules default to warning level, and shows how to escalate them to `error` in `bicepconfig.json` under `analyzers.core.rules` so CI actually fails",
       "Notes that `use-recent-api-versions` is disabled by default, so the 2021-era API versions in this file draw no diagnostic until the rule is switched on with a `maxAgeInDays` setting",
@@ -131,6 +131,40 @@
       "Says PowerShell managed dependencies (`managedDependency` with requirements.psd1) are not supported on Flex Consumption, so Az.Accounts and Az.Storage must be saved into the app's root `Modules` folder and deployed with the app",
       "Converts the polling Blob trigger to `source: EventGrid` with an Event Grid subscription",
       "Flags that Event Grid push delivery cannot reach a private endpoint and VNet integration gives no inbound reachability, so disabling public network access as planned would leave the Blob trigger silently never firing; requires settling event delivery (for example a queue destination read over the private endpoint) before public access is turned off"
+    ]
+  },
+  {
+    "skills": [
+      "azure"
+    ],
+    "query": "findings.md is the cost clean-up proposal for our production subscription that goes to the change board on Friday. Review it: is the diagnosis of the cost jump right, how do we fix the reporting script, and which of the 'safe to action' items are actually safe? Give me a corrected action list.",
+    "files": [
+      "evals/files/cost-cleanup/findings.md"
+    ],
+    "expected_behavior": [
+      "Attributes the 3 Oct spike in actual cost to the upfront reservation purchase rather than an incident, and says to compare amortized cost (which spreads the purchase over the term) before opening anything",
+      "Says `az costmanagement query` no longer exists - the costmanagement extension removed it (0.2.1) and now only manages exports - so pinning an old extension is not the fix; replaces it with the Cost Management Query REST API (for example `az rest --method post` to `Microsoft.CostManagement/query`) or a scheduled export",
+      "For vm-build-02 says `VM stopped` still bills compute and the VM must be deallocated (`az vm deallocate`)",
+      "For asp-legacy-p1v3 says stopping the apps saves nothing because the plan bills per instance; the saving comes from scaling in, a smaller SKU or deleting the plan",
+      "Refuses to delete the `*-ASRReplica` disks until Site Recovery replication has been checked, because Azure Site Recovery replica disks are unattached by design",
+      "Says ng-app-prod is not idle: it provides outbound access for the VMs in snet-app that have no public IPs, so deleting it breaks their egress",
+      "Says the Advisor resize of vm-api-01 to a different series (D8as_v5) can move it off the newly bought Dsv5 reservation, so the saving must be repriced from actual cost before acting; and flags that deleting pip-partner-sftp releases the address for good, so partner allow lists must be checked first"
+    ]
+  },
+  {
+    "skills": [
+      "azure"
+    ],
+    "query": "savings-plan.md is our Q4 plan for the dev subscription. Sanity-check it before we start on Monday - what will fail or not save what we think?",
+    "files": [
+      "evals/files/dev-platform/savings-plan.md"
+    ],
+    "expected_behavior": [
+      "Says Node Auto Provisioning cannot be enabled on aks-dev as configured: NAP does not support kubenet, Calico network policy or Windows node pools, so the network model and the Windows pool are blockers, not settings to flip",
+      "Says a NAP cluster cannot be stopped, so the nightly `az aks stop` / `az aks start` saving and NAP are mutually exclusive and the plan has to choose",
+      "Says a NAP cluster cannot change its outbound type after NAP is enabled, so the planned switch to a NAT gateway outbound type has to happen before NAP or not at all",
+      "Rejects the claim that NAP always beats the cluster autoscaler on cost: savings depend on workload fit and are not guaranteed",
+      "Says Go is generally available on Azure Functions on the Flex Consumption plan (Linux), the HTTP/2 preview workaround no longer applies, and a custom handler on Elastic Premium is not needed for an idle-most-of-the-day relay"
     ]
   }
 ]

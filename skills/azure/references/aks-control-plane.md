@@ -169,8 +169,11 @@ Rules:
   `VMCannotFitEphemeralOSDisk`. OS disk type and size are fixed per node pool; a wrong choice means
   a new pool.
 - Node Auto Provisioning picks VM sizes from pending pod requirements instead of scaling a fixed
-  pool. It is the default in AKS Automatic and usually beats hand-tuned cluster autoscaler
-  min/max counts.
+  pool. It is preconfigured in AKS Automatic and enabled per cluster on Standard; savings depend on
+  workload fit and are not guaranteed. A NAP cluster cannot be stopped, cannot change its outbound
+  type, and does not support Windows node pools, IPv6-only clusters, a service principal identity,
+  a Basic load balancer in a custom VNet, kubenet, Calico network policy, or Azure CNI Pod Subnet
+  with dynamic IP allocation.
 
 ## Version support and upgrades
 
@@ -231,7 +234,8 @@ module, so the Day-0 decisions are reviewable in a diff instead of buried in a s
 - Spot node pools (`--priority Spot --eviction-policy Delete`) for interruptible batch work; they
   can be evicted with 30 seconds' notice, so nothing with state belongs there.
 - `az aks stop` / `az aks start` deallocates the whole cluster for dev and test. Stopping is not
-  the same as scaling to zero - the control plane stops billing too.
+  the same as scaling to zero - the control plane stops billing too. It is unavailable on a
+  cluster with Node Auto Provisioning, which includes every AKS Automatic cluster.
 - Reservations and savings plans apply to the node VMs, not to the cluster management fee.
 - The cluster management fee is per cluster, so many small clusters cost more in fixed fees than
   one cluster with namespace isolation. Weigh that against the blast radius you want.

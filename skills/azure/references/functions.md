@@ -40,7 +40,8 @@ The decision usually reduces to two questions:
 
 ## Flex Consumption specifics
 
-- Linux only. A Windows app cannot migrate to it.
+- Linux only. A Windows app can migrate only after its Windows-only dependencies are removed (see
+  the migration checklist below).
 - Instance memory sizes: **512 MB (0.25 vCPU), 2048 MB (1 vCPU), 4096 MB (2 vCPU)**. 2048 MB is
   the default choice; the size can be changed later. HTTP trigger default concurrency depends on
   it.
@@ -61,7 +62,9 @@ The decision usually reduces to two questions:
 - Azure Files shares can be mounted (SMB only, authenticated with a storage account key) for large
   binaries or shared models.
 - Supported stacks: .NET 8/9/10 isolated worker (the in-process model is **not** supported), Node
-  22/24, Python 3.10-3.14, Java 8/11/17/21/25, PowerShell 7.4/7.6.
+  22/24, Python 3.10-3.14, Java 8/11/17/21/25, PowerShell 7.4/7.6, custom handlers, and Go 1.24+
+  (generally available on Flex Consumption only; earlier docs required disabling HTTP/2 during the
+  preview, which no longer applies).
 
 ## Runtime, worker and bundle versions
 

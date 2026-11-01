@@ -1,5 +1,5 @@
 skill: azure
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: microsoft-azure-skills
     kind: repo
@@ -15,13 +15,15 @@ upstreams:
       - skills/azure-reliability
       - skills/azure-kubernetes
       - skills/entra-app-registration
+      - .github/plugins/aks-skills/skills/aks-troubleshooting
+      - .github/plugins/aks-skills/skills/aks-cost-optimization
     ref: main
-    commit: d1736f313f7a5259006325d8c9dbce046ed128c0
+    commit: fbda857c484a85c7ce644f56809b7f204471fb69
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Quota discovery workflow and the ARM-type-to-quota-name mapping trap, the diagnosis ordering (resource health before logs), the prepare/validate/deploy release gate, and Entra app registration credential shapes."
-    notes: "Official Microsoft agent plugin. MCP tool names, ALL-CAPS 'AUTHORITATIVE GUIDANCE' banners and the microsoft-foundry / azure-ai / azure-kusto skill groups were stripped: LLM application development and KQL analytics are outside this skill's scope. The azure-cost skill moved out of skills/ into the separately installed azure-cost plugin (.github/plugins/azure-cost/skills: cost-analysis, cost-estimation, cost-governance, cost-optimization) in 9184881; the tracked path follows it. Its workflows are driven by Cost Management MCP tools and add no fact this skill lacks, so nothing from it is merged."
+    notes: "Official Microsoft agent plugin. MCP tool names, ALL-CAPS 'AUTHORITATIVE GUIDANCE' banners and the microsoft-foundry / azure-ai / azure-kusto skill groups were stripped: LLM application development and KQL analytics are outside this skill's scope. The azure-cost skill moved out of skills/ into the separately installed azure-cost plugin (.github/plugins/azure-cost/skills: cost-analysis, cost-estimation, cost-governance, cost-optimization) in 9184881; the tracked path follows it. Its workflows are driven by Cost Management MCP tools and add no fact this skill lacks, so nothing from it is merged. Azure/AKS-Skills was archived on 2026-10-12 and its skills moved into the aks-skills plugin here (.github/plugins/aks-skills/skills); aks-cluster-setup and aks-automatic-readiness were folded into skills/azure-kubernetes, so the two remaining AKS paths are tracked here from 2026-11-01."
 
   - id: awesome-copilot
     kind: repo
@@ -38,10 +40,10 @@ upstreams:
       - skills/azure-resource-health-diagnose
       - skills/azure-pricing
     ref: main
-    commit: 36e95dfda72140a68f577d5c894a551607606bd3
+    commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "CAF resource naming rules per resource type, Azure Verified Modules and Bicep authoring conventions, the targetScope-to-what-if command matrix with its change symbols, azd project layout and guardrails, and the Well-Architected review checklist."
     notes: "Repository LICENSE is MIT; skills/azure-role-selector/LICENSE.txt was read separately and is also MIT (Microsoft Corporation). Emoji checklists, Copilot-specific tool names and the embedded pricing tables were dropped."
 
@@ -58,9 +60,9 @@ upstreams:
     commit: 7fac4bc786f0bca2a353a92e100f72a132111ef6
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The Day-0 versus Day-1 split for AKS cluster decisions, node pool and reliability defaults, and Entra plus Azure RBAC cluster access."
-    notes: "Official Azure organisation despite low star count. Kubernetes workload guidance was left out; it belongs to the containers skill."
+    notes: "Official Azure organisation despite low star count. Kubernetes workload guidance was left out; it belongs to the containers skill. The repository was archived on 2026-10-12 (7fac4bc, 'AKS Skills moved to azure-skills'); the pin is frozen and future AKS changes are followed through the microsoft-azure-skills entry."
 
   - id: azure-functions-skills
     kind: repo
@@ -72,10 +74,10 @@ upstreams:
       - templates/skills/azure-functions-deploy
       - templates/skills/azure-functions-diagnostics
     ref: main
-    commit: a747a49e45a460909c13fe572285fdc920739cc5
+    commit: 8c0999a4704460a1ad63ab09e73d3fb7861580b1
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The Function App review contract: collect evidence before recommending, report before remediating, report setting names without values, and gate every write on explicit approval."
     notes: "Factual claims (plan capabilities, runtime versions, extension bundle ranges) were re-sourced from MicrosoftDocs/azure-docs because this repository defers them to an MCP server."
 
@@ -86,12 +88,12 @@ upstreams:
     paths:
       - src/Bicep.Core/Analyzers
     ref: main
-    commit: 20c8e39032157ec547ff8adf6b988c15fffb2c76
+    commit: d955a5b1454f85309ddd3970e1c79e410eee8bf8
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Linter rule names, their default severities, and bicepconfig.json rule escalation semantics."
-    notes: "Every linter claim in this skill was reproduced locally against the bicep-linux-x64 0.47.16 release binary rather than read from documentation. The repository has had no docs/linter-rules directory since #5590; linter rule pages live in MicrosoftDocs/azure-docs under articles/azure-resource-manager/bicep, which the azure-docs entry already tracks."
+    notes: "Every linter claim in this skill was reproduced locally against the bicep-linux-x64 0.47.16 release binary rather than read from documentation. The getRoleAssignmentName() behaviour (compiles on 0.48.1, BCP120 when fed site.identity.principalId of a resource in the same file, guid() with the resource ID accepted) was reproduced against the 0.48.1 release binary on 2026-11-01. The repository has had no docs/linter-rules directory since #5590; linter rule pages live in MicrosoftDocs/azure-docs under articles/azure-resource-manager/bicep, which the azure-docs entry already tracks."
 
   - id: avm
     kind: repo
@@ -101,10 +103,10 @@ upstreams:
       - docs/static/module-indexes/BicepResourceModules.csv
       - docs/static/module-indexes/BicepPatternModules.csv
     ref: main
-    commit: 593f926703013ddfaf76f9c0ecceb52ba089cc19
+    commit: 8224eb1838a2c4c8376e0efd8293aa12920817d0
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "AVM module naming and versioning rules, and the ModuleStatus column (Available versus Orphaned) that has to be checked before pinning a module."
     notes: ""
 
@@ -118,10 +120,10 @@ upstreams:
       - articles/azure-functions
       - articles/azure-resource-manager/bicep
     ref: main
-    commit: caabee60f3898cf42b4e03280dba5d5d8d8c3c48
+    commit: 84ce263e4a1bdd0ce29cb5afde8ae98d1ad4068f
     license: CC-BY-4.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "The numeric facts: subscription and resource group limits, the fixed 5000 role assignments per subscription ceiling, Flex Consumption instance sizes and regional core quota, deployment history behaviour, and federated identity credential constraints."
     notes: "Attribution: (c) Microsoft Corporation, licensed CC BY 4.0 (LICENSE read in full; LICENSE-CODE is MIT). This is the open-source source repository for learn.microsoft.com/azure articles; the learn.microsoft.com site itself is under proprietary terms and is reference-only here."
 
@@ -136,7 +138,7 @@ upstreams:
     commit: 86845f3647247b2f1dddc6184d647012ca023c66
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Scoreable shape of a Well-Architected review and the catalogue of recurring cost waste shapes (unattached disks, idle public IPs, stopped-not-deallocated VMs, oversized SKUs)."
     notes: "Written for the Azure SRE Agent platform; its proactive-trigger conventions and fixed report schema were dropped."
 
@@ -147,10 +149,10 @@ upstreams:
     paths:
       - avm/res
     ref: main
-    commit: 61dcfb409c740a1a510a501cb7f8c675da590cbf
+    commit: 82950838e7cefc9a32e813055fbf407ea5819e15
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Verification of the br/public:avm/res/{service}/{resource} module path shape and version form."
     notes: "No module code copied."
 
@@ -162,10 +164,10 @@ upstreams:
       - schemas
       - cli/azd/docs
     ref: main
-    commit: 5667b6a8708d33b8f072d89149b3a97da80b8196
+    commit: d5ed6cd86f45dc7c44da353d6bc4f5a3ef20d873
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Confirmation that the azure.yaml fields and azd commands named in this skill still exist."
     notes: ""
 
@@ -178,10 +180,10 @@ upstreams:
       - skills/azure-resource-manager
       - skills/azure-container-apps
     ref: main
-    commit: ba74e8fcc5cf4864798beaf95e53d7c4840bac5e
+    commit: 95544200a6621ee7481b253beb115ac0be701689
     license: CC-BY-4.0
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Service coverage map and authoritative documentation URLs used to cross-check this skill's scope boundaries."
     notes: "LICENSE read in full: CC BY 4.0 for content, LICENSE-CODE is MIT. Content is generated by docs2skills as categorised link indexes with no standalone judgements, so nothing was copied and the relation is reference rather than merged."
 
@@ -195,7 +197,7 @@ upstreams:
     commit: 72ebd8210e310f3da476bd9029a39b5b98fb061d
     license: MIT
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Cross-check of what to establish before dropping a workload into an existing enterprise landing zone."
     notes: ""
 
@@ -204,6 +206,6 @@ upstreams:
     url: https://learn.microsoft.com/azure
     license: Proprietary
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Human comparison entry point for product documentation."
     notes: "Terms of Use read in full at https://learn.microsoft.com/en-us/legal/termsofuse. The 'Personal and Non-Commercial Use Limitation' forbids modifying, distributing or creating derivative works without written consent, and the documents permission is conditioned on non-commercial use with no modification. The site therefore cannot be merged; the same article text is taken from MicrosoftDocs/azure-docs under CC BY 4.0 instead."
