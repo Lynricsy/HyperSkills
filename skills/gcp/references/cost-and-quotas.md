@@ -108,14 +108,19 @@ billing export**, which has three flavours:
 | Detailed usage cost | adds resource-level rows (individual VM, bucket) | "which instance is this" |
 | Pricing | the price list itself | modelling a change before making it |
 
-Two properties decide how you plan: the export is **not retroactive** — it starts producing
-rows when you enable it, and there is no way to backfill — and it lands with a delay measured
-in hours, so it is a reporting tool, not a real-time alarm. Enable both standard and detailed
-export on day one of any project that will ever have a cost question.
+Two properties decide how you plan. History is limited: a dataset in a **multi-region** (`US`,
+`EU`) gets a one-time backfill from the start of the previous month when the export is first
+enabled (up to five days to land); a dataset in a **single region**, the pricing export, and
+any re-enabled or moved export start on the day you enable them, with no backfill. And it lands
+with a delay measured in hours, so it is a reporting tool, not a real-time alarm. Enable both
+standard and detailed export, into a multi-region dataset, on day one of any project that will
+ever have a cost question.
 
-Credits (free tier, committed-use, promotional) appear as separate negative rows; summing
-`cost` without `credits.amount` overstates the bill and produces reports nobody can reconcile
-against the invoice.
+Credits (free tier, committed-use, sustained-use, promotional) are not separate rows: each usage
+row carries a repeated `credits` field whose `amount` values are negative. Net cost is
+`SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0))`. Summing `cost`
+alone overstates the bill, and subtracting the credits flips their sign; either way the report
+will not reconcile against the invoice.
 
 ## Attribution: labels, projects, tags
 

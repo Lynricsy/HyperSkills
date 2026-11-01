@@ -524,3 +524,60 @@ SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补
 
 遗留：场景 10 基线已满分，说明这组 Autopilot 事实模型联网即可查到，场景只作回归哨兵。场景 7 的蓝绿越窗与 end of support 两侧都只部分提及，
 正文已有，属模型取舍。
+
+## 2026-11-01 上游同步
+
+依据：主代理快照与工作单 `/tmp/hs-sync/gcp.md`。google-skills 用缓存 `/tmp/hs-attr/google__skills`，gcs-extension、optimnow-finops、google-agents-cli
+用 `/tmp/hs-up/G03/` 下的 blobless 裸克隆，对 `<pinned>..<审阅 HEAD> -- <paths>` 读真实 diff。`--pin` 写入值与各条审阅 HEAD 一致；cloud-run-mcp（e373712）为 B 类噪声。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| google-skills | b85f257 → bb9b3f4 | 20 个已追踪 skill 全部新增 `references/attribution.md`（`CLOUDSDK_METRICS_REQUEST_ATTRIBUTION` 与 User-Agent 归因标签、多 skill 优先级）；`gcloud`：安装 gcloud/组件前必须征得用户同意；`google-cloud-storage-basics`：远程 MCP 服务器增 `get_bucket_metadata`（9 个工具）、收窄触发；`google-cloud-solution-architecture`：决策指南表换链接；`google-cloud-waf-reliability`：改 description | 噪声 | 归因标签是上游遥测，未合入；本 skill 不写 MCP 工具清单；`gcloud components install` 只出现在给人看的 Environment 命令块里 |
+| gcs-extension | 701fcae → b346e39 | `google-cloud-storage-diagnostic`：产品名统一为 Cloud Storage、远程修复前须 `[Y/N]` 确认、补 Cookieauth 与 Data Access 审计日志冲突、Signed URL `SignatureDoesNotMatch` 比对 canonical string、IP 过滤追加 CIDR 而非覆盖；`gcs-security-assessment`：tags 改逗号串、产品全名 | 噪声 | 本 skill 的 403 分诊未涉及浏览器 Cookieauth、Signed URL 与 IP 过滤 |
+| optimnow-finops | a2c5277 → e57d560（26 提交） | 大量跨云内容；GCP 相关：`finops-gcp.md` 更正「credits 不是单独行，而是每条 usage 行上的重复 `credits` 字段」、资源型 CUD 上限 55%（内存优化 70%）、Block storage commitments、BigQuery 物理计费 14 天不可改；`gcp-cud-mismatch.md` 同一更正 | **事实更正 1 处** | 本 skill `cost-and-quotas.md` 写「Credits … appear as separate negative rows」，按官方 *Standard usage cost data schema*（`credits` 为 Struct，含 `amount`）与 *Example queries*（`SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c), 0))`）改正。其余本 skill 未写 |
+| google-agents-cli | d445570 → f4e9940 | `google-agents-cli-deploy` v1.12：`--no-agent-identity` 默认值来源、`--dry-run` 先做只读检查、`client.runtimes.get`、A2A 路径 `{app_name}` | 噪声 | reference 条目，正文未引用 |
+
+正文改动（事实更正）：
+- `references/cost-and-quotas.md`：credits 为每条 usage 行的重复字段、`amount` 为负，净成本公式见上；只加 `cost` 偏高、减去 credits 会反号。
+- `references/cost-and-quotas.md` 与 `references/architecture-framework.md`（文档复核中发现）：「billing export 不回溯、无法 backfill」不准确——官方
+  *Export Cloud Billing data to BigQuery*：multi-region（US/EU）数据集首次启用时回填到上月月初（最长 5 天完成），单 region 数据集、pricing 导出、重新启用或改位置时不回填。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 来源 | 结论 | 理由 |
+|---|---|---|---|
+| `cloud-logging-finops` | google/skills（Apache-2.0） | 不合入 | 脚本驱动的 Logging 成本审计工具流程（collector、HTML 报告、交互问答）；本 skill 已有 `_Required`/`_Default` 保留、$0.50/GiB 与 50 GiB 免费额度、排除过滤器等产品事实 |
+| `google-cloud-storage-diagnostic`（google/skills 版） | google/skills | 不合入，不加 paths | 与已追踪的 gcs-extension 同名 skill 同源，避免重复追踪 |
+| api-gateway-backend-security-and-rate-limiting、apigee-agent-gateway-governance、application-integration-{authoring,basics,troubleshooting}、assured-workloads-basics、assuredworkloads-frameworks-{author,navigator}、bigquery-migration-sql-translator、bigquery-udfs、cloud-armor-crs-rule-upgrader、cloud-network-insights、managed-airflow-recommendations | google/skills | REJECT（越界，记入 Scope 问题） | API Gateway/Apigee、Application Integration、Assured Workloads、BigQuery 开发、Cloud Armor、Network Insights、Managed Airflow 都不在本 skill `## Scope` |
+| gke-ai-troubleshooting-tpu-{partition-overlap,reservation-stockout} | google/skills | REJECT | TPU 切片/预留缺货排障，属 GKE AI 工作负载深度；同系列 node-unresponsive 2026-10-15 已评估不合入 |
+| cloudrun-development（两份） | TencentCloudBase/CloudBase-AI-Toolkit | REJECT（非 GCP） | 腾讯云 CloudBase 云托管，不是 Google Cloud Run；库内无对应 skill |
+| gcp-throwaway-vm | laurigates/claude-plugins（MIT，59★） | REJECT | 个人基准测试用临时 VM 流程，无可验证增量 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "google cloud agent skills" --updated >2026-10-10`、`gh search repos --owner GoogleCloudPlatform --owner google --owner googleapis skills --updated >2026-10-01`。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| — | GoogleCloudPlatform/alloydb-plugin | https://github.com/GoogleCloudPlatform/alloydb-plugin | 24 | 2026-10-29 | Apache-2.0 | AlloyDB 插件 | 3 | 3 | 0 | — | 2 | — | REJECT | 仓库树（51 项）里没有任何 SKILL.md，只有 MCP 配置与 `ALLOYDB.md` 上下文文件 |
+| — | GoogleCloudPlatform/cxas-scrapi | https://github.com/GoogleCloudPlatform/cxas-scrapi | 114 | 2026-10-31 | Apache-2.0 | CX Agent Studio 自动化 | 3 | 3 | — | — | 2 | — | REJECT（越界） | 对话式 agent 产品，属 ai-engineering |
+| — | google/elephant-goldfish-model、google/skill-reach | https://github.com/google/elephant-goldfish-model | 7931 / 16 | 2026-10-30 | Apache-2.0 | 软件设计评审 / skill 触发评测 | 3 | 3 | — | — | 2 | — | REJECT（越界） | 与 Google Cloud 无关 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| gcp-docs | Cloud Run 并发 80 × vCPU（CLI/Terraform）、控制台 80、上限 1,000；请求超时 300 s、最长 3600 s | [About concurrency](https://docs.cloud.google.com/run/docs/about-concurrency)、[Request timeout](https://docs.cloud.google.com/run/docs/configuring/request-timeout) | 一致 |
+| gcp-docs | IAM 传播通常 2 分钟、可能 7 分钟或更久；2024-05-03 及之后创建的组织默认强制 `automaticIamGrantsForDefaultServiceAccounts` | [Access change propagation](https://docs.cloud.google.com/iam/docs/access-change-propagation)、[Restricting service accounts](https://docs.cloud.google.com/resource-manager/docs/organization-policy/restricting-service-accounts) | 一致 |
+| gcp-docs | 条件不能用于基本角色与 allUsers/allAuthenticatedUsers；自定义角色不能定义在文件夹级；先查 deny 再查 allow | [Conditions overview](https://docs.cloud.google.com/iam/docs/conditions-overview)、[Roles overview](https://docs.cloud.google.com/iam/docs/roles-overview)、[Deny overview](https://docs.cloud.google.com/iam/docs/deny-overview) | 一致 |
+| gcp-docs | Storage 最短存储期 30/90/365、Rapid、生命周期 24 小时、软删除默认 7 天 | [Storage classes](https://docs.cloud.google.com/storage/docs/storage-classes)、[Lifecycle](https://docs.cloud.google.com/storage/docs/lifecycle)、[Soft delete](https://docs.cloud.google.com/storage/docs/soft-delete) | 一致 |
+| gcp-docs | Logging `_Required` 400 天不可配、`_Default` 文件夹/组织级 30 天不可配；$0.50/GiB、每项目每月 50 GiB 免费 | [Logging quotas](https://docs.cloud.google.com/logging/quotas)、[Pricing](https://cloud.google.com/stackdriver/pricing) | 一致 |
+| gcp-docs | GKE 每节点默认 110 Pod；管理费 $0.10/集群/小时、免费额度 $74.40、扩展支持 $0.50/小时 | [Flexible Pod CIDR](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr)、[GKE pricing](https://cloud.google.com/kubernetes-engine/pricing) | 一致 |
+| gcp-docs | billing export「不回溯」 | [Export Cloud Billing data to BigQuery](https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery) | **不准确 → 更正**（见上，multi-region 首次启用回填到上月月初） |
+| gcp-docs | billing export credits 结构 | [Standard usage cost data](https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery-tables/standard-usage)、[Example queries](https://docs.cloud.google.com/billing/docs/how-to/bq-examples) | **不准确 → 更正**（见上） |
+
+`gcp-docs` 的 `synced_at` 更新为 2026-11-01。未复核（遗留）：spend cap budget 是否仍为 Preview（optimnow-finops 称 2026-10-13 GA，本 skill 与 SOURCES 仍写 Preview）、Autopilot 各类最小请求。
+
+## 2026-11-01 D2 回归
+
+未完成（遗留）：正文有两处成本事实更正（credits 结构、billing export 回填），本轮未在 VM 上跑受影响场景与负例，需补跑。

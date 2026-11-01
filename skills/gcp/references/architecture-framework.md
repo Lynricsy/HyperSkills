@@ -110,7 +110,8 @@ deliberate decision, not a default.
 ## Cost optimization
 
 - Costs are attributable: one project per application per environment, labels enforced at
-  creation, BigQuery billing export enabled (it is not retroactive).
+  creation, BigQuery billing export enabled (it backfills at most to the start of the previous
+  month, and only into a multi-region dataset).
 - Budgets exist with forecast-based thresholds, and everyone involved knows an alerts-only
   budget does not cap spend and a spend cap budget covers only a few API services.
 - Idle resources are swept regularly — unattached disks, reserved-but-unused IPs, stopped VMs
