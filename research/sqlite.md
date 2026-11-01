@@ -485,3 +485,45 @@ D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读�
 结论：规则 18 的改写没有让场景 5 误用原生 ALTER（两侧 6/6）；新场景 6 中原生 ADD CHECK 在有 skill 与基线都被采用，NULL 行差异两侧都是靠自建 3.53.2 实测得出，有 skill 不比基线差，但也没有可测的增益。负例 `skill_read == false`。
 
 遗留：场景 6 的 EB2（报告并按决定处理违例行而非沿用钳位）与 EB4（DROP CONSTRAINT 的适用范围）两侧都只到 ◐；3.53.x 与 3.54.0 在 NULL 行上的差异未见官方说明，若后续发布说明或 ALTER 页补述，应据此复核该行措辞。
+
+## 2026-11-01 上游同步
+
+依据主代理 2026-11-01 归因工作单（`/tmp/hs-sync/sqlite.md`）。`terminalskills-sqlite` 在裸仓库缓存 `/tmp/hs-attr/TerminalSkills__skills` 上按树对比确有改动，读了完整 diff；`moollm-sqlite` 报 behind（diff too large），在 `/tmp/hs-attr/SimHacker__moollm` 上 `git diff --stat 90c8d51 59e5336 -- skills/sqlite/SKILL.md LICENSE` 为空，判噪声。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| terminalskills-sqlite | 6edcf94 → 8a9852d（23 commits） | `skills/sqlite/SKILL.md`：33b765f0 metadata 列表改逗号串；29c6fba0 刷新：示例改 `STRICT` 表、去掉 `AUTOINCREMENT`、PRAGMA 标注持久/每连接、`.import --csv --skip 1`、FTS5 外部内容表三触发器同步、`node:sqlite` 提示、`VACUUM INTO`/`.backup` 替代 `cp`，自述核对 SQLite 3.54.1 | 无影响，仅 re-pin。持久 vs 连接级 PRAGMA、STRICT、WAL 备份不可 `cp`、rowid/AUTOINCREMENT 已在规则 10、12、14、16 与 references 覆盖且更细；FTS5 触发器、CLI 导入、better-sqlite3/`node:sqlite` 属教程或绑定 API，Scope 明确不写绑定接口；其「busy_timeout 让并发写者等待而不失败」忽略了死锁与 `SQLITE_BUSY_SNAPSHOT` 不经等待的情形（规则 6、7 已写），不采纳 |
+| moollm-sqlite | 90c8d51 → 59e5336（47 commits） | 无（树对比为空） | 噪声，仅 re-pin |
+
+`--pin` 后逐条核对（`/tmp/hs-g06/pin_check.py` 对照 `_pins.json` 审阅 HEAD）：8a9852d、59e5336、acf2587、caa0c9b 全部等于审阅 HEAD，无差额。
+
+结论：正文未变，仅 re-pin，`version` 改为 2026.11.01。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| TerminalSkills/skills `skills/sql-js/SKILL.md`（Apache-2.0） | REJECT | sql.js（SQLite 编译为 WebAssembly）的 JS API 教程：`initSqlJs`、`exec`、`export()` 与浏览器持久化。属宿主语言绑定接口，Scope「保留项目自身绑定、不写包装/绑定 API」明确不覆盖；其中涉及引擎语义的部分（参数绑定、事务）已有规则覆盖 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "sqlite agent skill"` / `"sqlite skill"`（`--updated >2026-10-15`）、VoltAgent/awesome-agent-skills README 自 2026-10-15 起的新增行（无 SQLite 相关条目）。
+
+| 仓库 | stars | pushed | license | 总分 | 结论 |
+|---|---|---|---|---|---|
+| DanielFernandes-dev/skills（`sqlite-carver-pro`、`sqlcipher` 等） | 0 | 2026-10-22 | NONE | 3（权威 0 / 新鲜 3 / 具体 —/ 正确 — / 许可 0） | REJECT：SQLite 取证恢复与 SQLCipher 审计工具说明，非应用侧引擎语义；无许可 |
+
+## 2026-11-01 文档上游复核
+
+当前官方版本为 SQLite 3.54.1（[releaselog/current](https://www.sqlite.org/releaselog/current.html)，2026-10-16：仅修 32 位构建堆溢出及 3.54.0 用户报告问题，无语义变化）。18 个页面先读页脚「This page was last updated on」日期：上次复核（2026-10-15）之后只有 `foreignkeys.html` 改过（2026-10-25），逐段重读；其余页面最后更新均早于 2026-10-15（`busy_handler`/`datatype3`/`expridx` 无页脚，直接核对正文引用的句子）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| sqlite-foreignkeys | 默认关闭、须每连接启用；事务中途 `PRAGMA foreign_keys` 无报错也无效果；父键须为 PK 或带相同排序规则的 UNIQUE；跨表错配是 DML 期 "foreign key mismatch"；子键含 NULL 不需父行 | https://www.sqlite.org/foreignkeys.html（2026-10-25） | 一致（新增的是「未来版本可能默认开启，勿假设」一句，与规则 9「每连接启用并读回」相符） |
+| sqlite-busy-handler | 每连接仅一个 busy handler；`busy_timeout()`/`PRAGMA busy_timeout` 会替换并清除既有 handler；可能死锁时直接返回 `SQLITE_BUSY` 不调用 handler | https://www.sqlite.org/c3ref/busy_handler.html | 一致 |
+| sqlite-types | NUMERIC 亲和把格式良好的数值文本转为 INTEGER/REAL，其余文本保留原值（不拒绝） | https://www.sqlite.org/datatype3.html | 一致 |
+| sqlite-expression-indexes | 仅确定性函数；表达式须与查询逐字匹配（`x+y` ≠ `y+x`） | https://www.sqlite.org/expridx.html | 一致 |
+| sqlite-alter | 3.53.0 起 ALTER COLUMN SET/DROP NOT NULL；ADD COLUMN 带 CHECK 时测试既有行 | https://www.sqlite.org/lang_altertable.html（2026-10-05，早于上次复核） | 一致；3.53.x 与 3.54.0 对 NULL 行 ADD CHECK 的差异仍未见官方说明，遗留不变 |
+| 其余 13 条 | 上次复核表所列事实 | 各页最后更新均早于 2026-10-15 | 页面未变，结论沿用 2026-10-15 |
+
+18 条全部一致，正文未改，所有 `kind: docs` 条目 `synced_at` 更新为 2026-11-01。

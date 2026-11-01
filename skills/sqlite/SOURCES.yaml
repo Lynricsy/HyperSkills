@@ -1,5 +1,5 @@
 skill: sqlite
-version: "2026.10.15"
+version: "2026.11.01"
 upstreams:
   - id: terminalskills-sqlite
     kind: repo
@@ -7,10 +7,10 @@ upstreams:
     url: https://github.com/TerminalSkills/skills
     paths: [skills/sqlite/SKILL.md, LICENSE]
     ref: main
-    commit: 6edcf94159d9f46b0759d2e1b59dd545cfaca254
+    commit: 8a9852d489f274538be9bf1c9121aeb403750b1c
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Connection release and online-backup entry points, rewritten in SKILL.md and references/connections-and-transactions.md and references/wal-backup-and-recovery.md; introductory CRUD and fixed tuning values omitted."
   - id: moollm-sqlite
     kind: repo
@@ -18,10 +18,10 @@ upstreams:
     url: https://github.com/SimHacker/moollm
     paths: [skills/sqlite/SKILL.md, LICENSE]
     ref: main
-    commit: 90c8d510bae8ffd3fb973a1ee8143eaa10f79719
+    commit: 59e53364e95d818985fbea62f37627d4b59c9751
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Embedded-engine boundaries, affinity and durability cautions, rewritten in SKILL.md and references/types-and-migrations.md and references/wal-backup-and-recovery.md; MOOLLM integrations removed."
   - id: openfang-sqlite
     kind: repo
@@ -32,7 +32,7 @@ upstreams:
     commit: acf2587e46be174c10200489c9a2d23a39a98aeb
     license: Apache-2.0
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Short explicit transactions, single-writer limits and covering-index observation, rewritten in SKILL.md and references/connections-and-transactions.md and references/query-plans-and-indexes.md; fixed cache and BLOB thresholds rejected."
     notes: "GitHub license detection returned NOASSERTION; the complete LICENSE-APACHE text was read and explicitly grants Apache-2.0. This rewrite uses that grant."
   - id: harness-sqlite
@@ -44,14 +44,14 @@ upstreams:
     commit: caa0c9b8a36ac6397ac70a8e551410790106d626
     license: MIT
     relation: merged
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Atomic SQL and early write-ownership intent, rewritten in references/connections-and-transactions.md; erroneous aiosqlite thread claims and process-local bootstrap guarantees rejected."
   - id: sqlite-transactions
     kind: docs
     url: https://www.sqlite.org/lang_transaction.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Transaction ownership, implicit statement lifetime, transaction modes and phase-specific error recovery."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-isolation
@@ -59,7 +59,7 @@ upstreams:
     url: https://www.sqlite.org/isolation.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Single-writer serialization, stale WAL snapshots, full-transaction restart and same-connection scan visibility."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-pragma
@@ -67,7 +67,7 @@ upstreams:
     url: https://www.sqlite.org/pragma.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Connection settings, result-consuming foreign-key checks and checkpoint return fields."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-busy-handler
@@ -75,7 +75,7 @@ upstreams:
     url: https://www.sqlite.org/c3ref/busy_handler.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Busy handler replacement and the deadlock case that bypasses waiting."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-wal
@@ -83,7 +83,7 @@ upstreams:
     url: https://www.sqlite.org/wal.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "WAL persistence, file sets, checkpoint starvation, durability, topology and exact WAL-reset fixed release branches."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-backup
@@ -91,7 +91,7 @@ upstreams:
     url: https://www.sqlite.org/backup.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Online backup completion, incremental restart and consistent snapshot boundaries."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-vacuum
@@ -99,7 +99,7 @@ upstreams:
     url: https://www.sqlite.org/lang_vacuum.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "VACUUM INTO output isolation, completion risks and implicit-rowid changes."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-types
@@ -107,7 +107,7 @@ upstreams:
     url: https://www.sqlite.org/datatype3.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Affinity, storage classes and conversion behavior used to distinguish validation from declarations."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-strict
@@ -115,7 +115,7 @@ upstreams:
     url: https://www.sqlite.org/stricttables.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "STRICT availability, allowed types, lossless conversions and ANY preservation."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-foreignkeys
@@ -123,7 +123,7 @@ upstreams:
     url: https://www.sqlite.org/foreignkeys.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Per-connection transaction-external enforcement, parent-key matching and nullable child keys."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-create-table
@@ -131,7 +131,7 @@ upstreams:
     url: https://www.sqlite.org/lang_createtable.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "NULL behavior of CHECK, UNIQUE and primary keys, including the INTEGER PRIMARY KEY DESC exception."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-alter
@@ -139,7 +139,7 @@ upstreams:
     url: https://www.sqlite.org/lang_altertable.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Native ALTER constraints, ALTER COLUMN NOT NULL and CHECK ADD/DROP CONSTRAINT availability, and safe generalized rebuild ordering."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-autoincrement
@@ -147,7 +147,7 @@ upstreams:
     url: https://www.sqlite.org/autoinc.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Historical committed rowid high-water state and sqlite_sequence preservation in a rebuild."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-eqp
@@ -155,7 +155,7 @@ upstreams:
     url: https://www.sqlite.org/eqp.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Plan interpretation, covering access, temporary sorting and unstable presentation format."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-optimizer
@@ -163,7 +163,7 @@ upstreams:
     url: https://www.sqlite.org/optoverview.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Composite index term order and evidence-based interpretation of index access."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-expression-indexes
@@ -171,7 +171,7 @@ upstreams:
     url: https://www.sqlite.org/expridx.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Expression matching and deterministic-function restrictions."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-partial-indexes
@@ -179,7 +179,7 @@ upstreams:
     url: https://www.sqlite.org/partialindex.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Predicate implication and syntactic matching limits for partial indexes."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
   - id: sqlite-analyze
@@ -187,6 +187,6 @@ upstreams:
     url: https://www.sqlite.org/lang_analyze.html
     license: NONE
     relation: reference
-    synced_at: "2026-10-15"
+    synced_at: "2026-11-01"
     contributes: "Bounded PRAGMA optimize since 3.46.0 and the fixed-statistics alternative."
     notes: "Public-domain dedication for SQLite code and documentation was explicitly read at https://www.sqlite.org/copyright.html; NONE denotes no license grant required, not an inferred code-license inheritance. Facts independently restated; no upstream prose copied."
