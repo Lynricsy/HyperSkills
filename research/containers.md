@@ -925,3 +925,6 @@ release 全部切到 SSA」安排两周冻结）。负例 5（Terraform `count`/
 | 5（负例） | gpt-6.1-sol medium | 有 | **False** | — | 103.5 s，按 Terraform 作答（`for_each` + `moved`） |
 
 结论：基线已知退役事实；更正的作用是把示例里的 `nginx` 类名换成中性值，并在「Gateway API 是方向而非自动选择」之后补上 ingress-nginx 已退役的状态，使正文不再把退役控制器当默认。有 skill 一侧无回退，r2 在 EB2 上由 ◐ 变 ✔（单样本）。负例未误读。
+
+主代理补齐门禁：c261882 在集成时被重建，提交时间晚于上表运行，按规则在提交后重跑 12 与负例 5（产物 `/tmp/hs-d2/fix/containers/`）：
+12 有 skill 1✔ 2✔ 3✔（48 s，给出维护中的替代控制器、用其 Middleware 重写去前缀、TLS Secret 须同命名空间）；负例 5 `skill_read == false`（101 s）。无回退。
