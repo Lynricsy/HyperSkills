@@ -143,5 +143,15 @@
       "Does not claim that every property becomes required as under OpenAI strict mode: the `Optional` fields may stay optional on Anthropic (optional properties are allowed, within a per-request limit), and the code still handles them being absent",
       "Explains that on Claude 4.5 and newer an input plus `max_tokens` larger than the window is accepted and generation stops with `stop_reason: \"model_context_window_exceeded\"` when the window fills - a truncation, not a 400 - so the except branch never runs and the output is cut off; checks `stop_reason` (and `max_tokens`) before parsing and budgets the input up front, e.g. with the token-counting endpoint"
     ]
+  },
+  {
+    "skills": ["ai-engineering"],
+    "query": "digest_job.py runs from cron every three hours on gpt-6.1-sol; usage.jsonl is yesterday's usage log for it (escalation-policy.md is internal and not included, but it is byte-identical on every run - we diffed it). The cost dashboard says prompt caching is making this job more expensive, not cheaper: every run writes the whole policy to cache and nothing is ever read back. Why is that, and what should we change? Show the cost difference.",
+    "files": ["evals/files/cache-ttl/digest_job.py", "evals/files/cache-ttl/usage.jsonl"],
+    "expected_behavior": [
+      "Identifies the cause as cache lifetime, not prefix churn: on GPT-5.6 and later the default cache lifetime is a minimum of 30 minutes, so a run every three hours always finds the entry gone, pays the 1.25x write on the ~9,000-token prefix and never gets a read - caching makes the prefix about 25% more expensive than not caching it",
+      "Proposes the Responses API's `prompt_cache_options.ttl: \"12h\"` (12-hour minimum lifetime) and states its 2.5x write rate against the 0.05x read rate on GPT-6.1 Sol, with arithmetic showing it pays off at this cadence (one write serves the next three runs: about 2.65x versus 4x uncached per 12 hours, versus 5x today); or, if reuse is not wanted, stops paying for writes (explicit cache mode with no breakpoints)",
+      "Says to confirm the change from the usage fields (`input_tokens_details.cached_tokens` and `cache_write_tokens`, whose `cache_write_tokens_details` splits `ttl_30m_tokens` from `ttl_12h_tokens`) rather than assuming the cache is now hit"
+    ]
   }
 ]

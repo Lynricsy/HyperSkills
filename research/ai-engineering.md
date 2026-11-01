@@ -413,3 +413,67 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | HP | 保留正例 | 新写：Our RAG bot answers from the wrong policy version. Retrieval returns 2… | 2/2 | 2/2 |
 
 结论：调优负例（向量索引调参）0/3 → 3/3 未读；保留负例（pgvector HNSW 参数）两侧都是 1/2，无变化；正例与保留正例全部读取，无回退。采用新描述。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/ai-engineering.md`。google-skills 用 blobless 裸仓库 `/tmp/hs-attr/google__skills` 读 `git diff <pinned> <head> -- <paths>`；其余用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 读落在 tracked paths 的 patch。
+`--pin` 后逐条比对写入 commit 与审阅 HEAD：只有 promptfoo 越界（审阅 39ff4b6 → 写入 8267f8b），差额 1 个提交只改 `.github/workflows/validate-renovate-config.yml`，不碰 paths。vercel-ai-sdk、langchain-skills、anthropics-claude-api、github-awesome-copilot、promptfoo、huggingface-skills 区间内 tracked paths 无提交，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| google-skills | b85f257 → bb9b3f4 | 2826afe：`gemini-api` 与 `gemini-agents-api` 各加 `## Attribution` 节和 `references/attribution.md`（执行 `gcloud` 前加 `CLOUDSDK_METRICS_REQUEST_ATTRIBUTION`、HTTP 请求 `User-Agent` 追加 `agent-skills/1.0 (skill:…)`，生成的代码里不加，用户要求时关闭） | 噪声：厂商用量归因埋点，与工程判据无关 |
+| openai-agents-python | 17d994b → e355d69 | 9abc918 `docs/tools.md`：本地 `ShellTool`/`ApplyPatchTool` 的持久审批决定会跨 handoff 带到同类型同名工具、或带到复用同一 `RunContextWrapper` 的后续运行；权限不同就用逐次决定或新 wrapper | 噪声：SDK 自身的审批缓存语义。跨厂商结论「审批与可见性都不是授权，权限检查在工具内部」已在 `tool-calling.md` Gating 节 |
+| obra-superpowers | bb92a77 → 2ce8aa1 | 2ce8aa1（v7.0.1）：`subagent-driven-development/SKILL.md` 把修复循环、终审、预检、批处理、非 DONE 状态处理、续跑拆进 `references/*.md`，正文改成「每轮之前重读 reference，记忆撑不过压缩」；删掉示例工作流 | 噪声：只是重组以适应压缩，规则文字原样搬进 references。我们取的「同形小任务合并成一次派发」「按角色选模型档」「核对子代理 diff 而非报告」仍在（`references/batching.md` 等） |
+
+结论：上游无事实更正或新增规则，正文不因 tracked paths 改动。正文唯一改动来自文档复核（OpenAI 12 小时缓存寿命，见下）。
+
+## 2026-11-01 上游新增内容评估
+
+区间新增文件（工作单 C + 主代理分诊补充 C2），均已用 `gh api .../contents` 读原文：
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| NVIDIA/skills `cdf-curation-and-retrieval` | REJECT | Cosmos Curator / Dataset Search 产品手册（视频数据整理），非 LLM 应用工程 |
+| TencentCloudBase `ai-model-nodejs` / `ai-model-web` / `ai-model-wechat`（connectors 与 codex 插件两份）、`qianwen/entry/cloudbase` | REJECT | `@cloudbase/*` SDK 调用手册与入口路由，单一商业产品 |
+| TencentCloudBase `cloudbase-document-database-web-sdk`（两份） | 不属本 skill | 文档数据库 SDK，见汇报「跨组命中」（wechat-miniprogram 方向），未动 |
+| TerminalSkills `airllm` | REJECT | 逐层加载跑大模型的单库用法；本地推理归 model-serving，且该库以速度换显存、不是部署方案 |
+| TerminalSkills `anything-llm` / `ragflow` / `lightrag` / `pageindex`（C2） | REJECT | 各 RAG 产品的安装与 API 手册；本 skill 只取跨工具的检索判据，已覆盖切块、嵌入一致性等 |
+| TerminalSkills `a2ui`（C2） | REJECT | 生成式 UI 协议 v0.9 消息格式，预览期协议，不在 Scope |
+| first-fluke/oh-my-agent `oma-architecture` / `oma-orchestration` | 不属本 skill | 架构评审 / 多代理编排的上游自用流程；见「跨组命中」 |
+| github/awesome-copilot `foundry-agentic-loop`（含 5 个 eval 夹具 `AGENTS.md`） | 不属本 skill | Microsoft Foundry + azd 部署流水线，单一云产品，见「跨组命中」（azure） |
+| nexu-io/open-design `motion-claude-agent-lab` | REJECT | 动效模板示例，与 AI 工程无关 |
+| nitinjain999/platform-skills `token-optimizer`（含 4 个示例 `.agent.md`） | REJECT | 给 Claude Code / Copilot 配置便宜读取子代理的安装向导；通用部分「读多推理少的工作交给便宜模型」已在 `subagents-and-parallelism.md` |
+| nitinjain999/platform-skills `ai-governance` | 不属本 skill | 编码代理的会话 hook 与合并门策略，见「跨组命中」（security-review / github） |
+| redis/redis-vl-python `AGENTS.md` | REJECT | 上游贡献者自用命令与约定 |
+| tushaarmehtaa/tushar-skills `ai-product-development`（MIT） | REJECT | 通用清单；执行时重新授权、幂等、评测集先于换模型等均已覆盖（rule 2/3、`tool-calling.md`、`evaluation.md`），「按预留-结算扣费」属产品计费，不在 Scope |
+| laurigates/claude-plugins `workflow-bake-off`（C2，MIT，59★） | REJECT | Claude Code Workflow 模板；可取的「胜者由代码按 Borda/指标算、不让模型从评语里挑、评审不足法定数不出结果」与 rule 23（评审无法解析即判失败）同向，属社区工作流写法，不单独新增 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search repos`（「agent skills llm evals」「SKILL.md prompt engineering RAG agents」限 2026-10-15 后更新——无结果；「llm evaluation skill」只得 0★ 仓库）、`gh search code "LLM-as-judge" --filename SKILL.md`（30 条，筛出非 fork、非已收录者核验）。awesome-copilot 区间新增只有 `foundry-agentic-loop`（见上）。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| strands-agents/evals `SKILL.md` | 250 | 2026-10-30 | Apache-2.0 | 3 | 3 | 2 | 3 | 2 | 13 | REJECT（内容裁决）：`strands-agents-evals` 包的 API 手册（Case/Experiment、各 Evaluator、ActorSimulator），跨工具判据（轨迹抽取、rubric 打分）已有 |
+| daymade/claude-code-skills `promptfoo-evaluation` | 1509 | 2026-10-31 | MIT | 1 | 3 | 1 | 2 | 2 | 9 | REJECT（内容裁决）：promptfoo 配置教程，示例模型过时；promptfoo 官方文档已作为上游追踪 |
+| NeoLabHQ/context-engineering-kit `judge` | 1797 | 2026-08-26 | GPL-3.0 | 1 | 2 | 2 | 2 | 0 | 7 | REJECT：meta-judge → judge 子代理的会话命令；GPL-3.0 与本仓库 MIT 不兼容，不得合入；「评审用新上下文、每分须引证据」已在 `evaluation.md` |
+| cobusgreyling/agent-skills `llm-as-judge` | 20 | 2026-07-08 | NOASSERTION | 0 | 2 | 2 | 2 | 0 | 6 | REJECT：许可不明、个人仓库；位置/长度/自偏好偏差与校准已在 `evaluation.md` 偏差表 |
+| ancoleman/ai-design-components `evaluating-llms` | 526 | 2025-12-11 | MIT | 1 | 0 | 1 | 2 | 2 | 6 | REJECT：>6 个月未更新 |
+| latestaiagents/agent-skills `evals/llm-as-judge` | 6 | 2026-04-15 | MIT | 0 | 1 | 1 | 2 | 2 | 6 | REJECT：低活跃、教程式 |
+
+## 2026-11-01 文档上游复核
+
+范围：3 条 `kind: docs` 条目的 `contributes` 事实 + 正文引用处。Anthropic 用 `https://platform.claude.com/docs/en/<path>.md`，OpenAI 用 `https://developers.openai.com/api/docs/<path>.md`（均 200）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| anthropic-docs | 默认 5 分钟、命中刷新；`ttl: "1h"`；5 分钟写 1.25×、1 小时写 2×；读 0.1×（Opus 5.5 / Sonnet 5.5 为 0.05×，Fable 5.1 / Mythos 5.1 为 0.025×）；总输入 = `cache_read_input_tokens` + `cache_creation_input_tokens` + `input_tokens`；最小可缓存 512–4,096 | https://platform.claude.com/docs/en/build-with-claude/prompt-caching | 一致 |
+| anthropic-docs | `count_tokens` 端点；400 `invalid_request_error`；Claude 4.5+ 超窗口接受请求并以 `model_context_window_exceeded` 停止 | build-with-claude/token-counting、api/errors、build-with-claude/context-windows | 一致 |
+| anthropic-docs | `output_config.format`（JSON outputs）与 strict tools；对象须 `additionalProperties: false`；不支持递归与外部 `$ref`；required 先于可选输出；可选参数合计上限 24 | build-with-claude/structured-outputs（JSON Schema limitations、Property ordering、limits 表） | 一致 |
+| anthropic-docs | 限流按组织 + 工作区，RPM / ITPM / OTPM，429 带 `retry-after` | api/rate-limits | 一致。另记：自设消费上限触达时现为 **HTTP 400** `invalid_request_error`（「You have reached your specified API usage limits」），只有 Claude Code 工作区超限才是带 `retry-after` 的 429——更正 2026-10-15 复核表里「月度消费上限触发的 429」的研究记录；正文未写此事，无需改 |
+| openai-docs | JSON mode 只保证可解析；Structured Outputs 按 schema 键序输出；`refusal` 可程序化检测 | https://developers.openai.com/api/docs/guides/structured-outputs | 一致 |
+| openai-docs | GPT-5.6+ 最小 1,024 可见 token；默认 30 分钟最短寿命、写 1.25×；读 0.1×（GPT-6.1 Sol / Terra 0.05×）；`prompt_cache_options.mode: "explicit"` 无断点则不缓存；早期模型 `in_memory` 约 5–10 分钟、`24h` | https://developers.openai.com/api/docs/guides/prompt-caching | **已变化 → 更正**：新增 Responses API `prompt_cache_options.ttl: "12h"`（12 小时最短寿命，写 2.5×，读价不变；读不会重启 12 小时时钟），用量字段 `cache_write_tokens_details` 拆出 `ttl_30m_tokens` / `ttl_12h_tokens`。`cost-and-reliability.md` 原写「OpenAI 写 1.25×」「GPT-5.6+ 至少 30 分钟」不完整，补上 12 小时档的写价与寿命 |
+| openai-docs | 限流在组织与项目级；`Retry-After` 头 | guides/rate-limits | 一致 |
+| openai-alignment-compaction-report | 27 条越狱式摘要、继任上下文照做 | https://alignment.openai.com/misalignment-reports/self-generated-prompt-injections-in-compaction-summaries/ | 一致（200，「only 27 summaries」原文仍在） |
+
+处理：三条 docs 条目 `synced_at` 更新为 2026-11-01。12 小时档没有场景覆盖，新增场景 11（`evals/files/cache-ttl/`：每 3 小时一次的 cron 作业在 GPT-6.1 Sol 上每次都写缓存、从不命中）。
