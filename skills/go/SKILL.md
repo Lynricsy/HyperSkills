@@ -40,7 +40,9 @@ Paths below are relative to this skill's directory.
    `go test` runs the `stdversion` vet check that catches it (Go 1.27+).
 2. Every goroutine has a visible exit: a context, a closed channel, or a bounded loop.
    The garbage collector never reclaims a goroutine blocked on an unreachable channel, so
-   a leak accumulates until the process dies.
+   a leak accumulates until the process dies. An unstopped `Timer` or `Ticker` is not a
+   leak once unreferenced: Go 1.27 removed `asynctimerchan`, so every build collects it
+   whatever the `go` line (on Go 1.23–1.26 only with a `go` line of 1.23 or later).
 3. Do not start goroutines in `init()` or in a library constructor. Expose `Start`/`Close`
    so the caller owns the lifetime and can wait for it.
 4. Replace hand-rolled worker pools with `errgroup.WithContext` plus `g.SetLimit(n)`: it

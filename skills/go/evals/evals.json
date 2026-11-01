@@ -89,12 +89,12 @@
   },
   {
     "skills": ["go"],
-    "query": "We're doing a dependency and boilerplate cleanup before the next release. modernize/svc is our orders service and modernize/linkutil is a small shared library (each has its own go.mod). Replace hand-rolled code and third-party dependencies with the standard library wherever the standard library now covers them, and show me the updated files and go.mod changes. Don't change behaviour.",
+    "query": "We're doing a dependency and boilerplate cleanup before the next release. Two modules, each with its own go.mod: our orders service and a small shared library. Real paths: svc-go.mod is svc/go.mod and svc-orders.go is svc/orders.go; linkutil-go.mod is linkutil/go.mod and linkutil-link.go is linkutil/link.go. Replace hand-rolled code and third-party dependencies with the standard library wherever the standard library now covers them, and show me the updated files and go.mod changes. Don't change behaviour.",
     "files": [
-      "evals/files/modernize/svc/go.mod",
-      "evals/files/modernize/svc/orders.go",
-      "evals/files/modernize/linkutil/go.mod",
-      "evals/files/modernize/linkutil/link.go"
+      "evals/files/modernize/svc-go.mod",
+      "evals/files/modernize/svc-orders.go",
+      "evals/files/modernize/linkutil-go.mod",
+      "evals/files/modernize/linkutil-link.go"
     ],
     "expected_behavior": [
       "In svc (go 1.27) replaces github.com/google/uuid with the standard library `uuid` package added in Go 1.27, uses a time-ordered `uuid.NewV7()` for the B-tree primary key (or explicitly keeps random v4 via `uuid.New()` with the reason), and removes the google/uuid requirement from svc/go.mod",
