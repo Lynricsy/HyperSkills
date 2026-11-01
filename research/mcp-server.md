@@ -742,3 +742,19 @@ microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f 
 ## 2026-11-01 文档上游复核
 
 本 skill 没有 `kind: docs` 条目，无需复核。
+
+## 2026-11-01 D2 回归
+
+覆盖提交 91fff87（`sdk-versions.md` 矩阵 v2 行与第 2 条补「只经 `serveStdio`/`createMcpHandler` 服务现代时代」、版本刷新；规则 10 版本区间；`testing.md` 头部；新增场景 12）。全部运行晚于该提交，在 `/tmp/hs-wt/G07b-lang2` 上用 `uv run tools/run_evals.py mcp-server --only N [--baseline] --out /tmp/hs-d2/G07b-lang2`（omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行），产物在 `/tmp/hs-d2/G07b-lang2/mcp-server/omp-openai-gpt-6.1-sol-medium/`。
+
+选场景：场景 2（EB4 直接依赖 `sdk-versions.md` 矩阵与「读常量 + `server/discover`」）；场景 12（今天新增，覆盖矩阵 v2 行的入口限定）；负例 5。其余场景的 expected_behavior 不涉及今天改动的版本矩阵与规则 10 区间，未重跑。场景 12 基线取自「上游同步」节同日运行（夹具与期望未再改）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 2 2026-07-28 迁移 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ EB5 ◐ EB6 ◐ | 60 s。查到 v1 1.32.2 仍是 `2025-11-25` 上限、v2 2.4.0 分包与 zod `^4.2`、`LATEST_PROTOCOL_VERSION` 只描述旧时代，并明确写出「装了 v2 但保留手接 `server.connect(transport)` 不会启用现代时代」——直接用上了今天的矩阵限定。没讲双时代客户端在任意错误上回退（EB3）、没提 HTTP+SSE 自 2025-03-26 弃用（EB5）、Roots/Sampling/Logging 只说已弃用未给替代（EB6），与 2026-10-15 有 skill 结果相同 |
+| 2 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ◐ EB5 ◐ EB6 ◐ | 77 s。v2 分包、zod 4、「升级包不等于启用新修订版，要用 `createMcpHandler`」、`isLegacyRequest` 路由都讲到；**没说 v1 停在 `2025-11-25`，也没给「读常量加 `server/discover`」的判定方法**（EB4 ◐）；`logging/setLevel` 已移除但未点明 Roots/Sampling/Logging 弃用 |
+| 12 v2 入口与 Host/Origin | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ | 151 s。装 2.4.0 实测改前 `-32601`、外来 Origin/Host 200；改为 `serveStdio(buildServer, { onerror })`，HTTP 前置精确 Host/Origin 白名单，改后外来/`null`/后缀伪装/多值 Origin 与外来 Host 均 403；同样没提 `initialize` 静默降级，但写出 legacy `initialize` 协商为 `2025-11-25` |
+| 12 | gpt-6.1-sol medium | 无（同日） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 见「2026-11-01 上游同步」 |
+| 5 负例（第三方 GitHub MCP server 连不上） | gpt-6.1-sol medium | 有（挂载） | **false** | — | 41 s。按用户侧排障作答（索要编辑器、配置块与日志，给出 GitHub 远程 HTTP 配置），未加载 skill |
+
+结论：改动相关行为在有 skill 时达成且不差于基线；场景 2 EB4 仍只有有 skill 一侧完整达成，今天的入口限定被模型直接引用；场景 12 两侧持平（哨兵）；负例 `skill_read == false`（2026-10-15 description 维护后首次在 D2 中通过）。各场景只跑 1 次。
