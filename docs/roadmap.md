@@ -254,6 +254,24 @@ Linux场景只读诊断和方案，没有执行主机变更或生产恢复演练
 | `linux-ops`、`cpp` | 已正式构建 | 旧“无合格上游”结论已由波次11重新实读与筛选替代；正文、安装及原样行为对照完成，不宣称已证明增益 |
 | `sql-general`、`shell-scripting`、`ruby-rails`、`htmx`、`wasm`、`embedded`、`cli-tooling`、`web-scraping`、`ecommerce`、`vector-db` | 无合格上游 | 无权威活跃上游，或属产品包装 |
 
+## 2026-11-01 上游同步发现的待定主题（交主人决定）
+
+全量上游同步中出现、不属于任何现有 skill 的 `## Scope`、但值得留意的主题。未立项、未合入任何内容；
+立项前仍须按下文「新增主题的判据」重新调研。
+
+| 主题 | 线索上游 | 现状 |
+|---|---|---|
+| GPU kernel / CUDA·ROCm 编程与正确性诊断 | NVIDIA/skills `nvshmem-*`、amd/skills `flydsl-*`；NVIDIA compute-sanitizer、AMD rocprofiler 类 skill | `cpp`、`ml-training`、`model-serving` 均不覆盖 |
+| 腾讯云开发 CloudBase | TencentCloudBase/CloudBase-AI-Toolkit `connectors/cloudbase/skills`（MIT，官方） | `wechat-miniprogram` 的 Scope 明确排除 `wx.cloud` 与 CloudBase |
+| Kubernetes Gateway API / ingress 迁移 | nitinjain999/platform-skills `gateway-api`（Apache-2.0） | 社区 ingress-nginx 已于 2026-03 退役；`containers` 立项时排除 Gateway API 细节，可扩 Scope 或另立网络类 skill |
+| AWS 运维排障与成本评审 | aws/tools-for-devops-agent（官方，40+ 只读 skill） | `aws` 未收；待评测先行 |
+| SQL Server / T-SQL | github/awesome-copilot `sql-server-safe-tsql.instructions.md` | 无 skill 覆盖 |
+| Quarkus、纯 Java（非 Spring）、JVM 调试与运行时诊断 | awesome-copilot Quarkus 系列、`java-development`、`java-debugging`、`java-diagnostics` | `java-spring` 只覆盖 Spring Boot，`debugging` 不收生态专属工具 |
+| Bevy（Rust 游戏引擎） | TerminalSkills/skills `bevy`（Apache-2.0）、thedivergentai `bevy-*`（LGPL-3.0）、morganlinton/BeautifulRust `references/bevy.md` | `rust` 与游戏引擎 skill 均不覆盖 |
+| App Store 提交前审核 | truongduy2611/app-store-preflight-skills（MIT） | `apple` 的 Scope 不含提交审核 |
+| 行为不变的重构 | first-fluke/oh-my-agent `oma-refactor`、antfu/skills `antfu-simplify` | 旧结论「`refactoring` 是 `code-review`+`test-driven-development` 子集」仍有效，本轮仅记线索 |
+| C# MCP SDK | managedcode/dotnet-skills `catalog/Libraries/MCP/skills/mcp` | `mcp-server` 视为宿主语言面、`csharp-dotnet` 视为库与协议面，两边都不收 |
+
 ## 已排除主题（Batch 1 起沿用）
 
 | 类别 | 例子 | 排除原因 |
