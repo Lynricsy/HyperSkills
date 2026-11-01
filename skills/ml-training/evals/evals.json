@@ -70,5 +70,16 @@
       "Answers as an API-client problem: retries with backoff on timeouts and 429/5xx, structured-output or schema-constrained decoding instead of parsing prose, concurrency or batching over the per-ticket loop, prompt/response caching, and moving the key out of a source-code default",
       "Does not propose fine-tuning, LoRA, a memory budget, a GPU, or a training framework as the answer"
     ]
+  },
+  {
+    "skills": ["ml-training"],
+    "query": "Our long-context LoRA run is correct but too slow to finish in the GPU window. Here's the script and the run notes. Get the speed back without breaking memory.",
+    "files": ["evals/files/longctx/train_sft_long.py", "evals/files/longctx/run-notes.md"],
+    "expected_behavior": [
+      "Keeps gradient checkpointing on (the notes show the run does not fit without it) and does not buy the speed by shortening `max_length` or changing the effective batch of 16",
+      "Enables TRL's selective activation checkpointing for `SFTTrainer` (`gradient_checkpointing_kwargs={\"selective\": True}`, trl 1.15 or newer; the pinned 1.17.1 qualifies), explaining that it keeps the attention outputs from the forward pass instead of recomputing them - the recompute the profile shows dominating at 32k - at a cost of one hidden-state-sized tensor per layer, and sizes that cost against the ~39 GB of headroom",
+      "Removes `use_reentrant: True`, because selective checkpointing requires non-reentrant checkpointing (TRL rejects the combination), and notes it is not available with PEFT under DeepSpeed ZeRO-3",
+      "Says to re-measure step time and peak allocated/reserved memory on the first steps after the change rather than assuming the gain"
+    ]
   }
 ]

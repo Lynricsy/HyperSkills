@@ -352,3 +352,48 @@ nvidia-skills、pytorch-docs 报告为 too large 但完整区间归因为空（�
 
 结论：正文与 references 未改，未新增评测场景、未跑 D2；只 re-pin 并把版本号改为 2026.10.15。
 遗留：TRL SFT 的选择性激活检查点若要写入 OOM 步骤 5，需新增钉在 trl ≥ 1.15 的场景先跑基线。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/ml-training.md`。trl-docs、peft-docs 用 `gh api .../compare/<pinned>...<head>` 读 tracked paths 的 patch；vllm-docs 用裸仓库 `/tmp/hs-attr/vllm-project__vllm` 读 `git diff <pinned> <head> -- <paths>`。
+`--pin` 后逐条比对写入 commit 与审阅 HEAD：全部一致，无越界差额。nvidia-skills、hf-skills、pytorch-docs、deepspeed-docs 区间内 tracked paths 无变化，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| trl-docs | 8f39f8f → a03b8fe | `grpo_trainer.md`：591748e vLLM 生成默认的重要性采样从 Truncated IS 改述为序列级 Masked IS（`vllm_importance_sampling_mode="sequence_mask"`，仍由 `vllm_importance_sampling_correction=False` 关闭）；1374d69 `accuracy_reward` 需 `pip install trl[math_verify]`；ef42910/a4f945f 工具调用测试模型表加 Beam、DeepSeek-R1 | 噪声：正文不涉及 IS 校正、math-verify 与工具调用模型表（已 grep）；本 skill 取的 GRPO 事实（colocate 默认、生成批次整除）不变 |
+| vllm-docs | 429a3da → e0d00e4 | `optimization.md`：4d95f22 NUMA 绑定改为条件满足时默认自动启用（软内存偏好 `--preferred`，`--numa-bind` 变为强制、`--no-numa-bind` 关闭）；8472c01 多模态处理器缓存预算只限存储、不限单请求瞬时内存 | 噪声：本 skill 只取 KV 残差、chunked prefill、RECOMPUTE 抢占与 `/metrics` 端口，均未变；NUMA 与多模态缓存属服务侧调参 |
+| peft-docs | da530b7 → 03412af | `lora/config.py`：9bf55d9 新增 `init_lora_weights="nora"`（A 列单位范数、B 置零，建议 `lora_alpha == r`、`use_rslora=False`）；7d6315a LoftQ 只作用于线性层，嵌入/卷积回退默认初始化、`nn.MultiheadAttention` 报错 | 噪声：`api-versions.md` 引用的 `r`、`lora_alpha`、`target_modules`、`use_rslora`、`use_dora` 语义不变 |
+
+结论：上游无事实更正或新增规则，正文不改，未跑 D2；re-pin 并把版本号改为 2026.11.01。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| NVIDIA/skills `bionemo-complexa-sweep` | REJECT | Proteina-Complexa 蛋白设计参数扫描运行手册；Scope 明确排除科学/生物信息工作流 |
+| NVIDIA/skills `bionemo-genomics-workflow-acceleration` | REJECT | Parabricks 基因组流水线 GPU 化，同上 |
+| NVIDIA/skills `tao-finetune-anomalygennext` / `tao-prepare-anomalygennext-inputs` | REJECT | TAO 缺陷图像生成模型的数据与配方准备，单产品、非 transformer 微调 |
+| NVIDIA/skills `tao-finetune-kumo-anomaly` / `tao-finetune-kumo-forecast` | REJECT | 时间序列异常检测/预测产品的微调与推理，Scope 排除预测类经典 ML |
+| NVIDIA/skills `tao-run-dinov3-ssl-deft` | REJECT | DINOv3 主动学习式数据挖掘与重训，CV 流水线、单产品 |
+
+### 遗留项复核：TRL SFT 选择性激活检查点（2026-10-15 遗留）
+
+核实：trl@3e9940d（2026-09-30）引入，`v1.15.0`（2026-10-08）起在 `trl/trainer/sft_trainer.py` 中可用（`v1.14.2` 无）：`SFTConfig(gradient_checkpointing=True, gradient_checkpointing_kwargs={"selective": True})` 保存注意力输出而不在反向里重算，代价每层一个 hidden-state 大小的张量；要求 `gradient_checkpointing=True` 且非 reentrant（`use_reentrant=True` 直接 `ValueError`），PEFT + DeepSpeed ZeRO-3 下不支持（该组合强制 reentrant）。
+
+评测先行：新增场景 6（`evals/files/longctx/`：H100 上 32k 上下文 LoRA SFT，`gradient_checkpointing_kwargs={"use_reentrant": True}`，关检查点 OOM，剖析显示反向 31% 是重算且以注意力为主，要求不改 `max_length` 与有效批次提速）。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 6 长上下文提速（新增） | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ◐3 ✔4（3✔1◐） | 248 s。直接改成 `{"use_reentrant": False, "selective": True}`，在 VM 里装钉住的依赖做 CPU 冒烟（注意力前向 8 → 4、loss 与 adapter 更新一致），估算缓存约 8 GiB 并列出 GPU 上复测项；未提 PEFT + ZeRO-3 不支持 |
+
+结论：**基线已会，不合入**（缺口只剩 ZeRO-3 限制这一次要点，本配置是单卡、不构成缺口）。场景 6 留作哨兵；遗留项关闭。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search code "gradient_checkpointing" --filename SKILL.md`（40 条；大部分是 Orchestra-Research/AI-Research-SKILLs 的转载副本，已追踪原仓库），核验官方/新出现者。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| OpenBMB/MiniCPM `skills/minicpm5-finetune-trl` | 11772 | 2026-09-21 | Apache-2.0 | 3 | 2 | 2 | 2 | 2 | 11 | REJECT（内容裁决）：单模型（MiniCPM5）TRL+PEFT 配方，依赖下限写 `trl>=0.21`；可迁移的「只算助手 token 的 loss」已由 rule 21 覆盖 |
+| Ascend/agent-skills `verl-async-dapo` | 52 | 2026-05-07 | MulanPSL-2.0 | 3 | 1 | 1 | 2 | 2 | 9 | REJECT（内容裁决）：昇腾容器里交互式生成 verl DAPO 启动脚本，单一硬件与框架 |
+| TYH-labs/unsloth-buddy | 283 | 2026-06-28 | MIT | 1 | 1 | 2 | 1 | 2 | 7 | REJECT：Unsloth 单库向导，含未加条件的营销数字（「2x 更快、省 80% 显存、0% 精度损失」） |
