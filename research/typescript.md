@@ -415,3 +415,14 @@ jeffallan `078a25c`，均相等，无越界差额。
 | vitest-docs | `--typecheck`、`*.test-d.ts` 默认收集、委托 `tsc --noEmit`/`vue-tsc --noEmit`；`typecheck.enabled` 默认 false、`checker` 默认 tsc、`include` 默认 `**/*.{test,spec}-d.?(c|m)[jt]s?(x)`、`ignoreSourceErrors` 默认 false、`tsconfig` 默认就近查找 | https://vitest.dev/guide/testing-types 、https://vitest.dev/config/typecheck | 一致 |
 
 3 条复核完毕，无过时项；正文未改，3 个条目 `synced_at` 改为 2026-11-01。正文未改动，不跑 D2。
+
+## 2026-11-01 新候选检索
+
+途径：`gh search code "TypeScript 7" --filename SKILL.md`（40 条，多为单项目内自用 skill：upgrade/code-style/scaffold 类）；`github/awesome-copilot` 区间
+3cf7c7e..5269f7e 新增文件中无 TypeScript 相关 skill/instructions；`VoltAgent/awesome-agent-skills` README 无新 TypeScript 条目；上游新增内容评估中的 7 个候选见上节。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | ericrisco/rsc-harness `skills/typescript` | https://github.com/ericrisco/rsc-harness | 416 | 2026-10-31（该文件最后改动 2026-07-29） | MIT | 类型工具箱 + tsconfig | 1 | 1 | 2 | 0 | 2 | 6 | REJECT（正确性） | 开篇写「Targets TypeScript 5.9 (current stable)」「stable 7.0 lands early 2026」，以 `@typescript/native-preview` 为 TS 7 入口；TS 7.0.2 已于 2026-08-20 发布、6.0 改了默认值，其 tsconfig 建议按 5.9 口径，按量表正确性 0 |
+| N2 | CharlesHoskinson/dancesWithClaws `.agents/skills/typescript-7` | https://github.com/CharlesHoskinson/dancesWithClaws | 38 | 2026-10-09 | NOASSERTION | 某 monorepo 的 tsgo 包装脚本用法 | 0 | 3 | 1 | — | 0 | — | REJECT（内容裁决） | 项目自用流程（`scripts/run-tsgo.mjs`、`pnpm tsgo:*`），TS 6/7 并存安排本 skill 已按官方发布说明覆盖 |
+| N3 | OutlineDriven/outline-driven-development `.devin/skills/typescript-best-practices` | https://github.com/OutlineDriven/outline-driven-development | 56 | 2026-09-28 | Apache-2.0 | 通用 TS 最佳实践 | 1 | 2 | — | — | 2 | — | REJECT（内容裁决） | 位于某开发方法论仓库的 agent 目录内，属通用汇编；与本 skill 规则 5–23 重叠，无版本化事实 |
