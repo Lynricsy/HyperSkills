@@ -74,5 +74,27 @@
       "Decides whether to add a header from the response's declared MIME type (`audio/wav` versus `audio/l16` / raw PCM) or from the first four bytes reading `RIFF`, not from the model name, and still wraps headerless PCM (older models, streaming) when it gets it",
       "Stitches the lesson from decoded PCM frames of each clip (for example with the `wave` module) rather than by slicing a fixed 44 bytes off concatenated files"
     ]
+  },
+  {
+    "skills": ["generative-media"],
+    "query": "Since we switched promo_voiceover.py to gemini-3.8-flash-tts the audio literally says 'Audio profile, Jaz R.' and 'Take two' out loud, reads the word 'whispering', and the voice sounds like a different person between takes. The editor still wants three takes of the hook line. Fix it.",
+    "files": ["evals/files/promo_voiceover.py"],
+    "expected_behavior": [
+      "Explains that the current TTS generation reads the text field as a verbatim transcript, so the audio-profile/scene/director's-notes headings and the `Take N` labels are spoken; the text keeps only the words to be said and the sustained delivery moves into the separate short style field (`speech_metadata.style`), not a long direction block",
+      "Converts the square-bracket tags: point-in-time vocal events and pauses become angle-bracket tags (`<laugh>`, `<short pause>`, `<long pause>`, noting there is no medium pause), while sustained states such as whispering, enthusiasm or excitement go into the style rather than inline",
+      "Moves who-is-speaking (age, Brixton accent, persona) into the voice - a library voice chosen by accent or a designed voice ID - instead of a persona paragraph, and drops the 'keep the voice exactly the same' meta-instruction as something that adds drift rather than preventing it",
+      "Produces the three takes as three requests with the same voice and identical words, each with its own short style (and tags), saved as separate files - not as labelled takes inside one request"
+    ]
+  },
+  {
+    "skills": ["generative-media"],
+    "query": "clip_pipeline.py stopped working on 2026-10-23 - every submission is a 404 'model not found' and ops looped it all weekend. Get it working again for the SKU teasers and tell me what else in it is wrong.",
+    "files": ["evals/files/clip_pipeline.py"],
+    "expected_behavior": [
+      "Identifies the cause as the model being retired, not a transient error: the cinematic video model's preview was shut down in the developer API on 2026-10-22, so the fix is migrating to the vendor's current video model (or the GA model on the enterprise platform), not retrying",
+      "Re-reads the replacement model's own limits instead of carrying the old ones over: its native output is 720p with 1080p/4K only as upscales and its parameters differ, so the hard-coded `duration_seconds=8, resolution=\"1080p\"` combination is not assumed to validate or to mean the same thing",
+      "Stops retrying blindly: a 404 for a missing model is permanent and is surfaced, the bare `except Exception` retry loop (50 attempts per SKU) is removed or limited to retryable errors, and the job id is persisted so a client timeout is not treated as a call that never happened",
+      "Downloads each clip into the company's own storage in the same run and records its hash against the request, instead of relying on the provider's server-side retention for the editor's next-morning download; handles large outputs returned as a hosted file reference that must be polled until ready before download"
+    ]
   }
 ]

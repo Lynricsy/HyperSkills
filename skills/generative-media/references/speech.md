@@ -124,29 +124,53 @@ narrating them.
 
 ## Synthesis: directing a performance
 
-For anything beyond neutral narration, the prompt is a direction sheet, not a
-sentence. Four blocks, in order [official]:
+Direction syntax belongs to the model generation, so resolve the model before
+writing any direction. Instruction-following TTS now comes in two incompatible
+shapes [official]:
+
+**Verbatim-transcript models** (Gemini 3.8 TTS and its successors). The text
+field is read as a transcript: every word in it may be spoken, including
+headings, `Speaker:` prefixes, "Say the following…" preambles and `Take 1`
+labels. Direction is split by scope:
+
+- **Who is speaking** — age, gender, accent, timbre, persona — lives in the
+  voice: a library voice chosen by accent or a designed voice ID, created once
+  and reused. Long persona paragraphs carried over from older prompts are the
+  most common cause of voice drift, and a "keep the voice consistent"
+  instruction adds drift rather than removing it.
+- **How a whole turn is delivered** — emotion, pace, prosody, sustained
+  states such as whispering — goes in a separate, short style field
+  (`speech_metadata.style`, a few words). Start with no style at all; when
+  the emotion changes mid-line, split it into separate turns rather than
+  stacking directions.
+- **Point-in-time events** go inline in angle brackets at the exact word:
+  human vocal sounds (`<sigh>`, `<laugh>`, `<gasp>`, `<breath>`) and pauses
+  (`<short pause>`, `<long pause>` — there is no medium pause; use `...`).
+  Disfluencies are written as words (`uhm`), emphasis as CAPITALS.
+
+**Earlier instruction-following models** (Gemini 3.1 / 2.5 TTS and similar).
+The prompt is a direction sheet, four blocks in order [official]:
 
 1. **Audio profile** — who the voice belongs to: age, register, texture.
 2. **The scene** — where they are, who they are addressing, emotional state.
 3. **Director's notes** — style, accent, pacing. Accents work better when
    specified to a locality rather than a country.
-4. **Transcript** — the words, with inline audio tags.
+4. **Transcript** — the words, with square-bracket inline tags. A short
+   pause is on the order of 250 ms, a medium pause 500 ms, a long pause
+   1000 ms or more.
 
-Per-dimension labels that models respond to: voice affect, tone, pacing,
-emotion, pronunciation, pauses, emphasis, delivery [official]. The two
-framings are the same instrument at different granularity — the four-block
-form is the skeleton, the label list is the field set.
+Per-dimension labels that these models respond to: voice affect, tone,
+pacing, emotion, pronunciation, pauses, emphasis, delivery [official].
+Porting a four-block prompt to a verbatim-transcript model unchanged is the
+failure to look for: the headings and notes are read aloud.
 
-Inline tags carry rough durations: a short pause is on the order of 250 ms, a
-medium pause 500 ms, a long pause 1000 ms or more [official]. Tags must be
-written in English even when the spoken line is not — `[anger] Je ne sais pas`
-works, a translated tag does not.
+On both shapes, tags are written in English even when the spoken line is not
+— `<sigh> Je ne sais pas` works, a translated tag does not.
 
-When you want variation in delivery, ask for several takes inside one request
-rather than issuing several requests. One request costs one call and the takes
-share a voice state; three requests cost three calls and drift apart
-[official].
+Several takes of one line: on a verbatim-transcript model make one request per
+take — same voice, same words, a different short style — because take labels
+in the text are spoken. Only earlier models accept several marked takes inside
+one request.
 
 ## Synthesis: disclosure is mandatory
 

@@ -598,3 +598,51 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 结论：更正相关的行为在有 skill 时全部达成且不差于基线——场景 3 改写后仍正确处理早期模型的无头 PCM（且按 MIME 判断，与新正文一致），场景 6 两处更正 5/5；基线靠联网查文档也能 5/5，耗时约为有 skill 的两倍。负例 `skill_read == false`。正文未改。
 
 遗留：场景 3 的 EB5（去 markdown）与 EB6（合成语音披露）两侧均未达成，属既有缺口，与本次更正无关；场景 6 的计费 token 数取自文档复核时的模型页数值，厂商调价后只需同步夹具常量，结论不变。
+
+## 2026-11-01 上游同步
+
+依据：阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/generative-media.md`。google-genmedia-skills、google-skills-gemini-api 用裸仓库 `/tmp/hs-attr/<owner>__<repo>` 读 `git diff <pinned> <head> -- <paths>`；comfyui 用 `gh api .../compare` 读 `comfy_extras/` 的文件清单与 patch。
+`--pin` 后逐条比对写入 commit 与审阅 HEAD：全部一致。diffusers-docs、whisper-cpp、c2pa-spec 区间内 tracked paths 无变化，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| google-genmedia-skills | 7a70f3b → 0ed98d5 | e59b2f2：`genmedia-voice-director` 重写为按代际导演——Gemini 3.8 TTS 把 `text` 当逐字稿（标题、`Speaker:`、"Say the following"、`Take N` 都会被念出），交付风格放 `prompt`/`speechMetadata.style` 的短句，口音年龄等放进声音（Extended Voice Library 或 Voice design），尖括号只放瞬时人声与 `<short pause>`/`<long pause>`（无 medium），3.8 每个 take 一次请求；3.1/2.5 仍用四段式与方括号标签。新增 `references/model-differences.md`（含实测：3.8 上 `[whispering]` 3/3 被念出）；audio-engineer / producer / story-generator 同步改写，3.8 单次 4,000 字符、旧模型 800 | **事实更正**（已用官方文档核实，见文档复核）：`speech.md`「directing a performance」原把四段式写成通用做法、并写「多个 take 放进一次请求而非多次请求」，对当前代际已不成立。改为按代际分两种形状，四段式限定为早期模型，take 规则按代际区分。`SOURCES.yaml` 该条 `contributes` 同步改写 |
+| google-skills-gemini-api | b85f257 → bb9b3f4 | 2826afe：用量归因节与 `references/attribution.md` | 噪声：厂商埋点；本条为 reference |
+| comfyui | ba99487 → 6d35280 | 21 个提交：Flux3-image、MOSS-image、Fibo 2.0、MiniMax-H3 等新模型节点，ProRes 与色度子采样视频保存、VAE 计算 dtype 节点、Branch/Pad Image 节点、3D 重网格化重构 | 噪声：本条只用于判断节点图工作流的覆盖面（GPL-3.0，reference）；`local-diffusion.md`「Node-graph workflows」的陈述（保存的图只钉拓扑与参数、不钉环境）不变 |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| NVIDIA/TensorRT-LLM `trtllm-visualgen-lpips-golden-refresh` | REJECT | TRT-LLM CI 的 LPIPS 金标刷新流程，上游自用 |
+| NVIDIA/skills `cdf-defect-image-generation` / `cdf-event-video-generation` | REJECT | Cosmos Data Factory 在 K8s/Airflow 上跑合成数据 DAG，单产品、面向训练数据而非应用集成 |
+| TerminalSkills `moneyprinterturbo` | REJECT | 单一开源工具（主题 → 短视频）的安装与 CLI 手册 |
+| first-fluke/oh-my-agent `oma-voice` | REJECT | 本地 Voicebox/VoiceStudio 后端的调用流程，上游自用；云端 TTS 明示不在其范围 |
+| github/awesome-copilot `caption-qa`（MIT） | 不属本 skill | 字幕时长/行长/阅读速度按 Netflix/BBC/DCMP 标准校验，属确定性媒体处理；移交 media-processing 同批评估 |
+
+## 2026-11-01 新候选检索
+
+途径：`gh search code "SynthID" --filename SKILL.md`（40 条；大量为去水印/SEO 类，按 Core rule 23 一律不收）。
+
+| 仓库 | stars | pushed | license | 权威 | 新鲜 | 具体 | 正确 | 许可 | 总分 | 结论 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| calesthio/OpenMontage `.agents/skills/gemini-omni` | 74032 | 2026-10-28 | AGPL-3.0 | 1 | 3 | 3 | 2 | 0 | 9 | REJECT（许可）：AGPL-3.0 不能合入；内容为其适配器的 Omni 用法（时长只是提示、无 seed、计价按输出 token），只作背景参考，事实以官方 omni 页面为准 |
+| LeoYeAI/agent-master-skills `google-gemini-media` | 2168 | 2026-11-01 | MIT | 1 | 3 | 1 | 0 | 2 | 7 | REJECT：仍以已下线的 Veo 3.1 预览为视频主线（「8 秒视频用 Veo 3.1」），与 2026-10-22 下线不符 |
+| social-media-skills/skills `veo-3` | 226 | 2026-10-15 | MIT | 1 | 3 | 2 | 0 | 2 | 8 | REJECT（正确性）：同样基于已下线的 Veo 3.1 预览与「8 秒约束」，营销向 |
+| wiltodelta/remove-ai-watermarks | 6232 | 2026-10-30 | Apache-2.0 | 0 | 3 | 2 | 0 | 2 | — | REJECT（策略）：去除/伪造 provenance 违反 rule 23，不评分 |
+
+## 2026-11-01 文档上游复核
+
+范围：`google-gemini-docs`、`openai-docs` 两条 `kind: docs` 的 `contributes` 与正文引用处。Google 页面用 `curl` 取 HTML 提正文；OpenAI 用 `https://developers.openai.com/api/docs/<path>.md`。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| google-gemini-docs | 视频：24 fps、4/6/8 秒、高分辨率/参考图/扩展强制 8 秒、每请求一条、11 秒–6 分钟延迟、服务端保留 2 天（扩展重置计时）、EU/UK/CH/MENA 只许 `allow_adult`、seed 只略改善确定性 | https://ai.google.dev/gemini-api/docs/veo 、https://ai.google.dev/gemini-api/docs/video | **已变化 → 更正**：数字仍在 veo 页，但该页与 video 页称 Veo 3.1 Preview 已于 **2026-10-22 在 Gemini API 下线**，迁往 Gemini Omni Flash 或企业平台 GA 模型。`video-generation.md` 把「同厂商现在推荐别的默认模型」改为明确的下线事实与新默认的限制；「当前厂商行为」改为「已文档化的厂商行为」 |
+| google-gemini-docs | 新默认视频模型（Omni）：原生 720p，1080p/4K 为上采样；扩展续写 3–10 秒；多轮对话式编辑以 `previous_interaction_id` 延续片段；>4 MB 输出用 `delivery="uri"` 返回托管文件 URI，需轮询到 ACTIVE 再下载；全部带 SynthID | https://ai.google.dev/gemini-api/docs/omni | **新增事实写入**：`video-generation.md` 首节补新默认限制；「镜头间不继承任何东西」补对话式编辑例外（只延续该片段，不延续世界描述）；异步一节补「单次阻塞调用的模型也要轮询托管文件」；同步阻塞「capped in the tens of seconds」改为「typically」 |
+| google-gemini-docs | 图像：按尺寸档固定输出 token（同档各宽高比相同，如 1K=1120）、默认 SynthID | https://ai.google.dev/gemini-api/docs/image-generation | 一致（另见 Imagen 已全部下线，正文未写模型 id，不改） |
+| google-gemini-docs | 语音：非流式返回带 RIFF 头的 WAV、流式为无头 L16 24 kHz 单声道；可选 `audio/l16`、mulaw、alaw | https://ai.google.dev/gemini-api/docs/speech-generation | 一致 |
+| google-gemini-docs | 语音导演方式 | 同上（Control speech style with metadata and tags）、https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/text-to-speech/prompting-guide 、…/migration-guide（均 CC-BY-4.0，2026-10-30 更新） | **已变化 → 更正**：3.8 把 text 当逐字稿；持续交付放 `speech_metadata.style`；瞬时事件用尖括号；长「Audio Profile/Director's Notes」是声音漂移最常见原因，应改用 Voice design；不要写「保持音色」类元指令；情绪变化拆成多个 turn；temperature/topP/topK 被拒。`speech.md` 已按此改写 |
+| openai-docs | 转写单请求 25 MB、格式白名单 mp3/mp4/mpeg/mpga/m4a/wav/webm、>30 秒需 `chunking_strategy`；TTS 风格指令按模型生效；TTS 须向终端用户披露 AI 声音 | https://developers.openai.com/api/docs/guides/speech-to-text 、…/text-to-speech | 一致。另记：`tts-1`、`tts-1-hd`、`gpt-4o-mini-tts` 已弃用、2027-01-06 关停，迁往 Realtime API；正文按 ruling 2 不写模型 id，不改 |
+| openai-docs | 图像生成指南页面可达 | https://developers.openai.com/api/docs/guides/image-generation | 一致（200） |
+
+处理：两条 docs 条目 `synced_at` 更新为 2026-11-01；`google-gemini-docs` 的 `contributes`/`notes` 补本轮核对内容。语音导演与视频下线两处更正无场景覆盖，新增场景 7（`promo_voiceover.py`：3.8 TTS 下念出标题与 take 标签）与场景 8（`clip_pipeline.py`：Veo 预览下线后的 404 与重试循环）。

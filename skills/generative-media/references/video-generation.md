@@ -19,9 +19,11 @@ Hosted video models emit short clips at a frame rate they choose. One vendor's
 high-fidelity cinematic model accepts only 4, 6 or 8 seconds, runs at a fixed
 24 fps, forces the duration to 8 seconds whenever 1080p, 4K, reference images
 or clip extension are in play, and returns exactly one video per request
-[official]. The same vendor now recommends a different default model for
-general video work, with its own limits — read the limits of the model you
-actually call.
+[official]. That vendor has since retired the model's preview from its
+developer API in favour of a newer default with different limits — 720p
+native output with 1080p and 4K only as upscales, and 3–10 second extensions
+[official]. Model turnover of this kind is routine; read the limits of the
+model you actually call.
 
 The design consequences arrive before the first call:
 
@@ -59,8 +61,11 @@ all deterministic work. Do not attempt them by re-prompting.
 
 ## Holding consistency across shots
 
-Nothing carries between two generation requests. Every shot prompt restates
-the whole world [official]:
+Nothing carries between two independent generation requests. Every shot
+prompt restates the whole world [official]. Conversational editing, where a
+follow-up turn references the previous interaction, is the one exception: it
+carries that clip into the edit, not your world description into the next
+shot.
 
 - A fixed character block, byte-identical across shots: age, build, hair,
   clothing down to colour and material, distinguishing features.
@@ -134,12 +139,15 @@ webhook [official]. This is not a scalability preference; it is what the
 latency distribution forces. One vendor documents a range from 11 seconds to
 6 minutes at peak for a single clip [official].
 
-Synchronous blocking is available only where a provider offers it, is capped
-in the tens of seconds, and is explicitly recommended only for very fast
-models [official]. Restrict it to calls whose p99 you have actually measured
-below 60 seconds — in practice, images and short speech — and give every
-synchronous path a fallback that converts to polling on timeout rather than
-failing the user's request.
+Synchronous blocking, where a provider offers it, is typically capped in the
+tens of seconds and recommended only for very fast models [official]. Restrict
+it to calls whose p99 you have actually measured below 60 seconds — in
+practice, images and short speech — and give every synchronous path a
+fallback that converts to polling on timeout rather than failing the user's
+request. Even a vendor whose current video model answers a single blocking
+call returns clips above a few megabytes as a hosted file reference that has
+to be polled until it is ready before download [official], so the polling
+step exists either way.
 
 A generation call that times out on the client is not a call that did not
 happen. The job is still running and will still be billed.
@@ -148,9 +156,9 @@ happen. The job is still running and will still be billed.
 
 Providers delete generated media on their own schedule and the schedules do not
 agree: output URLs that expire one hour after the job finishes, and generated
-videos held server-side for two days before deletion, are both current vendor
-behaviour [official]. Extended clips count as newly generated, with their own
-fresh retention clock.
+videos held server-side for two days before deletion, are both documented
+vendor behaviour [official]. Extended clips count as newly generated, with
+their own fresh retention clock.
 
 So downloading the bytes and writing them to your own storage is a mandatory
 step of the generation flow, not an optimisation. Do it in the same run that
