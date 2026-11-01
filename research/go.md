@@ -446,3 +446,34 @@ client / transport / handler 路径，手写 `RoundTripper` 会跳过），只�
 | go-release-notes | 1.26：`errors.AsType`、`slog.NewMultiHandler`、`T.ArtifactDir`、`new(expr)`、Green Tea 默认；1.27：`goroutineleak` GA 与 `/debug/pprof/goroutineleak`、`go test` 默认 `stdversion`、`httptest.NewTestServer`、json/v2、泛型方法、`uuid`、`CutLast`、`URL.Clone`；发布历史 go1.27.0（2026-08-19）至 go1.27.3（2026-10-19）、go1.26.10（2026-10-19） | https://go.dev/doc/go1.26 、https://go.dev/doc/go1.27 、https://go.dev/doc/devel/release | 本 skill 引用的标记全部一致；**发现过时项 2 处并已修**：`asynctimerchan` 在 1.27 永久移除（timer 语义不再取决于 `go` 行，见上游同步表）、`cmp.Or` 为 1.22 而非 1.21 |
 
 五个条目 `synced_at` 改为 2026-11-01。
+
+## 2026-11-01 D2 回归
+
+覆盖提交：54d0bf1（`concurrency.md` timer 回收语义按工具链分述、`cmp.Or` 1.22；场景 7 EB3 改写；新增场景 8）与 d425a0a（D2 中途修正，见下）。全部在 `/tmp/hs-wt/G07b-lang2` 上用 `uv run tools/run_evals.py go --only N [--baseline] --out /tmp/hs-d2/G07b-lang2`（omp + `openai/gpt-6.1-sol` medium，隔离 VM，串行；VM 内 Go 1.27.2），产物在 `/tmp/hs-d2/G07b-lang2/go/omp-openai-gpt-6.1-sol-medium/`。
+
+选场景：场景 7（直接考察 timer 更正，EB3 今天改过，两侧重跑）；场景 8（今天新增）；负例 4。`cmp.Or` 版本标注没有场景覆盖，属单点版本号更正，已用 `go vet` 的 stdversion 报错实测，未单独加场景。
+
+第一轮（54d0bf1 之后）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ | 115 s，`…/skill/7-r1`。只读了 `skill://go`（SKILL.md），没读 `concurrency.md`，转而读 go.dev/wiki/Go123Timer，结论写「更旧的主模块 `go` 行或 `GODEBUG=asynctimerchan=1` 可选回旧语义」——在 Go 1.27 上已不成立；实测心跳 bug（31 s 超时 / 32 s 截止 → `context deadline exceeded`）并给出只在收到消息时 `Reset` 的单 timer |
+| 7 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ | 120 s。同样引 Go123Timer，称旧主模块或 `GODEBUG=asynctimerchan=1` 可选旧语义；心跳 bug 同样实测 |
+| 8（平铺夹具） | gpt-6.1-sol medium | 有 / 无 | true / false | 均 EB1 ✔ EB2 ✔ EB3 ✔，EB4 有 ✔ / 无 ◐ | `…/{skill,baseline}/8-r1-flat`。两侧都发现 run_evals 把两个 `go.mod` 平铺到同一目录、只剩一个，自行拆回两个模块后作答；夹具缺陷，结果不计入 |
+| 4 负例 | gpt-6.1-sol medium | 有（挂载） | false | — | `…/skill/4-r1`，按 Python 作答 |
+
+中途修正（d425a0a）：场景 7 说明更正只放在 `references/` 时模型不读，按命令第 2 节第 3 条把它提炼进 `SKILL.md` 规则 2（「未引用的 Timer/Ticker 不是泄漏：Go 1.27 移除 `asynctimerchan` 后与 `go` 行无关；1.23–1.26 需 `go` 行 ≥1.23」，规则条数不变）；场景 8 夹具改名为 `svc-go.mod` 等四个不同文件名并在题面写明真实路径。随后重跑有 skill 的 7、两侧的 8 与负例；场景 7 基线沿用第一轮（场景与夹具在两次运行间未变）。
+
+第二轮（d425a0a 之后）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ◐ EB4 ✔ | 179 s。两条泄漏意见都驳回；改写为「在 Go 1.23–1.26 上 `GODEBUG=asynctimerchan=1` 可恢复旧行为，导入方主模块的设置也有影响」，把回退开关限定到 1.23–1.26（并去读了 `time/sleep.go`），但没明说 1.27 已移除、也没说两条意见在旧构建下成立；心跳 bug 实测同上 |
+| 7 | gpt-6.1-sol medium | 无（第一轮） | false | EB1 ✔ EB2 ✔ EB3 ✘ EB4 ✔ | 见上表 |
+| 8 | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 194 s。标准库 `uuid`，显式 `NewV4` 并说明换 v7 会改变行为，删 google/uuid；`CutLast`；fanout 与 `PageURL` 以 `errors.Join`/深拷 Userinfo 为由保留；linkutil 不动；两模块 `go mod tidy`、`go vet`、`go test -race` |
+| 8 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 215 s。同样四点；服务端用 Go 1.27.2、linkutil 用 Go 1.24.0 跑隔离冒烟构建 |
+| 4 负例 | gpt-6.1-sol medium | 有（挂载） | **false** | — | 22 s。按 Python asyncio / 线程池作答 |
+
+结论：timer 更正在有 skill 一侧由 ✘ 变为 ◐（规则 2 生效，模型把回退开关限定到 1.23–1.26），基线仍持旧口径（✘），无回退；场景 8 两侧持平，作哨兵保留；负例两轮均 `skill_read == false`。各场景每轮 1 次运行。
+
+遗留：场景 7 EB3 有 skill 仍只 ◐——模型优先引用 go.dev/wiki/Go123Timer（该页仍描述 `asynctimerchan` 回退）。若下一轮仍未满分，可考虑在规则 2 直接写出「两条意见只对旧构建成立」并重跑。
