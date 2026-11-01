@@ -84,5 +84,19 @@
       "Runs `flutter analyze` (or `dart analyze`) and requires zero issues, info-level lints included",
       "Runs `flutter test` (the cart tests or the full suite) as the final gate before committing"
     ]
+  },
+  {
+    "skills": [
+      "flutter"
+    ],
+    "query": "Our storefront ships as a Flutter web build plus the mobile apps (web_main.dart in this directory is the web entry point). A blind customer emailed that NVDA on Chrome announces nothing on the web store except a single button, while the mobile apps work fine with screen readers. Every widget already has Semantics labels. What is going on and what do we change?",
+    "files": [
+      "evals/files/web_main.dart"
+    ],
+    "expected_behavior": [
+      "Explains that Flutter web does not build its accessibility tree by default for performance reasons, and that the lone announced element is the placeholder button a screen-reader user must activate first",
+      "Enables semantics at startup on the web build with `SemanticsBinding.instance.ensureSemantics()` after `WidgetsFlutterBinding.ensureInitialized()` (guarded with `kIsWeb` or kept web-only), rather than adding more Semantics labels",
+      "Verifies the fix with a real screen reader on the web build (or by inspecting the generated semantics DOM), not only with the mobile apps"
+    ]
   }
 ]

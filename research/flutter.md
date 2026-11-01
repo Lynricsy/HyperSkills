@@ -357,3 +357,34 @@ Genkit / Firebase 属本 skill Scope 外、从未合入，判定噪声，仅 re-
 | flutter-docs | 新观察：两页示例改为 `import 'package:material_ui/material_ui.dart'`，并提示 `dart fix --apply --code=migrate_design_widgets` | [Breaking changes](https://docs.flutter.dev/release/breaking-changes) 把「Migrate to standalone `material_ui` and `cupertino_ui` packages」列在 **Not yet released to stable**；最新稳定版 3.47 | 未发布到 stable，正文继续用 `package:flutter/material.dart`；下次同步复查是否进入稳定版 |
 
 6 条，均无需改正文；`flutter-docs` 的 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-01 新候选检索
+
+检索（有界）：`gh search repos` 关键词 `flutter skill`（按更新）、`flutter agent skills`、`SKILL.md flutter dart`（按星，筛 2026-10-01 后推送）；
+`VoltAgent/awesome-agent-skills` README 中 Flutter/Dart 条目；`github/awesome-copilot` 树中 flutter/dart 路径（只有既有的 `instructions/dart-n-flutter.instructions.md`）。
+Stars / 推送 / 许可为 2026-11-01 `gh api repos/<o>/<r>` 值。评分同上表（权威 / 新鲜 / 具体 / 正确 / 许可）。
+
+| 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| flutter/skills | 3133 | 2026-10-30 | BSD-3-Clause | — | — | — | — | — | — | 不适用 | 与 `flutter/agent-plugins` 是同一仓库（`gh api` 两者 `id` 均为 1167049909、`full_name` 为 agent-plugins），已作为 flutter-official 追踪 |
+| LambdaTest/agent-skills `flutter-testing-skill` | 387 | 2026-10-30 | MIT | 1 | 3 | 1 | 3 | 2 | 10 | REJECT | 测试云厂商（非 Flutter 官方）出品；教程式通用示例（`testWidgets`、`pumpAndSettle`、`matchesGoldenFile` 用法抽查正确）外加 TestMu 云设备推广；内容被 flutter-official、harish-flutter-tester 完全覆盖 |
+| getsentry/skills `sentry-flutter-sdk` | 1105 | 2026-10-26 | Apache-2.0 | 2 | 3 | — | — | 2 | — | REJECT | 单一商业产品 SDK 接入手册（按 Phase 2 规则），未读正文 |
+| gabuldev/flutter-skills（16 个 skill） | 12 | 2026-10-30 | MIT | 0 | 3 | 2 | 1 | 2 | 8 | REJECT（整体）；单点缺口已测 | 作者自家约定（Cubit + `flutter_injections`、葡语文案），属上游自用流程；抽查：Flutter web 默认不开语义树、`SemanticsBinding.instance.ensureSemantics()` 正确，但「URL 加 `?semantics=true` 开启」在官方 [Web accessibility](https://docs.flutter.dev/ui/accessibility/web-accessibility) 页无此说法。唯一本 skill 未写的点（web 语义默认关闭）新增哨兵场景 8 跑基线：基线 3/3 已会，不合入，场景留作哨兵 |
+| ducafecat/skills | 6 | 2026-10-29 | MIT | 0 | 3 | 1 | — | 2 | — | REJECT | GetX/Riverpod 初始化脚手架、改名、图标、资源压缩等工具型 skill 加通用 code review；GetX 与本 skill 默认栈冲突 |
+| MichaelLiu-Flutter/agent-skills | 0 | 2026-10-29 | MIT | 0 | 3 | — | — | 2 | — | REJECT | 通用「代码设计」skill，与 Flutter 无关 |
+
+## 2026-11-01 D2 回归
+
+覆盖提交 41aa010（Core rule 14、Environment、`dart-tooling.md`：`dart format .` 改为只格式化改动文件）。口径 omp + `openai/gpt-6.1-sol` medium，
+隔离 VM，产物 `/tmp/hs-d2/G09b-mobile2/flutter/omp-openai-gpt-6.1-sol-medium/`，均在 41aa010 之后运行，串行。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 7 只改一个文件后的提交前命令（新增） | gpt-6.1-sol medium | 有 | true | EB1 ✔ EB2 ✔ EB3 ✔ | 41 s。`dart format lib/src/cart/cart_total.dart`，明确「不要对约 600 个文件跑 `dart format .`」；`flutter analyze` 要求 `No issues found!` 含 info；`flutter test` 全量并要求回归用例 |
+| 7 | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ◐ EB3 ✔ | 65 s。先 `--output=none --set-exit-if-changed` 检查单文件再格式化，「不要格式化全部 600 个文件」；analyze 只要求「无新增诊断」，未要求 info 级清零 |
+| 8 Flutter web 语义树默认关闭（新增哨兵） | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ✔ EB3 ✔ | 35 s。说明 web 出于性能默认不建无障碍树、只暴露「Enable accessibility」按钮；在 `runApp` 后调用 `SemanticsBinding.instance.ensureSemantics()`；用 NVDA 在 web 构建上复验 |
+| 4 负例（SwiftUI 评审） | gpt-6.1-sol medium | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 25 s。只按 SwiftUI 评审：父级传入值不应放 `@State`，改 `let` 或 `@Binding` |
+
+结论：场景 7 有 skill 3/3、基线 2✔1◐。「只格式化改动文件」基线本身已会，本次改动的作用是撤掉 skill 自己原先给出的 `dart format .`
+（旧正文会把模型推向全量格式化），属对本 skill 指令的更正，不是填补基线缺口；有 skill 不比基线差，并多达成 info 级清零。
+场景 8 基线已会，gabuldev 的 web 语义内容不合入，场景保留为哨兵（未跑有 skill，正文无对应改动）。负例 `skill_read == false`。
