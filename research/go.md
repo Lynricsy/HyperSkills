@@ -480,3 +480,17 @@ client / transport / handler 路径，手写 `RoundTripper` 会跳过），只�
 
 主代理续做：`## Scope` 原写「MCP server implementation 本仓库还没有 skill」，已过时（`mcp-server` 已存在），改为指向 `mcp-server`（只改指针，不扩范围）。
 改后补跑负例 4（有 skill 挂载）：`skill_read == false`，22 s，按 Python asyncio / 线程池作答，产物 `/tmp/hs-d2/main/go/`。
+
+### 主代理补齐门禁：`cmp.Or` 版本更正补场景，负例在正文提交后重跑
+
+上文写「`cmp.Or` 版本标注没有场景覆盖……未单独加场景」，不符合门禁；上面的负例补跑早于 Scope 指针修正的提交时间。新增场景 9
+（`evals/files/cfglib/`：`go 1.21` 的库模块用 `cmp.Or` 写默认值链，CI 只跑 `go build` 且全绿）。本机核实：Go 1.27.1 下 `go build` 通过，`go vet` 与 `go test` 都报
+`cmp.Or requires go1.22 or later (module is go1.21)`，提问据此写明「CI 只跑 `go build`、尚无测试」。产物 `/tmp/hs-d2/fix/go/omp-openai-gpt-6.1-sol-medium/`，均晚于 `6aed4b8`。
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 9（新增） | gpt-6.1-sol medium | 无 | False | EB1 ✔ EB2 ◐ EB3 ◐ EB4 ✔ | 37 s。用 Go 1.21.13 实测 `undefined: cmp.Or`；只说「Go 1.27 CI 不验证兼容性」，未提 `go vet` 的 stdversion；修法只给恢复 if-zero，未给「有意把 go 行升到 1.22」；建议加 Go 1.21 构建 |
+| 9（新增） | gpt-6.1-sol medium | 有 | True | EB1–EB4 ✔ | 79 s。1.21.13 构建失败 + 1.27.2 下 `go vet` 四处报错；两种修法（恢复显式回退 / 有意改兼容策略）；CI 加最低版本构建与 `go vet` |
+| 4（负例，重跑） | gpt-6.1-sol medium | 有（挂载） | False | — | 28 s，按 Python 作答 |
+
+结论：`cmp.Or` 更正在有 skill 时补上基线缺口（EB2、EB3 ◐ → ✔）；负例在提交后仍未误读。
