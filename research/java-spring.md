@@ -378,3 +378,14 @@ attempts」，不能解释该提示的事务管理器会静默忽略它；`Hiber
 | 4（负例） | gpt-6.1-sol medium | 有 | **False** | 3/3 | 26 s。改用 `viewModelScope`，无 Spring 建议 |
 
 结论：四处更正在有 skill 时全部按更正后的内容作答，无回退；基线同样 4/4，不构成新增正文的缺口，场景 7 留作哨兵（主要防止正文旧断言「授权失败到不了 advice」「`PostgreSQLContainer<?>`」再次误导）。负例 `skill_read == false`。正文无需再改。
+
+## 2026-11-01 跨组命中评估
+
+其他组（`debugging` 2026-11-01 评估，列为跨组命中）转来的上游新增文件，`gh api` 读原文后裁决。github/awesome-copilot 已由本 skill 以 `awesome-copilot` 追踪。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| github/awesome-copilot `skills/java-debugging`（`SKILL.md` + `references/stack-traces.md`；最近提交 aeb5a5af 2026-10-21） | REJECT（不扩 paths）；Scope 问题上交 | 主体是 JDWP 挂调试器（只绑 `127.0.0.1`、`suspend=n`、JDK 9 前裸 `address=5005` 绑全部网卡、Gradle `--debug-jvm`/`debugOptions.host` 7.6+、Surefire/Failsafe debug、容器内 `*:5005` 的暴露面）与 JEP 358 版本差异。本 skill Scope 是 Spring Boot 应用本身，「把可复现故障追到根因」明确归 `debugging`，而 `debugging` 又以「Java 生态内容」拒收——JVM 调试器操作目前无 skill 覆盖，属扩 Scope，写入汇报。Spring 相关的一行（`spring-boot:run -Dspring-boot.run.jvmArguments=...`）单独不足以成条 |
+| github/awesome-copilot `skills/java-diagnostics`（`SKILL.md` + 8 个 references） | REJECT（不扩 paths）；Scope 问题上交 | JVM 运行时诊断（jcmd/jstack/jmap 分级、JFR、async-profiler、NMT、GC 日志、MAT、堆转储含密钥）。与本 skill 的交集只有 Actuator `heapdump`/`threaddump` 不得公开暴露，已在 SKILL.md 规则与 `references/observability.md` 覆盖；其余是 JVM 层而非 Spring 层，同上属扩 Scope |
+
+正文无改动，无需 D2。
