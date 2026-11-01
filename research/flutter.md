@@ -321,3 +321,39 @@ Genkit / Firebase 属本 skill Scope 外、从未合入，判定噪声，仅 re-
 结论：更正后的本地化内容在有 skill 时正确使用（4/4），不比基线差；该报错自带「已移除」字样，基线同样 4/4，正文这条更正的作用是避免 skill 自身给出过时的「弃用」说法，而非填补可测缺口。负例 `skill_read == false`。正文未改。
 
 遗留：两侧都未提 Flutter 3.32 这一默认改为源码生成的版本点；VM 内无 Flutter SDK，`flutter gen-l10n` 未实际执行。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/flutter.md`。归因：`gh api repos/<o>/<r>/compare/<pinned>...<head>` 读 tracked paths 下的完整 patch。
+`--pin` 后逐条核对：写入的 commit（1bd8f2c、bf984f3、f170aab、9467697、078a25c、1a97288）与审阅 HEAD 全部一致，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| flutter-official | 0ef3972 → 1bd8f2c（f813a46、6e59065） | `skills/flutter-add-widget-preview/SKILL.md`：新增 `@Preview` 参数清单（`textScaleFactor`/`wrapper`/`localizations` 等）、`.widget_preview/` 构建缓存、IDE 自动启动门槛 3.38+ → 3.47+、`PreviewThemeData` 子类示例；`skills/dart-use-pattern-matching/SKILL.md`：自 dart-lang/skills 同步的「多字段对象解构」规则 | 无影响：本 skill 不覆盖 Widget Previewer，正文无相关事实；解构规则与 2026-10-15 已在 dart-official 判「风格取舍、不合入」的是同一内容，维持原判。仅 re-pin |
+| evanca-rules | 30f908d → f170aab（cf1f1c2、ee8317a、bd69750、f170aab） | `skills/bloc/SKILL.md`：repository 需同步暴露最新值时写入可注入的内存 cache client；`skills/effective-dart/SKILL.md`：setter（含 `[]=`）不写返回类型；`skills/revenuecat-testing/*`：新增「实验前检查」；`ai-scope-qa` 在区间内先加后删，净 diff 为零 | 无影响：cache client 是 Bloc 官方示例的架构偏好、非正确性缺陷；setter 返回类型由 lint `avoid_return_types_on_setters` 覆盖；RevenueCat 不在 Scope（10-09 已判不合入）。仅 re-pin |
+| sgruhier-flutter | f5b6ba0 → 9467697（9467697） | `skills/flutter-analyze/SKILL.md`、`skills/dart/SKILL.md`：`dart format .` 改为只格式化改动过的文件，旧 formatter 格式化过的代码库上全量格式化会改写数百个无关文件、淹没真实 diff，全量重排单独提交；`skills/bloc`、`skills/riverpod`：mock 库改为「项目已用的库（默认 mocktail）」 | **更正本 skill 自身的指令**：Core rule 14 与 Environment 块原写 `dart format .`，改为格式化改动文件、全量重排单独提交；`references/dart-tooling.md` 同步并补 CI `--output=none --set-exit-if-changed .` 检查。本机 Dart 3.13.7 实测：同一行代码在 `// @dart=3.6` 与默认语言版本下 `dart format` 输出不同（后者 tall style 拆行并加尾逗号），佐证「formatter 输出随 SDK/语言版本变化」。mock 库规则本 skill 已有（Testing 清单「Use the project's mocking library」），无需改 |
+| dart-official | b046fa1 → bf984f3 | 无（paths_unchanged） | 噪声，仅 re-pin |
+| jeffallan-flutter | 1be15d8 → 078a25c | 无（paths_unchanged） | 噪声，仅 re-pin |
+| harish-flutter-tester | 114379a → 1a97288 | 无（paths_unchanged） | 噪声，仅 re-pin |
+
+新增场景 7（夹具 `evals/files/cart_total.dart`：只改了一个文件的老仓库，问提交前要跑的命令）覆盖 Core rule 14 的更正，D2 结果见下文。sgruhier-flutter 的 `contributes` 补「只格式化改动文件」。
+
+## 2026-11-01 上游新增内容评估
+
+| 仓库 | 新文件 | Scope | 历史去重 | 增量价值 | 权威度 / 许可 | 结论 |
+|---|---|---|---|---|---|---|
+| Harishwarrior/flutter-claude-skills | `mobile-toolchain-unifier/SKILL.md`（+ references） | 不在：整机 Android SDK/NDK/Gradle/JDK/FVM 版本统一、磁盘清理、模拟器瘦身（`avdslim`/`simslim`），属开发机运维而非 Flutter 应用代码；也不在 android/apple 的 Scope | 无同类记录 | 低：示例版本号（NDK r30、Gradle 9.8.2、AGP 9.4/9.5）是作者机器的快照；大量 `rm -rf ~/Library/...` 破坏性步骤 | 社区 / MIT | REJECT |
+| evanca/flutter-ai-rules | `skills/ai-scope-qa`（cf1f1c2 新增、bd69750 从 Flutter 集删除） | 区间净 diff 中不存在 | — | — | — | 不适用（已被上游移除） |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| flutter-docs | `StandardMessageCodec` 类型表（含 typed data 与 Kotlin/Swift 对照） | [Platform channels §Data types support](https://docs.flutter.dev/platform-integration/platform-channels) | 一致 |
+| flutter-docs | 平台侧调用 Flutter 必须在主线程；Flutter 侧从 root isolate 或已注册的后台 isolate 调用；`makeBackgroundTaskQueue()`；后台 isolate 先 `BackgroundIsolateBinaryMessenger.ensureInitialized(token)` | 同上 §Channels and platform threading | 一致 |
+| flutter-docs | Pigeon 作为类型安全代码生成方案 | 同上 §Overview / Pigeon | 一致 |
+| flutter-docs | gen_l10n：`generate: true`、`l10n.yaml` 三项、`flutter pub get`/`flutter run` 自动生成、输出到 `arb-dir`/`output-dir`、import `l10n/app_localizations.dart` | [Internationalizing Flutter apps](https://docs.flutter.dev/ui/internationalization) | 一致 |
+| flutter-docs | `synthetic-package` 已移除 | 同上选项表仍写「默认 true」，与工具行为不符（10-15 已记入 notes） | 维持 10-15 结论，正文不动 |
+| flutter-docs | 新观察：两页示例改为 `import 'package:material_ui/material_ui.dart'`，并提示 `dart fix --apply --code=migrate_design_widgets` | [Breaking changes](https://docs.flutter.dev/release/breaking-changes) 把「Migrate to standalone `material_ui` and `cupertino_ui` packages」列在 **Not yet released to stable**；最新稳定版 3.47 | 未发布到 stable，正文继续用 `package:flutter/material.dart`；下次同步复查是否进入稳定版 |
+
+6 条，均无需改正文；`flutter-docs` 的 `synced_at` 更新为 2026-11-01。

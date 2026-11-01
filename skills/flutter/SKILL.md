@@ -4,7 +4,7 @@ description: "Develops cross-platform Flutter apps with Dart, widgets and state 
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.10.15"
+  version: "2026.11.01"
   category: platform
 ---
 
@@ -68,9 +68,10 @@ Paths below are relative to this skill's directory.
     pattern (or `p.isWithin`), `p.extension`, and `p.posix.joinAll(p.split(p.relative(…)))`
     for manifest or URL keys — never `'$a/$b'`, `startsWith('x/')`, `split('/')` or
     `replaceAll(r'\', '/')` (`references/dart-language.md`).
-14. Finish every change with the gate: `dart format .`, then `flutter analyze` with zero
-    issues, then `flutter test`. Analyzer info-level lints count; silence one only with
-    `// ignore: <code> — <reason>`.
+14. Finish every change with the gate: `dart format` on the files you changed (not
+    `dart format .`; a repo-wide reformat is a commit of its own), then `flutter analyze`
+    with zero issues, then `flutter test`. Analyzer info-level lints count; silence one
+    only with `// ignore: <code> — <reason>`.
 
 ## Workflows
 
@@ -207,7 +208,7 @@ flutter analyze          # zero issues is the bar; add --fatal-infos in CI
 flutter test             # dart test for a pure Dart package
 flutter pub outdated     # before any dependency change
 dart fix --apply         # mechanical deprecation fixes
-dart format .
+dart format <changed files>
 ```
 
 Device-dependent steps (`flutter drive`, `patrol test`, `adb`, `xcrun simctl`) need a

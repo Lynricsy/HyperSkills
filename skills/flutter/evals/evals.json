@@ -70,5 +70,19 @@
       "Changes the import in main.dart from `package:flutter_gen/gen_l10n/app_localizations.dart` to the file generated next to the ARB files (`l10n/app_localizations.dart` relative to lib, or the app's own `package:` path), noting that the output goes to `arb-dir` unless `output-dir` is set",
       "Names regenerating (`flutter gen-l10n` or `flutter pub get`) and `flutter analyze` as the checks that confirm the fix"
     ]
+  },
+  {
+    "skills": [
+      "flutter"
+    ],
+    "query": "I just fixed the discount rounding bug in lib/src/cart/cart_total.dart (a copy is cart_total.dart in this directory) and nothing else changed. The app repo is about five years old with roughly 600 Dart files. Before I commit and open the PR, give me the exact commands to run, in order, and what each one has to show.",
+    "files": [
+      "evals/files/cart_total.dart"
+    ],
+    "expected_behavior": [
+      "Formats only the changed file (for example `dart format lib/src/cart/cart_total.dart`) instead of a repo-wide `dart format .`; if it mentions reformatting the whole project, it keeps that out of this PR as a commit of its own",
+      "Runs `flutter analyze` (or `dart analyze`) and requires zero issues, info-level lints included",
+      "Runs `flutter test` (the cart tests or the full suite) as the final gate before committing"
+    ]
   }
 ]

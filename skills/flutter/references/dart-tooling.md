@@ -61,7 +61,7 @@ An ignore without a reason is indistinguishable from a bug someone hid.
 ```bash
 dart fix --dry-run     # list proposed changes
 dart fix --apply       # apply them
-dart format .          # then format
+dart format lib/src/changed_file.dart   # only the files you touched
 flutter analyze        # then verify
 ```
 
@@ -69,6 +69,12 @@ flutter analyze        # then verify
 relevant lint first is what unlocks the automated migration. Review the dry run:
 mechanical fixes occasionally change behaviour (for example removing an `await`
 the analyzer believes is redundant).
+
+Format the files you changed, not the whole tree. On a codebase last formatted by an
+older `dart format` (formatter output changes between SDK releases and language
+versions), `dart format .` rewrites hundreds of untouched files and buries the real
+diff. Reformat the whole project only as a commit of its own; a CI check
+(`dart format --output=none --set-exit-if-changed .`) is what keeps the tree uniform.
 
 ## Dependency conflicts
 
