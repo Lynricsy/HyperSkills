@@ -511,3 +511,13 @@ Learn 文档读源仓库（`gh api 'repos/dotnet/docs/commits?path=<file>&since=
 | 10（`.sln` 夹具，重跑） | gpt-6.1-sol medium | 无 | false | ✔1 ✔2 ✔3 ◐4 | 181.9 s。结论同上：build/test 加 `--no-restore -restore:false`，publish（RID）与方案外 Packager 保留 restore；test 未用 `--no-build`；明确说只验证了 restore 行为、没跑完整 CI |
 
 结论：基线已具备上游 eliminate-redundant-restores 的关键判断，不合入正文；场景 10 留作哨兵。
+
+## 2026-11-01 跨组命中评估
+
+其他组转来的上游新增文件，`gh api` 读原文后裁决。
+
+| 候选 | 结论 | 理由 |
+|---|---|---|
+| managedcode/dotnet-skills `catalog/Libraries/MCP/skills/mcp`（MIT，500★，2026-10-29 推送；`SKILL.md` + `references/patterns.md`、`security.md`） | REJECT（本 skill）；Scope 问题上交 | 内容几乎全是 MCP C# SDK（`ModelContextProtocol*` 三个包的选择、stdio/Streamable HTTP 传输、v2.0–2.2 的无状态默认与 `server/discover` 协商、Tasks 扩展包、企业授权）——是 MCP 协议面在一个 NuGet 库上的表达，不是 C# 语言、SDK 构建或 ASP.NET Core 本身的规则；本 skill Scope 收框架级内容，不收单一第三方库手册（同 python 对单库手册的处理）。唯一的语言面条目「.NET 下 stdio 服务器把日志阈值设到 stderr」已在 `mcp-server` 的 `references/transports.md` 覆盖。另：`mcp-server` 2026-11-01 以「C# SDK API 属宿主语言」拒收同一文件，两边都不收 → C# MCP SDK API 目前无 skill 覆盖，写入汇报请主人决定归属；本机无 .NET 工具链，即便归属确定也需实测后才能写 SDK 事实 |
+
+正文无改动，无需 D2。
