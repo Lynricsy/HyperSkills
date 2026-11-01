@@ -1,0 +1,32 @@
+{
+  "context": "ABAC rollout for the data platform account. Access to every S3 data bucket is decided by the principal tag `access-team` matched against the bucket tag of the same name. Security asked for two guardrails so nobody can move themselves into another team. Both statements below are already live in the permission set attached to every engineer role and in an SCP on the workloads OU.",
+  "abacAllow": {
+    "Sid": "TeamBucketsOnly",
+    "Effect": "Allow",
+    "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+    "Resource": "*",
+    "Condition": {
+      "StringEquals": { "aws:ResourceTag/access-team": "${aws:PrincipalTag/access-team}" }
+    }
+  },
+  "guardrail1_scp": {
+    "Sid": "ProtectAccessTeamTag",
+    "Effect": "Deny",
+    "Action": ["iam:TagRole", "iam:UntagRole", "iam:TagUser", "iam:UntagUser", "sts:TagSession"],
+    "Resource": "*",
+    "Condition": {
+      "ForAnyValue:StringEquals": { "aws:TagKeys": "access-team" },
+      "StringNotEquals": { "aws:PrincipalArn": "arn:aws:iam::111122223333:role/identity-admin" }
+    }
+  },
+  "guardrail2_scp": {
+    "Sid": "OnlyApprovedTagKeysOnBuckets",
+    "Effect": "Deny",
+    "Action": ["s3:TagResource"],
+    "Resource": "arn:aws:s3:::*",
+    "Condition": {
+      "ForAnyValue:StringNotEquals": { "aws:TagKeys": ["access-team", "cost-centre", "data-class"] }
+    }
+  },
+  "question_from_security": "Pen-test note: an engineer in team 'payments' could read the 'risk' team's buckets after running `aws iam tag-role --role-name eng-alice --tags Key=ACCESS-TEAM,Value=risk`. The SCP was in place. How?"
+}

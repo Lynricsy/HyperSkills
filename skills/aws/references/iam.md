@@ -105,7 +105,11 @@ them is more dangerous than a broad policy containing none.
 Multi-value context keys need `ForAnyValue:` or `ForAllValues:` prefixes, and the two behave
 very differently when the key is missing:
 
-- `ForAnyValue:` is false when the key is absent — fail-closed, usually what you want.
+- `ForAnyValue:` is false when the key is absent. In an `Allow` that is fail-closed; in a
+  `Deny` it is fail-open - the Deny simply does not apply. A Deny built on a negated operator
+  (`ForAnyValue:StringNotEquals`, `StringNotLike`) therefore needs a separate Deny with
+  `"Null": {"<key>": "true"}` for requests that omit the key. A Deny that positively matches
+  protected keys needs no such companion. `[official]`
 - `ForAllValues:` is **true** when the key is absent or empty. Universal quantification over
   an empty set is vacuously true, so a request that carries no tags at all satisfies a
   `ForAllValues:StringEquals` on `aws:TagKeys`. `[official]`

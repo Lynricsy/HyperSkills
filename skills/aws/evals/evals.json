@@ -120,5 +120,20 @@
       "Flags module-level `currentUser` as a cross-request data leak, because one execution environment serves many concurrent requests in one process; per-request data stays on req/res",
       "Chooses endpoint auth deliberately: an `ApplicationManaged` endpoint is public with no Lambda-side authentication (the app's own auth must hold; WAF/custom domain only via CloudFront in front), and internal callers like billing-worker use an `IamAuth` endpoint; moves `LLM_API_KEY` to Secrets Manager/SSM instead of a plain environment variable"
     ]
+  },
+  {
+    "skills": [
+      "aws"
+    ],
+    "query": "abac-tag-guardrails.json has our ABAC allow statement, the two SCP guardrails and security's pen-test note. Explain exactly how the bypass worked, and give me corrected guardrails. Do not weaken anything that is already right.",
+    "files": [
+      "evals/files/abac-tag-guardrails.json"
+    ],
+    "expected_behavior": [
+      "Explains the bypass: `aws:TagKeys` values are compared case-sensitively by `StringEquals`, so the key `ACCESS-TEAM` does not match `access-team` and the Deny never fires, while the tag key inside `aws:PrincipalTag/access-team` / `aws:ResourceTag/access-team` is case-insensitive, so the re-cased tag still drives the ABAC allow",
+      "Fixes guardrail 1 with `ForAnyValue:StringEqualsIgnoreCase` on `aws:TagKeys` (listing exact key names, since `StringLike` has no IgnoreCase variant)",
+      "Does not add a `Null` companion to guardrail 1: that Deny positively matches protected keys, and denying when `aws:TagKeys` is absent would block untagged requests",
+      "Says guardrail 2 uses a negated operator (`ForAnyValue:StringNotEquals`) in a Deny, which does not apply at all when a request carries no `aws:TagKeys`, and handles that absent-key case with a separate Deny on `\"Null\": {\"aws:TagKeys\": \"true\"}` (or an equivalent existence check); keeps the allowlist comparison itself case-sensitive"
+    ]
   }
 ]

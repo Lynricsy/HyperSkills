@@ -482,3 +482,64 @@ revision 不会回到 Active、endpoint Active 也可能启动失败（`-trouble
 | aws-docs | `PutAlarmMuteRule` 需对规则与每个目标告警两类资源授权、每条规则最多 100 个告警 | [PutAlarmMuteRule](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutAlarmMuteRule.html) | 一致 |
 
 6 组事实全部一致，正文未改，仅 `aws-docs` 的 `synced_at` 更新为 2026-10-15。Lambda 配额页新增的 Web Functions 配额（请求超时默认 30 s、范围 3–900 s）已在上节「上游新增内容评估」场景 9 中评估，无需重复。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 快照与工作单 `/tmp/hs-sync/aws.md`。aws-agent-toolkit 用主代理缓存 `/tmp/hs-attr/aws__agent-toolkit-for-aws` 对
+`a2c98f2..8eee01d -- <paths>` 跑 `git diff --stat` / `git diff` 逐文件读。`--pin` 写入 8eee01d，与审阅 HEAD 一致；awesome-copilot-aws（5269f7e）
+与 itsmostafa-aws（3ee171a）为 B 类噪声，随 `--pin` 前移。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| aws-agent-toolkit | a2c98f2 → 8eee01d（1bed6fb、82e3821、36bf7a8、b1fbba8、a3cf01b、b310d1c） | `aws-iam`（v3）：新增「`aws:TagKeys` 值区分大小写而 `aws:PrincipalTag/` 等条件键名不区分，保护标签的 Deny 须用 `ForAnyValue:StringEqualsIgnoreCase`」；把「Deny 中的 ForAnyValue 需要 Null 伴随语句」收窄为仅否定运算符（`StringNotEquals`/`StringNotLike`）；`aws-containers`：新增 ECS Gateway（共享 HTTP/HTTPS 入口）与 ECS GPU sharing（NVIDIA MPS、`sharingStrategy`）两篇参考；`aws-observability`（v10）：新增 `investigation.md`（分页、全 scope 检索、根因一致性检查）、Omni Intelligence / service-health / trace-exploration，Logs Insights 增两条已知问题（StartQuery 拒绝早于日志组 creationTime 的窗口、收窄查询静默丢匹配）与 Lambda 日志只自动发现首个嵌入 JSON 片段 | **事实更正 1 处**；TagKeys 大小写新规则基线已会，不合入；其余不合入 | 本 skill `references/iam.md` 写「`ForAnyValue:` 键缺失时为 false —— fail-closed, usually what you want」，对 Deny 恰好相反（Deny 不生效）。按 IAM 用户指南 *Single-valued vs. multivalued context keys*（「When using ForAnyValue with a Deny effect, if the context key is not present in the request, the policy evaluates as No match … add an explicit Null condition check」）改正，并按上游收窄写明正向匹配的 Deny 不需要伴随语句。大小写规则经 IAM 用户指南（「Tag keys are not case-sensitive」「Context key names are not case-sensitive」）核实后写场景 10 跑基线：基线达成（见下表），不合入。ECS Gateway / GPU sharing 是 ECS 新功能的产品手册（上游自己也要求「answer from the published documentation」），本 skill 只覆盖 ECS 控制面选型，未见场景需求，不合入。observability 新增内容以 Omni MCP / SQL 工作流为主；Lambda 首个 JSON 片段一条有官方出处（*Supported logs and discovered fields*），StartQuery creationTime 一条在 StartQuery API 参考中无官方出处，均未合入 |
+
+正文改动（事实更正）：`references/iam.md`「Condition operators and their empty-set behaviour」第一条改为：`ForAnyValue:` 键缺失为 false——在 Allow 中
+fail-closed，在 Deny 中 fail-open；否定运算符的 Deny 须另加 `"Null": {"<key>": "true"}` 的 Deny；正向匹配受保护键的 Deny 不需要。
+
+候选基线探针（场景 10，夹具 `evals/files/abac-tag-guardrails.json`，omp + `openai/gpt-6.1-sol` medium，VM）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 10（夹具初版） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4◐ | 119 s。准确解释 `ACCESS-TEAM` 绕过（`aws:TagKeys` 值大小写敏感、IAM 标签键大小写不敏感且会替换原标签、`${aws:PrincipalTag/access-team}` 解析为 risk），改 `StringEqualsIgnoreCase` 且不加 Null。4：反而指出夹具错误——服务授权参考里 `s3:PutBucketTagging` 不支持 `aws:TagKeys`（实读 `list_amazons3.html` 确认，`s3:TagResource` 才有），未加 Null 伴随语句。据此把夹具 guardrail 2 改为 `s3:TagResource` + `arn:aws:s3:::*`，EB4 改写，基线须重跑（见 D2 节） |
+
+结论：大小写绕过规则基线已会，不合入（场景 10 留作哨兵）；`ForAnyValue` 在 Deny 中的缺键行为作为事实更正写入正文，D2 用修正后的场景 10 覆盖。
+产物：`/tmp/hs-d2/G03-cloud/aws/omp-openai-gpt-6.1-sol-medium/baseline/10`（初版夹具结果已被后续重跑覆盖，结论以本表为准）。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 来源 | 结论 | 理由 |
+|---|---|---|---|
+| `developing-applications-on-managed-service-for-apache-flink` | aws/agent-toolkit-for-aws `plugins/aws-data-analytics/skills/`（Apache-2.0） | REJECT（越界，记入 Scope 问题） | Flink 应用开发（KPU、算子约束）是产品深度用法；本 skill 只做托管数据服务选型与配额 |
+| `managing-amazon-msk`、`migrate-to-msk` | 同上 | REJECT（越界，记入 Scope 问题） | MSK Provisioned 运维与 Kafka→MSK Express 迁移流程；本 skill `data-services.md` 只写 MSK 与 Kinesis/SQS 的选型。值得注意的一点：上游强调 Standard 与 Express broker 常被混淆，本 skill 选型一节未提 Express，留待主人决定是否扩 Scope |
+| `managing-data-asset-access`、`managing-data-catalog`（plugins 与 `skills/specialized-skills/analytics-skills` 两份逐字镜像） | 同上 | REJECT（越界） | SageMaker Catalog / DataZone / Glue Data Catalog 的元数据与订阅操作手册 |
+| `aws-media-services` | 同上 `skills/specialized-skills/media-services-skills/` | REJECT（越界） | MediaLive/MediaConvert/MediaPackage 视频流水线，单一产品族手册 |
+| `deploying-containers-to-amazon-lightsail` | 同上 `skills/specialized-skills/web-and-mobile-development/` | REJECT（越界） | Lightsail 容器服务部署手册，不在本 skill 列出的计算服务内 |
+| `amazon-memo` | magnus919/agent-skills（MIT，162★） | REJECT（越界） | 亚马逊式六页纸/PR-FAQ 写作，与 AWS 无关（属写作类） |
+| `aws`、`aws-profile`、`finops` | nitinjain999/platform-skills（Apache-2.0，71★） | REJECT | `aws` 以 CloudFront/WAF/FMS 的 Terraform 生成为主（Terraform 越界）；`aws-profile` 是 MCP 凭据切换工具；`finops` 是 Infracost/OpenCost 的 Terraform PR 成本估算 |
+| `plugins-labs/skills/ai-cost-audit` | tushaarmehtaa/tushar-skills（MIT，12★） | REJECT（越界） | LLM API 调用成本审计，属 ai-engineering 范畴 |
+
+## 2026-11-01 新候选检索
+
+检索：`gh search repos "aws agent skills" --updated >2026-10-10`、`gh search repos --owner aws --owner awslabs --owner aws-samples skills --updated >2026-10-01`，
+与候选表去重后新出现的仓库：
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| — | aws/tools-for-devops-agent `skills/*`（40+：cloudtrail-cost-optimization、config-cost-optimization、aws-backup-coverage-review、aws-vpc-dns-investigation、aws-routing 等） | https://github.com/aws/tools-for-devops-agent | 120 | 2026-10-30 | Apache-2.0 | 为 AWS DevOps Agent 写的只读排障与成本评审 skill | 3 | 3 | 3 | 3 | 2 | 14 | 待定（建议下轮评测先行） | 官方组织。抽读 `cloudtrail-cost-optimization`：管理事件首份免费、重复 trail、数据事件过宽、Lake 摄取/保留——与官方 *Managing CloudTrail trail costs* 一致。本 skill `cost.md` 未写 CloudTrail/Config 成本形态，可能有增量；但 40+ 个 skill 体量大且绑定 DevOps Agent 元数据，需单独设计成本场景跑基线，本轮不合入 |
+| — | aws-samples/sample-apex-skills `skills/*`（eks-*、ecs-*、apex） | https://github.com/aws-samples/sample-apex-skills | 90 | 2026-11-01 | MIT-0 | EKS/ECS 平台工程、升级就绪评分、成本 | 2 | 3 | 1 | 3 | 2 | 11 | MAYBE→不采用 | aws-samples 示例仓。抽读 `eks-best-practices`：EKS/ECS/Lambda 选型表、部署模型表与 terraform-aws-eks 示例，事实正确但以通用表格与 Terraform 模块为主（Terraform 越界），与已追踪的官方 agent-toolkit `aws-containers` 重叠，无可验证增量 |
+| — | aws-samples/sample-corgiro-aws-ops-skills、aws-samples/sample-aws-solutions-skills | https://github.com/aws-samples/sample-corgiro-aws-ops-skills | 15 / 14 | 2026-10-29 | MIT-0 | 多账号巡检 / 解决方案模板 | 2 | 3 | — | — | 2 | — | REJECT（未深评） | 星数低、示例性质；与已追踪官方源重叠，本轮不展开 |
+| — | AustinF02/aws-agent-skills-en / -ja | https://github.com/AustinF02/aws-agent-skills-en | 0 | 2026-10-28 | MIT | AWS 登录、MCP 与 Agent Toolkit 安装 | 0 | 3 | 1 | — | 2 | — | REJECT | 个人仓、0 star，只是工具安装步骤 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| aws-docs | Lambda：超时 900 s（Managed Instances 异步/ESM 除 MQ、DocumentDB 外 5,400 s）、内存 128–10,240 MB 且 1,769 MB = 1 vCPU、同步负载 6 MB / 流式 200 MB / 异步 1 MB、解压包 250 MB、环境变量 4 KB、并发 1,000、每函数每 10 s 1,000 个执行环境 | [Lambda quotas](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html) | 一致 |
+| aws-docs | REST API 集成超时 50 ms–29 s，Regional/private 可调、edge-optimized 不可调；HTTP API 最大 30 s 不可调 | [REST API quotas](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-execution-service-limits-table.html)、[HTTP API quotas](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html) | 一致 |
+| aws-docs | Aurora DSQL：每事务 3,000 行修改、10 MiB；每集群 10,000 连接；每表 24 索引 | [DSQL quotas](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/CHAP_quotas.html) | 一致 |
+| aws-docs | 日志告警 `by` 最多 5 字段、每次 500 个 contributor 默认字母序、`ALARM` 中最多 100 个、`\| sort desc`；`PutAlarmMuteRule` 每条规则最多 100 个告警 | [Log alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-log.html)、[PutAlarmMuteRule](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutAlarmMuteRule.html) | 一致 |
+| aws-docs | 新写入：`ForAnyValue` + Deny 缺键为 No match、需显式 Null 检查；`ForAllValues` + Allow 需 `Null: false` | [Single-valued vs. multivalued context keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-single-vs-multi-valued-context-keys.html) | 一致，据此改正正文 |
+| aws-docs | 场景 10 夹具：`s3:PutBucketTagging` 不支持 `aws:TagKeys`，`s3:TagResource` 支持 | [Actions, resources, and condition keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html) | 一致（夹具据此改正，正文未涉及） |
+| aws-docs | `DescribeEvents` 需 `ChangeSetName`/`OperationId`/`StackName` 之一，返回早期校验/预配/Hook 错误，`Filters` 为 `EventFilter`，含 `FailedEvents` | [DescribeEvents](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DescribeEvents.html)、[EventFilter](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_EventFilter.html) | 一致 |
+
+原有 5 组事实一致，新写入 1 组据官方页改正正文。`aws-docs` 的 `synced_at` 更新为 2026-11-01。
