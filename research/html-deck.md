@@ -333,3 +333,65 @@ ohmyagent-oma-slide 的 notes（记录上游删除 reduced-motion 而本 skill �
 | chromium-headless | root 下不加 `--no-sandbox` 不产出文件；无 `@page` 时 PDF 为 Letter | 官方页面均未记载（本条一直是本地实测）；本机 Chromium 153.0.8010.52 重跑：stderr `Running as root without --no-sandbox is not supported`、目录里无 PDF；加 `--no-sandbox` 后无 `@page` 的页面 `MediaBox [0 0 612 792]` | 一致（重新实测） |
 
 正文未改；`chromium-headless` 的 `url`、`synced_at`（2026-10-15）与 notes 更新。
+
+## 2026-11-01 上游同步
+
+依据：主代理 2026-11-01 的 `check_upstream.py --json`（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/html-deck.md`。
+event4u、oma-slide、playwright、carbon 用主代理的 blobless 裸仓库缓存（`/tmp/hs-attr/<owner>__<repo>`）对 `<pin>..<head> -- <paths>`
+读树 diff；decktape、guizang、puppeteer 用 `gh api .../compare/<pin>...<head>` 读 paths 内文件的 patch。`--pin` 后写入的 9 个变动
+`commit` 与审阅 HEAD 逐条一致，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| event4u-html-deck | be11ed6 → 5a66c1b | 3a9b54d：`SKILL.md` 第 4 步改为先调用其品牌解析器 `./agent-config brand:status --json`，只用解析器报告有效的 `sources[]`，无有效来源时把配色标为 `corpus-sourced` | 无影响，只 re-pin：宿主专属命令与交叉引用，按原 notes 本来就不搬 |
+| ohmyagent-oma-slide | 83bc99d → 6f772a1 | dce69cc 新增 `native-pptx` 路线（调用上游 hugohe3/ppt-master 生成可编辑 PPTX，含路线选择表、Python 依赖须经用户同意、`resources/native-pptx.md`、checklist 一节）；a5b8582 删掉运行时溯源与历史散文，把 frontend-slides 风格预设的署名移到 `style-presets.LICENSE` | 无影响，只 re-pin：可编辑 PPTX 是 `office` skill 的地界（本 skill Scope 只为核对时描述 Slidev/Marp 的 pptx 模式）；本 skill 采纳的「判断与确定性校验分离」「三轮修复上限」未变 |
+| playwright | 5c42a39 → deb7e86 | `types.d.ts`：7d0dcc2 `clock.fastForward` / `runFor` 的 `ticks` 须为有限数；a6fb02f `connectOverCDP` 的 `noDefaults` 也保留字体 | 无影响，只 re-pin：`scripts/deck_qa.mjs` 只用 `evaluate` / `screenshot` / `pdf`，不用 clock 与 CDP 连接 |
+| decktape | 6aa7ec0 → 7b07b51 | `README.adoc`：3ed6f14 Docker 镜像改为 Debian slim + Puppeteer 管理的 Chrome for Testing（amd64/arm64）；18df73c / b51950d / 2b29d69 容器以 UID 1000 的 `node` 用户运行，挂载目录无写权限时 `EACCES`，给出 `--user "$(id -u):$(id -g)"`、rootless Podman `--userns=keep-id:uid=1000,gid=1000`、SELinux `:z`；npm 安装段新增「DeckTape requires Node.js 22.12 or later」 | **事实更正**（见下）：3.17.0（2026-10-19 发布，`npm view decktape` 为 `latest`）的 `package.json` `engines` 从 `>=18` 改为 `>=22.12.0`，而正文命令是 `npx -y decktape@latest`。顺带本机重跑三条陷阱，发现第 2 条已在 3.17.0 修复。Docker 段不用：正文走 npx |
+| guizang-ppt（reference，AGPL-3.0） | c91369c → 93d21bf | 3b89211 / 889206a / cea2fd3 / ee0ecb5 / 93d21bf：主题改为 `<html data-theme>` 切换、品牌色经脚本生成受约束主题（不直接用用户 hex）、语义色变量 `--accent-ink` / `--accent-display` / `--accent-on`（浅色强调色当小字时自动加深）、中文强调不用斜体改加字重、新增共享组件手册 `gz-components.md` | 无影响，只 re-pin：AGPL 只作题目覆盖清单，不复制任何文字。「中文无斜体字形、浏览器合成斜体」与「强调色当文字需过对比度」属排版与配色，`frontend-design` 已有「不依赖合成斜体」（`typography.md`、`review-checklist.md`），本 skill `layout-and-type.md` 明确把对比度交给 `frontend-design`；CJK 斜体一条记为跨组线索 |
+| carbon-grid（reference） | c866811 → 6351ab5 | 20865ea `_breakpoint.scss`：`breakpoint-between` 上界减 0.02px 防止相邻断点重叠 | 无影响：只作「gutter 是小枚举」的旁证，本 skill 是固定画布不用断点 |
+| puppeteer（reference） | d1b9a21 → 7231774 | `docs/api` 31 个文件：`HTTPRequest.page()` / `worker()` / `content()`、`Locator.filter` / `map` 传参、`ConsoleMessageLocation.scriptId`、`page.tabInfo()`、`setGeolocation(null)`、`Browser.restrictNetwork` 黑白名单、`wsOptions.handshakeTimeout`；a1149f3 澄清 `emulateMediaType('screen')` 与 `page.pdf()` 的关系 | 无影响：只用来解释 decktape 的失败输出，新 API 不改变其启动与报错 |
+| slidev | 73053ab → a42aff2 | paths 未变 | 噪声，只 re-pin |
+| open-design-deck-qa（reference） | 14fee23 → 12d970e | 主代理裸仓库树 diff 确认 paths 无变化 | 噪声，只 re-pin |
+
+### decktape 3.17.0 实跑核对
+
+本机 Node v26.11.1、系统 Chromium 156.0.8078.47，夹具为 `evals/files/sample-deck.html`（3 页）与临时的「每次按键重写 class」3 页 deck：
+
+- 正文命令原样（`cd` 进输出目录、相对文件名、`--slides 1-3`、`--chrome-path=/usr/bin/chromium --chrome-arg=--no-sandbox`）在 3.17.0 上产出 `out.pdf` 与 `shots/out_{1,2,3}_1280x720.png`。
+- 陷阱 1（找不到浏览器）：`HOME` 与 `PUPPETEER_CACHE_DIR` 指向空目录、不给 `--chrome-path`，3.17.0 报 `Error: Could not find Chrome (ver. 155.0.8059.79)`，栈来自 `puppeteer-core` 的 `ChromeLauncher.launch` —— 仍成立。
+- 陷阱 2（截图目录拼接）：`--screenshots-directory=/tmp/g02-dt/dt-png` 加绝对输出路径 `/tmp/g02-dt/abs.pdf`，3.16.1 报 `ENOENT … path: '/tmp/g02-dt/dt-png2/tmp/g02-dt/abs2_1_1280x720.png'`；3.17.0 正常写出 `dt-png/abs_{1,2}_1280x720.png` —— **已修复**（v3.16.1...v3.17.0 区间里与输出路径相关的是 #424「Fail fast when the output directory is not writable」与 #426「Extract filesystem helpers into libs/files.js」，未逐行定位到具体修复行）。
+- 陷阱 3（`generic` 不停止）：不给 `--slides`，3.17.0 对 3 页 deck 跑满 60 s 被 `timeout` 杀掉（退出码 124）—— 仍成立。
+
+### 正文改动
+
+- `references/export-and-qa.md` decktape 一节：新增 3.17.0 需要 Node.js 22.12+、旧 Node 升级或钉 `decktape@3.16.1`；陷阱 1、3 标注 3.17.0 复验仍成立；陷阱 2 改为「3.16.1 及以前」，并注明 3.17.0 已修复、`cd` + 相对名两版都可用。
+- `SOURCES.yaml`：decktape 加 `notes` 记录版本核对；chromium-headless 的 `synced_at` 与 `notes`（Chromium 156 复测）。
+- `evals/evals.json` 新增场景 7（夹具 `evals/files/vendor-deck.html`：不可修改、只能键盘翻页、末页仍改 class 的合作方 deck，CI 为 Node v20.18 + 空 puppeteer 缓存 + root），作为本次更正的回归场景。
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 来源（许可） | 归属 / 增量 | 结论 |
+|---|---|---|---|
+| `skills/revealjs/SKILL.md` | TerminalSkills/skills（Apache-2.0，188★） | reveal.js 6 使用手册：npm 安装、插件注册、`?print-pdf` + headless Chrome、`pdfSeparateFragments` / `pdfMaxPagesPerSlide` / `showNotes: 'separate-page'`。这些在 `references/frameworks.md` 已有，且官方 hakimel/reveal.js 已被追踪 | REJECT（无增量；官方源已追踪） |
+| `.claude-plugin/directory/skills/oma-slide/SKILL.md` | first-fluke/oh-my-agent（MIT） | bd2e575 为插件目录生成的无 hook 入口，内容是 `.agents/skills/oma-slide` 的副本 | REJECT（生成副本；原路径已追踪） |
+| `native-pptx` 路线所依赖的 hugohe3/ppt-master | first-fluke/oh-my-agent 新引用（MIT） | 可编辑 PPTX 生成，属 `office` skill | 不评（跨组线索，交主代理） |
+
+## 2026-11-01 新候选
+
+检索：`gh search repos "slides skill" --updated '>2026-10-15'`、`gh search code playwright --filename SKILL.md`（顺带筛幻灯片类）、
+`VoltAgent/awesome-agent-skills` 近 60 提交的 README 新增行（命中 arifszn/slide-wright）。
+
+| # | 仓库/路径 | URL | Stars | 最近推送 | 许可 | 范围 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 30 | arifszn/slide-wright | https://github.com/arifszn/slide-wright | 66 | 2026-10-24 | MIT | reveal.js（CDN）主题生成 + 两页预览确认门 + `check-deck.mjs` | 1 | 3 | 2 | 1 | 2 | 9 | MAYBE（未采纳） | 自称「单个自包含 HTML」却从 CDN 加载 reveal.js，与本 skill 离线双击可开的单文件契约冲突（正确 1）；可编辑 PPTX 导出属 `office`。唯一潜在增量是 `check-deck.mjs` 的「文本块相互重叠」检测（`scripts/deck_qa.mjs` 现查裁切、字号地板、字体未载入，不查重叠），需先建评测证明缺口，留待下轮 |
+| 31 | crawfordxx/xiaoma-studio | https://github.com/crawfordxx/xiaoma-studio | 16 | 2026-10-23 | MIT | 代码驱动动效视频（每帧是 t 的纯函数）+ 附带 HTML 幻灯片与落地页 | 0 | 3 | 2 | — | 2 | — | REJECT（范围） | 创建于 2026-10-13，主体是渲染成 MP4 的动效视频引擎（storyboard、拼图自检、音频合成、`qa.py` 查响度与跳帧），幻灯片也走同一 f(t) 渲染，不是本 skill 的固定画布放映产物；其 `lint.mjs` 的文字重叠检查与 slide-wright 同类，并入上一行的留待项。`slides skill` 检索的其余命中（bento、handdrawn、research-slides 等）均 ≤1★ 或无许可，留行以免重查 |
+
+## 2026-11-01 文档上游复核
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| chromium-headless | `--print-to-pdf`、`--no-pdf-header-footer`、`--screenshot` 配 `--window-size` | [headless-cli](https://developer.chrome.com/docs/automation-and-testing/headless-cli)（Last updated 2024-10-21） | 一致 |
+| chromium-headless | `--virtual-time-budget` 快进计时器，代替猜测的 sleep | 同页 §--virtual-time-budget | 一致 |
+| chromium-headless | root 下不加 `--no-sandbox` 不产出文件；无 `@page` 时 PDF 为 Letter | 页面未记载（本地实测项）；本机 Chromium 156.0.8078.47 重跑：stderr `Running as root without --no-sandbox is not supported`、无 PDF；加 `--no-sandbox` 后无 `@page` 的 deck `MediaBox [0 0 612 792]` | 一致（重新实测） |
+
+`synced_at` 改为 2026-11-01，notes 更新为 Chromium 156 的复测记录。

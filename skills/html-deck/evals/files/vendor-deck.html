@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Partner Roadmap 2027 (vendor build — do not edit)</title>
+<!-- Shipped by the partner agency as a compiled bundle. Our contract forbids modifying it;
+     any change has to go back through their pipeline, which takes two weeks. -->
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #101418; color: #eef2f6; font-family: Arial, Helvetica, sans-serif; }
+  #stage { width: 1280px; height: 720px; position: relative; overflow: hidden; margin: 0 auto; }
+  .s { position: absolute; inset: 0; padding: 72px; display: none;
+       background: linear-gradient(160deg, #182030, #2b1840); }
+  .s.on { display: block; }
+  h1 { font-size: 64px; } h2 { font-size: 44px; margin-bottom: 24px; }
+  p { font-size: 26px; line-height: 1.5; color: #b8c2cc; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <section class="s on"><h1>Partner Roadmap 2027</h1><p>Prepared for the joint steering committee.</p></section>
+  <section class="s"><h2>Where we are</h2><p>Three regions live, two in pilot.</p></section>
+  <section class="s"><h2>What ships in H1</h2><p>Self-serve onboarding and the billing migration.</p></section>
+  <section class="s"><h2>What ships in H2</h2><p>Regional data residency and the partner API.</p></section>
+  <section class="s"><h2>Asks</h2><p>Two integration engineers from each side by February.</p></section>
+</div>
+<script>
+  // Keyboard navigation only; there is no URL hash, no API and no print stylesheet.
+  let i = 0;
+  const slides = [...document.querySelectorAll('.s')];
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') i = Math.min(i + 1, slides.length - 1);
+    else if (e.key === 'ArrowLeft') i = Math.max(i - 1, 0);
+    else return;
+    slides.forEach((s, k) => { s.className = k === i ? 's on' : 's'; });
+  });
+</script>
+</body>
+</html>

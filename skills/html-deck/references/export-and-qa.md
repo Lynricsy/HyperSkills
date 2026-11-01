@@ -268,21 +268,28 @@ cd /out/dir && mkdir -p shots && npx -y decktape@latest \
   generic --key=ArrowRight file:///path/deck.html out.pdf
 ```
 
+decktape 3.17.0 (2026-10-19, the current `latest`) requires Node.js 22.12 or
+later (`engines` in its `package.json`); on an older Node, upgrade it or pin
+`decktape@3.16.1`.
+
 Three traps, all reproduced:
 
 - Out of the box it downloads its own Chrome and fails when that cache is empty:
-  `Could not find Chrome (ver. …) … /root/.cache/puppeteer` [verified] — the stack
-  comes from `puppeteer-core`'s executable resolution. Point it at the system
-  browser with `--chrome-path` and add `--chrome-arg=--no-sandbox` for root
-  containers.
-- `--screenshots-directory` is concatenated with the output file name. Give an
-  absolute output path and you get a nested path that is never created:
-  `ENOENT … open '/tmp/deck/dt-png/tmp/deck/decktape_1_1280x720.png'` [verified].
-  Always `cd` into the output directory and pass a relative name.
+  `Could not find Chrome (ver. …) … /root/.cache/puppeteer` [verified, 3.16.1
+  and 3.17.0] — the stack comes from `puppeteer-core`'s executable resolution.
+  Point it at the system browser with `--chrome-path` and add
+  `--chrome-arg=--no-sandbox` for root containers.
+- Up to 3.16.1, `--screenshots-directory` is concatenated with the output file
+  name. Give an absolute output path and you get a nested path that is never
+  created: `ENOENT … open '/tmp/deck/dt-png/tmp/deck/decktape_1_1280x720.png'`
+  [verified]. 3.17.0 writes the same command's screenshots into the given
+  directory [verified]. Running from the output directory with a relative name,
+  as above, works on both.
 - `generic` stops when a key press causes no further DOM mutation in `body`. A
   deck whose last slide rewrites a class to the same value still mutates an
   attribute, so it never stops — one run reached slide 17 of a 3-slide deck before
-  being killed [verified]. Always pass `--slides 1-N` with the real slide count.
+  being killed [verified]; 3.17.0 still runs on until killed [verified]. Always
+  pass `--slides 1-N` with the real slide count.
 
 ### C. No Node available — Chromium CLI
 

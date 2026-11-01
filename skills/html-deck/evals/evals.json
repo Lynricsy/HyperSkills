@@ -61,5 +61,17 @@
       "Gives an observable check that the .pptx is editable before handing it over — reads the fallback / font report the export prints and inspects the file itself (e.g. unzips it and confirms the slide XML carries `<a:t>` text runs, or opens it and edits a title) rather than assuming the export worked",
       "Notes that exporting requires `playwright-chromium` installed in the project, since Slidev does not bundle a browser"
     ]
+  },
+  {
+    "skills": ["html-deck"],
+    "query": "vendor-deck.html 是合作方交付的编译产物，合同不允许我们改它，只能键盘翻页。帮我在 CI 里把它导出成 PDF 存到 /srv/exports/vendor.pdf，同时每页一张 PNG 放到 /srv/exports/shots/。CI 镜像是 Debian、以 root 跑，装了系统 Chromium（/usr/bin/chromium），Node 是 v20.18，puppeteer 缓存目录是空的、也不能联网下浏览器。给我能直接用的命令，并说明你怎么确认页数对。",
+    "files": ["evals/files/vendor-deck.html"],
+    "expected_behavior": [
+      "Exports with decktape's key-driven `generic` plugin (`--key=ArrowRight`) rather than editing the deck or adding a navigation hook to it, since the file may not be modified",
+      "Passes an explicit slide bound (`--slides 1-5`, from counting the five sections) instead of relying on decktape to detect the last slide, because this deck rewrites the section classes on every key press, so `generic` never sees a press without DOM mutation and keeps going",
+      "Points decktape at the system browser with `--chrome-path=/usr/bin/chromium` and adds `--chrome-arg=--no-sandbox` for the root container, because by default it looks for its own Puppeteer-managed Chrome in an empty cache and fails with `Could not find Chrome`",
+      "Notices the Node version conflict: decktape 3.17.0 (the current `latest`) requires Node.js 22.12 or later, so on Node v20.18 either the CI Node is upgraded or decktape is pinned to 3.16.1",
+      "Handles the screenshot directory consistently with the chosen version: on 3.16.1 `--screenshots-directory` is joined with the output file name, so an absolute output path produces a nested path that is never created; the fix is to `cd` into the output directory and pass a relative file name (3.17.0 accepts the absolute paths)"
+    ]
   }
 ]
