@@ -376,3 +376,42 @@ when the runtime is Node」未带版本下限，与同文件上一节的下限�
 | HP | 保留正例 | 新写：Select.tsx: passing `onChange={setValue}` fails with TS2322 'Type Disp… | 2/2 | 2/2 |
 
 结论：调优负例（`.tsx` 组件 `useMemo`）0/3 → 3/3 未读；保留负例（Next.js server component）两侧都是 2/2；正例与保留正例（`.tsx` 里的泛型 props 类型错误）全部读取。采用新描述。
+
+## 2026-11-01 上游同步
+
+依据：主代理阶段 0 快照 `/tmp/hs-upstream-2026-11-01.json` 与工作单 `/tmp/hs-sync/typescript.md`。mattpocock 用 compare 取 patch；
+shipshitdev 用裸仓库缓存 `/tmp/hs-attr/shipshitdev__skills` 做树 diff（`git diff --name-status cccb912 87703ef -- skills/typescript-expert`）。
+`--pin` 后逐条比对写入的 `commit` 与审阅 HEAD：mattpocock `4ae2317`、mcollina `c75d70d`、shipshitdev `87703ef`、awesome-copilot `5269f7e`、
+jeffallan `078a25c`，均相等，无越界差额。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| mattpocock-codebase-design | 49dd158 → 4ae2317（7739eae） | `codebase-design/DESIGN-IT-TWICE.md`、`improve-codebase-architecture/SKILL.md` 各一行：派生子代理时加「with a fresh context window」 | 噪声：上游 agent 编排措辞，正文不涉及子代理流程，只 re-pin |
+| shipshitdev-ts-refactor | cccb912 → 87703ef（258b1f9） | `skills/typescript-expert/` 整个目录 59 个文件全部删除（含 tracked 的 `references/rules` 45 个文件），提交说明为「trim to 28 user-invoked skills」，仓库内无替代位置 | 路径被上游删除：按 Phase B 裁决保留条目（规则清单出自旧版、每条采纳规则已独立对照手册与 tsc 核实），`url` 改为指向 `cccb912` 的永久链接，`notes` 记录删除提交；`commit` 随 `--pin` 前移；先例同 git-workflow 的 mattpocock-merge-conflicts、python 的 probabl-ai |
+| mcollina-ts-magician | 72b7275 → c75d70d | 无 | 噪声，re-pin |
+| awesome-copilot-ts-tests | 3cf7c7e → 5269f7e | 无（主代理裸仓库树 diff 已确认） | 噪声，re-pin |
+| jeffallan-ts-pro | 1be15d8 → 078a25c | 无 | 噪声，re-pin |
+
+## 2026-11-01 上游新增内容评估
+
+| 候选 | 许可 | Scope 归属 | 结论 |
+|---|---|---|---|
+| TerminalSkills/skills `skills/ty` | Apache-2.0 | Astral 的 Python 类型检查器 ty，不属本 skill | REJECT（本 skill）；跨组命中 → `python` |
+| affaan-m/everything-claude-code `skills/typescript-patterns`（及 `pi/core/skills/typescript-patterns` 同内容副本） | MIT | 落在 Scope 内 | REJECT：通用模式汇编（strict 基线、`any`、判别联合、brand、`satisfies`、`expectTypeOf`），本 skill 规则 5–11、19–21 与 references 已覆盖；`Promise.allSettled`/并发上限等属运行时实践；无可验证的新增事实，社区来源 |
+| event4u-app/agent-config `dist/agent-src/skills/type-design`（C2） | MIT | 字体设计（「type」指字型），与 TypeScript 无关 | REJECT：路径名误判 |
+| melodic-software/claude-code-plugins `plugins/toolchain/skills/ratchet`（C2） | MIT | 严格度 ratchet | REJECT：同类候选 2026-10 已评估不合入（见上文 NewS5 一节），规则 20 已覆盖 |
+| TerminalSkills/skills `skills/orpc`（C2） | Apache-2.0 | 具体库（oRPC）手册 | REJECT：Scope 明确排除 tRPC/Zod 一类库；单一产品手册 |
+| TerminalSkills/skills `skills/fallow`（C2） | Apache-2.0 | JS/TS 死代码分析工具 | REJECT：单一工具手册，不是语言或编译器规则 |
+| TerminalSkills/skills `skills/ink-cli`（C2） | Apache-2.0 | React 终端 UI 库 | REJECT：属 React 生态的单一库，不在本 skill Scope；对 `react` 也只是单库手册 |
+
+## 2026-11-01 文档上游复核
+
+当前版本：TypeScript 最新稳定仍为 7.0.2（npm `latest`；`gh api repos/microsoft/TypeScript/releases` 新增 `v7.1-beta`，2026-10-20，预发布，正文不跟进）；Vitest 最新 5.0.5（补丁版）。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| ts-handbook | `strict` 默认 true，各 strict 子项「true if strict」 | https://www.typescriptlang.org/tsconfig/ | 一致 |
+| ts-release-notes | `@typescript/typescript6`（`tsc6`）与 npm 别名安排、`--checkers` 默认 4 可调至 1、`--builders` 控制并行项目引用构建 | https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/ | 一致；7.1 Beta 公告（import attributes in ambient modules、source phase imports、`--target es2026`、7.1 API）均为预发布，记录待稳定后复核 |
+| vitest-docs | `--typecheck`、`*.test-d.ts` 默认收集、委托 `tsc --noEmit`/`vue-tsc --noEmit`；`typecheck.enabled` 默认 false、`checker` 默认 tsc、`include` 默认 `**/*.{test,spec}-d.?(c|m)[jt]s?(x)`、`ignoreSourceErrors` 默认 false、`tsconfig` 默认就近查找 | https://vitest.dev/guide/testing-types 、https://vitest.dev/config/typecheck | 一致 |
+
+3 条复核完毕，无过时项；正文未改，3 个条目 `synced_at` 改为 2026-11-01。正文未改动，不跑 D2。
