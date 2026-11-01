@@ -326,3 +326,69 @@ SKILL.md 规则 7、Review 示例、`references/ipc-commands.md`，并改写场�
 结论：改动相关行为（State 不匹配是运行时失败而非编译错误/panic）在有 skill 时达成——场景 2 明确，场景 1 部分（未点明「能编译」），两侧都不再出现「panic」说法；
 有 skill 不比基线差（场景 2：6✔1◐ 对 4✔1◐2✘；场景 1 持平）。负例 skill_read 为 false。正文无需再改。
 遗留：场景 1 EB4 的「能编译」一点两侧都没主动说，属模型取舍，正文已写明，不再加码。
+
+## 2026-11-01 上游同步
+
+依据：2026-11-01 主代理快照（`/tmp/hs-upstream-2026-11-01.json`）与工作单 `/tmp/hs-sync/tauri.md`：A 节（tracked paths 确有变更）为空，
+只有 `epicenter-tauri` 属「repo moved, tracked paths unchanged」。worktree 内重跑 `check_upstream.py tauri` 结果一致；
+`--pin` 后核对：`epicenter-tauri` 写入 `7cc869b`（与运行时 HEAD 一致），其余四个 repo 条目 up to date、commit 未变。
+
+| 上游 | 区间 | 命中 paths | 判定 |
+|---|---|---|---|
+| `epicenter-tauri` | `6100613 → 7cc869b`（4 提交） | 无（`.agents/skills/tauri` 区间内未改动） | 噪声，只 re-pin |
+| `hairyf-tauri` / `nodnarbnitram-tauri-v2` / `pinkpixel-tauri` / `full-stack-skills-tauri` | 无移动 | — | up to date |
+
+## 2026-11-01 上游新增内容评估
+
+工作单 C 节为空（已追踪仓库区间内无新增 skill 类文件）；无跨组转来的候选。本节无条目。
+
+## 2026-11-01 新候选检索
+
+检索途径：`gh search repos "tauri skill" --sort updated`（20 条）、`gh search code "tauri filename:SKILL.md"`（50 条，逐仓与候选表去重）、
+`VoltAgent/awesome-agent-skills` README 与 `github/awesome-copilot` 全树 grep `tauri`（均零命中）。指标一律
+`gh api repos/<o>/<r> --jq '{stars,pushed,license}'` 核实；新鲜度以 2026-11-01 为基准。
+
+| # | 仓库/路径 | Stars | 最近推送 | 许可 | 权威 | 新鲜 | 具体 | 正确 | 许可分 | 总分 | 结论 | 理由 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 18 | fxckcode/tauri-skills `skills/tauri-*`（9 个） | 4 | 2026-09-12 | MIT | 1 | 2 | 1 | 2 | 2 | 8 | 分数到线但未采纳 | 9 个 SKILL.md 都是「工作流清单 + 指向 v2.tauri.app 的链接」，如 `tauri-security` 的八步清单与四条规则，无版本分界、默认值或失败模式；与本 skill 已覆盖的 capabilities/CSP/scope 主题完全重合，无可核实的增量事实 |
+| 19 | peditx/tauri-skills | 54 | 2026-07-27 | 无（`license: null`） | 1 | 2 | — | — | 0 | — | REJECT | 无许可文件，只能 reference；README 以「PhD-level」自我营销，主题（React/Python/MCP/CI）多数越出 Tauri 本体 |
+| 20 | Marwichmisi/tauri-skills | 0 | 2026-10-31 | 无 | 0 | 3 | — | — | 0 | — | REJECT | 2026-10-31 新建、零星标、无许可、无描述 |
+| 21 | MoYeRanqianzhi/tauri-skill | 0 | 2026-09-28 | 无 | 0 | 2 | — | — | 0 | — | REJECT | 自定义标题栏等单一 UI 主题，无许可 |
+| 22 | oakoss/agent-skills `skills/tauri` | 20 | 2026-08-17 | 无 | 1 | 2 | — | — | 0 | — | REJECT | 通用 skill 合集中的一篇，无许可文件 |
+| 23 | youngjunning/tauri-skills | 0 | 2026-07-18 | MIT | 0 | 1 | — | — | 2 | — | REJECT | 零星标、匿名；主题（capabilities/IPC/Node sidecar）被候选 1、3 覆盖 |
+| 24 | yetone/native-feel-skill | 1948 | 2026-05-30 | MIT | 2 | 1 | 2 | — | 2 | — | REJECT（范围） | 不是 Tauri skill：主张原生壳（Swift/C#）+ 系统 WebView + Node + Rust 的 Raycast 式架构，并把 Tauri 列为反模式之一；属架构选型，不在本 skill Scope |
+| 25 | martinholovsky/claude-skills-generator `skills/tauri` | 48 | 2025-12-06 | Unlicense | 1 | 0 | — | — | 2 | — | REJECT | 推送已 11 个月，新鲜度 0 |
+
+结论：无 INCLUDE；`docs/roadmap.md` 无需新增条目。
+
+## 2026-11-01 文档上游复核
+
+v2.tauri.app 由 tauri-apps/tauri-docs `v2` 分支渲染。上次复核基于 `32f68c5bfe`；本次 `gh api .../compare/32f68c5bfe...v2`（19 提交，分支头
+`ec113a503f`，2026-10-27）列出全部改动文件，再对正文引用的每个页面查 `commits?path=` 的最后一次提交。tauri 本体：`tauri-v2.12.5`
+（2026-10-21），`tauri-v2.12.4...tauri-v2.12.5` 的 `crates/{tauri,tauri-bundler,tauri-cli}/CHANGELOG.md` 只有 NSIS 语言串更名、
+NSIS 在 MSI 已装更新版本时阻止降级、文件关联注册表路径加引号、`--target` 校验在 rustup 无工具链时跳过、zip 升级修 RUSTSEC，均不涉正文事实。
+
+| 上游 id | 核对的事实 | 当前官方页面 | 结论 |
+|---|---|---|---|
+| tauri-docs | 非 `async` 命令在主线程；async 借用参数两种写法；`lib.rs` 命令不能 `pub`；camelCase 参数；`tauri::ipc::Response` | [Calling Rust](https://v2.tauri.app/develop/calling-rust/)（最后改动 `85125702`，2026-06-08） | 一致（区间内未改） |
+| tauri-docs | `State` 类型不匹配为运行时拒绝（`state not managed for field ...`），`Manager::state()` 才 panic | [State Management](https://v2.tauri.app/develop/state-management/)（最后改动 `712e12a7` #4160，即上次已采纳的那次） | 一致 |
+| tauri-docs | capabilities 目录自动启用、自注册命令默认对所有窗口开放、`AppManifest::commands` | [Capabilities](https://v2.tauri.app/security/capabilities/)（`d7a6d117`，2026-09-03） | 一致；区间内只有 `ja/security/*` 译文更新 |
+| tauri-docs | CSP `connect-src` 含 `ipc: http://ipc.localhost`、哈希/nonce 注入、`devCsp` | [CSP](https://v2.tauri.app/security/csp/)（`cca4d258`，2025-04-07） | 一致 |
+| tauri-docs | JSON Merge Patch、数组整体替换 | [Configuration Files](https://v2.tauri.app/develop/configuration-files/)（`c1db5c21`，2026-08-17） | 一致 |
+| tauri-docs | `externalBin` 三元组后缀、`rustc --print host-tuple` | [Sidecar](https://v2.tauri.app/develop/sidecar/)（`86f23966`，2026-06-15） | 一致 |
+| tauri-docs | updater 签名不可关闭、`pubkey` 不能是路径、endpoints 规则、`quiet` 不能提权 | [Updater](https://v2.tauri.app/plugin/updater/)（`e88a6fc7`，2025-11-28） | 一致 |
+| tauri-docs | `emit_to` / `listen_any` | [Calling the Frontend](https://v2.tauri.app/develop/calling-frontend/)（`b703a848`，2026-09-09） | 一致 |
+| tauri-docs | Windows 签名：`certificateThumbprint` / `digestAlgorithm` / `timestampUrl`，其余走自定义 sign command；签名用于避免 SmartScreen | [Windows Code Signing](https://v2.tauri.app/distribute/sign/windows/)（`ec113a50` #4192，2026-10-27） | **新增事实**：#4192 补「Windows 11 开启 Smart App Control 时，未签名的未知应用即使不是浏览器下载也会被拦截，用户不能单独放行，只能整体关闭 SAC」。经 [Microsoft Learn: Smart App Control](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/overview)（2026-10-06 更新）核实：强制模式下未知且未签名的代码默认被拦截，Trusted Root Program 内 CA 签发的签名可放行。正文原写法（签名用于避免 SmartScreen）未错，属新增规则 → 先跑基线，见下 |
+| tauri-docs | `windows-installer.mdx` 依赖安装器示例补引号；`plugin/upload.mdx` 补 HTTP 方法与进度字段 | 同页 | 本 skill 不引用（upload 插件不在正文），无影响 |
+
+**Smart App Control 的基线检验**：新增场景 5（消费者 Win11 PC、启动器用 `reqwest` 下载 NSIS 安装包、市场负责人想停签名），
+只跑基线（omp + `openai/gpt-6.1-sol` medium，VM；产物 `/tmp/hs-d2/G09c-mobile3/tauri/omp-openai-gpt-6.1-sol-medium/baseline/5`，71.6 s）：
+
+| 场景 | 模型 | 有/无 skill | skill_read | 达成的 expected_behavior | 备注 |
+|---|---|---|---|---|---|
+| 5 Windows 签名与 Smart App Control | gpt-6.1-sol medium | 无 | false | EB1 ✔ EB2 ◐ EB3 ✔ EB4 ✔ EB5 ✔ | EB1：明写 SAC 强制模式检查所有可执行文件而不论是否浏览器下载、无单应用放行、只能关闭整个 SAC；EB2 区分了 SmartScreen 与 SAC，但没点出「Trusted Root Program 内 CA 签名」这一放行条件，只说「签名」；EB4 给出 `signCommand` + relic/Azure Key Vault；EB5 区分 updater `.sig` 与 Authenticode |
+
+基线已掌握该事实，按流程**不合入正文**，场景 5 留作哨兵。`tauri-docs` 的 `synced_at` 更新为 2026-11-01。
+
+结论：正文（SKILL.md / references）未改，只改 `SKILL.md` 的 `metadata.version`、`SOURCES.yaml`（version、re-pin、`tauri-docs` synced_at）
+与 `evals/evals.json`（新增哨兵场景 5）。正文无改动，不需要 D2 回归。

@@ -55,5 +55,17 @@
       "Answers in React terms — memoising the filter/sort work, hoisting the Intl.NumberFormat instance out of the row, the effect with no dependency array running on every render, and windowing the list — rather than discussing Tauri IPC, capabilities or Rust commands",
       "Does not propose Tauri-specific changes such as moving the work into a #[tauri::command], tauri.conf.json settings, or capability files"
     ]
+  },
+  {
+    "skills": ["tauri"],
+    "query": "We sell a Tauri v2 desktop app to consumers on their own Windows 11 PCs. Nobody downloads the NSIS installer in a browser: our small launcher fetches it over HTTPS with reqwest and runs it, and later versions arrive through the Tauri updater. Our marketing lead wants to drop the code-signing certificate renewal because SmartScreen only checks browser downloads. Is it safe to ship unsigned? If we keep signing, what exactly goes into tauri.conf.json for an OV certificate, and what if the key moves to a cloud signing service?",
+    "files": [],
+    "expected_behavior": [
+      "Says shipping unsigned is not safe on Windows 11: with Smart App Control turned on (enforcement mode), unknown unsigned apps are blocked even when they were not downloaded through a browser, and the user cannot allow that one app — the only way past it is to turn Smart App Control off entirely",
+      "Distinguishes that from SmartScreen, which is the browser-download warning the marketing lead is thinking of, and that a signature from a CA in Microsoft's trusted root programme is what lets an app that Microsoft's reputation service does not recognise run under Smart App Control",
+      "Gives the tauri.conf.json fields for a certificate in the machine store: bundle.windows.certificateThumbprint, digestAlgorithm (sha256) and timestampUrl",
+      "Says a cloud or HSM-backed key (Azure Key Vault, Azure Artifact Signing, an EV token) goes through bundle.windows.signCommand, the custom sign command, rather than the thumbprint fields",
+      "Keeps the updater signature separate: TAURI_SIGNING_PRIVATE_KEY and the .sig files are required by the updater regardless and do not replace Authenticode code signing"
+    ]
   }
 ]
