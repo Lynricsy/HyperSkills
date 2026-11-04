@@ -1,10 +1,10 @@
 ---
 name: rust
-description: "Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI."
+description: "Guides Rust code across ownership, async cancellation, unsafe/FFI and Cargo features. Use when editing .rs or Cargo.toml, fixing borrow-checker or non-Send future errors, losing work inside select!, reviewing unsafe wrappers or FFI callbacks, or a crate builds only inside its workspace."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

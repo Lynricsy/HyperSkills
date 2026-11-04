@@ -1,5 +1,5 @@
 skill: rust
-version: "2026.11.01"
+version: "2026.11.04"
 upstreams:
   - id: full-stack-cargo
     kind: repo
