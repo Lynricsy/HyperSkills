@@ -1,10 +1,10 @@
 ---
 name: office
-description: "Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets."
+description: "Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets. Use when a deliverable or input is .docx, .pptx, .xlsx or .pdf: reports, decks, spreadsheets with formulas, tracked changes and comments, form filling, PDF merge, split, OCR or table extraction, or Markdown to Word, including a small edit to an existing file."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

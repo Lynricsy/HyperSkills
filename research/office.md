@@ -572,3 +572,11 @@ openai/skills、SlideSpeak、ourarash 本就 up to date）。十条 docs 为 man
 - 负例 4 通过（`skill_read == false`）：10-15 改过的 description 在本轮仍有效。
 
 遗留：场景 6 期望 3（见上）；期望 2 三次运行均只在代码里设 Letter、不解释 A4 缺省（与 10-15 相同）；各场景 1–2 次运行。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets.`  
+新：`Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets. Use when a deliverable or input is .docx, .pptx, .xlsx or .pdf: reports, decks, spreadsheets with formulas, tracked changes and comments, form filling, PDF merge, split, OCR or table extraction, or Markdown to Word, including a small edit to an existing file.`（首句 99 字符，全长 359 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
