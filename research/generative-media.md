@@ -660,3 +660,11 @@ Gemini TTS 的约束是 **「A TTS session has a context window limit of 32k tok
 | 4 负例（RAG 回答收紧） | 有（挂载） | false | EB1 ✔ EB2 ✔ EB3 ✔ | 118 s |
 
 结论：两处事实更正基线都能靠联网查到（下线日期、3.8 逐字稿合约），差距落在 skill 的既有规则上：场景 7「每个 take 一次请求」基线漏掉，场景 8 job id 持久化与输出哈希基线只做到一半。有 skill 时没有一项比基线差（场景 7 EB3 的 ◐ 是选库音色而非按口音选，基线用设计音色反而更好，记为小差距、不改正文）。负例 `skill_read == false`。正文不再改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Integrates AI image, video, speech and music generation or transcription models.`  
+新：`Integrates AI image, video, speech, music generation and speech-to-text model APIs. Use when calling an image generation or editing API, text-to-speech, Whisper-style transcription, an async video generation job or local diffusers pipeline, when renders differ across machines, a generation times out in a handler, or AI-content disclosure (C2PA, SynthID) applies.`（首句 83 字符，全长 364 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

@@ -1,10 +1,10 @@
 ---
 name: generative-media
-description: "Integrates AI image, video, speech and music generation or transcription models."
+description: "Integrates AI image, video, speech, music generation and speech-to-text model APIs. Use when calling an image generation or editing API, text-to-speech, Whisper-style transcription, an async video generation job or local diffusers pipeline, when renders differ across machines, a generation times out in a handler, or AI-content disclosure (C2PA, SynthID) applies."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
