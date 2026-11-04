@@ -1,10 +1,10 @@
 ---
 name: terraform
-description: "Manages infrastructure as code with Terraform or OpenTofu modules, state and providers."
+description: "Writes and refactors Terraform and OpenTofu HCL: modules, state, providers and tests. Use when writing or reviewing .tf, .tfvars or .tftest.hcl files, a plan wants to destroy something that was only renamed, state drifted or must be imported or split, or choosing count or for_each, including .tf files that declare only AWS, Azure or Google Cloud resources."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

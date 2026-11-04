@@ -751,3 +751,11 @@ Terraform-only、不可移植到 OpenTofu）、`required_providers`/module sourc
 | 4（负例） | gpt-6.1-sol medium | 有（挂载） | False | — | 43 s |
 
 结论：撤回段落后有 skill 一侧仍达成三条主结论，无回退；负例未误读。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Manages infrastructure as code with Terraform or OpenTofu modules, state and providers.`  
+新：`Writes and refactors Terraform and OpenTofu HCL: modules, state, providers and tests. Use when writing or reviewing .tf, .tfvars or .tftest.hcl files, a plan wants to destroy something that was only renamed, state drifted or must be imported or split, or choosing count or for_each, including .tf files that declare only AWS, Azure or Google Cloud resources.`（首句 85 字符，全长 358 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
