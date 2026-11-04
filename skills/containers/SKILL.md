@@ -1,10 +1,10 @@
 ---
 name: containers
-description: "Builds Docker images and configures Compose, Kubernetes, Helm and container security."
+description: "Builds Docker images and writes Compose files, Kubernetes manifests, Helm charts and Kustomize. Use when writing or reviewing a Dockerfile, compose.yaml, Kubernetes manifest, Helm chart or devcontainer.json, an image is too large or rebuilds slowly, or a pod is stuck in CrashLoopBackOff, ImagePullBackOff or Pending, including a one-line Dockerfile tweak."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

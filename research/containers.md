@@ -928,3 +928,11 @@ release 全部切到 SSA」安排两周冻结）。负例 5（Terraform `count`/
 
 主代理补齐门禁：c261882 在集成时被重建，提交时间晚于上表运行，按规则在提交后重跑 12 与负例 5（产物 `/tmp/hs-d2/fix/containers/`）：
 12 有 skill 1✔ 2✔ 3✔（48 s，给出维护中的替代控制器、用其 Middleware 重写去前缀、TLS Secret 须同命名空间）；负例 5 `skill_read == false`（101 s）。无回退。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds Docker images and configures Compose, Kubernetes, Helm and container security.`  
+新：`Builds Docker images and writes Compose files, Kubernetes manifests, Helm charts and Kustomize. Use when writing or reviewing a Dockerfile, compose.yaml, Kubernetes manifest, Helm chart or devcontainer.json, an image is too large or rebuilds slowly, or a pod is stuck in CrashLoopBackOff, ImagePullBackOff or Pending, including a one-line Dockerfile tweak.`（首句 95 字符，全长 356 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
