@@ -1,10 +1,10 @@
 ---
 name: flutter
-description: "Develops cross-platform Flutter apps with Dart, widgets and state management."
+description: "Develops cross-platform Flutter apps and Dart packages with widgets and state management. Use when editing .dart files or pubspec.yaml, choosing Riverpod, Bloc or go_router, fixing RenderFlex overflow or unbounded-constraint errors, writing widget tests, or bridging native code via platform channels, Pigeon or FFI."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

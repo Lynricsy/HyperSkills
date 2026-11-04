@@ -388,3 +388,11 @@ Stars / 推送 / 许可为 2026-11-01 `gh api repos/<o>/<r>` 值。评分同上�
 结论：场景 7 有 skill 3/3、基线 2✔1◐。「只格式化改动文件」基线本身已会，本次改动的作用是撤掉 skill 自己原先给出的 `dart format .`
 （旧正文会把模型推向全量格式化），属对本 skill 指令的更正，不是填补基线缺口；有 skill 不比基线差，并多达成 info 级清零。
 场景 8 基线已会，gabuldev 的 web 语义内容不合入，场景保留为哨兵（未跑有 skill，正文无对应改动）。负例 `skill_read == false`。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops cross-platform Flutter apps with Dart, widgets and state management.`  
+新：`Develops cross-platform Flutter apps and Dart packages with widgets and state management. Use when editing .dart files or pubspec.yaml, choosing Riverpod, Bloc or go_router, fixing RenderFlex overflow or unbounded-constraint errors, writing widget tests, or bridging native code via platform channels, Pigeon or FFI.`（首句 89 字符，全长 316 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
