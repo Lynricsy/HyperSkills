@@ -1,10 +1,10 @@
 ---
 name: model-serving
-description: "Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity"
+description: "Tunes deployed LLM inference servers (vLLM, SGLang, TensorRT-LLM) for latency and throughput. Use when TTFT or p99 latency regresses, a benchmark disagrees with production, sizing GPUs or replicas for an SLO, tuning KV cache, max-model-len, batching or prefix caching, or choosing inference parallelism and autoscaling signals."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
