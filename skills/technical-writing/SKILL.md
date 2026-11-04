@@ -1,10 +1,10 @@
 ---
 name: technical-writing
-description: "Writes and audits READMEs, guides, reference docs, changelogs; not site generators, profile READMEs."
+description: "Writes and audits READMEs, guides, reference docs, changelogs; not site builders, profile READMEs. Use when writing or fixing a README, tutorial, how-to, reference page, ADR or CHANGELOG, checking docs against the code before a release, or turning a commit log into release notes, including a one-line README fix."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

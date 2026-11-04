@@ -410,3 +410,11 @@ medium，隔离 VM，`--out /tmp/hs-d2/G12-meta`，单场景串行；有 skill �
 
 结论：场景 12 两侧持平、无回退；EB1 的「点名原因」两侧都只做到一半，与本次一行补充无关，未为此加规则。负例 5 继续误读，按流程如实记录，
 留给 description 维护流程处理。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Writes and audits READMEs, guides, reference docs, changelogs; not site generators, profile READMEs.`  
+新：`Writes and audits READMEs, guides, reference docs, changelogs; not site builders, profile READMEs. Use when writing or fixing a README, tutorial, how-to, reference page, ADR or CHANGELOG, checking docs against the code before a release, or turning a commit log into release notes, including a one-line README fix.`（首句 98 字符，全长 313 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。

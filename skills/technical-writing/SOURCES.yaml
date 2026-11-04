@@ -2,7 +2,7 @@
 # `commit` is filled automatically by:
 #   uv run tools/check_upstream.py --pin technical-writing
 skill: technical-writing
-version: "2026.11.01"           # must equal SKILL.md metadata.version
+version: "2026.11.04"           # must equal SKILL.md metadata.version
 upstreams:
   - id: mblode-docs-writing
     kind: repo
