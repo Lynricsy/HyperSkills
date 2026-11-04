@@ -1,10 +1,10 @@
 ---
 name: media-processing
-description: "Processes existing video, audio and images with ffmpeg and deterministic image tools."
+description: "Processes existing video, audio and images with ffmpeg, libvips, sharp, ImageMagick or Pillow. Use when transcoding, cutting or concatenating video, normalising loudness, packaging HLS or DASH, extracting frames or thumbnails, batch-resizing images, or an output is unplayable or has the wrong aspect ratio, including a one-line ffmpeg command."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

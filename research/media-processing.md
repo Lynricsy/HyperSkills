@@ -728,3 +728,11 @@ kajisho 逐项：
 ## 2026-11-01 D2 回归
 
 本轮正文未改（只有 `SOURCES.yaml` re-pin、einverne 改指向、docs `synced_at`），无需 D2。新增场景 8 只跑了基线（见上），结果为基线已会。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Processes existing video, audio and images with ffmpeg and deterministic image tools.`  
+新：`Processes existing video, audio and images with ffmpeg, libvips, sharp, ImageMagick or Pillow. Use when transcoding, cutting or concatenating video, normalising loudness, packaging HLS or DASH, extracting frames or thumbnails, batch-resizing images, or an output is unplayable or has the wrong aspect ratio, including a one-line ffmpeg command.`（首句 94 字符，全长 344 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
