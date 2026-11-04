@@ -1,10 +1,10 @@
 ---
 name: html-deck
-description: "Creates browser HTML slide decks. Do not load for editable PowerPoint files or responsive websites; those are the office and frontend-design skills."
+description: "Creates browser HTML slide decks; do not load for editable PowerPoint files or responsive sites. Use when asked for slides or a talk as an HTML file, a Marp, reveal.js or Slidev deck, speaker notes or presenter mode, or exporting a deck to PDF or PNG. Editable .pptx belongs to the office skill; landing pages and websites to frontend-design."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

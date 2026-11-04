@@ -411,3 +411,11 @@ event4u、oma-slide、playwright、carbon 用主代理的 blobless 裸仓库缓�
 
 结论：通过。场景 7 的 E4（3.17.0 的 Node 22.12 要求）与 E5（截图目录按版本处理）基线 ✘、有 skill ✔，均来自今日更正；
 负例 `skill_read=false`，description 今日未改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Creates browser HTML slide decks. Do not load for editable PowerPoint files or responsive websites; those are the office and frontend-design skills.`  
+新：`Creates browser HTML slide decks; do not load for editable PowerPoint files or responsive sites. Use when asked for slides or a talk as an HTML file, a Marp, reveal.js or Slidev deck, speaker notes or presenter mode, or exporting a deck to PDF or PNG. Editable .pptx belongs to the office skill; landing pages and websites to frontend-design.`（首句 96 字符，全长 342 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。
