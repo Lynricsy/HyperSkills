@@ -1,10 +1,10 @@
 ---
 name: unreal
-description: "Develops Unreal Engine gameplay with C++, Blueprints and engine APIs."
+description: "Guides Unreal Engine 5 gameplay in C++ and Blueprints: reflection, actors and replication. Use when editing .h/.cpp with UCLASS or GENERATED_BODY, a .Build.cs or .uproject, a UObject is garbage-collected unexpectedly, a property fails to replicate, or the task names GAS, Enhanced Input, UMG, Lumen, Nanite or Niagara."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

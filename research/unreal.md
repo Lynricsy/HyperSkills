@@ -443,3 +443,11 @@ dev.epicgames.com 当前仍服务 UE 5.8（各页 title「Unreal Engine 5.8 Docu
 ## 2026-11-01 D2 回归
 
 正文（`SKILL.md`/`references/`/`scripts/`）本轮无改动，按简报第 6 步不需要 D2；新增的场景 6、7 只跑了基线（见上「基线取证」），作为哨兵保留。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Unreal Engine gameplay with C++, Blueprints and engine APIs.`  
+新：`Guides Unreal Engine 5 gameplay in C++ and Blueprints: reflection, actors and replication. Use when editing .h/.cpp with UCLASS or GENERATED_BODY, a .Build.cs or .uproject, a UObject is garbage-collected unexpectedly, a property fails to replicate, or the task names GAS, Enhanced Input, UMG, Lumen, Nanite or Niagara.`（首句 90 字符，全长 318 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
