@@ -338,3 +338,11 @@ VoltAgent/awesome-agent-skills 2026-10-15 以来 README 新增行（无调试类
 本 skill 无 `kind: docs` 条目。
 
 正文（`SKILL.md`/`references/`/`scripts/`）本轮除 `metadata.version` 外无改动（只新增评测场景 7 与夹具），按规程不需要 D2 回归。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Diagnoses and fixes reproducible bugs, regressions, failures and performance problems.`  
+新：`Diagnoses and fixes software bugs, test failures, regressions, flaky tests and slowdowns. Use when something throws, crashes, returns wrong output, fails a test or build, is flaky or newly slow, the user asks why something happens, or a first fix attempt did not work, including an error whose cause looks obvious from the stack trace.`（首句 89 字符，全长 335 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。

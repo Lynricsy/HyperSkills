@@ -1,10 +1,10 @@
 ---
 name: debugging
-description: "Diagnoses and fixes reproducible bugs, regressions, failures and performance problems."
+description: "Diagnoses and fixes software bugs, test failures, regressions, flaky tests and slowdowns. Use when something throws, crashes, returns wrong output, fails a test or build, is flaky or newly slow, the user asks why something happens, or a first fix attempt did not work, including an error whose cause looks obvious from the stack trace."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
