@@ -1,10 +1,10 @@
 ---
 name: redis
-description: "Designs and operates Redis data structures, caching, streams and clusters."
+description: "Designs and operates Redis data structures, keys and TTLs, caching, locks, streams and clusters. Use when adding a cache, lock, rate limiter or queue on Redis, keys disappear or writes fail with OOM, a CROSSSLOT error appears, Stream consumers lose messages, or FT.SEARCH returns nothing, including a quick cache-aside helper with a TTL."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
