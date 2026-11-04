@@ -1,10 +1,10 @@
 ---
 name: ml-training
-description: "Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization."
+description: "Fine-tunes and trains model weights with LoRA, QLoRA, SFT, DPO, distributed training and GPUs. Use when a training run hits CUDA out of memory, a transformers or TRL script breaks after an upgrade, choosing between SFT, DPO and GRPO, picking FSDP or DeepSpeed parallelism, or reviewing a training script before spending GPU hours."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

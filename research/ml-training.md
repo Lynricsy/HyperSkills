@@ -397,3 +397,11 @@ nvidia-skills、pytorch-docs 报告为 too large 但完整区间归因为空（�
 | OpenBMB/MiniCPM `skills/minicpm5-finetune-trl` | 11772 | 2026-09-21 | Apache-2.0 | 3 | 2 | 2 | 2 | 2 | 11 | REJECT（内容裁决）：单模型（MiniCPM5）TRL+PEFT 配方，依赖下限写 `trl>=0.21`；可迁移的「只算助手 token 的 loss」已由 rule 21 覆盖 |
 | Ascend/agent-skills `verl-async-dapo` | 52 | 2026-05-07 | MulanPSL-2.0 | 3 | 1 | 1 | 2 | 2 | 9 | REJECT（内容裁决）：昇腾容器里交互式生成 verl DAPO 启动脚本，单一硬件与框架 |
 | TYH-labs/unsloth-buddy | 283 | 2026-06-28 | MIT | 1 | 1 | 2 | 1 | 2 | 7 | REJECT：Unsloth 单库向导，含未加条件的营销数字（「2x 更快、省 80% 显存、0% 精度损失」） |
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization.`  
+新：`Fine-tunes and trains model weights with LoRA, QLoRA, SFT, DPO, distributed training and GPUs. Use when a training run hits CUDA out of memory, a transformers or TRL script breaks after an upgrade, choosing between SFT, DPO and GRPO, picking FSDP or DeepSpeed parallelism, or reviewing a training script before spending GPU hours.`（首句 94 字符，全长 330 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
