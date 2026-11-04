@@ -1,10 +1,10 @@
 ---
 name: test-driven-development
-description: "Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config."
+description: "Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config. Use when implementing a feature, fixing a bug whose expected behaviour is known, adding a regression test, judging whether tests earn their place, or the user says TDD, red/green or unit tests, including a one-line fix."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
