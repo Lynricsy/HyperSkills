@@ -1,6 +1,6 @@
 ---
 name: {{name}}
-description: "TODO: One short English routing sentence: task + key technology or artifact; third person; 1-160 characters."
+description: "TODO: Third-person first sentence of 40-99 characters naming the task, domain and key technology. Use when <3-6 concrete triggers: user phrasings, file types, symptoms>. 400 characters max."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
@@ -13,9 +13,10 @@ metadata:
 ## Scope
 
 <!-- Keep detailed coverage and exclusions here, not in the description.
-     The description is only a routing sentence, usually 8-16 words; no padding,
-     capability/version/procedure lists, or required "Do not use for" sentence.
-     Add a brief routing qualifier only for a genuine ambiguity.
+     The description selects the skill: a self-contained first sentence (hosts
+     may show only that sentence), then "Use when ..." with concrete triggers.
+     No capability lists, procedure summaries or upper-case emphasis; add
+     "Not for ..." only for a near miss seen in routing evals.
      Negative scope stops the model from inventing answers outside its knowledge. -->
 
 ## Read first

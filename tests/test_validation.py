@@ -28,7 +28,10 @@ class ValidationTests(unittest.TestCase):
         self.skill.mkdir(parents=True)
         self.frontmatter = {
             "name": "sample",
-            "description": "Checks sample documents.",
+            "description": (
+                "Checks sample documents for inconsistencies and contradictions. "
+                "Use when reviewing or comparing sample documents."
+            ),
             "license": "MIT (upstream attributions in NOTICE.md)",
             "metadata": {
                 "author": "HyperSkills",
@@ -165,6 +168,32 @@ class ValidationTests(unittest.TestCase):
         self.write_skill()
         self.assertEqual(self.run_validator().returncode, 0)
         self.assertEqual(self.run_validator("--strict").returncode, 1)
+
+    def test_description_first_sentence_matches_host_preview(self) -> None:
+        # 首句判定与 omp 预览一致：`Node.js` 里的点不算句末；首句超过 99 字符或短于 40 字符都拒绝。
+        cases = {
+            "Builds Node.js services with Fastify, NestJS, Hono and Express. "
+            "Use when writing a Node.js API.": 0,
+            "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express "
+            "including plugins, hooks and graceful shutdown. Use when writing APIs.": 1,
+            "Builds services. Use when writing a Node.js HTTP API with Fastify.": 1,
+        }
+        for description, code in cases.items():
+            with self.subTest(description=description):
+                self.frontmatter["description"] = description
+                self.write_skill()
+                self.assertEqual(self.run_validator().returncode, code)
+
+    def test_description_rejects_missing_triggers_and_shouted_emphasis(self) -> None:
+        for description in (
+            "Checks sample documents for inconsistencies and contradictions.",
+            "Checks sample documents for inconsistencies and contradictions. "
+            "Use when reviewing documents; you MUST read it first.",
+        ):
+            with self.subTest(description=description):
+                self.frontmatter["description"] = description
+                self.write_skill()
+                self.assertEqual(self.run_validator().returncode, 1)
 
     def test_existing_file_outside_fixture_root_is_rejected(self) -> None:
         self.scenarios[0]["files"] = ["SKILL.md"]

@@ -17,7 +17,7 @@
 ```yaml
 ---
 name: <目录名>
-description: "<一句极短英文路由句：任务 + 关键技术或产物名；1–160 字符>"
+description: "<英文两层：首句 40–99 字符、自足地写做什么 + 领域与关键技术名；随后 `Use when …` 写具体触发场景；≤400 字符>"
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
@@ -34,15 +34,48 @@ YAML 必须可安全解析；frontmatter 和 `SOURCES.yaml` 各层映射的显�
 | 字段 | 约束 |
 |---|---|
 | `name` | 必填；`^[a-z0-9]+(-[a-z0-9]+)*$`；≤64 字符；**必须等于所在目录名**；不得含保留字 `anthropic` / `claude`；不得含 XML 标签 |
-| `description` | 必填；非空、非全空白，1–160 字符；一句英文路由句，通常 8–16 词，不凑字数；第三人称（`Guides…` / `Reviews…`），禁止 `I can…` / `You can…`；不得含 XML 标签或 `TODO` 占位符；最核心用途放最前 |
+| `description` | 必填；非空、非全空白，1–400 字符；按 [1.1.1](#111-description-写法) 的两层形态写：首句 40–99 字符且自足，随后含 `Use when` 的触发场景；第三人称（`Guides…` / `Reviews…`），禁止 `I can…` / `You can…`；不得含 XML 标签、`TODO` 占位符或 `CRITICAL` / `MUST` 等大写强调词 |
 | `license` | 必填；本仓库统一 `MIT (upstream attributions in NOTICE.md)` |
 | `metadata.author` | 必须为 `HyperSkills` |
 | `metadata.version` | `^\d{4}\.\d{2}\.\d{2}$`，日期版本；每次合入 / 同步后改为当天 |
 | `metadata.category` | `platform` \| `framework` \| `task` \| `meta` |
 
-Agent Skills 官方允许 description 为 1–1024 字符；本仓库为常驻选择信息采用更紧的
-160 字符上限，而非把官方上限当目标。单句是写作要求，不用句号正则判定，以免误伤
-`Node.js`、`.NET` 等技术名。
+Agent Skills 官方允许 description 为 1–1024 字符；本仓库把 400 字符作为常驻列表的预算上限
+（62 个 skill 全部写满约 25k 字符），而非把官方上限当目标，不凑字数。
+
+#### 1.1.1 description 写法
+
+```
+<首句：做什么 + 领域与关键技术名>. Use when <具体触发场景>[, including <容易被跳过的具体情形>]. [Not for <实测过的近似误触发>.]
+```
+
+1. **首句自足**：40–99 字符，以 `.` / `!` / `?` 后接空格结束；必须出现领域名（`Python`、`Rust`、
+   `AWS`）与最核心的技术或产物名。实测有效过的排除限定词（如 `; not Terraform or HCL`）留在首句。
+   原因：omp 在列表里只给 ≤100 字符的预览，原文超长时只截取首句；首句不自足，模型就只看到半句话。
+2. **第二层以 `Use when` 开头**，写 3–6 个具体触发场景：用户的自然说法、文件名与扩展名、报错症状、
+   任务情境。写「什么时候该读」，不写「读了之后怎么做」。
+3. **可点名容易被跳过的具体情形**：用 `including …` / `even for …` 写出模型会以为自己能直接处理的
+   场景（小改动、一次性脚本、看似简单的问答）。只写具体情形，禁止 `CRITICAL`、`MUST`、`ALWAYS`
+   等大写强调。
+4. **不概括执行流程**：description 里出现步骤，agent 会照着描述做而不读正文。
+5. **`Not for …` 只用于真实路由歧义**：限于路由评测中实际出现过的近似误触发；完整的否定边界
+   仍写在 `## Scope`。
+
+依据（2026-11-04 调研，冲突裁决见右列）：
+
+| 来源 | 结论 | 本仓库采用方式 |
+|---|---|---|
+| Anthropic《Skill authoring best practices》 | description 同时写做什么与何时用，含具体关键词与触发情境 | 两层形态的骨架 |
+| anthropics/skills `skill-creator` | Claude 倾向欠触发，description 宜稍「pushy」；简单一步任务即使描述匹配也可能不查 skill | 规则 3：用具体情形加强，而非加重语气 |
+| Anthropic《Claude prompting best practices》 | Opus 4.5/4.6 对系统提示更敏感，`CRITICAL: You MUST` 类措辞会导致过度触发 | 规则 3 禁止大写强调 |
+| obra/superpowers `writing-skills` | description 概括流程会让 agent 走捷径；主张只写触发条件 | 规则 4；保留「做什么」首句以容纳领域名（Anthropic 官方形态优先） |
+| Claude Code skills 文档 | 每条截断于 1,536 字符；整表预算为上下文 1%，超出时先丢最少调用 skill 的描述 | 关键用途前置；400 字符为仓库预算 |
+| omp 18.16.0（`skill-descriptions.ts`） | 首次列表用 ≤100 字符预览，原文超长时取首句（≥40 字符）；之后由 smol 模型压成 ≤12 词的「何时用」提示 | 规则 1 |
+| Codex `catalog_prompt.rs` | 宿主提示要求「任务明确匹配 description 就必须使用」 | 解释同一 description 在不同宿主上触发率不同；不改写法 |
+
+description 解决的是「选哪个」。社区沙箱实测（Scott Spence，Sonnet 4.5）显示，未触发主要发生在
+模型根本没去检查 skill 列表，而一旦检查就能选对。要靠宿主或上下文文件的规则提高检查频率，
+不要往 description 里堆语气。
 
 ### 1.2 顶层键白名单
 
@@ -96,9 +129,8 @@ Agent Skills 官方允许 description 为 1–1024 字符；本仓库为常驻�
 - **自由度与脆弱性匹配**：多种做法皆可 → 启发式（高自由度）；有首选模式 → 带参数的模板 /
   伪代码（中）；脆弱且必须按序 → 精确命令并注明"不要改动参数"（低）。
 - **祈使语气，解释 why**；禁止满篇 ALL-CAPS MUST/NEVER。
-- **`description` 只负责选择**：用一句极短英文写任务与关键技术 / 产物名，不写能力、
-  版本或过程长清单，不强制 `Do not use for …`。详细适用范围与否定边界放在已有
-  `## Scope`；仅在真实路由歧义下加极短限定词，不把 Scope 搬回常驻描述。
+- **`description` 只负责选择**：按 [1.1.1](#111-description-写法) 写触发场景，不写能力清单、
+  版本或执行流程。详细适用范围与否定边界放在 `## Scope`。
 - **只给一个默认方案 + 一个逃生口**：`Use X. For <特殊情况> use Y instead.` 不罗列多个可选库。
 - **术语全篇一致**：一个概念只用一个词。
 - **不写时间敏感表述**（"2025 年 8 月前用旧 API"）。弃用内容放在 `## Old patterns` 节的

@@ -46,8 +46,18 @@ SKILL_MD_WARN_LIMIT = 400  # plan's "keep it 150-400" upper edge
 REFERENCE_HARD_LIMIT = 600
 REFERENCE_WARN_LIMIT = 400
 CONTENTS_REQUIRED_OVER = 100  # references longer than this need a `## Contents` TOC
-DESCRIPTION_MIN = 1  # 标准 1.1：非空路由句，不要求凑字数
-DESCRIPTION_MAX = 160  # 本仓库的常驻路由预算，比官方规范更严格
+DESCRIPTION_MIN = 1  # 标准 1.1：非空，不要求凑字数
+DESCRIPTION_MAX = 400  # 标准 1.1：本仓库的常驻列表预算，比官方规范更严格
+# 标准 1.1.1 规则 1：omp 的列表预览只在前 99 个字符里找首句，首句短于 40 字符时不单独采用。
+FIRST_SENTENCE_MIN = 40
+FIRST_SENTENCE_MAX = 99
+# 与 omp `previewSkillDescription` 相同的首句判定：标点后接空白或结尾才算句末，
+# 所以 `Node.js`、`.NET` 不会被当成句子结束。
+FIRST_SENTENCE_RE = re.compile(r"^.*?[.!?](?=\s|$)")
+# 标准 1.1.1 规则 3：用具体情形加强触发，不用大写强调。
+DESCRIPTION_EMPHASIS_RE = re.compile(
+    r"\b(?:CRITICAL|MUST|ALWAYS|NEVER|IMPORTANT|MANDATORY)\b"
+)
 NAME_MAX = 64  # hard spec limit
 MIN_EVAL_SCENARIOS = 3  # standard section 6
 
@@ -138,6 +148,21 @@ def check_frontmatter(skill: Skill, rep: Report) -> None:
             rep.error("description must be third person; found ' I can '")
         if "TODO" in desc:
             rep.error("description still contains the scaffold placeholder 'TODO'")
+        first = FIRST_SENTENCE_RE.match(" ".join(desc.split())[:FIRST_SENTENCE_MAX])
+        if first is None or len(first.group(0)) < FIRST_SENTENCE_MIN:
+            rep.error(
+                "description must open with a self-contained sentence of "
+                f"{FIRST_SENTENCE_MIN}-{FIRST_SENTENCE_MAX} characters ending in "
+                "'.', '!' or '?' before a space (hosts may show only that sentence)"
+            )
+        if "Use when" not in desc:
+            rep.error("description must state its triggers with 'Use when …'")
+        emphasis = DESCRIPTION_EMPHASIS_RE.search(desc)
+        if emphasis:
+            rep.error(
+                f"description must not use upper-case emphasis '{emphasis.group(0)}'; "
+                "name the concrete situation instead"
+            )
 
     if not fm.get("license"):
         rep.error("frontmatter 'license' is missing")
