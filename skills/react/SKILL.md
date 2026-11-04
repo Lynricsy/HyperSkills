@@ -1,10 +1,10 @@
 ---
 name: react
-description: "Develops React and Next.js web applications, components and server rendering."
+description: "Develops React and Next.js App Router web applications, components and server rendering. Use when editing .jsx or .tsx components, hooks, Server Components or app/ routes, fixing a hydration mismatch, slow re-renders or bundle size, or adding a shadcn/ui component, including a small useEffect fix."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

@@ -467,3 +467,11 @@ React DevTools for agents 页）。
 | 4（负例） | gpt-6.1-sol medium | 有 | **false** | — | 60 s，按 Vue 3 作答 |
 
 结论：通过，EB2 由 ◐ 转 ✔，无回退；负例未误读。首轮（旧 query）两侧结果：EB1 ◐ / EB2 ✘ / EB3 ✔，相同。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops React and Next.js web applications, components and server rendering.`  
+新：`Develops React and Next.js App Router web applications, components and server rendering. Use when editing .jsx or .tsx components, hooks, Server Components or app/ routes, fixing a hydration mismatch, slow re-renders or bundle size, or adding a shadcn/ui component, including a small useEffect fix.`（首句 88 字符，全长 298 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
