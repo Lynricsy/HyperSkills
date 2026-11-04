@@ -1,10 +1,10 @@
 ---
 name: cloudflare
-description: "Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler."
+description: "Builds on Cloudflare Workers, Durable Objects, KV, R2, D1, Queues and the Wrangler CLI. Use when writing or reviewing Worker code, wrangler.jsonc or wrangler.toml, or Durable Object classes, a deploy is rejected, production differs from wrangler dev, migrating off Cloudflare Pages, or configuring Cloudflare Access or Tunnel."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

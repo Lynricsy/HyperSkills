@@ -491,3 +491,11 @@ cloudflare-computer 在缓存上 `git log ef00c0a..071b2b2 -- .agents/skills/clo
 结论：两处事实更正与 4.153 门槛在有 skill 时全部达成（场景 12：6/6），数量上限更正后有 skill 与基线结论一致、未再出现旧数字（场景 15：EB5 两侧 ✔）。
 场景 15 的 EB2/EB3 两侧都只部分达成：两个模型都以「硬隔离是需求」为由不主动推荐共享 bucket/namespace，属期望行为写得偏主观，下次同步可放宽措辞后两侧重跑。
 负例 skill_read 为 false。正文无需再改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler.`  
+新：`Builds on Cloudflare Workers, Durable Objects, KV, R2, D1, Queues and the Wrangler CLI. Use when writing or reviewing Worker code, wrangler.jsonc or wrangler.toml, or Durable Object classes, a deploy is rejected, production differs from wrangler dev, migrating off Cloudflare Pages, or configuring Cloudflare Access or Tunnel.`（首句 87 字符，全长 326 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
