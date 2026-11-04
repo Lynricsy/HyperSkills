@@ -416,3 +416,11 @@ references 的「Verified against: Chrome 148」是核对时点标记，所引�
 | 4（负例） | openai/gpt-6.1-sol medium | 有 | false | ✔ | 普通网站 Playwright 登录测试，未读本 skill |
 
 结论：更正后的 alarms 事实被正确使用，未出现回归；EB1/EB2 两侧均未达成，属既有表现（与本轮更正无关），记录不处理。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds Chrome extensions with Manifest V3, service workers and content scripts.`  
+新：`Builds Chrome browser extensions with Manifest V3, service workers and content scripts. Use when editing manifest.json, wxt.config.ts, a service worker or content script, when a chrome.* call or message fails silently, when state is lost after the worker stops, or when submitting to the Chrome Web Store.`（首句 87 字符，全长 305 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

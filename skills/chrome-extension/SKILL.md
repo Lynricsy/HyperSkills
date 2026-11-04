@@ -1,10 +1,10 @@
 ---
 name: chrome-extension
-description: "Builds Chrome extensions with Manifest V3, service workers and content scripts."
+description: "Builds Chrome browser extensions with Manifest V3, service workers and content scripts. Use when editing manifest.json, wxt.config.ts, a service worker or content script, when a chrome.* call or message fails silently, when state is lost after the worker stops, or when submitting to the Chrome Web Store."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
