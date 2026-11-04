@@ -1,10 +1,10 @@
 ---
 name: frontend-design
-description: "Designs and audits web interfaces for visual quality, usability and accessibility."
+description: "Designs and audits web interfaces for visual quality, usability and accessibility. Use when picking a palette, type scale or spacing, when a UI looks generic or AI-generated, when reviewing UI code for WCAG 2.2, focus or form issues, or when checking Core Web Vitals or CSS Baseline support, in any framework."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

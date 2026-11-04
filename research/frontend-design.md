@@ -821,3 +821,11 @@ KPI $1.24M 与表格合计 $1,198,400 不一致、每个 KPI 下一句解释）�
 | 18（新增，CJK 强调斜体） | gpt-6.1-sol medium | 无 | False | 1✔ 2✔ 3✔ 4✔ | 23.7 s。「Inter 不覆盖这些汉字，加载 Inter Italic 也不会给『清清楚楚』配上中文斜体，浏览器会合成倾斜」；`h1` 降到 400、`em` 设 `font-style: normal; font-weight: 700`；说明标题须保持 700 时品牌规范需另定强调方式；未改色/换族。未提 `text-emphasis` 着重号（EB3 的两种做法之一已满足） |
 
 结论：基线已会，正文不改，无需 D2；场景 18 留作哨兵。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs and audits web interfaces for visual quality, usability and accessibility.`  
+新：`Designs and audits web interfaces for visual quality, usability and accessibility. Use when picking a palette, type scale or spacing, when a UI looks generic or AI-generated, when reviewing UI code for WCAG 2.2, focus or form issues, or when checking Core Web Vitals or CSS Baseline support, in any framework.`（首句 82 字符，全长 309 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
