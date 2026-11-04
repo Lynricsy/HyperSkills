@@ -520,3 +520,11 @@ octocat 的 GHSA 两份规则与锁文件更正合成新增场景 7（`evals/fil
 ## 2026-11-01 关闭关键字与 trailer 核对
 
 主代理转来 git-workflow 组的实测结论（git 2.56.0：`git interpret-trailers --parse` 只认 `Token: value`，`Fixes #412` 解析为空）。核对本 skill 全部正文：`references/pull-requests.md`「Linking an issue」写的是关键字「放在 PR 描述或提交信息里」，`SKILL.md` 第 12 条与 PR 描述模板末行的 `Closes #412` 都是 PR 正文用法，全文没有把关闭关键字称作 trailer 的表述（`grep -i trailer` 无命中）。GitHub 的关闭关键字在描述/提交信息任意位置生效、也允许关键字后跟冒号，与 trailer 解析无关——现有写法正确，不改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Manages GitHub pull requests, issues, Actions workflows, releases and repository settings.`  
+新：`Manages GitHub pull requests, issues, Actions workflows, releases and repository settings. Use when the task touches .github/workflows, a failing or slow CI run, gh pr, gh issue, gh run or gh api, replying to review threads, branch protection, rulesets, CODEOWNERS or Dependabot, including just opening a PR with gh pr create.`（首句 90 字符，全长 326 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

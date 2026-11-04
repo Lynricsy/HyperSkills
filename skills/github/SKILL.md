@@ -1,10 +1,10 @@
 ---
 name: github
-description: "Manages GitHub pull requests, issues, Actions workflows, releases and repository settings."
+description: "Manages GitHub pull requests, issues, Actions workflows, releases and repository settings. Use when the task touches .github/workflows, a failing or slow CI run, gh pr, gh issue, gh run or gh api, replying to review threads, branch protection, rulesets, CODEOWNERS or Dependabot, including just opening a PR with gh pr create."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
