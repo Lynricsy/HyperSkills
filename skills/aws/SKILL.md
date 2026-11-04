@@ -1,10 +1,10 @@
 ---
 name: aws
-description: "Manages AWS architecture, IAM, cloud services, deployments and costs."
+description: "Designs and operates AWS architecture, IAM, Lambda, CloudFormation and CDK stacks, and costs. Use when reviewing an IAM or trust policy, a SAM or CloudFormation template or CDK app, diagnosing AccessDenied, an API Gateway 504, a stuck stack or a cost spike, or choosing between Lambda, ECS, SQS, EventBridge or other AWS services."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

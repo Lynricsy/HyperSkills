@@ -558,3 +558,11 @@ fail-closed，在 Deny 中 fail-open；否定运算符的 Deny 须另加 `"Null"
 
 结论：本轮更正在有 skill 时**未体现**（EB4 两侧都 ✘）——模型把「TagResource 请求总带标签」当作不需要缺键保护的理由；规则只在 `references/iam.md`，
 未进 `SKILL.md` Core rules，是否提炼到 Core rule 5 留给主人决定。负例误读为既有路由问题（建议按 `docs/workflow.md`「本地 description 维护」单独处理）。各场景只跑 1 次。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Manages AWS architecture, IAM, cloud services, deployments and costs.`  
+新：`Designs and operates AWS architecture, IAM, Lambda, CloudFormation and CDK stacks, and costs. Use when reviewing an IAM or trust policy, a SAM or CloudFormation template or CDK app, diagnosing AccessDenied, an API Gateway 504, a stuck stack or a cost spike, or choosing between Lambda, ECS, SQS, EventBridge or other AWS services.`（首句 93 字符，全长 330 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。
