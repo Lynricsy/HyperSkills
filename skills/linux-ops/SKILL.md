@@ -1,10 +1,10 @@
 ---
 name: linux-ops
-description: "Operates Linux hosts with systemd, permissions, networking, storage and backup recovery."
+description: "Operates Linux servers: systemd services, permissions, disks, networking, firewalls and restores. Use when a service works in a shell but fails under systemd, a disk stays full after deleting files, DNS, TLS or firewall rules misbehave on a VPS or bare-metal host, SSH access is at risk during a network change, or a backup restore must be proven."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
