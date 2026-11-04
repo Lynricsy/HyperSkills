@@ -1,10 +1,10 @@
 ---
 name: gcp
-description: "Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services."
+description: "Manages Google Cloud architecture, IAM, gcloud, Cloud Run, GKE clusters and managed services. Use when writing or reviewing gcloud commands, auditing project IAM or service accounts, setting up Workload Identity Federation, deploying or debugging Cloud Run, creating a GKE cluster, or explaining a Google Cloud bill."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

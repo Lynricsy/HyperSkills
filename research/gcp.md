@@ -601,3 +601,11 @@ SOURCES：`google-skills` 增加 path `skills/cloud/cloud-trace-querying` 并补
 
 结论：两处 billing export 更正与 spend cap 更正在有 skill 时全部按新事实作答，无回退；场景 6 有 skill（4✔2◐）优于基线（3✔2◐1✘），差在权限名与 credits/毛估算，
 正是本次补的内容。场景 11 基线也满分——模型联网即可查到 billing export 的 schema 与回填规则，该场景只作回归哨兵。负例 skill_read 为 false。正文无需再改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services.`  
+新：`Manages Google Cloud architecture, IAM, gcloud, Cloud Run, GKE clusters and managed services. Use when writing or reviewing gcloud commands, auditing project IAM or service accounts, setting up Workload Identity Federation, deploying or debugging Cloud Run, creating a GKE cluster, or explaining a Google Cloud bill.`（首句 93 字符，全长 316 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
