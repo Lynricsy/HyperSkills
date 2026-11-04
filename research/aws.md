@@ -566,3 +566,15 @@ fail-closed，在 Deny 中 fail-open；否定运算符的 Deny 须另加 `"Null"
 
 依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
 路由对照：本 skill 在抽样内，结果见下节。
+
+### 抽样路由对照（2026-11-04）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（镜像内 omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，每个场景旧、新描述各跑 1 次，只看 `skill_read`，不评答案。旧描述取改写前快照 `/tmp/hs-desc-20261104/old-skills`，产物在 `/tmp/hs-desc-20261104/{old,new}`。VM 无 Anthropic 凭据，未能用 Claude 测。VM 每次都是新会话，omp 只渲染约 100 字符的预览（按 2026-10-15 记录，18.8.7 在词边界截断），模型看到的是新描述的首句和 `Use when` 开头的几个词，`Use when` 层整体没有被测到 `[INFERENCE：事件流不含系统提示，依据 omp 源码与既有记录]`。
+
+| 场景 | 类型 | 内容 | 旧描述 | 新描述 |
+|---|---|---|---|---|
+| 1 | 正例 | Review deployer-policy.json before I attach it in production. It is th… | 读取 | 读取 |
+| 2 | 正例 | orders-api-template.yaml is our SAM template. Load tests pass but in p… | 读取 | 读取 |
+| 5 | 负例 | platform-network.tf 里我把三个子网从 count 改成 for_each 之后，plan 要销毁重建全部 6 个子网。怎… | 读取 | 读取 |
+
+结论：正例读取 2/2 → 2/2；负例误读 1/1 → 1/1。每格只跑 1 次，只能说明没有明显回退，不能证明新写法更好。
