@@ -505,3 +505,11 @@ OpenTelemetry configuration fails」——`_runtime.lifespan` 把 `_configure_fr
 | 4 负例（uv + ruff 迁移） | gpt-6.1-sol medium | 有（挂载） | false | — | 123 s。纯打包与 CI 建议，答案未出现 FastAPI 内容 |
 
 结论：三处更正在有 skill 时全部按更正后的版本门作答（5/5），不比基线差；基线联网读发布说明同样答对，场景 7 兼作哨兵。负例 `skill_read == false`。正文无需再改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling.`  
+新：`Guides Python FastAPI services with Pydantic v2, dependency injection and async handlers. Use when writing, reviewing or upgrading FastAPI routes, dependencies or response models, an endpoint stalls under concurrent load, a response leaks or drops fields, or tests still hit real databases.`（首句 89 字符，全长 290 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

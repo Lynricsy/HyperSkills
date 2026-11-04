@@ -1,10 +1,10 @@
 ---
 name: fastapi
-description: "Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling."
+description: "Guides Python FastAPI services with Pydantic v2, dependency injection and async handlers. Use when writing, reviewing or upgrading FastAPI routes, dependencies or response models, an endpoint stalls under concurrent load, a response leaks or drops fields, or tests still hit real databases."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
