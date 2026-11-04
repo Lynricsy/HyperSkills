@@ -1,10 +1,10 @@
 ---
 name: apple
-description: "Develops Apple platform apps with Swift, SwiftUI and UIKit."
+description: "Develops Apple platform apps in Swift with SwiftUI and UIKit for iOS and macOS. Use when editing Swift or Xcode project files for iOS, macOS, watchOS or visionOS, when a build fails on Swift 6 concurrency or availability errors, when a view hangs or redraws too often, or when adopting SwiftData, Swift Testing or Liquid Glass."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

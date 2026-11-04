@@ -489,3 +489,11 @@ D2 判定：基线未达成的 场景 8 E3/E4、场景 10 E2 在有 skill 时达
 结论：三处更正在有 skill 时按新正文落地，无回退——场景 12 的 27.0/27.2 报警分档与 `try` 均正确；场景 5 仍是有 skill 独有地用上
 `ArrangementView`（27.1 门槛正确）。场景 12 期望 2 的 ◐ 来自既有的「修 bug 时不顺手迁移」行为规则而非今天的改动，规则与期望的
 张力留待下次调期望时决定（改期望需两侧重跑）。负例 `skill_read == false`。各场景 1 次运行。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Apple platform apps with Swift, SwiftUI and UIKit.`  
+新：`Develops Apple platform apps in Swift with SwiftUI and UIKit for iOS and macOS. Use when editing Swift or Xcode project files for iOS, macOS, watchOS or visionOS, when a build fails on Swift 6 concurrency or availability errors, when a view hangs or redraws too often, or when adopting SwiftData, Swift Testing or Liquid Glass.`（首句 79 字符，全长 327 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。
