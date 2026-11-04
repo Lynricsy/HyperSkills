@@ -389,3 +389,11 @@ attempts」，不能解释该提示的事务管理器会静默忽略它；`Hiber
 | github/awesome-copilot `skills/java-diagnostics`（`SKILL.md` + 8 个 references） | REJECT（不扩 paths）；Scope 问题上交 | JVM 运行时诊断（jcmd/jstack/jmap 分级、JFR、async-profiler、NMT、GC 日志、MAT、堆转储含密钥）。与本 skill 的交集只有 Actuator `heapdump`/`threaddump` 不得公开暴露，已在 SKILL.md 规则与 `references/observability.md` 覆盖；其余是 JVM 层而非 Spring 层，同上属扩 Scope |
 
 正文无改动，无需 D2。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Java services with Spring Boot, Spring Security and Spring Data JPA.`  
+新：`Guides Java and Kotlin Spring Boot services: web, Spring Data JPA, Security and builds. Use when editing pom.xml, build.gradle.kts, application.yml, an @Entity, a SecurityFilterChain or a @SpringBootTest, a JPA query goes N+1 or @Transactional silently does nothing, or upgrading to Spring Boot 4 or Java 25.`（首句 87 字符，全长 308 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

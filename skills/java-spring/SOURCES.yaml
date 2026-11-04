@@ -1,7 +1,7 @@
 # Upstream provenance for this skill. Schema: docs/skill-standard.md section 7.
 # `commit` is filled automatically by: uv run tools/check_upstream.py --pin java-spring
 skill: java-spring
-version: "2026.11.01"
+version: "2026.11.04"
 upstreams:
   - id: rrezart-spring-boot
     kind: repo

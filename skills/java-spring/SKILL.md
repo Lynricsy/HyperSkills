@@ -1,10 +1,10 @@
 ---
 name: java-spring
-description: "Develops Java services with Spring Boot, Spring Security and Spring Data JPA."
+description: "Guides Java and Kotlin Spring Boot services: web, Spring Data JPA, Security and builds. Use when editing pom.xml, build.gradle.kts, application.yml, an @Entity, a SecurityFilterChain or a @SpringBootTest, a JPA query goes N+1 or @Transactional silently does nothing, or upgrading to Spring Boot 4 or Java 25."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
