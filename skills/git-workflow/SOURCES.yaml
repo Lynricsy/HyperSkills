@@ -1,5 +1,5 @@
 skill: git-workflow
-version: "2026.11.01"
+version: "2026.11.04"
 upstreams:
   - id: obra-worktrees
     kind: repo

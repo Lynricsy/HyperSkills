@@ -597,3 +597,11 @@ mattpocock-guardrails、fvadicamo-commit）区间内跟踪路径无提交，随 
 | 5 负例（PR 的 CI 失败） | gpt-6.1-sol medium | 有（r2） | **True** | EB1 ✘ EB2 ✔ EB3 ✔ | 42 s。同样读了 skill（也尝试 `skill://github`），回答为「要 PR URL、`gh auth login`，查失败 check 日志、不绕过必需检查后再合并」 |
 
 结论：两处更正在有 skill 运行中被采用，无回归（场景 7 基线本已会写冒号 trailer 与带点分支名，属不要求制造缺口的回归场景）。负例 2/2 误读 skill：本轮 `description` 未改（`7935f71` 的 SKILL.md diff 只有 `metadata.version`），属既有路由问题，如实记录、本轮不改 description；误读后行为仍按 GitHub PR/Actions 处理，未输出本地 git 机制内容。遗留：负例路由需走「本地 description 维护」流程。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Manages local Git branches, worktrees, commits, merges, conflicts and history recovery.`  
+新：`Manages local Git branches, worktrees, commits, merges, conflicts and history recovery. Use when a push is rejected, conflict markers or unmerged paths appear, a rebase or force-push is being considered, a commit or stash went missing, a branch needs tidying before review, or several agents need worktrees in one repository, including a routine rebase.`（首句 87 字符，全长 353 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。

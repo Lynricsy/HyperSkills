@@ -1,10 +1,10 @@
 ---
 name: git-workflow
-description: "Manages local Git branches, worktrees, commits, merges, conflicts and history recovery."
+description: "Manages local Git branches, worktrees, commits, merges, conflicts and history recovery. Use when a push is rejected, conflict markers or unmerged paths appear, a rebase or force-push is being considered, a commit or stash went missing, a branch needs tidying before review, or several agents need worktrees in one repository, including a routine rebase."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
