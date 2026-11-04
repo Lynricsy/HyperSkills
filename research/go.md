@@ -494,3 +494,11 @@ client / transport / handler 路径，手写 `RoundTripper` 会跳过），只�
 | 4（负例，重跑） | gpt-6.1-sol medium | 有（挂载） | False | — | 28 s，按 Python 作答 |
 
 结论：`cmp.Or` 更正在有 skill 时补上基线缺口（EB2、EB3 ◐ → ✔）；负例在提交后仍未误读。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Go code with goroutines, modules, testing and performance profiling.`  
+新：`Guides Go development: idioms, goroutines, modules, go test and pprof profiling. Use when writing, reviewing or modernising .go code or go.mod, a goroutine leaks, a data race or flaky test appears, context cancellation does not propagate, or allocations dominate a profile.`（首句 80 字符，全长 273 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

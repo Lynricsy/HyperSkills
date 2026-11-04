@@ -1,10 +1,10 @@
 ---
 name: go
-description: "Develops Go code with goroutines, modules, testing and performance profiling."
+description: "Guides Go development: idioms, goroutines, modules, go test and pprof profiling. Use when writing, reviewing or modernising .go code or go.mod, a goroutine leaks, a data race or flaky test appears, context cancellation does not propagate, or allocations dominate a profile."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
