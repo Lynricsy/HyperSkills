@@ -488,3 +488,11 @@ VoltAgent/awesome-agent-skills 2026-10-15 以来 README 新增行。指标用 `g
 本 skill 无 `kind: docs` 条目（speckit-docs 是 `kind: repo`，按 tracked paths 处理）。
 
 正文（`SKILL.md`/`references/`/`scripts/`）本轮除 `metadata.version` 外无改动，按规程不需要 D2 回归。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Turns requirements into executable plans with dependencies and verifiable acceptance criteria.`  
+新：`Turns vague software requests into executable plans with dependencies and acceptance criteria. Use when a request is too vague to start, work spans several subsystems or sessions, someone else will execute the plan, a draft plan needs review, or progress contradicts the plan, including deciding whether a plan document is needed at all.`（首句 94 字符，全长 337 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

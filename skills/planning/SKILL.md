@@ -1,10 +1,10 @@
 ---
 name: planning
-description: "Turns requirements into executable plans with dependencies and verifiable acceptance criteria."
+description: "Turns vague software requests into executable plans with dependencies and acceptance criteria. Use when a request is too vague to start, work spans several subsystems or sessions, someone else will execute the plan, a draft plan needs review, or progress contradicts the plan, including deciding whether a plan document is needed at all."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
