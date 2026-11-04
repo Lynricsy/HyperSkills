@@ -1,10 +1,10 @@
 ---
 name: solidity-web3
-description: "Develops and audits Solidity smart contracts with Foundry security testing."
+description: "Writes and audits Solidity EVM smart contracts defensively with Foundry and Slither. Use when editing .sol files or foundry.toml, reviewing a contract for reentrancy, oracle or access-control bugs, planning a UUPS or Transparent proxy upgrade, adding fuzz or invariant tests, or triaging Slither output."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

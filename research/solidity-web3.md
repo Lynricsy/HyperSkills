@@ -561,3 +561,11 @@ tob-secure-contracts / tob-property-testing（82fe822 → e1f86a3）、erc-7201�
 | 5（负例） | gpt-6.1-sol medium | 有 | **False** | 全部 ✔ | 80.1 s。按 React 组件问题修复，未读本 skill |
 
 结论：更正相关行为在有 skill 时全部达成，且比基线多出「当场前移 pin」这一步；负例 `skill_read == false`。正文无需再改。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops and audits Solidity smart contracts with Foundry security testing.`  
+新：`Writes and audits Solidity EVM smart contracts defensively with Foundry and Slither. Use when editing .sol files or foundry.toml, reviewing a contract for reentrancy, oracle or access-control bugs, planning a UUPS or Transparent proxy upgrade, adding fuzz or invariant tests, or triaging Slither output.`（首句 84 字符，全长 303 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
