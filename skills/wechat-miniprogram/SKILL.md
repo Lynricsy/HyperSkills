@@ -1,10 +1,10 @@
 ---
 name: wechat-miniprogram
-description: "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro."
+description: "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro. Use when editing .wxml, .wxss, .wxs, app.json, project.config.json or uni-app pages.json, when setData makes a mini program stutter, when a subpackage exceeds the size cap, or when a build or review submission fails."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

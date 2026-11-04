@@ -1,5 +1,5 @@
 skill: wechat-miniprogram
-version: "2026.11.01"
+version: "2026.11.04"
 upstreams:
   - id: wx-api-typings
     kind: repo
