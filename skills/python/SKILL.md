@@ -1,10 +1,10 @@
 ---
 name: python
-description: "Develops Python code with uv, pytest, typing, asyncio and packaging."
+description: "Guides the Python language and toolchain: uv, ruff, pyproject.toml, pytest, typing, asyncio. Use when writing, typing, testing or packaging Python code, editing pyproject.toml or uv.lock, or a test passes alone but fails in the full pytest run, including a one-off script that needs third-party packages."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

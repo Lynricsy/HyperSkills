@@ -554,3 +554,11 @@ N2 总分达 INCLUDE 线但具体性仅 1、无增量内容，按「增量价值
 | TerminalSkills/skills `skills/ty/SKILL.md`（Apache-2.0，188★，2026-10-30 推送；同仓已以 `terminalskills-uv` 追踪） | REJECT（不扩 paths） | `gh api repos/astral-sh/ty/releases` 最新 0.0.95（2026-10-29），README 仍写「currently in beta」「`0.0.x` versioning」，裁决 1（新项目默认 mypy/pyright，ty 作明确标注 beta 的逃生口）前提不变，`typing.md`「Which checker」现有表述仍准确。候选的增量是 ty 自身用法（`[tool.ty.rules]`、`# ty: ignore[rule]`、`--add-ignore` 基线、`--output-format github`、各编辑器接入），属单一工具手册；其「旧检查器与 ty 并行跑到诊断一致」与本 skill「CI 不跑两个检查器」冲突。ty 发布 1.0 时按「后续追踪」重审裁决 1 |
 
 正文无改动，无需 D2。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Python code with uv, pytest, typing, asyncio and packaging.`  
+新：`Guides the Python language and toolchain: uv, ruff, pyproject.toml, pytest, typing, asyncio. Use when writing, typing, testing or packaging Python code, editing pyproject.toml or uv.lock, or a test passes alone but fails in the full pytest run, including a one-off script that needs third-party packages.`（首句 92 字符，全长 304 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。
