@@ -426,3 +426,11 @@ jeffallan `078a25c`，均相等，无越界差额。
 | N1 | ericrisco/rsc-harness `skills/typescript` | https://github.com/ericrisco/rsc-harness | 416 | 2026-10-31（该文件最后改动 2026-07-29） | MIT | 类型工具箱 + tsconfig | 1 | 1 | 2 | 0 | 2 | 6 | REJECT（正确性） | 开篇写「Targets TypeScript 5.9 (current stable)」「stable 7.0 lands early 2026」，以 `@typescript/native-preview` 为 TS 7 入口；TS 7.0.2 已于 2026-08-20 发布、6.0 改了默认值，其 tsconfig 建议按 5.9 口径，按量表正确性 0 |
 | N2 | CharlesHoskinson/dancesWithClaws `.agents/skills/typescript-7` | https://github.com/CharlesHoskinson/dancesWithClaws | 38 | 2026-10-09 | NOASSERTION | 某 monorepo 的 tsgo 包装脚本用法 | 0 | 3 | 1 | — | 0 | — | REJECT（内容裁决） | 项目自用流程（`scripts/run-tsgo.mjs`、`pnpm tsgo:*`），TS 6/7 并存安排本 skill 已按官方发布说明覆盖 |
 | N3 | OutlineDriven/outline-driven-development `.devin/skills/typescript-best-practices` | https://github.com/OutlineDriven/outline-driven-development | 56 | 2026-09-28 | Apache-2.0 | 通用 TS 最佳实践 | 1 | 2 | — | — | 2 | — | REJECT（内容裁决） | 位于某开发方法论仓库的 agent 目录内，属通用汇编；与本 skill 规则 5–23 重叠，无版本化事实 |
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components.`  
+新：`Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components. Use when modelling a domain in types, replacing any or as casts, migrating tsconfig or module resolution, or publishing a package with declarations and exports, even for a TS type error inside a .tsx file.`（首句 97 字符，全长 303 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。

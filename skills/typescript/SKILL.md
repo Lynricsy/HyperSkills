@@ -1,10 +1,10 @@
 ---
 name: typescript
-description: "Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components."
+description: "Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components. Use when modelling a domain in types, replacing any or as casts, migrating tsconfig or module resolution, or publishing a package with declarations and exports, even for a TS type error inside a .tsx file."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
