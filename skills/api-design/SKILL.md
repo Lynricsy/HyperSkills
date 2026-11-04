@@ -1,10 +1,10 @@
 ---
 name: api-design
-description: "Designs REST API contracts, resource models, pagination and OpenAPI specifications."
+description: "Designs HTTP REST API contracts: resources, status codes, pagination, errors and OpenAPI. Use when shaping a new API surface, turning verb-style endpoints into resources, choosing pagination or versioning, standardising error bodies, writing an openapi.yaml, or judging whether a change breaks existing clients."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
