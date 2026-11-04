@@ -1,10 +1,10 @@
 ---
 name: mcp-server
-description: "Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'."
+description: "Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'. Use when writing or reviewing an MCP server with FastMCP or an official SDK, naming tools and writing their schemas and errors, choosing stdio or Streamable HTTP, adding OAuth, migrating to the 2026-07-28 spec revision, or publishing the client config block for your server."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

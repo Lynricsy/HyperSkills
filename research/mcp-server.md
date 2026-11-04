@@ -758,3 +758,11 @@ microsoft-mcp-builder 报告为 too large，裸仓库 `git log 3495f50..d2f769f 
 | 5 负例（第三方 GitHub MCP server 连不上） | gpt-6.1-sol medium | 有（挂载） | **false** | — | 41 s。按用户侧排障作答（索要编辑器、配置块与日志，给出 GitHub 远程 HTTP 配置），未加载 skill |
 
 结论：改动相关行为在有 skill 时达成且不差于基线；场景 2 EB4 仍只有有 skill 一侧完整达成，今天的入口限定被模型直接引用；场景 12 两侧持平（哨兵）；负例 `skill_read == false`（2026-10-15 description 维护后首次在 D2 中通过）。各场景只跑 1 次。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'.`  
+新：`Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'. Use when writing or reviewing an MCP server with FastMCP or an official SDK, naming tools and writing their schemas and errors, choosing stdio or Streamable HTTP, adding OAuth, migrating to the 2026-07-28 spec revision, or publishing the client config block for your server.`（首句 98 字符，全长 373 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
