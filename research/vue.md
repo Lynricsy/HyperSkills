@@ -271,3 +271,11 @@ components.md 拆分阈值改为 review 信号、Environment 的 Node 版本无�
 | 6（新增） | gpt-6.1-sol medium | 有 | True | EB1–EB3 ✔ | 57 s。同上，逐行标 blocking |
 
 结论：基线已会，场景 6 留作哨兵；有 skill 无回退。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Vue and Nuxt applications with Composition API, Pinia and routing.`  
+新：`Develops Vue 3 and Nuxt web applications with the Composition API, Pinia and Vue Router. Use when editing .vue files, composables, Pinia stores, router guards or Nuxt pages, or when a value changes but the UI does not, including reactivity lost by destructuring props.`（首句 88 字符，全长 268 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

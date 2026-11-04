@@ -1,10 +1,10 @@
 ---
 name: vue
-description: "Develops Vue and Nuxt applications with Composition API, Pinia and routing."
+description: "Develops Vue 3 and Nuxt web applications with the Composition API, Pinia and Vue Router. Use when editing .vue files, composables, Pinia stores, router guards or Nuxt pages, or when a value changes but the UI does not, including reactivity lost by destructuring props."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
