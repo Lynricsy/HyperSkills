@@ -521,3 +521,11 @@ Learn 文档读源仓库（`gh api 'repos/dotnet/docs/commits?path=<file>&since=
 | managedcode/dotnet-skills `catalog/Libraries/MCP/skills/mcp`（MIT，500★，2026-10-29 推送；`SKILL.md` + `references/patterns.md`、`security.md`） | REJECT（本 skill）；Scope 问题上交 | 内容几乎全是 MCP C# SDK（`ModelContextProtocol*` 三个包的选择、stdio/Streamable HTTP 传输、v2.0–2.2 的无状态默认与 `server/discover` 协商、Tasks 扩展包、企业授权）——是 MCP 协议面在一个 NuGet 库上的表达，不是 C# 语言、SDK 构建或 ASP.NET Core 本身的规则；本 skill Scope 收框架级内容，不收单一第三方库手册（同 python 对单库手册的处理）。唯一的语言面条目「.NET 下 stdio 服务器把日志阈值设到 stderr」已在 `mcp-server` 的 `references/transports.md` 覆盖。另：`mcp-server` 2026-11-01 以「C# SDK API 属宿主语言」拒收同一文件，两边都不收 → C# MCP SDK API 目前无 skill 覆盖，写入汇报请主人决定归属；本机无 .NET 工具链，即便归属确定也需实测后才能写 SDK 事实 |
 
 正文无改动，无需 D2。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework.`  
+新：`Guides C# and .NET apps: ASP.NET Core, Blazor, .NET MAUI, EF Core, MSBuild and NuGet. Use when writing, building, testing or upgrading .cs, .csproj, .razor, Directory.Build.props or .targets files, a DI lifetime bug or thread-pool starvation appears, or a project retargets a newer .NET.`（首句 85 字符，全长 287 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

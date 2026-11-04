@@ -1,10 +1,10 @@
 ---
 name: csharp-dotnet
-description: "Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework."
+description: "Guides C# and .NET apps: ASP.NET Core, Blazor, .NET MAUI, EF Core, MSBuild and NuGet. Use when writing, building, testing or upgrading .cs, .csproj, .razor, Directory.Build.props or .targets files, a DI lifetime bug or thread-pool starvation appears, or a project retargets a newer .NET."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
