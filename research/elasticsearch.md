@@ -457,3 +457,11 @@ marker、HTTP API 遇到多余 Prometheus 参数返回 400、`/api/v1/query_exem
 | 5 负例（OTel 告警反查代码） | gpt-6.1-sol medium | 有（挂载） | false | — | 79.5 s |
 
 结论：更正后有 skill 4/4，不比基线差（基线 4/4）；场景 7 留作哨兵；负例未误读。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs and tunes Elasticsearch mappings, queries, search relevance and indexes.`  
+新：`Designs and tunes Elasticsearch mappings, analyzers, Query DSL, ES|QL, relevance and indexes. Use when designing or reviewing a mapping or index template, a term query returns nothing, an aggregation fails on a text field, results rank badly, the cluster is yellow or red, or adding vector or hybrid search, including mapping an index of logs.`（首句 93 字符，全长 343 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

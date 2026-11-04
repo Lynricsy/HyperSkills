@@ -1,10 +1,10 @@
 ---
 name: elasticsearch
-description: "Designs and tunes Elasticsearch mappings, queries, search relevance and indexes."
+description: "Designs and tunes Elasticsearch mappings, analyzers, Query DSL, ES|QL, relevance and indexes. Use when designing or reviewing a mapping or index template, a term query returns nothing, an aggregation fails on a text field, results rank badly, the cluster is yellow or red, or adding vector or hybrid search, including mapping an index of logs."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
