@@ -1,10 +1,10 @@
 ---
 name: tauri
-description: "Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging."
+description: "Builds Tauri v2 desktop apps with Rust IPC, capabilities, plugins and packaging. Use when editing src-tauri, tauri.conf.json, capabilities/*.json or invoke() calls, when a command or plugin call is denied at runtime, when bundling, signing or the updater breaks, or when upgrading from Tauri 1."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
