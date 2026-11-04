@@ -556,3 +556,11 @@ SOURCES：两个 docs 条目 `synced_at` 改为 2026-10-15，supabase-docs 的 `
 
 结论：场景 3 两侧满分、场景 6 有 skill 在 EB1 上仍多半条，与首轮判定一致，无回退。场景 8 基线已会默认授权与全局 `PUBLIC EXECUTE` 两处事实，留作哨兵；
 有 skill 一侧多覆盖了序列默认授权。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions.`  
+新：`Builds Supabase apps with Auth, RLS policies, Storage, Realtime, Edge Functions and the CLI. Use when code uses supabase-js or @supabase/ssr, a policy using auth.uid() returns no rows through the client, a session never reaches the server, an Edge Function returns 401 or fails CORS preflight, or supabase db diff or db push misbehaves.`（首句 92 字符，全长 336 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

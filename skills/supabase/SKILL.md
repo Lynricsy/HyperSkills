@@ -1,10 +1,10 @@
 ---
 name: supabase
-description: "Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions."
+description: "Builds Supabase apps with Auth, RLS policies, Storage, Realtime, Edge Functions and the CLI. Use when code uses supabase-js or @supabase/ssr, a policy using auth.uid() returns no rows through the client, a session never reaches the server, an Edge Function returns 401 or fails CORS preflight, or supabase db diff or db push misbehaves."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
