@@ -1,10 +1,10 @@
 ---
 name: web-testing
-description: "Tests web applications in real browsers with Playwright end-to-end automation."
+description: "Tests web applications in real browsers with Playwright end-to-end automation. Use when writing *.spec.ts files, playwright.config.ts or an e2e CI job, when a browser test is flaky or times out, when reusing login state or mocking the network, or when choosing component versus end-to-end tests."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
