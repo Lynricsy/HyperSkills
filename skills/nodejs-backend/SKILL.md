@@ -1,10 +1,10 @@
 ---
 name: nodejs-backend
-description: "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express."
+description: "Guides Node.js backend services built on Fastify, NestJS, Hono or Express. Use when writing, reviewing or hardening a Node.js HTTP service or moving one off Express, or a service leaks stack traces, drops in-flight requests on deploy, logs the wrong user, or blocks the event loop."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

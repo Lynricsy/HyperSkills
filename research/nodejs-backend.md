@@ -381,3 +381,11 @@ SOURCES：五个 docs 条目 `synced_at` 改为 2026-11-01；nodejs-docs `notes`
 | 4（负例） | gpt-6.1-sol medium | 有 | **False** | EB1 ✔ EB2 ✔ EB3 ✔ | 22 s。按 Next.js Server Action 回答 `revalidatePath('/products')`，无 Node 框架建议 |
 
 结论：更正后的基线声明在有 skill 时被正确采用，无回退；基线能联网查到同样结论，不构成新增正文的缺口，场景 6 留作哨兵。负例 `skill_read == false`。正文无需修正。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds Node.js HTTP services with Fastify, NestJS, Hono or Express.`  
+新：`Guides Node.js backend services built on Fastify, NestJS, Hono or Express. Use when writing, reviewing or hardening a Node.js HTTP service or moving one off Express, or a service leaks stack traces, drops in-flight requests on deploy, logs the wrong user, or blocks the event loop.`（首句 74 字符，全长 281 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
