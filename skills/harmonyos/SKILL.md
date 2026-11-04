@@ -1,10 +1,10 @@
 ---
 name: harmonyos
-description: "Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling."
+description: "Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling. Use when editing .ets, module.json5, build-profile.json5 or oh-package.json5, when DevEco reports arkts-* errors on valid TypeScript, when choosing V1 or V2 state decorators, or when porting an Android app to HarmonyOS (鸿蒙)."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

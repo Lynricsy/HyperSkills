@@ -610,3 +610,11 @@ Stars / 推送 / 许可为 2026-11-01 `gh api repos/<o>/<r>` 值；聚合注册�
 - **NDK / Node-API 范围**：dengshiying-harmonyos 新增 `references/ndk-napi.md`（`napi_env`/`napi_value`/`napi_ref` 绑定所属 ArkTS 线程、
   `napi_async_work` 的 execute/complete 分工与取消语义、TSFN 有界队列与 `napi_queue_full`、环境清理钩子、libuv 禁区），
   earfrog-arkts 也已提供 Native 工作流路由。本 skill `## Scope` 未列 Native/NDK 开发，是否扩 Scope 由主人决定；若扩，按 Phase B 先跑基线。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling.`  
+新：`Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling. Use when editing .ets, module.json5, build-profile.json5 or oh-package.json5, when DevEco reports arkts-* errors on valid TypeScript, when choosing V1 or V2 state decorators, or when porting an Android app to HarmonyOS (鸿蒙).`（首句 66 字符，全长 291 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
