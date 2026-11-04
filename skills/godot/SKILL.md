@@ -1,10 +1,10 @@
 ---
 name: godot
-description: "Develops Godot games with GDScript, scenes, nodes and engine APIs."
+description: "Guides Godot 4 game development in GDScript: scenes, nodes, signals and export builds. Use when editing .gd scripts or Godot C# bindings, .tscn, .tres, project.godot or export_presets.cfg, running godot --headless, or debugging freed-node errors, a Resource shared across instances or RPC mismatches, including porting a Godot 3 project."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

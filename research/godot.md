@@ -818,3 +818,11 @@ awesome-gamedev-godot、godot-prompter、gd-agentic-skills 均用已登录 `gh a
 | 5（Unity 负例） | openai/gpt-6.1-sol medium | 有 | False | 负例：未读 skill | 路由正确 |
 
 结论：两条新回归场景有 skill 全部达成，更正后的文本未引入错误；场景 4 有 skill 仍优于基线（6/7 对 4/7）；负例未误读。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Godot games with GDScript, scenes, nodes and engine APIs.`  
+新：`Guides Godot 4 game development in GDScript: scenes, nodes, signals and export builds. Use when editing .gd scripts or Godot C# bindings, .tscn, .tres, project.godot or export_presets.cfg, running godot --headless, or debugging freed-node errors, a Resource shared across instances or RPC mismatches, including porting a Godot 3 project.`（首句 86 字符，全长 337 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
