@@ -633,3 +633,70 @@ hyperskills-self 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 patch；me
 
 结论：更正后的正文有 skill 时被正确使用，无回退；基线可联网读到同样的新页，两侧持平，这次更正属于消除正文里已不成立的陈述。
 压缩回挂事实基线已会，维持不入正文的裁决。负例 `skill_read == false`。各场景只计 1 次有效结果。
+
+## 2026-11-04 description 规范改为两层写法
+
+- **A — 裁决**：仓库标准 `docs/skill-standard.md` 1.1 / 1.1.1 将 description 从「单句路由、1–160 字符、通常 8–16 词、不写 `Use when`」改为两层：
+  首句 40–99 字符、自足地写做什么 + 领域 + 关键技术名，随后 `Use when` 写 3–6 个具体触发场景；全长 ≤400 字符（规范上限 1024 仍只是格式上限）；
+  可选 `including …` 点名容易被跳过的具体情形；`Not for …` 只用于路由评测实测过的近似误触发；禁止大写强调词。
+  本 skill 是编写规范的教学方，2026-09-12「本地 description 收敛」一节的单句裁决随之失效，本节取代它。
+- **B — 依据**（均于 2026-11-04 核对原文）：
+  - omp 18.16.0：`packages/coding-agent/src/extensibility/skill-descriptions.ts`（can1357/oh-my-pi @ `fa0469c`，MIT，`package.json` 版本 18.16.0）。
+    `MAX_PREVIEW_CHARS = 100`、`MIN_PREVIEW_CUT = 40`：折叠空白后 ≤100 字符原样显示；更长时取前 99 字符内的首句（`/^.*?[.!?](?=\s|$)/`，≥40 字符），
+    否则按词截断加省略号；之后 smol 模型按 `prompts/skills/compress-description.md`（≤12 词「何时用」提示）压缩，`MAX_COMPRESSED_CHARS = 160`，
+    结果按 prompt + name + description 的哈希缓存在 `skill-descriptions.db`，后续会话用提示替代原文。https://github.com/can1357/oh-my-pi/blob/fa0469c00300ef7c1b9394141834bdab4ea2d9c8/packages/coding-agent/src/extensibility/skill-descriptions.ts
+  - anthropics/skills `skill-creator` @ `ca45fc4`：Claude 倾向欠触发，description 宜「a little bit pushy」；简单一步任务即使描述完美也可能不查 skill。https://github.com/anthropics/skills/blob/ca45fc496a3436251f191354091d557da31c15b5/skills/skill-creator/SKILL.md
+  - Anthropic《Claude prompting best practices》：Opus 4.5/4.6 对系统提示更敏感，为减轻欠触发写的 `CRITICAL: You MUST use this tool when…` 会导致过度触发，改成 `Use this tool when…`。
+    https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+  - Scott Spence 沙箱实测（Claude Code，Sonnet 4.5，22 条提示 × 2 轮）：激活即选对，无激活错选；无 hook 基线 55% / 50%，
+    `UserPromptSubmit` 强制评估 hook 两轮 22/22；较难集（含不需 skill 的提示）总体 75%（18/24），无误报。结论是「激活」而非「选择」失败，
+    靠宿主或上下文文件规则强制检查 skill，而不是往 description 堆语气。博客无许可，`relation: reference`，只引事实。
+    https://scottspence.com/posts/measuring-claude-code-skill-activation-with-sandboxed-evals
+  - obra/superpowers `writing-skills`（已有来源）：description 概括流程会让 agent 照描述做而不读正文。
+  - Claude Code 每条 1,536 字符与整表 1% 预算、Codex 2% 预算：沿用既有来源，未改动。
+- **C — 本地修改**：
+  - `SKILL.md`：自身 description 改为两层（首句 69 字符，全长 268 字符；未加 `Not for`，按 Main 2026-11-04 更正只保留已实测的排除）；
+    Core rules 3–5 改写；optimize-description 工作流首步改写，并新增「先区分激活与选择」一步；review 清单与 Output format 示例改为两层；Topic router 一行更新。
+  - `references/description-optimization.md`：重写「Two layers」「Why the first sentence must stand alone」（新增）「Voice, length and ordering」
+    「Adjacent scopes」「Undertriggering」（含激活 / 选择对照表）「Worked before and after」及 Contents；Running the loop 第 3 步改为首句自足 + 仓库上限。
+  - `references/spec-reference.md` description 节与 pdf-processing 示例；`references/evaluation.md` 发布前清单；`references/worked-examples.md` 共性清单；
+    `references/client-extensions-and-paths.md` 列表预算表新增 omp 行。
+  - `evals/evals.json` 场景 1–3 的 description 期望由「单句 ≤160 字符」改为两层形态（自足首句 + `Use when` 具体触发，≤400 字符）；其余期望与场景不变。
+  - `SOURCES.yaml`：新增 `claude-prompting-best-practices`（docs，merged）、`scottspence-skill-activation`（docs，reference，许可 NONE）、
+    `oh-my-pi-skill-descriptions`（repo，MIT，pin `fa0469c`）。未用 `tools/check_upstream.py --pin`：该命令按 id 把本 skill 所有 repo 条目的 commit 与 synced_at
+    一并改到当前 HEAD，会改动未复核的既有 pin，故 commit 取自 `gh api repos/can1357/oh-my-pi/commits/HEAD`。
+- **D — 未做**：本轮未跑 D2 回归评测；场景 1–3 新期望的有 / 无 skill 结果待 Main 统一评测后补记。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Authors, reviews and evaluates Agent Skills and their SKILL.md files.`  
+新：`Authors, reviews and evaluates Agent Skills and their SKILL.md files. Use when creating or rewriting a skill, fixing a skill description that never triggers, splitting an overgrown SKILL.md into references/, writing evals for a skill, or publishing a skill repository.`（首句 69 字符，全长 268 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 在抽样内，结果见下节。
+
+### 抽样路由对照（2026-11-04）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（镜像内 omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，每个场景旧、新描述各跑 1 次，只看 `skill_read`，不评答案。旧描述取改写前快照 `/tmp/hs-desc-20261104/old-skills`，产物在 `/tmp/hs-desc-20261104/{old,new}`。VM 无 Anthropic 凭据，未能用 Claude 测。VM 每次都是新会话，omp 只渲染约 100 字符的预览（按 2026-10-15 记录，18.8.7 在词边界截断），模型看到的是新描述的首句和 `Use when` 开头的几个词，`Use when` 层整体没有被测到 `[INFERENCE：事件流不含系统提示，依据 omp 源码与既有记录]`。
+
+| 场景 | 类型 | 内容 | 旧描述 | 新描述 |
+|---|---|---|---|---|
+| 1 | 正例 | Review widget-builder-SKILL.md in this folder — it is the SKILL.md of … | 读取 | 读取 |
+| 2 | 正例 | Every session we re-explain our internal GraphQL gateway rules to the … | 读取 | 读取 |
+| 3 | 正例 | Our release-notes skill has the description 'Helps with release notes.… | — | 读取 |
+| 4 | 负例 | Build me an MCP server in TypeScript that exposes our ticketing system… | 未读 | 未读 |
+
+结论：正例读取 2/2 → 2/2；负例误读 0/1 → 0/1。每格只跑 1 次，只能说明没有明显回退，不能证明新写法更好。
+
+### D2 回归（2026-11-04，场景 1–3 的 description 期望已改为两层写法）
+
+| 场景 | 模型 | 有/无 skill | skill_read | description 期望 | 备注 |
+|---|---|---|---|---|---|
+| 1 widget-builder 评审 | gpt-6.1-sol medium | 有（旧正文） | True | ✘（新期望） | 给出单句 `Builds React and TypeScript UI widgets with the @acme/widgets design system.`，符合旧规范 |
+| 1 widget-builder 评审 | gpt-6.1-sol medium | 有（新正文） | True | ✔ | 首句同上，后接 `Use when adding or changing src/components/*.tsx …, including one-line component fixes.` |
+| 2 GraphQL 网关 skill 从零写 | gpt-6.1-sol medium | 有（新正文） | True | ◐ | 说要写「会加载本 skill 的具体情境」并列出四类，但没有给出成句的 description |
+| 3 release-notes 描述修复 | gpt-6.1-sol medium | 有（新正文） | True | ✔ | `Writes release notes and changelog entries from merged pull requests and commits. Use when preparing release notes, editing CHANGELOG.md, …, including a one-line changelog entry.`，并说明首句在截断后仍可路由 |
+
+旧正文一侧只有场景 1、2 的产物（路由抽样的副产品），场景 3 没有旧正文的运行；无 skill 基线没有重跑。
+上述结果只能说明新正文改变了模型给出的 description 形态，不是完整的 D2 评分（其余期望未逐条判定）。
+产物：`/tmp/hs-desc-20261104/{old,new}/skill-authoring/`。

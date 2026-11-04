@@ -291,10 +291,13 @@ and which scenarios had variance wide enough to distrust.
 
 **Core quality**
 
-- [ ] The description is one third-person task-and-key-noun routing sentence,
-      usually 8–16 words, 1–160 characters and not all whitespace in HyperSkills
+- [ ] The description has two layers: a self-contained third-person first
+      sentence naming domain and key technology (40–99 characters in
+      HyperSkills), then `Use when` with concrete triggers; at most 400
+      characters in total, no capitalised emphasis
 - [ ] Capability lists, procedures and detailed exclusions remain in the body,
-      with scope boundaries in `## Scope`, not a mandatory negative sentence
+      with scope boundaries in `## Scope`; `Not for …` appears only for a near
+      miss measured in routing evaluations
 - [ ] The body is under 500 lines
 - [ ] Detail lives in separate files, one level deep
 - [ ] No time-sensitive statement outside a collapsed old-patterns block

@@ -60,7 +60,7 @@ Minimal valid frontmatter:
 ```yaml
 ---
 name: pdf-processing
-description: Extracts text and tables from PDF files for document processing.
+description: Extracts text and tables from PDF files for document processing. Use when a task reads, fills or merges PDF files, or the user mentions forms or scanned documents.
 ---
 ```
 
@@ -94,15 +94,20 @@ them anyway.
 The description is the always-loaded routing text. Use it to select the skill,
 not to reproduce its capability catalogue or procedure.
 
-- Write one English task-and-key-noun sentence in the third person, usually
-  8–16 words: name the task and its identifying technology or artifact.
-- HyperSkills requires 1–160 characters, not all whitespace. There is no
-  padding minimum; a clear shorter sentence is preferable.
-- Put detailed applicability and exclusions in the body's `## Scope`. Do not
-  require a "Do not use for" clause; use a brief qualifier only for real
-  ambiguity between adjacent scopes.
-- Do not enumerate capabilities, versions or steps. A task and its object can
-  express what and when without a second sentence.
+- Write two layers in English and the third person: a first sentence naming
+  what the skill does, its domain and its key technology or artifact, then
+  `Use when` followed by concrete triggers — user phrasings, file names,
+  error symptoms, task situations.
+- The first sentence must stand alone, because some hosts show only it when
+  the description is long. HyperSkills requires it to be 40–99 characters,
+  ended by a full stop, exclamation mark or question mark and a space;
+  `e.g.`, `i.e.` and `vs.` end it early.
+- HyperSkills caps the whole description at 400 characters. There is no
+  padding minimum.
+- Put detailed applicability and exclusions in the body's `## Scope`. Add a
+  `Not for …` qualifier only for a near miss measured in routing evaluations.
+- Do not enumerate capabilities, versions or steps; an agent that reads a step
+  summary follows it instead of the body.
 
 The specification's 1,024-character ceiling remains a format constraint, not
 the repository's authoring budget or a target. HyperSkills' source of truth for
@@ -204,4 +209,4 @@ When two skills share a name, the near-universal rule is that project scope
 overrides user scope. One major host inverts part of this — enterprise beats
 personal beats project — so a skill that relies on shadowing is not portable.
 
-<!-- sources: agentskills-spec, anthropic-best-practices, anthropic-skill-creator, vercel-skills-cli, claude-code-skills-docs -->
+<!-- sources: agentskills-spec, anthropic-best-practices, anthropic-skill-creator, vercel-skills-cli, claude-code-skills-docs, obra-writing-skills, oh-my-pi-skill-descriptions -->

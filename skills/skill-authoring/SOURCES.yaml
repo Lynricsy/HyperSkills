@@ -1,5 +1,5 @@
 skill: skill-authoring
-version: "2026.11.01"
+version: "2026.11.04"
 upstreams:
   - id: anthropic-skill-creator
     kind: repo
@@ -160,3 +160,31 @@ upstreams:
     synced_at: "2026-11-01"
     contributes: "Read only, as the pointer that Claude Code's skill listing has a whole-listing budget beyond the per-entry 1,536-character cap. Every fact in references/client-extensions-and-paths.md was taken from code.claude.com; no text or scoring logic copied."
     notes: "The rest of the skill (usage counters, pair co-occurrence scoring, the bundled doctor) audits one harness's installed fleet and is outside this skill's scope."
+  - id: claude-prompting-best-practices
+    kind: docs
+    url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+    license: NONE
+    relation: merged
+    synced_at: "2026-11-04"
+    contributes: "The observation that Claude Opus 4.5 and 4.6 respond strongly to the system prompt and overtrigger tools and skills on aggressive wording such as 'CRITICAL: You MUST', with plain 'Use this tool when' as the fix, which is why descriptions are strengthened with concrete situations rather than capitalised emphasis."
+    notes: "Vendor documentation with no licence grant; included under fair-use with attribution per project policy. Only the one fact was used; wording independently rewritten."
+  - id: scottspence-skill-activation
+    kind: docs
+    url: https://scottspence.com/posts/measuring-claude-code-skill-activation-with-sandboxed-evals
+    license: NONE
+    relation: reference
+    synced_at: "2026-11-04"
+    contributes: "Read only, for measured facts: in sandboxed Claude Code runs with Sonnet 4.5 (22 prompts, two runs) every activation selected the right skill, the no-hook baseline activated about 50-55% of prompts, a UserPromptSubmit forced-evaluation hook reached 22/22 in both runs and 75% overall on a harder set with no false positives, so activation rather than selection was the failure."
+    notes: "Personal blog with no licence grant. Facts only, cited with attribution; no text copied."
+  - id: oh-my-pi-skill-descriptions
+    kind: repo
+    repo: can1357/oh-my-pi
+    url: https://github.com/can1357/oh-my-pi
+    paths: [packages/coding-agent/src/extensibility/skill-descriptions.ts, packages/coding-agent/src/prompts/skills/compress-description.md]
+    ref: main
+    commit: fa0469c00300ef7c1b9394141834bdab4ea2d9c8
+    license: MIT
+    relation: merged
+    synced_at: "2026-11-04"
+    contributes: "How omp 18.16.0 renders the skill listing: descriptions over 100 characters become a preview of the first sentence (if it ends within 99 characters and is at least 40 long) or a word-boundary cut, until a smol model compresses them into a one-line hint (12-word target, 160-character limit) cached in skill-descriptions.db; the evidence for a self-contained first sentence."
+    notes: "Behaviour read from the source at the pinned commit (package version 18.16.0); no code copied."

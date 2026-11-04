@@ -182,10 +182,14 @@ Tier-1 metadata is a shared budget, and hosts enforce it differently:
 |---|---|---|
 | Codex | 2% of the context window, or 8,000 characters when the window is unknown; changed with `skills.max_context_tokens` (up to 10,000 tokens) | Shortens descriptions first; may omit skills entirely and warn |
 | Claude Code | Whole listing: 1% of the context window (8,000 characters as the fallback), changed with the `skillListingBudgetFraction` setting or a fixed `SLASH_COMMAND_TOOL_CHAR_BUDGET`. Per entry: 1,536 characters of description plus its extra triggering field (`skillListingMaxDescChars`) | Each entry is cut at its cap. Over the whole budget, every name stays but whole descriptions are dropped, starting with the least-invoked skills |
+| omp (oh-my-pi) | Per entry: 100 characters, after collapsing whitespace. A fast (`smol`) model then compresses each description into a one-line routing hint (12-word target, 160-character hard limit), cached in `skill-descriptions.db` under a hash of name, description and prompt | Longer descriptions are shown as their first sentence, if it ends inside the first 99 characters and is at least 40 long, otherwise cut at a word with an ellipsis. Later sessions show the cached hint instead of the original |
 
 Per-entry caps cut from the end. This is the entire justification for
 front-loading the key use case and the trigger words — text at the tail of a
-long description may never reach the model that has to choose.
+long description may never reach the model that has to choose. omp is the
+extreme case: until its hint is cached, the model sees only the first sentence
+of a long description, so that sentence must name the domain and the key
+technology by itself.
 
 Claude Code's whole-listing overflow is different: a rarely invoked skill keeps
 its name and loses its entire description, so the model can still call it by
@@ -209,4 +213,4 @@ whether a feature is safe to depend on:
 A skill whose workflow depends on any of these needs a documented fallback, or a
 `compatibility` field that says which product it is for.
 
-<!-- sources: claude-code-skills-docs, cursor-skills-docs, codex-skills-docs, vercel-skills-cli, agentskills-spec -->
+<!-- sources: claude-code-skills-docs, cursor-skills-docs, codex-skills-docs, vercel-skills-cli, agentskills-spec, oh-my-pi-skill-descriptions -->

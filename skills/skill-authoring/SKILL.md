@@ -1,10 +1,10 @@
 ---
 name: skill-authoring
-description: "Authors, reviews and evaluates Agent Skills and their SKILL.md files."
+description: "Authors, reviews and evaluates Agent Skills and their SKILL.md files. Use when creating or rewriting a skill, fixing a skill description that never triggers, splitting an overgrown SKILL.md into references/, writing evals for a skill, or publishing a skill repository."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: meta
 ---
 
@@ -51,16 +51,22 @@ Violations of these are bugs, not preferences.
    never leading, trailing or doubled, never containing an XML tag or a vendor
    reserved word, and identical to its directory name. Hosts key a skill's
    identity to the directory holding `SKILL.md`.
-3. Write the description as one English routing sentence in the third person:
-   task plus key technology or artifact, usually 8–16 words. HyperSkills requires
-   1–160 characters, not all whitespace; the specification allows up to 1,024.
-   Neither limit is a target, and there is no padding minimum.
-4. Put the task and identifying nouns first. Every installed skill spends the
-   shared listing budget; hosts may shorten that listing.
-5. Keep capability lists, versions and procedures out of the description.
-   Detailed applicability and exclusions belong in `## Scope`. A separate
-   "Do not use for" sentence is not required; add only a brief qualifier when
-   adjacent scopes are genuinely ambiguous.
+3. Write the description in two layers, in English and the third person: a
+   first sentence naming what the skill does, its domain and its key
+   technology or artifact, then `Use when` with three to six concrete
+   triggers. HyperSkills requires a 40–99 character first sentence and at most
+   400 characters in total; the specification allows 1,024. Neither limit is a
+   target, and there is no padding minimum.
+4. The first sentence stands alone. Some hosts show only it, others cut the
+   tail or drop whole descriptions when the shared listing overflows, so the
+   domain and identifying nouns go there, never `e.g.`/`i.e.`, whose dots end
+   the sentence early.
+5. Triggers say when to read the skill, never how it works: user phrasings,
+   file names, error symptoms, task situations. No step summary — an agent
+   follows the summary instead of the body — and no capability or version
+   list. Strengthen a skipped skill with a concrete `including …` case, not
+   capitalised emphasis; add `Not for …` only for a near miss seen in routing
+   evals. Full exclusions stay in `## Scope`.
 6. Only specification fields appear in frontmatter: `name`, `description`,
    `license`, `compatibility`, `metadata`, `allowed-tools`. Every other field
    belongs to one host, is ignored everywhere else, and — the real damage —
@@ -193,8 +199,12 @@ the author's chair.
 Run when a skill is skipped, or fires on the wrong requests. Details and the
 worked query set in `references/description-optimization.md`.
 
-- [ ] Write one task-and-key-noun routing sentence under rule 3, regardless of
-      the body's shape. Replace vague words rather than accumulating clauses.
+- [ ] Write the two-layer description under rules 3–5. Read the first sentence
+      alone: if it does not name the domain, a host that shows only it cannot
+      route. Replace vague words rather than accumulating clauses.
+- [ ] Before rewording a skill that is never loaded, check whether the agent
+      consulted the skill list at all. If it never looked, the lever is a host
+      or context-file rule that forces a skill check, not the wording.
 - [ ] Build roughly twenty realistic queries, split between should-trigger and
       should-not-trigger, with the concrete texture of real requests — file
       names, job context, column names, typos.
@@ -215,9 +225,11 @@ Report findings in the output format below.
 - [ ] Frontmatter against `references/spec-reference.md`: field set, name
       constraints and directory match, description length, host-specific fields
       that must move out (`references/client-extensions-and-paths.md`).
-- [ ] Description as the trigger: one third-person task-and-key-noun sentence,
-      1–160 characters and not all whitespace, usually 8–16 words; no capability or procedure
-      list. Detailed coverage and exclusions stay in `## Scope`.
+- [ ] Description as the trigger: third person; a self-contained first
+      sentence naming domain and key technology (40–99 characters), then
+      `Use when` with concrete triggers; at most 400 characters in total; no
+      procedure, capability or version list, no capitalised emphasis. Detailed
+      coverage and exclusions stay in `## Scope`.
 - [ ] Budgets: body line count, each reference's line count, `## Contents` on
       the long ones.
 - [ ] Content that the model already knows, and content that is specific to the
@@ -267,7 +279,7 @@ Distribution mechanics and provenance in `references/publishing.md`.
 |---|---|---|
 | Frontmatter fields, limits, directories, disclosure budgets, validation | Always, before touching frontmatter | `references/spec-reference.md` |
 | Host-specific frontmatter, discovery paths, listing truncation | A skill targets one host, or a field is not in the spec | `references/client-extensions-and-paths.md` |
-| Description formula, trigger query sets, held-out scoring | Writing or fixing a description | `references/description-optimization.md` |
+| Two-layer description, host previews, undertriggering versus activation, trigger query sets, held-out scoring | Writing or fixing a description, or a skill is never loaded | `references/description-optimization.md` |
 | Sections, naming, budgets, freedom, disclosure and guidance patterns, anti-patterns, when a script earns its place | Drafting or restructuring a body | `references/structure-and-writing.md` |
 | Evaluation files, baselines, grading, multi-model runs, pre-release checklist | Proving or measuring a skill | `references/evaluation.md` |
 | Installers, plugin manifests, repository layout, licensing, provenance | Publishing, or vendoring upstream material | `references/publishing.md` |
@@ -282,14 +294,15 @@ than describing it.
 ### SKILL.md
 
 **Line 3 — the description is first person and leaves the widget task vague.
-Name the task and identifying technology in one short routing sentence.**
+Name the task and identifying technology in a first sentence that stands
+alone, then the concrete situations that should load it.**
 
 ```yaml
 # Before
 description: I can help you build widgets with our design system.
 
 # After
-description: Builds UI widgets with the acme design system in React and TypeScript.
+description: Builds UI widgets with the acme design system in React and TypeScript. Use when adding or changing a component under src/widgets/, choosing design tokens or props, or a widget renders off-brand, including one-line style fixes.
 ```
 
 **Line 5 — `paths` and `metadata.promptSignals` are one host's fields; other
