@@ -64,7 +64,7 @@
 # 装一个
 npx skills@latest add Lynricsy/HyperSkills --skill technical-writing --agent universal --copy --yes
 
-# 装全部 60 个
+# 装全部 62 个
 npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy --yes
 ```
 
@@ -78,7 +78,7 @@ npx skills@latest add Lynricsy/HyperSkills --skill '*' --agent universal --copy 
 /plugin install all@hyperskills
 ```
 
-插件名与 skill 目录名一致，`all` 是全部 60 个。清单是 `.claude-plugin/marketplace.json`。
+插件名与 skill 目录名一致，`all` 是全部 62 个。清单是 `.claude-plugin/marketplace.json`。
 
 ### 手工复制
 
@@ -104,13 +104,22 @@ technical-writing ./.agents/skills/technical-writing
 上面那次运行识别到 9 个（Amp、Codex、Cursor、Droid、Gemini CLI、GitHub Copilot、
 Kimi Code CLI、OpenCode、Zed），`npx skills@latest ls --json` 会列全。
 
-之后不需要手动指定：agent 根据 skill 名称和一句简短的 `description` 选择技能。
-description 只写任务与关键技术名；详细能力、适用范围和否定边界留在选中后才加载的正文，
-不让全部技能的使用说明常驻上下文。篇幅要求见[编写标准](docs/skill-standard.md#11-字段约束)。
+之后不需要手动指定：agent 根据 skill 名称和 `description` 自动选择。description 首句写做什么，
+随后用 `Use when …` 列具体触发场景；详细能力、适用范围和否定边界留在选中后才加载的正文里。
+写法与依据见[编写标准](docs/skill-standard.md#111-description-写法)。
+
+宿主会对常驻的 skill 列表做截断：
+
+- **Claude Code**：整张列表的预算是上下文的 1%，超出后先删掉最少被调用的 skill 的描述。
+  装了全部 skill 又发现某个 skill 从不被选中时，在 `settings.json` 里调高
+  `skillListingBudgetFraction`（例如 `0.02`），用 `/context` 或 `/doctor` 确认。
+- **omp**：只给模型看首句预览，之后换成小模型压缩出的 12 词以内提示。
+
+自动选择不触发时，可在 `CLAUDE.md` / `AGENTS.md` 里写一条规则：动手之前先对照 skill 列表检查一遍。
 
 ## skill 目录
 
-60 个：框架 23、平台 18、任务 18、元技能 1。下表由 `tools/build_catalog.py` 生成。
+62 个：框架 23、平台 18、任务 20、元技能 1。下表由 `tools/build_catalog.py` 生成。
 
 <picture>
   <source media="(max-width: 600px)" srcset="docs/assets/catalog-mobile.svg">
@@ -123,68 +132,68 @@ description 只写任务与关键技术名；详细能力、适用范围和否�
 
 | Skill | 类别 | 说明 | 版本 | 上游数 |
 |---|---|---|---|---|
-| [`ai-engineering`](skills/ai-engineering/) | 任务 | Builds LLM apps: prompts, tool-using agents, RAG context and evals | 2026.11.01 | 14 |
-| [`android`](skills/android/) | 平台 | Develops native Android apps with Kotlin, Jetpack Compose and Gradle | 2026.11.01 | 11 |
-| [`api-design`](skills/api-design/) | 任务 | Designs REST API contracts, resource models, pagination and OpenAPI specifications | 2026.11.01 | 20 |
-| [`apple`](skills/apple/) | 平台 | Develops Apple platform apps with Swift, SwiftUI and UIKit | 2026.11.01 | 16 |
-| [`astro`](skills/astro/) | 框架 | Builds Astro sites with islands, content collections and server rendering | 2026.11.01 | 6 |
-| [`aws`](skills/aws/) | 平台 | Manages AWS architecture, IAM, cloud services, deployments and costs | 2026.11.01 | 8 |
-| [`azure`](skills/azure/) | 平台 | Manages Azure architecture, Bicep deployments, identity and cloud services | 2026.11.01 | 13 |
-| [`chrome-extension`](skills/chrome-extension/) | 平台 | Builds Chrome extensions with Manifest V3, service workers and content scripts | 2026.11.01 | 10 |
-| [`cloudflare`](skills/cloudflare/) | 平台 | Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler | 2026.11.01 | 8 |
-| [`code-review`](skills/code-review/) | 任务 | Reviews code changes and pull-request diffs, or evaluates review feedback | 2026.11.01 | 9 |
-| [`containers`](skills/containers/) | 平台 | Builds Docker images and configures Compose, Kubernetes, Helm and container security | 2026.11.01 | 20 |
-| [`cpp`](skills/cpp/) | 框架 | Develops C++ code with CMake, ownership, concurrency and memory safety | 2026.11.01 | 10 |
-| [`csharp-dotnet`](skills/csharp-dotnet/) | 框架 | Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework | 2026.11.01 | 10 |
-| [`data-analysis`](skills/data-analysis/) | 任务 | Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions | 2026.11.01 | 14 |
-| [`debugging`](skills/debugging/) | 任务 | Diagnoses and fixes reproducible bugs, regressions, failures and performance problems | 2026.11.01 | 5 |
-| [`elasticsearch`](skills/elasticsearch/) | 框架 | Designs and tunes Elasticsearch mappings, queries, search relevance and indexes | 2026.11.01 | 9 |
-| [`fastapi`](skills/fastapi/) | 框架 | Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling | 2026.11.01 | 12 |
-| [`flutter`](skills/flutter/) | 平台 | Develops cross-platform Flutter apps with Dart, widgets and state management | 2026.11.01 | 7 |
-| [`frontend-design`](skills/frontend-design/) | 任务 | Designs and audits web interfaces for visual quality, usability and accessibility | 2026.11.01 | 16 |
-| [`gcp`](skills/gcp/) | 平台 | Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services | 2026.11.01 | 7 |
-| [`generative-media`](skills/generative-media/) | 任务 | Integrates AI image, video, speech and music generation or transcription models | 2026.11.01 | 14 |
-| [`git-workflow`](skills/git-workflow/) | 任务 | Manages local Git branches, worktrees, commits, merges, conflicts and history recovery | 2026.11.01 | 13 |
-| [`github`](skills/github/) | 平台 | Manages GitHub pull requests, issues, Actions workflows, releases and repository settings | 2026.11.01 | 15 |
-| [`go`](skills/go/) | 框架 | Develops Go code with goroutines, modules, testing and performance profiling | 2026.11.01 | 14 |
-| [`godot`](skills/godot/) | 平台 | Develops Godot games with GDScript, scenes, nodes and engine APIs | 2026.11.01 | 11 |
-| [`graphql`](skills/graphql/) | 框架 | Designs GraphQL schemas, operations, resolvers, federation and query controls | 2026.11.01 | 12 |
-| [`harmonyos`](skills/harmonyos/) | 平台 | Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling | 2026.11.01 | 12 |
-| [`html-deck`](skills/html-deck/) | 任务 | Creates browser HTML slide decks | 2026.11.01 | 20 |
-| [`java-spring`](skills/java-spring/) | 框架 | Develops Java services with Spring Boot, Spring Security and Spring Data JPA | 2026.11.01 | 8 |
-| [`laravel`](skills/laravel/) | 框架 | Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire | 2026.11.01 | 9 |
-| [`linux-ops`](skills/linux-ops/) | 平台 | Operates Linux hosts with systemd, permissions, networking, storage and backup recovery | 2026.11.01 | 13 |
-| [`mcp-server`](skills/mcp-server/) | 任务 | Designs and builds your own MCP servers: tools, transports, auth | 2026.11.01 | 9 |
-| [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg and deterministic image tools | 2026.11.01 | 24 |
-| [`ml-training`](skills/ml-training/) | 任务 | Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization | 2026.11.01 | 9 |
-| [`model-serving`](skills/model-serving/) | 任务 | Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity | 2026.11.01 | 11 |
-| [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB documents, aggregations, indexes and cluster operations | 2026.11.01 | 6 |
-| [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Builds Node.js HTTP services with Fastify, NestJS, Hono or Express | 2026.11.01 | 13 |
-| [`observability`](skills/observability/) | 任务 | Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts | 2026.11.01 | 15 |
-| [`office`](skills/office/) | 任务 | Creates, edits and converts local Word, PowerPoint, Excel and PDF files | 2026.11.01 | 19 |
-| [`planning`](skills/planning/) | 任务 | Turns requirements into executable plans with dependencies and verifiable acceptance criteria | 2026.11.01 | 8 |
-| [`postgres`](skills/postgres/) | 框架 | Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations | 2026.11.01 | 12 |
-| [`python`](skills/python/) | 框架 | Develops Python code with uv, pytest, typing, asyncio and packaging | 2026.11.01 | 19 |
-| [`react`](skills/react/) | 框架 | Develops React and Next.js web applications, components and server rendering | 2026.11.01 | 10 |
-| [`react-native`](skills/react-native/) | 平台 | Develops React Native and Expo mobile apps, navigation and native integrations | 2026.11.01 | 7 |
-| [`redis`](skills/redis/) | 框架 | Designs and operates Redis data structures, caching, streams and clusters | 2026.11.01 | 7 |
-| [`rust`](skills/rust/) | 框架 | Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI | 2026.11.01 | 17 |
-| [`security-review`](skills/security-review/) | 任务 | Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks | 2026.11.01 | 20 |
-| [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews and evaluates Agent Skills and their SKILL.md files | 2026.11.01 | 15 |
-| [`solidity-web3`](skills/solidity-web3/) | 框架 | Develops and audits Solidity smart contracts with Foundry security testing | 2026.11.01 | 20 |
-| [`sqlite`](skills/sqlite/) | 框架 | Designs and operates embedded SQLite databases, transactions, WAL and backups | 2026.11.01 | 22 |
-| [`supabase`](skills/supabase/) | 框架 | Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions | 2026.11.01 | 12 |
-| [`svelte`](skills/svelte/) | 框架 | Develops Svelte and SvelteKit applications with runes, routing and server data flows | 2026.11.01 | 11 |
-| [`tauri`](skills/tauri/) | 平台 | Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging | 2026.11.01 | 6 |
-| [`technical-writing`](skills/technical-writing/) | 任务 | Writes and audits READMEs, guides, reference docs, changelogs | 2026.11.01 | 20 |
-| [`terraform`](skills/terraform/) | 框架 | Manages infrastructure as code with Terraform or OpenTofu modules, state and providers | 2026.11.01 | 11 |
-| [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives features and bug fixes test-first and reviews tests | 2026.11.01 | 7 |
-| [`typescript`](skills/typescript/) | 框架 | Designs TypeScript types, fixes type errors and configures tsconfig builds | 2026.11.01 | 9 |
-| [`unity`](skills/unity/) | 平台 | Develops Unity games with C#, engine APIs, rendering and asset workflows | 2026.11.01 | 7 |
-| [`unreal`](skills/unreal/) | 平台 | Develops Unreal Engine gameplay with C++, Blueprints and engine APIs | 2026.11.01 | 10 |
-| [`vue`](skills/vue/) | 框架 | Develops Vue and Nuxt applications with Composition API, Pinia and routing | 2026.11.01 | 10 |
-| [`web-testing`](skills/web-testing/) | 任务 | Tests web applications in real browsers with Playwright end-to-end automation | 2026.11.01 | 11 |
-| [`wechat-miniprogram`](skills/wechat-miniprogram/) | 平台 | Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro | 2026.11.01 | 11 |
+| [`ai-engineering`](skills/ai-engineering/) | 任务 | Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning | 2026.11.04 | 14 |
+| [`android`](skills/android/) | 平台 | Develops native Android apps with Kotlin, Jetpack Compose and Gradle | 2026.11.04 | 11 |
+| [`api-design`](skills/api-design/) | 任务 | Designs HTTP REST API contracts: resources, status codes, pagination, errors and OpenAPI | 2026.11.04 | 20 |
+| [`apple`](skills/apple/) | 平台 | Develops Apple platform apps in Swift with SwiftUI and UIKit for iOS and macOS | 2026.11.04 | 16 |
+| [`astro`](skills/astro/) | 框架 | Builds Astro sites with islands, content collections, actions and server rendering | 2026.11.04 | 6 |
+| [`aws`](skills/aws/) | 平台 | Designs and operates AWS architecture, IAM, Lambda, CloudFormation and CDK stacks, and costs | 2026.11.04 | 8 |
+| [`azure`](skills/azure/) | 平台 | Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL | 2026.11.04 | 13 |
+| [`chrome-extension`](skills/chrome-extension/) | 平台 | Builds Chrome browser extensions with Manifest V3, service workers and content scripts | 2026.11.04 | 10 |
+| [`cloudflare`](skills/cloudflare/) | 平台 | Builds on Cloudflare Workers, Durable Objects, KV, R2, D1, Queues and the Wrangler CLI | 2026.11.04 | 8 |
+| [`code-review`](skills/code-review/) | 任务 | Reviews code changes, pull-request diffs and branches, and evaluates review feedback received | 2026.11.04 | 9 |
+| [`containers`](skills/containers/) | 平台 | Builds Docker images and writes Compose files, Kubernetes manifests, Helm charts and Kustomize | 2026.11.04 | 20 |
+| [`cpp`](skills/cpp/) | 框架 | Guides C++17/20/23 code: ownership and lifetimes, concurrency, CMake targets and ABI | 2026.11.04 | 10 |
+| [`csharp-dotnet`](skills/csharp-dotnet/) | 框架 | Guides C# and .NET apps: ASP.NET Core, Blazor, .NET MAUI, EF Core, MSBuild and NuGet | 2026.11.04 | 10 |
+| [`data-analysis`](skills/data-analysis/) | 任务 | Analyzes tabular data from CSV, Parquet or dataframes with pandas, Polars and DuckDB | 2026.11.04 | 14 |
+| [`debugging`](skills/debugging/) | 任务 | Diagnoses and fixes software bugs, test failures, regressions, flaky tests and slowdowns | 2026.11.04 | 5 |
+| [`elasticsearch`](skills/elasticsearch/) | 框架 | Designs and tunes Elasticsearch mappings, analyzers, Query DSL, ES|QL, relevance and indexes | 2026.11.04 | 9 |
+| [`fastapi`](skills/fastapi/) | 框架 | Guides Python FastAPI services with Pydantic v2, dependency injection and async handlers | 2026.11.04 | 12 |
+| [`flutter`](skills/flutter/) | 平台 | Develops cross-platform Flutter apps and Dart packages with widgets and state management | 2026.11.04 | 7 |
+| [`frontend-design`](skills/frontend-design/) | 任务 | Designs and audits web interfaces for visual quality, usability and accessibility | 2026.11.04 | 16 |
+| [`gcp`](skills/gcp/) | 平台 | Manages Google Cloud architecture, IAM, gcloud, Cloud Run, GKE clusters and managed services | 2026.11.04 | 7 |
+| [`generative-media`](skills/generative-media/) | 任务 | Integrates AI image, video, speech, music generation and speech-to-text model APIs | 2026.11.04 | 14 |
+| [`git-workflow`](skills/git-workflow/) | 任务 | Manages local Git branches, worktrees, commits, merges, conflicts and history recovery | 2026.11.04 | 13 |
+| [`github`](skills/github/) | 平台 | Manages GitHub pull requests, issues, Actions workflows, releases and repository settings | 2026.11.04 | 15 |
+| [`go`](skills/go/) | 框架 | Guides Go development: idioms, goroutines, modules, go test and pprof profiling | 2026.11.04 | 14 |
+| [`godot`](skills/godot/) | 平台 | Guides Godot 4 game development in GDScript: scenes, nodes, signals and export builds | 2026.11.04 | 11 |
+| [`graphql`](skills/graphql/) | 框架 | Designs GraphQL schemas, operations, resolvers, federation and query cost controls | 2026.11.04 | 12 |
+| [`harmonyos`](skills/harmonyos/) | 平台 | Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling | 2026.11.04 | 12 |
+| [`html-deck`](skills/html-deck/) | 任务 | Creates browser HTML slide decks; do not load for editable PowerPoint files or responsive sites | 2026.11.04 | 20 |
+| [`java-spring`](skills/java-spring/) | 框架 | Guides Java and Kotlin Spring Boot services: web, Spring Data JPA, Security and builds | 2026.11.04 | 8 |
+| [`laravel`](skills/laravel/) | 框架 | Guides Laravel PHP applications: Eloquent, queues, Blade, Livewire, Pennant and Pest | 2026.11.04 | 9 |
+| [`linux-ops`](skills/linux-ops/) | 平台 | Operates Linux servers: systemd services, permissions, disks, networking, firewalls and restores | 2026.11.04 | 13 |
+| [`mcp-server`](skills/mcp-server/) | 任务 | Designs and builds your own MCP servers: tools, transports, auth; not using or installing others' | 2026.11.04 | 9 |
+| [`media-processing`](skills/media-processing/) | 任务 | Processes existing video, audio and images with ffmpeg, libvips, sharp, ImageMagick or Pillow | 2026.11.04 | 24 |
+| [`ml-training`](skills/ml-training/) | 任务 | Fine-tunes and trains model weights with LoRA, QLoRA, SFT, DPO, distributed training and GPUs | 2026.11.04 | 9 |
+| [`model-serving`](skills/model-serving/) | 任务 | Tunes deployed LLM inference servers (vLLM, SGLang, TensorRT-LLM) for latency and throughput | 2026.11.04 | 11 |
+| [`mongodb`](skills/mongodb/) | 框架 | Designs and tunes MongoDB document models, aggregation pipelines, indexes and sharding | 2026.11.04 | 6 |
+| [`nodejs-backend`](skills/nodejs-backend/) | 框架 | Guides Node.js backend services built on Fastify, NestJS, Hono or Express | 2026.11.04 | 13 |
+| [`observability`](skills/observability/) | 任务 | Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts | 2026.11.04 | 15 |
+| [`office`](skills/office/) | 任务 | Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets | 2026.11.04 | 19 |
+| [`planning`](skills/planning/) | 任务 | Turns vague software requests into executable plans with dependencies and acceptance criteria | 2026.11.04 | 8 |
+| [`postgres`](skills/postgres/) | 框架 | Designs and tunes PostgreSQL schemas, SQL queries, indexes, locks, vacuum and connection pooling | 2026.11.04 | 12 |
+| [`python`](skills/python/) | 框架 | Guides the Python language and toolchain: uv, ruff, pyproject.toml, pytest, typing, asyncio | 2026.11.04 | 19 |
+| [`react`](skills/react/) | 框架 | Develops React and Next.js App Router web applications, components and server rendering | 2026.11.04 | 10 |
+| [`react-native`](skills/react-native/) | 平台 | Develops React Native and Expo mobile apps, navigation and native integrations | 2026.11.04 | 7 |
+| [`redis`](skills/redis/) | 框架 | Designs and operates Redis data structures, keys and TTLs, caching, locks, streams and clusters | 2026.11.04 | 7 |
+| [`rust`](skills/rust/) | 框架 | Guides Rust code across ownership, async cancellation, unsafe/FFI and Cargo features | 2026.11.04 | 17 |
+| [`security-review`](skills/security-review/) | 任务 | Audits source code for security vulnerabilities, access-control flaws and trust-boundary risks | 2026.11.04 | 20 |
+| [`skill-authoring`](skills/skill-authoring/) | 元技能 | Authors, reviews and evaluates Agent Skills and their SKILL.md files | 2026.11.04 | 18 |
+| [`solidity-web3`](skills/solidity-web3/) | 框架 | Writes and audits Solidity EVM smart contracts defensively with Foundry and Slither | 2026.11.04 | 20 |
+| [`sqlite`](skills/sqlite/) | 框架 | Designs and operates embedded SQLite database files, transactions, WAL, migrations and backups | 2026.11.04 | 22 |
+| [`supabase`](skills/supabase/) | 框架 | Builds Supabase apps with Auth, RLS policies, Storage, Realtime, Edge Functions and the CLI | 2026.11.04 | 12 |
+| [`svelte`](skills/svelte/) | 框架 | Develops Svelte 5 and SvelteKit applications with runes, routing and server data flows | 2026.11.04 | 11 |
+| [`tauri`](skills/tauri/) | 平台 | Builds Tauri v2 desktop apps with Rust IPC, capabilities, plugins and packaging | 2026.11.04 | 6 |
+| [`technical-writing`](skills/technical-writing/) | 任务 | Writes and audits READMEs, guides, reference docs, changelogs; not site builders, profile READMEs | 2026.11.04 | 20 |
+| [`terraform`](skills/terraform/) | 框架 | Writes and refactors Terraform and OpenTofu HCL: modules, state, providers and tests | 2026.11.04 | 11 |
+| [`test-driven-development`](skills/test-driven-development/) | 任务 | Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config | 2026.11.04 | 7 |
+| [`typescript`](skills/typescript/) | 框架 | Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components | 2026.11.04 | 9 |
+| [`unity`](skills/unity/) | 平台 | Guides Unity 6 game development in C#: MonoBehaviours, serialization, URP and builds | 2026.11.04 | 7 |
+| [`unreal`](skills/unreal/) | 平台 | Guides Unreal Engine 5 gameplay in C++ and Blueprints: reflection, actors and replication | 2026.11.04 | 10 |
+| [`vue`](skills/vue/) | 框架 | Develops Vue 3 and Nuxt web applications with the Composition API, Pinia and Vue Router | 2026.11.04 | 10 |
+| [`web-testing`](skills/web-testing/) | 任务 | Tests web applications in real browsers with Playwright end-to-end automation | 2026.11.04 | 11 |
+| [`wechat-miniprogram`](skills/wechat-miniprogram/) | 平台 | Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro | 2026.11.04 | 11 |
 
 <!-- catalog:end -->
 

@@ -1056,12 +1056,15 @@ This skill is a curated rewrite by HyperSkills (MIT). It adapts material from:
 - getsentry/skills (Apache-2.0) — https://github.com/getsentry/skills @ d12f250460ffd961f549dbebf7eeb0cf4afd4c2e — paths: skills/skill-writer — The one-reason-per-row open-when routing table as the shape of a router body, the discipline of naming which existing rule or section is narrowed or removed before adding new guidance, and a four-part output contract of summary, changes, validation results and open gaps.
 - mgechev/skills-best-practices (NONE) — https://github.com/mgechev/skills-best-practices @ a0bfa56bbcd676383f6ca57bb7e344d0856bc38e — paths: skill — Scanning a finished draft for the points where it forces the agent to guess, the rule that a skill directory contains nothing written for human readers, and designing a bundled validator so its error output drives a self-correcting loop.
 - Lynricsy/HyperSkills (MIT) — https://github.com/Lynricsy/HyperSkills @ 9534e10a2eb2a2d12e17a258ea89c827c3faf0da — paths: docs/skill-standard.md, docs/workflow.md, tools — The provenance record schema and generated attribution format, the mechanically checkable validation list used in continuous integration, and the evaluation-runner shape of scenario file plus measured no-skill baseline that the publishing and evaluation references describe.
+- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices (NONE) — https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices — The observation that Claude Opus 4.5 and 4.6 respond strongly to the system prompt and overtrigger tools and skills on aggressive wording such as 'CRITICAL: You MUST', with plain 'Use this tool when' as the fix, which is why descriptions are strengthened with concrete situations rather than capitalised emphasis.
+- can1357/oh-my-pi (MIT) — https://github.com/can1357/oh-my-pi @ fa0469c00300ef7c1b9394141834bdab4ea2d9c8 — paths: packages/coding-agent/src/extensibility/skill-descriptions.ts, packages/coding-agent/src/prompts/skills/compress-description.md — How omp 18.16.0 renders the skill listing: descriptions over 100 characters become a preview of the first sentence (if it ends within 99 characters and is at least 40 long) or a word-boundary cut, until a smol model compresses them into a one-line hint (12-word target, 160-character limit) cached in skill-descriptions.db; the evidence for a self-contained first sentence.
 
 Reference-only sources (no content copied):
 
 - openai/skills (NONE) — https://github.com/openai/skills
 - Ronifue/skill-authoring (MIT) — https://github.com/Ronifue/skill-authoring
 - melodic-software/claude-code-plugins (MIT) — https://github.com/melodic-software/claude-code-plugins
+- https://scottspence.com/posts/measuring-claude-code-skill-activation-with-sandboxed-evals (NONE) — https://scottspence.com/posts/measuring-claude-code-skill-activation-with-sandboxed-evals
 
 ---
 

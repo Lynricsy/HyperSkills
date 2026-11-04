@@ -5,12 +5,12 @@
   },
   "metadata": {
     "description": "HyperSkills — curated, consolidated agent skills",
-    "version": "2026.11.01"
+    "version": "2026.11.04"
   },
   "plugins": [
     {
       "name": "ai-engineering",
-      "description": "Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning.",
+      "description": "Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning. Use when code calls the OpenAI, Anthropic or Gemini SDK, a RAG bot answers from the wrong source, structure",
       "source": "./",
       "strict": false,
       "skills": [
@@ -19,7 +19,7 @@
     },
     {
       "name": "android",
-      "description": "Develops native Android apps with Kotlin, Jetpack Compose and Gradle.",
+      "description": "Develops native Android apps with Kotlin, Jetpack Compose and Gradle. Use when editing build.gradle.kts, libs.versions.toml, AndroidManifest.xml or Compose screens, chasing recomposition, janky LazyCo",
       "source": "./",
       "strict": false,
       "skills": [
@@ -28,7 +28,7 @@
     },
     {
       "name": "api-design",
-      "description": "Designs REST API contracts, resource models, pagination and OpenAPI specifications.",
+      "description": "Designs HTTP REST API contracts: resources, status codes, pagination, errors and OpenAPI. Use when shaping a new API surface, turning verb-style endpoints into resources, choosing pagination or versio",
       "source": "./",
       "strict": false,
       "skills": [
@@ -37,7 +37,7 @@
     },
     {
       "name": "apple",
-      "description": "Develops Apple platform apps with Swift, SwiftUI and UIKit.",
+      "description": "Develops Apple platform apps in Swift with SwiftUI and UIKit for iOS and macOS. Use when editing Swift or Xcode project files for iOS, macOS, watchOS or visionOS, when a build fails on Swift 6 concurr",
       "source": "./",
       "strict": false,
       "skills": [
@@ -46,7 +46,7 @@
     },
     {
       "name": "astro",
-      "description": "Builds Astro sites with islands, content collections and server rendering.",
+      "description": "Builds Astro sites with islands, content collections, actions and server rendering. Use when editing .astro files, astro.config.mjs or src/content.config.ts, choosing client:* or server:defer, upgradi",
       "source": "./",
       "strict": false,
       "skills": [
@@ -55,7 +55,7 @@
     },
     {
       "name": "aws",
-      "description": "Manages AWS architecture, IAM, cloud services, deployments and costs.",
+      "description": "Designs and operates AWS architecture, IAM, Lambda, CloudFormation and CDK stacks, and costs. Use when reviewing an IAM or trust policy, a SAM or CloudFormation template or CDK app, diagnosing AccessD",
       "source": "./",
       "strict": false,
       "skills": [
@@ -64,7 +64,7 @@
     },
     {
       "name": "azure",
-      "description": "Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL.",
+      "description": "Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL. Use when reading or writing .bicep, .bicepparam or azure.yaml, an az deployment or azd up fails, a rol",
       "source": "./",
       "strict": false,
       "skills": [
@@ -73,7 +73,7 @@
     },
     {
       "name": "chrome-extension",
-      "description": "Builds Chrome extensions with Manifest V3, service workers and content scripts.",
+      "description": "Builds Chrome browser extensions with Manifest V3, service workers and content scripts. Use when editing manifest.json, wxt.config.ts, a service worker or content script, when a chrome.* call or messa",
       "source": "./",
       "strict": false,
       "skills": [
@@ -82,7 +82,7 @@
     },
     {
       "name": "cloudflare",
-      "description": "Builds on Cloudflare Workers, Durable Objects, storage services and Wrangler.",
+      "description": "Builds on Cloudflare Workers, Durable Objects, KV, R2, D1, Queues and the Wrangler CLI. Use when writing or reviewing Worker code, wrangler.jsonc or wrangler.toml, or Durable Object classes, a deploy ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -91,7 +91,7 @@
     },
     {
       "name": "code-review",
-      "description": "Reviews code changes and pull-request diffs, or evaluates review feedback.",
+      "description": "Reviews code changes, pull-request diffs and branches, and evaluates review feedback received. Use when asked to review a PR, diff, commit range or branch, to respond to or push back on review comment",
       "source": "./",
       "strict": false,
       "skills": [
@@ -100,7 +100,7 @@
     },
     {
       "name": "containers",
-      "description": "Builds Docker images and configures Compose, Kubernetes, Helm and container security.",
+      "description": "Builds Docker images and writes Compose files, Kubernetes manifests, Helm charts and Kustomize. Use when writing or reviewing a Dockerfile, compose.yaml, Kubernetes manifest, Helm chart or devcontaine",
       "source": "./",
       "strict": false,
       "skills": [
@@ -109,7 +109,7 @@
     },
     {
       "name": "cpp",
-      "description": "Develops C++ code with CMake, ownership, concurrency and memory safety.",
+      "description": "Guides C++17/20/23 code: ownership and lifetimes, concurrency, CMake targets and ABI. Use when writing or reviewing .cpp/.hpp or CMakeLists.txt, chasing a dangling string_view or span, a coroutine or ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -118,7 +118,7 @@
     },
     {
       "name": "csharp-dotnet",
-      "description": "Develops C# and .NET applications with ASP.NET Core, Blazor and Entity Framework.",
+      "description": "Guides C# and .NET apps: ASP.NET Core, Blazor, .NET MAUI, EF Core, MSBuild and NuGet. Use when writing, building, testing or upgrading .cs, .csproj, .razor, Directory.Build.props or .targets files, a ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -127,7 +127,7 @@
     },
     {
       "name": "data-analysis",
-      "description": "Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions.",
+      "description": "Analyzes tabular data from CSV, Parquet or dataframes with pandas, Polars and DuckDB. Use when totals do not reconcile, a join duplicates rows, comparing groups or trends, a metric's grain or denomina",
       "source": "./",
       "strict": false,
       "skills": [
@@ -136,7 +136,7 @@
     },
     {
       "name": "debugging",
-      "description": "Diagnoses and fixes reproducible bugs, regressions, failures and performance problems.",
+      "description": "Diagnoses and fixes software bugs, test failures, regressions, flaky tests and slowdowns. Use when something throws, crashes, returns wrong output, fails a test or build, is flaky or newly slow, the u",
       "source": "./",
       "strict": false,
       "skills": [
@@ -145,7 +145,7 @@
     },
     {
       "name": "elasticsearch",
-      "description": "Designs and tunes Elasticsearch mappings, queries, search relevance and indexes.",
+      "description": "Designs and tunes Elasticsearch mappings, analyzers, Query DSL, ES|QL, relevance and indexes. Use when designing or reviewing a mapping or index template, a term query returns nothing, an aggregation ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -154,7 +154,7 @@
     },
     {
       "name": "fastapi",
-      "description": "Builds Python APIs with FastAPI, Pydantic, dependency injection and async request handling.",
+      "description": "Guides Python FastAPI services with Pydantic v2, dependency injection and async handlers. Use when writing, reviewing or upgrading FastAPI routes, dependencies or response models, an endpoint stalls u",
       "source": "./",
       "strict": false,
       "skills": [
@@ -163,7 +163,7 @@
     },
     {
       "name": "flutter",
-      "description": "Develops cross-platform Flutter apps with Dart, widgets and state management.",
+      "description": "Develops cross-platform Flutter apps and Dart packages with widgets and state management. Use when editing .dart files or pubspec.yaml, choosing Riverpod, Bloc or go_router, fixing RenderFlex overflow",
       "source": "./",
       "strict": false,
       "skills": [
@@ -172,7 +172,7 @@
     },
     {
       "name": "frontend-design",
-      "description": "Designs and audits web interfaces for visual quality, usability and accessibility.",
+      "description": "Designs and audits web interfaces for visual quality, usability and accessibility. Use when picking a palette, type scale or spacing, when a UI looks generic or AI-generated, when reviewing UI code fo",
       "source": "./",
       "strict": false,
       "skills": [
@@ -181,7 +181,7 @@
     },
     {
       "name": "gcp",
-      "description": "Manages Google Cloud architecture, IAM, Cloud Run, GKE and cloud services.",
+      "description": "Manages Google Cloud architecture, IAM, gcloud, Cloud Run, GKE clusters and managed services. Use when writing or reviewing gcloud commands, auditing project IAM or service accounts, setting up Worklo",
       "source": "./",
       "strict": false,
       "skills": [
@@ -190,7 +190,7 @@
     },
     {
       "name": "generative-media",
-      "description": "Integrates AI image, video, speech and music generation or transcription models.",
+      "description": "Integrates AI image, video, speech, music generation and speech-to-text model APIs. Use when calling an image generation or editing API, text-to-speech, Whisper-style transcription, an async video gen",
       "source": "./",
       "strict": false,
       "skills": [
@@ -199,7 +199,7 @@
     },
     {
       "name": "git-workflow",
-      "description": "Manages local Git branches, worktrees, commits, merges, conflicts and history recovery.",
+      "description": "Manages local Git branches, worktrees, commits, merges, conflicts and history recovery. Use when a push is rejected, conflict markers or unmerged paths appear, a rebase or force-push is being consider",
       "source": "./",
       "strict": false,
       "skills": [
@@ -208,7 +208,7 @@
     },
     {
       "name": "github",
-      "description": "Manages GitHub pull requests, issues, Actions workflows, releases and repository settings.",
+      "description": "Manages GitHub pull requests, issues, Actions workflows, releases and repository settings. Use when the task touches .github/workflows, a failing or slow CI run, gh pr, gh issue, gh run or gh api, rep",
       "source": "./",
       "strict": false,
       "skills": [
@@ -217,7 +217,7 @@
     },
     {
       "name": "go",
-      "description": "Develops Go code with goroutines, modules, testing and performance profiling.",
+      "description": "Guides Go development: idioms, goroutines, modules, go test and pprof profiling. Use when writing, reviewing or modernising .go code or go.mod, a goroutine leaks, a data race or flaky test appears, co",
       "source": "./",
       "strict": false,
       "skills": [
@@ -226,7 +226,7 @@
     },
     {
       "name": "godot",
-      "description": "Develops Godot games with GDScript, scenes, nodes and engine APIs.",
+      "description": "Guides Godot 4 game development in GDScript: scenes, nodes, signals and export builds. Use when editing .gd scripts or Godot C# bindings, .tscn, .tres, project.godot or export_presets.cfg, running god",
       "source": "./",
       "strict": false,
       "skills": [
@@ -235,7 +235,7 @@
     },
     {
       "name": "graphql",
-      "description": "Designs GraphQL schemas, operations, resolvers, federation and query controls.",
+      "description": "Designs GraphQL schemas, operations, resolvers, federation and query cost controls. Use when editing .graphql SDL or resolvers, a query returns null data or fires hundreds of database calls, writing q",
       "source": "./",
       "strict": false,
       "skills": [
@@ -244,7 +244,7 @@
     },
     {
       "name": "harmonyos",
-      "description": "Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling.",
+      "description": "Develops HarmonyOS NEXT apps with ArkTS, ArkUI and DevEco tooling. Use when editing .ets, module.json5, build-profile.json5 or oh-package.json5, when DevEco reports arkts-* errors on valid TypeScript,",
       "source": "./",
       "strict": false,
       "skills": [
@@ -253,7 +253,7 @@
     },
     {
       "name": "html-deck",
-      "description": "Creates browser HTML slide decks. Do not load for editable PowerPoint files or responsive websites; those are the office and frontend-design skills.",
+      "description": "Creates browser HTML slide decks; do not load for editable PowerPoint files or responsive sites. Use when asked for slides or a talk as an HTML file, a Marp, reveal.js or Slidev deck, speaker notes or",
       "source": "./",
       "strict": false,
       "skills": [
@@ -262,7 +262,7 @@
     },
     {
       "name": "java-spring",
-      "description": "Develops Java services with Spring Boot, Spring Security and Spring Data JPA.",
+      "description": "Guides Java and Kotlin Spring Boot services: web, Spring Data JPA, Security and builds. Use when editing pom.xml, build.gradle.kts, application.yml, an @Entity, a SecurityFilterChain or a @SpringBootT",
       "source": "./",
       "strict": false,
       "skills": [
@@ -271,7 +271,7 @@
     },
     {
       "name": "laravel",
-      "description": "Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire.",
+      "description": "Guides Laravel PHP applications: Eloquent, queues, Blade, Livewire, Pennant and Pest. Use when writing, reviewing, debugging or upgrading Laravel code, a page fires too many queries, a queued job runs",
       "source": "./",
       "strict": false,
       "skills": [
@@ -280,7 +280,7 @@
     },
     {
       "name": "linux-ops",
-      "description": "Operates Linux hosts with systemd, permissions, networking, storage and backup recovery.",
+      "description": "Operates Linux servers: systemd services, permissions, disks, networking, firewalls and restores. Use when a service works in a shell but fails under systemd, a disk stays full after deleting files, D",
       "source": "./",
       "strict": false,
       "skills": [
@@ -289,7 +289,7 @@
     },
     {
       "name": "mcp-server",
-      "description": "Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'.",
+      "description": "Designs and builds your own MCP servers: tools, transports, auth; not using or installing others'. Use when writing or reviewing an MCP server with FastMCP or an official SDK, naming tools and writing",
       "source": "./",
       "strict": false,
       "skills": [
@@ -298,7 +298,7 @@
     },
     {
       "name": "media-processing",
-      "description": "Processes existing video, audio and images with ffmpeg and deterministic image tools.",
+      "description": "Processes existing video, audio and images with ffmpeg, libvips, sharp, ImageMagick or Pillow. Use when transcoding, cutting or concatenating video, normalising loudness, packaging HLS or DASH, extrac",
       "source": "./",
       "strict": false,
       "skills": [
@@ -307,7 +307,7 @@
     },
     {
       "name": "ml-training",
-      "description": "Trains and fine-tunes model weights with LoRA, distributed training and GPU optimization.",
+      "description": "Fine-tunes and trains model weights with LoRA, QLoRA, SFT, DPO, distributed training and GPUs. Use when a training run hits CUDA out of memory, a transformers or TRL script breaks after an upgrade, ch",
       "source": "./",
       "strict": false,
       "skills": [
@@ -316,7 +316,7 @@
     },
     {
       "name": "model-serving",
-      "description": "Benchmarks and tunes deployed LLM inference servers for latency, throughput and capacity",
+      "description": "Tunes deployed LLM inference servers (vLLM, SGLang, TensorRT-LLM) for latency and throughput. Use when TTFT or p99 latency regresses, a benchmark disagrees with production, sizing GPUs or replicas for",
       "source": "./",
       "strict": false,
       "skills": [
@@ -325,7 +325,7 @@
     },
     {
       "name": "mongodb",
-      "description": "Designs and tunes MongoDB documents, aggregations, indexes and cluster operations.",
+      "description": "Designs and tunes MongoDB document models, aggregation pipelines, indexes and sharding. Use when designing or reviewing a MongoDB collection or pipeline, explain shows COLLSCAN or an in-memory SORT, d",
       "source": "./",
       "strict": false,
       "skills": [
@@ -334,7 +334,7 @@
     },
     {
       "name": "nodejs-backend",
-      "description": "Builds Node.js HTTP services with Fastify, NestJS, Hono or Express.",
+      "description": "Guides Node.js backend services built on Fastify, NestJS, Hono or Express. Use when writing, reviewing or hardening a Node.js HTTP service or moving one off Express, or a service leaks stack traces, d",
       "source": "./",
       "strict": false,
       "skills": [
@@ -343,7 +343,7 @@
     },
     {
       "name": "observability",
-      "description": "Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts.",
+      "description": "Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts. Use when adding OpenTelemetry instrumentation or spans, editing an OTel Collector config, metric cardinality o",
       "source": "./",
       "strict": false,
       "skills": [
@@ -352,7 +352,7 @@
     },
     {
       "name": "office",
-      "description": "Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets.",
+      "description": "Creates, edits and converts local Word, PowerPoint, Excel and PDF files; not Google Docs or Sheets. Use when a deliverable or input is .docx, .pptx, .xlsx or .pdf: reports, decks, spreadsheets with fo",
       "source": "./",
       "strict": false,
       "skills": [
@@ -361,7 +361,7 @@
     },
     {
       "name": "planning",
-      "description": "Turns requirements into executable plans with dependencies and verifiable acceptance criteria.",
+      "description": "Turns vague software requests into executable plans with dependencies and acceptance criteria. Use when a request is too vague to start, work spans several subsystems or sessions, someone else will ex",
       "source": "./",
       "strict": false,
       "skills": [
@@ -370,7 +370,7 @@
     },
     {
       "name": "postgres",
-      "description": "Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations.",
+      "description": "Designs and tunes PostgreSQL schemas, SQL queries, indexes, locks, vacuum and connection pooling. Use when writing or reviewing a Postgres schema, migration or query, a query got slow or EXPLAIN shows",
       "source": "./",
       "strict": false,
       "skills": [
@@ -379,7 +379,7 @@
     },
     {
       "name": "python",
-      "description": "Develops Python code with uv, pytest, typing, asyncio and packaging.",
+      "description": "Guides the Python language and toolchain: uv, ruff, pyproject.toml, pytest, typing, asyncio. Use when writing, typing, testing or packaging Python code, editing pyproject.toml or uv.lock, or a test pa",
       "source": "./",
       "strict": false,
       "skills": [
@@ -388,7 +388,7 @@
     },
     {
       "name": "react",
-      "description": "Develops React and Next.js web applications, components and server rendering.",
+      "description": "Develops React and Next.js App Router web applications, components and server rendering. Use when editing .jsx or .tsx components, hooks, Server Components or app/ routes, fixing a hydration mismatch,",
       "source": "./",
       "strict": false,
       "skills": [
@@ -397,7 +397,7 @@
     },
     {
       "name": "react-native",
-      "description": "Develops React Native and Expo mobile apps, navigation and native integrations.",
+      "description": "Develops React Native and Expo mobile apps, navigation and native integrations. Use when a task involves Expo, EAS Build or Update, Metro, Hermes, FlashList, TurboModules or expo-router, a pod install",
       "source": "./",
       "strict": false,
       "skills": [
@@ -406,7 +406,7 @@
     },
     {
       "name": "redis",
-      "description": "Designs and operates Redis data structures, caching, streams and clusters.",
+      "description": "Designs and operates Redis data structures, keys and TTLs, caching, locks, streams and clusters. Use when adding a cache, lock, rate limiter or queue on Redis, keys disappear or writes fail with OOM, ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -415,7 +415,7 @@
     },
     {
       "name": "rust",
-      "description": "Develops Rust code with ownership, lifetimes, async, Cargo and safe FFI.",
+      "description": "Guides Rust code across ownership, async cancellation, unsafe/FFI and Cargo features. Use when editing .rs or Cargo.toml, fixing borrow-checker or non-Send future errors, losing work inside select!, r",
       "source": "./",
       "strict": false,
       "skills": [
@@ -424,7 +424,7 @@
     },
     {
       "name": "security-review",
-      "description": "Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks.",
+      "description": "Audits source code for security vulnerabilities, access-control flaws and trust-boundary risks. Use when asked for a security review, audit or threat model of a repository, service or feature, hunting",
       "source": "./",
       "strict": false,
       "skills": [
@@ -433,7 +433,7 @@
     },
     {
       "name": "skill-authoring",
-      "description": "Authors, reviews and evaluates Agent Skills and their SKILL.md files.",
+      "description": "Authors, reviews and evaluates Agent Skills and their SKILL.md files. Use when creating or rewriting a skill, fixing a skill description that never triggers, splitting an overgrown SKILL.md into refer",
       "source": "./",
       "strict": false,
       "skills": [
@@ -442,7 +442,7 @@
     },
     {
       "name": "solidity-web3",
-      "description": "Develops and audits Solidity smart contracts with Foundry security testing.",
+      "description": "Writes and audits Solidity EVM smart contracts defensively with Foundry and Slither. Use when editing .sol files or foundry.toml, reviewing a contract for reentrancy, oracle or access-control bugs, pl",
       "source": "./",
       "strict": false,
       "skills": [
@@ -451,7 +451,7 @@
     },
     {
       "name": "sqlite",
-      "description": "Designs and operates embedded SQLite databases, transactions, WAL and backups.",
+      "description": "Designs and operates embedded SQLite database files, transactions, WAL, migrations and backups. Use when code opens a local .db or .sqlite file, a write hits SQLITE_BUSY or database is locked, a copie",
       "source": "./",
       "strict": false,
       "skills": [
@@ -460,7 +460,7 @@
     },
     {
       "name": "supabase",
-      "description": "Builds Supabase applications with Auth, RLS, Storage, Realtime and Edge Functions.",
+      "description": "Builds Supabase apps with Auth, RLS policies, Storage, Realtime, Edge Functions and the CLI. Use when code uses supabase-js or @supabase/ssr, a policy using auth.uid() returns no rows through the clie",
       "source": "./",
       "strict": false,
       "skills": [
@@ -469,7 +469,7 @@
     },
     {
       "name": "svelte",
-      "description": "Develops Svelte and SvelteKit applications with runes, routing and server data flows.",
+      "description": "Develops Svelte 5 and SvelteKit applications with runes, routing and server data flows. Use when editing .svelte or .svelte.ts files, +page, +layout or +server routes, load functions or form actions, ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -478,7 +478,7 @@
     },
     {
       "name": "tauri",
-      "description": "Builds Tauri apps with Rust IPC, capabilities, plugins and desktop packaging.",
+      "description": "Builds Tauri v2 desktop apps with Rust IPC, capabilities, plugins and packaging. Use when editing src-tauri, tauri.conf.json, capabilities/*.json or invoke() calls, when a command or plugin call is de",
       "source": "./",
       "strict": false,
       "skills": [
@@ -487,7 +487,7 @@
     },
     {
       "name": "technical-writing",
-      "description": "Writes and audits READMEs, guides, reference docs, changelogs; not site generators, profile READMEs.",
+      "description": "Writes and audits READMEs, guides, reference docs, changelogs; not site builders, profile READMEs. Use when writing or fixing a README, tutorial, how-to, reference page, ADR or CHANGELOG, checking doc",
       "source": "./",
       "strict": false,
       "skills": [
@@ -496,7 +496,7 @@
     },
     {
       "name": "terraform",
-      "description": "Manages infrastructure as code with Terraform or OpenTofu modules, state and providers.",
+      "description": "Writes and refactors Terraform and OpenTofu HCL: modules, state, providers and tests. Use when writing or reviewing .tf, .tfvars or .tftest.hcl files, a plan wants to destroy something that was only r",
       "source": "./",
       "strict": false,
       "skills": [
@@ -505,7 +505,7 @@
     },
     {
       "name": "test-driven-development",
-      "description": "Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config.",
+      "description": "Drives features and bug fixes test-first and reviews tests; not CI, build or test-runner config. Use when implementing a feature, fixing a bug whose expected behaviour is known, adding a regression te",
       "source": "./",
       "strict": false,
       "skills": [
@@ -514,7 +514,7 @@
     },
     {
       "name": "typescript",
-      "description": "Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components.",
+      "description": "Designs TypeScript types, fixes type errors and configures tsconfig builds; not React components. Use when modelling a domain in types, replacing any or as casts, migrating tsconfig or module resoluti",
       "source": "./",
       "strict": false,
       "skills": [
@@ -523,7 +523,7 @@
     },
     {
       "name": "unity",
-      "description": "Develops Unity games with C#, engine APIs, rendering and asset workflows.",
+      "description": "Guides Unity 6 game development in C#: MonoBehaviours, serialization, URP and builds. Use when editing .cs under Assets/, .asmdef files, prefabs or ScriptableObjects, a serialized field silently reset",
       "source": "./",
       "strict": false,
       "skills": [
@@ -532,7 +532,7 @@
     },
     {
       "name": "unreal",
-      "description": "Develops Unreal Engine gameplay with C++, Blueprints and engine APIs.",
+      "description": "Guides Unreal Engine 5 gameplay in C++ and Blueprints: reflection, actors and replication. Use when editing .h/.cpp with UCLASS or GENERATED_BODY, a .Build.cs or .uproject, a UObject is garbage-collec",
       "source": "./",
       "strict": false,
       "skills": [
@@ -541,7 +541,7 @@
     },
     {
       "name": "vue",
-      "description": "Develops Vue and Nuxt applications with Composition API, Pinia and routing.",
+      "description": "Develops Vue 3 and Nuxt web applications with the Composition API, Pinia and Vue Router. Use when editing .vue files, composables, Pinia stores, router guards or Nuxt pages, or when a value changes bu",
       "source": "./",
       "strict": false,
       "skills": [
@@ -550,7 +550,7 @@
     },
     {
       "name": "web-testing",
-      "description": "Tests web applications in real browsers with Playwright end-to-end automation.",
+      "description": "Tests web applications in real browsers with Playwright end-to-end automation. Use when writing *.spec.ts files, playwright.config.ts or an e2e CI job, when a browser test is flaky or times out, when ",
       "source": "./",
       "strict": false,
       "skills": [
@@ -559,7 +559,7 @@
     },
     {
       "name": "wechat-miniprogram",
-      "description": "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro.",
+      "description": "Develops WeChat Mini Programs with WXML, WXSS, Skyline, uni-app and Taro. Use when editing .wxml, .wxss, .wxs, app.json, project.config.json or uni-app pages.json, when setData makes a mini program st",
       "source": "./",
       "strict": false,
       "skills": [
