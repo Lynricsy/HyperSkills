@@ -418,3 +418,16 @@ medium，隔离 VM，`--out /tmp/hs-d2/G12-meta`，单场景串行；有 skill �
 
 依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
 路由对照：本 skill 在抽样内，结果见下节。
+
+### 抽样路由对照（2026-11-04）
+
+方法：`docs/workflow.md`「本地 description 维护」。隔离 VM（镜像内 omp 18.8.7 + `openai/gpt-6.1-sol` medium），每次只挂载本 skill，每个场景旧、新描述各跑 1 次，只看 `skill_read`，不评答案。旧描述取改写前快照 `/tmp/hs-desc-20261104/old-skills`，产物在 `/tmp/hs-desc-20261104/{old,new}`。VM 无 Anthropic 凭据，未能用 Claude 测。VM 每次都是新会话，omp 只渲染约 100 字符的预览（按 2026-10-15 记录，18.8.7 在词边界截断），模型看到的是新描述的首句和 `Use when` 开头的几个词，`Use when` 层整体没有被测到 `[INFERENCE：事件流不含系统提示，依据 omp 源码与既有记录]`。
+
+| 场景 | 类型 | 内容 | 旧描述 | 新描述 |
+|---|---|---|---|---|
+| 1 | 正例 | Our README has turned into the only doc anyone maintains and it's now … | 读取 | 读取 |
+| 2 | 正例 | Three people in a row have told us they gave up on our getting-started… | 读取 | 读取 |
+| 5 | 负例 | Our docs are plain Markdown in docs/ and people read them on the forge… | 读取 | 读取 |
+| 10 | 负例 | I want to redo my GitHub profile README — the one in the repo named af… | 读取 | 未读 |
+
+结论：正例读取 2/2 → 2/2；负例误读 2/2 → 1/2。每格只跑 1 次，只能说明没有明显回退，不能证明新写法更好。
