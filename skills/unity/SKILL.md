@@ -1,10 +1,10 @@
 ---
 name: unity
-description: "Develops Unity games with C#, engine APIs, rendering and asset workflows."
+description: "Guides Unity 6 game development in C#: MonoBehaviours, serialization, URP and builds. Use when editing .cs under Assets/, .asmdef files, prefabs or ScriptableObjects, a serialized field silently resets, GC spikes show in the Profiler, a material breaks the SRP Batcher, or a batch-mode IL2CPP build fails in CI."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
