@@ -527,3 +527,11 @@ D1场景没有读取cloudflare skill正文，而是查询Cloudflare文档并读�
 | 其余 13 条 | 上次复核表所列事实 | 各页最后更新均早于 2026-10-15 | 页面未变，结论沿用 2026-10-15 |
 
 18 条全部一致，正文未改，所有 `kind: docs` 条目 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs and operates embedded SQLite databases, transactions, WAL and backups.`  
+新：`Designs and operates embedded SQLite database files, transactions, WAL, migrations and backups. Use when code opens a local .db or .sqlite file, a write hits SQLITE_BUSY or database is locked, a copied backup loses committed data, a table-rebuild migration breaks foreign keys, or EXPLAIN QUERY PLAN shows a scan.`（首句 95 字符，全长 313 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

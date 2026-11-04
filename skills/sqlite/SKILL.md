@@ -1,10 +1,10 @@
 ---
 name: sqlite
-description: "Designs and operates embedded SQLite databases, transactions, WAL and backups."
+description: "Designs and operates embedded SQLite database files, transactions, WAL, migrations and backups. Use when code opens a local .db or .sqlite file, a write hits SQLITE_BUSY or database is locked, a copied backup loses committed data, a table-rebuild migration breaks foreign keys, or EXPLAIN QUERY PLAN shows a scan."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
