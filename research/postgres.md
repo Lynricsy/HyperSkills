@@ -503,3 +503,11 @@ SOURCES.yaml 中 prisma 的 paths 更正，本次复核属实后保留并补全�
 | 4 负例（Supabase dashboard） | gpt-6.1-sol medium | 有（挂载） | **true** | 回答内容未滑向 PG 调优（Supabase 身份/日志/策略排查） | 47.7 s。负例误读：description 今天未改，属既有路由问题，如实记录，本轮不改 description |
 
 结论：更正为版本状态措辞，有 skill 与基线均 3/3，无回退（场景 6 留作哨兵）；负例 skill_read 为 true，交主人按 description 维护流程处理。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations.`  
+新：`Designs and tunes PostgreSQL schemas, SQL queries, indexes, locks, vacuum and connection pooling. Use when writing or reviewing a Postgres schema, migration or query, a query got slow or EXPLAIN shows a sequential scan, writes block on locks or a table bloats, or PgBouncer breaks prepared statements, including adding a column or index to a live table.`（首句 97 字符，全长 353 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

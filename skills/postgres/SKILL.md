@@ -1,10 +1,10 @@
 ---
 name: postgres
-description: "Designs and tunes PostgreSQL schemas, queries, indexes, transactions and operations."
+description: "Designs and tunes PostgreSQL schemas, SQL queries, indexes, locks, vacuum and connection pooling. Use when writing or reviewing a Postgres schema, migration or query, a query got slow or EXPLAIN shows a sequential scan, writes block on locks or a table bloats, or PgBouncer breaks prepared statements, including adding a column or index to a live table."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
