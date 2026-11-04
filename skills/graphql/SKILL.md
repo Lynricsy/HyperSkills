@@ -1,10 +1,10 @@
 ---
 name: graphql
-description: "Designs GraphQL schemas, operations, resolvers, federation and query controls."
+description: "Designs GraphQL schemas, operations, resolvers, federation and query cost controls. Use when editing .graphql SDL or resolvers, a query returns null data or fires hundreds of database calls, writing queries, mutations or fragments, adding a federated subgraph, or deprecating a field without breaking clients."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 

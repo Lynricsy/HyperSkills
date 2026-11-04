@@ -518,3 +518,11 @@ graphql-hive-tooling 用 `gh api repos/<o>/<r>/compare/<pinned>...<head>` 取 pa
 
 结论：更正后的 Yoga 6 事实（屏蔽默认开、`isDev`、`batching` 为内置选项且 `true` 时上限 10）在有 skill 一侧全部体现，未见回退；
 与基线基本持平（有 skill 多出「原始错误只留服务端日志」半条），说明这组事实模型实跑即可得到，场景 8 作回归哨兵。负例 skill_read 为 false。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Designs GraphQL schemas, operations, resolvers, federation and query controls.`  
+新：`Designs GraphQL schemas, operations, resolvers, federation and query cost controls. Use when editing .graphql SDL or resolvers, a query returns null data or fires hundreds of database calls, writing queries, mutations or fragments, adding a federated subgraph, or deprecating a field without breaking clients.`（首句 83 字符，全长 309 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
