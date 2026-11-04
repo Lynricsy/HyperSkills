@@ -1,10 +1,10 @@
 ---
 name: data-analysis
-description: "Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions."
+description: "Analyzes tabular data from CSV, Parquet or dataframes with pandas, Polars and DuckDB. Use when totals do not reconcile, a join duplicates rows, comparing groups or trends, a metric's grain or denominator matters, timezones shift daily counts, or a file is too large to load into memory, including a quick one-off pandas answer."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

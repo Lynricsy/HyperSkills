@@ -489,3 +489,11 @@ blobless 归因确有 2 个提交命中 paths。用其裸仓库缓存 `/tmp/hs-a
 | scipy-ttest | `equal_var=False` 为 Welch、统计量方向 mean(a)−mean(b)、`nan_policy`、`confidence_interval` | https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html | 一致（页面仍为 v1.18.0） |
 
 10 条全部一致。各 reference 顶部的「Verified against」行（pandas 3.0.6、Polars 2.0.0、DuckDB 1.5.6）是当时的核对记录，本轮在新版本上复跑未发现语义变化，正文不改；所有 `kind: docs` 条目 `synced_at` 更新为 2026-11-01。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Analyzes tabular datasets with pandas, Polars and DuckDB for reliable conclusions.`  
+新：`Analyzes tabular data from CSV, Parquet or dataframes with pandas, Polars and DuckDB. Use when totals do not reconcile, a join duplicates rows, comparing groups or trends, a metric's grain or denominator matters, timezones shift daily counts, or a file is too large to load into memory, including a quick one-off pandas answer.`（首句 85 字符，全长 327 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
