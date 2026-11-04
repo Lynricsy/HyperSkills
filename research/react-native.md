@@ -331,3 +331,11 @@ README（新见 LambdaTest `detox-skill`）；`github/awesome-copilot` 区间 3c
 | 5（负例） | openai/gpt-6.1-sol medium | 有 | false | ✔ | Next.js 搜索面板，未读本 skill |
 
 结论：更正内容被正确使用，未出现回归；场景 7 两侧都达成（基线会联网查文档），不构成新增规则的缺口证据，本轮也只是事实更正。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops React Native and Expo mobile apps, navigation and native integrations.`  
+新：`Develops React Native and Expo mobile apps, navigation and native integrations. Use when a task involves Expo, EAS Build or Update, Metro, Hermes, FlashList, TurboModules or expo-router, a pod install failure, or a React Native or Expo SDK upgrade.`（首句 79 字符，全长 248 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

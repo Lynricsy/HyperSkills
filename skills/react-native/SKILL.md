@@ -1,10 +1,10 @@
 ---
 name: react-native
-description: "Develops React Native and Expo mobile apps, navigation and native integrations."
+description: "Develops React Native and Expo mobile apps, navigation and native integrations. Use when a task involves Expo, EAS Build or Update, Metro, Hermes, FlashList, TurboModules or expo-router, a pod install failure, or a React Native or Expo SDK upgrade."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
