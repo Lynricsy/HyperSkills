@@ -1,10 +1,10 @@
 ---
 name: android
-description: "Develops native Android apps with Kotlin, Jetpack Compose and Gradle."
+description: "Develops native Android apps with Kotlin, Jetpack Compose and Gradle. Use when editing build.gradle.kts, libs.versions.toml, AndroidManifest.xml or Compose screens, chasing recomposition, janky LazyColumn scrolling or slow cold start, writing R8 keep rules, or sharing code via Kotlin Multiplatform."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 

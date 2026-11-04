@@ -554,3 +554,11 @@ kotlinlang.org 同法。
 
 结论：`testing.md` 更正在有 skill 时按新正文落地（场景 10 全部达成，不比基线差；基线靠联网读官方页面同样达成，属消除过时陈述）。
 场景 11、12 基线全部达成，上游 adaptive 状态保存与 ANR 审计内容不合入，两场景留作哨兵。负例 `skill_read == false`。各场景 1 次运行。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops native Android apps with Kotlin, Jetpack Compose and Gradle.`  
+新：`Develops native Android apps with Kotlin, Jetpack Compose and Gradle. Use when editing build.gradle.kts, libs.versions.toml, AndroidManifest.xml or Compose screens, chasing recomposition, janky LazyColumn scrolling or slow cold start, writing R8 keep rules, or sharing code via Kotlin Multiplatform.`（首句 69 字符，全长 299 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
