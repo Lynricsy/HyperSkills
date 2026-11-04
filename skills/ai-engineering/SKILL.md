@@ -1,10 +1,10 @@
 ---
 name: ai-engineering
-description: "Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning."
+description: "Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning. Use when code calls the OpenAI, Anthropic or Gemini SDK, a RAG bot answers from the wrong source, structured output fails to parse, an agent loops or overspends, a tool result could inject instructions, or an eval never fails, including a one-line system prompt change."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

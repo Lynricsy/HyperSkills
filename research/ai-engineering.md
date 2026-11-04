@@ -491,3 +491,11 @@ openai-agents-python（7b27134 → 3590e5d）、github-awesome-copilot（997e95a
 | 5 负例（pgvector HNSW） | gpt-6.1-sol medium | 有 | **false** | ✔1 ◐2 ✔3 | 49 s。未读 skill；按索引问题作答（`ef_search` 默认 40、`m`/`ef_construction`、`EXPLAIN (ANALYZE, BUFFERS)` 查缓存压力），但把 `maintenance_work_mem` 溢出只当构建慢、未开出重建处方 |
 
 结论：12 小时档的更正不误导（11 两侧 3/3，基线靠联网查文档也能做到——此场景为回归覆盖，不要求缺口）；9 持平，未见回退。负例 5 本轮未误读（10-15 描述维护后的首次 D2 负例通过）。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning.`  
+新：`Builds LLM apps: prompts, tool-using agents, RAG context and evals; not vector-index tuning. Use when code calls the OpenAI, Anthropic or Gemini SDK, a RAG bot answers from the wrong source, structured output fails to parse, an agent loops or overspends, a tool result could inject instructions, or an eval never fails, including a one-line system prompt change.`（首句 92 字符，全长 362 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
