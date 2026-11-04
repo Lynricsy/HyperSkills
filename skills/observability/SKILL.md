@@ -1,10 +1,10 @@
 ---
 name: observability
-description: "Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts."
+description: "Instruments production systems with OpenTelemetry traces, metrics, logs, SLOs and alerts. Use when adding OpenTelemetry instrumentation or spans, editing an OTel Collector config, metric cardinality or telemetry cost explodes, writing alert rules, SLOs or burn-rate alerts, or investigating an issue seen only in production logs, metrics or traces."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
