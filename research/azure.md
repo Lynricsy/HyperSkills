@@ -535,3 +535,11 @@ NAT 给无公网 IP 的 VM 出站；Dsv5 预留不跟到 Dasv5 需重算；删�
 正文里原本错误或不完整的陈述（`guid(scopeId, principalId, …)` 对同文件 identity 会 BCP120、「NAP usually beats autoscaler」与 `az aks stop` 并列、
 「Supported stacks」缺 Go、`az costmanagement query` 已不存在）。负例通过。遗留：场景 1 有 skill 仍漏 EB5（`use-recent-api-versions` 默认关闭）与
 EB8 的 location/AVM 部分——与本轮更正无关，各场景只跑 1 次。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL.`  
+新：`Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL. Use when reading or writing .bicep, .bicepparam or azure.yaml, an az deployment or azd up fails, a role assignment or managed identity does not grant access, or choosing between App Service, Container Apps, Functions and AKS.`（首句 97 字符，全长 323 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

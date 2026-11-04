@@ -1,10 +1,10 @@
 ---
 name: azure
-description: "Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL."
+description: "Manages Azure architecture, Bicep deployments, identity and cloud services; not Terraform or HCL. Use when reading or writing .bicep, .bicepparam or azure.yaml, an az deployment or azd up fails, a role assignment or managed identity does not grant access, or choosing between App Service, Container Apps, Functions and AKS."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: platform
 ---
 
