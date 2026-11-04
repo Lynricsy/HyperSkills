@@ -665,14 +665,14 @@ hyperskills-self 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 patch；me
   - `SOURCES.yaml`：新增 `claude-prompting-best-practices`（docs，merged）、`scottspence-skill-activation`（docs，reference，许可 NONE）、
     `oh-my-pi-skill-descriptions`（repo，MIT，pin `fa0469c`）。未用 `tools/check_upstream.py --pin`：该命令按 id 把本 skill 所有 repo 条目的 commit 与 synced_at
     一并改到当前 HEAD，会改动未复核的既有 pin，故 commit 取自 `gh api repos/can1357/oh-my-pi/commits/HEAD`。
-- **D — 未做**：本轮未跑 D2 回归评测；场景 1–3 新期望的有 / 无 skill 结果待 Main 统一评测后补记。
+- **D — 见下文「D2 回归」**：本轮正文与 references 有改动，按 `docs/workflow.md` 完整 D2 对场景 1–3 补跑无 skill 基线并逐条判定。
 
 ## 2026-11-04 description 维护（两层写法）
 
 旧：`Authors, reviews and evaluates Agent Skills and their SKILL.md files.`  
 新：`Authors, reviews and evaluates Agent Skills and their SKILL.md files. Use when creating or rewriting a skill, fixing a skill description that never triggers, splitting an overgrown SKILL.md into references/, writing evals for a skill, or publishing a skill repository.`（首句 69 字符，全长 268 字符）
 
-依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。本 skill 同时改了正文、references 与评测期望（见上节 C），因此除路由抽样外另做完整 D2 回归（见下）；上游 pin 只新增 `oh-my-pi-skill-descriptions`，既有 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
 路由对照：本 skill 在抽样内，结果见下节。
 
 ### 抽样路由对照（2026-11-04）
@@ -688,15 +688,25 @@ hyperskills-self 用 `gh api .../compare/<旧pin>...<审阅HEAD>` 读 patch；me
 
 结论：正例读取 2/2 → 2/2；负例误读 0/1 → 0/1。每格只跑 1 次，只能说明没有明显回退，不能证明新写法更好。
 
-### D2 回归（2026-11-04，场景 1–3 的 description 期望已改为两层写法）
+### D2 回归（2026-11-04，正文改动后；场景 1–3 的 description 期望已改为两层写法）
 
-| 场景 | 模型 | 有/无 skill | skill_read | description 期望 | 备注 |
-|---|---|---|---|---|---|
-| 1 widget-builder 评审 | gpt-6.1-sol medium | 有（旧正文） | True | ✘（新期望） | 给出单句 `Builds React and TypeScript UI widgets with the @acme/widgets design system.`，符合旧规范 |
-| 1 widget-builder 评审 | gpt-6.1-sol medium | 有（新正文） | True | ✔ | 首句同上，后接 `Use when adding or changing src/components/*.tsx …, including one-line component fixes.` |
-| 2 GraphQL 网关 skill 从零写 | gpt-6.1-sol medium | 有（新正文） | True | ◐ | 说要写「会加载本 skill 的具体情境」并列出四类，但没有给出成句的 description |
-| 3 release-notes 描述修复 | gpt-6.1-sol medium | 有（新正文） | True | ✔ | `Writes release notes and changelog entries from merged pull requests and commits. Use when preparing release notes, editing CHANGELOG.md, …, including a one-line changelog entry.`，并说明首句在截断后仍可路由 |
+同配置：隔离 VM，omp 18.8.7 + `openai/gpt-6.1-sol` medium。无 skill 基线 `--baseline`（`--no-skills`），产物
+`/tmp/hs-desc-20261104/d2/skill-authoring/omp-openai-gpt-6.1-sol-medium/baseline/{1,2,3}`；有 skill 用新正文，产物
+`/tmp/hs-desc-20261104/new/skill-authoring/omp-openai-gpt-6.1-sol-medium/skill/{1,2,3}`。每格 1 次，逐条人工判定
+（✔ 达成 / ◐ 部分 / ✘ 未达成）。
 
-旧正文一侧只有场景 1、2 的产物（路由抽样的副产品），场景 3 没有旧正文的运行；无 skill 基线没有重跑。
-上述结果只能说明新正文改变了模型给出的 description 形态，不是完整的 D2 评分（其余期望未逐条判定）。
-产物：`/tmp/hs-desc-20261104/{old,new}/skill-authoring/`。
+| 场景 | 有/无 skill | skill_read | EB1 | EB2 | EB3 | EB4 | EB5 | EB6 | EB7 | 备注 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 widget-builder 评审 | 无 | False | ✔ | ✔ | ◐ | ✔ | ✔ | ✔ | ✔ | 140 s。EB1 基线已给出两层描述（`Builds and updates React/TypeScript UI components using the @acme/widgets design system. Use when …`）。EB3 把 `${CLAUDE_PLUGIN_ROOT}` 换成另一个宿主变量 `${CLAUDE_SKILL_DIR}`，并把 `` !`cat …` `` 动态注入列为可选做法，没有落到纯相对路径 + 任务时读取 |
+| 1 | 有 | True | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | 两层描述（首句 76 字符，`… including one-line component fixes.`）；生成器改为相对 skill 目录的 `scripts/new_widget.py` + `python3`，注入行改为「先读 `src/registry.json`」；另区分了选择失败与激活失败 |
+| 2 GraphQL 网关 skill | 无 | False | ✘ | ✘ | ✔ | ✘ | ◐ | ◐ | — | 43 s。验证放在写完之后（第 5 步），没有先跑无 skill 任务，也没有先写评测与近似负例；不给 description；references 只说「focused reference files」，无 read-when / 一层；脚本条件是「现有工具有缺口」而非「反复重写同一段代码」 |
+| 2 | 有 | True | ✔ | ✔ | ✔ | ◐ | ✔ | ✔ | — | 先测无 skill 失败、再写含近似负例的评测；列出应触发的四类情境，但没有给出成句的两层 description；script 以「observed repeated work」为条件 |
+| 3 release-notes 描述 | 无 | False | ◐ | ✘ | ◐ | ✔ | ✔ | ✔ | — | 30 s。描述为两层但首句用祈使式 `Draft, update, and review …`（非第三人称）；未提宿主截断与前置关键词；有标注集但未给约 20 条的规模 |
+| 3 | 有 | True | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | — | `Writes release notes and changelog entries from merged pull requests and commits. Use when …, including a one-line changelog entry.`；说明首句在截断后仍可路由；约 20 条、60/40 留出、重复运行 |
+
+**通过**：基线未达成或部分达成、有 skill 时达成的条目——场景 1 EB3；场景 2 EB1、EB2、EB5、EB6；场景 3 EB1、EB2、EB3。
+无退化（有 skill 一侧没有比基线差的条目）。
+**非区分项**：场景 1 的 EB1、EB2、EB4–EB7，场景 2 的 EB3，场景 3 的 EB4–EB6 在基线下已经达成，只能说明模型本身会做，不能用来证明正文的价值。新的两层描述期望（场景 1 EB1）属于这一类：GPT-6.1 Sol 不读 skill 也会写出两层描述。
+**未达成项**：场景 2 EB4 两侧都没有给出成句的 description，是题面（「只要操作顺序」）与期望之间的张力，不是本次改动造成的。
+
+参照：改写前正文的有 skill 运行（路由抽样的副产品，`/tmp/hs-desc-20261104/old/...`）在场景 1 只给了单句描述，说明 EB1 在有 skill 一侧的变化来自新正文。
