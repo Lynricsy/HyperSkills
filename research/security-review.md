@@ -588,3 +588,11 @@ c5b0249 只动 research / SOURCES。
 | 9 | gpt-6.1-sol medium | 有 | True | 1✔ 2✔ 3✔ 4✔ | 116 s。另报 `tenant_slug` 由模型参数决定（跨租户 + 绝对路径/`..` 逃逸）；前缀包含越权用 `os.path.commonpath` 修；重定向绕过白名单并用 requests 真实重定向逻辑在内存传输里实测 `X-Api-Key` 被转发；4：Windows 保留设备名、NTFS 备用数据流、盘符相对路径、结尾句点/空格四类全部点名，并写「Reject special components explicitly」，但仍放在「需验证」表（无 Windows 运行环境） |
 
 结论：场景 9 期望 4 本次达成（比 10-15 的 ◐ 多给了明确的拒绝规则），暂无需把该规则提到 `SKILL.md`；仍只有 2 次有 skill 运行，下轮可再观察。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks.`  
+新：`Audits source code for security vulnerabilities, access-control flaws and trust-boundary risks. Use when asked for a security review, audit or threat model of a repository, service or feature, hunting IDOR, injection, SSRF or cross-tenant access, triaging scanner or semgrep output, or a secret was committed.`（首句 95 字符，全长 309 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

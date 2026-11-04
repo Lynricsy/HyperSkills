@@ -1,10 +1,10 @@
 ---
 name: security-review
-description: "Audits codebases for security vulnerabilities, access-control flaws and trust-boundary risks."
+description: "Audits source code for security vulnerabilities, access-control flaws and trust-boundary risks. Use when asked for a security review, audit or threat model of a repository, service or feature, hunting IDOR, injection, SSRF or cross-tenant access, triaging scanner or semgrep output, or a secret was committed."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 
