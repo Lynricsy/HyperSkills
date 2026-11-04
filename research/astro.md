@@ -146,3 +146,11 @@ pin 后逐条核对：写入的 commit 均等于审阅时的 HEAD（`d94e841`、
 | 5（新增） | gpt-6.1-sol medium | 有 | True | EB1 ✔ EB2 ✔ EB3 ✔ EB4 ✔ | 35 s。「Astro 7 skips these loader-less collections … without failing the build」；`glob()` 修法、Node ≥22.23.4，未推荐 `collectionsBackwardsCompat` |
 
 结论：EB1（本次更正的核心事实）基线 ◐ → 有 skill ✔，更正被行为证据覆盖；Node 下限两侧都达成（基线直接读了日志里的 engines）。上段遗留关闭。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Builds Astro sites with islands, content collections and server rendering.`  
+新：`Builds Astro sites with islands, content collections, actions and server rendering. Use when editing .astro files, astro.config.mjs or src/content.config.ts, choosing client:* or server:defer, upgrading Astro, or cutting shipped JavaScript, including output mode, adapter and astro:actions form questions.`（首句 83 字符，全长 305 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

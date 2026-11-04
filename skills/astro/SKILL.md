@@ -1,10 +1,10 @@
 ---
 name: astro
-description: "Builds Astro sites with islands, content collections and server rendering."
+description: "Builds Astro sites with islands, content collections, actions and server rendering. Use when editing .astro files, astro.config.mjs or src/content.config.ts, choosing client:* or server:defer, upgrading Astro, or cutting shipped JavaScript, including output mode, adapter and astro:actions form questions."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
