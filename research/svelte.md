@@ -469,3 +469,11 @@ B 类（`svelte-ai-tools`、`sv-cli` paths_unchanged，`awesome-copilot` 主代�
 
 结论：改动相关行为在 2、3、7、9、10 上均不比基线差（2：4✔ 对 3✔；其余持平），与 2026-10-15 同场景结果一致，无退化；负例 `skill_read=false`。
 新增场景 9、10 基线已会，作为 3.x 表单与测试文件名更正的回归哨兵保留。场景 2、3 两侧都保留 legacy 语法（夹具无 package.json），非本次改动所致。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Svelte and SvelteKit applications with runes, routing and server data flows.`  
+新：`Develops Svelte 5 and SvelteKit applications with runes, routing and server data flows. Use when editing .svelte or .svelte.ts files, +page, +layout or +server routes, load functions or form actions, when $state or $derived does not update, or when migrating Svelte 4 stores and slots to runes and snippets.`（首句 87 字符，全长 307 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

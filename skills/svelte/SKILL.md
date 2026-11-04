@@ -1,10 +1,10 @@
 ---
 name: svelte
-description: "Develops Svelte and SvelteKit applications with runes, routing and server data flows."
+description: "Develops Svelte 5 and SvelteKit applications with runes, routing and server data flows. Use when editing .svelte or .svelte.ts files, +page, +layout or +server routes, load functions or form actions, when $state or $derived does not update, or when migrating Svelte 4 stores and slots to runes and snippets."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
