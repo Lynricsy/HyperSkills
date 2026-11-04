@@ -401,3 +401,11 @@ shshohagh、abdallhMoukdad 等）不重复讨论。
 
 结论：更正相关的 EB1 有 skill 达成，且不差于基线（基线靠联网查到同一官方表）；EB4 有 skill 比基线多了分支/干净工作区/先跑基线三点，
 两侧都缺「逐项提交」。负例 `skill_read=false`。场景 7（签名 URL）只跑了基线，见「上游新增内容评估」，正文未因它改动，作哨兵保留。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire.`  
+新：`Guides Laravel PHP applications: Eloquent, queues, Blade, Livewire, Pennant and Pest. Use when writing, reviewing, debugging or upgrading Laravel code, a page fires too many queries, a queued job runs twice or loses work, a Pest test depends on run order, or Artisan, Eloquent or Livewire appears in the task.`（首句 85 字符，全长 309 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

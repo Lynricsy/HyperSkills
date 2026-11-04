@@ -1,10 +1,10 @@
 ---
 name: laravel
-description: "Develops Laravel PHP applications with Eloquent, queues, Blade and Livewire."
+description: "Guides Laravel PHP applications: Eloquent, queues, Blade, Livewire, Pennant and Pest. Use when writing, reviewing, debugging or upgrading Laravel code, a page fires too many queries, a queued job runs twice or loses work, a Pest test depends on run order, or Artisan, Eloquent or Livewire appears in the task."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
