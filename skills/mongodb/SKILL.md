@@ -1,10 +1,10 @@
 ---
 name: mongodb
-description: "Designs and tunes MongoDB documents, aggregations, indexes and cluster operations."
+description: "Designs and tunes MongoDB document models, aggregation pipelines, indexes and sharding. Use when designing or reviewing a MongoDB collection or pipeline, explain shows COLLSCAN or an in-memory SORT, documents near the 16 MB limit, writes are lost or duplicated across a failover, picking a shard key, or adding Atlas Search or $vectorSearch."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
