@@ -1,10 +1,10 @@
 ---
 name: code-review
-description: "Reviews code changes and pull-request diffs, or evaluates review feedback."
+description: "Reviews code changes, pull-request diffs and branches, and evaluates review feedback received. Use when asked to review a PR, diff, commit range or branch, to respond to or push back on review comments, or before calling your own finished change done, including a small diff or code another agent wrote."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: task
 ---
 

@@ -438,3 +438,11 @@ redis-vl-python MIT、orchestkit MIT、awesome-copilot MIT、antfu/skills MIT、
 本 skill 无 `kind: docs` 条目。
 
 正文（`SKILL.md`/`references/`/`scripts/`）本轮除 `metadata.version` 外无改动，按规程不需要 D2 回归。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Reviews code changes and pull-request diffs, or evaluates review feedback.`  
+新：`Reviews code changes, pull-request diffs and branches, and evaluates review feedback received. Use when asked to review a PR, diff, commit range or branch, to respond to or push back on review comments, or before calling your own finished change done, including a small diff or code another agent wrote.`（首句 94 字符，全长 303 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。
