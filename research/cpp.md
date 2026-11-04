@@ -409,3 +409,11 @@ E191还实际读取Epic RPC页面。
 ## 2026-11-01 D2 回归
 
 正文（`SKILL.md` 正文、`references/`、`scripts/`）本轮未改（仅 frontmatter `metadata.version` 与 SOURCES.yaml），按 `.omp/commands/sync-upstreams.md` 第 5 节不触发 D2，未跑评测。
+
+## 2026-11-04 description 维护（两层写法）
+
+旧：`Develops C++ code with CMake, ownership, concurrency and memory safety.`  
+新：`Guides C++17/20/23 code: ownership and lifetimes, concurrency, CMake targets and ABI. Use when writing or reviewing .cpp/.hpp or CMakeLists.txt, chasing a dangling string_view or span, a coroutine or callback lifetime bug, atomic ordering, an ODR/ABI mismatch between targets, or a sanitizer report.`（首句 85 字符，全长 299 字符）
+
+依据：`docs/skill-standard.md` 1.1.1（首句自足并点名领域，随后用 `Use when` 列具体触发场景；`Not for` 只保留实测过的排除词）；调研来源与冲突裁决见该节依据表。A 复核 `## Scope` 与 2026-09-12 压缩前的长描述作为触发词来源；C 只改 description 与版本号，正文与上游 pin 不变；D 静态门 `uv run --locked tools/check_repository.py` 通过。
+路由对照：本 skill 不在本轮抽样内（抽样 9 个 skill，见 `research/python.md` 同日记录），未测量新描述的选择率。

@@ -1,10 +1,10 @@
 ---
 name: cpp
-description: "Develops C++ code with CMake, ownership, concurrency and memory safety."
+description: "Guides C++17/20/23 code: ownership and lifetimes, concurrency, CMake targets and ABI. Use when writing or reviewing .cpp/.hpp or CMakeLists.txt, chasing a dangling string_view or span, a coroutine or callback lifetime bug, atomic ordering, an ODR/ABI mismatch between targets, or a sanitizer report."
 license: MIT (upstream attributions in NOTICE.md)
 metadata:
   author: HyperSkills
-  version: "2026.11.01"
+  version: "2026.11.04"
   category: framework
 ---
 
